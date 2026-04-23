@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "generate-stocks": "node generate-stocks.js"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.11",
+    "axios": "^1.15.2",
+    "dotenv": "^17.4.2",
+    "ejs": "^5.0.2",
+    "express": "^5.2.1",
+    "iconv-lite": "^0.7.2"
+  }
+}
