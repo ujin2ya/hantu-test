@@ -73,6 +73,68 @@ node token-test.js
 
 대화형으로 종목명을 물어보고, 동명이 종목이 여러 개면 번호를 선택받는다. 이후 현재가·일·주·월·연봉 거래량을 콘솔에 출력한다. (비-TTY 환경에서는 stdin 대기로 멈추므로 터미널에서 직접 실행할 것.)
 
+### 상용 서버 구동 (PM2)
+
+상용 서버에서는 프로세스가 죽을 때 자동 재시작되고 부팅 시에도 살아나도록 [PM2](https://pm2.keymetrics.io/)로 띄우는 것을 권장한다. PM2는 `.env`를 건드리지 않으며, 앱 내부의 `dotenv`가 그대로 로드한다.
+
+1. PM2 설치 (전역):
+
+   ```bash
+   npm install -g pm2
+   ```
+
+2. 앱 시작 (프로세스 이름 `hantu-test`):
+
+   ```bash
+   pm2 start app.js --name hantu-test
+   ```
+
+   PORT를 명령 한 줄에서 바꾸고 싶으면 `PORT=8080 pm2 start app.js --name hantu-test` 처럼 앞에 붙인다.
+
+3. 재부팅 후 자동 기동:
+
+   ```bash
+   pm2 save
+   pm2 startup          # 출력되는 sudo 명령을 한 번 그대로 실행
+   ```
+
+   `pm2 startup`이 안내하는 `sudo env PATH=... pm2 ...` 커맨드를 복사해 그대로 실행해야 부팅 스크립트가 등록된다.
+
+4. 자주 쓰는 관리 명령:
+
+   | 동작 | 명령 |
+   | --- | --- |
+   | 상태 확인 | `pm2 status` 또는 `pm2 list` |
+   | 실시간 로그 | `pm2 logs hantu-test` |
+   | 재시작 | `pm2 restart hantu-test` |
+   | 코드 무중단 갱신 | `git pull && pm2 reload hantu-test` |
+   | 중지 | `pm2 stop hantu-test` |
+   | 목록에서 제거 | `pm2 delete hantu-test` |
+
+#### ecosystem 설정 파일로 관리 (선택)
+
+여러 프로세스를 쓰거나 환경변수를 PM2에서 관리하고 싶으면 루트에 `ecosystem.config.js`를 두고 `pm2 start ecosystem.config.js`로 띄운다. 예시:
+
+```js
+module.exports = {
+  apps: [
+    {
+      name: "hantu-test",
+      script: "app.js",
+      instances: 1,          // KIS API가 초당 호출 제한이 있으므로 1로 고정
+      exec_mode: "fork",     // cluster로 띄우면 토큰 발급/레이트리밋이 꼬인다
+      max_memory_restart: "300M",
+      env: {
+        NODE_ENV: "production",
+        PORT: 3012,
+      },
+    },
+  ],
+};
+```
+
+> **주의:** `app.js`는 내부적으로 호출 간 sleep으로 KIS 초당 제한을 맞추므로, PM2 cluster 모드나 다중 인스턴스는 쓰지 말 것. 프로세스가 2개 이상이면 동시 호출이 발생해 토큰/시세 API가 레이트리밋에 걸린다.
+
 ## 가중치 조정 가이드
 
 검색 폼 아래의 가중치 입력은 7개 지표에 대한 상대적 중요도다. 합이 100이 아니어도 내부에서 자동 정규화된다. 기본값은 다음과 같다:
