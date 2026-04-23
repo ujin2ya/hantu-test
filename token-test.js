@@ -16,19 +16,32 @@ function loadStocks() {
   }
 }
 
-function findStockByName(name) {
+function findStockByQuery(query) {
   if (!stocksData) {
     throw new Error("stocks.json not loaded");
   }
 
-  const keyword = name.trim();
+  const keyword = String(query || "").trim();
+  if (!keyword) return [];
 
-  const exactMatches = stocksData.stocks.filter(
+  const upper = keyword.toUpperCase();
+
+  const shortCodeMatches = stocksData.stocks.filter(
+    (stock) => String(stock.shortCode || "").toUpperCase() === upper
+  );
+  if (shortCodeMatches.length > 0) return shortCodeMatches;
+
+  const standardCodeMatches = stocksData.stocks.filter(
+    (stock) => String(stock.standardCode || "").toUpperCase() === upper
+  );
+  if (standardCodeMatches.length > 0) return standardCodeMatches;
+
+  const exactNameMatches = stocksData.stocks.filter(
     (stock) => stock.name === keyword
   );
 
-  if (exactMatches.length > 0) {
-    return exactMatches;
+  if (exactNameMatches.length > 0) {
+    return exactNameMatches;
   }
 
   return stocksData.stocks.filter((stock) =>
@@ -36,8 +49,8 @@ function findStockByName(name) {
   );
 }
 
-function getStockCodeByName(name) {
-  const matches = findStockByName(name);
+function getStockInfoByQuery(query) {
+  const matches = findStockByQuery(query);
 
   if (matches.length === 0) {
     return null;
@@ -74,8 +87,8 @@ function promptQuestion(question) {
   });
 }
 
-async function promptForStockName() {
-  return promptQuestion("종목명을 입력하세요: ");
+async function promptForStockQuery() {
+  return promptQuestion("종목명 또는 종목코드를 입력하세요: ");
 }
 
 async function promptForSelection(max) {
@@ -269,10 +282,10 @@ function printPeriodVolumes(title, data, limit = 10) {
   try {
     loadStocks();
 
-    const stockName = await promptForStockName();
-    console.log(`\n[검색] 입력한 종목명: "${stockName}"`);
+    const stockQuery = await promptForStockQuery();
+    console.log(`\n[검색] 입력: "${stockQuery}"`);
 
-    const stockInfo = getStockCodeByName(stockName);
+    const stockInfo = getStockInfoByQuery(stockQuery);
 
     if (!stockInfo) {
       console.log("일치하는 종목이 없습니다.");

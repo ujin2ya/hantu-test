@@ -24,8 +24,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 검색 한 번당 데이터 흐름
 
-1. 사용자가 종목명과 (선택적인) 가중치 변경 값을 `POST /search`로 제출한다.
-2. `getStockCodeByName`이 시작 시 메모리에 로드해둔 `stocksData`에서 이름을 매칭한다. 정확히 일치하는 이름이 있으면 그것을 우선하고, 없으면 부분 일치(substring)를 후보로 반환(첫 후보 자동 선택).
+1. 사용자가 종목명 또는 종목코드와 (선택적인) 가중치 변경 값을 `POST /search`로 제출한다.
+2. `getStockInfoByQuery`가 시작 시 메모리에 로드해둔 `stocksData`에서 질의어를 매칭한다. 우선순위는 `shortCode` 정확 일치 → `standardCode` 정확 일치 → 종목명 정확 일치 → 종목명 부분 일치(substring). 후보가 여러 개면 첫 번째가 자동 선택된다.
 3. `getAccessToken` → `getCurrentPrice` → 네 번의 `getPeriodChart` (`D`/`W`/`M`/`Y`)가 **순차적으로** 실행된다. 각 호출 전 `safeApiCall`이 300~1100ms를 대기한다. KIS는 초당 호출 제한이 있으므로 이 sleep은 **기능적으로 필수적**이다 — 병렬화하지 말 것.
 4. KIS 원시 응답은 `normalizeCurrentPrice`, `normalizePeriodData`로 도메인 객체로 정규화된 뒤, `buildSeries`에서 차트용 시리즈(역순, 기간별 개수 절삭)로 재가공된다.
 5. `buildScoreModel`이 7개의 서브 점수를 계산하고, 사용자가 지정한 가중치로 합쳐서 0~100의 `totalScore`와 verdict(판정)를 만든다.

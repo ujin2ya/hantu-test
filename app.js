@@ -24,18 +24,30 @@ function loadStocks() {
   }
 }
 
-function findStockByName(name) {
-  const keyword = String(name || "").trim();
+function findStockByQuery(query) {
+  const keyword = String(query || "").trim();
   if (!keyword) return [];
 
-  const exactMatches = stocksData.stocks.filter((stock) => stock.name === keyword);
-  if (exactMatches.length > 0) return exactMatches;
+  const upper = keyword.toUpperCase();
+
+  const shortCodeMatches = stocksData.stocks.filter(
+    (stock) => String(stock.shortCode || "").toUpperCase() === upper
+  );
+  if (shortCodeMatches.length > 0) return shortCodeMatches;
+
+  const standardCodeMatches = stocksData.stocks.filter(
+    (stock) => String(stock.standardCode || "").toUpperCase() === upper
+  );
+  if (standardCodeMatches.length > 0) return standardCodeMatches;
+
+  const exactNameMatches = stocksData.stocks.filter((stock) => stock.name === keyword);
+  if (exactNameMatches.length > 0) return exactNameMatches;
 
   return stocksData.stocks.filter((stock) => stock.name.includes(keyword));
 }
 
-function getStockCodeByName(name) {
-  const matches = findStockByName(name);
+function getStockInfoByQuery(query) {
+  const matches = findStockByQuery(query);
 
   if (matches.length === 0) return null;
 
@@ -733,13 +745,13 @@ app.get("/", (req, res) => {
 
 app.post("/search", async (req, res) => {
   try {
-    const query = String(req.body.stockName || "").trim();
+    const query = String(req.body.stockQuery || "").trim();
     const weights = parseWeights(req.body);
 
     if (!query) {
       return res.render("index", {
         query: "",
-        error: "종목명을 입력하세요.",
+        error: "종목명 또는 종목코드를 입력하세요.",
         selected: null,
         currentData: null,
         candidates: [],
@@ -753,7 +765,7 @@ app.post("/search", async (req, res) => {
       });
     }
 
-    const stockInfo = getStockCodeByName(query);
+    const stockInfo = getStockInfoByQuery(query);
 
     if (!stockInfo) {
       return res.render("index", {
@@ -852,7 +864,7 @@ app.post("/search", async (req, res) => {
     }
 
     res.render("index", {
-      query: req.body.stockName || "",
+      query: req.body.stockQuery || "",
       error: message,
       selected: null,
       currentData: null,

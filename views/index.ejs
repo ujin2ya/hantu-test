@@ -282,9 +282,51 @@
       letter-spacing: 0.3px;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 991.98px) {
+      .app-header { padding: 22px 0 48px; margin-bottom: -34px; }
+      .app-header h1 { font-size: 1.3rem; }
+      .app-header .subtitle { font-size: 0.85rem; }
       .chart-wrap { height: 280px; }
-      .app-header h1 { font-size: 1.4rem; }
+    }
+
+    @media (max-width: 575.98px) {
+      .app-header { padding: 18px 0 42px; margin-bottom: -30px; }
+      .app-header h1 { font-size: 1.15rem; letter-spacing: -0.3px; }
+      .app-header .subtitle { font-size: 0.78rem; }
+
+      .section-title { font-size: 0.95rem; }
+
+      .metric-card { border-radius: 14px; }
+      .metric-card .metric-label { font-size: 0.72rem; }
+      .metric-card .metric-value { font-size: 1.15rem; }
+      .metric-card .metric-sub { font-size: 0.78rem; }
+
+      .position-card { padding: 12px; }
+      .position-card .title { font-size: 0.72rem; }
+      .position-card .percent { font-size: 1.15rem; }
+      .position-card .desc { font-size: 0.78rem; }
+
+      .meta-item { padding: 10px 12px; }
+      .meta-item strong { font-size: 0.7rem; }
+      .meta-item .value { font-size: 0.9rem; }
+
+      .pill { padding: 8px 10px; }
+      .pill strong { font-size: 0.66rem; }
+      .pill span { font-size: 0.9rem; }
+
+      .weight-item { padding: 8px 10px; }
+      .weight-item label { font-size: 0.72rem; margin-bottom: 4px; }
+      /* iOS 사파리는 포커스 시 16px 미만 입력에 자동 줌을 건다 — 줌 방지 */
+      .weight-item .form-control-sm { font-size: 16px; padding: 6px 8px; }
+
+      .explain-box { padding: 14px; }
+      .explain-box h3 { font-size: 0.95rem; }
+
+      .verdict-badge { font-size: 0.72rem; padding: 3px 10px; }
+
+      .chart-wrap { height: 240px; }
+
+      .btn-search { padding: 10px 16px; font-size: 1rem; }
     }
   </style>
 </head>
@@ -317,14 +359,14 @@
   %>
 
   <header class="app-header">
-    <div class="container-fluid px-4 px-lg-5">
+    <div class="container-fluid px-3 px-lg-5">
       <h1><i class="bi bi-graph-up-arrow me-2"></i>주식앱 스타일 차트 + 점수화</h1>
       <div class="subtitle">한국투자증권 Open API · 일/주/월/연봉 + 7요소 가중치 점수</div>
     </div>
   </header>
 
-  <main class="container-fluid px-4 px-lg-5 pb-5">
-    <div class="glass-card p-4 p-lg-4 mb-4">
+  <main class="container-fluid px-3 px-lg-5 pb-5">
+    <div class="glass-card p-3 p-lg-4 mb-4">
       <form id="search-form" method="post" action="/search">
         <div class="row g-2 align-items-stretch mb-3">
           <div class="col-12 col-lg">
@@ -334,9 +376,9 @@
               </span>
               <input
                 type="text"
-                name="stockName"
+                name="stockQuery"
                 class="form-control border-start-0"
-                placeholder="예: 로킷헬스케어"
+                placeholder="종목명 또는 종목코드 (예: 삼성전자, 005930)"
                 value="<%= safeQuery %>"
                 autocomplete="off"
                 required
@@ -460,7 +502,7 @@
 
       <div class="row g-3 mb-4">
         <div class="col-12 col-xl-7">
-          <div class="glass-card p-4 h-100">
+          <div class="glass-card p-3 p-lg-4 h-100">
             <h2 class="section-title mb-3"><i class="bi bi-info-square"></i>종목 기본 정보</h2>
             <div class="row g-2 row-cols-2 row-cols-md-4">
               <div class="col"><div class="meta-item"><strong>종목명</strong><div class="value"><%= safeCurrentData.stockName %></div></div></div>
@@ -476,7 +518,7 @@
         </div>
 
         <div class="col-12 col-xl-5">
-          <div class="glass-card p-4 h-100">
+          <div class="glass-card p-3 p-lg-4 h-100">
             <h2 class="section-title mb-3"><i class="bi bi-crosshair"></i>현재 위치 요약</h2>
             <div class="row g-2 row-cols-2">
               <div class="col">
@@ -524,7 +566,7 @@
         ]; %>
         <% charts.forEach(function(c) { %>
           <div class="col-12 col-xl-6">
-            <div class="glass-card p-4 h-100">
+            <div class="glass-card p-3 p-lg-4 h-100">
               <h2 class="section-title mb-3"><i class="bi <%= c.icon %>"></i><%= c.title %></h2>
               <div class="chart-wrap"><canvas id="<%= c.id %>"></canvas></div>
               <div class="row g-2 row-cols-2 row-cols-md-4 mt-2">
@@ -538,7 +580,7 @@
         <% }) %>
       </div>
 
-      <div class="glass-card p-4 mb-4">
+      <div class="glass-card p-3 p-lg-4 mb-4">
         <h2 class="section-title mb-3"><i class="bi bi-journal-text"></i>점수 설명 / 물린 매물대 추정</h2>
         <div class="row g-3">
           <div class="col-12 col-lg-6">
