@@ -11,6 +11,7 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+.kis-token.json
 
 # 로그 / 프로세스 파일
 logs/

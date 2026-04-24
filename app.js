@@ -77,27 +77,68 @@ async function safeApiCall(fn, delayMs = 1000) {
   return await fn();
 }
 
-async function getAccessToken() {
-  const url = `${process.env.KIS_BASE_URL}/oauth2/tokenP`;
+const TOKEN_CACHE_PATH = path.join(__dirname, ".kis-token.json");
+const TOKEN_REFRESH_MARGIN_MS = 5 * 60 * 1000;
 
-  const body = {
-    grant_type: "client_credentials",
-    appkey: process.env.KIS_APP_KEY,
-    appsecret: process.env.KIS_APP_SECRET,
-  };
-
-  const res = await axios.post(url, body, {
-    headers: {
-      "content-type": "application/json; charset=UTF-8",
-    },
-    timeout: 10000,
-  });
-
-  if (!res.data.access_token) {
-    throw new Error("토큰 발급 실패");
+function loadCachedToken() {
+  try {
+    const raw = fs.readFileSync(TOKEN_CACHE_PATH, "utf-8");
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.accessToken === "string" && typeof parsed.expiresAt === "number") {
+      return parsed;
+    }
+  } catch (_) {
+    // 캐시 없음/깨짐 — 새로 발급
   }
+  return { accessToken: null, expiresAt: 0 };
+}
 
-  return res.data.access_token;
+function saveCachedToken(token) {
+  try {
+    fs.writeFileSync(TOKEN_CACHE_PATH, JSON.stringify(token), "utf-8");
+  } catch (e) {
+    console.warn("[KIS] 토큰 캐시 저장 실패:", e.message);
+  }
+}
+
+let tokenCache = loadCachedToken();
+let inflightIssue = null;
+
+async function getAccessToken() {
+  const now = Date.now();
+  if (tokenCache.accessToken && tokenCache.expiresAt - now > TOKEN_REFRESH_MARGIN_MS) {
+    return tokenCache.accessToken;
+  }
+  if (inflightIssue) return inflightIssue;
+
+  inflightIssue = (async () => {
+    try {
+      const url = `${process.env.KIS_BASE_URL}/oauth2/tokenP`;
+      const body = {
+        grant_type: "client_credentials",
+        appkey: process.env.KIS_APP_KEY,
+        appsecret: process.env.KIS_APP_SECRET,
+      };
+      const res = await axios.post(url, body, {
+        headers: { "content-type": "application/json; charset=UTF-8" },
+        timeout: 10000,
+      });
+      if (!res.data.access_token) {
+        throw new Error("토큰 발급 실패");
+      }
+      const expiresInMs = (Number(res.data.expires_in) || 86400) * 1000;
+      tokenCache = {
+        accessToken: res.data.access_token,
+        expiresAt: Date.now() + expiresInMs,
+      };
+      saveCachedToken(tokenCache);
+      return tokenCache.accessToken;
+    } finally {
+      inflightIssue = null;
+    }
+  })();
+
+  return inflightIssue;
 }
 
 async function getCurrentPrice(accessToken, stockCode) {
@@ -678,6 +719,172 @@ function calculateVolatilityScore(dailyData) {
   };
 }
 
+function estimateBuyZones(dailyData, currentPrice) {
+  const items = dailyData.items.slice(0, 60);
+  if (!items.length) return { supportBins: [] };
+
+  let minPrice = Infinity;
+  let maxPrice = -Infinity;
+  items.forEach((item) => {
+    const low = Number(item.lowPrice || 0);
+    const high = Number(item.highPrice || 0);
+    if (low > 0 && low < minPrice) minPrice = low;
+    if (high > 0 && high > maxPrice) maxPrice = high;
+  });
+
+  if (!isFinite(minPrice) || !isFinite(maxPrice) || maxPrice <= minPrice) {
+    return { supportBins: [] };
+  }
+
+  const binCount = 24;
+  const binSize = (maxPrice - minPrice) / binCount;
+  const bins = Array.from({ length: binCount }, (_, i) => ({
+    start: minPrice + binSize * i,
+    end: minPrice + binSize * (i + 1),
+    volume: 0,
+  }));
+
+  items.forEach((item) => {
+    const avgPrice =
+      (Number(item.highPrice || 0) + Number(item.lowPrice || 0) + Number(item.closePrice || 0)) / 3;
+    const volume = Number(item.volume || 0);
+    if (!isFinite(avgPrice) || avgPrice <= 0) return;
+    let idx = Math.floor((avgPrice - minPrice) / binSize);
+    if (idx < 0) idx = 0;
+    if (idx >= binCount) idx = binCount - 1;
+    bins[idx].volume += volume;
+  });
+
+  const supportBins = bins
+    .filter((b) => b.end < currentPrice && b.volume > 0)
+    .map((b) => ({
+      start: Math.round(b.start),
+      end: Math.round(b.end),
+      mid: Math.round((b.start + b.end) / 2),
+      volume: Math.round(b.volume),
+    }));
+
+  return { supportBins };
+}
+
+function buildTiersFromBands(supportBins, currentPrice, bands) {
+  function pickSupportInBand(gapMin, gapMax) {
+    const upperBound = currentPrice * (1 - gapMin);
+    const lowerBound = currentPrice * (1 - gapMax);
+    const candidates = supportBins.filter((b) => b.mid <= upperBound && b.mid >= lowerBound);
+    if (candidates.length === 0) return null;
+    return candidates.reduce((best, cur) => (cur.volume > best.volume ? cur : best), candidates[0]);
+  }
+
+  const tiers = {};
+  bands.forEach(({ key, label, gapMin, gapMax, fallbackGap, ordinal }) => {
+    const support = pickSupportInBand(gapMin, gapMax);
+    let price;
+    let description;
+    if (support) {
+      price = support.mid;
+      description = `${ordinal}차 지지 매물대 (${support.start.toLocaleString()}~${support.end.toLocaleString()}원, 60일 거래량 집중 구간)`;
+    } else {
+      price = Math.round(currentPrice * (1 - fallbackGap));
+      description = `현재가 -${(fallbackGap * 100).toFixed(1)}% 기본값 (해당 밴드에 지지 매물대 없음)`;
+    }
+    const gap = currentPrice > 0 ? ((currentPrice - price) / currentPrice) * 100 : 0;
+    tiers[key] = {
+      label,
+      price,
+      description,
+      gapPercent: gap.toFixed(1),
+      bandLabel: `-${(gapMin * 100).toFixed(1)}% ~ -${(gapMax * 100).toFixed(1)}%`,
+    };
+  });
+  return tiers;
+}
+
+function calculateATRPercent(dailyData, period = 14) {
+  const items = dailyData.items.slice(0, period + 1);
+  if (items.length < period + 1) return null;
+
+  const trValues = [];
+  for (let i = 0; i < period; i++) {
+    const cur = items[i];
+    const prev = items[i + 1];
+    const high = Number(cur.highPrice || 0);
+    const low = Number(cur.lowPrice || 0);
+    const prevClose = Number(prev.closePrice || 0);
+    if (high <= 0 || low <= 0 || prevClose <= 0) continue;
+    const tr = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
+    trValues.push(tr);
+  }
+  if (trValues.length === 0) return null;
+
+  const atr = trValues.reduce((a, b) => a + b, 0) / trValues.length;
+  const refClose = Number(items[0].closePrice || 0);
+  if (refClose <= 0) return null;
+
+  return { atr, atrPercent: (atr / refClose) * 100 };
+}
+
+function buildBuyRecommendation(totalScore, buyZones, currentPrice, dailyData) {
+  const supportBins = buyZones.supportBins || [];
+
+  const fixedBands = [
+    { key: "aggressive", label: "공격적 매수", gapMin: 0.01, gapMax: 0.05, fallbackGap: 0.03, ordinal: 1 },
+    { key: "neutral", label: "중립적 매수", gapMin: 0.05, gapMax: 0.10, fallbackGap: 0.07, ordinal: 2 },
+    { key: "conservative", label: "보수적 매수", gapMin: 0.10, gapMax: 0.18, fallbackGap: 0.15, ordinal: 3 },
+  ];
+  const fixed = { tiers: buildTiersFromBands(supportBins, currentPrice, fixedBands) };
+
+  let atr = null;
+  const atrInfo = calculateATRPercent(dailyData);
+  if (atrInfo && atrInfo.atrPercent > 0) {
+    const atrRatio = atrInfo.atrPercent / 100;
+    const clampGap = (g) => Math.max(0.005, Math.min(0.3, g));
+    const atrBands = [
+      {
+        key: "aggressive", label: "공격적 매수",
+        gapMin: clampGap(atrRatio * 0.5), gapMax: clampGap(atrRatio * 1.5),
+        fallbackGap: clampGap(atrRatio * 1.0), ordinal: 1,
+      },
+      {
+        key: "neutral", label: "중립적 매수",
+        gapMin: clampGap(atrRatio * 1.5), gapMax: clampGap(atrRatio * 3),
+        fallbackGap: clampGap(atrRatio * 2.2), ordinal: 2,
+      },
+      {
+        key: "conservative", label: "보수적 매수",
+        gapMin: clampGap(atrRatio * 3), gapMax: clampGap(atrRatio * 5),
+        fallbackGap: clampGap(atrRatio * 4), ordinal: 3,
+      },
+    ];
+    atr = {
+      tiers: buildTiersFromBands(supportBins, currentPrice, atrBands),
+      atrPercent: atrInfo.atrPercent.toFixed(2),
+      atrValue: Math.round(atrInfo.atr),
+    };
+  }
+
+  let recommendedTier;
+  let tierExplanation;
+  if (totalScore >= 70) {
+    recommendedTier = "aggressive";
+    tierExplanation = "종합 점수가 높아 조건이 우호적이다. 얕은 되돌림(공격 구간)에서 진입해도 리스크가 크지 않다.";
+  } else if (totalScore >= 50) {
+    recommendedTier = "neutral";
+    tierExplanation = "조건이 중립적이다. 중간 수준 되돌림까지 기다리며 분할 진입하는 편이 안전하다.";
+  } else {
+    recommendedTier = "conservative";
+    tierExplanation = "조건이 취약하다. 깊은 조정(보수 구간)까지 기다리거나 관망을 권한다.";
+  }
+
+  return {
+    recommendedTier,
+    tierExplanation,
+    fixed,
+    atr,
+    hasSupports: supportBins.length > 0,
+  };
+}
+
 function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearlyData, dailySeries, weeklySeries, monthlySeries, yearlySeries, weights) {
   const volume = calculateVolumeScore(currentData, dailyData, weeklyData, monthlyData, yearlyData);
   const position = calculatePositionScore(dailySeries, weeklySeries, monthlySeries, yearlySeries);
@@ -687,6 +894,7 @@ function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearly
   const trapped = estimateTrappedZones(dailyData, currentData.currentPrice);
   const resistance = trapped.resistanceScore;
   const volatility = calculateVolatilityScore(dailyData);
+  const buyZones = estimateBuyZones(dailyData, currentData.currentPrice);
 
   const total =
     volume.score * (weights.volume / 100) +
@@ -697,14 +905,18 @@ function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearly
     resistance.score * (weights.resistance / 100) +
     volatility.score * (weights.volatility / 100);
 
+  const totalScore = clampScore(total);
+
   let verdict = "애매";
   if (total >= 80) verdict = "상승 조건 강함";
   else if (total >= 65) verdict = "조건부 긍정";
   else if (total >= 50) verdict = "중립";
   else verdict = "보수적 접근";
 
+  const buyRecommendation = buildBuyRecommendation(totalScore, buyZones, currentData.currentPrice, dailyData);
+
   return {
-    totalScore: clampScore(total),
+    totalScore,
     verdict,
     weights,
     volume,
@@ -715,6 +927,8 @@ function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearly
     resistance,
     volatility,
     trappedZones: trapped.trappedZones,
+    supportBins: buyZones.supportBins,
+    buyRecommendation,
   };
 }
 

@@ -253,6 +253,102 @@
       margin-top: 6px;
     }
 
+    .recommend-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    .recommend-badge.recommend-aggressive { background: #dcfce7; color: #166534; }
+    .recommend-badge.recommend-neutral { background: #dbeafe; color: #1e40af; }
+    .recommend-badge.recommend-conservative { background: #fef3c7; color: #92400e; }
+
+    .buy-tier {
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 16px;
+      height: 100%;
+      border: 2px solid transparent;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .buy-tier.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
+    }
+
+    .buy-tier .tier-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+
+    .buy-tier.active .tier-label {
+      color: #1e40af;
+    }
+
+    .buy-tier .tier-price {
+      font-size: 1.55rem;
+      font-weight: 700;
+      margin: 4px 0 2px;
+      word-break: break-word;
+    }
+
+    .buy-tier .tier-gap {
+      font-size: 0.82rem;
+      color: #2563eb;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .buy-tier .tier-desc {
+      font-size: 0.82rem;
+      color: #475569;
+      line-height: 1.45;
+    }
+
+    .buy-tier .tier-band {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 500;
+      margin-left: 2px;
+    }
+
+    .buy-tier.active .tier-band {
+      color: #3b82f6;
+    }
+
+    .buy-tabs {
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .buy-tabs .nav-link {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-radius: 10px;
+      padding: 6px 14px;
+      background: #f1f5f9;
+      border: 0;
+    }
+
+    .buy-tabs .nav-link.active {
+      background: var(--brand-gradient);
+      color: #fff;
+    }
+
+    .buy-tabs .nav-link:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
     #loading-overlay {
       position: fixed;
       inset: 0;
@@ -323,6 +419,17 @@
       .explain-box h3 { font-size: 0.95rem; }
 
       .verdict-badge { font-size: 0.72rem; padding: 3px 10px; }
+
+      .recommend-badge { font-size: 0.72rem; padding: 4px 10px; }
+
+      .buy-tier { padding: 12px; }
+      .buy-tier .tier-label { font-size: 0.75rem; }
+      .buy-tier .tier-price { font-size: 1.25rem; }
+      .buy-tier .tier-gap { font-size: 0.78rem; }
+      .buy-tier .tier-desc { font-size: 0.78rem; }
+      .buy-tier .tier-band { font-size: 0.66rem; display: block; margin-left: 0; margin-top: 2px; }
+
+      .buy-tabs .nav-link { font-size: 0.78rem; padding: 5px 10px; }
 
       .chart-wrap { height: 240px; }
 
@@ -498,6 +605,79 @@
             </div>
           </div>
         <% }) %>
+      </div>
+
+      <% const buyRec = safeScoreModel.buyRecommendation;
+         const tierOrder = ['aggressive', 'neutral', 'conservative'];
+         const variants = [
+           { key: 'fixed', label: '고정 밴드', icon: 'bi-bounding-box', enabled: true },
+           { key: 'atr', label: '변동성(ATR) 기반', icon: 'bi-activity', enabled: !!buyRec.atr },
+         ]; %>
+      <div class="glass-card p-3 p-lg-4 mb-4">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
+          <h2 class="section-title mb-0"><i class="bi bi-cash-coin"></i>추천 매수 구간</h2>
+          <span class="recommend-badge recommend-<%= buyRec.recommendedTier %>">
+            권고: <strong><%= buyRec.fixed.tiers[buyRec.recommendedTier].label %></strong>
+          </span>
+        </div>
+
+        <ul class="nav nav-pills buy-tabs mb-3" role="tablist">
+          <% variants.forEach(function(v, idx) { %>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link <%= idx === 0 ? 'active' : '' %>"
+                data-bs-toggle="pill"
+                data-bs-target="#buy-pane-<%= v.key %>"
+                type="button"
+                role="tab"
+                <%= v.enabled ? '' : 'disabled' %>
+              >
+                <i class="bi <%= v.icon %> me-1"></i><%= v.label %>
+              </button>
+            </li>
+          <% }) %>
+        </ul>
+
+        <div class="tab-content">
+          <% variants.forEach(function(v, idx) { %>
+            <div
+              id="buy-pane-<%= v.key %>"
+              class="tab-pane fade <%= idx === 0 ? 'show active' : '' %>"
+              role="tabpanel"
+            >
+              <% if (!v.enabled) { %>
+                <div class="muted-text">ATR 계산에 필요한 데이터가 부족합니다.</div>
+              <% } else { %>
+                <% const variantData = buyRec[v.key]; %>
+                <div class="muted-text mb-3">
+                  <% if (v.key === 'fixed') { %>
+                    <strong>고정 밴드 방식</strong> — 모든 종목에 동일한 괴리 범위(공격 -1~-5% / 중립 -5~-10% / 보수 -10~-18%)를 적용합니다. 예측 가능한 기준이지만 종목의 실제 변동성은 반영하지 않습니다.
+                  <% } else { %>
+                    <strong>변동성(ATR) 기반 방식</strong> — 이 종목의 14일 평균 진폭(ATR)이 <strong><%= variantData.atrPercent %>%</strong>(≈<%= fmtNumber(variantData.atrValue) %>원)입니다. 밴드가 이에 비례해 자동 조정되어 저변동 종목은 타이트하게, 고변동 종목은 넓게 잡힙니다.
+                  <% } %>
+                </div>
+                <div class="row g-3">
+                  <% tierOrder.forEach(function(k) { %>
+                    <% const t = variantData.tiers[k]; %>
+                    <div class="col-12 col-md-4">
+                      <div class="buy-tier<%= buyRec.recommendedTier === k ? ' active' : '' %>">
+                        <div class="tier-label"><%= t.label %> <span class="tier-band">(<%= t.bandLabel %>)</span></div>
+                        <div class="tier-price"><%= fmtNumber(t.price) %>원</div>
+                        <div class="tier-gap">현재가 대비 <%= t.gapPercent %>% 하회</div>
+                        <div class="tier-desc"><%= t.description %></div>
+                      </div>
+                    </div>
+                  <% }) %>
+                </div>
+              <% } %>
+            </div>
+          <% }) %>
+        </div>
+
+        <div class="muted-text mt-3"><%= buyRec.tierExplanation %></div>
+        <div class="muted-text mt-1">
+          ※ 최근 60일 거래량 히스토그램 + 14일 ATR에 기반한 추정값입니다. 실제 체결가/시장 상황과 다를 수 있으며 투자 조언이 아닙니다.
+        </div>
       </div>
 
       <div class="row g-3 mb-4">

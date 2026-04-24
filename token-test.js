@@ -112,7 +112,35 @@ async function safeApiCall(fn, label, delayMs = 700) {
   return await fn();
 }
 
+const TOKEN_CACHE_PATH = path.join(__dirname, ".kis-token.json");
+const TOKEN_REFRESH_MARGIN_MS = 5 * 60 * 1000;
+
+function loadCachedToken() {
+  try {
+    const raw = fs.readFileSync(TOKEN_CACHE_PATH, "utf-8");
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.accessToken === "string" && typeof parsed.expiresAt === "number") {
+      return parsed;
+    }
+  } catch (_) {}
+  return { accessToken: null, expiresAt: 0 };
+}
+
+function saveCachedToken(token) {
+  try {
+    fs.writeFileSync(TOKEN_CACHE_PATH, JSON.stringify(token), "utf-8");
+  } catch (e) {
+    console.warn("[KIS] 토큰 캐시 저장 실패:", e.message);
+  }
+}
+
 async function getAccessToken() {
+  const now = Date.now();
+  const cached = loadCachedToken();
+  if (cached.accessToken && cached.expiresAt - now > TOKEN_REFRESH_MARGIN_MS) {
+    return cached.accessToken;
+  }
+
   const url = `${process.env.KIS_BASE_URL}/oauth2/tokenP`;
 
   const body = {
@@ -131,6 +159,12 @@ async function getAccessToken() {
   if (!res.data.access_token) {
     throw new Error("토큰 발급 실패: access_token 이 없습니다.");
   }
+
+  const expiresInMs = (Number(res.data.expires_in) || 86400) * 1000;
+  saveCachedToken({
+    accessToken: res.data.access_token,
+    expiresAt: Date.now() + expiresInMs,
+  });
 
   return res.data.access_token;
 }
