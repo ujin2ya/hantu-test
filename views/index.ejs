@@ -893,6 +893,7 @@
         };
       %>
       <script id="ai-snapshot-data" type="application/json"><%- JSON.stringify(aiSnapshot) %></script>
+      <script id="ai-auto-mode" type="text/plain"><%= autoMode || 'swing' %></script>
 
       <script id="daily-series-data" type="application/json"><%- JSON.stringify(safeDailySeries) %></script>
       <script id="weekly-series-data" type="application/json"><%- JSON.stringify(safeWeeklySeries) %></script>
@@ -1055,6 +1056,8 @@
       const btnSwing = document.getElementById("aiBtnSwing");
       const resultBox = document.getElementById("aiCommentResult");
       const emptyBox = document.getElementById("aiCommentEmpty");
+      const autoModeEl = document.getElementById("ai-auto-mode");
+      const autoMode = (autoModeEl?.textContent || "swing").trim();
 
       function escapeHtml(s) {
         return String(s).replace(/[&<>"']/g, function (c) {
@@ -1112,11 +1115,14 @@
             return;
           }
           const modeLabel = mode === "short" ? "단타" : "스윙";
+          const cachedBadge = data.cached
+            ? '<span class="badge bg-info ms-2" style="font-size: 0.65rem;">캐시</span>'
+            : '';
           resultBox.innerHTML =
             '<div class="ai-card">' +
               '<div class="ai-mode-badge ' + (mode === "short" ? "short" : "swing") + '">' +
                 modeLabel + " 관점" +
-              '</div>' +
+              '</div>' + cachedBadge +
               renderMarkdown(data.text) +
             '</div>';
         } catch (err) {
@@ -1130,6 +1136,10 @@
 
       btnShort?.addEventListener("click", function () { callAi("short"); });
       btnSwing?.addEventListener("click", function () { callAi("swing"); });
+
+      if (autoMode === "short" || autoMode === "swing") {
+        setTimeout(function () { callAi(autoMode); }, 100);
+      }
     })();
   </script>
 </body>

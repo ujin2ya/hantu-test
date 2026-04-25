@@ -1631,6 +1631,21 @@ ${JSON.stringify(snapshot, null, 2)}
 `.trim();
 }
 
+const AI_CACHE_TTL_MS = 10 * 60 * 1000;
+const aiCommentCache = new Map();
+function getAiCache(key) {
+  const hit = aiCommentCache.get(key);
+  if (!hit) return null;
+  if (Date.now() > hit.expiresAt) {
+    aiCommentCache.delete(key);
+    return null;
+  }
+  return hit.value;
+}
+function setAiCache(key, value) {
+  aiCommentCache.set(key, { value, expiresAt: Date.now() + AI_CACHE_TTL_MS });
+}
+
 app.post("/ai/comment", async (req, res) => {
   try {
     if (!process.env.GEMINI_API_KEY) {
@@ -1641,13 +1656,20 @@ app.post("/ai/comment", async (req, res) => {
     if (!snapshot || typeof snapshot !== "object") {
       return res.status(400).json({ error: "snapshot 데이터가 없습니다." });
     }
+    const cacheKey = `${snapshot.code || "_"}:${mode}`;
+    const cached = getAiCache(cacheKey);
+    if (cached) {
+      return res.json({ ...cached, cached: true });
+    }
     const prompt = buildAiPrompt(snapshot, mode);
     const client = getGemini();
     const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
     const model = client.getGenerativeModel({ model: modelName });
     const result = await model.generateContent(prompt);
     const text = result.response.text();
-    res.json({ text, mode, model: modelName });
+    const payload = { text, mode, model: modelName };
+    setAiCache(cacheKey, payload);
+    res.json(payload);
   } catch (err) {
     console.error("[AI] error:", err.message || err);
     res.status(500).json({ error: err.message || "AI 호출 실패" });
@@ -1676,6 +1698,7 @@ app.get("/", (req, res) => {
       resistance: 20,
       volatility: 10,
     },
+    autoMode: pickAutoMode(),
   });
 });
 
@@ -1698,6 +1721,7 @@ app.post("/search", async (req, res) => {
         summary: null,
         scoreModel: null,
         weights,
+        autoMode: pickAutoMode(),
       });
     }
 
@@ -1717,6 +1741,7 @@ app.post("/search", async (req, res) => {
         summary: null,
         scoreModel: null,
         weights,
+        autoMode: pickAutoMode(),
       });
     }
 
@@ -1792,6 +1817,7 @@ app.post("/search", async (req, res) => {
       summary,
       scoreModel,
       weights,
+      autoMode: pickAutoMode(),
     });
   } catch (err) {
     let message = err.message || "알 수 없는 오류가 발생했습니다.";
@@ -1812,6 +1838,7 @@ app.post("/search", async (req, res) => {
       summary: null,
       scoreModel: null,
       weights: parseWeights(req.body || {}),
+      autoMode: pickAutoMode(),
     });
   }
 });
