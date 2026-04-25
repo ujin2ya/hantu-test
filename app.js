@@ -1,13 +1,15 @@
 const path = require("path");
 const fs = require("fs");
 const ENV_PATH = path.join(__dirname, ".env");
-const dotenvResult = require("dotenv").config({ path: ENV_PATH });
+const dotenvResult = require("dotenv").config({ path: ENV_PATH, override: true });
 if (dotenvResult.error) {
   console.warn("[dotenv] .env 로드 실패:", dotenvResult.error.message);
 } else {
   const parsedKeys = Object.keys(dotenvResult.parsed || {});
-  console.log(`[dotenv] .env 로드 OK / 파싱된 키 ${parsedKeys.length}개: [${parsedKeys.join(", ")}]`);
-  console.log("[dotenv] GEMINI_API_KEY 존재:", !!process.env.GEMINI_API_KEY);
+  console.log(`[dotenv] .env 로드 OK (override) / 파싱된 키 ${parsedKeys.length}개: [${parsedKeys.join(", ")}]`);
+  const parsedGemini = (dotenvResult.parsed || {}).GEMINI_API_KEY || "";
+  const envGemini = process.env.GEMINI_API_KEY || "";
+  console.log(`[dotenv] GEMINI_API_KEY: parsed_len=${parsedGemini.length}, env_len=${envGemini.length}, exists=${!!envGemini}`);
 }
 try {
   const raw = fs.readFileSync(ENV_PATH, "utf-8");
