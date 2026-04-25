@@ -1,8 +1,13 @@
-require("dotenv").config();
+const path = require("path");
+const dotenvResult = require("dotenv").config({ path: path.join(__dirname, ".env") });
+if (dotenvResult.error) {
+  console.warn("[dotenv] .env 로드 실패:", dotenvResult.error.message);
+} else {
+  console.log("[dotenv] .env 로드 OK / GEMINI_API_KEY 존재:", !!process.env.GEMINI_API_KEY);
+}
 const express = require("express");
 const axios = require("axios");
 const fs = require("fs");
-const path = require("path");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
