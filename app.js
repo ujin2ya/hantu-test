@@ -3,6 +3,7 @@ const express = require("express");
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 const PORT = process.env.PORT || 3012;
@@ -21,6 +22,11 @@ function loadStocks() {
 
   if (!stocksData || !Array.isArray(stocksData.stocks)) {
     throw new Error("stocks.json 형식이 올바르지 않습니다.");
+  }
+
+  stocksData.byShortCode = {};
+  for (const s of stocksData.stocks) {
+    if (s.shortCode) stocksData.byShortCode[s.shortCode] = s;
   }
 }
 
@@ -72,9 +78,37 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function safeApiCall(fn, delayMs = 1000) {
+async function safeApiCall(fn, delayMs = 1000, retries = 3) {
   await sleep(delayMs);
-  return await fn();
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const msg = err?.message || "";
+      const respMsg = err?.response?.data?.msg_cd || "";
+      const isRateLimit = /EGW00201|초당/.test(msg) || respMsg === "EGW00201";
+      if (!isRateLimit || attempt === retries) {
+        throw err;
+      }
+      const backoff = 1500 * Math.pow(2, attempt); // 1500, 3000, 6000ms
+      console.warn(`[KIS] rate limited (EGW00201), backoff ${backoff}ms then retry ${attempt + 1}/${retries}`);
+      await sleep(backoff);
+    }
+  }
+}
+
+function logSample(label, obj) {
+  if (obj === undefined || obj === null) {
+    console.log(`[SAMPLE] ${label}: <empty>`);
+    return;
+  }
+  const keys = Object.keys(obj);
+  console.log(`[SAMPLE] ${label} (${keys.length} keys):`);
+  for (const k of keys) {
+    const v = obj[k];
+    const s = typeof v === "string" ? `"${v}"` : JSON.stringify(v);
+    console.log(`  ${k} = ${s}`);
+  }
 }
 
 const TOKEN_CACHE_PATH = path.join(__dirname, ".kis-token.json");
@@ -195,8 +229,100 @@ async function getPeriodChart(accessToken, stockCode, periodCode, startDate, end
   return res.data;
 }
 
+async function getMinuteChart(accessToken, stockCode, hourHHMMSS) {
+  const url = `${process.env.KIS_BASE_URL}/uapi/domestic-stock/v1/quotations/inquire-time-itemchartprice`;
+  const res = await axios.get(url, {
+    headers: {
+      "content-type": "application/json; charset=UTF-8",
+      authorization: `Bearer ${accessToken}`,
+      appkey: process.env.KIS_APP_KEY,
+      appsecret: process.env.KIS_APP_SECRET,
+      tr_id: "FHKST03010200",
+    },
+    params: {
+      fid_etc_cls_code: "",
+      fid_cond_mrkt_div_code: "J",
+      fid_input_iscd: stockCode,
+      fid_input_hour_1: hourHHMMSS,
+      fid_pw_data_incu_yn: "Y",
+    },
+    timeout: 10000,
+  });
+
+  if (res.data.rt_cd !== "0") {
+    throw new Error(`분봉 API 오류: ${res.data.msg_cd} / ${res.data.msg1}`);
+  }
+  return res.data;
+}
+
+async function getVolumeRank(accessToken, blngClsCode = "3") {
+  const url = `${process.env.KIS_BASE_URL}/uapi/domestic-stock/v1/quotations/volume-rank`;
+  const res = await axios.get(url, {
+    headers: {
+      "content-type": "application/json; charset=UTF-8",
+      authorization: `Bearer ${accessToken}`,
+      appkey: process.env.KIS_APP_KEY,
+      appsecret: process.env.KIS_APP_SECRET,
+      tr_id: "FHPST01710000",
+    },
+    params: {
+      FID_COND_MRKT_DIV_CODE: "J",
+      FID_COND_SCR_DIV_CODE: "20171",
+      FID_INPUT_ISCD: "0000",
+      FID_DIV_CLS_CODE: "0",
+      FID_BLNG_CLS_CODE: String(blngClsCode),
+      FID_TRGT_CLS_CODE: "111111111",
+      FID_TRGT_EXLS_CLS_CODE: "0000000000",
+      FID_INPUT_PRICE_1: "",
+      FID_INPUT_PRICE_2: "",
+      FID_VOL_CNT: "",
+      FID_INPUT_DATE_1: "",
+    },
+    timeout: 10000,
+  });
+
+  if (res.data.rt_cd !== "0") {
+    throw new Error(`거래량/거래대금 순위 API 오류 (BLNG=${blngClsCode}): ${res.data.msg_cd} / ${res.data.msg1}`);
+  }
+  return res.data;
+}
+
+async function getVolumePowerRank(accessToken) {
+  const url = `${process.env.KIS_BASE_URL}/uapi/domestic-stock/v1/ranking/volume-power`;
+  const res = await axios.get(url, {
+    headers: {
+      "content-type": "application/json; charset=UTF-8",
+      authorization: `Bearer ${accessToken}`,
+      appkey: process.env.KIS_APP_KEY,
+      appsecret: process.env.KIS_APP_SECRET,
+      tr_id: "FHPST01680000",
+    },
+    params: {
+      fid_cond_mrkt_div_code: "J",
+      fid_cond_scr_div_code: "20168",
+      fid_input_iscd: "0000",
+      fid_div_cls_code: "0",
+      fid_input_price_1: "",
+      fid_input_price_2: "",
+      fid_vol_cnt: "",
+      fid_trgt_cls_code: "0",
+      fid_trgt_exls_cls_code: "0",
+    },
+    timeout: 10000,
+  });
+
+  if (res.data.rt_cd !== "0") {
+    throw new Error(`체결강도 순위 API 오류: ${res.data.msg_cd} / ${res.data.msg1}`);
+  }
+  return res.data;
+}
+
 function normalizeCurrentPrice(apiData, stockMeta) {
   const o = apiData.output;
+
+  const buyVolume = Number(o.shnu_cntg_smtn || 0);
+  const sellVolume = Number(o.seln_cntg_smtn || 0);
+  const buySellRatio = sellVolume > 0 ? buyVolume / sellVolume : null;
 
   return {
     stockCode: o.stck_shrn_iscd,
@@ -212,6 +338,10 @@ function normalizeCurrentPrice(apiData, stockMeta) {
     todayVolume: Number(o.acml_vol || 0),
     todayTradeValue: Number(o.acml_tr_pbmn || 0),
     foreignRate: Number(o.hts_frgn_ehrt || 0),
+    chegyeolStrength: Number(o.cttr || 0),
+    buyVolume,
+    sellVolume,
+    buySellRatio,
   };
 }
 
@@ -931,6 +1061,575 @@ function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearly
     buyRecommendation,
   };
 }
+
+function pickField(row, candidates) {
+  for (const key of candidates) {
+    if (row[key] !== undefined && row[key] !== null && String(row[key]).length > 0) {
+      return row[key];
+    }
+  }
+  return null;
+}
+
+function normalizeRankRows(apiData, kind) {
+  const rows = Array.isArray(apiData.output) ? apiData.output : [];
+  return rows
+    .map((r) => {
+      const shortCode = String(pickField(r, ["mksc_shrn_iscd", "stck_shrn_iscd"]) || "").trim();
+      if (!shortCode) return null;
+      const name = String(pickField(r, ["hts_kor_isnm", "stck_hts_kor_isnm"]) || "").trim();
+      const currentPrice = Number(pickField(r, ["stck_prpr"]) || 0);
+      const changeRate = Number(pickField(r, ["prdy_ctrt"]) || 0);
+      const volume = Number(pickField(r, ["acml_vol"]) || 0);
+      const tradeValue = Number(pickField(r, ["acml_tr_pbmn"]) || 0);
+      const cttr = Number(pickField(r, ["tday_rltv", "cttr"]) || 0);
+      return { shortCode, name, currentPrice, changeRate, volume, tradeValue, cttr, source: kind };
+    })
+    .filter(Boolean);
+}
+
+function mergeRankCandidates(sources, limit) {
+  const map = new Map();
+  for (const { rows, label } of sources) {
+    for (const row of rows) {
+      const existing = map.get(row.shortCode);
+      if (existing) {
+        existing.sources.add(label);
+        if (!existing.cttr && row.cttr) existing.cttr = row.cttr;
+        if (!existing.tradeValue && row.tradeValue) existing.tradeValue = row.tradeValue;
+      } else {
+        map.set(row.shortCode, { ...row, sources: new Set([label]) });
+      }
+    }
+  }
+  const merged = Array.from(map.values()).map((r) => ({ ...r, sources: Array.from(r.sources) }));
+  merged.sort((a, b) => {
+    if (b.sources.length !== a.sources.length) return b.sources.length - a.sources.length;
+    return (b.tradeValue || 0) - (a.tradeValue || 0);
+  });
+  return merged.slice(0, limit);
+}
+
+function normalizeMinuteChart(apiData) {
+  const rows = Array.isArray(apiData.output2) ? apiData.output2 : [];
+  return rows
+    .map((row) => ({
+      time: String(row.stck_cntg_hour || ""),
+      openPrice: Number(row.stck_oprc || 0),
+      highPrice: Number(row.stck_hgpr || 0),
+      lowPrice: Number(row.stck_lwpr || 0),
+      closePrice: Number(row.stck_prpr || 0),
+      volume: Number(row.cntg_vol || 0),
+    }))
+    .filter((it) => it.closePrice > 0);
+}
+
+function calculateMinuteMomentum(minuteRows) {
+  if (!Array.isArray(minuteRows) || minuteRows.length < 10) {
+    return { score: 50, slope: 0, recentVsPrior: 0, explanation: "분봉 데이터 부족" };
+  }
+  const ordered = [...minuteRows].reverse();
+  const closes = ordered.map((r) => r.closePrice);
+  const n = closes.length;
+  const recentN = Math.min(5, Math.floor(n / 3));
+  const recent = closes.slice(-recentN);
+  const prior = closes.slice(-recentN * 2, -recentN);
+  if (prior.length === 0) {
+    return { score: 50, slope: 0, recentVsPrior: 0, explanation: "분봉 비교 데이터 부족" };
+  }
+  const avgRecent = recent.reduce((a, b) => a + b, 0) / recent.length;
+  const avgPrior = prior.reduce((a, b) => a + b, 0) / prior.length;
+  const recentVsPrior = avgPrior > 0 ? ((avgRecent - avgPrior) / avgPrior) * 100 : 0;
+
+  const sumX = (n * (n - 1)) / 2;
+  const sumY = closes.reduce((a, b) => a + b, 0);
+  const sumXY = closes.reduce((acc, y, i) => acc + i * y, 0);
+  const sumX2 = closes.reduce((acc, _, i) => acc + i * i, 0);
+  const denom = n * sumX2 - sumX * sumX;
+  const slopeRaw = denom !== 0 ? (n * sumXY - sumX * sumY) / denom : 0;
+  const lastPrice = closes[closes.length - 1] || 1;
+  const slopePercent = (slopeRaw / lastPrice) * 100;
+
+  let score = 50;
+  if (recentVsPrior > 1.0) score = 85;
+  else if (recentVsPrior > 0.3) score = 70;
+  else if (recentVsPrior > -0.3) score = 50;
+  else if (recentVsPrior > -1.0) score = 30;
+  else score = 15;
+
+  if (slopePercent > 0 && score < 100) score = Math.min(100, score + 5);
+  if (slopePercent < 0 && score > 0) score = Math.max(0, score - 5);
+
+  return {
+    score: clampScore(score),
+    slope: slopePercent,
+    recentVsPrior,
+    explanation: `최근 ${recentN}분 평균이 직전 ${recentN}분 대비 ${recentVsPrior.toFixed(2)}%`,
+  };
+}
+
+function calcIntradayPosition(currentData) {
+  const range = currentData.highPrice - currentData.lowPrice;
+  if (range <= 0) return { ratio: 0.5, score: 50 };
+  const ratio = (currentData.currentPrice - currentData.lowPrice) / range;
+  let score = 50;
+  if (ratio < 0.2) score = 80;
+  else if (ratio < 0.4) score = 70;
+  else if (ratio < 0.6) score = 55;
+  else if (ratio < 0.8) score = 40;
+  else score = 25;
+  return { ratio, score };
+}
+
+function scoreChegyeolStrength(cttr) {
+  if (!cttr) return { score: 50, explanation: "체결강도 0" };
+  let score = 50;
+  if (cttr >= 150) score = 95;
+  else if (cttr >= 120) score = 85;
+  else if (cttr >= 100) score = 70;
+  else if (cttr >= 80) score = 45;
+  else if (cttr >= 60) score = 25;
+  else score = 10;
+  return { score: clampScore(score), explanation: `체결강도 ${cttr.toFixed(1)}` };
+}
+
+function scoreBuySellRatio(ratio) {
+  if (ratio === null || !isFinite(ratio)) return { score: 50, explanation: "매수/매도 비율 계산 불가" };
+  let score = 50;
+  if (ratio >= 1.5) score = 90;
+  else if (ratio >= 1.2) score = 75;
+  else if (ratio >= 1.0) score = 60;
+  else if (ratio >= 0.8) score = 40;
+  else score = 20;
+  return { score: clampScore(score), explanation: `매수/매도 ${ratio.toFixed(2)}` };
+}
+
+function scoreChangeRateForShortTerm(changeRate) {
+  const r = Math.abs(changeRate);
+  let score = 60;
+  if (r > 25) score = 5;
+  else if (r > 20) score = 20;
+  else if (r > 15) score = 40;
+  else if (r > 10) score = 55;
+  else if (r > 5) score = 75;
+  else if (r > 1) score = 70;
+  else score = 50;
+  return { score: clampScore(score), explanation: `등락률 ${changeRate.toFixed(2)}%` };
+}
+
+function buildShortTermScore(currentData, minuteRows) {
+  const cheg = scoreChegyeolStrength(currentData.chegyeolStrength);
+  const buySell = scoreBuySellRatio(currentData.buySellRatio);
+  const momentum = calculateMinuteMomentum(minuteRows);
+  const intraday = calcIntradayPosition(currentData);
+  const changeBand = scoreChangeRateForShortTerm(currentData.changeRate);
+
+  const weights = { chegyeol: 30, buySell: 20, momentum: 20, intraday: 15, changeBand: 15 };
+  const total =
+    cheg.score * (weights.chegyeol / 100) +
+    buySell.score * (weights.buySell / 100) +
+    momentum.score * (weights.momentum / 100) +
+    intraday.score * (weights.intraday / 100) +
+    changeBand.score * (weights.changeBand / 100);
+
+  const totalScore = clampScore(total);
+
+  let verdict = "보류";
+  if (totalScore >= 75) verdict = "단타 유망";
+  else if (totalScore >= 60) verdict = "관심";
+  else if (totalScore >= 45) verdict = "중립";
+  else verdict = "약함";
+
+  return {
+    totalScore,
+    verdict,
+    components: { cheg, buySell, momentum, intraday, changeBand },
+    weights,
+  };
+}
+
+const SCAN_CACHE_TTL_MS = 5 * 60 * 1000;
+const scanCache = new Map();
+
+function getScanCache(key) {
+  const hit = scanCache.get(key);
+  if (!hit) return null;
+  if (Date.now() > hit.expiresAt) {
+    scanCache.delete(key);
+    return null;
+  }
+  return hit.value;
+}
+
+function setScanCache(key, value) {
+  scanCache.set(key, { value, expiresAt: Date.now() + SCAN_CACHE_TTL_MS });
+}
+
+function nowHHMMSS() {
+  const d = new Date();
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  const ss = String(d.getSeconds()).padStart(2, "0");
+  return `${hh}${mm}${ss}`;
+}
+
+async function runScan({ candidateLimit, includeMinute }) {
+  const accessToken = await safeApiCall(() => getAccessToken(), 300);
+
+  const volumeRaw = await safeApiCall(() => getVolumeRank(accessToken), 600);
+  console.log(`[SCAN] volume-rank output rows: ${Array.isArray(volumeRaw.output) ? volumeRaw.output.length : "N/A"}`);
+  logSample("volume-rank output[0]", Array.isArray(volumeRaw.output) ? volumeRaw.output[0] : null);
+
+  const powerRaw = await safeApiCall(() => getVolumePowerRank(accessToken), 600);
+  console.log(`[SCAN] volume-power output rows: ${Array.isArray(powerRaw.output) ? powerRaw.output.length : "N/A"}`);
+  logSample("volume-power output[0]", Array.isArray(powerRaw.output) ? powerRaw.output[0] : null);
+
+  const volumeRows = normalizeRankRows(volumeRaw, "거래대금");
+  const powerRows = normalizeRankRows(powerRaw, "체결강도");
+  const candidates = mergeRankCandidates([
+    { rows: volumeRows, label: "거래대금" },
+    { rows: powerRows, label: "체결강도" },
+  ], candidateLimit);
+  console.log(`[SCAN] candidates after merge: ${candidates.length}`);
+
+  const hour = nowHHMMSS();
+  const results = [];
+  let firstLogged = false;
+  for (const cand of candidates) {
+    try {
+      const meta = stocksData.byShortCode?.[cand.shortCode] || null;
+      const stockMeta = {
+        shortCode: cand.shortCode,
+        standardCode: meta?.standardCode || "",
+        name: cand.name || meta?.name || cand.shortCode,
+        market: meta?.market || "-",
+      };
+
+      const currentRaw = await safeApiCall(
+        () => getCurrentPrice(accessToken, cand.shortCode),
+        900
+      );
+      if (!firstLogged) {
+        logSample(`inquire-price output (${cand.shortCode})`, currentRaw.output);
+      }
+      const currentData = normalizeCurrentPrice(currentRaw, stockMeta);
+
+      let minuteRows = [];
+      if (includeMinute) {
+        try {
+          const minuteRaw = await safeApiCall(
+            () => getMinuteChart(accessToken, cand.shortCode, hour),
+            1100
+          );
+          if (!firstLogged) {
+            console.log(`[SCAN] minute output2 rows (${cand.shortCode}): ${Array.isArray(minuteRaw.output2) ? minuteRaw.output2.length : "N/A"}`);
+            logSample(`minute output2[0] (${cand.shortCode})`, Array.isArray(minuteRaw.output2) ? minuteRaw.output2[0] : null);
+          }
+          minuteRows = normalizeMinuteChart(minuteRaw);
+        } catch (e) {
+          // 분봉 실패는 종목 자체 실패로 보지 않음
+        }
+      }
+      firstLogged = true;
+
+      const score = buildShortTermScore(currentData, minuteRows);
+      results.push({
+        shortCode: cand.shortCode,
+        name: stockMeta.name,
+        market: stockMeta.market,
+        currentPrice: currentData.currentPrice,
+        changeRate: currentData.changeRate,
+        chegyeolStrength: currentData.chegyeolStrength,
+        buyVolume: currentData.buyVolume,
+        sellVolume: currentData.sellVolume,
+        buySellRatio: currentData.buySellRatio,
+        sources: cand.sources,
+        score,
+      });
+    } catch (e) {
+      results.push({
+        shortCode: cand.shortCode,
+        name: cand.name,
+        error: e.message || String(e),
+        sources: cand.sources,
+      });
+    }
+  }
+
+  results.sort((a, b) => (b.score?.totalScore || -1) - (a.score?.totalScore || -1));
+
+  return {
+    scannedAt: new Date().toISOString(),
+    candidateCount: candidates.length,
+    includeMinute,
+    results,
+  };
+}
+
+function pickAutoMode(now = new Date()) {
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const day = kst.getUTCDay(); // 0=Sun, 6=Sat
+  const hour = kst.getUTCHours();
+  const minute = kst.getUTCMinutes();
+  const totalMin = hour * 60 + minute;
+  const openMin = 9 * 60;
+  const closeMin = 15 * 60 + 30;
+  const isWeekday = day >= 1 && day <= 5;
+  const isMarketHours = totalMin >= openMin && totalMin < closeMin;
+  return isWeekday && isMarketHours ? "short" : "swing";
+}
+
+async function runSwingScan({ candidateLimit }) {
+  const accessToken = await safeApiCall(() => getAccessToken(), 300);
+
+  const volumeRaw = await safeApiCall(() => getVolumeRank(accessToken, "3"), 600);
+  console.log(`[SWING] volume-rank(BLNG=3) output rows: ${Array.isArray(volumeRaw.output) ? volumeRaw.output.length : "N/A"}`);
+  const increaseRaw = await safeApiCall(() => getVolumeRank(accessToken, "1"), 600);
+  console.log(`[SWING] volume-rank(BLNG=1, 거래증가율) output rows: ${Array.isArray(increaseRaw.output) ? increaseRaw.output.length : "N/A"}`);
+
+  const volumeRows = normalizeRankRows(volumeRaw, "거래대금");
+  const increaseRows = normalizeRankRows(increaseRaw, "거래증가율");
+  const candidates = mergeRankCandidates([
+    { rows: volumeRows, label: "거래대금" },
+    { rows: increaseRows, label: "거래증가율" },
+  ], candidateLimit);
+  console.log(`[SWING] candidates after merge: ${candidates.length}`);
+
+  const { startDate, endDate } = getDateRange(6);
+  const defaultWeights = { volume: 30, position: 20, trend: 10, rsi: 5, macd: 5, resistance: 20, volatility: 10 };
+
+  const results = [];
+  let firstLogged = false;
+  for (const cand of candidates) {
+    try {
+      const meta = stocksData.byShortCode?.[cand.shortCode] || null;
+      const stockMeta = {
+        shortCode: cand.shortCode,
+        standardCode: meta?.standardCode || "",
+        name: cand.name || meta?.name || cand.shortCode,
+        market: meta?.market || "-",
+      };
+
+      const currentRaw = await safeApiCall(() => getCurrentPrice(accessToken, cand.shortCode), 900);
+      if (!firstLogged) {
+        logSample(`[SWING] inquire-price output (${cand.shortCode})`, currentRaw.output);
+      }
+      const currentData = normalizeCurrentPrice(currentRaw, stockMeta);
+
+      const dailyRaw = await safeApiCall(() => getPeriodChart(accessToken, cand.shortCode, "D", startDate, endDate), 1100);
+      const weeklyRaw = await safeApiCall(() => getPeriodChart(accessToken, cand.shortCode, "W", startDate, endDate), 1100);
+      const monthlyRaw = await safeApiCall(() => getPeriodChart(accessToken, cand.shortCode, "M", startDate, endDate), 1100);
+      const yearlyRaw = await safeApiCall(() => getPeriodChart(accessToken, cand.shortCode, "Y", startDate, endDate), 1100);
+
+      const dailyData = normalizePeriodData(dailyRaw, stockMeta, "DAY");
+      const weeklyData = normalizePeriodData(weeklyRaw, stockMeta, "WEEK");
+      const monthlyData = normalizePeriodData(monthlyRaw, stockMeta, "MONTH");
+      const yearlyData = normalizePeriodData(yearlyRaw, stockMeta, "YEAR");
+
+      const dailySeries = buildSeries(dailyData, currentData.currentPrice, 60);
+      const weeklySeries = buildSeries(weeklyData, currentData.currentPrice, 52);
+      const monthlySeries = buildSeries(monthlyData, currentData.currentPrice, 36);
+      const yearlySeries = buildSeries(yearlyData, currentData.currentPrice, 5);
+
+      const scoreModel = buildScoreModel(
+        currentData,
+        dailyData,
+        weeklyData,
+        monthlyData,
+        yearlyData,
+        dailySeries,
+        weeklySeries,
+        monthlySeries,
+        yearlySeries,
+        defaultWeights
+      );
+
+      const recTier = scoreModel.buyRecommendation?.recommendedTier;
+      const buyTierObj = recTier ? scoreModel.buyRecommendation?.fixed?.tiers?.[recTier] : null;
+
+      results.push({
+        shortCode: cand.shortCode,
+        name: stockMeta.name,
+        market: stockMeta.market,
+        currentPrice: currentData.currentPrice,
+        changeRate: currentData.changeRate,
+        sources: cand.sources,
+        scoreModel: {
+          totalScore: scoreModel.totalScore,
+          verdict: scoreModel.verdict,
+          components: {
+            volume: scoreModel.volume.score,
+            position: scoreModel.position.score,
+            trend: scoreModel.trend.score,
+            rsi: scoreModel.rsi.score,
+            macd: scoreModel.macd.score,
+            resistance: scoreModel.resistance.score,
+            volatility: scoreModel.volatility.score,
+          },
+          buyTier: recTier,
+          buyPrice: buyTierObj?.price || null,
+          buyGapPercent: buyTierObj?.gapPercent || null,
+        },
+      });
+      firstLogged = true;
+    } catch (e) {
+      results.push({
+        shortCode: cand.shortCode,
+        name: cand.name,
+        error: e.message || String(e),
+        sources: cand.sources,
+      });
+    }
+  }
+
+  results.sort((a, b) => (b.scoreModel?.totalScore || -1) - (a.scoreModel?.totalScore || -1));
+
+  return {
+    scannedAt: new Date().toISOString(),
+    candidateCount: candidates.length,
+    mode: "swing",
+    results,
+  };
+}
+
+function defaultLimitForMode(mode) {
+  return mode === "swing" ? 25 : 40;
+}
+
+app.get("/scan", (req, res) => {
+  const autoMode = pickAutoMode();
+  res.render("scan", {
+    error: null,
+    scanResult: null,
+    autoMode,
+    options: {
+      mode: "auto",
+      effectiveMode: autoMode,
+      candidateLimit: defaultLimitForMode(autoMode),
+      includeMinute: true,
+    },
+  });
+});
+
+app.post("/scan", async (req, res) => {
+  const requestedMode = String(req.body.mode || "auto");
+  const autoMode = pickAutoMode();
+  const effectiveMode =
+    requestedMode === "short" || requestedMode === "swing" ? requestedMode : autoMode;
+
+  const candidateLimit = Math.max(
+    5,
+    Math.min(60, Number(req.body.candidateLimit) || defaultLimitForMode(effectiveMode))
+  );
+  const includeMinute = req.body.includeMinute !== "off";
+  const cacheKey = `${effectiveMode}:${candidateLimit}:${includeMinute ? 1 : 0}`;
+
+  const optionsForRender = {
+    mode: requestedMode,
+    effectiveMode,
+    candidateLimit,
+    includeMinute,
+  };
+
+  try {
+    const cached = getScanCache(cacheKey);
+    if (cached) {
+      return res.render("scan", {
+        error: null,
+        scanResult: { ...cached, fromCache: true },
+        autoMode,
+        options: optionsForRender,
+      });
+    }
+    let scanResult;
+    if (effectiveMode === "swing") {
+      scanResult = await runSwingScan({ candidateLimit });
+    } else {
+      scanResult = await runScan({ candidateLimit, includeMinute });
+      scanResult.mode = "short";
+    }
+    setScanCache(cacheKey, scanResult);
+    res.render("scan", {
+      error: null,
+      scanResult,
+      autoMode,
+      options: optionsForRender,
+    });
+  } catch (err) {
+    let message = err.message || "알 수 없는 오류가 발생했습니다.";
+    if (err.response?.data) {
+      message = JSON.stringify(err.response.data, null, 2);
+    }
+    res.render("scan", {
+      error: message,
+      scanResult: null,
+      autoMode,
+      options: optionsForRender,
+    });
+  }
+});
+
+let geminiClient = null;
+function getGemini() {
+  if (geminiClient) return geminiClient;
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error("GEMINI_API_KEY가 서버에 설정되지 않았습니다.");
+  geminiClient = new GoogleGenerativeAI(key);
+  return geminiClient;
+}
+
+function buildAiPrompt(snapshot, mode) {
+  const modeLabel = mode === "short" ? "단타 (분~시간 단위)" : "스윙 (수일~수주 단위)";
+  return `
+너는 한국 주식 시장 분석 보조 AI다. 아래는 한 종목의 정량 점수와 차트 요약이다.
+전략은 ${modeLabel} 관점에서 해석한다.
+
+[엄격한 규칙]
+- 절대 새 숫자를 만들지 마라. 제공된 점수/가격/비율만 인용한다.
+- 점수 합산이나 재계산을 시도하지 마라. 해석만 한다.
+- 한국어로 답한다.
+- 아래 4개 섹션을 정확히 그 제목과 순서로 출력한다. 다른 섹션·인사말·맺음말 금지.
+- "강력 매수", "필승", "확정" 같은 단정적 표현 금지. "관심", "조건부", "관망" 등 톤 사용.
+
+## 진입 시그널
+${modeLabel} 관점에서 매수를 고려할 만한 근거를 점수와 차트 위치를 들어 2~4문장.
+
+## 리스크 요인
+약하거나 상충되는 신호를 2~4문장.
+
+## 손절·관망 가이드
+어느 가격대에서 손절하거나 관망 모드로 전환할지. 추천 매수 구간이 있다면 활용. 2~3문장.
+
+## 한 줄 결론
+한 문장.
+
+[종목 데이터(JSON)]
+${JSON.stringify(snapshot, null, 2)}
+`.trim();
+}
+
+app.post("/ai/comment", async (req, res) => {
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ error: "GEMINI_API_KEY가 서버에 설정되지 않았습니다." });
+    }
+    const mode = req.body.mode === "short" ? "short" : "swing";
+    const snapshot = req.body.snapshot;
+    if (!snapshot || typeof snapshot !== "object") {
+      return res.status(400).json({ error: "snapshot 데이터가 없습니다." });
+    }
+    const prompt = buildAiPrompt(snapshot, mode);
+    const client = getGemini();
+    const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+    const model = client.getGenerativeModel({ model: modelName });
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    res.json({ text, mode, model: modelName });
+  } catch (err) {
+    console.error("[AI] error:", err.message || err);
+    res.status(500).json({ error: err.message || "AI 호출 실패" });
+  }
+});
 
 app.get("/", (req, res) => {
   res.render("index", {

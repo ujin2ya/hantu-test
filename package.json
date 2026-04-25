@@ -3,6 +3,7 @@
     "generate-stocks": "node generate-stocks.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "adm-zip": "^0.5.11",
     "axios": "^1.15.2",
     "dotenv": "^17.4.2",

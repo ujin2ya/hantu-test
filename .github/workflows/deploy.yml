@@ -16,11 +16,14 @@ jobs:
     steps:
       - name: SSH deploy
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         with:
           host: ${{ secrets.SSH_HOST }}
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: GEMINI_API_KEY
           script_stop: true
           script: |
             set -e
@@ -29,5 +32,13 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             npm ci --omit=dev
+            if [ -n "$GEMINI_API_KEY" ]; then
+              touch .env
+              if grep -q "^GEMINI_API_KEY=" .env; then
+                sed -i "s|^GEMINI_API_KEY=.*|GEMINI_API_KEY=${GEMINI_API_KEY}|" .env
+              else
+                echo "GEMINI_API_KEY=${GEMINI_API_KEY}" >> .env
+              fi
+            fi
             pm2 restart hantu-test --update-env || pm2 start app.js --name hantu-test
             pm2 save

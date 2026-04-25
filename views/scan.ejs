@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>단타 스캔 — 거래대금/체결강도 상위</title>
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --brand-gradient: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+      --soft-bg: #f3f5fb;
+      --muted: #64748b;
+    }
+    body {
+      margin: 0;
+      background: var(--soft-bg);
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo",
+        "Malgun Gothic", sans-serif;
+    }
+    .app-header {
+      background: var(--brand-gradient);
+      color: #fff;
+      padding: 28px 0 56px;
+      margin-bottom: -40px;
+    }
+    .app-header h1 { font-weight: 700; letter-spacing: -0.5px; margin: 0; font-size: 1.5rem; }
+    .app-header .subtitle { opacity: 0.85; font-size: 0.9rem; margin-top: 4px; }
+    .glass-card {
+      border: 0;
+      border-radius: 18px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+      background: #fff;
+    }
+    .score-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 28px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #fff;
+    }
+    .score-strong { background: #16a34a; }
+    .score-good   { background: #65a30d; }
+    .score-mid    { background: #ca8a04; }
+    .score-weak   { background: #94a3b8; }
+    .source-badge {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: #eef2ff;
+      color: #4338ca;
+      margin-right: 4px;
+    }
+    .num-cell { font-variant-numeric: tabular-nums; }
+    .pos-rate { color: #dc2626; font-weight: 600; }
+    .neg-rate { color: #2563eb; font-weight: 600; }
+    .loading-overlay {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: none;
+      align-items: center; justify-content: center;
+      z-index: 1080;
+      color: #fff; font-size: 1rem;
+    }
+    .loading-overlay.show { display: flex; flex-direction: column; gap: 12px; }
+    .spinner-border { width: 2.5rem; height: 2.5rem; }
+    .verdict-cell { font-weight: 600; font-size: 0.85rem; }
+    .table thead th { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+    .table tbody td { vertical-align: middle; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="container-fluid px-3 px-lg-5 d-flex justify-content-between align-items-start gap-3 flex-wrap">
+      <div>
+        <h1><i class="bi bi-radar me-2"></i>단타 스캔</h1>
+        <div class="subtitle">거래대금 상위 + 체결강도 상위 합집합 → 단타 점수로 정렬</div>
+      </div>
+      <a href="/" class="btn btn-light btn-sm align-self-center">
+        <i class="bi bi-arrow-left me-1"></i>딥다이브로
+      </a>
+    </div>
+  </header>
+
+  <main class="container-fluid px-3 px-lg-5 pb-5">
+    <div class="glass-card p-3 p-lg-4 mb-4">
+      <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+        <span class="small text-secondary">현재 자동 모드:</span>
+        <span class="badge <%= autoMode === 'short' ? 'bg-danger' : 'bg-primary' %>">
+          <%= autoMode === 'short' ? '단타 (장중)' : '스윙 (휴장/장마감)' %>
+        </span>
+        <span class="small text-secondary">실효 모드:</span>
+        <span class="badge bg-dark"><%= options.effectiveMode === 'short' ? '단타' : '스윙' %></span>
+      </div>
+
+      <form method="POST" action="/scan" id="scanForm" class="row g-2 align-items-end">
+        <div class="col-12 col-md-3">
+          <label class="form-label small text-secondary mb-1">모드</label>
+          <select name="mode" class="form-select form-select-sm">
+            <option value="auto"  <%= options.mode === 'auto'  ? 'selected' : '' %>>자동 (시간대 기반)</option>
+            <option value="short" <%= options.mode === 'short' ? 'selected' : '' %>>단타 강제</option>
+            <option value="swing" <%= options.mode === 'swing' ? 'selected' : '' %>>스윙 강제</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label small text-secondary mb-1">후보 수</label>
+          <input type="number" name="candidateLimit" class="form-control form-control-sm"
+                 value="<%= options.candidateLimit %>" min="5" max="60" />
+        </div>
+        <div class="col-6 col-md-3 d-flex align-items-center pt-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="includeMinute" name="includeMinute"
+                   <%= options.includeMinute ? "checked" : "" %> />
+            <label class="form-check-label small" for="includeMinute">분봉 (단타 전용)</label>
+          </div>
+        </div>
+        <div class="col-12 col-md-4 text-md-end">
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i class="bi bi-search me-1"></i>스캔 시작
+          </button>
+        </div>
+      </form>
+      <div class="small text-secondary mt-2">
+        단타: 거래대금 + 체결강도 상위 / 분봉 모멘텀 / 약 1~2분.
+        스윙: 거래대금 + 거래증가율 상위 / 일·주·월·연봉 7요소 / 약 2~3분.
+      </div>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert alert-danger small"><pre class="mb-0" style="white-space: pre-wrap;"><%= error %></pre></div>
+    <% } %>
+
+    <% if (scanResult) { %>
+      <div class="glass-card p-3 p-lg-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div>
+            <div class="fw-bold">
+              결과 <%= scanResult.results.length %>건
+              <span class="badge <%= scanResult.mode === 'swing' ? 'bg-primary' : 'bg-danger' %> ms-2">
+                <%= scanResult.mode === 'swing' ? '스윙' : '단타' %>
+              </span>
+            </div>
+            <div class="small text-secondary">
+              스캔 시각 <%= new Date(scanResult.scannedAt).toLocaleString("ko-KR") %>
+              <% if (scanResult.fromCache) { %><span class="badge bg-info ms-1">캐시</span><% } %>
+              <% if (scanResult.includeMinute && scanResult.mode === 'short') { %>
+                <span class="badge bg-secondary ms-1">분봉 포함</span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <% if (scanResult.mode === 'swing') { %>
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>종목</th>
+                  <th class="text-end">현재가</th>
+                  <th class="text-end">등락</th>
+                  <th>출처</th>
+                  <th class="text-center">총점</th>
+                  <th>판정</th>
+                  <th>세부 (거래/위치/추세/매물대)</th>
+                  <th class="text-end">추천 매수가</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% scanResult.results.forEach(function(r, i) { %>
+                  <tr>
+                    <td class="text-secondary small"><%= i + 1 %></td>
+                    <td>
+                      <div class="fw-semibold"><%= r.name || r.shortCode %></div>
+                      <div class="small text-secondary"><%= r.shortCode %><% if (r.market) { %> · <%= r.market %><% } %></div>
+                    </td>
+                    <% if (r.error) { %>
+                      <td colspan="8" class="text-danger small">오류: <%= r.error %></td>
+                    <% } else { %>
+                      <td class="text-end num-cell"><%= (r.currentPrice || 0).toLocaleString() %></td>
+                      <td class="text-end num-cell <%= r.changeRate >= 0 ? 'pos-rate' : 'neg-rate' %>">
+                        <%= r.changeRate >= 0 ? "+" : "" %><%= r.changeRate.toFixed(2) %>%
+                      </td>
+                      <td>
+                        <% (r.sources || []).forEach(function(s) { %>
+                          <span class="source-badge"><%= s %></span>
+                        <% }) %>
+                      </td>
+                      <td class="text-center">
+                        <% var sc = r.scoreModel.totalScore;
+                           var cls = sc >= 75 ? 'score-strong' : sc >= 60 ? 'score-good' : sc >= 45 ? 'score-mid' : 'score-weak'; %>
+                        <span class="score-pill <%= cls %>"><%= sc %></span>
+                      </td>
+                      <td class="verdict-cell"><%= r.scoreModel.verdict %></td>
+                      <td class="small text-secondary">
+                        <%= r.scoreModel.components.volume %> ·
+                        <%= r.scoreModel.components.position %> ·
+                        <%= r.scoreModel.components.trend %> ·
+                        <%= r.scoreModel.components.resistance %>
+                      </td>
+                      <td class="text-end num-cell">
+                        <% if (r.scoreModel.buyPrice) { %>
+                          <%= r.scoreModel.buyPrice.toLocaleString() %>
+                          <span class="small text-secondary">(<%= r.scoreModel.buyTier %>, -<%= r.scoreModel.buyGapPercent %>%)</span>
+                        <% } else { %>-<% } %>
+                      </td>
+                      <td>
+                        <form method="POST" action="/search" class="m-0">
+                          <input type="hidden" name="stockQuery" value="<%= r.shortCode %>" />
+                          <button type="submit" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-graph-up"></i>
+                          </button>
+                        </form>
+                      </td>
+                    <% } %>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>종목</th>
+                  <th class="text-end">현재가</th>
+                  <th class="text-end">등락</th>
+                  <th class="text-end">체결강도</th>
+                  <th class="text-end">매수/매도</th>
+                  <th>출처</th>
+                  <th class="text-center">점수</th>
+                  <th>판정</th>
+                  <th>주요 신호</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% scanResult.results.forEach(function(r, i) { %>
+                  <tr>
+                    <td class="text-secondary small"><%= i + 1 %></td>
+                    <td>
+                      <div class="fw-semibold"><%= r.name || r.shortCode %></div>
+                      <div class="small text-secondary"><%= r.shortCode %><% if (r.market) { %> · <%= r.market %><% } %></div>
+                    </td>
+                    <% if (r.error) { %>
+                      <td colspan="9" class="text-danger small">오류: <%= r.error %></td>
+                    <% } else { %>
+                      <td class="text-end num-cell"><%= (r.currentPrice || 0).toLocaleString() %></td>
+                      <td class="text-end num-cell <%= r.changeRate >= 0 ? 'pos-rate' : 'neg-rate' %>">
+                        <%= r.changeRate >= 0 ? "+" : "" %><%= r.changeRate.toFixed(2) %>%
+                      </td>
+                      <td class="text-end num-cell"><%= r.chegyeolStrength ? r.chegyeolStrength.toFixed(1) : "-" %></td>
+                      <td class="text-end num-cell">
+                        <%= r.buySellRatio !== null && r.buySellRatio !== undefined ? r.buySellRatio.toFixed(2) : "-" %>
+                      </td>
+                      <td>
+                        <% (r.sources || []).forEach(function(s) { %>
+                          <span class="source-badge"><%= s %></span>
+                        <% }) %>
+                      </td>
+                      <td class="text-center">
+                        <% var sc = r.score.totalScore;
+                           var cls = sc >= 75 ? 'score-strong' : sc >= 60 ? 'score-good' : sc >= 45 ? 'score-mid' : 'score-weak'; %>
+                        <span class="score-pill <%= cls %>"><%= sc %></span>
+                      </td>
+                      <td class="verdict-cell"><%= r.score.verdict %></td>
+                      <td class="small text-secondary">
+                        체강 <%= r.score.components.cheg.score %> ·
+                        모멘텀 <%= r.score.components.momentum.score %> ·
+                        일중 <%= r.score.components.intraday.score %>
+                      </td>
+                      <td>
+                        <form method="POST" action="/search" class="m-0">
+                          <input type="hidden" name="stockQuery" value="<%= r.shortCode %>" />
+                          <button type="submit" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-graph-up"></i>
+                          </button>
+                        </form>
+                      </td>
+                    <% } %>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } %>
+        </div>
+      </div>
+    <% } else if (!error) { %>
+      <div class="text-center text-secondary py-5">
+        <i class="bi bi-radar" style="font-size: 2.5rem;"></i>
+        <div class="mt-2">위 폼에서 "스캔 시작"을 누르면 약 1~2분 동안 KIS API를 조회합니다.</div>
+      </div>
+    <% } %>
+  </main>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner-border" role="status"></div>
+    <div>KIS API 조회 중... 약 1~2분 걸립니다</div>
+  </div>
+
+  <script>
+    (function() {
+      var form = document.getElementById("scanForm");
+      var modeSel = form?.querySelector('select[name="mode"]');
+      var minuteCb = document.getElementById("includeMinute");
+      var minuteLabel = minuteCb?.parentElement;
+      var autoMode = "<%= autoMode %>";
+
+      function effective() {
+        var v = modeSel?.value || "auto";
+        return v === "auto" ? autoMode : v;
+      }
+      function syncMinute() {
+        if (!minuteCb) return;
+        var disabled = effective() === "swing";
+        minuteCb.disabled = disabled;
+        if (minuteLabel) minuteLabel.style.opacity = disabled ? "0.45" : "1";
+      }
+      modeSel?.addEventListener("change", syncMinute);
+      syncMinute();
+
+      form?.addEventListener("submit", function() {
+        document.getElementById("loadingOverlay")?.classList.add("show");
+      });
+    })();
+  </script>
+</body>
+</html>

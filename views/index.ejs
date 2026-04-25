@@ -214,6 +214,38 @@
       line-height: 1.55;
     }
 
+    .ai-card {
+      background: linear-gradient(135deg, #fafbff 0%, #f3f5fb 100%);
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 16px 18px;
+      font-size: 0.92rem;
+      line-height: 1.65;
+      color: #1f2937;
+    }
+    .ai-card p { margin: 0 0 10px; }
+    .ai-card p:last-child { margin-bottom: 0; }
+    .ai-section-h {
+      font-weight: 700;
+      font-size: 0.92rem;
+      margin: 14px 0 6px;
+      color: #1e293b;
+      border-left: 3px solid #6366f1;
+      padding-left: 8px;
+    }
+    .ai-section-h:first-child { margin-top: 0; }
+    .ai-mode-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+    .ai-mode-badge.short { background: #dc2626; }
+    .ai-mode-badge.swing { background: #2563eb; }
+
     .btn-search {
       background: var(--brand-gradient);
       color: #fff;
@@ -466,9 +498,14 @@
   %>
 
   <header class="app-header">
-    <div class="container-fluid px-3 px-lg-5">
-      <h1><i class="bi bi-graph-up-arrow me-2"></i>주식앱 스타일 차트 + 점수화</h1>
-      <div class="subtitle">한국투자증권 Open API · 일/주/월/연봉 + 7요소 가중치 점수</div>
+    <div class="container-fluid px-3 px-lg-5 d-flex justify-content-between align-items-start gap-3 flex-wrap">
+      <div>
+        <h1><i class="bi bi-graph-up-arrow me-2"></i>주식앱 스타일 차트 + 점수화</h1>
+        <div class="subtitle">한국투자증권 Open API · 일/주/월/연봉 + 7요소 가중치 점수</div>
+      </div>
+      <a href="/scan" class="btn btn-light btn-sm align-self-center">
+        <i class="bi bi-radar me-1"></i>단타 스캔
+      </a>
     </div>
   </header>
 
@@ -802,6 +839,61 @@
         </div>
       </div>
 
+      <div class="glass-card p-3 p-lg-4 mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+          <h2 class="section-title mb-0"><i class="bi bi-robot"></i>AI 전략 코멘트</h2>
+          <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-outline-danger" id="aiBtnShort">
+              <i class="bi bi-lightning-charge me-1"></i>단타 코멘트
+            </button>
+            <button type="button" class="btn btn-outline-primary" id="aiBtnSwing">
+              <i class="bi bi-graph-up me-1"></i>스윙 코멘트
+            </button>
+          </div>
+        </div>
+        <div class="muted-text mb-3" style="font-size: 0.78rem;">
+          ⚠️ AI(Gemini Flash) 해석은 참고용이며 투자권유가 아닙니다. 매매 판단과 책임은 본인에게 있습니다.
+        </div>
+        <div id="aiCommentResult" style="display: none;"></div>
+        <div id="aiCommentEmpty" class="muted-text">
+          버튼을 누르면 위 점수와 차트 요약을 바탕으로 AI가 단타/스윙 관점의 해석을 생성합니다 (5~15초).
+        </div>
+      </div>
+
+      <%
+        const aiSnapshot = {
+          name: currentData.stockName,
+          code: currentData.stockCode,
+          market: currentData.market,
+          currentPrice: currentData.currentPrice,
+          changeRate: currentData.changeRate,
+          todayHigh: currentData.highPrice,
+          todayLow: currentData.lowPrice,
+          chegyeolStrength: currentData.chegyeolStrength,
+          buySellRatio: currentData.buySellRatio,
+          totalScore: safeScoreModel.totalScore,
+          verdict: safeScoreModel.verdict,
+          components: {
+            volume:     { score: safeScoreModel.volume.score,     explanation: safeScoreModel.volume.explanation },
+            position:   { score: safeScoreModel.position.score,   explanation: safeScoreModel.position.explanation },
+            trend:      { score: safeScoreModel.trend.score,      explanation: safeScoreModel.trend.explanation },
+            rsi:        { score: safeScoreModel.rsi.score,        explanation: safeScoreModel.rsi.explanation },
+            macd:       { score: safeScoreModel.macd.score,       explanation: safeScoreModel.macd.explanation },
+            resistance: { score: safeScoreModel.resistance.score, explanation: safeScoreModel.resistance.explanation },
+            volatility: { score: safeScoreModel.volatility.score, explanation: safeScoreModel.volatility.explanation },
+          },
+          positions: {
+            daily:   safeDailySeries?.position   || null,
+            weekly:  safeWeeklySeries?.position  || null,
+            monthly: safeMonthlySeries?.position || null,
+            yearly:  safeYearlySeries?.position  || null,
+          },
+          trappedZones: safeScoreModel.trappedZones || [],
+          buyRecommendation: safeScoreModel.buyRecommendation || null,
+        };
+      %>
+      <script id="ai-snapshot-data" type="application/json"><%- JSON.stringify(aiSnapshot) %></script>
+
       <script id="daily-series-data" type="application/json"><%- JSON.stringify(safeDailySeries) %></script>
       <script id="weekly-series-data" type="application/json"><%- JSON.stringify(safeWeeklySeries) %></script>
       <script id="monthly-series-data" type="application/json"><%- JSON.stringify(safeMonthlySeries) %></script>
@@ -950,5 +1042,95 @@
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    (function () {
+      const snapshotEl = document.getElementById("ai-snapshot-data");
+      if (!snapshotEl) return;
+      let snapshot = null;
+      try { snapshot = JSON.parse(snapshotEl.textContent || "null"); } catch (_) {}
+      if (!snapshot) return;
+
+      const btnShort = document.getElementById("aiBtnShort");
+      const btnSwing = document.getElementById("aiBtnSwing");
+      const resultBox = document.getElementById("aiCommentResult");
+      const emptyBox = document.getElementById("aiCommentEmpty");
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+          return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
+        });
+      }
+
+      function renderMarkdown(md) {
+        const lines = String(md || "").split(/\r?\n/);
+        const out = [];
+        let para = [];
+        function flushPara() {
+          if (para.length) {
+            out.push('<p>' + para.join("<br>") + '</p>');
+            para = [];
+          }
+        }
+        for (const raw of lines) {
+          const line = raw.trim();
+          if (!line) { flushPara(); continue; }
+          const h = line.match(/^#{2,6}\s+(.+)$/);
+          if (h) {
+            flushPara();
+            out.push('<h6 class="ai-section-h">' + escapeHtml(h[1]) + '</h6>');
+          } else {
+            para.push(escapeHtml(line));
+          }
+        }
+        flushPara();
+        return out.join("");
+      }
+
+      function setBusy(busy) {
+        [btnShort, btnSwing].forEach(function (b) { if (b) b.disabled = busy; });
+      }
+
+      async function callAi(mode) {
+        setBusy(true);
+        emptyBox.style.display = "none";
+        resultBox.style.display = "block";
+        resultBox.innerHTML =
+          '<div class="text-secondary small d-flex align-items-center gap-2">' +
+          '<span class="spinner-border spinner-border-sm"></span> AI 응답을 기다리는 중입니다...</div>';
+        try {
+          const res = await fetch("/ai/comment", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ mode: mode, snapshot: snapshot }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            resultBox.innerHTML =
+              '<div class="alert alert-warning small mb-0">AI 호출 실패: ' +
+              escapeHtml(data.error || res.statusText) + "</div>";
+            return;
+          }
+          const modeLabel = mode === "short" ? "단타" : "스윙";
+          resultBox.innerHTML =
+            '<div class="ai-card">' +
+              '<div class="ai-mode-badge ' + (mode === "short" ? "short" : "swing") + '">' +
+                modeLabel + " 관점" +
+              '</div>' +
+              renderMarkdown(data.text) +
+            '</div>';
+        } catch (err) {
+          resultBox.innerHTML =
+            '<div class="alert alert-danger small mb-0">네트워크 오류: ' +
+            escapeHtml(err.message || String(err)) + "</div>";
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      btnShort?.addEventListener("click", function () { callAi("short"); });
+      btnSwing?.addEventListener("click", function () { callAi("swing"); });
+    })();
+  </script>
 </body>
 </html>
