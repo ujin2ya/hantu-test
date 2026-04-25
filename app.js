@@ -1,13 +1,29 @@
 const path = require("path");
-const dotenvResult = require("dotenv").config({ path: path.join(__dirname, ".env") });
+const fs = require("fs");
+const ENV_PATH = path.join(__dirname, ".env");
+const dotenvResult = require("dotenv").config({ path: ENV_PATH });
 if (dotenvResult.error) {
   console.warn("[dotenv] .env 로드 실패:", dotenvResult.error.message);
 } else {
-  console.log("[dotenv] .env 로드 OK / GEMINI_API_KEY 존재:", !!process.env.GEMINI_API_KEY);
+  const parsedKeys = Object.keys(dotenvResult.parsed || {});
+  console.log(`[dotenv] .env 로드 OK / 파싱된 키 ${parsedKeys.length}개: [${parsedKeys.join(", ")}]`);
+  console.log("[dotenv] GEMINI_API_KEY 존재:", !!process.env.GEMINI_API_KEY);
+}
+try {
+  const raw = fs.readFileSync(ENV_PATH, "utf-8");
+  const summary = raw.split(/\r?\n/).map((line, i) => {
+    if (!line) return `  ${i + 1}: <empty>`;
+    if (line.trim().startsWith("#")) return `  ${i + 1}: <comment>`;
+    const eq = line.indexOf("=");
+    if (eq === -1) return `  ${i + 1}: <NO EQUALS> length=${line.length}`;
+    return `  ${i + 1}: "${line.slice(0, eq)}" length=${line.length}`;
+  }).join("\n");
+  console.log(`[dotenv] .env raw line summary (line / key / length):\n${summary}`);
+} catch (e) {
+  console.warn("[dotenv] raw .env inspect 실패:", e.message);
 }
 const express = require("express");
 const axios = require("axios");
-const fs = require("fs");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
