@@ -131,6 +131,43 @@
     }
     .weight-help:hover { color: #6366f1; }
 
+    .market-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 14px;
+      background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 0.85rem;
+    }
+    .market-item { display: inline-flex; align-items: baseline; gap: 6px; }
+    .market-item .label {
+      font-weight: 600;
+      color: #475569;
+      font-size: 0.78rem;
+    }
+    .market-item .value {
+      font-weight: 700;
+      color: #1e293b;
+      font-variant-numeric: tabular-nums;
+    }
+    .market-item .change {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .market-rs {
+      margin-left: auto;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .market-rs.outperform { background: #dcfce7; color: #166534; }
+    .market-rs.underperform { background: #fee2e2; color: #991b1b; }
+    .market-rs.neutral { background: #f1f5f9; color: #475569; }
+
     .chart-wrap {
       position: relative;
       width: 100%;
@@ -551,6 +588,7 @@
     const safeYearlySeries = yearlySeries || null;
     const safeSummary = summary || null;
     const safeScoreModel = scoreModel || null;
+    const safeMarket = (typeof market !== 'undefined' && market) ? market : null;
     const safeWeights = weights || {
       volume: 30,
       position: 20,
@@ -670,6 +708,38 @@
           <strong><%= safeSelected.name %></strong>
           을 조회했습니다.
         </div>
+      </div>
+    <% } %>
+
+    <% if (safeMarket && (safeMarket.kospi || safeMarket.kosdaq)) { %>
+      <div class="market-bar mb-3">
+        <% if (safeMarket.kospi) { %>
+          <% const k = safeMarket.kospi; const cls = k.changeRate >= 0 ? 'pos-rate' : 'neg-rate'; %>
+          <div class="market-item">
+            <span class="label">코스피</span>
+            <span class="value"><%= k.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></span>
+            <span class="change <%= cls %>"><%= k.changeRate >= 0 ? '+' : '' %><%= k.changeRate.toFixed(2) %>%</span>
+          </div>
+        <% } %>
+        <% if (safeMarket.kosdaq) { %>
+          <% const q = safeMarket.kosdaq; const cls = q.changeRate >= 0 ? 'pos-rate' : 'neg-rate'; %>
+          <div class="market-item">
+            <span class="label">코스닥</span>
+            <span class="value"><%= q.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></span>
+            <span class="change <%= cls %>"><%= q.changeRate >= 0 ? '+' : '' %><%= q.changeRate.toFixed(2) %>%</span>
+          </div>
+        <% } %>
+        <% if (safeMarket.relativeRate !== null && safeMarket.relativeRate !== undefined) {
+             const rs = safeMarket.relativeRate;
+             const rsCls = rs > 0.5 ? 'outperform' : rs < -0.5 ? 'underperform' : 'neutral';
+             const rsLabel = rs > 0.5 ? '시장 상회' : rs < -0.5 ? '시장 하회' : '시장 동조';
+        %>
+          <span class="market-rs <%= rsCls %>"
+                title="종목 등락률 - <%= safeMarket.ownIndexLabel %> 등락률">
+            <i class="bi bi-arrow-<%= rs > 0 ? 'up' : rs < 0 ? 'down' : 'right' %>-circle me-1"></i>
+            vs <%= safeMarket.ownIndexLabel %> <%= rs >= 0 ? '+' : '' %><%= rs.toFixed(2) %>%p · <%= rsLabel %>
+          </span>
+        <% } %>
       </div>
     <% } %>
 

@@ -262,6 +262,38 @@ async function getPeriodChart(accessToken, stockCode, periodCode, startDate, end
   return res.data;
 }
 
+async function getIndexPrice(accessToken, indexCode) {
+  const url = `${process.env.KIS_BASE_URL}/uapi/domestic-stock/v1/quotations/inquire-index-price`;
+  const res = await axios.get(url, {
+    headers: {
+      "content-type": "application/json; charset=UTF-8",
+      authorization: `Bearer ${accessToken}`,
+      appkey: process.env.KIS_APP_KEY,
+      appsecret: process.env.KIS_APP_SECRET,
+      tr_id: "FHPUP02100000",
+    },
+    params: {
+      fid_cond_mrkt_div_code: "U",
+      fid_input_iscd: indexCode,
+    },
+    timeout: 8000,
+  });
+  if (res.data.rt_cd !== "0") {
+    throw new Error(`지수 API 오류 (${indexCode}): ${res.data.msg_cd} / ${res.data.msg1}`);
+  }
+  return res.data;
+}
+
+function normalizeIndex(apiData, label) {
+  const o = apiData?.output || {};
+  return {
+    label,
+    price: Number(o.bstp_nmix_prpr || 0),
+    changeAbs: Number(o.bstp_nmix_prdy_vrss || o.prdy_vrss || 0),
+    changeRate: Number(o.bstp_nmix_prdy_ctrt || o.prdy_ctrt || 0),
+  };
+}
+
 async function getInvestorTrend(accessToken, stockCode) {
   const url = `${process.env.KIS_BASE_URL}/uapi/domestic-stock/v1/quotations/inquire-investor`;
   const res = await axios.get(url, {
@@ -2006,6 +2038,7 @@ app.get("/", (req, res) => {
       volatility: 10,
       flow: 15,
     },
+    market: null,
     autoMode: pickAutoMode(),
   });
 });
@@ -2029,6 +2062,7 @@ app.post("/search", async (req, res) => {
         summary: null,
         scoreModel: null,
         weights,
+        market: null,
         autoMode: pickAutoMode(),
       });
     }
@@ -2049,6 +2083,7 @@ app.post("/search", async (req, res) => {
         summary: null,
         scoreModel: null,
         weights,
+        market: null,
         autoMode: pickAutoMode(),
       });
     }
@@ -2063,41 +2098,47 @@ app.post("/search", async (req, res) => {
 
     const accessToken = await safeApiCall(() => getAccessToken(), 300);
 
-    const currentRaw = await safeApiCall(
-      () => getCurrentPrice(accessToken, selected.shortCode),
-      900
-    );
-    const currentData = normalizeCurrentPrice(currentRaw, selected);
-
     const { startDate, endDate } = getDateRange(6);
 
-    const dailyRaw = await safeApiCall(
-      () => getPeriodChart(accessToken, selected.shortCode, "D", startDate, endDate),
-      1100
-    );
-    const weeklyRaw = await safeApiCall(
-      () => getPeriodChart(accessToken, selected.shortCode, "W", startDate, endDate),
-      1100
-    );
-    const monthlyRaw = await safeApiCall(
-      () => getPeriodChart(accessToken, selected.shortCode, "M", startDate, endDate),
-      1100
-    );
-    const yearlyRaw = await safeApiCall(
-      () => getPeriodChart(accessToken, selected.shortCode, "Y", startDate, endDate),
-      1100
-    );
+    const investorPromise = safeApiCall(() => getInvestorTrend(accessToken, selected.shortCode), 150)
+      .catch((e) => {
+        console.warn(`[flow] 수급 데이터 조회 실패 (${selected.shortCode}): ${e.message || e}`);
+        return null;
+      });
+    const kospiPromise = safeApiCall(() => getIndexPrice(accessToken, "0001"), 150)
+      .catch((e) => {
+        console.warn(`[market] KOSPI 조회 실패: ${e.message || e}`);
+        return null;
+      });
+    const kosdaqPromise = safeApiCall(() => getIndexPrice(accessToken, "1001"), 150)
+      .catch((e) => {
+        console.warn(`[market] KOSDAQ 조회 실패: ${e.message || e}`);
+        return null;
+      });
 
-    let investorRows = [];
-    try {
-      const investorRaw = await safeApiCall(
-        () => getInvestorTrend(accessToken, selected.shortCode),
-        1100
-      );
-      investorRows = normalizeInvestorTrend(investorRaw);
-    } catch (e) {
-      console.warn(`[flow] 수급 데이터 조회 실패 (${selected.shortCode}): ${e.message || e}`);
-    }
+    const [currentRaw, dailyRaw, weeklyRaw, monthlyRaw, yearlyRaw, investorRaw, kospiRaw, kosdaqRaw] = await Promise.all([
+      safeApiCall(() => getCurrentPrice(accessToken, selected.shortCode), 150),
+      safeApiCall(() => getPeriodChart(accessToken, selected.shortCode, "D", startDate, endDate), 150),
+      safeApiCall(() => getPeriodChart(accessToken, selected.shortCode, "W", startDate, endDate), 150),
+      safeApiCall(() => getPeriodChart(accessToken, selected.shortCode, "M", startDate, endDate), 150),
+      safeApiCall(() => getPeriodChart(accessToken, selected.shortCode, "Y", startDate, endDate), 150),
+      investorPromise,
+      kospiPromise,
+      kosdaqPromise,
+    ]);
+
+    const currentData = normalizeCurrentPrice(currentRaw, selected);
+    const investorRows = investorRaw ? normalizeInvestorTrend(investorRaw) : [];
+    const market = {
+      kospi: kospiRaw ? normalizeIndex(kospiRaw, "코스피") : null,
+      kosdaq: kosdaqRaw ? normalizeIndex(kosdaqRaw, "코스닥") : null,
+    };
+    const stockMarket = (selected.market || "").toUpperCase();
+    const ownIndex = stockMarket.includes("KOSDAQ") ? market.kosdaq : market.kospi;
+    market.relativeRate = ownIndex
+      ? Number((currentData.changeRate - ownIndex.changeRate).toFixed(2))
+      : null;
+    market.ownIndexLabel = ownIndex?.label || null;
 
     const dailyData = normalizePeriodData(dailyRaw, selected, "DAY");
     const weeklyData = normalizePeriodData(weeklyRaw, selected, "WEEK");
@@ -2137,6 +2178,7 @@ app.post("/search", async (req, res) => {
       summary,
       scoreModel,
       weights,
+      market,
       autoMode: pickAutoMode(),
     });
   } catch (err) {
@@ -2158,6 +2200,7 @@ app.post("/search", async (req, res) => {
       summary: null,
       scoreModel: null,
       weights: parseWeights(req.body || {}),
+      market: null,
       autoMode: pickAutoMode(),
     });
   }
