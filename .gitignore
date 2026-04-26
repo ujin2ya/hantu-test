@@ -12,6 +12,7 @@ pnpm-debug.log*
 .env.*
 !.env.example
 .kis-token.json
+.dart-corp-code.json
 
 # 로그 / 프로세스 파일
 logs/

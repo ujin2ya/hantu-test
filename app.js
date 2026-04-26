@@ -1616,28 +1616,22 @@ function getGemini() {
 
 function buildAiPrompt(snapshot, mode) {
   const modeLabel = mode === "short" ? "단타 (분~시간 단위)" : "스윙 (수일~수주 단위)";
-  const stockName = snapshot.name || "";
-  const stockCode = snapshot.code || "";
   return `
 너는 한국 주식 시장 분석 보조 AI다. 아래는 한 종목의 정량 점수와 차트 요약이다.
 전략은 ${modeLabel} 관점에서 해석한다.
 
 [엄격한 규칙]
-- 정량 데이터(점수/가격/비율)에 대해서는 새 숫자를 만들지 마라. 제공된 값만 인용한다.
+- 절대 새 숫자를 만들지 마라. 제공된 점수/가격/비율만 인용한다.
 - 점수 합산이나 재계산을 시도하지 마라. 해석만 한다.
 - 한국어로 답한다.
-- 아래 5개 섹션을 정확히 그 제목과 순서로 출력한다. 다른 섹션·인사말·맺음말 금지.
+- 아래 4개 섹션을 정확히 그 제목과 순서로 출력한다. 다른 섹션·인사말·맺음말 금지.
 - "강력 매수", "필승", "확정" 같은 단정적 표현 금지. "관심", "조건부", "관망" 등 톤 사용.
-- 검색 결과를 인용할 때는 출처를 신뢰할 수 있는 매체(주요 언론사, 거래소, 공시) 위주로 본다. 종목 토론방·블로그·찌라시 톤은 무시한다.
-
-## 최근 재료·뉴스
-"${stockName}(${stockCode})" 에 대해 Google 검색으로 **최근 1~3개월** 안의 재료, 뉴스, 테마 편입, 수주, 실적, 정책 이슈 등을 찾아 2~4문장으로 요약한다. 의미 있는 재료가 검색되지 않으면 "특별한 단기 재료는 검색되지 않음" 이라고 명시한다. 추측·지어내기 금지 — 실제 검색 결과 기반으로만.
 
 ## 진입 시그널
-${modeLabel} 관점에서 매수를 고려할 만한 근거를 점수와 차트 위치를 들어 2~4문장. 위 재료가 있다면 함께 엮는다.
+${modeLabel} 관점에서 매수를 고려할 만한 근거를 점수와 차트 위치를 들어 2~4문장.
 
 ## 리스크 요인
-약하거나 상충되는 신호를 2~4문장. 재료가 이미 가격에 반영됐을 가능성도 함께 검토.
+약하거나 상충되는 신호를 2~4문장.
 
 ## 손절·관망 가이드
 어느 가격대에서 손절하거나 관망 모드로 전환할지. 추천 매수 구간이 있다면 활용. 2~3문장.
@@ -1665,6 +1659,191 @@ function setAiCache(key, value) {
   aiCommentCache.set(key, { value, expiresAt: Date.now() + AI_CACHE_TTL_MS });
 }
 
+const DART_CORP_CODE_PATH = path.join(__dirname, ".dart-corp-code.json");
+let dartCorpMap = null;
+let dartCorpLoadInflight = null;
+
+async function loadDartCorpCodeMap() {
+  if (dartCorpMap) return dartCorpMap;
+  if (dartCorpLoadInflight) return dartCorpLoadInflight;
+  const apiKey = process.env.DART_API_KEY;
+  if (!apiKey) throw new Error("DART_API_KEY가 서버에 설정되지 않았습니다.");
+
+  dartCorpLoadInflight = (async () => {
+    try {
+      const cached = JSON.parse(fs.readFileSync(DART_CORP_CODE_PATH, "utf-8"));
+      if (cached && typeof cached === "object" && Object.keys(cached).length > 1000) {
+        console.log(`[dart] corp_code 캐시 로드: ${Object.keys(cached).length}개`);
+        dartCorpMap = cached;
+        return dartCorpMap;
+      }
+    } catch (_) {
+      console.log("[dart] corp_code 캐시 없음 — 신규 다운로드 시작");
+    }
+
+    const url = `https://opendart.fss.or.kr/api/corpCode.xml?crtfc_key=${apiKey}`;
+    const response = await axios.get(url, { responseType: "arraybuffer", timeout: 30000 });
+    const AdmZip = require("adm-zip");
+    const zip = new AdmZip(Buffer.from(response.data));
+    const xmlEntry = zip.getEntries().find((e) => /CORPCODE\.xml$/i.test(e.entryName));
+    if (!xmlEntry) throw new Error("DART corpCode ZIP 안에 CORPCODE.xml 없음");
+    const xml = xmlEntry.getData().toString("utf-8");
+
+    const map = {};
+    const blockRegex = /<list>([\s\S]*?)<\/list>/g;
+    const corpRegex = /<corp_code>\s*([0-9]+)\s*<\/corp_code>/;
+    const stockRegex = /<stock_code>\s*([0-9]{6})\s*<\/stock_code>/;
+    let m;
+    while ((m = blockRegex.exec(xml)) !== null) {
+      const block = m[1];
+      const cm = corpRegex.exec(block);
+      const sm = stockRegex.exec(block);
+      if (cm && sm) map[sm[1]] = cm[1];
+    }
+    console.log(`[dart] corp_code XML 파싱 완료: ${Object.keys(map).length}개`);
+
+    try {
+      fs.writeFileSync(DART_CORP_CODE_PATH, JSON.stringify(map));
+      console.log(`[dart] corp_code 캐시 저장: ${DART_CORP_CODE_PATH}`);
+    } catch (e) {
+      console.warn("[dart] 캐시 저장 실패:", e.message);
+    }
+    dartCorpMap = map;
+    return dartCorpMap;
+  })();
+
+  try {
+    return await dartCorpLoadInflight;
+  } finally {
+    dartCorpLoadInflight = null;
+  }
+}
+
+const DISCLOSURE_CACHE_TTL_MS = 30 * 60 * 1000;
+const disclosureCache = new Map();
+
+async function fetchDartDisclosures(stockCode) {
+  const hit = disclosureCache.get(stockCode);
+  if (hit && Date.now() < hit.expiresAt) return hit.value;
+
+  const map = await loadDartCorpCodeMap();
+  const corpCode = map[stockCode];
+  if (!corpCode) {
+    const value = { items: [], note: "DART에 등록된 종목이 아닙니다." };
+    disclosureCache.set(stockCode, { value, expiresAt: Date.now() + DISCLOSURE_CACHE_TTL_MS });
+    return value;
+  }
+
+  const today = new Date();
+  const past = new Date(today);
+  past.setMonth(past.getMonth() - 6);
+  const fmt = (d) => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+
+  const response = await axios.get("https://opendart.fss.or.kr/api/list.json", {
+    params: {
+      crtfc_key: process.env.DART_API_KEY,
+      corp_code: corpCode,
+      bgn_de: fmt(past),
+      end_de: fmt(today),
+      page_count: 20,
+      sort: "date",
+      sort_mth: "desc",
+    },
+    timeout: 8000,
+  });
+  const data = response.data || {};
+  if (data.status && data.status !== "000" && data.status !== "013") {
+    throw new Error(`DART API 오류 [${data.status}]: ${data.message || "알 수 없음"}`);
+  }
+  const items = (data.list || []).slice(0, 20).map((it) => ({
+    title: it.report_nm || "",
+    submitter: it.flr_nm || "",
+    date: it.rcept_dt
+      ? `${it.rcept_dt.slice(0, 4)}-${it.rcept_dt.slice(4, 6)}-${it.rcept_dt.slice(6, 8)}`
+      : "",
+    url: it.rcept_no ? `https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${it.rcept_no}` : "",
+    rm: it.rm || "",
+  })).filter((x) => x.title && x.url);
+
+  const value = { items };
+  disclosureCache.set(stockCode, { value, expiresAt: Date.now() + DISCLOSURE_CACHE_TTL_MS });
+  return value;
+}
+
+app.get("/disclosures", async (req, res) => {
+  const code = String(req.query.code || "").trim();
+  if (!/^\d{5,6}$/.test(code)) {
+    return res.status(400).json({ error: "code 파라미터가 올바르지 않습니다." });
+  }
+  if (!process.env.DART_API_KEY) {
+    return res.status(503).json({ error: "DART_API_KEY가 서버에 설정되지 않았습니다." });
+  }
+  try {
+    const result = await fetchDartDisclosures(code);
+    res.json({ code, ...result });
+  } catch (err) {
+    console.error("[dart] error:", err.message || err);
+    res.status(500).json({ error: err.message || "공시 조회 실패" });
+  }
+});
+
+const NEWS_CACHE_TTL_MS = 30 * 60 * 1000;
+const newsCache = new Map();
+
+function decodeBasicHtmlEntities(s) {
+  return String(s)
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, " ");
+}
+
+function formatNaverDatetime(s) {
+  if (!s || typeof s !== "string" || s.length < 12) return "";
+  return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)} ${s.slice(8, 10)}:${s.slice(10, 12)}`;
+}
+
+async function fetchNaverStockNews(code) {
+  const hit = newsCache.get(code);
+  if (hit && Date.now() < hit.expiresAt) return hit.value;
+  const url = `https://m.stock.naver.com/api/news/stock/${code}?pageSize=10&page=1`;
+  const { data } = await axios.get(url, {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; hantu-test/1.0)" },
+    timeout: 6000,
+  });
+  const clusters = Array.isArray(data) ? data : [];
+  const items = clusters
+    .map((cluster) => (cluster.items || [])[0])
+    .filter(Boolean)
+    .slice(0, 10)
+    .map((it) => ({
+      title: decodeBasicHtmlEntities(it.titleFull || it.title || ""),
+      office: it.officeName || "",
+      datetime: formatNaverDatetime(it.datetime),
+      url: it.mobileNewsUrl || "",
+    }))
+    .filter((x) => x.title && x.url);
+  newsCache.set(code, { value: items, expiresAt: Date.now() + NEWS_CACHE_TTL_MS });
+  return items;
+}
+
+app.get("/news", async (req, res) => {
+  const code = String(req.query.code || "").trim();
+  if (!/^\d{5,6}$/.test(code)) {
+    return res.status(400).json({ error: "code 파라미터가 올바르지 않습니다." });
+  }
+  try {
+    const items = await fetchNaverStockNews(code);
+    res.json({ code, items });
+  } catch (err) {
+    console.error("[news] error:", err.message || err);
+    res.status(500).json({ error: err.message || "뉴스 조회 실패" });
+  }
+});
+
 app.post("/ai/comment", async (req, res) => {
   try {
     if (!process.env.GEMINI_API_KEY) {
@@ -1683,19 +1862,10 @@ app.post("/ai/comment", async (req, res) => {
     const prompt = buildAiPrompt(snapshot, mode);
     const client = getGemini();
     const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
-    const model = client.getGenerativeModel({
-      model: modelName,
-      tools: [{ googleSearch: {} }],
-    });
+    const model = client.getGenerativeModel({ model: modelName });
     const result = await model.generateContent(prompt);
     const text = result.response.text();
-    const grounding = result.response.candidates?.[0]?.groundingMetadata || null;
-    const sources = (grounding?.groundingChunks || [])
-      .map((c) => c.web)
-      .filter((w) => w && w.uri)
-      .map((w) => ({ uri: w.uri, title: w.title || w.uri }));
-    const searchQueries = grounding?.webSearchQueries || [];
-    const payload = { text, mode, model: modelName, sources, searchQueries };
+    const payload = { text, mode, model: modelName };
     setAiCache(cacheKey, payload);
     res.json(payload);
   } catch (err) {

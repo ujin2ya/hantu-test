@@ -18,12 +18,13 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
         with:
           host: ${{ secrets.SSH_HOST }}
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: GEMINI_API_KEY
+          envs: GEMINI_API_KEY,DART_API_KEY
           script_stop: true
           script: |
             set -e
@@ -32,13 +33,18 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             npm ci --omit=dev
-            if [ -n "$GEMINI_API_KEY" ]; then
-              touch .env
-              if grep -q "^GEMINI_API_KEY=" .env; then
-                sed -i "s|^GEMINI_API_KEY=.*|GEMINI_API_KEY=${GEMINI_API_KEY}|" .env
+            touch .env
+            upsert_env() {
+              local key="$1"
+              local val="$2"
+              if [ -z "$val" ]; then return; fi
+              if grep -q "^${key}=" .env; then
+                sed -i "s|^${key}=.*|${key}=${val}|" .env
               else
-                echo "GEMINI_API_KEY=${GEMINI_API_KEY}" >> .env
+                echo "${key}=${val}" >> .env
               fi
-            fi
+            }
+            upsert_env GEMINI_API_KEY "$GEMINI_API_KEY"
+            upsert_env DART_API_KEY "$DART_API_KEY"
             pm2 restart hantu-test --update-env || pm2 start app.js --name hantu-test
             pm2 save

@@ -245,38 +245,63 @@
     }
     .ai-mode-badge.short { background: #dc2626; }
     .ai-mode-badge.swing { background: #2563eb; }
-    .ai-sources-list {
+    .news-list {
       list-style: none;
-      padding-left: 0;
+      padding: 0;
       margin: 0;
-      font-size: 0.78rem;
-      line-height: 1.55;
     }
-    .ai-sources-list li { margin-bottom: 2px; }
-    .ai-sources-list a {
-      color: #4f46e5;
-      text-decoration: none;
-      word-break: break-all;
+    .news-list li {
+      padding: 8px 0;
+      border-bottom: 1px dashed #e2e8f0;
+      font-size: 0.88rem;
+      line-height: 1.5;
     }
-    .ai-sources-list a:hover { text-decoration: underline; }
-    .material-link-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: #f1f5f9;
-      color: #334155;
-      font-size: 0.78rem;
-      font-weight: 500;
-      text-decoration: none;
-      border: 1px solid #e2e8f0;
-      transition: background 0.15s;
-    }
-    .material-link-chip:hover {
-      background: #e2e8f0;
+    .news-list li:last-child { border-bottom: 0; }
+    .news-list a {
       color: #1e293b;
       text-decoration: none;
+      font-weight: 500;
+    }
+    .news-list a:hover {
+      color: #4f46e5;
+      text-decoration: underline;
+    }
+    .news-meta {
+      display: block;
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .news-meta .news-office {
+      color: #475569;
+      font-weight: 500;
+    }
+    .insight-tabs {
+      display: flex;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .insight-tabs button {
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .insight-tabs button:hover {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+    .insight-tabs button.active {
+      background: var(--brand-gradient, linear-gradient(135deg, #6366f1, #818cf8));
+      color: #fff;
+      border-color: transparent;
     }
 
     .btn-search {
@@ -873,6 +898,26 @@
       </div>
 
       <div class="glass-card p-3 p-lg-4 mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-3">
+          <ul class="insight-tabs" role="tablist">
+            <li><button type="button" class="active" data-insight-tab="news"><i class="bi bi-newspaper me-1"></i>뉴스</button></li>
+            <li><button type="button" data-insight-tab="disc"><i class="bi bi-file-earmark-text me-1"></i>공시</button></li>
+          </ul>
+          <span class="muted-text" style="font-size: 0.72rem;">네이버 금융 / DART · 30분 캐시</span>
+        </div>
+        <div id="newsPanel" data-insight-panel="news">
+          <div id="newsList" class="muted-text" style="font-size: 0.85rem;">
+            <span class="spinner-border spinner-border-sm me-2"></span>뉴스를 불러오는 중...
+          </div>
+        </div>
+        <div id="discPanel" data-insight-panel="disc" style="display:none;">
+          <div id="discList" class="muted-text" style="font-size: 0.85rem;">
+            <span class="spinner-border spinner-border-sm me-2"></span>공시를 불러오는 중...
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card p-3 p-lg-4 mt-4">
         <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
           <h2 class="section-title mb-0"><i class="bi bi-robot"></i>AI 전략 코멘트</h2>
           <div class="btn-group btn-group-sm" role="group">
@@ -883,20 +928,6 @@
               <i class="bi bi-graph-up me-1"></i>스윙 코멘트
             </button>
           </div>
-        </div>
-        <div class="d-flex flex-wrap gap-2 mb-2">
-          <a class="material-link-chip"
-             href="https://finance.naver.com/item/news.nhn?code=<%= currentData.stockCode %>"
-             target="_blank" rel="noopener noreferrer"
-             title="네이버 금융 — 뉴스/공시 탭">
-            <i class="bi bi-newspaper"></i>네이버 뉴스·공시
-          </a>
-          <a class="material-link-chip"
-             href="https://dart.fss.or.kr/dsab007/main.do?selectKey=<%= currentData.stockCode %>"
-             target="_blank" rel="noopener noreferrer"
-             title="전자공시시스템 DART">
-            <i class="bi bi-file-earmark-text"></i>DART 공시
-          </a>
         </div>
         <div class="muted-text mb-3" style="font-size: 0.78rem;">
           ⚠️ AI(Gemini Flash) 해석은 참고용이며 투자권유가 아닙니다. 매매 판단과 책임은 본인에게 있습니다.
@@ -1165,30 +1196,12 @@
           const cachedBadge = data.cached
             ? '<span class="badge bg-info ms-2" style="font-size: 0.65rem;">캐시</span>'
             : '';
-          const sources = Array.isArray(data.sources) ? data.sources : [];
-          let sourcesHtml = '';
-          if (sources.length) {
-            const items = sources.map(function (s, i) {
-              const title = escapeHtml(s.title || s.uri || '');
-              const uri = escapeHtml(s.uri || '#');
-              return '<li><a href="' + uri + '" target="_blank" rel="noopener noreferrer">' +
-                '[' + (i + 1) + '] ' + title + '</a></li>';
-            }).join('');
-            sourcesHtml =
-              '<div class="ai-sources mt-3 pt-2 border-top">' +
-                '<div class="muted-text mb-1" style="font-size: 0.75rem;">' +
-                  '<i class="bi bi-link-45deg me-1"></i>출처 (Google 검색)' +
-                '</div>' +
-                '<ol class="ai-sources-list">' + items + '</ol>' +
-              '</div>';
-          }
           resultBox.innerHTML =
             '<div class="ai-card">' +
               '<div class="ai-mode-badge ' + (mode === "short" ? "short" : "swing") + '">' +
                 modeLabel + " 관점" +
               '</div>' + cachedBadge +
               renderMarkdown(data.text) +
-              sourcesHtml +
             '</div>';
         } catch (err) {
           resultBox.innerHTML =
@@ -1204,6 +1217,94 @@
 
       if (autoMode === "short" || autoMode === "swing") {
         setTimeout(function () { callAi(autoMode); }, 100);
+      }
+
+      const insightCode = (snapshot && snapshot.code) ? String(snapshot.code) : "";
+
+      const tabButtons = document.querySelectorAll('[data-insight-tab]');
+      const tabPanels = document.querySelectorAll('[data-insight-panel]');
+      tabButtons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          const target = btn.getAttribute('data-insight-tab');
+          tabButtons.forEach(function (b) { b.classList.toggle('active', b === btn); });
+          tabPanels.forEach(function (p) {
+            p.style.display = (p.getAttribute('data-insight-panel') === target) ? '' : 'none';
+          });
+        });
+      });
+
+      function renderEmpty(box, message) {
+        box.classList.add("muted-text");
+        box.innerHTML = '<span>' + escapeHtml(message) + '</span>';
+      }
+      function renderError(box, message) {
+        box.classList.remove("muted-text");
+        box.innerHTML =
+          '<div class="alert alert-warning small mb-0">' + escapeHtml(message) + '</div>';
+      }
+
+      const newsBox = document.getElementById("newsList");
+      if (newsBox && insightCode) {
+        fetch("/news?code=" + encodeURIComponent(insightCode))
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+          .then(function (resp) {
+            if (!resp.ok) {
+              renderError(newsBox, "뉴스 조회 실패: " + (resp.body.error || "알 수 없는 오류"));
+              return;
+            }
+            const items = (resp.body.items || []);
+            if (!items.length) { renderEmpty(newsBox, "관련 뉴스가 없습니다."); return; }
+            const html = items.map(function (it) {
+              return '<li>' +
+                '<a href="' + escapeHtml(it.url) + '" target="_blank" rel="noopener noreferrer">' +
+                  escapeHtml(it.title) +
+                '</a>' +
+                '<span class="news-meta">' +
+                  '<span class="news-office">' + escapeHtml(it.office || "") + '</span>' +
+                  (it.datetime ? ' · ' + escapeHtml(it.datetime) : '') +
+                '</span>' +
+              '</li>';
+            }).join('');
+            newsBox.classList.remove("muted-text");
+            newsBox.innerHTML = '<ul class="news-list">' + html + '</ul>';
+          })
+          .catch(function (err) {
+            renderError(newsBox, "네트워크 오류: " + (err.message || String(err)));
+          });
+      }
+
+      const discBox = document.getElementById("discList");
+      if (discBox && insightCode) {
+        fetch("/disclosures?code=" + encodeURIComponent(insightCode))
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+          .then(function (resp) {
+            if (!resp.ok) {
+              renderError(discBox, "공시 조회 실패: " + (resp.body.error || "알 수 없는 오류"));
+              return;
+            }
+            const items = (resp.body.items || []);
+            if (!items.length) {
+              renderEmpty(discBox, resp.body.note || "최근 6개월 내 공시가 없습니다.");
+              return;
+            }
+            const html = items.map(function (it) {
+              const rmBadge = it.rm ? ' <span class="badge bg-secondary" style="font-size:0.62rem;">' + escapeHtml(it.rm) + '</span>' : '';
+              return '<li>' +
+                '<a href="' + escapeHtml(it.url) + '" target="_blank" rel="noopener noreferrer">' +
+                  escapeHtml(it.title) +
+                '</a>' + rmBadge +
+                '<span class="news-meta">' +
+                  '<span class="news-office">' + escapeHtml(it.submitter || "") + '</span>' +
+                  (it.date ? ' · ' + escapeHtml(it.date) : '') +
+                '</span>' +
+              '</li>';
+            }).join('');
+            discBox.classList.remove("muted-text");
+            discBox.innerHTML = '<ul class="news-list">' + html + '</ul>';
+          })
+          .catch(function (err) {
+            renderError(discBox, "네트워크 오류: " + (err.message || String(err)));
+          });
       }
     })();
   </script>
