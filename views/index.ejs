@@ -245,6 +245,39 @@
     }
     .ai-mode-badge.short { background: #dc2626; }
     .ai-mode-badge.swing { background: #2563eb; }
+    .ai-sources-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+      font-size: 0.78rem;
+      line-height: 1.55;
+    }
+    .ai-sources-list li { margin-bottom: 2px; }
+    .ai-sources-list a {
+      color: #4f46e5;
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .ai-sources-list a:hover { text-decoration: underline; }
+    .material-link-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: #334155;
+      font-size: 0.78rem;
+      font-weight: 500;
+      text-decoration: none;
+      border: 1px solid #e2e8f0;
+      transition: background 0.15s;
+    }
+    .material-link-chip:hover {
+      background: #e2e8f0;
+      color: #1e293b;
+      text-decoration: none;
+    }
 
     .btn-search {
       background: var(--brand-gradient);
@@ -851,6 +884,20 @@
             </button>
           </div>
         </div>
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <a class="material-link-chip"
+             href="https://finance.naver.com/item/news.nhn?code=<%= currentData.stockCode %>"
+             target="_blank" rel="noopener noreferrer"
+             title="네이버 금융 — 뉴스/공시 탭">
+            <i class="bi bi-newspaper"></i>네이버 뉴스·공시
+          </a>
+          <a class="material-link-chip"
+             href="https://dart.fss.or.kr/dsab007/main.do?selectKey=<%= currentData.stockCode %>"
+             target="_blank" rel="noopener noreferrer"
+             title="전자공시시스템 DART">
+            <i class="bi bi-file-earmark-text"></i>DART 공시
+          </a>
+        </div>
         <div class="muted-text mb-3" style="font-size: 0.78rem;">
           ⚠️ AI(Gemini Flash) 해석은 참고용이며 투자권유가 아닙니다. 매매 판단과 책임은 본인에게 있습니다.
         </div>
@@ -1118,12 +1165,30 @@
           const cachedBadge = data.cached
             ? '<span class="badge bg-info ms-2" style="font-size: 0.65rem;">캐시</span>'
             : '';
+          const sources = Array.isArray(data.sources) ? data.sources : [];
+          let sourcesHtml = '';
+          if (sources.length) {
+            const items = sources.map(function (s, i) {
+              const title = escapeHtml(s.title || s.uri || '');
+              const uri = escapeHtml(s.uri || '#');
+              return '<li><a href="' + uri + '" target="_blank" rel="noopener noreferrer">' +
+                '[' + (i + 1) + '] ' + title + '</a></li>';
+            }).join('');
+            sourcesHtml =
+              '<div class="ai-sources mt-3 pt-2 border-top">' +
+                '<div class="muted-text mb-1" style="font-size: 0.75rem;">' +
+                  '<i class="bi bi-link-45deg me-1"></i>출처 (Google 검색)' +
+                '</div>' +
+                '<ol class="ai-sources-list">' + items + '</ol>' +
+              '</div>';
+          }
           resultBox.innerHTML =
             '<div class="ai-card">' +
               '<div class="ai-mode-badge ' + (mode === "short" ? "short" : "swing") + '">' +
                 modeLabel + " 관점" +
               '</div>' + cachedBadge +
               renderMarkdown(data.text) +
+              sourcesHtml +
             '</div>';
         } catch (err) {
           resultBox.innerHTML =

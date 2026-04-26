@@ -1616,22 +1616,28 @@ function getGemini() {
 
 function buildAiPrompt(snapshot, mode) {
   const modeLabel = mode === "short" ? "단타 (분~시간 단위)" : "스윙 (수일~수주 단위)";
+  const stockName = snapshot.name || "";
+  const stockCode = snapshot.code || "";
   return `
 너는 한국 주식 시장 분석 보조 AI다. 아래는 한 종목의 정량 점수와 차트 요약이다.
 전략은 ${modeLabel} 관점에서 해석한다.
 
 [엄격한 규칙]
-- 절대 새 숫자를 만들지 마라. 제공된 점수/가격/비율만 인용한다.
+- 정량 데이터(점수/가격/비율)에 대해서는 새 숫자를 만들지 마라. 제공된 값만 인용한다.
 - 점수 합산이나 재계산을 시도하지 마라. 해석만 한다.
 - 한국어로 답한다.
-- 아래 4개 섹션을 정확히 그 제목과 순서로 출력한다. 다른 섹션·인사말·맺음말 금지.
+- 아래 5개 섹션을 정확히 그 제목과 순서로 출력한다. 다른 섹션·인사말·맺음말 금지.
 - "강력 매수", "필승", "확정" 같은 단정적 표현 금지. "관심", "조건부", "관망" 등 톤 사용.
+- 검색 결과를 인용할 때는 출처를 신뢰할 수 있는 매체(주요 언론사, 거래소, 공시) 위주로 본다. 종목 토론방·블로그·찌라시 톤은 무시한다.
+
+## 최근 재료·뉴스
+"${stockName}(${stockCode})" 에 대해 Google 검색으로 **최근 1~3개월** 안의 재료, 뉴스, 테마 편입, 수주, 실적, 정책 이슈 등을 찾아 2~4문장으로 요약한다. 의미 있는 재료가 검색되지 않으면 "특별한 단기 재료는 검색되지 않음" 이라고 명시한다. 추측·지어내기 금지 — 실제 검색 결과 기반으로만.
 
 ## 진입 시그널
-${modeLabel} 관점에서 매수를 고려할 만한 근거를 점수와 차트 위치를 들어 2~4문장.
+${modeLabel} 관점에서 매수를 고려할 만한 근거를 점수와 차트 위치를 들어 2~4문장. 위 재료가 있다면 함께 엮는다.
 
 ## 리스크 요인
-약하거나 상충되는 신호를 2~4문장.
+약하거나 상충되는 신호를 2~4문장. 재료가 이미 가격에 반영됐을 가능성도 함께 검토.
 
 ## 손절·관망 가이드
 어느 가격대에서 손절하거나 관망 모드로 전환할지. 추천 매수 구간이 있다면 활용. 2~3문장.
@@ -1677,10 +1683,19 @@ app.post("/ai/comment", async (req, res) => {
     const prompt = buildAiPrompt(snapshot, mode);
     const client = getGemini();
     const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
-    const model = client.getGenerativeModel({ model: modelName });
+    const model = client.getGenerativeModel({
+      model: modelName,
+      tools: [{ googleSearch: {} }],
+    });
     const result = await model.generateContent(prompt);
     const text = result.response.text();
-    const payload = { text, mode, model: modelName };
+    const grounding = result.response.candidates?.[0]?.groundingMetadata || null;
+    const sources = (grounding?.groundingChunks || [])
+      .map((c) => c.web)
+      .filter((w) => w && w.uri)
+      .map((w) => ({ uri: w.uri, title: w.title || w.uri }));
+    const searchQueries = grounding?.webSearchQueries || [];
+    const payload = { text, mode, model: modelName, sources, searchQueries };
     setAiCache(cacheKey, payload);
     res.json(payload);
   } catch (err) {
