@@ -169,6 +169,12 @@
             <h2 class="h5 mb-1">
               <%= result.stockMeta.name %>
               <span class="text-secondary small ms-2"><%= result.stockMeta.shortCode %> · <%= result.stockMeta.market %></span>
+              <% if (result.stockType === 'weakTrend') { %>
+                <span style="display:inline-block;padding:2px 8px;border-radius:6px;background:#e0e7ff;color:#4338ca;font-size:0.7rem;font-weight:600;margin-left:6px;vertical-align:middle;"
+                      title="60일 박스권 또는 V자 회복 도중 — 추세 추종 모델 신뢰도 낮음. 박스권 매매 관점으로 보세요.">
+                  📊 박스권
+                </span>
+              <% } %>
             </h2>
             <div class="small text-secondary">
               검증 기간 <%= result.monthsBack %>개월 · 거래일 <%= result.series.length %>일 ·

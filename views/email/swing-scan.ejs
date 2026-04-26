@@ -102,6 +102,9 @@
                         </td>
                         <td valign="top" style="line-height:1.3;">
                           <a href="<%= detailUrl %>" style="color:#0f172a;font-weight:700;text-decoration:none;font-size:15px;"><%= escapeHtml(item.name) %></a>
+                          <% if (item.stockType === 'weakTrend') { %>
+                            <span style="display:inline-block;padding:1px 6px;border-radius:6px;background:#e0e7ff;color:#4338ca;font-size:10px;font-weight:600;margin-left:4px;vertical-align:middle;">📊 박스권</span>
+                          <% } %>
                           <div style="color:#94a3b8;font-size:11px;margin-top:3px;white-space:nowrap;">
                             <%= escapeHtml(item.shortCode) %><% if (item.market && item.market !== "-") { %> · <%= escapeHtml(item.market) %><% } %><% if (ne.marketCap) { %> · <%= fmtMarketCap(ne.marketCap) %><% } %>
                           </div>

@@ -772,6 +772,12 @@
           <i class="bi bi-bookmark-star me-1 text-primary"></i>
           <%= safeCurrentData.stockName %>
           <span class="text-secondary small ms-2"><%= safeCurrentData.stockCode %> · <%= safeCurrentData.market %></span>
+          <% if (typeof stockType !== 'undefined' && stockType === 'weakTrend') { %>
+            <span style="display:inline-block;padding:2px 8px;border-radius:6px;background:#e0e7ff;color:#4338ca;font-size:0.7rem;font-weight:600;margin-left:6px;vertical-align:middle;"
+                  title="60일 박스권 또는 V자 회복 도중 — 추세 추종 모델 신뢰도 낮음. 박스권 매매 관점으로 보세요.">
+              📊 박스권
+            </span>
+          <% } %>
         </h2>
         <form method="POST" action="/backtest" class="m-0">
           <input type="hidden" name="query" value="<%= safeCurrentData.stockCode %>" />

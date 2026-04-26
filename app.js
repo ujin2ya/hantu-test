@@ -1580,6 +1580,38 @@ const NON_STOCK_PATTERNS = [
 
 // 우선주 식별: 종목명 끝 "우"/"우B"/"숫자우"/"숫자우B" + 단축코드 끝자리 5/7/9/K/L (한국 거래소 관행).
 // 두 조건 모두 만족해야 우선주로 분류 — 이름만 봤을 때의 false positive (에코글로우/이오플로우/성우 등) 방지.
+// Phase 5 — 추세 약한 종목 사전 제외.
+// 점수 모델은 trending 종목에 잘 작동하나 추세 약한 종목 (변동만 크고 결국 제자리)에선
+// 천장 매수 함정에 빠짐 (백테스트로 검증됨 — 도이치모터스 케이스).
+//
+// 두 조건 OR — 하나라도 해당되면 추세 약함:
+//   1) 60일 수익률 < 10%   (전체 흐름 약함)
+//   2) 오늘 종가 < 60일 최고가의 95%  (신고가 못 따라감 = V자 회복 도중 등)
+// 단일 조건만 쓰면 60일 전이 우연히 저점이라 수익률 부풀려지는 종목(도이치)을 못 잡음.
+const WEAK_TREND_RETURN_PCT = 10;
+const WEAK_TREND_HIGH_RATIO = 0.95;
+
+function isWeakTrendStock(dailyData) {
+  const items = dailyData?.items?.slice(0, 60) || [];
+  if (items.length < 60) return false; // 데이터 부족하면 판정 안 함
+  const today = Number(items[0].closePrice || 0);
+  const sixtyAgo = Number(items[59].closePrice || 0);
+  if (!today || !sixtyAgo) return false;
+
+  // 조건 1: 60일 수익률
+  const returnPct = ((today - sixtyAgo) / sixtyAgo) * 100;
+  if (returnPct < WEAK_TREND_RETURN_PCT) return true;
+
+  // 조건 2: 60일 최고가 대비 위치
+  const highs = items.map((x) => Number(x.highPrice || 0)).filter((v) => v > 0);
+  if (highs.length === 0) return false;
+  const high60 = Math.max(...highs);
+  if (high60 <= 0) return false;
+  if (today < high60 * WEAK_TREND_HIGH_RATIO) return true;
+
+  return false;
+}
+
 function isPreferredStock(name, shortCode) {
   if (!name || !shortCode) return false;
   if (!/[0-9]?우B?$/.test(name)) return false;
@@ -2018,6 +2050,10 @@ async function runSwingScan({ candidateLimit }) {
       const monthlyData = normalizePeriodData(monthlyRaw, stockMeta, "MONTH");
       const yearlyData = normalizePeriodData(yearlyRaw, stockMeta, "YEAR");
 
+      // Phase 5 (revised) — 추세 약한 종목을 제외하지 않고 라벨만 부여.
+      // 사용자가 판단할 수 있도록 결과에 stockType 표시. 점수는 그대로 계산.
+      const weakTrend = isWeakTrendStock(dailyData);
+
       // 장 시작 전 / 휴장 시 currentData 가 "오늘 거래 0" 으로 채워져 volume 점수가 0 이 됨.
       // 이 경우 가장 최근 일봉(=어제 마감) 으로 currentData 대체 → 새벽/주말 스윙 스캔도 의미 있는 점수.
       const noTodayData = currentData.todayVolume === 0 && currentData.changeRate === 0;
@@ -2115,6 +2151,7 @@ async function runSwingScan({ candidateLimit }) {
         currentPrice: currentData.currentPrice,
         changeRate: currentData.changeRate,
         sources: cand.sources,
+        stockType: weakTrend ? "weakTrend" : "trend",
         scoreModel: {
           totalScore: scoreModel.totalScore,
           verdict: scoreModel.verdict,
@@ -2158,6 +2195,11 @@ async function runSwingScan({ candidateLimit }) {
   const results = await processBatched(candidates, 3, processOne);
   console.log(`[SWING] per-stock fetch elapsed: ${((Date.now() - t0) / 1000).toFixed(1)}s (batch=3)`);
 
+  // Phase 5 (revised) — 필터 대신 라벨링: 추세 약함 종목 카운트만 로그로
+  const weakTrendCount = results.filter((r) => r.stockType === "weakTrend").length;
+  if (weakTrendCount > 0) {
+    console.log(`[SWING] 추세 약함 ${weakTrendCount}건 (제외 안 함, 라벨로 표시)`);
+  }
   results.sort((a, b) => (b.scoreModel?.totalScore || -1) - (a.scoreModel?.totalScore || -1));
 
   return {
@@ -2724,6 +2766,7 @@ const handleSearch = async (req, res) => {
       market,
       autoMode: pickAutoMode(),
       returnUrl,
+      stockType: isWeakTrendStock(dailyData) ? "weakTrend" : "trend",
     });
   } catch (err) {
     let message = err.message || "알 수 없는 오류가 발생했습니다.";
@@ -3340,7 +3383,11 @@ async function runBacktest({ stockMeta, monthsBack, threshold, horizons }) {
     return { horizon: h, n, winRate, avgReturn, cumulativeReturn, mdd, trades };
   });
 
-  return { stockMeta, monthsBack, threshold, series, signals, horizonResults };
+  // 종목 분류 (현재 시점 기준) — 백테스트 결과 헤더에 라벨 표시용
+  const dailyDataNow = { items: allItemsDesc };
+  const stockType = isWeakTrendStock(dailyDataNow) ? "weakTrend" : "trend";
+
+  return { stockMeta, monthsBack, threshold, series, signals, horizonResults, stockType };
 }
 
 app.get("/backtest", (req, res) => {
