@@ -2253,6 +2253,11 @@ app.post("/ai/comment", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
+  const incomingQuery = String(req.query.query || "").trim();
+  if (incomingQuery) {
+    req.body = { stockQuery: incomingQuery };
+    return handleSearch(req, res);
+  }
   res.render("index", {
     query: "",
     error: null,
@@ -2290,7 +2295,7 @@ function buildScanReturnUrl(body) {
   return `/scan?mode=${encodeURIComponent(mode)}&candidateLimit=${limit}&includeMinute=${includeMinute}`;
 }
 
-app.post("/search", async (req, res) => {
+const handleSearch = async (req, res) => {
   const returnUrl = buildScanReturnUrl(req.body);
   try {
     const query = String(req.body.stockQuery || "").trim();
@@ -2456,7 +2461,9 @@ app.post("/search", async (req, res) => {
       returnUrl,
     });
   }
-});
+};
+
+app.post("/search", handleSearch);
 
 // ============================================================
 // 이메일 구독 / 발송 / 크론 (밤 배치 스윙 스캔 발송)
