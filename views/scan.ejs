@@ -116,9 +116,13 @@
           </select>
         </div>
         <div class="col-6 col-md-2">
-          <label class="form-label small text-secondary mb-1">후보 수</label>
+          <label class="form-label small text-secondary mb-1"
+                 title="평가 대상 풀 크기. 클수록 더 많은 종목을 분석해 숨은 강한 후보를 발굴하지만 시간이 오래 걸립니다.">
+            탐색 풀 크기 <i class="bi bi-info-circle text-muted" style="font-size: 0.7rem;"></i>
+          </label>
           <input type="number" name="candidateLimit" class="form-control form-control-sm"
-                 value="<%= options.candidateLimit %>" min="5" max="60" />
+                 value="<%= options.candidateLimit %>" min="5" max="60"
+                 title="평가 대상 풀 크기. 클수록 더 많은 종목을 분석해 숨은 강한 후보를 발굴하지만 시간이 오래 걸립니다." />
         </div>
         <div class="col-6 col-md-3 d-flex align-items-center pt-3">
           <div class="form-check">
@@ -135,7 +139,11 @@
       </form>
       <div class="small text-secondary mt-2">
         단타: 거래대금 + 체결강도 상위 / 분봉 모멘텀 / 약 1~2분.
-        스윙: 거래대금 + 거래증가율 상위 / 일·주·월·연봉 7요소 / 약 2~3분.
+        스윙: 거래대금 + 거래증가율 상위 / 일·주·월·연봉 7요소 + 수급 / 약 2~3분.
+        <br />
+        <i class="bi bi-info-circle me-1"></i>
+        <strong>탐색 풀 크기</strong>는 결과 개수가 아니라 <em>평가 대상 후보 풀 크기</em>입니다.
+        25 → 거래대금·체결강도 둘 다에 등장한 안전한 후보 위주, 60 → 한 쪽에서만 강하게 등장한 종목까지 포함해 숨은 강자를 더 발굴.
       </div>
     </div>
 

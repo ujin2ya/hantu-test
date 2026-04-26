@@ -1551,6 +1551,17 @@ async function runSwingScan({ candidateLimit }) {
       const monthlyRaw = await safeApiCall(() => getPeriodChart(accessToken, cand.shortCode, "M", startDate, endDate), 1100);
       const yearlyRaw = await safeApiCall(() => getPeriodChart(accessToken, cand.shortCode, "Y", startDate, endDate), 1100);
 
+      let investorRows = [];
+      try {
+        const investorRaw = await safeApiCall(
+          () => getInvestorTrend(accessToken, cand.shortCode),
+          1100
+        );
+        investorRows = normalizeInvestorTrend(investorRaw);
+      } catch (e) {
+        console.warn(`[SWING flow] 수급 조회 실패 (${cand.shortCode}): ${e.message || e}`);
+      }
+
       const dailyData = normalizePeriodData(dailyRaw, stockMeta, "DAY");
       const weeklyData = normalizePeriodData(weeklyRaw, stockMeta, "WEEK");
       const monthlyData = normalizePeriodData(monthlyRaw, stockMeta, "MONTH");
@@ -1572,7 +1583,7 @@ async function runSwingScan({ candidateLimit }) {
         monthlySeries,
         yearlySeries,
         defaultWeights,
-        []
+        investorRows
       );
 
       const recTier = scoreModel.buyRecommendation?.recommendedTier;
