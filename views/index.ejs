@@ -118,7 +118,18 @@
       font-size: 0.78rem;
       color: var(--muted);
       margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
+    .weight-help {
+      cursor: help;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .weight-help:hover { color: #6366f1; }
 
     .chart-wrap {
       position: relative;
@@ -596,19 +607,34 @@
 
         <div class="row g-2 row-cols-2 row-cols-md-4 row-cols-xl-8">
           <% const weightFields = [
-            { key: 'volume', name: 'volumeWeight', label: '거래량' },
-            { key: 'position', name: 'positionWeight', label: '위치' },
-            { key: 'trend', name: 'trendWeight', label: '추세' },
-            { key: 'rsi', name: 'rsiWeight', label: 'RSI' },
-            { key: 'macd', name: 'macdWeight', label: 'MACD' },
-            { key: 'resistance', name: 'resistanceWeight', label: '매물 압력' },
-            { key: 'volatility', name: 'volatilityWeight', label: '변동성' },
-            { key: 'flow', name: 'flowWeight', label: '수급' },
+            { key: 'volume', name: 'volumeWeight', label: '거래량',
+              desc: '오늘 거래량을 20일 평균과 비교 + 주/월/연 거래 비율. 양봉·종가 상단 위치면 가점, 음봉·종가 하단이면 감점.' },
+            { key: 'position', name: 'positionWeight', label: '위치',
+              desc: '현재가가 일/주/월/연봉 차트의 고저 범위에서 어디에 있는지. 하단~중하단(눌림목)을 선호하고 고점 부근이면 감점.' },
+            { key: 'trend', name: 'trendWeight', label: '추세',
+              desc: '현재가가 일봉 5/20/60일 이동평균선과 주봉 4/12주 이평선 위/아래에 있는지. 정배열일수록 가점.' },
+            { key: 'rsi', name: 'rsiWeight', label: 'RSI',
+              desc: '최근 60일 종가 기반 14기간 상대강도지수. 70 이상은 과매수(감점), 30 이하는 과매도(가점), 40~60이 가장 우호적.' },
+            { key: 'macd', name: 'macdWeight', label: 'MACD',
+              desc: '12/26/9 이동평균 수렴확산. 시그널선을 막 상향 돌파(골든크로스)면 가점, 하향 돌파(데드크로스)면 감점.' },
+            { key: 'resistance', name: 'resistanceWeight', label: '매물 압력',
+              desc: '최근 120일을 24구간 가격대별 거래량 히스토그램으로 변환해 현재가 위쪽 매물대 비중을 점수화. 위쪽 매물 적을수록 점수 ↑.' },
+            { key: 'volatility', name: 'volatilityWeight', label: '변동성',
+              desc: '최근 20일 평균 일중 변동폭(고저-종가 비율). 낮을수록 점수 ↑ (반비례) — 안정적인 종목 선호.' },
+            { key: 'flow', name: 'flowWeight', label: '수급',
+              desc: '최근 5일/20일 외국인·기관 누적 순매수와 동반매수·동반매도 일수. 큰손이 사들이고 있을수록 점수 ↑ — 한국 시장 심리 선행 지표.' },
           ]; %>
           <% weightFields.forEach(function(f) { %>
             <div class="col">
               <div class="weight-item">
-                <label><%= f.label %> 가중치</label>
+                <label>
+                  <span><%= f.label %> 가중치</span>
+                  <i class="bi bi-question-circle weight-help"
+                     data-bs-toggle="tooltip"
+                     data-bs-placement="top"
+                     data-bs-html="true"
+                     data-bs-title="<%= f.desc %>"></i>
+                </label>
                 <input
                   type="number"
                   class="form-control form-control-sm"
@@ -1129,6 +1155,13 @@
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    (function () {
+      const triggers = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+      triggers.forEach(function (el) { new bootstrap.Tooltip(el); });
+    })();
+  </script>
 
   <script>
     (function () {

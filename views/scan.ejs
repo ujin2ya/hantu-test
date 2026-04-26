@@ -80,6 +80,53 @@
     .verdict-cell { font-weight: 600; font-size: 0.85rem; }
     .table thead th { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
     .table tbody td { vertical-align: middle; font-size: 0.9rem; }
+
+    .scan-help { font-size: 0.82rem; }
+    .scan-help-mode {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #fafbff;
+      height: 100%;
+    }
+    .scan-help-mode .mode-title {
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 6px;
+      font-size: 0.88rem;
+    }
+    .scan-help-mode .mode-title.short { color: #dc2626; }
+    .scan-help-mode .mode-title.swing { color: #2563eb; }
+    .scan-help-mode dl {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 2px 10px;
+      margin: 0;
+    }
+    .scan-help-mode dt { color: var(--muted); font-weight: 500; }
+    .scan-help-mode dd { margin: 0; color: #334155; }
+    .scan-help-tip {
+      border-left: 3px solid #6366f1;
+      background: #eef2ff;
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #1e293b;
+      line-height: 1.55;
+    }
+    .scan-help-tip .pool-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid #c7d2fe;
+      color: #4338ca;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      margin-right: 4px;
+    }
   </style>
 </head>
 <body>
@@ -137,13 +184,36 @@
           </button>
         </div>
       </form>
-      <div class="small text-secondary mt-2">
-        단타: 거래대금 + 체결강도 상위 / 분봉 모멘텀 / 약 1~2분.
-        스윙: 거래대금 + 거래증가율 상위 / 일·주·월·연봉 7요소 + 수급 / 약 2~3분.
-        <br />
-        <i class="bi bi-info-circle me-1"></i>
-        <strong>탐색 풀 크기</strong>는 결과 개수가 아니라 <em>평가 대상 후보 풀 크기</em>입니다.
-        25 → 거래대금·체결강도 둘 다에 등장한 안전한 후보 위주, 60 → 한 쪽에서만 강하게 등장한 종목까지 포함해 숨은 강자를 더 발굴.
+      <div class="scan-help mt-3">
+        <div class="row g-2">
+          <div class="col-md-6">
+            <div class="scan-help-mode">
+              <div class="mode-title short"><i class="bi bi-lightning-charge me-1"></i>단타</div>
+              <dl>
+                <dt>대상</dt><dd>거래대금 + 체결강도 상위</dd>
+                <dt>분석</dt><dd>분봉 모멘텀</dd>
+                <dt>소요</dt><dd>약 1~2분</dd>
+              </dl>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="scan-help-mode">
+              <div class="mode-title swing"><i class="bi bi-graph-up me-1"></i>스윙</div>
+              <dl>
+                <dt>대상</dt><dd>거래대금 + 거래증가율 상위</dd>
+                <dt>분석</dt><dd>일·주·월·연봉 7요소 + 수급</dd>
+                <dt>소요</dt><dd>약 2~3분</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+        <div class="scan-help-tip mt-2">
+          <i class="bi bi-info-circle me-1"></i>
+          <strong>탐색 풀 크기</strong>는 결과 개수가 아니라 <em>평가 대상 풀 크기</em>입니다.
+          <span class="pool-badge">25</span>안전한 후보 위주
+          <span class="mx-2 text-muted">→</span>
+          <span class="pool-badge">60</span>숨은 강자까지 발굴 (시간 ↑)
+        </div>
       </div>
     </div>
 
