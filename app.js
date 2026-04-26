@@ -1540,27 +1540,27 @@ async function runSwingScan({ candidateLimit }) {
         market: meta?.market || "-",
       };
 
-      const currentRaw = await safeApiCall(() => getCurrentPrice(accessToken, cand.shortCode), 900);
+      const investorPromise = safeApiCall(() => getInvestorTrend(accessToken, cand.shortCode), 150)
+        .catch((e) => {
+          console.warn(`[SWING flow] 수급 조회 실패 (${cand.shortCode}): ${e.message || e}`);
+          return null;
+        });
+
+      const [currentRaw, dailyRaw, weeklyRaw, monthlyRaw, yearlyRaw, investorRaw] = await Promise.all([
+        safeApiCall(() => getCurrentPrice(accessToken, cand.shortCode), 150),
+        safeApiCall(() => getPeriodChart(accessToken, cand.shortCode, "D", startDate, endDate), 150),
+        safeApiCall(() => getPeriodChart(accessToken, cand.shortCode, "W", startDate, endDate), 150),
+        safeApiCall(() => getPeriodChart(accessToken, cand.shortCode, "M", startDate, endDate), 150),
+        safeApiCall(() => getPeriodChart(accessToken, cand.shortCode, "Y", startDate, endDate), 150),
+        investorPromise,
+      ]);
+
       if (index === 0) {
         logSample(`[SWING] inquire-price output (${cand.shortCode})`, currentRaw.output);
       }
       const currentData = normalizeCurrentPrice(currentRaw, stockMeta);
 
-      const dailyRaw = await safeApiCall(() => getPeriodChart(accessToken, cand.shortCode, "D", startDate, endDate), 1100);
-      const weeklyRaw = await safeApiCall(() => getPeriodChart(accessToken, cand.shortCode, "W", startDate, endDate), 1100);
-      const monthlyRaw = await safeApiCall(() => getPeriodChart(accessToken, cand.shortCode, "M", startDate, endDate), 1100);
-      const yearlyRaw = await safeApiCall(() => getPeriodChart(accessToken, cand.shortCode, "Y", startDate, endDate), 1100);
-
-      let investorRows = [];
-      try {
-        const investorRaw = await safeApiCall(
-          () => getInvestorTrend(accessToken, cand.shortCode),
-          1100
-        );
-        investorRows = normalizeInvestorTrend(investorRaw);
-      } catch (e) {
-        console.warn(`[SWING flow] 수급 조회 실패 (${cand.shortCode}): ${e.message || e}`);
-      }
+      const investorRows = investorRaw ? normalizeInvestorTrend(investorRaw) : [];
 
       const dailyData = normalizePeriodData(dailyRaw, stockMeta, "DAY");
       const weeklyData = normalizePeriodData(weeklyRaw, stockMeta, "WEEK");
