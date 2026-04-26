@@ -39,6 +39,76 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// ============================================================
+// 사이트 전체 비밀번호 게이트 (SITE_PASSWORD)
+// 봇/외부 무단 호출 차단용. /unsubscribe 와 /login 만 화이트리스트.
+// 관리자 콘솔(/admin/*)은 별도 ADMIN_TOKEN 으로 한 번 더 보호됨 (이중).
+// ============================================================
+
+const SITE_COOKIE = "site_session";
+const SITE_COOKIE_MAX_AGE_SEC = 30 * 24 * 60 * 60; // 30일
+const SITE_PUBLIC_PATHS = new Set(["/login", "/unsubscribe"]);
+
+function getCookie(req, name) {
+  const header = req.headers.cookie || "";
+  const m = header.match(new RegExp("(?:^|; )" + name + "=([^;]+)"));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+function setSiteCookie(res, value) {
+  const isProd = process.env.NODE_ENV === "production";
+  const parts = [
+    `${SITE_COOKIE}=${encodeURIComponent(value)}`,
+    "HttpOnly",
+    "SameSite=Lax",
+    `Max-Age=${SITE_COOKIE_MAX_AGE_SEC}`,
+    "Path=/",
+  ];
+  if (isProd) parts.push("Secure");
+  res.setHeader("Set-Cookie", parts.join("; "));
+}
+
+function isSiteAuthed(req) {
+  const expected = process.env.SITE_PASSWORD;
+  if (!expected) return true; // 환경변수 미설정 시 게이트 비활성 (개발 편의)
+  const got = getCookie(req, SITE_COOKIE);
+  return !!got && got === expected;
+}
+
+// 상대경로만 허용 — 오픈 리다이렉트(//evil.com, http://...) 방지
+function safeNextUrl(raw) {
+  if (typeof raw !== "string" || raw.length === 0) return "/";
+  if (!raw.startsWith("/")) return "/";
+  if (raw.startsWith("//") || raw.startsWith("/\\")) return "/";
+  return raw;
+}
+
+app.use((req, res, next) => {
+  if (isSiteAuthed(req)) return next();
+  if (SITE_PUBLIC_PATHS.has(req.path)) return next();
+  // POST 등 비-GET 요청은 폼 재제출이 어려우므로 일단 GET /login 으로 리다이렉트.
+  // 메일 링크에서 들어온 GET 요청은 next 로 보존되어 로그인 후 자동 이동.
+  return res.redirect(`/login?next=${encodeURIComponent(req.originalUrl)}`);
+});
+
+app.get("/login", (req, res) => {
+  if (isSiteAuthed(req)) return res.redirect(safeNextUrl(req.query.next));
+  res.render("site-login", { error: null, next: req.query.next || "/" });
+});
+
+app.post("/login", (req, res) => {
+  const password = String(req.body.password || "");
+  const expected = process.env.SITE_PASSWORD;
+  if (!expected || password !== expected) {
+    return res.render("site-login", {
+      error: "비밀번호가 일치하지 않습니다.",
+      next: req.body.next || "/",
+    });
+  }
+  setSiteCookie(res, password);
+  res.redirect(safeNextUrl(req.body.next));
+});
+
 const stocksJsonPath = path.join(__dirname, "stocks.json");
 let stocksData = null;
 
@@ -2683,11 +2753,7 @@ app.get("/admin/send-mail", async (req, res) => {
 const ADMIN_COOKIE = "admin_session";
 const ADMIN_COOKIE_MAX_AGE_SEC = 12 * 60 * 60;
 
-function getCookie(req, name) {
-  const header = req.headers.cookie || "";
-  const m = header.match(new RegExp("(?:^|; )" + name + "=([^;]+)"));
-  return m ? decodeURIComponent(m[1]) : null;
-}
+// getCookie 는 사이트 게이트 섹션(파일 상단)에 정의됨 — 그대로 재사용
 
 function setAdminCookie(res, value) {
   const isProd = process.env.NODE_ENV === "production";
