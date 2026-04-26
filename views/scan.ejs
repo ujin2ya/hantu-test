@@ -75,6 +75,18 @@
       margin-left: 4px;
       vertical-align: middle;
     }
+    .backtest-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+    .backtest-badge.bt-pos { background: #dcfce7; color: #166534; }
+    .backtest-badge.bt-neg { background: #fee2e2; color: #991b1b; }
+    .backtest-badge.bt-flat { background: #f1f5f9; color: #475569; }
     .num-cell { font-variant-numeric: tabular-nums; }
     .pos-rate { color: #dc2626; font-weight: 600; }
     .neg-rate { color: #2563eb; font-weight: 600; }
@@ -464,6 +476,7 @@
                 <br>Phase 2 — 추세 추종(trendFollow) 컴포넌트 추가로 강세 종목도 점수 받도록 보완.
                 <br>Phase 3 — 단기 폭등 페널티 (5일 +10/15/20/25% 시 -5/-10/-15/-20점) 으로 단기 천장 매수 함정 거름.
                 <br>Phase 5 — 추세 약한 종목 (<strong>60일 수익률 10% 미만</strong> OR <strong>오늘 종가 < 60일 신고가의 95%</strong>) 에 <strong>📊 박스권</strong> 라벨 표시. 추세 추종 모델은 박스권/V자 회복 도중에 천장 매수 함정에 빠지는 한계가 백테스트로 확인됨. 라벨 종목은 추세 매매 관점으로는 비추 — 박스권 매매 관점으로 별도 판단 권장.
+                <br>Phase 6 — 상위 15종목에 <strong>12개월 백테스트 누적 라벨</strong> 자동 표시 (📈 +N% / 📉 -N% / ▬ 보합). 각 종목별로 모델 신호가 과거에 얼마나 맞았는지 한눈에 파악 — <strong>1위라도 백테스트 음수면 신호 자체가 역지표일 수 있음</strong>. 결과는 7일 캐시.
               </div>
             </div>
           </div>
@@ -510,6 +523,16 @@
                       <span class="stock-name"><%= r.name || r.shortCode %></span>
                       <% if (r.stockType === 'weakTrend') { %>
                         <span class="range-bound-badge" title="60일 박스권 또는 V자 회복 도중 (수익률 낮거나 신고가 미달) — 추세 추종 모델 신뢰도 낮음. 박스권 매매 관점으로 보세요.">📊 박스권</span>
+                      <% } %>
+                      <% if (r.backtestSummary && r.backtestSummary.h10) {
+                           var btRet = r.backtestSummary.h10.cumReturn;
+                           var btCls = btRet > 5 ? 'bt-pos' : btRet < -5 ? 'bt-neg' : 'bt-flat';
+                           var btIcon = btRet > 5 ? '📈' : btRet < -5 ? '📉' : '▬';
+                      %>
+                        <span class="backtest-badge <%= btCls %>"
+                              title="12개월 H=10일 누적 (시그널 <%= r.backtestSummary.signals %>건, 승률 <%= r.backtestSummary.h10.winRate.toFixed(0) %>%) — 백테스트 신뢰도">
+                          <%= btIcon %> <%= btRet >= 0 ? '+' : '' %><%= btRet.toFixed(0) %>%
+                        </span>
                       <% } %>
                     </div>
                     <div class="stock-code"><%= r.shortCode %><% if (r.market) { %> · <%= r.market %><% } %></div>
@@ -586,6 +609,16 @@
                       <span class="stock-name"><%= r.name || r.shortCode %></span>
                       <% if (r.stockType === 'weakTrend') { %>
                         <span class="range-bound-badge" title="60일 박스권 또는 V자 회복 도중 (수익률 낮거나 신고가 미달) — 추세 추종 모델 신뢰도 낮음. 박스권 매매 관점으로 보세요.">📊 박스권</span>
+                      <% } %>
+                      <% if (r.backtestSummary && r.backtestSummary.h10) {
+                           var btRet = r.backtestSummary.h10.cumReturn;
+                           var btCls = btRet > 5 ? 'bt-pos' : btRet < -5 ? 'bt-neg' : 'bt-flat';
+                           var btIcon = btRet > 5 ? '📈' : btRet < -5 ? '📉' : '▬';
+                      %>
+                        <span class="backtest-badge <%= btCls %>"
+                              title="12개월 H=10일 누적 (시그널 <%= r.backtestSummary.signals %>건, 승률 <%= r.backtestSummary.h10.winRate.toFixed(0) %>%) — 백테스트 신뢰도">
+                          <%= btIcon %> <%= btRet >= 0 ? '+' : '' %><%= btRet.toFixed(0) %>%
+                        </span>
                       <% } %>
                     </div>
                     <div class="stock-code"><%= r.shortCode %><% if (r.market) { %> · <%= r.market %><% } %></div>
@@ -672,6 +705,16 @@
                         <%= r.name || r.shortCode %>
                         <% if (r.stockType === 'weakTrend') { %>
                           <span class="range-bound-badge" title="60일 박스권 또는 V자 회복 도중. 추세 추종 모델 신뢰도 낮음 — 박스권 매매 관점으로 보세요.">📊 박스권</span>
+                        <% } %>
+                        <% if (r.backtestSummary && r.backtestSummary.h10) {
+                             var btRet2 = r.backtestSummary.h10.cumReturn;
+                             var btCls2 = btRet2 > 5 ? 'bt-pos' : btRet2 < -5 ? 'bt-neg' : 'bt-flat';
+                             var btIcon2 = btRet2 > 5 ? '📈' : btRet2 < -5 ? '📉' : '▬';
+                        %>
+                          <span class="backtest-badge <%= btCls2 %>"
+                                title="12개월 H=10일 누적 (시그널 <%= r.backtestSummary.signals %>건, 승률 <%= r.backtestSummary.h10.winRate.toFixed(0) %>%) — 백테스트 신뢰도">
+                            <%= btIcon2 %> <%= btRet2 >= 0 ? '+' : '' %><%= btRet2.toFixed(0) %>%
+                          </span>
                         <% } %>
                       </div>
                       <div class="small text-secondary"><%= r.shortCode %><% if (r.market) { %> · <%= r.market %><% } %></div>

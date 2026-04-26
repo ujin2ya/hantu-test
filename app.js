@@ -1926,6 +1926,40 @@ function pickAutoMode(now = new Date()) {
   return isWeekday && isMarketHours ? "short" : "swing";
 }
 
+// 백테스트 요약 캐시 — 종목별 12개월 백테스트의 누적 수익만 저장.
+// 메일/스캔에서 종목 옆에 "📈 +150% / 📉 -15%" 라벨로 신뢰도 즉시 표시.
+const BACKTEST_SUMMARY_CACHE_PATH = path.join(__dirname, "cache", "backtest-summary.json");
+const BACKTEST_SUMMARY_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7일
+
+let backtestSummaryCache = null;
+function loadBacktestSummaryCache() {
+  if (backtestSummaryCache) return backtestSummaryCache;
+  try {
+    backtestSummaryCache = JSON.parse(fs.readFileSync(BACKTEST_SUMMARY_CACHE_PATH, "utf-8"));
+  } catch (_) {
+    backtestSummaryCache = {};
+  }
+  return backtestSummaryCache;
+}
+function saveBacktestSummaryCache() {
+  if (!backtestSummaryCache) return;
+  try {
+    const dir = path.dirname(BACKTEST_SUMMARY_CACHE_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(BACKTEST_SUMMARY_CACHE_PATH, JSON.stringify(backtestSummaryCache, null, 2));
+  } catch (e) {
+    console.warn("[BACKTEST] summary 캐시 저장 실패:", e.message);
+  }
+}
+
+function getCachedBacktestSummary(shortCode) {
+  const cache = loadBacktestSummaryCache();
+  const entry = cache[shortCode];
+  if (!entry) return null;
+  if (Date.now() - new Date(entry.savedAt).getTime() > BACKTEST_SUMMARY_TTL_MS) return null;
+  return entry;
+}
+
 // 후보 풀 캐시 — 장중·장 마감 후 정상 호출 시 저장 → 새벽/주말 스캔에서 재사용.
 // KIS 거래대금/거래증가율 순위 API 가 장 시작 전에 비정상 데이터를 반환하는 문제를 우회.
 const SCAN_CANDIDATES_CACHE_PATH = path.join(__dirname, "cache", "scan-candidates.json");
@@ -2201,6 +2235,28 @@ async function runSwingScan({ candidateLimit }) {
     console.log(`[SWING] 추세 약함 ${weakTrendCount}건 (제외 안 함, 라벨로 표시)`);
   }
   results.sort((a, b) => (b.scoreModel?.totalScore || -1) - (a.scoreModel?.totalScore || -1));
+
+  // Phase 6 — top 15 에 백테스트 요약 라벨 자동 부착 (캐시 우선, 없으면 즉시 계산).
+  // 메일/스캔에서 "📈 +150% / 📉 -15%" 라벨로 모델 신뢰도 즉시 표시.
+  const topForBacktest = results.filter((r) => !r.error).slice(0, 15);
+  const tBT = Date.now();
+  let computedCount = 0;
+  for (const r of topForBacktest) {
+    const cached = getCachedBacktestSummary(r.shortCode);
+    if (cached) {
+      r.backtestSummary = cached;
+    } else {
+      r.backtestSummary = await getOrComputeBacktestSummary({
+        shortCode: r.shortCode,
+        name: r.name,
+        market: r.market,
+      });
+      if (r.backtestSummary) computedCount++;
+    }
+  }
+  if (computedCount > 0) {
+    console.log(`[SWING] 백테스트 요약 신규 계산 ${computedCount}건 (${((Date.now() - tBT) / 1000).toFixed(1)}s)`);
+  }
 
   return {
     scannedAt: new Date().toISOString(),
@@ -3390,12 +3446,46 @@ async function runBacktest({ stockMeta, monthsBack, threshold, horizons }) {
   return { stockMeta, monthsBack, threshold, series, signals, horizonResults, stockType };
 }
 
+// 백테스트 요약만 빠르게 — 캐시 우선, 없으면 즉시 계산.
+// 메일/스캔에서 종목별 모델 신뢰도 라벨 표시용.
+async function getOrComputeBacktestSummary(stockMeta) {
+  if (!stockMeta || !stockMeta.shortCode) return null;
+  const cached = getCachedBacktestSummary(stockMeta.shortCode);
+  if (cached) return cached;
+
+  try {
+    const result = await runBacktest({
+      stockMeta,
+      monthsBack: 12,
+      threshold: 60,
+      horizons: [5, 10],
+    });
+    const h5  = result.horizonResults.find((h) => h.horizon === 5);
+    const h10 = result.horizonResults.find((h) => h.horizon === 10);
+    const summary = {
+      savedAt: new Date().toISOString(),
+      monthsBack: 12,
+      threshold: 60,
+      signals: result.signals.length,
+      h5:  h5  ? { trades: h5.n,  winRate: h5.winRate,  cumReturn: h5.cumulativeReturn  } : null,
+      h10: h10 ? { trades: h10.n, winRate: h10.winRate, cumReturn: h10.cumulativeReturn } : null,
+    };
+    const cache = loadBacktestSummaryCache();
+    cache[stockMeta.shortCode] = summary;
+    saveBacktestSummaryCache();
+    return summary;
+  } catch (e) {
+    console.warn(`[BACKTEST summary] ${stockMeta.shortCode} 실패:`, e.message);
+    return null;
+  }
+}
+
 app.get("/backtest", (req, res) => {
   res.render("backtest", {
     options: {
       query: req.query.query || req.query.code || "",
       monthsBack: Number(req.query.months || 12),
-      threshold: Number(req.query.threshold || 70),
+      threshold: Number(req.query.threshold || 60),
       horizons: req.query.horizons ? String(req.query.horizons).split(",").map(Number) : [5, 10, 20],
     },
     result: null,
@@ -3407,7 +3497,7 @@ app.get("/backtest", (req, res) => {
 app.post("/backtest", async (req, res) => {
   const query = String(req.body.query || "").trim();
   const monthsBack = Math.max(3, Math.min(24, Number(req.body.monthsBack) || 12));
-  const threshold = Math.max(0, Math.min(100, Number(req.body.threshold) || 70));
+  const threshold = Math.max(0, Math.min(100, Number(req.body.threshold) || 60));
   const horizons = (Array.isArray(req.body.horizons) ? req.body.horizons : [req.body.horizons])
     .filter(Boolean)
     .map((v) => Math.max(1, Math.min(60, Number(v))))
