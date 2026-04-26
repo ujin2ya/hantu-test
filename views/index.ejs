@@ -594,7 +594,7 @@
           </div>
         </div>
 
-        <div class="row g-2 row-cols-2 row-cols-md-4 row-cols-xl-7">
+        <div class="row g-2 row-cols-2 row-cols-md-4 row-cols-xl-8">
           <% const weightFields = [
             { key: 'volume', name: 'volumeWeight', label: '거래량' },
             { key: 'position', name: 'positionWeight', label: '위치' },
@@ -603,6 +603,7 @@
             { key: 'macd', name: 'macdWeight', label: 'MACD' },
             { key: 'resistance', name: 'resistanceWeight', label: '매물 압력' },
             { key: 'volatility', name: 'volatilityWeight', label: '변동성' },
+            { key: 'flow', name: 'flowWeight', label: '수급' },
           ]; %>
           <% weightFields.forEach(function(f) { %>
             <div class="col">
@@ -622,8 +623,8 @@
         </div>
 
         <div class="muted-text mt-3">
-          예시 기본값: 거래량 30 / 위치 20 / 추세 10 / RSI 5 / MACD 5 / 매물 압력 20 / 변동성 10.<br />
-          단타형이면 거래량·추세·RSI·MACD 비중을 높이고, 보수형이면 매물 압력·위치 비중을 높이는 방식이 좋다.
+          예시 기본값: 거래량 25 / 위치 17 / 추세 8 / RSI 5 / MACD 5 / 매물 압력 15 / 변동성 10 / 수급 15.<br />
+          단타형이면 거래량·추세·수급·RSI·MACD 비중을 높이고, 보수형이면 매물 압력·위치 비중을 높이는 방식이 좋다.
         </div>
       </form>
     </div>
@@ -691,14 +692,17 @@
           { key: 'macd', label: 'MACD', icon: 'bi-soundwave' },
           { key: 'resistance', label: '매물 압력', icon: 'bi-shield-exclamation' },
           { key: 'volatility', label: '변동성', icon: 'bi-tornado' },
+          { key: 'flow', label: '수급', icon: 'bi-people' },
         ]; %>
         <% subScores.forEach(function(s) { %>
-          <div class="col-6 col-md-4 col-lg-3 col-xl">
-            <div class="metric-card p-3">
-              <div class="metric-label"><i class="bi <%= s.icon %> me-1"></i><%= s.label %> 점수</div>
-              <div class="metric-value"><%= safeScoreModel[s.key].score %>점</div>
+          <% if (safeScoreModel[s.key]) { %>
+            <div class="col-6 col-md-4 col-lg-3 col-xl">
+              <div class="metric-card p-3">
+                <div class="metric-label"><i class="bi <%= s.icon %> me-1"></i><%= s.label %> 점수</div>
+                <div class="metric-value"><%= safeScoreModel[s.key].score %>점</div>
+              </div>
             </div>
-          </div>
+          <% } %>
         <% }) %>
       </div>
 
@@ -867,6 +871,9 @@
                 <li><strong>추세:</strong> <%= safeScoreModel.trend.explanation %></li>
                 <li><strong>매물 압력:</strong> <%= safeScoreModel.resistance.explanation %></li>
                 <li><strong>변동성:</strong> <%= safeScoreModel.volatility.explanation %></li>
+                <% if (safeScoreModel.flow) { %>
+                  <li><strong>수급:</strong> <%= safeScoreModel.flow.explanation %></li>
+                <% } %>
               </ul>
               <div class="muted-text mt-2">
                 지금 버전은 규칙 기반 점수화다. 다음 단계에서는 세부 특징을 더 쪼개고, 조건부 보너스/패널티를 늘려서 정교하게 만들 수 있다.
@@ -959,6 +966,7 @@
             macd:       { score: safeScoreModel.macd.score,       explanation: safeScoreModel.macd.explanation },
             resistance: { score: safeScoreModel.resistance.score, explanation: safeScoreModel.resistance.explanation },
             volatility: { score: safeScoreModel.volatility.score, explanation: safeScoreModel.volatility.explanation },
+            flow:       safeScoreModel.flow ? { score: safeScoreModel.flow.score, explanation: safeScoreModel.flow.explanation } : null,
           },
           positions: {
             daily:   safeDailySeries?.position   || null,

@@ -262,6 +262,53 @@ async function getPeriodChart(accessToken, stockCode, periodCode, startDate, end
   return res.data;
 }
 
+async function getInvestorTrend(accessToken, stockCode) {
+  const url = `${process.env.KIS_BASE_URL}/uapi/domestic-stock/v1/quotations/inquire-investor`;
+  const res = await axios.get(url, {
+    headers: {
+      "content-type": "application/json; charset=UTF-8",
+      authorization: `Bearer ${accessToken}`,
+      appkey: process.env.KIS_APP_KEY,
+      appsecret: process.env.KIS_APP_SECRET,
+      tr_id: "FHKST01010900",
+    },
+    params: {
+      fid_cond_mrkt_div_code: "J",
+      fid_input_iscd: stockCode,
+    },
+    timeout: 10000,
+  });
+  if (res.data.rt_cd !== "0") {
+    throw new Error(`수급 API 오류: ${res.data.msg_cd} / ${res.data.msg1}`);
+  }
+  return res.data;
+}
+
+function normalizeInvestorTrend(apiData) {
+  const rows = Array.isArray(apiData?.output) ? apiData.output : [];
+  return rows
+    .map((r) => {
+      const dateStr = String(r.stck_bsop_date || "").trim();
+      if (!/^\d{8}$/.test(dateStr)) return null;
+      const closePrice = Number(r.stck_clpr || 0);
+      const foreignNetQty = Number(r.frgn_ntby_qty || 0);
+      const orgNetQty = Number(r.orgn_ntby_qty || 0);
+      const personalNetQty = Number(r.prsn_ntby_qty || 0);
+      const foreignNetValue = Number(r.frgn_ntby_tr_pbmn || 0);
+      const orgNetValue = Number(r.orgn_ntby_tr_pbmn || 0);
+      return {
+        date: dateStr,
+        closePrice,
+        foreignNetQty,
+        orgNetQty,
+        personalNetQty,
+        foreignNetValue,
+        orgNetValue,
+      };
+    })
+    .filter(Boolean);
+}
+
 async function getMinuteChart(accessToken, stockCode, hourHHMMSS) {
   const url = `${process.env.KIS_BASE_URL}/uapi/domestic-stock/v1/quotations/inquire-time-itemchartprice`;
   const res = await axios.get(url, {
@@ -809,13 +856,14 @@ function estimateTrappedZones(dailyData, currentPrice) {
 
 function parseWeights(body) {
   const defaults = {
-    volume: 30,
-    position: 20,
-    trend: 10,
+    volume: 25,
+    position: 17,
+    trend: 8,
     rsi: 5,
     macd: 5,
-    resistance: 20,
+    resistance: 15,
     volatility: 10,
+    flow: 15,
   };
 
   const raw = {
@@ -826,6 +874,7 @@ function parseWeights(body) {
     macd: Number(body.macdWeight ?? defaults.macd),
     resistance: Number(body.resistanceWeight ?? defaults.resistance),
     volatility: Number(body.volatilityWeight ?? defaults.volatility),
+    flow: Number(body.flowWeight ?? defaults.flow),
   };
 
   const clean = {};
@@ -851,6 +900,51 @@ function parseWeights(body) {
   }
 
   return normalized;
+}
+
+function calculateFlowScore(investorRows) {
+  if (!Array.isArray(investorRows) || investorRows.length === 0) {
+    return { score: 50, explanation: "수급 데이터 없음 (중립 처리)" };
+  }
+  const sorted = [...investorRows].sort((a, b) => b.date.localeCompare(a.date));
+  const sum = (rows, key) => rows.reduce((acc, r) => acc + (Number(r[key]) || 0), 0);
+
+  const last5 = sorted.slice(0, 5);
+  const last20 = sorted.slice(0, 20);
+
+  const fgn5 = sum(last5, "foreignNetQty");
+  const org5 = sum(last5, "orgNetQty");
+  const fgn20 = sum(last20, "foreignNetQty");
+  const org20 = sum(last20, "orgNetQty");
+
+  const consensusDays5 = last5.filter((r) => r.foreignNetQty > 0 && r.orgNetQty > 0).length;
+  const dumpDays5 = last5.filter((r) => r.foreignNetQty < 0 && r.orgNetQty < 0).length;
+
+  let score = 50;
+  if (fgn5 > 0) score += 8;
+  if (org5 > 0) score += 8;
+  if (fgn5 < 0) score -= 8;
+  if (org5 < 0) score -= 8;
+  if (fgn20 > 0) score += 6;
+  if (org20 > 0) score += 6;
+  if (fgn20 < 0) score -= 6;
+  if (org20 < 0) score -= 6;
+  score += consensusDays5 * 4;
+  score -= dumpDays5 * 4;
+
+  const fmtMan = (qty) => {
+    const v = qty / 10000;
+    if (Math.abs(v) >= 100) return `${Math.round(v).toLocaleString()}만주`;
+    return `${v.toFixed(1)}만주`;
+  };
+  const sign = (v) => (v > 0 ? "+" : "");
+  const explanation =
+    `최근 5일 외국인 ${sign(fgn5)}${fmtMan(fgn5)} / 기관 ${sign(org5)}${fmtMan(org5)}, ` +
+    `20일 외국인 ${sign(fgn20)}${fmtMan(fgn20)} / 기관 ${sign(org20)}${fmtMan(org20)}` +
+    (consensusDays5 ? ` · 동반매수 ${consensusDays5}일` : "") +
+    (dumpDays5 ? ` · 동반매도 ${dumpDays5}일` : "");
+
+  return { score: clampScore(score), explanation };
 }
 
 function calculateVolatilityScore(dailyData) {
@@ -1048,7 +1142,7 @@ function buildBuyRecommendation(totalScore, buyZones, currentPrice, dailyData) {
   };
 }
 
-function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearlyData, dailySeries, weeklySeries, monthlySeries, yearlySeries, weights) {
+function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearlyData, dailySeries, weeklySeries, monthlySeries, yearlySeries, weights, investorRows) {
   const volume = calculateVolumeScore(currentData, dailyData, weeklyData, monthlyData, yearlyData);
   const position = calculatePositionScore(dailySeries, weeklySeries, monthlySeries, yearlySeries);
   const trend = calculateTrendScore(dailyData, weeklyData, currentData.currentPrice);
@@ -1057,6 +1151,7 @@ function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearly
   const trapped = estimateTrappedZones(dailyData, currentData.currentPrice);
   const resistance = trapped.resistanceScore;
   const volatility = calculateVolatilityScore(dailyData);
+  const flow = calculateFlowScore(investorRows);
   const buyZones = estimateBuyZones(dailyData, currentData.currentPrice);
 
   const total =
@@ -1066,7 +1161,8 @@ function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearly
     rsi.score * (weights.rsi / 100) +
     macd.score * (weights.macd / 100) +
     resistance.score * (weights.resistance / 100) +
-    volatility.score * (weights.volatility / 100);
+    volatility.score * (weights.volatility / 100) +
+    flow.score * (weights.flow / 100);
 
   const totalScore = clampScore(total);
 
@@ -1089,6 +1185,7 @@ function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearly
     macd,
     resistance,
     volatility,
+    flow,
     trappedZones: trapped.trappedZones,
     supportBins: buyZones.supportBins,
     buyRecommendation,
@@ -1431,7 +1528,7 @@ async function runSwingScan({ candidateLimit }) {
   console.log(`[SWING] candidates after merge: ${candidates.length}`);
 
   const { startDate, endDate } = getDateRange(6);
-  const defaultWeights = { volume: 30, position: 20, trend: 10, rsi: 5, macd: 5, resistance: 20, volatility: 10 };
+  const defaultWeights = { volume: 25, position: 17, trend: 8, rsi: 5, macd: 5, resistance: 15, volatility: 10, flow: 15 };
 
   async function processOne(cand, index) {
     try {
@@ -1474,7 +1571,8 @@ async function runSwingScan({ candidateLimit }) {
         weeklySeries,
         monthlySeries,
         yearlySeries,
-        defaultWeights
+        defaultWeights,
+        []
       );
 
       const recTier = scoreModel.buyRecommendation?.recommendedTier;
@@ -1888,13 +1986,14 @@ app.get("/", (req, res) => {
     summary: null,
     scoreModel: null,
     weights: {
-      volume: 30,
-      position: 20,
-      trend: 10,
+      volume: 25,
+      position: 17,
+      trend: 8,
       rsi: 5,
       macd: 5,
-      resistance: 20,
+      resistance: 15,
       volatility: 10,
+      flow: 15,
     },
     autoMode: pickAutoMode(),
   });
@@ -1978,6 +2077,17 @@ app.post("/search", async (req, res) => {
       1100
     );
 
+    let investorRows = [];
+    try {
+      const investorRaw = await safeApiCall(
+        () => getInvestorTrend(accessToken, selected.shortCode),
+        1100
+      );
+      investorRows = normalizeInvestorTrend(investorRaw);
+    } catch (e) {
+      console.warn(`[flow] 수급 데이터 조회 실패 (${selected.shortCode}): ${e.message || e}`);
+    }
+
     const dailyData = normalizePeriodData(dailyRaw, selected, "DAY");
     const weeklyData = normalizePeriodData(weeklyRaw, selected, "WEEK");
     const monthlyData = normalizePeriodData(monthlyRaw, selected, "MONTH");
@@ -1999,7 +2109,8 @@ app.post("/search", async (req, res) => {
       weeklySeries,
       monthlySeries,
       yearlySeries,
-      weights
+      weights,
+      investorRows
     );
 
     res.render("index", {
