@@ -2096,7 +2096,7 @@ async function runSwingScan({ candidateLimit }) {
         (acc, [k, w]) => acc + (nightlyComponents[k] || 0) * (w / 100),
         0
       );
-      // Phase 3 — 단기 폭등 직후 페널티 (천장 매수 거름). 0~30점 차감, 0 미만으로는 안 떨어짐.
+      // Phase 3 — 단기 폭등 페널티. 0 미만으로는 안 떨어짐.
       const nightlyTotal = Math.max(
         0,
         Math.round((nightlyRaw / NIGHTLY_WEIGHT_DENOM) * 100) - overheat.penalty
@@ -3270,7 +3270,7 @@ function computeBacktestScoreAt(allItemsDesc, t, stockMeta) {
   const squeezeContrib = (squeeze.score || 0) * (10 / 100);
   const trendFollowContrib = (trendFollow.score || 0) * (12 / 100);
   const rawTotal = sm.totalScore + dryContrib + squeezeContrib + trendFollowContrib;
-  // Phase 3 — 단기 폭등 페널티 차감 (천장 매수 거름)
+  // Phase 3 — 단기 폭등 페널티 차감
   const totalScore = Math.max(
     0,
     Math.round((rawTotal / BACKTEST_WEIGHT_DENOM) * 100) - overheat.penalty
