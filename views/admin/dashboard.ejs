@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>관리자 대시보드</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    body {
+      background: #f3f5fb;
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      padding: 28px 16px;
+    }
+    .wrap { max-width: 880px; margin: 0 auto; }
+    .card-soft {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+      margin-bottom: 20px;
+    }
+    .card-soft h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: #0f172a;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .meta-cell {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.82rem;
+    }
+    .meta-cell .label { color: #64748b; font-size: 0.72rem; margin-bottom: 4px; }
+    .meta-cell .value { font-weight: 600; color: #0f172a; }
+    .badge-soft {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .badge-soft.on  { background: #dcfce7; color: #166534; }
+    .badge-soft.off { background: #fee2e2; color: #991b1b; }
+    .badge-soft.run { background: #fef3c7; color: #92400e; }
+    .btn-brand {
+      background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+      color: #fff;
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 18px;
+      font-weight: 600;
+    }
+    .btn-brand:hover { color: #fff; opacity: 0.92; }
+    .btn-brand:disabled { opacity: 0.5; cursor: not-allowed; }
+    table.subs { font-size: 0.88rem; }
+    table.subs th { font-weight: 600; color: #475569; font-size: 0.78rem; }
+    table.subs td { vertical-align: middle; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .topbar h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <h1><i class="bi bi-speedometer2 me-2"></i>관리자 대시보드</h1>
+      <a href="/admin/logout" class="text-decoration-none text-secondary small">
+        <i class="bi bi-box-arrow-right me-1"></i>로그아웃
+      </a>
+    </div>
+
+    <% if (flash) { %>
+      <%
+        const flashMap = {
+          started: { type: "success", msg: "발송을 시작했습니다. 잠시 후 상태가 갱신됩니다." },
+          already_running: { type: "warning", msg: "이미 발송이 진행 중입니다." },
+          missing_email: { type: "danger", msg: "이메일이 비어 있습니다." },
+          not_found: { type: "danger", msg: "해당 이메일을 찾을 수 없습니다." },
+          removed: { type: "success", msg: "구독자를 제거했습니다." },
+        };
+        const f = flashMap[flash];
+      %>
+      <% if (f) { %>
+        <div class="alert alert-<%= f.type %> small"><%= f.msg %></div>
+      <% } %>
+    <% } %>
+
+    <!-- 발송 상태 -->
+    <div class="card-soft">
+      <h2><i class="bi bi-envelope-paper me-1"></i>발송 상태</h2>
+      <div class="meta-grid">
+        <div class="meta-cell">
+          <div class="label">진행 상태</div>
+          <div class="value">
+            <% if (isSending) { %>
+              <span class="badge-soft run">발송 중</span>
+            <% } else { %>
+              <span class="badge-soft off">대기</span>
+            <% } %>
+          </div>
+        </div>
+        <div class="meta-cell">
+          <div class="label">평일 22시 자동 발송</div>
+          <div class="value">
+            <% if (cronEnabled) { %>
+              <span class="badge-soft on">ON</span>
+            <% } else { %>
+              <span class="badge-soft off">OFF</span>
+            <% } %>
+          </div>
+        </div>
+        <div class="meta-cell">
+          <div class="label">구독자</div>
+          <div class="value"><%= subscribers.length %> / <%= maxSubscribers %></div>
+        </div>
+      </div>
+
+      <% if (lastSendStatus) { %>
+        <hr class="my-3" />
+        <div class="small text-secondary mb-2">최근 발송 결과</div>
+        <div class="meta-grid">
+          <div class="meta-cell">
+            <div class="label">시작</div>
+            <div class="value"><%= new Date(lastSendStatus.startedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %></div>
+          </div>
+          <div class="meta-cell">
+            <div class="label">종료</div>
+            <div class="value">
+              <% if (lastSendStatus.finishedAt) { %>
+                <%= new Date(lastSendStatus.finishedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %>
+              <% } else { %>
+                <span class="text-muted">진행 중</span>
+              <% } %>
+            </div>
+          </div>
+          <div class="meta-cell">
+            <div class="label">대상</div>
+            <div class="value"><%= lastSendStatus.target %><% if (lastSendStatus.dryRun) { %> <span class="badge-soft run">dry-run</span><% } %></div>
+          </div>
+          <div class="meta-cell">
+            <div class="label">성공 / 실패</div>
+            <div class="value">
+              <%= lastSendStatus.sent ?? "-" %> / <%= lastSendStatus.failed ?? "-" %>
+            </div>
+          </div>
+          <% if (lastSendStatus.skipped) { %>
+            <div class="meta-cell">
+              <div class="label">스킵 사유</div>
+              <div class="value text-warning"><%= lastSendStatus.skipped %></div>
+            </div>
+          <% } %>
+          <% if (lastSendStatus.error) { %>
+            <div class="meta-cell">
+              <div class="label">에러</div>
+              <div class="value text-danger"><%= lastSendStatus.error %></div>
+            </div>
+          <% } %>
+        </div>
+      <% } else { %>
+        <div class="small text-muted mt-2">아직 수동 발송 이력이 없습니다.</div>
+      <% } %>
+    </div>
+
+    <!-- 수동 발송 -->
+    <div class="card-soft">
+      <h2><i class="bi bi-send me-1"></i>수동 발송</h2>
+      <form method="post" action="/admin/send" class="row g-2 align-items-end">
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">대상 이메일 (비우면 전체 구독자)</label>
+          <input type="email" name="targetEmail" class="form-control form-control-sm" placeholder="you@example.com" />
+        </div>
+        <div class="col-md-3">
+          <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" name="dryRun" value="1" id="dryRunChk" />
+            <label class="form-check-label small" for="dryRunChk">dry-run (실제 미발송)</label>
+          </div>
+        </div>
+        <div class="col-md-3 text-end">
+          <button type="submit" class="btn btn-brand btn-sm w-100" <%= isSending ? "disabled" : "" %>>
+            <i class="bi bi-play-fill me-1"></i>발송 시작
+          </button>
+        </div>
+      </form>
+      <div class="small text-muted mt-3">
+        <i class="bi bi-info-circle me-1"></i>발송은 백그라운드로 실행되며, 페이지를 새로고침하면 결과가 갱신됩니다.
+        스캔에는 약 30초~1분이 소요됩니다.
+      </div>
+    </div>
+
+    <!-- 구독자 -->
+    <div class="card-soft">
+      <h2><i class="bi bi-people me-1"></i>구독자 (<%= subscribers.length %>)</h2>
+      <% if (subscribers.length === 0) { %>
+        <div class="small text-muted">구독자가 없습니다.</div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-sm subs align-middle">
+            <thead>
+              <tr>
+                <th>이메일</th>
+                <th>구독일</th>
+                <th class="text-end">관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% subscribers.forEach(function(sub) { %>
+                <tr>
+                  <td><%= sub.email %></td>
+                  <td>
+                    <% if (sub.subscribedAt) { %>
+                      <%= new Date(sub.subscribedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %>
+                    <% } else { %>
+                      <span class="text-muted">-</span>
+                    <% } %>
+                  </td>
+                  <td class="text-end">
+                    <form method="post" action="/admin/unsubscribe" class="d-inline" onsubmit="return confirm('<%= sub.email %> 을(를) 구독 해제할까요?');">
+                      <input type="hidden" name="email" value="<%= sub.email %>" />
+                      <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-x-circle"></i>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="text-center small text-secondary mt-3">
+      <a href="/" class="text-decoration-none text-secondary me-3"><i class="bi bi-arrow-left me-1"></i>홈으로</a>
+      <a href="/scan" class="text-decoration-none text-secondary me-3"><i class="bi bi-radar me-1"></i>단타 스캔</a>
+      <a href="/subscribe" class="text-decoration-none text-secondary"><i class="bi bi-envelope-plus me-1"></i>구독 페이지</a>
+    </div>
+  </div>
+</body>
+</html>

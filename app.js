@@ -2676,6 +2676,146 @@ app.get("/admin/send-mail", async (req, res) => {
   }
 });
 
+// ============================================================
+// 관리자 로그인 + 대시보드 (수동 발송 / 구독자 관리)
+// ============================================================
+
+const ADMIN_COOKIE = "admin_session";
+const ADMIN_COOKIE_MAX_AGE_SEC = 12 * 60 * 60;
+
+function getCookie(req, name) {
+  const header = req.headers.cookie || "";
+  const m = header.match(new RegExp("(?:^|; )" + name + "=([^;]+)"));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+function setAdminCookie(res, value) {
+  const isProd = process.env.NODE_ENV === "production";
+  const parts = [
+    `${ADMIN_COOKIE}=${encodeURIComponent(value)}`,
+    "HttpOnly",
+    "SameSite=Lax",
+    `Max-Age=${ADMIN_COOKIE_MAX_AGE_SEC}`,
+    "Path=/",
+  ];
+  if (isProd) parts.push("Secure");
+  res.setHeader("Set-Cookie", parts.join("; "));
+}
+
+function clearAdminCookie(res) {
+  res.setHeader(
+    "Set-Cookie",
+    `${ADMIN_COOKIE}=; HttpOnly; SameSite=Lax; Max-Age=0; Path=/`
+  );
+}
+
+function isAdminAuthed(req) {
+  const expected = process.env.ADMIN_TOKEN;
+  if (!expected) return false;
+  const got = getCookie(req, ADMIN_COOKIE);
+  return !!got && got === expected;
+}
+
+function requireAdmin(req, res, next) {
+  if (!isAdminAuthed(req)) return res.redirect("/admin/login");
+  next();
+}
+
+let lastSendStatus = null;
+let isSending = false;
+
+function triggerBackgroundSend(opts = {}) {
+  if (isSending) {
+    return { ok: false, reason: "already_running" };
+  }
+  isSending = true;
+  lastSendStatus = {
+    startedAt: new Date().toISOString(),
+    finishedAt: null,
+    target: opts.targetEmail || "전체 구독자",
+    dryRun: !!opts.dryRun,
+    sent: null,
+    failed: null,
+    skipped: null,
+    error: null,
+  };
+  setImmediate(() => {
+    sendSwingScanEmails(opts)
+      .then((result) => {
+        lastSendStatus = {
+          ...lastSendStatus,
+          finishedAt: new Date().toISOString(),
+          sent: result.sent || 0,
+          failed: result.failed || 0,
+          skipped: result.skipped || null,
+          dryRun: !!result.dryRun,
+        };
+      })
+      .catch((err) => {
+        lastSendStatus = {
+          ...lastSendStatus,
+          finishedAt: new Date().toISOString(),
+          error: err.message || String(err),
+        };
+      })
+      .finally(() => {
+        isSending = false;
+      });
+  });
+  return { ok: true };
+}
+
+app.get("/admin/login", (req, res) => {
+  if (isAdminAuthed(req)) return res.redirect("/admin");
+  res.render("admin/login", { error: null });
+});
+
+app.post("/admin/login", (req, res) => {
+  const password = String(req.body.password || "");
+  if (!process.env.ADMIN_TOKEN || password !== process.env.ADMIN_TOKEN) {
+    return res.render("admin/login", { error: "비밀번호가 일치하지 않습니다." });
+  }
+  setAdminCookie(res, password);
+  res.redirect("/admin");
+});
+
+app.get("/admin/logout", (req, res) => {
+  clearAdminCookie(res);
+  res.redirect("/admin/login");
+});
+
+app.get("/admin", requireAdmin, (req, res) => {
+  res.render("admin/dashboard", {
+    subscribers: loadSubscribers(),
+    maxSubscribers: MAX_SUBSCRIBERS,
+    lastSendStatus,
+    isSending,
+    cronEnabled: process.env.MAIL_CRON_ENABLED === "1",
+    flash: req.query.flash || null,
+  });
+});
+
+app.post("/admin/send", requireAdmin, (req, res) => {
+  const targetEmail = String(req.body.targetEmail || "").trim() || null;
+  const dryRun = req.body.dryRun === "1";
+  const result = triggerBackgroundSend({ targetEmail, dryRun });
+  if (!result.ok && result.reason === "already_running") {
+    return res.redirect("/admin?flash=already_running");
+  }
+  res.redirect("/admin?flash=started");
+});
+
+app.post("/admin/unsubscribe", requireAdmin, (req, res) => {
+  const email = String(req.body.email || "").trim().toLowerCase();
+  if (!email) return res.redirect("/admin?flash=missing_email");
+  const list = loadSubscribers();
+  const idx = list.findIndex((s) => s.email === email);
+  if (idx === -1) return res.redirect("/admin?flash=not_found");
+  list.splice(idx, 1);
+  saveSubscribers(list);
+  res.redirect("/admin?flash=removed");
+});
+
 if (process.env.MAIL_CRON_ENABLED === "1") {
   cron.schedule("0 22 * * 1-5", async () => {
     console.log("[cron] 평일 22:00 KST — 스윙 스캔 발송 시작");
