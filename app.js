@@ -510,7 +510,8 @@ function normalizeCurrentPrice(apiData, stockMeta) {
   const buySellRatio = sellVolume > 0 ? buyVolume / sellVolume : null;
 
   return {
-    stockCode: o.stck_shrn_iscd,
+    // KIS 응답이 비거나 다른 포맷일 때 우리가 가진 단축코드를 fallback 으로 사용
+    stockCode: o.stck_shrn_iscd || stockMeta.shortCode,
     stockName: stockMeta.name,
     market: stockMeta.market,
     currentPrice: Number(o.stck_prpr || 0),
@@ -1180,6 +1181,82 @@ function calculateSqueezeScore(dailyData, currentPrice) {
   };
 }
 
+// 추세 추종 점수 — trending 종목을 제대로 잡기 위한 컴포넌트.
+// 박스권/조정만 잡던 모델의 약점을 보완 (강세 종목은 점수가 안 오르던 문제).
+// 신고가·정배열·이평선 위는 모두 "추세가 살아있다"는 신호.
+function calculateTrendFollowingScore(dailyData) {
+  const items = dailyData?.items || [];
+  if (items.length < 60) {
+    return { score: 50, explanation: "추세 데이터 부족 (60일 미만)" };
+  }
+  const closes = items.map((it) => Number(it.closePrice || 0)).filter((v) => v > 0);
+  const today = closes[0];
+  if (!today) return { score: 50, explanation: "종가 없음" };
+
+  // 최신 N개 종가 평균
+  const smaN = (n) =>
+    closes.length < n ? null : closes.slice(0, n).reduce((a, b) => a + b, 0) / n;
+  const ma5 = smaN(5);
+  const ma20 = smaN(20);
+  const ma60 = smaN(60);
+
+  // 최근 N일 최고가 (today 포함)
+  const highN = (n) =>
+    items.length < n
+      ? null
+      : Math.max(...items.slice(0, n).map((it) => Number(it.highPrice || 0)).filter((v) => v > 0));
+  const high20 = highN(20);
+  const high60 = highN(60);
+
+  let score = 0;
+  const reasons = [];
+
+  if (ma20 != null && today > ma20) { score += 25; reasons.push("20일선 위"); }
+  if (ma60 != null && today > ma60) { score += 25; reasons.push("60일선 위"); }
+  if (ma5 != null && ma20 != null && ma60 != null && ma5 > ma20 && ma20 > ma60) {
+    score += 25;
+    reasons.push("정배열");
+  }
+  // 부동소수점 + 장중 변동 마진 0.5% 허용
+  if (high20 != null && today >= high20 * 0.995) { score += 15; reasons.push("20일 신고가"); }
+  if (high60 != null && today >= high60 * 0.995) { score += 10; reasons.push("60일 신고가"); }
+
+  return {
+    score: clampScore(score),
+    explanation: reasons.length ? `추세 양호: ${reasons.join(", ")}` : "추세 약함",
+  };
+}
+
+// Phase 3 — 단기 폭등 직후 매수 페널티.
+// 박스권 종목의 일시 반등 천장에서 매수하는 함정을 거른다.
+// 추세 종목의 정상적 상승 (5일 ~5%) 은 거의 영향 없음.
+function calculateOverheatPenalty(dailyData) {
+  const items = dailyData?.items || [];
+  if (items.length < 6) return { penalty: 0, change5d: 0, explanation: "데이터 부족" };
+
+  const today = Number(items[0].closePrice || 0);
+  const fiveAgo = Number(items[5]?.closePrice || 0);
+  if (!today || !fiveAgo) return { penalty: 0, change5d: 0, explanation: "종가 부재" };
+
+  const change5d = ((today - fiveAgo) / fiveAgo) * 100;
+
+  // Phase 3.1 — 페널티 강도 절반으로 약화 (이전: -10/-20/-25/-30).
+  // 정상적 추세 진행도 너무 많이 거르는 부작용 줄임. 큰 폭등만 명확히 페널티.
+  let penalty = 0;
+  let label = "";
+  if (change5d >= 25)      { penalty = 20; label = "극심한 과열"; }
+  else if (change5d >= 20) { penalty = 15; label = "과열"; }
+  else if (change5d >= 15) { penalty = 10; label = "단기 급등"; }
+  else if (change5d >= 10) { penalty = 5;  label = "단기 상승"; }
+  else                     { penalty = 0;  label = "정상"; }
+
+  return {
+    penalty,
+    change5d,
+    explanation: `5일 ${change5d >= 0 ? "+" : ""}${change5d.toFixed(1)}% (${label})`,
+  };
+}
+
 function estimateBuyZones(dailyData, currentPrice) {
   const items = dailyData.items.slice(0, 60);
   if (!items.length) return { supportBins: [] };
@@ -1491,6 +1568,32 @@ function normalizeRankRows(apiData, kind) {
     .filter(Boolean);
 }
 
+// ETN/ETF/액티브 펀드/레버리지·인버스 등 비-개별주 종목명 패턴.
+// 점수 모델이 개별 주식용으로 설계됐기 때문에 이런 상품들은 후보에서 제외해야 의미 있는 결과가 나옴.
+const NON_STOCK_PATTERNS = [
+  /\bETN\b/i, /\bETF\b/i,
+  /액티브/, /레버리지/, /인버스/, /선물/,
+  /^KODEX\b/i, /^TIGER\b/i, /^KBSTAR\b/i, /^ARIRANG\b/i, /^KOSEF\b/i,
+  /^HANARO\b/i, /^SOL\s/i, /^PLUS\s/i, /^RISE\s/i, /^ACE\s/i, /^KIWOOM\s/i,
+  /^삼성\s.*ETN/i, /^한화\s.*ETN/i, /^메리츠\s.*ETN/i, /^신한\s.*ETN/i,
+];
+
+// 우선주 식별: 종목명 끝 "우"/"우B"/"숫자우"/"숫자우B" + 단축코드 끝자리 5/7/9/K/L (한국 거래소 관행).
+// 두 조건 모두 만족해야 우선주로 분류 — 이름만 봤을 때의 false positive (에코글로우/이오플로우/성우 등) 방지.
+function isPreferredStock(name, shortCode) {
+  if (!name || !shortCode) return false;
+  if (!/[0-9]?우B?$/.test(name)) return false;
+  if (!/[579KL]$/i.test(shortCode)) return false;
+  return true;
+}
+
+function isIndividualStock(name, shortCode) {
+  if (!name) return true; // 이름 없으면 안전 디폴트로 통과
+  if (NON_STOCK_PATTERNS.some((re) => re.test(name))) return false;
+  if (isPreferredStock(name, shortCode)) return false;
+  return true;
+}
+
 function mergeRankCandidates(sources, limit) {
   const map = new Map();
   for (const { rows, label } of sources) {
@@ -1506,11 +1609,18 @@ function mergeRankCandidates(sources, limit) {
     }
   }
   const merged = Array.from(map.values()).map((r) => ({ ...r, sources: Array.from(r.sources) }));
-  merged.sort((a, b) => {
+  // ETN/ETF/액티브 펀드 + 우선주 제외 (점수 모델은 개별 보통주 분석용)
+  const beforeFilter = merged.length;
+  const filtered = merged.filter((r) => isIndividualStock(r.name, r.shortCode));
+  const filteredOut = beforeFilter - filtered.length;
+  if (filteredOut > 0) {
+    console.log(`[SCAN] ETN/ETF/우선주 등 비-보통주 ${filteredOut}건 제외 → ${filtered.length}건 남음`);
+  }
+  filtered.sort((a, b) => {
     if (b.sources.length !== a.sources.length) return b.sources.length - a.sources.length;
     return (b.tradeValue || 0) - (a.tradeValue || 0);
   });
-  return merged.slice(0, limit);
+  return filtered.slice(0, limit);
 }
 
 function normalizeMinuteChart(apiData) {
@@ -1784,25 +1894,92 @@ function pickAutoMode(now = new Date()) {
   return isWeekday && isMarketHours ? "short" : "swing";
 }
 
+// 후보 풀 캐시 — 장중·장 마감 후 정상 호출 시 저장 → 새벽/주말 스캔에서 재사용.
+// KIS 거래대금/거래증가율 순위 API 가 장 시작 전에 비정상 데이터를 반환하는 문제를 우회.
+const SCAN_CANDIDATES_CACHE_PATH = path.join(__dirname, "cache", "scan-candidates.json");
+const SCAN_CANDIDATES_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7일
+
+function isOffMarketKST() {
+  const kst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const day = kst.getUTCDay();
+  const hour = kst.getUTCHours();
+  const minute = kst.getUTCMinutes();
+  if (day === 0 || day === 6) return true;          // 주말
+  if (hour < 9) return true;                          // 장 시작 전
+  if (hour > 15) return true;                         // 장 마감 후 (16시 이후)
+  if (hour === 15 && minute > 30) return true;        // 15:30 이후
+  return false;
+}
+
+function loadScanCandidatesCache() {
+  try {
+    const raw = fs.readFileSync(SCAN_CANDIDATES_CACHE_PATH, "utf-8");
+    const data = JSON.parse(raw);
+    if (!data?.candidates?.length) return null;
+    const ageMs = Date.now() - new Date(data.savedAt).getTime();
+    if (ageMs > SCAN_CANDIDATES_CACHE_TTL_MS) return null;
+    return data;
+  } catch (_) {
+    return null;
+  }
+}
+
+function saveScanCandidatesCache(candidates) {
+  try {
+    const dir = path.dirname(SCAN_CANDIDATES_CACHE_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(
+      SCAN_CANDIDATES_CACHE_PATH,
+      JSON.stringify({ savedAt: new Date().toISOString(), candidates })
+    );
+  } catch (e) {
+    console.warn("[SWING] candidates 캐시 저장 실패:", e.message);
+  }
+}
+
 async function runSwingScan({ candidateLimit }) {
   const accessToken = await safeApiCall(() => getAccessToken(), 300);
 
-  const volumeRaw = await safeApiCall(() => getVolumeRank(accessToken, "3"), 600);
-  console.log(`[SWING] volume-rank(BLNG=3) output rows: ${Array.isArray(volumeRaw.output) ? volumeRaw.output.length : "N/A"}`);
-  const increaseRaw = await safeApiCall(() => getVolumeRank(accessToken, "1"), 600);
-  console.log(`[SWING] volume-rank(BLNG=1, 거래증가율) output rows: ${Array.isArray(increaseRaw.output) ? increaseRaw.output.length : "N/A"}`);
+  let candidates;
 
-  const volumeRows = normalizeRankRows(volumeRaw, "거래대금");
-  const increaseRows = normalizeRankRows(increaseRaw, "거래증가율");
-  const candidates = mergeRankCandidates([
-    { rows: volumeRows, label: "거래대금" },
-    { rows: increaseRows, label: "거래증가율" },
-  ], candidateLimit);
-  console.log(`[SWING] candidates after merge: ${candidates.length}`);
+  // 장외 시간이면 캐시(직전 정상 시간대 결과) 우선 사용
+  if (isOffMarketKST()) {
+    const cache = loadScanCandidatesCache();
+    if (cache) {
+      candidates = cache.candidates.slice(0, candidateLimit);
+      const ageH = ((Date.now() - new Date(cache.savedAt).getTime()) / 3600000).toFixed(1);
+      console.log(`[SWING] 장외 시간 → 캐시된 후보 풀 사용 (저장 ${cache.savedAt}, ${ageH}시간 전, ${candidates.length}건)`);
+    }
+  }
+
+  // 캐시 없거나 정상 시간대 → KIS 직접 호출
+  if (!candidates) {
+    const volumeRaw = await safeApiCall(() => getVolumeRank(accessToken, "3"), 600);
+    console.log(`[SWING] volume-rank(BLNG=3) output rows: ${Array.isArray(volumeRaw.output) ? volumeRaw.output.length : "N/A"}`);
+    const increaseRaw = await safeApiCall(() => getVolumeRank(accessToken, "1"), 600);
+    console.log(`[SWING] volume-rank(BLNG=1, 거래증가율) output rows: ${Array.isArray(increaseRaw.output) ? increaseRaw.output.length : "N/A"}`);
+
+    const volumeRows = normalizeRankRows(volumeRaw, "거래대금");
+    const increaseRows = normalizeRankRows(increaseRaw, "거래증가율");
+    candidates = mergeRankCandidates([
+      { rows: volumeRows, label: "거래대금" },
+      { rows: increaseRows, label: "거래증가율" },
+    ], candidateLimit);
+    console.log(`[SWING] candidates after merge: ${candidates.length}`);
+
+    // 정상 시간대 호출 결과만 캐시 갱신 (장외 시간엔 비정상 데이터일 수 있어서 저장 안 함)
+    if (!isOffMarketKST() && candidates.length > 0) {
+      saveScanCandidatesCache(candidates);
+      console.log(`[SWING] candidates 캐시 갱신 (${candidates.length}건)`);
+    }
+  }
 
   const { startDate, endDate } = getDateRange(6);
   const defaultWeights = { volume: 25, position: 17, trend: 8, rsi: 5, macd: 5, resistance: 15, volatility: 10, flow: 15 };
-  const nightlyWeights = { volume: 18, position: 12, trend: 8, rsi: 5, macd: 5, resistance: 10, volatility: 8, flow: 12, dryUp: 12, squeeze: 10 };
+  // 백테스팅과 점수를 일치시키기 위해 nightlyWeights 에서 flow 제외 (KIS 가 historical 수급 데이터를 안 주므로 백테스트에 flow 를 못 넣음).
+  // Phase 2: trendFollow 추가 (강세 종목 미반응 문제 보완) → 합 100, 정규화 불필요.
+  const nightlyWeights = { volume: 18, position: 12, trend: 8, rsi: 5, macd: 5, resistance: 10, volatility: 8, dryUp: 12, squeeze: 10, trendFollow: 12 };
+  const NIGHTLY_WEIGHT_DENOM = 100;
 
   async function processOne(cand, index) {
     try {
@@ -1832,7 +2009,7 @@ async function runSwingScan({ candidateLimit }) {
       if (index === 0) {
         logSample(`[SWING] inquire-price output (${cand.shortCode})`, currentRaw.output);
       }
-      const currentData = normalizeCurrentPrice(currentRaw, stockMeta);
+      let currentData = normalizeCurrentPrice(currentRaw, stockMeta);
 
       const investorRows = investorRaw ? normalizeInvestorTrend(investorRaw) : [];
 
@@ -1840,6 +2017,39 @@ async function runSwingScan({ candidateLimit }) {
       const weeklyData = normalizePeriodData(weeklyRaw, stockMeta, "WEEK");
       const monthlyData = normalizePeriodData(monthlyRaw, stockMeta, "MONTH");
       const yearlyData = normalizePeriodData(yearlyRaw, stockMeta, "YEAR");
+
+      // 장 시작 전 / 휴장 시 currentData 가 "오늘 거래 0" 으로 채워져 volume 점수가 0 이 됨.
+      // 이 경우 가장 최근 일봉(=어제 마감) 으로 currentData 대체 → 새벽/주말 스윙 스캔도 의미 있는 점수.
+      const noTodayData = currentData.todayVolume === 0 && currentData.changeRate === 0;
+      if ((isOffMarketKST() || noTodayData) && dailyData.items.length > 0) {
+        // 오늘 날짜 일봉은 KIS 가 장 시작 전에도 빈 데이터로 미리 채워서 줄 수 있음 → 건너뛰고 진짜 직전 거래일 사용
+        const todayStr = (() => {
+          const k = new Date(Date.now() + 9 * 60 * 60 * 1000);
+          const y = k.getUTCFullYear();
+          const m = String(k.getUTCMonth() + 1).padStart(2, "0");
+          const d = String(k.getUTCDate()).padStart(2, "0");
+          return `${y}${m}${d}`;
+        })();
+        const startIdx = dailyData.items[0]?.date === todayStr ? 1 : 0;
+        const yesterday = dailyData.items[startIdx];
+        const dayBefore = dailyData.items[startIdx + 1];
+        if (yesterday) {
+          currentData = {
+            ...currentData,
+            currentPrice: yesterday.closePrice,
+            todayVolume: yesterday.volume,
+            openPrice: yesterday.openPrice,
+            highPrice: yesterday.highPrice,
+            lowPrice: yesterday.lowPrice,
+            changeRate: dayBefore && dayBefore.closePrice
+              ? ((yesterday.closePrice - dayBefore.closePrice) / dayBefore.closePrice) * 100
+              : 0,
+          };
+          if (index === 0) {
+            console.log(`[SWING] 장외 시간 → 직전 거래일(${yesterday.date}) 일봉을 currentData 로 사용 (오늘 ${todayStr} 빈 일봉 ${startIdx === 1 ? "건너뜀" : "없음"})`);
+          }
+        }
+      }
 
       const dailySeries = buildSeries(dailyData, currentData.currentPrice, 60);
       const weeklySeries = buildSeries(weeklyData, currentData.currentPrice, 52);
@@ -1866,6 +2076,8 @@ async function runSwingScan({ candidateLimit }) {
       const flow = calculateFlowScore(investorRows);
       const dryUp = calculateDryUpScore(dailyData);
       const squeeze = calculateSqueezeScore(dailyData, currentData.currentPrice);
+      const trendFollow = calculateTrendFollowingScore(dailyData);
+      const overheat = calculateOverheatPenalty(dailyData);
 
       const nightlyComponents = {
         volume: scoreModel.volume.score,
@@ -1875,15 +2087,19 @@ async function runSwingScan({ candidateLimit }) {
         macd: scoreModel.macd.score,
         resistance: scoreModel.resistance.score,
         volatility: scoreModel.volatility.score,
-        flow: flow.score,
         dryUp: dryUp.score,
         squeeze: squeeze.score,
+        trendFollow: trendFollow.score,
       };
-      const nightlyTotal = Math.round(
-        Object.entries(nightlyWeights).reduce(
-          (acc, [k, w]) => acc + (nightlyComponents[k] || 0) * (w / 100),
-          0
-        )
+      // 10요소 가중합 (만점 100) → 정규화 곱 1 이지만 코드는 일관성 위해 유지
+      const nightlyRaw = Object.entries(nightlyWeights).reduce(
+        (acc, [k, w]) => acc + (nightlyComponents[k] || 0) * (w / 100),
+        0
+      );
+      // Phase 3 — 단기 폭등 직후 페널티 (천장 매수 거름). 0~30점 차감, 0 미만으로는 안 떨어짐.
+      const nightlyTotal = Math.max(
+        0,
+        Math.round((nightlyRaw / NIGHTLY_WEIGHT_DENOM) * 100) - overheat.penalty
       );
 
       const yearHighDaily = dailyData.items.slice(0, 252);
@@ -1921,6 +2137,8 @@ async function runSwingScan({ candidateLimit }) {
           flow: { score: flow.score, explanation: flow.explanation },
           dryUp: { score: dryUp.score, explanation: dryUp.explanation },
           squeeze: { score: squeeze.score, explanation: squeeze.explanation },
+          trendFollow: { score: trendFollow.score, explanation: trendFollow.explanation },
+          overheat: { penalty: overheat.penalty, change5d: overheat.change5d, explanation: overheat.explanation },
           marketCap: currentData.marketCap,
           yearHigh,
           yearHighRatio,
@@ -2880,6 +3098,315 @@ app.post("/admin/unsubscribe", requireAdmin, (req, res) => {
   list.splice(idx, 1);
   saveSubscribers(list);
   res.redirect("/admin?flash=removed");
+});
+
+// ============================================================
+// 백테스팅 — 스윙 점수 모델 검증 (단일 종목)
+// 일봉만 KIS 호출 후 주/월/연봉 합성 → look-ahead 없는 시점별 점수 계산
+// flow 점수 제외, 나머지 9요소로 정규화한 0~100 점수 사용
+// ============================================================
+
+const BACKTEST_CACHE_DIR = path.join(__dirname, "cache", "backtest");
+const BACKTEST_CACHE_TTL_DAYS = 7;
+// flow 제외 + trendFollow 추가 → 가중치 합 100 (정규화 곱 1, 코드는 일관성 위해 유지)
+const BACKTEST_WEIGHT_DENOM = 100;
+
+function ensureBacktestCacheDir() {
+  if (!fs.existsSync(BACKTEST_CACHE_DIR)) {
+    fs.mkdirSync(BACKTEST_CACHE_DIR, { recursive: true });
+  }
+}
+
+function loadBacktestCache(code, monthsBack) {
+  try {
+    const raw = fs.readFileSync(path.join(BACKTEST_CACHE_DIR, `${code}.json`), "utf-8");
+    const data = JSON.parse(raw);
+    const ageMs = Date.now() - new Date(data.cachedAt).getTime();
+    if (ageMs > BACKTEST_CACHE_TTL_DAYS * 24 * 60 * 60 * 1000) return null;
+    if ((data.monthsBack || 0) < monthsBack) return null;
+    return data.items;
+  } catch (_) {
+    return null;
+  }
+}
+
+function saveBacktestCache(code, monthsBack, items) {
+  ensureBacktestCacheDir();
+  fs.writeFileSync(
+    path.join(BACKTEST_CACHE_DIR, `${code}.json`),
+    JSON.stringify({ code, monthsBack, items, cachedAt: new Date().toISOString() })
+  );
+}
+
+// KIS 일봉 페이지네이션 — 약 5개월(100거래일)씩 끊어서 가져와 합치기
+async function fetchDailyForBacktest(code, stockMeta, monthsBack) {
+  const cached = loadBacktestCache(code, monthsBack);
+  if (cached) return cached;
+
+  const accessToken = await getAccessToken();
+  const today = new Date();
+  const startBoundary = new Date(today);
+  startBoundary.setMonth(startBoundary.getMonth() - monthsBack);
+
+  const allItems = [];
+  let endCursor = new Date(today);
+
+  while (endCursor > startBoundary) {
+    const startCursor = new Date(endCursor);
+    startCursor.setDate(startCursor.getDate() - 145); // ≈100 거래일
+    const fromDate = formatDate(startCursor < startBoundary ? startBoundary : startCursor);
+    const toDate = formatDate(endCursor);
+
+    const raw = await safeApiCall(
+      () => getPeriodChart(accessToken, code, "D", fromDate, toDate),
+      300
+    );
+    const data = normalizePeriodData(raw, stockMeta, "DAY");
+    for (const item of data.items) {
+      if (!allItems.find((x) => x.date === item.date)) allItems.push(item);
+    }
+
+    endCursor = new Date(startCursor);
+    endCursor.setDate(endCursor.getDate() - 1);
+  }
+
+  // 최신 → 과거 순서
+  allItems.sort((a, b) => b.date.localeCompare(a.date));
+  saveBacktestCache(code, monthsBack, allItems);
+  return allItems;
+}
+
+// 일봉(과거→최신) → 주봉/월봉/연봉 합성 (모두 최신→과거 순서로 반환)
+function aggregateBars(itemsAsc, keyFn) {
+  const groups = new Map();
+  for (const item of itemsAsc) {
+    const k = keyFn(item);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(item);
+  }
+  const bars = Array.from(groups.values()).map((items) => {
+    const lows = items.map((x) => x.lowPrice).filter((v) => v > 0);
+    return {
+      date: items[items.length - 1].date,
+      openPrice: items[0].openPrice,
+      highPrice: Math.max(...items.map((x) => x.highPrice)),
+      lowPrice: lows.length ? Math.min(...lows) : items[0].closePrice,
+      closePrice: items[items.length - 1].closePrice,
+      volume: items.reduce((a, b) => a + (b.volume || 0), 0),
+      tradeValue: items.reduce((a, b) => a + (b.tradeValue || 0), 0),
+    };
+  });
+  bars.sort((a, b) => b.date.localeCompare(a.date));
+  return bars;
+}
+
+function synthesizeWeekly(itemsAsc) {
+  const bars = [];
+  for (let i = 0; i < itemsAsc.length; i += 5) {
+    const chunk = itemsAsc.slice(i, i + 5);
+    if (chunk.length === 0) continue;
+    const lows = chunk.map((x) => x.lowPrice).filter((v) => v > 0);
+    bars.push({
+      date: chunk[chunk.length - 1].date,
+      openPrice: chunk[0].openPrice,
+      highPrice: Math.max(...chunk.map((x) => x.highPrice)),
+      lowPrice: lows.length ? Math.min(...lows) : chunk[0].closePrice,
+      closePrice: chunk[chunk.length - 1].closePrice,
+      volume: chunk.reduce((a, b) => a + (b.volume || 0), 0),
+      tradeValue: chunk.reduce((a, b) => a + (b.tradeValue || 0), 0),
+    });
+  }
+  bars.sort((a, b) => b.date.localeCompare(a.date));
+  return bars;
+}
+
+const synthesizeMonthly = (itemsAsc) => aggregateBars(itemsAsc, (x) => x.date.slice(0, 6));
+const synthesizeYearly  = (itemsAsc) => aggregateBars(itemsAsc, (x) => x.date.slice(0, 4));
+
+// 시점 T 에서 그날까지의 데이터만으로 점수 계산
+function computeBacktestScoreAt(allItemsDesc, t, stockMeta) {
+  const sliceDesc = allItemsDesc.slice(t); // 최신=t시점
+  if (sliceDesc.length < 60) return null;
+
+  const tDay = sliceDesc[0];
+  const prevClose = sliceDesc[1] ? sliceDesc[1].closePrice : tDay.closePrice;
+  const currentData = {
+    currentPrice: tDay.closePrice,
+    openPrice: tDay.openPrice,
+    highPrice: tDay.highPrice,
+    lowPrice: tDay.lowPrice,
+    todayVolume: tDay.volume,
+    changeRate: prevClose ? ((tDay.closePrice - prevClose) / prevClose) * 100 : 0,
+  };
+
+  const sliceAsc = [...sliceDesc].reverse();
+  const meta = { stockCode: stockMeta.shortCode, stockName: stockMeta.name, market: stockMeta.market };
+  const dailyData   = { period: "DAY",   ...meta, items: sliceDesc };
+  const weeklyData  = { period: "WEEK",  ...meta, items: synthesizeWeekly(sliceAsc) };
+  const monthlyData = { period: "MONTH", ...meta, items: synthesizeMonthly(sliceAsc) };
+  const yearlyData  = { period: "YEAR",  ...meta, items: synthesizeYearly(sliceAsc) };
+
+  const dailySeries   = buildSeries(dailyData,   currentData.currentPrice, 60);
+  const weeklySeries  = buildSeries(weeklyData,  currentData.currentPrice, 52);
+  const monthlySeries = buildSeries(monthlyData, currentData.currentPrice, 36);
+  const yearlySeries  = buildSeries(yearlyData,  currentData.currentPrice, 5);
+
+  // flow=0 으로 두고 buildScoreModel 호출 → flow 기여 0
+  const weights = { volume: 18, position: 12, trend: 8, rsi: 5, macd: 5, resistance: 10, volatility: 8, flow: 0 };
+  const sm = buildScoreModel(
+    currentData, dailyData, weeklyData, monthlyData, yearlyData,
+    dailySeries, weeklySeries, monthlySeries, yearlySeries,
+    weights, []
+  );
+
+  const dryUp = calculateDryUpScore(dailyData);
+  const squeeze = calculateSqueezeScore(dailyData, currentData.currentPrice);
+  const trendFollow = calculateTrendFollowingScore(dailyData);
+  const overheat = calculateOverheatPenalty(dailyData);
+
+  // sm.totalScore 는 buildScoreModel 의 가중치 합 66 기준 (clampScore 로 정수화).
+  // dryUp(12) + squeeze(10) + trendFollow(12) 추가 → 합 100 만점.
+  const dryContrib = (dryUp.score || 0) * (12 / 100);
+  const squeezeContrib = (squeeze.score || 0) * (10 / 100);
+  const trendFollowContrib = (trendFollow.score || 0) * (12 / 100);
+  const rawTotal = sm.totalScore + dryContrib + squeezeContrib + trendFollowContrib;
+  // Phase 3 — 단기 폭등 페널티 차감 (천장 매수 거름)
+  const totalScore = Math.max(
+    0,
+    Math.round((rawTotal / BACKTEST_WEIGHT_DENOM) * 100) - overheat.penalty
+  );
+
+  return {
+    date: tDay.date,
+    closePrice: tDay.closePrice,
+    totalScore,
+    components: {
+      volume: sm.volume.score, position: sm.position.score, trend: sm.trend.score,
+      rsi: sm.rsi.score, macd: sm.macd.score, resistance: sm.resistance.score,
+      volatility: sm.volatility.score, dryUp: dryUp.score, squeeze: squeeze.score,
+      trendFollow: trendFollow.score,
+      overheatPenalty: overheat.penalty,
+    },
+  };
+}
+
+// 백테스트 메인
+async function runBacktest({ stockMeta, monthsBack, threshold, horizons }) {
+  if (!stockMeta || !stockMeta.shortCode) {
+    throw new Error("종목 정보가 없습니다.");
+  }
+  const shortCode = stockMeta.shortCode;
+
+  const allItemsDesc = await fetchDailyForBacktest(shortCode, stockMeta, monthsBack);
+  if (!allItemsDesc || allItemsDesc.length < 70) {
+    throw new Error(`일봉 데이터 부족 (${allItemsDesc?.length || 0}일). 60일 이상 필요.`);
+  }
+
+  // 모든 거래일에 대해 점수 계산 (look-ahead 없는 슬라이스)
+  const series = [];
+  for (let t = 0; t < allItemsDesc.length - 60; t++) {
+    const s = computeBacktestScoreAt(allItemsDesc, t, stockMeta);
+    if (s) series.push(s);
+  }
+  series.sort((a, b) => a.date.localeCompare(b.date));
+
+  const signals = series.filter((s) => s.totalScore >= threshold);
+
+  const dateIdx = new Map(series.map((s, i) => [s.date, i]));
+  const horizonResults = horizons.map((h) => {
+    const trades = [];
+    for (const sig of signals) {
+      const idx = dateIdx.get(sig.date);
+      if (idx === undefined || idx + h >= series.length) continue;
+      const exit = series[idx + h];
+      const ret = ((exit.closePrice - sig.closePrice) / sig.closePrice) * 100;
+      trades.push({
+        entryDate: sig.date,
+        entryPrice: sig.closePrice,
+        score: sig.totalScore,
+        exitDate: exit.date,
+        exitPrice: exit.closePrice,
+        returnPct: ret,
+      });
+    }
+    const n = trades.length;
+    const wins = trades.filter((t) => t.returnPct > 0).length;
+    const winRate = n ? (wins / n) * 100 : 0;
+    const avgReturn = n ? trades.reduce((a, t) => a + t.returnPct, 0) / n : 0;
+    let cumulative = 1;
+    for (const t of trades) cumulative *= 1 + t.returnPct / 100;
+    const cumulativeReturn = (cumulative - 1) * 100;
+    const mdd = trades.length ? Math.min(...trades.map((t) => t.returnPct)) : 0;
+    return { horizon: h, n, winRate, avgReturn, cumulativeReturn, mdd, trades };
+  });
+
+  return { stockMeta, monthsBack, threshold, series, signals, horizonResults };
+}
+
+app.get("/backtest", (req, res) => {
+  res.render("backtest", {
+    options: {
+      query: req.query.query || req.query.code || "",
+      monthsBack: Number(req.query.months || 12),
+      threshold: Number(req.query.threshold || 70),
+      horizons: req.query.horizons ? String(req.query.horizons).split(",").map(Number) : [5, 10, 20],
+    },
+    result: null,
+    error: null,
+    candidates: null,
+  });
+});
+
+app.post("/backtest", async (req, res) => {
+  const query = String(req.body.query || "").trim();
+  const monthsBack = Math.max(3, Math.min(24, Number(req.body.monthsBack) || 12));
+  const threshold = Math.max(0, Math.min(100, Number(req.body.threshold) || 70));
+  const horizons = (Array.isArray(req.body.horizons) ? req.body.horizons : [req.body.horizons])
+    .filter(Boolean)
+    .map((v) => Math.max(1, Math.min(60, Number(v))))
+    .filter((v) => Number.isFinite(v));
+  const finalHorizons = horizons.length ? Array.from(new Set(horizons)).sort((a, b) => a - b) : [5, 10, 20];
+
+  const options = { query, monthsBack, threshold, horizons: finalHorizons };
+
+  if (!query) {
+    return res.render("backtest", {
+      options, result: null, candidates: null,
+      error: "종목명 또는 종목코드를 입력하세요.",
+    });
+  }
+
+  const found = getStockInfoByQuery(query);
+  if (!found) {
+    return res.render("backtest", {
+      options, result: null, candidates: null,
+      error: `'${query}' 와 일치하는 종목이 없습니다.`,
+    });
+  }
+
+  let selected;
+  let candidates = null;
+  if (Array.isArray(found)) {
+    // 다중 매치 → 첫 번째 자동 선택, 나머지는 후보로 안내
+    selected = found[0];
+    candidates = found.slice(0, 10);
+  } else {
+    selected = found;
+  }
+  const stockMeta = {
+    shortCode: selected.shortCode,
+    name: selected.name,
+    market: selected.market,
+  };
+
+  try {
+    const result = await runBacktest({
+      stockMeta, monthsBack, threshold, horizons: finalHorizons,
+    });
+    res.render("backtest", { options, result, error: null, candidates });
+  } catch (e) {
+    res.render("backtest", { options, result: null, error: e.message || String(e), candidates });
+  }
 });
 
 if (process.env.MAIL_CRON_ENABLED === "1") {

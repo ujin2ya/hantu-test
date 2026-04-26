@@ -33,6 +33,7 @@ coverage/
 dist/
 build/
 .cache/
+cache/
 
 # 에디터 / OS
 .vscode/
