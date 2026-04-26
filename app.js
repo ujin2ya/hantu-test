@@ -120,6 +120,16 @@ async function safeApiCall(fn, delayMs = 1000, retries = 3) {
   }
 }
 
+async function processBatched(items, batchSize, fn) {
+  const results = [];
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    const batchResults = await Promise.all(batch.map((item, j) => fn(item, i + j)));
+    results.push(...batchResults);
+  }
+  return results;
+}
+
 function logSample(label, obj) {
   if (obj === undefined || obj === null) {
     console.log(`[SAMPLE] ${label}: <empty>`);
@@ -1316,9 +1326,8 @@ async function runScan({ candidateLimit, includeMinute }) {
   console.log(`[SCAN] candidates after merge: ${candidates.length}`);
 
   const hour = nowHHMMSS();
-  const results = [];
-  let firstLogged = false;
-  for (const cand of candidates) {
+
+  async function processOne(cand, index) {
     try {
       const meta = stocksData.byShortCode?.[cand.shortCode] || null;
       const stockMeta = {
@@ -1332,7 +1341,7 @@ async function runScan({ candidateLimit, includeMinute }) {
         () => getCurrentPrice(accessToken, cand.shortCode),
         900
       );
-      if (!firstLogged) {
+      if (index === 0) {
         logSample(`inquire-price output (${cand.shortCode})`, currentRaw.output);
       }
       const currentData = normalizeCurrentPrice(currentRaw, stockMeta);
@@ -1344,7 +1353,7 @@ async function runScan({ candidateLimit, includeMinute }) {
             () => getMinuteChart(accessToken, cand.shortCode, hour),
             1100
           );
-          if (!firstLogged) {
+          if (index === 0) {
             console.log(`[SCAN] minute output2 rows (${cand.shortCode}): ${Array.isArray(minuteRaw.output2) ? minuteRaw.output2.length : "N/A"}`);
             logSample(`minute output2[0] (${cand.shortCode})`, Array.isArray(minuteRaw.output2) ? minuteRaw.output2[0] : null);
           }
@@ -1353,10 +1362,9 @@ async function runScan({ candidateLimit, includeMinute }) {
           // 분봉 실패는 종목 자체 실패로 보지 않음
         }
       }
-      firstLogged = true;
 
       const score = buildShortTermScore(currentData, minuteRows);
-      results.push({
+      return {
         shortCode: cand.shortCode,
         name: stockMeta.name,
         market: stockMeta.market,
@@ -1368,16 +1376,20 @@ async function runScan({ candidateLimit, includeMinute }) {
         buySellRatio: currentData.buySellRatio,
         sources: cand.sources,
         score,
-      });
+      };
     } catch (e) {
-      results.push({
+      return {
         shortCode: cand.shortCode,
         name: cand.name,
         error: e.message || String(e),
         sources: cand.sources,
-      });
+      };
     }
   }
+
+  const t0 = Date.now();
+  const results = await processBatched(candidates, 5, processOne);
+  console.log(`[SCAN] per-stock fetch elapsed: ${((Date.now() - t0) / 1000).toFixed(1)}s (batch=5)`);
 
   results.sort((a, b) => (b.score?.totalScore || -1) - (a.score?.totalScore || -1));
 
@@ -1421,9 +1433,7 @@ async function runSwingScan({ candidateLimit }) {
   const { startDate, endDate } = getDateRange(6);
   const defaultWeights = { volume: 30, position: 20, trend: 10, rsi: 5, macd: 5, resistance: 20, volatility: 10 };
 
-  const results = [];
-  let firstLogged = false;
-  for (const cand of candidates) {
+  async function processOne(cand, index) {
     try {
       const meta = stocksData.byShortCode?.[cand.shortCode] || null;
       const stockMeta = {
@@ -1434,7 +1444,7 @@ async function runSwingScan({ candidateLimit }) {
       };
 
       const currentRaw = await safeApiCall(() => getCurrentPrice(accessToken, cand.shortCode), 900);
-      if (!firstLogged) {
+      if (index === 0) {
         logSample(`[SWING] inquire-price output (${cand.shortCode})`, currentRaw.output);
       }
       const currentData = normalizeCurrentPrice(currentRaw, stockMeta);
@@ -1470,7 +1480,7 @@ async function runSwingScan({ candidateLimit }) {
       const recTier = scoreModel.buyRecommendation?.recommendedTier;
       const buyTierObj = recTier ? scoreModel.buyRecommendation?.fixed?.tiers?.[recTier] : null;
 
-      results.push({
+      return {
         shortCode: cand.shortCode,
         name: stockMeta.name,
         market: stockMeta.market,
@@ -1493,17 +1503,20 @@ async function runSwingScan({ candidateLimit }) {
           buyPrice: buyTierObj?.price || null,
           buyGapPercent: buyTierObj?.gapPercent || null,
         },
-      });
-      firstLogged = true;
+      };
     } catch (e) {
-      results.push({
+      return {
         shortCode: cand.shortCode,
         name: cand.name,
         error: e.message || String(e),
         sources: cand.sources,
-      });
+      };
     }
   }
+
+  const t0 = Date.now();
+  const results = await processBatched(candidates, 3, processOne);
+  console.log(`[SWING] per-stock fetch elapsed: ${((Date.now() - t0) / 1000).toFixed(1)}s (batch=3)`);
 
   results.sort((a, b) => (b.scoreModel?.totalScore || -1) - (a.scoreModel?.totalScore || -1));
 
