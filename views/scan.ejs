@@ -127,6 +127,82 @@
       font-variant-numeric: tabular-nums;
       margin-right: 4px;
     }
+
+    .result-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .result-card:hover {
+      border-color: #c7d2fe;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08);
+    }
+    .result-card .rank-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: #64748b;
+      font-size: 0.72rem;
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    .result-card .stock-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #1e293b;
+    }
+    .result-card .stock-code {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .result-card .price-line {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin: 8px 0 6px;
+    }
+    .result-card .price-line .price {
+      font-weight: 700;
+      font-size: 1.05rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .result-card .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+    .result-card .meta-row {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .result-card .meta-row strong { color: #334155; }
+    .result-card .verdict-pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .result-card .card-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed #e2e8f0;
+    }
   </style>
 </head>
 <body>
@@ -241,7 +317,128 @@
           </div>
         </div>
 
-        <div class="table-responsive">
+        <% if (scanResult.mode === 'swing') { %>
+          <!-- 모바일/태블릿 카드 -->
+          <div class="d-lg-none d-flex flex-column gap-2">
+            <% scanResult.results.forEach(function(r, i) { %>
+              <% var hasErr = !!r.error;
+                 var sc = !hasErr ? r.scoreModel.totalScore : 0;
+                 var cls = sc >= 75 ? 'score-strong' : sc >= 60 ? 'score-good' : sc >= 45 ? 'score-mid' : 'score-weak'; %>
+              <div class="result-card">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <div class="flex-grow-1" style="min-width: 0;">
+                    <div>
+                      <span class="rank-num">#<%= i + 1 %></span>
+                      <span class="stock-name"><%= r.name || r.shortCode %></span>
+                    </div>
+                    <div class="stock-code"><%= r.shortCode %><% if (r.market) { %> · <%= r.market %><% } %></div>
+                  </div>
+                  <% if (!hasErr) { %>
+                    <span class="score-pill <%= cls %>"><%= sc %></span>
+                  <% } %>
+                </div>
+                <% if (hasErr) { %>
+                  <div class="text-danger small mt-2">오류: <%= r.error %></div>
+                <% } else { %>
+                  <div class="price-line">
+                    <span class="price"><%= (r.currentPrice || 0).toLocaleString() %>원</span>
+                    <span class="num-cell <%= r.changeRate >= 0 ? 'pos-rate' : 'neg-rate' %>">
+                      <%= r.changeRate >= 0 ? "+" : "" %><%= r.changeRate.toFixed(2) %>%
+                    </span>
+                    <span class="ms-auto verdict-pill"><%= r.scoreModel.verdict %></span>
+                  </div>
+                  <div class="badges-row">
+                    <% (r.sources || []).forEach(function(s) { %>
+                      <span class="source-badge"><%= s %></span>
+                    <% }) %>
+                  </div>
+                  <div class="meta-row">
+                    거래 <strong><%= r.scoreModel.components.volume %></strong> ·
+                    위치 <strong><%= r.scoreModel.components.position %></strong> ·
+                    추세 <strong><%= r.scoreModel.components.trend %></strong> ·
+                    매물 <strong><%= r.scoreModel.components.resistance %></strong>
+                  </div>
+                  <div class="card-foot">
+                    <div class="meta-row">
+                      <% if (r.scoreModel.buyPrice) { %>
+                        <i class="bi bi-cash-coin me-1"></i>매수 <strong><%= r.scoreModel.buyPrice.toLocaleString() %>원</strong>
+                        <span class="text-muted">(<%= r.scoreModel.buyTier %>, -<%= r.scoreModel.buyGapPercent %>%)</span>
+                      <% } else { %>
+                        <span class="text-muted">매수가 산출 불가</span>
+                      <% } %>
+                    </div>
+                    <form method="POST" action="/search" class="m-0">
+                      <input type="hidden" name="stockQuery" value="<%= r.shortCode %>" />
+                      <button type="submit" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-graph-up"></i>
+                      </button>
+                    </form>
+                  </div>
+                <% } %>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <!-- 단타 모바일/태블릿 카드 -->
+          <div class="d-lg-none d-flex flex-column gap-2">
+            <% scanResult.results.forEach(function(r, i) { %>
+              <% var hasErr = !!r.error;
+                 var sc = !hasErr ? r.score.totalScore : 0;
+                 var cls = sc >= 75 ? 'score-strong' : sc >= 60 ? 'score-good' : sc >= 45 ? 'score-mid' : 'score-weak'; %>
+              <div class="result-card">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <div class="flex-grow-1" style="min-width: 0;">
+                    <div>
+                      <span class="rank-num">#<%= i + 1 %></span>
+                      <span class="stock-name"><%= r.name || r.shortCode %></span>
+                    </div>
+                    <div class="stock-code"><%= r.shortCode %><% if (r.market) { %> · <%= r.market %><% } %></div>
+                  </div>
+                  <% if (!hasErr) { %>
+                    <span class="score-pill <%= cls %>"><%= sc %></span>
+                  <% } %>
+                </div>
+                <% if (hasErr) { %>
+                  <div class="text-danger small mt-2">오류: <%= r.error %></div>
+                <% } else { %>
+                  <div class="price-line">
+                    <span class="price"><%= (r.currentPrice || 0).toLocaleString() %>원</span>
+                    <span class="num-cell <%= r.changeRate >= 0 ? 'pos-rate' : 'neg-rate' %>">
+                      <%= r.changeRate >= 0 ? "+" : "" %><%= r.changeRate.toFixed(2) %>%
+                    </span>
+                    <span class="ms-auto verdict-pill"><%= r.score.verdict %></span>
+                  </div>
+                  <div class="badges-row">
+                    <% (r.sources || []).forEach(function(s) { %>
+                      <span class="source-badge"><%= s %></span>
+                    <% }) %>
+                  </div>
+                  <div class="meta-row">
+                    체결강도 <strong><%= r.chegyeolStrength ? r.chegyeolStrength.toFixed(1) : "-" %></strong> ·
+                    매수/매도 <strong><%= r.buySellRatio !== null && r.buySellRatio !== undefined ? r.buySellRatio.toFixed(2) : "-" %></strong>
+                  </div>
+                  <div class="meta-row">
+                    체강 <strong><%= r.score.components.cheg.score %></strong> ·
+                    모멘텀 <strong><%= r.score.components.momentum.score %></strong> ·
+                    일중 <strong><%= r.score.components.intraday.score %></strong>
+                  </div>
+                  <div class="card-foot">
+                    <div></div>
+                    <form method="POST" action="/search" class="m-0">
+                      <input type="hidden" name="stockQuery" value="<%= r.shortCode %>" />
+                      <button type="submit" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-graph-up"></i>
+                      </button>
+                    </form>
+                  </div>
+                <% } %>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+
+        <!-- 데스크탑 테이블 -->
+        <div class="table-responsive d-none d-lg-block">
           <% if (scanResult.mode === 'swing') { %>
             <table class="table table-hover align-middle mb-0">
               <thead>
