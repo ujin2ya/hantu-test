@@ -615,9 +615,20 @@
         <h1><i class="bi bi-graph-up-arrow me-2"></i>주식앱 스타일 차트 + 점수화</h1>
         <div class="subtitle">한국투자증권 Open API · 일/주/월/연봉 + 7요소 가중치 점수</div>
       </div>
-      <a href="/scan" class="btn btn-light btn-sm align-self-center">
-        <i class="bi bi-radar me-1"></i>단타 스캔
-      </a>
+      <div class="d-flex gap-2 align-self-center flex-wrap">
+        <a href="/subscribe" class="btn btn-light btn-sm">
+          <i class="bi bi-envelope-paper me-1"></i>메일 구독
+        </a>
+        <% if (typeof returnUrl !== 'undefined' && returnUrl) { %>
+          <a href="<%= returnUrl %>" class="btn btn-warning btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>단타 스캔 결과로
+          </a>
+        <% } else { %>
+          <a href="/scan" class="btn btn-light btn-sm">
+            <i class="bi bi-radar me-1"></i>단타 스캔
+          </a>
+        <% } %>
+      </div>
     </div>
   </header>
 

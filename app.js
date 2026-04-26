@@ -26,6 +26,9 @@ try {
 }
 const express = require("express");
 const axios = require("axios");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
+const cron = require("node-cron");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
@@ -449,6 +452,8 @@ function normalizeCurrentPrice(apiData, stockMeta) {
     prevClose: Number(o.stck_sdpr || 0),
     todayVolume: Number(o.acml_vol || 0),
     todayTradeValue: Number(o.acml_tr_pbmn || 0),
+    marketCap: Number(o.hts_avls || 0),
+    listedShares: Number(o.lstn_stcn || 0),
     foreignRate: Number(o.hts_frgn_ehrt || 0),
     chegyeolStrength: Number(o.cttr || 0),
     buyVolume,
@@ -1005,6 +1010,103 @@ function calculateVolatilityScore(dailyData) {
   return {
     score: clampScore(score),
     explanation: `최근 20일 평균 변동폭 ${avgRange.toFixed(2)}%`,
+  };
+}
+
+function calculateFlowScore(investorRows) {
+  if (!Array.isArray(investorRows) || investorRows.length < 3) {
+    return { score: 50, explanation: "수급 데이터 부족" };
+  }
+  const sorted = [...investorRows].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const sumNet = (n) => sorted.slice(0, n).reduce(
+    (acc, r) => acc + Number(r.foreignNetValue || 0) + Number(r.orgNetValue || 0),
+    0
+  );
+  const sum5 = sumNet(Math.min(5, sorted.length));
+  const sum10 = sumNet(Math.min(10, sorted.length));
+  const fmt = (v) => `${(v / 1e8).toFixed(0)}억`;
+
+  let score;
+  let label;
+  if (sum5 > 0 && sum10 > 0) {
+    score = 85;
+    label = "단기·중기 모두 순매수";
+  } else if (sum5 > 0 && sum10 <= 0) {
+    score = 65;
+    label = "최근 5일 순매수 진입";
+  } else if (sum5 <= 0 && sum10 > 0) {
+    score = 45;
+    label = "5일 차익 / 10일 누적 순매수";
+  } else {
+    score = 25;
+    label = "5·10일 모두 순매도";
+  }
+
+  const accelBonus = sum5 > 0 && sum5 > Math.abs(sum10) * 0.6 ? 10 : 0;
+  if (accelBonus) label += " · 최근 가속";
+
+  return {
+    score: clampScore(score + accelBonus),
+    explanation: `외인+기관 5일 ${fmt(sum5)} / 10일 ${fmt(sum10)} (${label})`,
+    detail: { sum5, sum10 },
+  };
+}
+
+function calculateDryUpScore(dailyData) {
+  const items = dailyData.items.slice(0, 20);
+  if (items.length < 10) {
+    return { score: 50, explanation: "데이터 부족" };
+  }
+  const recent5 = items.slice(0, 5);
+  const last20 = items.slice(0, 20);
+  const avg5 = recent5.reduce((acc, v) => acc + Number(v.volume || 0), 0) / recent5.length;
+  const avg20 = last20.reduce((acc, v) => acc + Number(v.volume || 0), 0) / last20.length;
+  const dryRatio = avg20 > 0 ? avg5 / avg20 : 1;
+
+  const recent10 = items.slice(0, 10);
+  const highs = recent10.map((v) => Number(v.highPrice || 0));
+  const lows = recent10.map((v) => Number(v.lowPrice || 0));
+  const closes = recent10.map((v) => Number(v.closePrice || 0));
+  const avgClose = closes.reduce((a, b) => a + b, 0) / closes.length || 1;
+  const rangePct = ((Math.max(...highs) - Math.min(...lows)) / avgClose) * 100;
+
+  let score = 40;
+  if (dryRatio < 0.55 && rangePct < 5) score = 90;
+  else if (dryRatio < 0.7 && rangePct < 6) score = 78;
+  else if (dryRatio < 0.85 && rangePct < 8) score = 62;
+  else if (dryRatio < 1.0) score = 50;
+  else score = 30;
+
+  return {
+    score: clampScore(score),
+    explanation: `5일/20일 거래량 비 ${dryRatio.toFixed(2)} · 10일 변동폭 ${rangePct.toFixed(1)}%`,
+    detail: { dryRatio, rangePct },
+  };
+}
+
+function calculateSqueezeScore(dailyData, currentPrice) {
+  const closes = dailyData.items.slice(0, 60).reverse().map((v) => Number(v.closePrice || 0));
+  const ma5 = sma(closes, 5);
+  const ma20 = sma(closes, 20);
+  const ma60 = sma(closes, 60);
+  if (!ma5 || !ma20 || !ma60 || !currentPrice) {
+    return { score: 50, explanation: "이평선 데이터 부족" };
+  }
+  const maxMa = Math.max(ma5, ma20, ma60);
+  const minMa = Math.min(ma5, ma20, ma60);
+  const spreadPct = ((maxMa - minMa) / currentPrice) * 100;
+
+  let score = 40;
+  if (spreadPct < 1.5) score = 90;
+  else if (spreadPct < 2.5) score = 75;
+  else if (spreadPct < 4) score = 58;
+  else if (spreadPct < 6) score = 45;
+  else score = 30;
+
+  return {
+    score: clampScore(score),
+    explanation: `5/20/60일선 수렴폭 ${spreadPct.toFixed(2)}%`,
+    detail: { spreadPct, ma5, ma20, ma60 },
   };
 }
 
@@ -1630,6 +1732,7 @@ async function runSwingScan({ candidateLimit }) {
 
   const { startDate, endDate } = getDateRange(6);
   const defaultWeights = { volume: 25, position: 17, trend: 8, rsi: 5, macd: 5, resistance: 15, volatility: 10, flow: 15 };
+  const nightlyWeights = { volume: 18, position: 12, trend: 8, rsi: 5, macd: 5, resistance: 10, volatility: 8, flow: 12, dryUp: 12, squeeze: 10 };
 
   async function processOne(cand, index) {
     try {
@@ -1690,6 +1793,35 @@ async function runSwingScan({ candidateLimit }) {
       const recTier = scoreModel.buyRecommendation?.recommendedTier;
       const buyTierObj = recTier ? scoreModel.buyRecommendation?.fixed?.tiers?.[recTier] : null;
 
+      const flow = calculateFlowScore(investorRows);
+      const dryUp = calculateDryUpScore(dailyData);
+      const squeeze = calculateSqueezeScore(dailyData, currentData.currentPrice);
+
+      const nightlyComponents = {
+        volume: scoreModel.volume.score,
+        position: scoreModel.position.score,
+        trend: scoreModel.trend.score,
+        rsi: scoreModel.rsi.score,
+        macd: scoreModel.macd.score,
+        resistance: scoreModel.resistance.score,
+        volatility: scoreModel.volatility.score,
+        flow: flow.score,
+        dryUp: dryUp.score,
+        squeeze: squeeze.score,
+      };
+      const nightlyTotal = Math.round(
+        Object.entries(nightlyWeights).reduce(
+          (acc, [k, w]) => acc + (nightlyComponents[k] || 0) * (w / 100),
+          0
+        )
+      );
+
+      const yearHighDaily = dailyData.items.slice(0, 252);
+      const yearHigh = yearHighDaily.length
+        ? Math.max(...yearHighDaily.map((it) => Number(it.highPrice || 0)))
+        : 0;
+      const yearHighRatio = yearHigh > 0 ? currentData.currentPrice / yearHigh : null;
+
       return {
         shortCode: cand.shortCode,
         name: stockMeta.name,
@@ -1712,6 +1844,16 @@ async function runSwingScan({ candidateLimit }) {
           buyTier: recTier,
           buyPrice: buyTierObj?.price || null,
           buyGapPercent: buyTierObj?.gapPercent || null,
+        },
+        nightlyExtras: {
+          nightlyTotal,
+          components: nightlyComponents,
+          flow: { score: flow.score, explanation: flow.explanation },
+          dryUp: { score: dryUp.score, explanation: dryUp.explanation },
+          squeeze: { score: squeeze.score, explanation: squeeze.explanation },
+          marketCap: currentData.marketCap,
+          yearHigh,
+          yearHighRatio,
         },
       };
     } catch (e) {
@@ -1744,6 +1886,32 @@ function defaultLimitForMode(mode) {
 
 app.get("/scan", (req, res) => {
   const autoMode = pickAutoMode();
+
+  const requestedMode = String(req.query.mode || "");
+  const isReturning =
+    requestedMode === "short" || requestedMode === "swing";
+
+  if (isReturning) {
+    const candidateLimit = Math.max(
+      5,
+      Math.min(60, Number(req.query.candidateLimit) || defaultLimitForMode(requestedMode))
+    );
+    const includeMinute = req.query.includeMinute !== "off";
+    const cacheKey = `${requestedMode}:${candidateLimit}:${includeMinute ? 1 : 0}`;
+    const cached = getScanCache(cacheKey);
+    return res.render("scan", {
+      error: null,
+      scanResult: cached ? { ...cached, fromCache: true } : null,
+      autoMode,
+      options: {
+        mode: requestedMode,
+        effectiveMode: requestedMode,
+        candidateLimit,
+        includeMinute,
+      },
+    });
+  }
+
   res.render("scan", {
     error: null,
     scanResult: null,
@@ -2109,10 +2277,21 @@ app.get("/", (req, res) => {
     },
     market: null,
     autoMode: pickAutoMode(),
+    returnUrl: null,
   });
 });
 
+function buildScanReturnUrl(body) {
+  if (body?.from !== "scan") return null;
+  const mode = String(body.scanMode || "").replace(/[^a-z]/gi, "");
+  const limit = Number(body.scanLimit) || 0;
+  const includeMinute = body.scanIncludeMinute === "1" ? "on" : "off";
+  if (!mode || !limit) return "/scan";
+  return `/scan?mode=${encodeURIComponent(mode)}&candidateLimit=${limit}&includeMinute=${includeMinute}`;
+}
+
 app.post("/search", async (req, res) => {
+  const returnUrl = buildScanReturnUrl(req.body);
   try {
     const query = String(req.body.stockQuery || "").trim();
     const weights = parseWeights(req.body);
@@ -2133,6 +2312,7 @@ app.post("/search", async (req, res) => {
         weights,
         market: null,
         autoMode: pickAutoMode(),
+        returnUrl,
       });
     }
 
@@ -2154,6 +2334,7 @@ app.post("/search", async (req, res) => {
         weights,
         market: null,
         autoMode: pickAutoMode(),
+        returnUrl,
       });
     }
 
@@ -2249,6 +2430,7 @@ app.post("/search", async (req, res) => {
       weights,
       market,
       autoMode: pickAutoMode(),
+      returnUrl,
     });
   } catch (err) {
     let message = err.message || "알 수 없는 오류가 발생했습니다.";
@@ -2271,9 +2453,233 @@ app.post("/search", async (req, res) => {
       weights: parseWeights(req.body || {}),
       market: null,
       autoMode: pickAutoMode(),
+      returnUrl,
     });
   }
 });
+
+// ============================================================
+// 이메일 구독 / 발송 / 크론 (밤 배치 스윙 스캔 발송)
+// ============================================================
+
+const SUBSCRIBERS_PATH = path.join(__dirname, ".subscribers.json");
+const MAX_SUBSCRIBERS = 10;
+
+function loadSubscribers() {
+  try {
+    const data = JSON.parse(fs.readFileSync(SUBSCRIBERS_PATH, "utf-8"));
+    return Array.isArray(data.subscribers) ? data.subscribers : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveSubscribers(list) {
+  fs.writeFileSync(SUBSCRIBERS_PATH, JSON.stringify({ subscribers: list }, null, 2));
+}
+
+let mailerTransport = null;
+function getMailer() {
+  if (mailerTransport) return mailerTransport;
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    throw new Error("SMTP_USER / SMTP_PASS 환경변수가 설정되지 않았습니다.");
+  }
+  mailerTransport = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: false,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+  return mailerTransport;
+}
+
+function renderEmailHtml(template, data) {
+  const ejs = require("ejs");
+  const filePath = path.join(__dirname, "views", "email", `${template}.ejs`);
+  return new Promise((resolve, reject) => {
+    ejs.renderFile(filePath, data, (err, html) => {
+      if (err) reject(err);
+      else resolve(html);
+    });
+  });
+}
+
+async function fetchMarketIndices(accessToken) {
+  const [kospiRaw, kosdaqRaw] = await Promise.all([
+    safeApiCall(() => getIndexPrice(accessToken, "0001"), 150).catch(() => null),
+    safeApiCall(() => getIndexPrice(accessToken, "1001"), 150).catch(() => null),
+  ]);
+  return {
+    kospi: kospiRaw ? normalizeIndex(kospiRaw, "코스피") : null,
+    kosdaq: kosdaqRaw ? normalizeIndex(kosdaqRaw, "코스닥") : null,
+  };
+}
+
+async function sendSwingScanEmails(opts = {}) {
+  const dryRun = !!opts.dryRun;
+  const targetEmail = opts.targetEmail || null;
+
+  const allSubscribers = loadSubscribers();
+  const subscribers = targetEmail
+    ? allSubscribers.filter((s) => s.email === targetEmail)
+    : allSubscribers;
+
+  if (subscribers.length === 0) {
+    console.log("[mail] 발송 대상 0명, 종료");
+    return { sent: 0, failed: 0, skipped: "no_subscribers" };
+  }
+
+  console.log("[mail] 스윙 스캔 시작 (candidateLimit=300, 밤 배치)");
+  const t0 = Date.now();
+  let scanResult;
+  try {
+    scanResult = await runSwingScan({ candidateLimit: 300 });
+  } catch (e) {
+    console.error("[mail] 스캔 실패:", e.message || e);
+    return { sent: 0, failed: 0, skipped: "scan_error" };
+  }
+  const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+  console.log(`[mail] 스캔 완료 (${elapsed}s, ${scanResult.results?.length || 0}종목)`);
+
+  const validResults = (scanResult.results || []).filter((r) => !r.error);
+  if (validResults.length === 0) {
+    console.log("[mail] 유효 결과 0건 (휴장 가능성), 발송 건너뜀");
+    return { sent: 0, failed: 0, skipped: "empty_result" };
+  }
+
+  let market = null;
+  try {
+    const accessToken = await safeApiCall(() => getAccessToken(), 200);
+    market = await fetchMarketIndices(accessToken);
+  } catch (e) {
+    console.warn("[mail] 시장 지수 조회 실패 (무시하고 진행):", e.message || e);
+  }
+
+  // KIS hts_avls 단위는 "억원". 500억 미만 (= 500) 컷.
+  const MIN_MARKET_CAP_EOK = 500;
+  const filtered = validResults.filter((r) => {
+    const capEok = r.nightlyExtras?.marketCap || 0;
+    return capEok >= MIN_MARKET_CAP_EOK;
+  });
+  console.log(`[mail] 시총 ${MIN_MARKET_CAP_EOK}억 필터: ${validResults.length} → ${filtered.length}`);
+
+  filtered.sort(
+    (a, b) =>
+      (b.nightlyExtras?.nightlyTotal || -1) - (a.nightlyExtras?.nightlyTotal || -1)
+  );
+
+  const top = filtered.slice(0, 10);
+  const dateStr = new Date().toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" });
+  const baseUrl = process.env.PUBLIC_URL || "https://ydata.co.kr";
+
+  if (dryRun) {
+    const html = await renderEmailHtml("swing-scan", {
+      top, market, dateStr, baseUrl,
+      unsubscribeUrl: `${baseUrl}/unsubscribe?token=PREVIEW`,
+    });
+    return { sent: 0, failed: 0, dryRun: true, htmlLength: html.length, top: top.length };
+  }
+
+  const transport = getMailer();
+  let sent = 0, failed = 0;
+  for (const sub of subscribers) {
+    try {
+      const html = await renderEmailHtml("swing-scan", {
+        top, market, dateStr, baseUrl,
+        unsubscribeUrl: `${baseUrl}/unsubscribe?token=${encodeURIComponent(sub.unsubscribeToken)}`,
+      });
+      const unsubAddr = `${baseUrl}/unsubscribe?token=${encodeURIComponent(sub.unsubscribeToken)}`;
+      await transport.sendMail({
+        from: process.env.MAIL_FROM || `한투 스윙 스캔 <${process.env.SMTP_USER}>`,
+        to: sub.email,
+        subject: `[스윙 스캔] ${dateStr} · 상위 ${top.length}종목`,
+        html,
+        headers: {
+          "List-Unsubscribe": `<${unsubAddr}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+      });
+      sent++;
+      console.log(`[mail] 발송 OK: ${sub.email}`);
+    } catch (e) {
+      failed++;
+      console.error(`[mail] 발송 실패 (${sub.email}):`, e.message || e);
+    }
+  }
+  console.log(`[mail] 일괄 발송 완료: 성공 ${sent} / 실패 ${failed}`);
+  return { sent, failed };
+}
+
+app.get("/subscribe", (req, res) => {
+  res.render("subscribe", { message: null, error: null });
+});
+
+app.post("/subscribe", (req, res) => {
+  const email = String(req.body.email || "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.render("subscribe", { error: "이메일 형식이 올바르지 않습니다.", message: null });
+  }
+  const list = loadSubscribers();
+  if (list.find((s) => s.email === email)) {
+    return res.render("subscribe", { error: "이미 구독 중인 이메일입니다.", message: null });
+  }
+  if (list.length >= MAX_SUBSCRIBERS) {
+    return res.render("subscribe", {
+      error: `구독 정원이 가득 찼습니다 (최대 ${MAX_SUBSCRIBERS}명). 기존 구독자가 취소한 뒤 다시 시도해 주세요.`,
+      message: null,
+    });
+  }
+  list.push({
+    email,
+    subscribedAt: new Date().toISOString(),
+    unsubscribeToken: crypto.randomBytes(16).toString("hex"),
+  });
+  saveSubscribers(list);
+  res.render("subscribe", {
+    error: null,
+    message: `구독 완료: ${email}. 매 평일 22시에 스윙 스캔 결과가 발송됩니다.`,
+  });
+});
+
+app.get("/unsubscribe", (req, res) => {
+  const token = String(req.query.token || "").trim();
+  if (!token) return res.status(400).send("토큰이 필요합니다.");
+  const list = loadSubscribers();
+  const idx = list.findIndex((s) => s.unsubscribeToken === token);
+  if (idx === -1) {
+    return res.send("이미 구독 취소되었거나 잘못된 토큰입니다.");
+  }
+  const removed = list[idx].email;
+  list.splice(idx, 1);
+  saveSubscribers(list);
+  res.send(`구독 취소 완료: ${removed}`);
+});
+
+app.get("/admin/send-mail", async (req, res) => {
+  if (!process.env.ADMIN_TOKEN || req.query.token !== process.env.ADMIN_TOKEN) {
+    return res.status(403).send("forbidden");
+  }
+  const dryRun = req.query.dryRun === "1";
+  const targetEmail = req.query.email || null;
+  try {
+    const result = await sendSwingScanEmails({ dryRun, targetEmail });
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message || String(e) });
+  }
+});
+
+if (process.env.MAIL_CRON_ENABLED === "1") {
+  cron.schedule("0 22 * * 1-5", async () => {
+    console.log("[cron] 평일 22:00 KST — 스윙 스캔 발송 시작");
+    try {
+      await sendSwingScanEmails();
+    } catch (e) {
+      console.error("[cron] 발송 중 오류:", e.message || e);
+    }
+  }, { timezone: "Asia/Seoul" });
+  console.log("[cron] 평일 22:00 KST 스윙 스캔 발송 스케줄 등록 완료");
+}
 
 loadStocks();
 

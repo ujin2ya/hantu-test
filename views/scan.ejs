@@ -212,9 +212,14 @@
         <h1><i class="bi bi-radar me-2"></i>단타 스캔</h1>
         <div class="subtitle">거래대금 상위 + 체결강도 상위 합집합 → 단타 점수로 정렬</div>
       </div>
-      <a href="/" class="btn btn-light btn-sm align-self-center">
-        <i class="bi bi-arrow-left me-1"></i>딥다이브로
-      </a>
+      <div class="d-flex gap-2 align-self-center flex-wrap">
+        <a href="/subscribe" class="btn btn-light btn-sm">
+          <i class="bi bi-envelope-paper me-1"></i>메일 구독
+        </a>
+        <a href="/" class="btn btn-light btn-sm">
+          <i class="bi bi-arrow-left me-1"></i>딥다이브로
+        </a>
+      </div>
     </div>
   </header>
 
@@ -369,6 +374,10 @@
                     </div>
                     <form method="POST" action="/search" class="m-0">
                       <input type="hidden" name="stockQuery" value="<%= r.shortCode %>" />
+                      <input type="hidden" name="from" value="scan" />
+                      <input type="hidden" name="scanMode" value="<%= options.effectiveMode %>" />
+                      <input type="hidden" name="scanLimit" value="<%= options.candidateLimit %>" />
+                      <input type="hidden" name="scanIncludeMinute" value="<%= options.includeMinute ? '1' : '0' %>" />
                       <button type="submit" class="btn btn-outline-primary btn-sm">
                         <i class="bi bi-graph-up"></i>
                       </button>
@@ -426,6 +435,10 @@
                     <div></div>
                     <form method="POST" action="/search" class="m-0">
                       <input type="hidden" name="stockQuery" value="<%= r.shortCode %>" />
+                      <input type="hidden" name="from" value="scan" />
+                      <input type="hidden" name="scanMode" value="<%= options.effectiveMode %>" />
+                      <input type="hidden" name="scanLimit" value="<%= options.candidateLimit %>" />
+                      <input type="hidden" name="scanIncludeMinute" value="<%= options.includeMinute ? '1' : '0' %>" />
                       <button type="submit" class="btn btn-outline-primary btn-sm">
                         <i class="bi bi-graph-up"></i>
                       </button>
@@ -496,6 +509,10 @@
                       <td>
                         <form method="POST" action="/search" class="m-0">
                           <input type="hidden" name="stockQuery" value="<%= r.shortCode %>" />
+                      <input type="hidden" name="from" value="scan" />
+                      <input type="hidden" name="scanMode" value="<%= options.effectiveMode %>" />
+                      <input type="hidden" name="scanLimit" value="<%= options.candidateLimit %>" />
+                      <input type="hidden" name="scanIncludeMinute" value="<%= options.includeMinute ? '1' : '0' %>" />
                           <button type="submit" class="btn btn-outline-primary btn-sm">
                             <i class="bi bi-graph-up"></i>
                           </button>
@@ -561,6 +578,10 @@
                       <td>
                         <form method="POST" action="/search" class="m-0">
                           <input type="hidden" name="stockQuery" value="<%= r.shortCode %>" />
+                      <input type="hidden" name="from" value="scan" />
+                      <input type="hidden" name="scanMode" value="<%= options.effectiveMode %>" />
+                      <input type="hidden" name="scanLimit" value="<%= options.candidateLimit %>" />
+                      <input type="hidden" name="scanIncludeMinute" value="<%= options.includeMinute ? '1' : '0' %>" />
                           <button type="submit" class="btn btn-outline-primary btn-sm">
                             <i class="bi bi-graph-up"></i>
                           </button>
