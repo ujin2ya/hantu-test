@@ -1089,6 +1089,61 @@ function buildTiersFromBands(supportBins, currentPrice, bands) {
   return tiers;
 }
 
+function calculateMovingAverages(dailyData) {
+  const closes = (dailyData?.items || [])
+    .map((it) => Number(it.closePrice || 0))
+    .filter((p) => p > 0);
+  function sma(n) {
+    if (closes.length < n) return null;
+    return closes.slice(0, n).reduce((a, b) => a + b, 0) / n;
+  }
+  return { sma5: sma(5), sma20: sma(20), sma60: sma(60), sma120: sma(120) };
+}
+
+function buildMATiers(currentPrice, mas) {
+  const tiersConfig = [
+    { key: "aggressive", label: "5일선 매수", maKey: "sma5", period: 5 },
+    { key: "neutral", label: "20일선 매수", maKey: "sma20", period: 20 },
+    { key: "conservative", label: "60일선 매수", maKey: "sma60", period: 60 },
+  ];
+  const tiers = {};
+  tiersConfig.forEach((cfg) => {
+    const ma = mas[cfg.maKey];
+    if (!ma || ma <= 0) {
+      tiers[cfg.key] = {
+        label: cfg.label,
+        bandLabel: `${cfg.period}일 SMA`,
+        price: null,
+        gapPercent: "-",
+        description: `${cfg.period}일 이평선 계산 불가 (일봉 데이터 부족)`,
+        unavailable: true,
+      };
+      return;
+    }
+    if (ma >= currentPrice) {
+      const overGap = ((ma - currentPrice) / currentPrice) * 100;
+      tiers[cfg.key] = {
+        label: cfg.label,
+        bandLabel: `${cfg.period}일 SMA`,
+        price: Math.round(ma),
+        gapPercent: overGap.toFixed(1),
+        description: `${cfg.period}일선이 현재가 위(${overGap.toFixed(1)}% 상단)에 있어 저항 역할 — 돌파 후 진입 검토`,
+        broken: true,
+      };
+      return;
+    }
+    const gap = ((currentPrice - ma) / currentPrice) * 100;
+    tiers[cfg.key] = {
+      label: cfg.label,
+      bandLabel: `${cfg.period}일 SMA`,
+      price: Math.round(ma),
+      gapPercent: gap.toFixed(1),
+      description: `${cfg.period}일 이동평균이 ${gap.toFixed(1)}% 아래에서 지지`,
+    };
+  });
+  return tiers;
+}
+
 function calculateATRPercent(dailyData, period = 14) {
   const items = dailyData.items.slice(0, period + 1);
   if (items.length < period + 1) return null;
@@ -1165,11 +1220,25 @@ function buildBuyRecommendation(totalScore, buyZones, currentPrice, dailyData) {
     tierExplanation = "조건이 취약하다. 깊은 조정(보수 구간)까지 기다리거나 관망을 권한다.";
   }
 
+  const mas = calculateMovingAverages(dailyData);
+  const ma = (mas.sma5 || mas.sma20 || mas.sma60)
+    ? {
+        tiers: buildMATiers(currentPrice, mas),
+        values: {
+          sma5: mas.sma5 ? Math.round(mas.sma5) : null,
+          sma20: mas.sma20 ? Math.round(mas.sma20) : null,
+          sma60: mas.sma60 ? Math.round(mas.sma60) : null,
+          sma120: mas.sma120 ? Math.round(mas.sma120) : null,
+        },
+      }
+    : null;
+
   return {
     recommendedTier,
     tierExplanation,
     fixed,
     atr,
+    ma,
     hasSupports: supportBins.length > 0,
   };
 }

@@ -420,6 +420,11 @@
       box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
     }
 
+    .buy-tier.tier-unavailable {
+      opacity: 0.55;
+      background: #f1f5f9;
+    }
+
     .buy-tier .tier-label {
       font-size: 0.82rem;
       color: var(--muted);
@@ -807,6 +812,7 @@
          const variants = [
            { key: 'fixed', label: '고정 밴드', icon: 'bi-bounding-box', enabled: true },
            { key: 'atr', label: '변동성(ATR) 기반', icon: 'bi-activity', enabled: !!buyRec.atr },
+           { key: 'ma', label: '이동평균선', icon: 'bi-graph-up-arrow', enabled: !!buyRec.ma },
          ]; %>
       <div class="glass-card p-3 p-lg-4 mb-4">
         <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
@@ -841,24 +847,37 @@
               role="tabpanel"
             >
               <% if (!v.enabled) { %>
-                <div class="muted-text">ATR 계산에 필요한 데이터가 부족합니다.</div>
+                <div class="muted-text">
+                  <% if (v.key === 'atr') { %>ATR 계산에 필요한 데이터가 부족합니다.<% } %>
+                  <% if (v.key === 'ma') { %>이평선 계산에 필요한 일봉 데이터가 부족합니다.<% } %>
+                </div>
               <% } else { %>
                 <% const variantData = buyRec[v.key]; %>
                 <div class="muted-text mb-3">
                   <% if (v.key === 'fixed') { %>
                     <strong>고정 밴드 방식</strong> — 모든 종목에 동일한 괴리 범위(공격 -1~-5% / 중립 -5~-10% / 보수 -10~-18%)를 적용합니다. 예측 가능한 기준이지만 종목의 실제 변동성은 반영하지 않습니다.
-                  <% } else { %>
+                  <% } else if (v.key === 'atr') { %>
                     <strong>변동성(ATR) 기반 방식</strong> — 이 종목의 14일 평균 진폭(ATR)이 <strong><%= variantData.atrPercent %>%</strong>(≈<%= fmtNumber(variantData.atrValue) %>원)입니다. 밴드가 이에 비례해 자동 조정되어 저변동 종목은 타이트하게, 고변동 종목은 넓게 잡힙니다.
+                  <% } else if (v.key === 'ma') { %>
+                    <strong>이동평균선 지지 방식</strong> — 한국 차트에서 가장 표준적으로 보는 5/20/60일 이평선을 매수 기준점으로 사용. % 밴드보다 직관적이고, 이평선 자체가 차트상 보이는 지지·저항선이라 체결 가능성이 높습니다.
                   <% } %>
                 </div>
                 <div class="row g-3">
                   <% tierOrder.forEach(function(k) { %>
                     <% const t = variantData.tiers[k]; %>
                     <div class="col-12 col-md-4">
-                      <div class="buy-tier<%= buyRec.recommendedTier === k ? ' active' : '' %>">
+                      <div class="buy-tier<%= buyRec.recommendedTier === k && !t.unavailable && !t.broken ? ' active' : '' %><%= t.unavailable ? ' tier-unavailable' : '' %>">
                         <div class="tier-label"><%= t.label %> <span class="tier-band">(<%= t.bandLabel %>)</span></div>
-                        <div class="tier-price"><%= fmtNumber(t.price) %>원</div>
-                        <div class="tier-gap">현재가 대비 <%= t.gapPercent %>% 하회</div>
+                        <% if (t.unavailable) { %>
+                          <div class="tier-price text-muted">—</div>
+                          <div class="tier-gap text-muted">계산 불가</div>
+                        <% } else if (t.broken) { %>
+                          <div class="tier-price"><%= fmtNumber(t.price) %>원</div>
+                          <div class="tier-gap text-warning">현재가 +<%= t.gapPercent %>% 위 (저항)</div>
+                        <% } else { %>
+                          <div class="tier-price"><%= fmtNumber(t.price) %>원</div>
+                          <div class="tier-gap">현재가 대비 <%= t.gapPercent %>% 하회</div>
+                        <% } %>
                         <div class="tier-desc"><%= t.description %></div>
                       </div>
                     </div>
