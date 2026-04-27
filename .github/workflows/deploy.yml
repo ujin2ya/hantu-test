@@ -46,6 +46,8 @@ jobs:
             }
             upsert_env GEMINI_API_KEY "$GEMINI_API_KEY"
             upsert_env DART_API_KEY "$DART_API_KEY"
+            # 시드 시총 상한 9천억 (서울반도체 등 8천억대 종목 포함)
+            upsert_env PATTERN_MAX_MARKETCAP "900000000000"
             pm2 restart hantu-test --update-env || pm2 start app.js --name hantu-test
             pm2 save
             # 자동 analyze 임시 비활성화 — 서버 seed 가 5천억 cap 라 일부 종목 (서울반도체 등) 누락.
