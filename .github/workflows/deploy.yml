@@ -48,6 +48,6 @@ jobs:
             upsert_env DART_API_KEY "$DART_API_KEY"
             pm2 restart hantu-test --update-env || pm2 start app.js --name hantu-test
             pm2 save
-            # 패턴 분석 자동 갱신 — cache/pattern-result.json 새 코드 기준으로 재계산
-            # 시드 캐시 (cache/stock-charts/*.json) 가 있을 때만 동작. 실패해도 deploy 는 성공 유지.
-            node -e "require('./pattern-screener').analyzeAll({logProgress:false}).then(() => console.log('analyze done')).catch(e => { console.error('analyze failed:', e.message); process.exit(0); })" || true
+            # 자동 analyze 임시 비활성화 — 서버 seed 가 5천억 cap 라 일부 종목 (서울반도체 등) 누락.
+            # git push 로 들어오는 cache/pattern-result.json 을 그대로 사용하도록 둠.
+            # 서버 seed 가 완전해진 후 (시총 9천억까지 reseed) 다시 활성화 가능.
