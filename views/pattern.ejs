@@ -129,9 +129,15 @@
       <% if (result.candidates && result.candidates.top && result.candidates.top.length) { %>
         <div class="glass">
           <h2><i class="bi bi-radar me-1"></i>현재 후보 — 성공 패턴과 닮은 종목 (점수 ↓ 정렬)</h2>
-          <div class="text-secondary small mb-2">
-            마지막 거래일 기준 직전 20일 features 를 성공/실패 분포와 비교한 log likelihood 점수.
-            <strong>+ 양수 = 성공 패턴 닮음</strong>, − 음수 = 실패 패턴 닮음. 절대값 1.0 ≈ 약 2.7배 우도비.
+          <div class="alert alert-success small mb-2" style="background:#ecfdf5; border-color:#a7f3d0; color:#065f46;">
+            <i class="bi bi-stars me-1"></i><strong>실전 매매용 — 지금 살 만한 종목 찾기.</strong>
+            오늘 기준 직전 20일 거래 패턴이 과거 +40% 종목들의 <em>점화 직전</em> 패턴과 얼마나 닮았는지 점수화 한 결과예요.
+            <ul class="mb-0 mt-1 ps-3" style="font-size:0.78rem;">
+              <li><strong>점수 ≥ 1.5 (초록)</strong> = 성공 패턴과 매우 흡사 — 우선 관심</li>
+              <li><strong>0.5 ~ 1.5 (노랑)</strong> = 약하게 닮음 — 추가 확인</li>
+              <li><strong>&lt; 0.5 (빨강)</strong> = 닮지 않음 — 패스</li>
+            </ul>
+            <div class="mt-1" style="font-size:0.75rem;">⚠ <strong>"언제" 점화될지는 모름</strong> — 1주 안일 수도, 한 달 뒤일 수도. 후보군일 뿐 매수 시그널 아님.</div>
           </div>
 
           <form method="get" action="/pattern" class="row g-2 align-items-end mb-3">
@@ -239,7 +245,15 @@
 
       <!-- +40% 이벤트 리스트 + 검색·필터·페이징 -->
       <div class="glass">
-        <h2><i class="bi bi-list-stars me-1"></i>+40% 이벤트 — 검색 / 필터 / 페이징</h2>
+        <h2><i class="bi bi-list-stars me-1"></i>+40% 이벤트 — 과거 데이터 (검증·드릴다운용)</h2>
+        <div class="alert alert-secondary small mb-3" style="background:#f1f5f9; border-color:#cbd5e1; color:#334155;">
+          <i class="bi bi-archive me-1"></i><strong>과거에 이미 +40% 오른 종목들의 원본 리스트</strong> — 위쪽 "현재 후보" 모델이 학습한 데이터예요.
+          <ul class="mb-0 mt-1 ps-3" style="font-size:0.78rem;">
+            <li>매매에는 직접 안 씀 (이미 다 끝난 사건들). 아래 용도로 가끔 보세요:</li>
+            <li><strong>검증</strong> — 내가 아는 종목(예: 서울반도체)이 잡혔나? 시총·기간 분포가 합리적인가?</li>
+            <li><strong>드릴다운</strong> — 특정 종목·버킷이 어떤 features 로 점화됐는지 확인</li>
+          </ul>
+        </div>
 
         <form method="get" action="/pattern" class="row g-2 align-items-end mb-3">
           <div class="col-12 col-md-5">
