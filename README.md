@@ -65,14 +65,6 @@ node app.js
 
 콘솔에 `서버 실행: http://localhost:3012` 이 출력되면 브라우저로 접속한다. 종목명(예: `삼성전자`)을 입력하고 필요하면 가중치를 조정한 뒤 **검색** 버튼을 누른다.
 
-### CLI 버전 (디버깅용)
-
-```bash
-node token-test.js
-```
-
-대화형으로 종목명을 물어보고, 동명이 종목이 여러 개면 번호를 선택받는다. 이후 현재가·일·주·월·연봉 거래량을 콘솔에 출력한다. (비-TTY 환경에서는 stdin 대기로 멈추므로 터미널에서 직접 실행할 것.)
-
 ### 상용 서버 구동 (PM2)
 
 상용 서버에서는 프로세스가 죽을 때 자동 재시작되고 부팅 시에도 살아나도록 [PM2](https://pm2.keymetrics.io/)로 띄우는 것을 권장한다. PM2는 `.env`를 건드리지 않으며, 앱 내부의 `dotenv`가 그대로 로드한다.
@@ -154,7 +146,6 @@ module.exports = {
 ```
 .
 ├── app.js                # Express 웹 앱 (메인 엔트리)
-├── token-test.js         # 대화형 CLI 버전
 ├── generate-stocks.js    # KIS 마스터 zip → stocks.json 변환기
 ├── stocks.json           # 종목 메타 (이름/단축코드/표준코드/시장)
 ├── master/               # KIS 마스터 파일(zip) 보관 위치

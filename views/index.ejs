@@ -594,15 +594,20 @@
     const safeSummary = summary || null;
     const safeScoreModel = scoreModel || null;
     const safeMarket = (typeof market !== 'undefined' && market) ? market : null;
+    const safeStrategyPresetOptions = Array.isArray(strategyPresetOptions) ? strategyPresetOptions : [];
+    const safeSelectedStrategyPreset = selectedStrategyPreset || "auto";
+    const safeAppliedStrategy = appliedStrategy || null;
     const safeWeights = weights || {
-      volume: 30,
-      position: 20,
-      trend: 10,
+      volume: 25,
+      position: 17,
+      trend: 8,
       rsi: 5,
       macd: 5,
-      resistance: 20,
+      resistance: 15,
       volatility: 10,
+      flow: 15,
     };
+    const currentStrategyPreset = safeStrategyPresetOptions.find((item) => item.key === safeSelectedStrategyPreset) || null;
 
     function fmtNumber(value) {
       return Number(value || 0).toLocaleString();
@@ -613,7 +618,7 @@
     <div class="container-fluid px-3 px-lg-5 d-flex justify-content-between align-items-start gap-3 flex-wrap">
       <div>
         <h1><i class="bi bi-graph-up-arrow me-2"></i>주식앱 스타일 차트 + 점수화</h1>
-        <div class="subtitle">한국투자증권 Open API · 일/주/월/연봉 + 7요소 가중치 점수</div>
+        <div class="subtitle">한국투자증권 Open API · 일/주/월/연봉 + 8요소 점수 + 전략 프리셋</div>
       </div>
       <div class="d-flex gap-2 align-self-center flex-wrap">
         <button type="button" onclick="history.back()" class="btn btn-light btn-sm">
@@ -665,7 +670,38 @@
           </div>
         </div>
 
-        <div class="row g-2 row-cols-2 row-cols-md-4 row-cols-xl-8">
+        <div class="row g-3 align-items-start mb-3">
+          <div class="col-12 col-lg-4">
+            <label for="strategyPresetSelect" class="form-label small text-secondary mb-1">전략 프리셋</label>
+            <select id="strategyPresetSelect" name="strategyPreset" class="form-select form-select-lg">
+              <% safeStrategyPresetOptions.forEach(function(option) { %>
+                <option
+                  value="<%= option.key %>"
+                  data-description="<%= option.description %>"
+                  <%= safeSelectedStrategyPreset === option.key ? "selected" : "" %>
+                >
+                  <%= option.label %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="col-12 col-lg-8">
+            <div class="muted-text" id="strategyPresetHelp">
+              <%= currentStrategyPreset ? currentStrategyPreset.description : "자동 추천은 조회 후 돌파/눌림목 성향을 비교해 프리셋을 고릅니다." %>
+            </div>
+            <div class="muted-text mt-2">
+              기본은 숫자 비중을 직접 만지지 않고 전략만 고르는 흐름입니다. 세부 가중치는 <strong>고급 설정(수동)</strong>을 선택했을 때만 열립니다.
+            </div>
+          </div>
+        </div>
+
+        <div id="manual-weight-panel" style="display:<%= safeSelectedStrategyPreset === 'custom' ? 'block' : 'none' %>;">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+            <div class="section-title"><i class="bi bi-sliders"></i>수동 가중치</div>
+            <div class="muted-text">합계는 서버에서 자동으로 100으로 정규화됩니다.</div>
+          </div>
+
+          <div class="row g-2 row-cols-2 row-cols-md-4 row-cols-xl-8">
           <% const weightFields = [
             { key: 'volume', name: 'volumeWeight', label: '거래량',
               desc: '오늘 거래량을 20일 평균과 비교 + 주/월/연 거래 비율. 양봉·종가 상단 위치면 가점, 음봉·종가 하단이면 감점.' },
@@ -702,15 +738,15 @@
                   value="<%= safeWeights[f.key] %>"
                   min="0"
                   max="100"
+                  <%= safeSelectedStrategyPreset === 'custom' ? '' : 'disabled' %>
                 />
               </div>
             </div>
           <% }) %>
-        </div>
-
-        <div class="muted-text mt-3">
-          예시 기본값: 거래량 25 / 위치 17 / 추세 8 / RSI 5 / MACD 5 / 매물 압력 15 / 변동성 10 / 수급 15.<br />
-          단타형이면 거래량·추세·수급·RSI·MACD 비중을 높이고, 보수형이면 매물 압력·위치 비중을 높이는 방식이 좋다.
+          </div>
+          <div class="muted-text mt-3">
+            수동 모드는 백테스트나 비교 실험을 할 때만 권장합니다. 평소에는 자동 추천 또는 단타/스윙 프리셋을 그대로 쓰는 편이 더 일관됩니다.
+          </div>
         </div>
       </form>
     </div>
@@ -814,6 +850,40 @@
         </div>
       </div>
 
+      <% if (safeAppliedStrategy) { %>
+        <div class="glass-card p-3 p-lg-4 mb-4">
+          <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+            <div>
+              <h2 class="section-title mb-2"><i class="bi bi-compass"></i>적용 전략</h2>
+              <div style="font-size: 1.05rem; font-weight: 700;">
+                <%= safeAppliedStrategy.isAuto ? "자동 추천 → " : "" %><%= safeAppliedStrategy.label %>
+                <% if (safeAppliedStrategy.marketContext) { %>
+                  <span style="display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: #e0e7ff; color: #4338ca; font-size: 0.72rem; font-weight: 600; vertical-align: middle;">
+                    <%= safeAppliedStrategy.marketContext.label %>
+                  </span>
+                <% } %>
+              </div>
+              <% if (safeAppliedStrategy.marketContext) { %>
+                <div class="muted-text mt-1" style="font-size: 0.78rem;"><%= safeAppliedStrategy.marketContext.description %></div>
+              <% } %>
+              <div class="muted-text mt-2"><%= safeAppliedStrategy.reason || safeAppliedStrategy.description %></div>
+            </div>
+            <% if (safeAppliedStrategy.setupScores) { %>
+              <div class="d-flex gap-2 flex-wrap">
+                <div class="pill">
+                  <strong>돌파 점수</strong>
+                  <span><%= safeAppliedStrategy.setupScores.breakout %>점</span>
+                </div>
+                <div class="pill">
+                  <strong>눌림목 점수</strong>
+                  <span><%= safeAppliedStrategy.setupScores.pullback %>점</span>
+                </div>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+
       <div class="row g-3 mb-4">
         <div class="col-12 col-xl-3">
           <div class="metric-card metric-accent p-3">
@@ -859,18 +929,59 @@
 
       <% const buyRec = safeScoreModel.buyRecommendation;
          const tierOrder = ['aggressive', 'neutral', 'conservative'];
-         const variants = [
+         const isBreakout = buyRec.direction === 'breakout';
+         const variants = isBreakout ? [
+           { key: 'breakout', label: '돌파 매수', icon: 'bi-arrow-up-right-circle', enabled: true },
+         ] : [
            { key: 'fixed', label: '고정 밴드', icon: 'bi-bounding-box', enabled: true },
            { key: 'atr', label: '변동성(ATR) 기반', icon: 'bi-activity', enabled: !!buyRec.atr },
            { key: 'ma', label: '이동평균선', icon: 'bi-graph-up-arrow', enabled: !!buyRec.ma },
-         ]; %>
+         ];
+         const recommendedTierLabel = isBreakout
+           ? buyRec.breakout.tiers[buyRec.recommendedTier].label
+           : buyRec.fixed.tiers[buyRec.recommendedTier].label; %>
       <div class="glass-card p-3 p-lg-4 mb-4">
         <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
-          <h2 class="section-title mb-0"><i class="bi bi-cash-coin"></i>추천 매수 구간</h2>
+          <h2 class="section-title mb-0">
+            <i class="bi <%= isBreakout ? 'bi-arrow-up-right-circle' : 'bi-cash-coin' %>"></i>
+            <%= isBreakout ? '돌파 매수가' : '추천 매수 구간' %>
+          </h2>
           <span class="recommend-badge recommend-<%= buyRec.recommendedTier %>">
-            권고: <strong><%= buyRec.fixed.tiers[buyRec.recommendedTier].label %></strong>
+            권고: <strong><%= recommendedTierLabel %></strong>
           </span>
         </div>
+
+        <% if (isBreakout) { %>
+          <div class="muted-text mb-3">
+            <strong>돌파선:</strong> <%= fmtNumber(buyRec.breakoutLine) %>원
+            (60일 고점 <%= fmtNumber(buyRec.high60) %>원 + 0.3% 버퍼) ·
+            <strong>14일 ATR:</strong> <%= buyRec.atrPercent %>%
+          </div>
+          <% if (buyRec.advisory) { %>
+            <div class="alert alert-info small py-2 px-3 mb-3" style="border-radius: 10px;">
+              <i class="bi bi-info-circle me-1"></i><%= buyRec.advisory %>
+            </div>
+          <% } %>
+          <div class="row g-3">
+            <% tierOrder.forEach(function(k) { %>
+              <% const t = buyRec.breakout.tiers[k]; %>
+              <div class="col-12 col-md-4">
+                <div class="buy-tier<%= buyRec.recommendedTier === k ? ' active' : '' %>">
+                  <div class="tier-label"><%= t.label %> <span class="tier-band">(<%= t.bandLabel %>)</span></div>
+                  <div class="tier-price"><%= fmtNumber(t.price) %>원</div>
+                  <div class="tier-gap <%= t.gapAbove ? 'text-warning' : '' %>">
+                    현재가 <%= t.gapAbove ? '+' : '' %><%= t.gapPercent %>% <%= t.gapAbove ? '위' : '아래' %>
+                  </div>
+                  <div class="tier-desc"><%= t.description %></div>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+          <div class="muted-text mt-3"><%= buyRec.tierExplanation %></div>
+          <div class="muted-text mt-1">
+            ※ 60일·20일 고점과 14일 ATR 기반 추정. 가짜 돌파 가능성 항상 존재 — 손절선 사전 설정 필수.
+          </div>
+        <% } else { %>
 
         <ul class="nav nav-pills buy-tabs mb-3" role="tablist">
           <% variants.forEach(function(v, idx) { %>
@@ -942,6 +1053,7 @@
         <div class="muted-text mt-1">
           ※ 최근 60일 거래량 히스토그램 + 14일 ATR에 기반한 추정값입니다. 실제 체결가/시장 상황과 다를 수 있으며 투자 조언이 아닙니다.
         </div>
+        <% } %>
       </div>
 
       <div class="row g-3 mb-4">
@@ -1123,6 +1235,13 @@
           buySellRatio: currentData.buySellRatio,
           totalScore: safeScoreModel.totalScore,
           verdict: safeScoreModel.verdict,
+          strategy: safeAppliedStrategy ? {
+            requested: safeSelectedStrategyPreset,
+            applied: safeAppliedStrategy.label,
+            isAuto: !!safeAppliedStrategy.isAuto,
+            reason: safeAppliedStrategy.reason || safeAppliedStrategy.description,
+            setupScores: safeAppliedStrategy.setupScores || null,
+          } : null,
           components: {
             volume:     { score: safeScoreModel.volume.score,     explanation: safeScoreModel.volume.explanation },
             position:   { score: safeScoreModel.position.score,   explanation: safeScoreModel.position.explanation },
@@ -1347,6 +1466,39 @@
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    (function () {
+      const select = document.getElementById("strategyPresetSelect");
+      const help = document.getElementById("strategyPresetHelp");
+      const manualPanel = document.getElementById("manual-weight-panel");
+      if (!select) return;
+
+      const manualInputs = manualPanel
+        ? manualPanel.querySelectorAll('input[name$="Weight"]')
+        : [];
+
+      function syncStrategyPresetUi() {
+        const option = select.options[select.selectedIndex];
+        const isCustom = select.value === "custom";
+
+        if (help) {
+          help.textContent = option?.dataset.description || "";
+        }
+
+        if (manualPanel) {
+          manualPanel.style.display = isCustom ? "block" : "none";
+        }
+
+        manualInputs.forEach(function (input) {
+          input.disabled = !isCustom;
+        });
+      }
+
+      select.addEventListener("change", syncStrategyPresetUi);
+      syncStrategyPresetUi();
+    })();
+  </script>
 
   <script>
     (function () {

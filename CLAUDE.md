@@ -6,7 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - 의존성 설치: `npm install`
 - 웹 앱 실행: `node app.js` (포트는 `PORT` 환경변수, 기본값 `3012`)
-- CLI 버전 실행: `node token-test.js` (stdin 대화형 프롬프트 — 비-TTY 환경에서는 동작하지 않음)
 - 종목 마스터 재생성: `npm run generate-stocks` (`master/`의 zip을 읽어 `stocks.json` 작성)
 
 테스트, 린터, 빌드 단계는 구성되어 있지 않다.
@@ -27,7 +26,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 1. 사용자가 종목명 또는 종목코드와 (선택적인) 가중치 변경 값을 `POST /search`로 제출한다.
 2. `getStockInfoByQuery`가 시작 시 메모리에 로드해둔 `stocksData`에서 질의어를 매칭한다. 우선순위는 `shortCode` 정확 일치 → `standardCode` 정확 일치 → 종목명 정확 일치 → 종목명 부분 일치(substring). 후보가 여러 개면 첫 번째가 자동 선택된다.
 3. `getAccessToken` → `getCurrentPrice` → 네 번의 `getPeriodChart` (`D`/`W`/`M`/`Y`)가 **순차적으로** 실행된다. 각 호출 전 `safeApiCall`이 300~1100ms를 대기한다. KIS는 초당 호출 제한이 있으므로 이 sleep은 **기능적으로 필수적**이다 — 병렬화하지 말 것.
-   - `getAccessToken`은 `.kis-token.json`에 24시간 토큰을 캐시한다. 만료 5분 전까지 재사용하고, 동시 호출은 `inflightIssue` 프로미스로 coalesce한다. KIS 토큰 발급 엔드포인트는 **1분당 1회** 제한(`EGW00133`)이 있어서 캐싱이 없으면 연속 검색 시 바로 블록된다. `app.js`와 `token-test.js`는 같은 캐시 파일을 공유한다. 캐시 파일은 토큰 평문을 담으므로 `.gitignore` 처리.
+   - `getAccessToken`은 `.kis-token.json`에 24시간 토큰을 캐시한다. 만료 5분 전까지 재사용하고, 동시 호출은 `inflightIssue` 프로미스로 coalesce한다. KIS 토큰 발급 엔드포인트는 **1분당 1회** 제한(`EGW00133`)이 있어서 캐싱이 없으면 연속 검색 시 바로 블록된다. 캐시 파일은 토큰 평문을 담으므로 `.gitignore` 처리.
 4. KIS 원시 응답은 `normalizeCurrentPrice`, `normalizePeriodData`로 도메인 객체로 정규화된 뒤, `buildSeries`에서 차트용 시리즈(역순, 기간별 개수 절삭)로 재가공된다.
 5. `buildScoreModel`이 7개의 서브 점수를 계산하고, 사용자가 지정한 가중치로 합쳐서 0~100의 `totalScore`와 verdict(판정)를 만든다.
 
@@ -39,7 +38,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `line.slice(0, len-228)`의 0/9/21 오프셋에서 고정폭 슬라이스 — 끝의 228바이트는 무시되므로, KIS가 레코드 포맷을 바꾸면 파서가 조용히 필드를 누락한다
 - 평탄한 `stocks` 배열과 `byCode` 인덱스를 함께 기록
 
-`app.js`와 `token-test.js`는 둘 다 시작 시 `loadStocks()`를 동기적으로 수행하며, 모든 검색에서 배열을 선형 순회한다.
+`app.js`는 시작 시 `loadStocks()`를 동기적으로 수행하며, 모든 검색에서 배열을 선형 순회한다.
 
 ### 점수 모델 (`buildScoreModel`)
 
@@ -66,6 +65,3 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 하나의 EJS 템플릿(`views/index.ejs`, 약 700줄)이 검색 폼, 가중치 그리드, 현재가 카드, 4개의 Chart.js 캔버스, 점수 세부 내역, 매물대 목록까지 전부 그린다. `/search` 응답은 매번 `index`를 전체 컨텍스트 객체(가중치와 `candidates` 포함)로 재렌더링하며, `GET /` 핸들러는 같은 형태에 필드를 null로 채워 쓴다. **새 점수 출력이나 시리즈를 추가하면 두 핸들러의 render 컨텍스트와 템플릿에 모두 반영해야 한다.**
 
-### 주의해야 할 코드 중복
-
-`token-test.js`는 `app.js`보다 먼저 만들어진 독립 CLI이며, 페치/정규화 로직(`getAccessToken`, `getCurrentPrice`, `getPeriodChart`, `normalizePeriodVolume`, 날짜 헬퍼)을 상당 부분 중복으로 갖고 있다. KIS 호출 형태나 정규화 방식을 바꾸면 양쪽에 모두 반영하거나, `token-test.js`가 `app.js`에서 import하도록 리팩터링해야 한다.
