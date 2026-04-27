@@ -463,6 +463,7 @@ async function analyzeAll({ logProgress = false } = {}) {
 
     const { score, breakdown } = scoreFromTables(features, tables);
     const match = computeMatch(features, signature);
+    const breakout = detectRecentBreakout(rows, 3);
     candidates.push({
       code, name: meta.name, market: meta.market,
       marketCap: meta.marketValue,
@@ -472,6 +473,7 @@ async function analyzeAll({ logProgress = false } = {}) {
       features, score, breakdown,
       matched: match.matched, totalKeys: match.total,
       sigBreakdown: match.breakdown,
+      breakout, // 최근 3일 안 거래량+양봉 폭발 (있으면 객체, 없으면 null)
     });
   }
   candidates.sort((a, b) => b.score - a.score);
@@ -504,6 +506,40 @@ async function analyzeAll({ logProgress = false } = {}) {
 
   fs.writeFileSync(PATTERN_RESULT_CACHE, JSON.stringify(result, null, 0));
   return result;
+}
+
+// ─────────── Phase B-3: 최근 breakout 감지 ───────────
+// 후보가 "막 시동 걸기 시작" 했는지 — 최근 N일 안에 거래량 폭증 + 양봉 일이 있었나.
+// 모두투어 2/6 같은 점화일 패턴을 잡음 (거래량 ≥2x 평균 + 양봉 ≥+2%).
+function detectRecentBreakout(rows, lookback = 3) {
+  if (rows.length < 25) return null;
+  let strongest = null;
+  for (let offset = 0; offset < lookback; offset++) {
+    const idx = rows.length - 1 - offset;
+    const r = rows[idx];
+    if (!r || idx < 20) continue;
+    const prior20 = rows.slice(idx - 20, idx).map((rr) => rr.volume).filter((v) => v > 0);
+    if (prior20.length < 10) continue;
+    const avgVol = prior20.reduce((a, b) => a + b, 0) / prior20.length;
+    if (avgVol <= 0) continue;
+    const volRatio = r.volume / avgVol;
+    const dayChange = idx > 0 && rows[idx - 1].close > 0
+      ? (r.close - rows[idx - 1].close) / rows[idx - 1].close
+      : 0;
+    if (volRatio >= 2 && dayChange >= 0.02) {
+      const score = volRatio * (1 + Math.max(0, dayChange));
+      if (!strongest || score > strongest.score) {
+        strongest = {
+          daysAgo: offset,
+          date: r.date,
+          volRatio: Number(volRatio.toFixed(2)),
+          dayChange: Number((dayChange * 100).toFixed(1)),
+          score,
+        };
+      }
+    }
+  }
+  return strongest;
 }
 
 // ─────────── Phase B-2: 성공 시그니처 (공통점 밴드) ───────────

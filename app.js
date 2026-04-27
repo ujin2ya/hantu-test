@@ -2250,6 +2250,8 @@ app.get("/pattern", (req, res) => {
   const cMinMatch = cMinRaw !== undefined
     ? Math.max(0, Math.min(16, parseInt(cMinRaw, 10) || 0))
     : 14;
+  // 최근 breakout (거래량 폭증 + 양봉) 시그널만 필터
+  const cOnlyBreakout = req.query.cbreak === "1";
   let pagedCandidates = [];
   let totalCandidates = 0;
   let totalCandidatePages = 1;
@@ -2257,6 +2259,7 @@ app.get("/pattern", (req, res) => {
   if (result?.candidates?.top?.length) {
     let filtered = result.candidates.top.slice();
     if (cMinMatch > 0) filtered = filtered.filter((c) => (c.matched || 0) >= cMinMatch);
+    if (cOnlyBreakout) filtered = filtered.filter((c) => !!c.breakout);
     if (cQuery) {
       const cq = cQuery.toLowerCase();
       filtered = filtered.filter((c) =>
@@ -2280,7 +2283,7 @@ app.get("/pattern", (req, res) => {
     pagedEvents, page, totalPages, totalEvents,
     pageSize: PAGE_SIZE, bucket, query,
     pagedCandidates, candidatePage, totalCandidatePages, totalCandidates, cQuery,
-    cSort, cMinMatch,
+    cSort, cMinMatch, cOnlyBreakout,
   });
 });
 

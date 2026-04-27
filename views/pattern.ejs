@@ -169,6 +169,10 @@
               <li><strong>그 이하 (회색)</strong> = 약하게 닮음</li>
             </ul>
             <div class="mt-1" style="font-size:0.75rem;">⚠ <strong>"언제" 점화될지는 모름</strong> — 1주 안일 수도, 한 달 뒤일 수도. 후보군일 뿐 매수 시그널 아님.</div>
+            <div class="mt-2" style="font-size:0.75rem; padding:6px 8px; background:#fef3c7; border-radius:6px; color:#92400e;">
+              💡 <strong>실전 매수 시점 찾기</strong>: 매칭 14+ 는 "조용한 watchlist" 용 — breakout 거의 없는 게 정상.
+              실제 진입할 후보는 <strong>매칭 12~13/16 + 🔥 breakout</strong> 조합 (cmin 12 로 낮추고 breakout 만 체크). 오늘 8건.
+            </div>
             <% if (result.candidates && result.candidates.signature) { %>
               <details class="mt-2" style="font-size:0.75rem;">
                 <summary style="cursor:pointer; color:#065f46;">🎯 +40% 종목들이 공통으로 보였던 패턴 (16개 차원 · 중심 60% 밴드)</summary>
@@ -229,7 +233,7 @@
           </div>
 
           <form method="get" action="/pattern" class="row g-2 align-items-end mb-3">
-            <div class="col-12 col-md-5">
+            <div class="col-12 col-md-4">
               <label class="form-label small text-secondary mb-1">후보 검색</label>
               <input type="text" name="cq" value="<%= cQuery || '' %>" placeholder="예: 서울반도체 or 046890" class="form-control form-control-sm" />
             </div>
@@ -241,10 +245,17 @@
                 <% }) %>
               </select>
             </div>
-            <div class="col-6 col-md-2">
-              <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search me-1"></i>적용</button>
+            <div class="col-12 col-md-3">
+              <label class="form-label small text-secondary mb-1">최근 시동</label>
+              <div class="form-check small">
+                <input type="checkbox" name="cbreak" value="1" id="cbreak" class="form-check-input" <%= cOnlyBreakout ? 'checked' : '' %> />
+                <label for="cbreak" class="form-check-label">🔥 breakout 만 (3일 안)</label>
+              </div>
             </div>
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-md-1">
+              <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search"></i></button>
+            </div>
+            <div class="col-6 col-md-1">
               <a href="/pattern" class="btn btn-outline-secondary btn-sm w-100">초기화</a>
             </div>
           </form>
@@ -283,8 +294,13 @@
                       <span class="cd"><%= c.code %></span>
                       <i class="bi bi-box-arrow-up-right arr"></i>
                     </a>
+                    <% if (c.breakout) { %>
+                      <span class="score-pill ms-1" style="background:#fef3c7; color:#92400e; font-size:0.68rem;" title="<%= c.breakout.date.slice(4,6)+'/'+c.breakout.date.slice(6,8) %> 거래량 <%= c.breakout.volRatio %>x + 양봉 +<%= c.breakout.dayChange %>%">
+                        🔥 <%= c.breakout.daysAgo === 0 ? '오늘' : c.breakout.daysAgo + '일전' %> +<%= c.breakout.dayChange %>%
+                      </span>
+                    <% } %>
                   </div>
-                  <span class="score-pill" style="background: <%= matchColor.bg %>; color: <%= matchColor.fg %>;" title="14개 차원 중 +40% 종목 패턴 밴드 안에 들어가는 차원 수">
+                  <span class="score-pill" style="background: <%= matchColor.bg %>; color: <%= matchColor.fg %>;" title="16개 차원 중 +40% 종목 패턴 밴드 안에 들어가는 차원 수">
                     <%= matched %>/<%= totalK %>
                   </span>
                 </div>
@@ -347,6 +363,7 @@
                 if (cQuery) params.set("cq", cQuery);
                 if (cSort && cSort !== "score") params.set("csort", cSort);
                 if (cMinMatch > 0) params.set("cmin", cMinMatch);
+                if (cOnlyBreakout) params.set("cbreak", "1");
                 params.set("cpage", p);
                 if (query) params.set("q", query);
                 if (bucket !== "all") params.set("bucket", bucket);
