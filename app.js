@@ -2284,10 +2284,33 @@ app.get("/pattern", (req, res) => {
     pagedEvents = filtered.slice(start, start + PAGE_SIZE);
   }
 
+  // 후보 페이징 (별도 쿼리: cpage, cq)
+  const cPage = Math.max(1, parseInt(req.query.cpage, 10) || 1);
+  const cQuery = String(req.query.cq || "").trim();
+  let pagedCandidates = [];
+  let totalCandidates = 0;
+  let totalCandidatePages = 1;
+  let candidatePage = cPage;
+  if (result?.candidates?.top?.length) {
+    const cq = cQuery.toLowerCase();
+    const filtered = cq
+      ? result.candidates.top.filter((c) =>
+          (c.name || "").toLowerCase().includes(cq) ||
+          (c.code || "").toLowerCase().includes(cq)
+        )
+      : result.candidates.top;
+    totalCandidates = filtered.length;
+    totalCandidatePages = Math.max(1, Math.ceil(totalCandidates / PAGE_SIZE));
+    candidatePage = Math.min(candidatePage, totalCandidatePages);
+    const cStart = (candidatePage - 1) * PAGE_SIZE;
+    pagedCandidates = filtered.slice(cStart, cStart + PAGE_SIZE);
+  }
+
   res.render("pattern", {
     result, seededCount, patternState,
     pagedEvents, page, totalPages, totalEvents,
     pageSize: PAGE_SIZE, bucket, query,
+    pagedCandidates, candidatePage, totalCandidatePages, totalCandidates, cQuery,
   });
 });
 

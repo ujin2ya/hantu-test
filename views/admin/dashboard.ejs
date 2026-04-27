@@ -117,11 +117,73 @@
       <% if (typeof seededCount !== 'undefined') { %>
         <div class="meta-cell mt-2">
           <div class="label">패턴 스크리너 시드</div>
-          <div class="value"><%= seededCount %> 종목 (시총 50억~500억)</div>
+          <div class="value"><%= seededCount %> 종목 (시총 50억~9000억)</div>
         </div>
       <% } %>
       <div class="alert alert-info small mt-2 mb-0">
         스윙/단타 스캔, 백테스트, 자동 메일 발송, AI 가중치 튜너는 점수 모델 재설계 중이라 일시 비활성화되었습니다.
+      </div>
+    </div>
+
+    <div class="card-soft">
+      <h2><i class="bi bi-graph-up-arrow me-1"></i>패턴 스크리너</h2>
+      <% if (typeof patternState !== 'undefined' && patternState) { %>
+        <div class="row g-2 mb-3">
+          <div class="col-12 col-md-6">
+            <div class="meta-cell">
+              <div class="label">시드 상태</div>
+              <div class="value">
+                <% if (patternState.seeding) { %>
+                  <span class="badge-soft run">진행 중</span>
+                  <% if (patternState.seedProgress?.total) { %>
+                    <span class="text-secondary small ms-2"><%= patternState.seedProgress.i %>/<%= patternState.seedProgress.total %> · <%= patternState.seedProgress.code %> <%= patternState.seedProgress.name %></span>
+                  <% } %>
+                <% } else if (patternState.seedFinishedAt) { %>
+                  <span class="badge-soft on">완료</span>
+                  <span class="text-secondary small ms-2"><%= new Date(patternState.seedFinishedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %></span>
+                <% } else { %>
+                  <span class="text-secondary small">미실행</span>
+                <% } %>
+                <% if (patternState.seedError) { %>
+                  <div class="text-danger small mt-1"><%= patternState.seedError %></div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="meta-cell">
+              <div class="label">분석 상태</div>
+              <div class="value">
+                <% if (patternState.analyzing) { %>
+                  <span class="badge-soft run">진행 중</span>
+                <% } else if (patternState.analyzeFinishedAt) { %>
+                  <span class="badge-soft on">완료</span>
+                  <span class="text-secondary small ms-2"><%= new Date(patternState.analyzeFinishedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %></span>
+                <% } else { %>
+                  <span class="text-secondary small">미실행</span>
+                <% } %>
+                <% if (patternState.analyzeError) { %>
+                  <div class="text-danger small mt-1"><%= patternState.analyzeError %></div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% } %>
+      <div class="d-flex gap-2 flex-wrap">
+        <form method="post" action="/admin/pattern/seed" class="m-0" onsubmit="return confirm('시드를 다시 실행할까요? 기존 캐시는 유지하고 신규 종목만 추가합니다 (~10분).');">
+          <button type="submit" class="btn btn-outline-primary btn-sm" <%= (typeof patternState !== 'undefined' && patternState?.seeding) ? 'disabled' : '' %>>
+            <i class="bi bi-cloud-download me-1"></i>시드 실행
+          </button>
+        </form>
+        <form method="post" action="/admin/pattern/analyze" class="m-0" onsubmit="return confirm('분석을 다시 실행할까요? (~1분)');">
+          <button type="submit" class="btn btn-outline-success btn-sm" <%= (typeof patternState !== 'undefined' && patternState?.analyzing) ? 'disabled' : '' %>>
+            <i class="bi bi-cpu me-1"></i>분석 실행
+          </button>
+        </form>
+        <a href="/pattern" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-eye me-1"></i>패턴 페이지 보기
+        </a>
       </div>
     </div>
 

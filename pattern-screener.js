@@ -337,6 +337,34 @@ async function analyzeAll({ logProgress = false } = {}) {
   const successBuckets = bucketByDuration(successEvents);
   const failedBuckets = bucketByDuration(failedEvents);
 
+  // ─── Phase B: 현재 종목 후보 스코어링 ───
+  const FEATURE_KEYS = ["turnover", "bullBearRatio", "volumeSurge", "foreignDelta", "atrCompress", "positionPct"];
+  const tables = buildLikelihoodTables(successEvents, failedEvents, FEATURE_KEYS, 10);
+  const candidates = [];
+  for (const code of seededCodes) {
+    const meta = stockMeta.get(code);
+    if (!meta) continue;
+    let cache;
+    try {
+      cache = JSON.parse(fs.readFileSync(path.join(CACHE_DIR, `${code}.json`), "utf-8"));
+    } catch (_) { continue; }
+    const rows = cache.rows || [];
+    if (rows.length < 30) continue;
+    const sharesOut = meta.closePrice > 0 ? meta.marketValue / meta.closePrice : 0;
+    const features = extractPreIgnitionFeatures(rows, rows.length - 1, meta.marketValue, sharesOut);
+    if (!features) continue;
+    const { score, breakdown } = scoreFromTables(features, tables);
+    candidates.push({
+      code, name: meta.name, market: meta.market,
+      marketCap: meta.marketValue,
+      closePrice: meta.closePrice,
+      changeRate: meta.changeRate,
+      lastDate: rows[rows.length - 1].date,
+      features, score, breakdown,
+    });
+  }
+  candidates.sort((a, b) => b.score - a.score);
+
   const result = {
     analyzedAt: new Date().toISOString(),
     seeded: seededCodes.length,
@@ -355,10 +383,66 @@ async function analyzeAll({ logProgress = false } = {}) {
     failed: {
       total: { n: failedEvents.length, summary: summarizeFeatures(failedEvents) },
     },
+    candidates: {
+      total: candidates.length,
+      top: candidates.slice(0, 200), // 상위 200개만 저장
+      tables, // 디버깅용
+    },
   };
 
   fs.writeFileSync(PATTERN_RESULT_CACHE, JSON.stringify(result, null, 0));
   return result;
+}
+
+// ─────────── Phase B: Likelihood Ratio 후보 스코어링 ───────────
+
+function buildLikelihoodTables(successEvents, failedEvents, keys, bins = 10) {
+  const tables = {};
+  for (const k of keys) {
+    const sVals = successEvents.map((e) => e.features?.[k]).filter((v) => Number.isFinite(v));
+    const fVals = failedEvents.map((e) => e.features?.[k]).filter((v) => Number.isFinite(v));
+    if (sVals.length < bins || fVals.length < bins) { tables[k] = null; continue; }
+    // 결합 분포 기준 quantile 경계
+    const all = [...sVals, ...fVals].sort((a, b) => a - b);
+    const boundaries = [];
+    for (let i = 1; i < bins; i++) boundaries.push(all[Math.floor((all.length - 1) * i / bins)]);
+    // 각 빈 카운트
+    const sCounts = new Array(bins).fill(0);
+    const fCounts = new Array(bins).fill(0);
+    const findBin = (v) => {
+      for (let i = 0; i < boundaries.length; i++) if (v < boundaries[i]) return i;
+      return bins - 1;
+    };
+    sVals.forEach((v) => sCounts[findBin(v)]++);
+    fVals.forEach((v) => fCounts[findBin(v)]++);
+    // Laplace smoothing 후 log ratio
+    const lr = new Array(bins);
+    const sN = sVals.length, fN = fVals.length;
+    for (let i = 0; i < bins; i++) {
+      const ps = (sCounts[i] + 1) / (sN + bins);
+      const pf = (fCounts[i] + 1) / (fN + bins);
+      lr[i] = Number(Math.log(ps / pf).toFixed(3));
+    }
+    tables[k] = { boundaries: boundaries.map((b) => Number(b.toFixed(3))), lr };
+  }
+  return tables;
+}
+
+function scoreFromTables(features, tables) {
+  let score = 0;
+  const breakdown = {};
+  for (const [k, t] of Object.entries(tables)) {
+    if (!t) continue;
+    const v = features[k];
+    if (!Number.isFinite(v)) continue;
+    let bin = t.boundaries.length;
+    for (let i = 0; i < t.boundaries.length; i++) {
+      if (v < t.boundaries[i]) { bin = i; break; }
+    }
+    score += t.lr[bin];
+    breakdown[k] = t.lr[bin];
+  }
+  return { score: Number(score.toFixed(2)), breakdown };
 }
 
 module.exports = {
@@ -372,4 +456,6 @@ module.exports = {
   listSeededStocks,
   fetchKospiHistory,
   getKospiCached,
+  buildLikelihoodTables,
+  scoreFromTables,
 };

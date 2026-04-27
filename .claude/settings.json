@@ -1,12 +1,13 @@
 {
   "permissions": {
-    "defaultMode": "bypassPermissions",
     "allow": [
       "Bash",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "Bash(git fetch *)"
-    ]
+      "Bash(git fetch *)",
+      "PowerShell(\"killed\")"
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }

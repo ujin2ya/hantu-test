@@ -125,6 +125,118 @@
         </div>
       <% } %>
 
+      <!-- 현재 후보 (Phase B: Likelihood Ratio 스코어링) -->
+      <% if (result.candidates && result.candidates.top && result.candidates.top.length) { %>
+        <div class="glass">
+          <h2><i class="bi bi-radar me-1"></i>현재 후보 — 성공 패턴과 닮은 종목 (점수 ↓ 정렬)</h2>
+          <div class="text-secondary small mb-2">
+            마지막 거래일 기준 직전 20일 features 를 성공/실패 분포와 비교한 log likelihood 점수.
+            <strong>+ 양수 = 성공 패턴 닮음</strong>, − 음수 = 실패 패턴 닮음. 절대값 1.0 ≈ 약 2.7배 우도비.
+          </div>
+
+          <form method="get" action="/pattern" class="row g-2 align-items-end mb-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label small text-secondary mb-1">후보 검색</label>
+              <input type="text" name="cq" value="<%= cQuery || '' %>" placeholder="예: 서울반도체 or 046890" class="form-control form-control-sm" />
+            </div>
+            <div class="col-6 col-md-3">
+              <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search me-1"></i>검색</button>
+            </div>
+            <div class="col-6 col-md-3">
+              <a href="/pattern" class="btn btn-outline-secondary btn-sm w-100">초기화</a>
+            </div>
+          </form>
+
+          <div class="text-secondary small mb-2">
+            상위 <strong><%= result.candidates.total %></strong>건 중 <strong><%= totalCandidates %></strong>건
+            <% if (totalCandidates > 0) { %>
+              · <%= (candidatePage - 1) * pageSize + 1 %>~<%= Math.min(candidatePage * pageSize, totalCandidates) %> 표시 (페이지 <%= candidatePage %>/<%= totalCandidatePages %>)
+            <% } %>
+          </div>
+
+          <% if (pagedCandidates.length === 0) { %>
+            <div class="alert alert-light small mb-0">조건에 맞는 후보가 없습니다.</div>
+          <% } else { %>
+            <div class="table-responsive">
+              <table class="event-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>종목</th>
+                    <th class="text-end">시총</th>
+                    <th class="text-end">종가</th>
+                    <th class="text-end">등락</th>
+                    <th class="text-end">점수</th>
+                    <th class="text-end">회전율</th>
+                    <th class="text-end">양/음봉</th>
+                    <th class="text-end">거래량</th>
+                    <th class="text-end">60일위치</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% pagedCandidates.forEach(function(c, idx) { %>
+                    <tr>
+                      <td class="text-secondary small"><%= (candidatePage - 1) * pageSize + idx + 1 %></td>
+                      <td><strong><%= c.name %></strong> <span class="text-secondary small"><%= c.code %></span></td>
+                      <td class="text-end"><%= (c.marketCap / 1e8).toFixed(0) %>억</td>
+                      <td class="text-end"><%= c.closePrice ? c.closePrice.toLocaleString() : '-' %></td>
+                      <td class="text-end <%= (c.changeRate || 0) > 0 ? 'regime-bull' : (c.changeRate < 0 ? 'regime-bear' : 'regime-side') %>">
+                        <%= c.changeRate != null ? (c.changeRate > 0 ? '+' : '') + c.changeRate.toFixed(2) + '%' : '-' %>
+                      </td>
+                      <td class="text-end">
+                        <span class="magnitude-pill" style="background: <%= c.score >= 1.5 ? '#dcfce7' : (c.score >= 0.5 ? '#fef3c7' : '#fee2e2') %>; color: <%= c.score >= 1.5 ? '#166534' : (c.score >= 0.5 ? '#92400e' : '#991b1b') %>;">
+                          <%= c.score.toFixed(2) %>
+                        </span>
+                      </td>
+                      <td class="text-end"><%= c.features?.turnover ?? '-' %></td>
+                      <td class="text-end"><%= c.features?.bullBearRatio ?? '-' %></td>
+                      <td class="text-end"><%= c.features?.volumeSurge ?? '-' %></td>
+                      <td class="text-end"><%= c.features?.positionPct ?? '-' %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+
+            <% if (totalCandidatePages > 1) {
+              function candidatePageUrl(p) {
+                const params = new URLSearchParams();
+                if (cQuery) params.set("cq", cQuery);
+                params.set("cpage", p);
+                if (query) params.set("q", query);
+                if (bucket !== "all") params.set("bucket", bucket);
+                if (page > 1) params.set("page", page);
+                return "/pattern?" + params.toString() + "#candidates";
+              }
+              const cStart = Math.max(1, candidatePage - 2);
+              const cEnd = Math.min(totalCandidatePages, candidatePage + 2);
+            %>
+              <nav class="mt-3">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                  <li class="page-item <%= candidatePage === 1 ? 'disabled' : '' %>">
+                    <a class="page-link" href="<%= candidatePageUrl(1) %>">«</a>
+                  </li>
+                  <li class="page-item <%= candidatePage === 1 ? 'disabled' : '' %>">
+                    <a class="page-link" href="<%= candidatePageUrl(Math.max(1, candidatePage - 1)) %>">‹</a>
+                  </li>
+                  <% for (let p = cStart; p <= cEnd; p++) { %>
+                    <li class="page-item <%= p === candidatePage ? 'active' : '' %>">
+                      <a class="page-link" href="<%= candidatePageUrl(p) %>"><%= p %></a>
+                    </li>
+                  <% } %>
+                  <li class="page-item <%= candidatePage === totalCandidatePages ? 'disabled' : '' %>">
+                    <a class="page-link" href="<%= candidatePageUrl(Math.min(totalCandidatePages, candidatePage + 1)) %>">›</a>
+                  </li>
+                  <li class="page-item <%= candidatePage === totalCandidatePages ? 'disabled' : '' %>">
+                    <a class="page-link" href="<%= candidatePageUrl(totalCandidatePages) %>">»</a>
+                  </li>
+                </ul>
+              </nav>
+            <% } %>
+          <% } %>
+        </div>
+      <% } %>
+
       <!-- +40% 이벤트 리스트 + 검색·필터·페이징 -->
       <div class="glass">
         <h2><i class="bi bi-list-stars me-1"></i>+40% 이벤트 — 검색 / 필터 / 페이징</h2>
