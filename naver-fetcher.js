@@ -184,8 +184,8 @@ function loadStocksList() {
 // ─────────── 시드 ───────────
 
 async function seedHistorical({
-  maxMarketCap = 50_000_000_000, // 500억
-  minMarketCap = 5_000_000_000,  // 50억 (잡주 컷)
+  maxMarketCap = Number(process.env.PATTERN_MAX_MARKETCAP) || 500_000_000_000, // 5,000억 (env 로 조정)
+  minMarketCap = Number(process.env.PATTERN_MIN_MARKETCAP) || 5_000_000_000,   // 50억 (잡주 컷)
   lookbackDays = 130,
   throttleMs = 500,
   onProgress = null,
