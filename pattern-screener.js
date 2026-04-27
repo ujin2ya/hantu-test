@@ -438,6 +438,20 @@ async function analyzeAll({ logProgress = false } = {}) {
     const sharesOut = meta.closePrice > 0 ? meta.marketValue / meta.closePrice : 0;
     const features = extractPreIgnitionFeatures(rows, rows.length - 1, meta.marketValue, sharesOut);
     if (!features) continue;
+
+    // 활성 하락 필터 — 오늘 종가가 5일선 대비 -4% 이하면 (큰 음봉, 추세 하락중) 후보 제외.
+    // 이유: 엔알비 같은 "점화 후 fade" 종목이 14/14 매칭 들어오는 걸 막음.
+    //
+    // ⚠ Trade-off: 성공 이벤트 점화일 종가 vs 5일선 분포에서 median 이 -5.1% 라
+    // 이 필터는 성공 패턴의 약 58% 도 걸러냄 (drop-and-bounce 패턴 일부 누락).
+    // 그래도 14/14 strict 매칭에선 보수적 filtering 이 더 실전적이라 유지.
+    const last5 = rows.slice(rows.length - 6, rows.length - 1).map((r) => r.close).filter((v) => v > 0);
+    if (last5.length === 5) {
+      const sma5Prior = last5.reduce((a, b) => a + b, 0) / 5;
+      const todayVs5MA = sma5Prior > 0 ? (rows[rows.length - 1].close - sma5Prior) / sma5Prior : 0;
+      if (todayVs5MA < -0.04) continue; // 4% 이상 5일선 아래 = 활성 하락
+    }
+
     const { score, breakdown } = scoreFromTables(features, tables);
     const match = computeMatch(features, signature);
     candidates.push({
