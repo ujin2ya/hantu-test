@@ -14,7 +14,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const CACHE_DIR = path.join(__dirname, "cache", "ai-grounding");
 const COUNTER_PATH = path.join(CACHE_DIR, "_daily.json");
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6시간
-const DEFAULT_DAILY_LIMIT = Number(process.env.AI_GROUNDING_DAILY_LIMIT) || 30;
+const DEFAULT_DAILY_LIMIT = Number(process.env.AI_GROUNDING_DAILY_LIMIT) || 50;
 
 function ensureDir() {
   if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });

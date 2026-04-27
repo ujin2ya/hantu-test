@@ -51,16 +51,6 @@
     .badge-soft.on  { background: #dcfce7; color: #166534; }
     .badge-soft.off { background: #fee2e2; color: #991b1b; }
     .badge-soft.run { background: #fef3c7; color: #92400e; }
-    .btn-brand {
-      background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
-      color: #fff;
-      border: 0;
-      border-radius: 10px;
-      padding: 9px 18px;
-      font-weight: 600;
-    }
-    .btn-brand:hover { color: #fff; opacity: 0.92; }
-    .btn-brand:disabled { opacity: 0.5; cursor: not-allowed; }
     table.subs { font-size: 0.88rem; }
     table.subs th { font-weight: 600; color: #475569; font-size: 0.78rem; }
     table.subs td { vertical-align: middle; }
@@ -89,13 +79,9 @@
     <% if (flash) { %>
       <%
         const flashMap = {
-          started: { type: "success", msg: "발송을 시작했습니다. 잠시 후 상태가 갱신됩니다." },
-          already_running: { type: "warning", msg: "이미 발송이 진행 중입니다." },
           missing_email: { type: "danger", msg: "이메일이 비어 있습니다." },
           not_found: { type: "danger", msg: "해당 이메일을 찾을 수 없습니다." },
           removed: { type: "success", msg: "구독자를 제거했습니다." },
-          tuner_started: { type: "success", msg: "가중치 튜너를 시작했습니다 (1~2분 소요). 페이지를 새로고침하면 결과가 갱신됩니다." },
-          tuner_running: { type: "warning", msg: "가중치 튜너가 이미 실행 중입니다." },
         };
         const f = flashMap[flash];
       %>
@@ -104,30 +90,9 @@
       <% } %>
     <% } %>
 
-    <!-- 발송 상태 -->
     <div class="card-soft">
-      <h2><i class="bi bi-envelope-paper me-1"></i>발송 상태</h2>
+      <h2><i class="bi bi-info-circle me-1"></i>운영 상태</h2>
       <div class="meta-grid">
-        <div class="meta-cell">
-          <div class="label">진행 상태</div>
-          <div class="value">
-            <% if (isSending) { %>
-              <span class="badge-soft run">발송 중</span>
-            <% } else { %>
-              <span class="badge-soft off">대기</span>
-            <% } %>
-          </div>
-        </div>
-        <div class="meta-cell">
-          <div class="label">평일 22시 자동 발송</div>
-          <div class="value">
-            <% if (cronEnabled) { %>
-              <span class="badge-soft on">ON</span>
-            <% } else { %>
-              <span class="badge-soft off">OFF</span>
-            <% } %>
-          </div>
-        </div>
         <div class="meta-cell">
           <div class="label">구독자</div>
           <div class="value"><%= subscribers.length %> / <%= maxSubscribers %></div>
@@ -145,313 +110,11 @@
           </div>
         <% } %>
       </div>
-      <% if (typeof stocksMaster !== 'undefined' && stocksMaster && stocksMaster.stale) { %>
-        <div class="alert alert-warning small mt-2 mb-0">
-          종목 마스터가 30일 이상 갱신되지 않았습니다. 신규 상장 종목이 누락될 수 있어요 — 터미널에서 <code>npm run generate-stocks</code> 실행 권장.
-        </div>
-      <% } %>
-
-      <% if (lastSendStatus) { %>
-        <hr class="my-3" />
-        <div class="small text-secondary mb-2">최근 발송 결과</div>
-        <div class="meta-grid">
-          <div class="meta-cell">
-            <div class="label">시작</div>
-            <div class="value"><%= new Date(lastSendStatus.startedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %></div>
-          </div>
-          <div class="meta-cell">
-            <div class="label">종료</div>
-            <div class="value">
-              <% if (lastSendStatus.finishedAt) { %>
-                <%= new Date(lastSendStatus.finishedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %>
-              <% } else { %>
-                <span class="text-muted">진행 중</span>
-              <% } %>
-            </div>
-          </div>
-          <div class="meta-cell">
-            <div class="label">대상</div>
-            <div class="value"><%= lastSendStatus.target %><% if (lastSendStatus.dryRun) { %> <span class="badge-soft run">dry-run</span><% } %></div>
-          </div>
-          <div class="meta-cell">
-            <div class="label">성공 / 실패</div>
-            <div class="value">
-              <%= lastSendStatus.sent ?? "-" %> / <%= lastSendStatus.failed ?? "-" %>
-            </div>
-          </div>
-          <% if (lastSendStatus.skipped) { %>
-            <div class="meta-cell">
-              <div class="label">스킵 사유</div>
-              <div class="value text-warning"><%= lastSendStatus.skipped %></div>
-            </div>
-          <% } %>
-          <% if (lastSendStatus.error) { %>
-            <div class="meta-cell">
-              <div class="label">에러</div>
-              <div class="value text-danger"><%= lastSendStatus.error %></div>
-            </div>
-          <% } %>
-        </div>
-      <% } else { %>
-        <div class="small text-muted mt-2">아직 수동 발송 이력이 없습니다.</div>
-      <% } %>
-    </div>
-
-    <!-- 단타 forward 통계 -->
-    <% if (typeof shortForwardStats !== 'undefined' && shortForwardStats) { %>
-      <div class="card-soft">
-        <h2><i class="bi bi-stopwatch me-1"></i>단타 forward 검증 (매일 9:05 자동)</h2>
-        <div class="small text-secondary mb-2">최근 <%= shortForwardStats.totalDays %>일 데이터 · 단타 1위 종목의 N분 후 평균 수익률</div>
-        <div class="table-responsive">
-          <table class="table table-sm align-middle small mb-0">
-            <thead>
-              <tr>
-                <th>순위</th>
-                <th class="text-end">5분</th>
-                <th class="text-end">15분</th>
-                <th class="text-end">30분</th>
-                <th class="text-end">60분</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% [1,2,3,4,5].forEach(function(rank) {
-                   var byHorizon = shortForwardStats.byRank[rank] || {};
-              %>
-                <tr>
-                  <td>#<%= rank %></td>
-                  <% ["p5","p15","p30","p60"].forEach(function(h) {
-                       var s = byHorizon[h];
-                  %>
-                    <td class="text-end">
-                      <% if (s && s.n > 0) { %>
-                        <span style="color:<%= s.avgReturn >= 0 ? '#16a34a' : '#dc2626' %>;font-weight:600;">
-                          <%= s.avgReturn >= 0 ? '+' : '' %><%= s.avgReturn.toFixed(2) %>%
-                        </span>
-                        <span class="text-muted">(<%= s.winRate.toFixed(0) %>%, n=<%= s.n %>)</span>
-                      <% } else { %>
-                        <span class="text-muted">-</span>
-                      <% } %>
-                    </td>
-                  <% }); %>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
-        </div>
-        <div class="small text-muted mt-2">
-          ℹ️ 표시: <strong>평균 수익률 (승률, 표본 수)</strong>. 단타 모델이 본격적으로 검증되려면 표본 ≥10일 권장.
-        </div>
-      </div>
-    <% } %>
-
-    <!-- Gemini 가중치 추천 -->
-    <div class="card-soft">
-      <h2><i class="bi bi-magic me-1"></i>Gemini 가중치 추천 (평일 4:30 자동 + 수동)</h2>
-      <%
-        const tuner = (typeof weightTunerCache !== 'undefined' && weightTunerCache) ? weightTunerCache : {};
-        const tunerState = (typeof weightTunerState !== 'undefined' && weightTunerState) ? weightTunerState : { running: false };
-        const swing = tuner.swing || null;
-        const shortT = tuner.short || null;
-        function fmtTime(iso) {
-          if (!iso) return "-";
-          try { return new Date(iso).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }); } catch(_) { return iso; }
-        }
-      %>
-      <div class="meta-grid mb-3">
-        <div class="meta-cell">
-          <div class="label">실행 상태</div>
-          <div class="value">
-            <% if (tunerState.running) { %>
-              <span class="badge-soft run">실행 중 (<%= tunerState.mode || "all" %>)</span>
-            <% } else { %>
-              <span class="badge-soft off">대기</span>
-            <% } %>
-          </div>
-        </div>
-        <div class="meta-cell">
-          <div class="label">스윙 마지막 실행</div>
-          <div class="value"><%= swing ? fmtTime(swing.runAt) : "-" %></div>
-        </div>
-        <div class="meta-cell">
-          <div class="label">단타 마지막 실행</div>
-          <div class="value"><%= shortT ? fmtTime(shortT.runAt) : "-" %></div>
-        </div>
-        <% if (tunerState.error) { %>
-          <div class="meta-cell">
-            <div class="label">최근 오류</div>
-            <div class="value text-danger small"><%= tunerState.error %></div>
-          </div>
-        <% } %>
-      </div>
-
-      <form method="post" action="/admin/weight-tuner/run" class="row g-2 align-items-end mb-3">
-        <div class="col-md-4">
-          <label class="form-label small fw-semibold">실행 범위</label>
-          <select name="mode" class="form-select form-select-sm">
-            <option value="all">전체 (스윙 + 단타)</option>
-            <option value="swing">스윙만</option>
-            <option value="short">단타만</option>
-          </select>
-        </div>
-        <div class="col-md-4 text-end ms-auto">
-          <button type="submit" class="btn btn-brand btn-sm w-100" <%= tunerState.running ? "disabled" : "" %>>
-            <i class="bi bi-play-fill me-1"></i><%= tunerState.running ? "실행 중…" : "지금 실행" %>
-          </button>
-        </div>
-      </form>
-
-      <!-- 스윙 결과 -->
-      <% if (swing) { %>
-        <hr class="my-3" />
-        <div class="d-flex justify-content-between align-items-baseline mb-2">
-          <h2 class="mb-0" style="font-size:0.95rem;"><i class="bi bi-graph-up me-1"></i>스윙 추천</h2>
-          <% if (swing.marketRegime) { %>
-            <span class="badge-soft <%= swing.marketRegime.regime === '강세' ? 'on' : (swing.marketRegime.regime === '약세' ? 'off' : 'run') %>">
-              시장: <%= swing.marketRegime.regime %> (평균 <%= swing.marketRegime.avgChangePct %>%)
-            </span>
-          <% } %>
-        </div>
-        <% if (!swing.ok) { %>
-          <div class="alert alert-warning small mb-2">스윙 튜너 실행 실패: <%= swing.error || "알 수 없음" %></div>
-        <% } %>
-        <% if (swing.recommendation && swing.recommendation.weights) { %>
-          <% const w = swing.recommendation.weights; %>
-          <div class="meta-grid">
-            <% ["volume","position","trend","rsi","macd","resistance","volatility","flow"].forEach(function(k) { %>
-              <div class="meta-cell">
-                <div class="label"><%= k %></div>
-                <div class="value"><%= w[k] %></div>
-              </div>
-            <% }); %>
-          </div>
-          <%
-            const params = new URLSearchParams();
-            ["volume","position","trend","rsi","macd","resistance","volatility","flow"].forEach(function(k) {
-              params.set(k + "Weight", w[k]);
-            });
-          %>
-          <div class="mt-2">
-            <a href="/?<%= params.toString() %>" class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-arrow-up-right me-1"></i>이 가중치로 검색 페이지 열기
-            </a>
-          </div>
-        <% } else if (swing.ok) { %>
-          <div class="small text-muted">추천 가중치 파싱 실패 (Gemini 응답 형식 오류 가능). 원문 근거만 표시:</div>
-        <% } %>
-        <% if (swing.recommendation && swing.recommendation.reasoning) { %>
-          <div class="small text-secondary mt-2" style="white-space: pre-wrap; line-height: 1.5;"><%= swing.recommendation.reasoning %></div>
-        <% } %>
-
-        <!-- 가중치 프리셋 백테스트 비교표 -->
-        <% if (swing.presets && swing.presets.length) { %>
-          <details class="mt-3">
-            <summary class="small text-secondary" style="cursor:pointer;">백테스트 비교표 (가중치 프리셋 × 상위 <%= swing.sampleSize || swing.presets[0].stockResults.length %>종목)</summary>
-            <div class="table-responsive mt-2">
-              <table class="table table-sm align-middle small mb-0">
-                <thead>
-                  <tr>
-                    <th>프리셋</th>
-                    <th class="text-end">유효종목</th>
-                    <th class="text-end">h5 승률</th>
-                    <th class="text-end">h5 평균수익</th>
-                    <th class="text-end">h5 MDD</th>
-                    <th class="text-end">h10 승률</th>
-                    <th class="text-end">h10 평균수익</th>
-                    <th class="text-end">h10 MDD</th>
-                    <th class="text-end">h10 누적</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% swing.presets.forEach(function(p) { var a = p.aggregate; %>
-                    <tr>
-                      <td><%= p.label %></td>
-                      <td class="text-end"><%= a.validStocks %></td>
-                      <td class="text-end"><%= a.h5AvgWinRate ?? "-" %></td>
-                      <td class="text-end"><%= a.h5AvgReturn ?? "-" %>%</td>
-                      <td class="text-end"><%= a.h5AvgMdd ?? "-" %>%</td>
-                      <td class="text-end"><%= a.h10AvgWinRate ?? "-" %></td>
-                      <td class="text-end"><%= a.h10AvgReturn ?? "-" %>%</td>
-                      <td class="text-end"><%= a.h10AvgMdd ?? "-" %>%</td>
-                      <td class="text-end"><%= a.h10AvgCum ?? "-" %>%</td>
-                    </tr>
-                  <% }); %>
-                </tbody>
-              </table>
-            </div>
-          </details>
-        <% } %>
-      <% } %>
-
-      <!-- 단타 결과 -->
-      <% if (shortT) { %>
-        <hr class="my-3" />
-        <div class="d-flex justify-content-between align-items-baseline mb-2">
-          <h2 class="mb-0" style="font-size:0.95rem;"><i class="bi bi-stopwatch me-1"></i>단타 추천</h2>
-          <% if (shortT.recommendation && shortT.recommendation.confidence) { %>
-            <span class="badge-soft <%= shortT.recommendation.confidence === 'medium' ? 'on' : 'off' %>">
-              신뢰도: <%= shortT.recommendation.confidence %>
-            </span>
-          <% } %>
-        </div>
-        <% if (!shortT.ok) { %>
-          <div class="alert alert-warning small mb-2">단타 튜너 실행 실패: <%= shortT.error || "알 수 없음" %></div>
-        <% } %>
-        <% if (shortT.recommendation && shortT.recommendation.sampleNote) { %>
-          <div class="small text-muted mb-2"><%= shortT.recommendation.sampleNote %></div>
-        <% } %>
-        <% if (shortT.recommendation && shortT.recommendation.weights) { %>
-          <% const sw = shortT.recommendation.weights; %>
-          <div class="meta-grid">
-            <% ["chegyeol","buySell","momentum","intraday","changeBand"].forEach(function(k) { %>
-              <div class="meta-cell">
-                <div class="label"><%= k %></div>
-                <div class="value"><%= sw[k] %></div>
-              </div>
-            <% }); %>
-          </div>
-          <div class="small text-muted mt-2">
-            ⚠ 단타 가중치는 현재 코드 하드코드 (<code>buildShortTermScore</code>). 적용하려면 <code>app.js:1879</code> 직접 수정 필요.
-          </div>
-        <% } else if (shortT.ok) { %>
-          <div class="small text-muted">추천 가중치 없음 (표본 부족 또는 파싱 실패).</div>
-        <% } %>
-        <% if (shortT.recommendation && shortT.recommendation.reasoning) { %>
-          <div class="small text-secondary mt-2" style="white-space: pre-wrap; line-height: 1.5;"><%= shortT.recommendation.reasoning %></div>
-        <% } %>
-      <% } %>
-
-      <% if (!swing && !shortT) { %>
-        <div class="small text-muted">아직 실행 이력이 없습니다. "지금 실행" 버튼을 눌러 첫 추천을 받아보세요. (스윙은 1~2분 소요, 단타는 즉시)</div>
-      <% } %>
-    </div>
-
-    <!-- 수동 발송 -->
-    <div class="card-soft">
-      <h2><i class="bi bi-send me-1"></i>수동 발송</h2>
-      <form method="post" action="/admin/send" class="row g-2 align-items-end">
-        <div class="col-md-6">
-          <label class="form-label small fw-semibold">대상 이메일 (비우면 전체 구독자)</label>
-          <input type="email" name="targetEmail" class="form-control form-control-sm" placeholder="you@example.com" />
-        </div>
-        <div class="col-md-3">
-          <div class="form-check mt-3">
-            <input class="form-check-input" type="checkbox" name="dryRun" value="1" id="dryRunChk" />
-            <label class="form-check-label small" for="dryRunChk">dry-run (실제 미발송)</label>
-          </div>
-        </div>
-        <div class="col-md-3 text-end">
-          <button type="submit" class="btn btn-brand btn-sm w-100" <%= isSending ? "disabled" : "" %>>
-            <i class="bi bi-play-fill me-1"></i>발송 시작
-          </button>
-        </div>
-      </form>
-      <div class="small text-muted mt-3">
-        <i class="bi bi-info-circle me-1"></i>발송은 백그라운드로 실행되며, 페이지를 새로고침하면 결과가 갱신됩니다.
-        스캔에는 약 30초~1분이 소요됩니다.
+      <div class="alert alert-info small mt-2 mb-0">
+        스윙/단타 스캔, 백테스트, 자동 메일 발송, AI 가중치 튜너는 점수 모델 재설계 중이라 일시 비활성화되었습니다.
       </div>
     </div>
 
-    <!-- 구독자 -->
     <div class="card-soft">
       <h2><i class="bi bi-people me-1"></i>구독자 (<%= subscribers.length %>)</h2>
       <% if (subscribers.length === 0) { %>
@@ -495,7 +158,6 @@
 
     <div class="text-center small text-secondary mt-3">
       <a href="/" class="text-decoration-none text-secondary me-3"><i class="bi bi-arrow-left me-1"></i>홈으로</a>
-      <a href="/scan" class="text-decoration-none text-secondary me-3"><i class="bi bi-radar me-1"></i>단타 스캔</a>
       <a href="/subscribe" class="text-decoration-none text-secondary"><i class="bi bi-envelope-plus me-1"></i>구독 페이지</a>
     </div>
   </div>
