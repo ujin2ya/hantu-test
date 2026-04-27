@@ -371,6 +371,50 @@ function summarizeFeatures(events) {
   return summary;
 }
 
+// ─────────── Phase B-6: 시동 단계 품질 평가 ───────────
+// 시동 단계 (5~10%) 후보 중 진짜 "조기 시그널" vs 추격 의심 분리.
+// 3가지 필터: ① 5일내 fade 없음 ② 종가위치 ≥ 0.5 ③ 7일 base 진폭 ≤ 6%
+function evaluateStartingQuality(rows, mover) {
+  if (!rows || rows.length < 10) return null;
+  const last = rows.length - 1;
+  const flags = [];
+
+  // ① 직전 5일에 -3% 이상 fade 없음 (fade-retry 차단)
+  let fadePct = 0;
+  for (let i = Math.max(1, last - 4); i < last; i++) {
+    const r = rows[i];
+    const prev = rows[i - 1];
+    if (!prev || !(prev.close > 0)) continue;
+    const change = (r.close - prev.close) / prev.close;
+    if (change < fadePct) fadePct = change;
+  }
+  if (fadePct > -0.03) flags.push({ ok: true, msg: '5일내 큰 fade 없음 (fresh 시동)' });
+  else flags.push({ ok: false, msg: `5일내 ${(fadePct * 100).toFixed(1)}% fade — fade-retry 의심` });
+
+  // ② 종가위치 ≥ 0.5 (강한 마감)
+  if (mover.closePos >= 0.5) flags.push({ ok: true, msg: `종가 위쪽 ${Math.round(mover.closePos * 100)}% (강한 마감)` });
+  else flags.push({ ok: false, msg: `종가 위쪽 ${Math.round(mover.closePos * 100)}% (위쪽 매물 부담)` });
+
+  // ③ 직전 7일 (오늘 제외) 가격 진폭 ≤ 6% (좁은 base)
+  const prior7 = rows.slice(Math.max(0, last - 7), last);
+  const highs = prior7.map((r) => r.high).filter((v) => v > 0);
+  const lows = prior7.map((r) => r.low).filter((v) => v > 0);
+  if (highs.length >= 5 && lows.length >= 5) {
+    const hi = Math.max(...highs);
+    const lo = Math.min(...lows);
+    const range = lo > 0 ? (hi - lo) / lo : 0;
+    if (range <= 0.06) flags.push({ ok: true, msg: `7일 base 진폭 ${(range * 100).toFixed(1)}% (좁음)` });
+    else flags.push({ ok: false, msg: `7일 base 진폭 ${(range * 100).toFixed(1)}% (변동 큼)` });
+  }
+
+  const passCount = flags.filter((f) => f.ok).length;
+  let quality;
+  if (passCount === 3) quality = "PREMIUM";  // 모든 필터 통과 — 진짜 조기 시그널
+  else if (passCount === 2) quality = "FRESH"; // 2개 통과 — 시동 가능성 있음
+  else quality = "SUSPECT";                    // 0~1개 — 추격 의심
+  return { quality, passCount, flags };
+}
+
 // ─────────── Phase B-5: 오늘의 모멘텀 스캐너 ───────────
 // SHAPE 매칭과 별개로 *오늘* 큰 가격·거래량 움직임 있는 종목 전체에서 스캔.
 // 점화 후 종목 (SHAPE 매칭 아닌) + 시동 종목 (SHAPE 매칭 + 모멘텀) 모두 잡음.
@@ -411,7 +455,7 @@ function scanTodaysMomentum({
       // 종합 모멘텀 점수
       const score = (dayChange * 100) + (Math.min(volRatio, 20) * 3) + (Math.min(valuePct, 0.5) * 100) + (closePos * 5);
 
-      movers.push({
+      const mover = {
         code: meta.code, name: meta.name, market: meta.market,
         marketCap: meta.marketValue, closePrice: today.close,
         dayChange: Number((dayChange * 100).toFixed(2)),
@@ -420,7 +464,12 @@ function scanTodaysMomentum({
         closePos: Number(closePos.toFixed(2)),
         score: Number(score.toFixed(1)),
         date: today.date,
-      });
+      };
+      // 시동 단계 (5~10%) 만 품질 평가 — 진짜 조기 시그널 vs 추격 의심 분리
+      if (mover.dayChange >= 5 && mover.dayChange < 10) {
+        mover.startingQuality = evaluateStartingQuality(rows, mover);
+      }
+      movers.push(mover);
     } catch (_) {}
   }
   movers.sort((a, b) => b.score - a.score);

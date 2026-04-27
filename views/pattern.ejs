@@ -148,6 +148,14 @@
               // 단계별 분류 + 단계 안에서는 score 순
               const tierGroups = { starting: [], rising: [], strong: [], limit: [] };
               momentumMovers.forEach((m) => tierGroups[tierOf(m).key].push(m));
+              // 시동 단계는 품질순 정렬 (PREMIUM > FRESH > SUSPECT)
+              const qOrder = { PREMIUM: 3, FRESH: 2, SUSPECT: 1 };
+              tierGroups.starting.sort((a, b) => {
+                const qa = qOrder[a.startingQuality?.quality] || 0;
+                const qb = qOrder[b.startingQuality?.quality] || 0;
+                if (qa !== qb) return qb - qa;
+                return b.score - a.score;
+              });
               const tierMeta = [
                 { key: 'starting', label: '🌱 시동 단계 (5~10% + 거래량 폭증) — 조기 시그널, 가장 가치있음' },
                 { key: 'rising',   label: '📈 상승 중 (10~15%) — 모멘텀 진행' },
@@ -160,8 +168,16 @@
               <% list.forEach(function(m, idx) {
                 const tier = tierOf(m);
                 const closeBar = Math.round(m.closePos * 100);
+                const sq = m.startingQuality;
+                const qBadge = sq ? (
+                  sq.quality === 'PREMIUM' ? { icon:'⭐', label:'PREMIUM', bg:'#dcfce7', fg:'#166534' }
+                  : sq.quality === 'FRESH' ? { icon:'🌱', label:'FRESH', bg:'#fef3c7', fg:'#92400e' }
+                  : { icon:'⚠', label:'추격 의심', bg:'#fee2e2', fg:'#991b1b' }
+                ) : null;
+                // PREMIUM/FRESH 만 시동 단계 가치 있음 — SUSPECT 는 시각적으로 약하게
+                const isFaded = sq && sq.quality === 'SUSPECT';
               %>
-                <div class="item-card" style="border-left:3px solid <%= tier.color %>;">
+                <div class="item-card" style="border-left:3px solid <%= tier.color %>; <%= isFaded ? 'opacity:0.65;' : '' %>">
                   <div class="row1">
                     <div class="name-block">
                       <span class="rk">#<%= idx + 1 %></span>
@@ -170,6 +186,11 @@
                         <span class="cd"><%= m.code %></span>
                         <i class="bi bi-box-arrow-up-right arr"></i>
                       </a>
+                      <% if (qBadge) { %>
+                        <span class="score-pill ms-1" style="background:<%= qBadge.bg %>; color:<%= qBadge.fg %>; font-size:0.68rem; font-weight:700;" title="시동 품질 — 3개 필터 중 <%= sq.passCount %>개 통과">
+                          <%= qBadge.icon %> <%= qBadge.label %>
+                        </span>
+                      <% } %>
                       <% if (m.inShape) { %>
                         <span class="score-pill ms-1" style="background:#dcfce7; color:#166534; font-size:0.68rem; font-weight:700;" title="SHAPE matcher 와 교차">
                           🎯 SHAPE <%= m.shapeMatched %>/<%= m.shapeTotalKeys %>
@@ -178,6 +199,13 @@
                     </div>
                     <span class="score-pill" style="background:<%= tier.bg %>; color:<%= tier.color %>; font-weight:700;">+<%= m.dayChange %>%</span>
                   </div>
+                  <% if (sq && sq.flags) { %>
+                    <div style="margin:6px 0; padding:6px 8px; background:#f8fafc; border-radius:6px; font-size:0.72rem; line-height:1.5;">
+                      <% sq.flags.forEach(function(f) { %>
+                        <div style="color:<%= f.ok ? '#166534' : '#991b1b' %>;"><%= f.ok ? '✓' : '✗' %> <%= f.msg %></div>
+                      <% }) %>
+                    </div>
+                  <% } %>
                   <div class="row2">
                     <span>시총 <strong><%= (m.marketCap / 1e8).toFixed(0) %>억</strong></span>
                     <span>종가 <strong><%= m.closePrice.toLocaleString() %></strong></span>
