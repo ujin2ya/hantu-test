@@ -161,14 +161,14 @@
             <i class="bi bi-stars me-1"></i><strong>지금 살 만한 종목 찾기.</strong>
             오늘 기준 직전 20일 거래 패턴이 과거 +40% 종목들의 <em>점화 직전</em> 패턴과 얼마나 닮았는지 — 14개 차원 중 몇 개가 매칭되는지 카운트.
             <ul class="mb-0 mt-1 ps-3" style="font-size:0.78rem;">
-              <li><strong>14/14 (초록)</strong> = 모든 차원에서 +40% 종목 전형 패턴 — 최우선 관심</li>
-              <li><strong>11~13/14 (노랑)</strong> = 강하게 닮음</li>
+              <li><strong>14/14 (초록)</strong> = 14개 차원 모두 +40% 종목 중심 60% 밴드 안 — 가장 엄격</li>
+              <li><strong>13/14 (노랑)</strong> = 권장 — 1개 빠지지만 통계적으로 충분히 닮음</li>
               <li><strong>그 이하 (회색)</strong> = 약하게 닮음</li>
             </ul>
             <div class="mt-1" style="font-size:0.75rem;">⚠ <strong>"언제" 점화될지는 모름</strong> — 1주 안일 수도, 한 달 뒤일 수도. 후보군일 뿐 매수 시그널 아님.</div>
             <% if (result.candidates && result.candidates.signature) { %>
               <details class="mt-2" style="font-size:0.75rem;">
-                <summary style="cursor:pointer; color:#065f46;">🎯 +40% 종목들이 공통으로 보였던 패턴 (14개 차원)</summary>
+                <summary style="cursor:pointer; color:#065f46;">🎯 +40% 종목들이 공통으로 보였던 패턴 (중심 60% 밴드)</summary>
                 <%
                   const sig = result.candidates.signature;
                   function sigFmt(k, v) {
@@ -202,7 +202,7 @@
                 %>
                 <ul class="mb-0 mt-1 ps-3" style="font-size:0.72rem; line-height:1.5;">
                   <% sigOrder.forEach(function(p) { const k = p[0], lbl = p[1], s = sig[k]; if (!s) return; %>
-                    <li><strong><%= lbl %></strong>: <%= sigFmt(k, s.p10) %> ~ <%= sigFmt(k, s.p90) %> <span class="text-secondary">(median <%= sigFmt(k, s.p50) %>)</span></li>
+                    <li><strong><%= lbl %></strong>: <%= sigFmt(k, s.lo) %> ~ <%= sigFmt(k, s.hi) %> <span class="text-secondary">(median <%= sigFmt(k, s.p50) %>)</span></li>
                   <% }) %>
                 </ul>
                 <div class="mt-1" style="font-size:0.7rem; color:#475569;">
@@ -231,8 +231,8 @@
             <div class="col-6 col-md-3">
               <label class="form-label small text-secondary mb-1">최소 매칭</label>
               <select name="cmin" class="form-select form-select-sm">
-                <% [0,8,10,11,12,13,14].forEach(function(n) { %>
-                  <option value="<%= n %>" <%= cMinMatch === n ? 'selected' : '' %>><%= n === 0 ? '제한 없음' : (n === 14 ? '14/14 (만점만)' : n + '/14 이상') %></option>
+                <% [0,10,11,12,13,14].forEach(function(n) { %>
+                  <option value="<%= n %>" <%= cMinMatch === n ? 'selected' : '' %>><%= n === 0 ? '제한 없음' : (n === 14 ? '14/14 (가장 엄격)' : n === 13 ? '13/14 (권장)' : n + '/14 이상') %></option>
                 <% }) %>
               </select>
             </div>

@@ -484,8 +484,14 @@ async function analyzeAll({ logProgress = false } = {}) {
 }
 
 // ─────────── Phase B-2: 성공 시그니처 (공통점 밴드) ───────────
-// 성공 이벤트들 features 의 p10~p90 (80% 가 들어가는 밴드) 을 "공통 시그니처" 로 보고
+// 성공 이벤트들 features 의 중심 밴드 (기본 p20~p80, 60%) 를 "공통 시그니처" 로 보고
 // 후보가 몇 개의 시그니처 밴드 안에 있는지 매칭 카운트를 매긴다.
+//
+// p10-p90 (80%) 은 너무 넓어서 14/14 매칭 ≈ 0.8^14 = 4% 의 정상분포 종목이 그냥 통과 (변별력 약함).
+// p20-p80 (60%) 으로 좁히면 0.6^14 = 0.08% → 진짜 유사 패턴만 통과.
+
+const SIG_LO_PCTILE = 0.20;
+const SIG_HI_PCTILE = 0.80;
 
 function buildSignature(events, keys) {
   const sig = {};
@@ -494,11 +500,11 @@ function buildSignature(events, keys) {
     if (vals.length < 100) { sig[k] = null; continue; }
     sig[k] = {
       n: vals.length,
-      p10: Number(vals[Math.floor(vals.length * 0.10)].toFixed(3)),
+      lo: Number(vals[Math.floor(vals.length * SIG_LO_PCTILE)].toFixed(3)),
       p25: Number(vals[Math.floor(vals.length * 0.25)].toFixed(3)),
       p50: Number(vals[Math.floor(vals.length * 0.50)].toFixed(3)),
       p75: Number(vals[Math.floor(vals.length * 0.75)].toFixed(3)),
-      p90: Number(vals[Math.floor(vals.length * 0.90)].toFixed(3)),
+      hi: Number(vals[Math.floor(vals.length * SIG_HI_PCTILE)].toFixed(3)),
     };
   }
   return sig;
@@ -513,7 +519,7 @@ function computeMatch(features, signature) {
     const v = features?.[k];
     if (!Number.isFinite(v)) continue;
     total++;
-    const inBand = v >= sig.p10 && v <= sig.p90;
+    const inBand = v >= sig.lo && v <= sig.hi;
     if (inBand) matched++;
     breakdown[k] = inBand;
   }
