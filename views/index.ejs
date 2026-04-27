@@ -933,13 +933,19 @@
          const variants = isBreakout ? [
            { key: 'breakout', label: '돌파 매수', icon: 'bi-arrow-up-right-circle', enabled: true },
          ] : [
-           { key: 'fixed', label: '고정 밴드', icon: 'bi-bounding-box', enabled: true },
-           { key: 'atr', label: '변동성(ATR) 기반', icon: 'bi-activity', enabled: !!buyRec.atr },
-           { key: 'ma', label: '이동평균선', icon: 'bi-graph-up-arrow', enabled: !!buyRec.ma },
+           { key: 'supports', label: '매물대 지지', icon: 'bi-bar-chart-steps', enabled: !!buyRec.supports },
+           { key: 'ma', label: '이동평균선 (5/20일)', icon: 'bi-graph-up-arrow', enabled: !!buyRec.ma },
          ];
+         function tierLabelFromVariant(v) {
+           const data = buyRec[v.key];
+           if (!data || !data.tiers) return null;
+           const t = data.tiers[buyRec.recommendedTier];
+           if (!t || t.unavailable) return null;
+           return t.label;
+         }
          const recommendedTierLabel = isBreakout
            ? buyRec.breakout.tiers[buyRec.recommendedTier].label
-           : buyRec.fixed.tiers[buyRec.recommendedTier].label; %>
+           : (variants.map(tierLabelFromVariant).find((x) => x) || (buyRec.recommendedTier === 'aggressive' ? '공격' : buyRec.recommendedTier === 'neutral' ? '중립' : '보수')); %>
       <div class="glass-card p-3 p-lg-4 mb-4">
         <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
           <h2 class="section-title mb-0">
@@ -1009,18 +1015,16 @@
             >
               <% if (!v.enabled) { %>
                 <div class="muted-text">
-                  <% if (v.key === 'atr') { %>ATR 계산에 필요한 데이터가 부족합니다.<% } %>
+                  <% if (v.key === 'supports') { %>현재가 아래 충분한 매물대를 찾지 못했습니다 — 60일간 거래가 거의 없거나 신고가 종목.<% } %>
                   <% if (v.key === 'ma') { %>이평선 계산에 필요한 일봉 데이터가 부족합니다.<% } %>
                 </div>
               <% } else { %>
                 <% const variantData = buyRec[v.key]; %>
                 <div class="muted-text mb-3">
-                  <% if (v.key === 'fixed') { %>
-                    <strong>고정 밴드 방식</strong> — 모든 종목에 동일한 괴리 범위(공격 -1~-5% / 중립 -5~-10% / 보수 -10~-18%)를 적용합니다. 예측 가능한 기준이지만 종목의 실제 변동성은 반영하지 않습니다.
-                  <% } else if (v.key === 'atr') { %>
-                    <strong>변동성(ATR) 기반 방식</strong> — 이 종목의 14일 평균 진폭(ATR)이 <strong><%= variantData.atrPercent %>%</strong>(≈<%= fmtNumber(variantData.atrValue) %>원)입니다. 밴드가 이에 비례해 자동 조정되어 저변동 종목은 타이트하게, 고변동 종목은 넓게 잡힙니다.
+                  <% if (v.key === 'supports') { %>
+                    <strong>매물대 지지 방식</strong> — 60일 거래량 히스토그램에서 *실제 거래가 일어난* 가격대 상위 3개를 그대로 매수가로 사용. 본전 매수자들이 대기하는 자리라 자기실현적 지지가 작동합니다. 단순 % 하락보다 신뢰도 높음.
                   <% } else if (v.key === 'ma') { %>
-                    <strong>이동평균선 지지 방식</strong> — 한국 차트에서 가장 표준적으로 보는 5/20/60일 이평선을 매수 기준점으로 사용. % 밴드보다 직관적이고, 이평선 자체가 차트상 보이는 지지·저항선이라 체결 가능성이 높습니다.
+                    <strong>이동평균선 지지 방식 (5/20일)</strong> — 한국 차트의 표준 단기 지지선. 5일선은 강한 추세 유지 시, 20일선은 정상적 눌림목 자리. <strong>60일선은 추세 깨짐 신호</strong>라 매수가에서 제외했습니다.
                   <% } %>
                 </div>
                 <div class="row g-3">
@@ -1051,7 +1055,7 @@
 
         <div class="muted-text mt-3"><%= buyRec.tierExplanation %></div>
         <div class="muted-text mt-1">
-          ※ 최근 60일 거래량 히스토그램 + 14일 ATR에 기반한 추정값입니다. 실제 체결가/시장 상황과 다를 수 있으며 투자 조언이 아닙니다.
+          ※ 매물대(60일 거래량 분포)와 5/20일 이평선 기반. 단순 -% 밴드는 의미 적어 제외했습니다. 60일선까지 내려갔다면 추세 깨짐이라 별도 매수가로 권하지 않습니다.
         </div>
         <% } %>
       </div>

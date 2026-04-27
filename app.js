@@ -1582,10 +1582,11 @@ function calculateMovingAverages(dailyData) {
 }
 
 function buildMATiers(currentPrice, mas) {
+  // 60일선까지 내려가면 추세 깨짐 신호라 매수가로는 사용하지 않음 — 5일/20일 두 tier 만.
+  // conservative 자리는 unavailable 로 두고 supports 탭이 보수 권고를 담당.
   const tiersConfig = [
     { key: "aggressive", label: "5일선 매수", maKey: "sma5", period: 5 },
     { key: "neutral", label: "20일선 매수", maKey: "sma20", period: 20 },
-    { key: "conservative", label: "60일선 매수", maKey: "sma60", period: 60 },
   ];
   const tiers = {};
   tiersConfig.forEach((cfg) => {
@@ -1622,7 +1623,63 @@ function buildMATiers(currentPrice, mas) {
       description: `${cfg.period}일 이동평균이 ${gap.toFixed(1)}% 아래에서 지지`,
     };
   });
+  // conservative 자리는 명시적으로 unavailable — UI 가 첫 두 tier 만 채움
+  tiers.conservative = {
+    label: "60일선 미사용",
+    bandLabel: "60일 SMA",
+    price: null,
+    gapPercent: "-",
+    description: "60일선까지 내려갔다는 건 추세 깨짐 신호 — 매수보다 관망 또는 추세 재확인 후 진입 권장.",
+    unavailable: true,
+  };
   return tiers;
+}
+
+// 매물대 직접 매수가 — 60일 거래량 히스토그램의 현재가 아래 봉우리 3개를 그대로 매수가로 사용.
+// fixed/atr 처럼 기계적 % 가 아니라 *실제 거래가 일어난 가격대*라 자기실현적 지지가 작동.
+function buildSupportTiers(supportBins, currentPrice) {
+  if (!Array.isArray(supportBins) || supportBins.length === 0) return null;
+
+  // 거래량 큰 순 → 그중 가까운 순 위주 — 현재가에서 가까운 강한 매물대 3개
+  const ranked = [...supportBins]
+    .filter((b) => b.mid < currentPrice && b.volume > 0)
+    .sort((a, b) => b.volume - a.volume)
+    .slice(0, 3)
+    .sort((a, b) => b.mid - a.mid); // 현재가에서 가까운 순으로 재정렬
+
+  if (ranked.length === 0) return null;
+
+  const config = [
+    { key: "aggressive", label: "1차 매물대 — 가장 가까움" },
+    { key: "neutral", label: "2차 매물대" },
+    { key: "conservative", label: "3차 매물대 — 가장 깊음" },
+  ];
+
+  const tiers = {};
+  config.forEach((cfg, i) => {
+    const bin = ranked[i];
+    if (!bin) {
+      tiers[cfg.key] = {
+        label: cfg.label,
+        bandLabel: "—",
+        price: null,
+        gapPercent: "-",
+        description: "현재가 아래 충분한 매물대 없음.",
+        unavailable: true,
+      };
+      return;
+    }
+    const gap = ((currentPrice - bin.mid) / currentPrice) * 100;
+    tiers[cfg.key] = {
+      label: cfg.label,
+      bandLabel: `${bin.start.toLocaleString()}~${bin.end.toLocaleString()}원`,
+      price: bin.mid,
+      gapPercent: gap.toFixed(1),
+      description: `60일 거래량 ${bin.volume.toLocaleString()}주 집중 — 본전 매수자 대기 가격대 (현재가 -${gap.toFixed(1)}%)`,
+    };
+  });
+
+  return { tiers };
 }
 
 function calculateATRPercent(dailyData, period = 14) {
@@ -1649,25 +1706,24 @@ function calculateATRPercent(dailyData, period = 14) {
   return { atr, atrPercent: (atr / refClose) * 100 };
 }
 
-// 돌파 매수가 — 60일 고점·20일 고점 기반 돌파선과 ATR로 3 tier 산출.
-// 기존 buildBuyRecommendation 과 다른 패널을 그리도록 direction: "breakout" 표시.
+// 돌파 매수가 — 20일 박스권 상단 기준. 한국 시장 정서상 60일 고점은 너무 적극적이라
+// 20일 박스 돌파를 신호로 사용. 보수 tier 는 돌파 후 ATR×1.5 조정 자리 (현재가 아래일
+// 수도 있음 = 한국식 첫 눌림 매수). direction: "breakout" 으로 별도 패널 렌더.
 function buildBuyRecommendationBreakout(totalScore, currentPrice, dailyData) {
   const items = (dailyData?.items || []).slice(0, 60);
   if (items.length < 20 || !currentPrice) return null;
 
-  const highs60 = items.map((x) => Number(x.highPrice || 0)).filter((v) => v > 0);
   const highs20 = items.slice(0, 20).map((x) => Number(x.highPrice || 0)).filter((v) => v > 0);
-  if (!highs60.length || !highs20.length) return null;
-
-  const high60 = Math.max(...highs60);
+  if (!highs20.length) return null;
   const high20 = Math.max(...highs20);
-  // 돌파선: 60일 고점과 20일 고점 +0.1% 중 큰 값에 +0.3% 버퍼.
-  const breakoutLine = Math.max(high60, high20 * 1.001) * 1.003;
+  // 돌파선: 20일 박스권 상단 + 0.3% 버퍼 (가짜 돌파 거르는 마진)
+  const breakoutLine = high20 * 1.003;
 
   const atrInfo = calculateATRPercent(dailyData);
   const atrPct = atrInfo?.atrPercent && atrInfo.atrPercent > 0 ? atrInfo.atrPercent : 2;
+  const pullbackPct = atrPct * 1.5; // 돌파 후 첫 눌림 = ATR × 1.5
 
-  const buildTier = (key, label, bandLabel, price, description, ordinal) => {
+  const buildTier = (price, label, bandLabel, description, ordinal) => {
     const gap = ((price - currentPrice) / currentPrice) * 100;
     return {
       label,
@@ -1680,47 +1736,45 @@ function buildBuyRecommendationBreakout(totalScore, currentPrice, dailyData) {
     };
   };
 
-  // 공격: 돌파선 즉시 진입
-  // 중립: 돌파선 + ATR/2 (확실한 돌파 확인 후)
-  // 보수: 돌파선 -1.5% (돌파 후 첫 눌림 = 돌파선 재시험)
+  // 공격: 돌파선 즉시 (강한 추세 종목에만 권장)
+  // 중립: 돌파선 + ATR/2 (확인 매수)
+  // 보수: 돌파 후 ATR×1.5 조정 자리 (한국식 첫 눌림 — 디폴트)
   const tiers = {
     aggressive: buildTier(
-      "aggressive",
+      breakoutLine,
       "공격 — 돌파 즉시",
       "돌파선",
-      breakoutLine,
-      "60일 고점 통과 즉시 추격. 거래량 강할 때 가장 높은 확률, 다만 가짜 돌파 손절선 필수.",
+      "20일 박스권 상단 통과 즉시 추격. 강한 거래량 동반 시에만 권장 — 가짜 돌파 손절선 필수.",
       1
     ),
     neutral: buildTier(
-      "neutral",
-      "중립 — 돌파 확인 후",
-      `돌파선 +ATR/2 (${(atrPct / 2).toFixed(1)}%)`,
       breakoutLine * (1 + atrPct / 200),
-      "돌파 후 ATR/2 만큼 추가 상승하며 자리 굳힘 확인 — 가짜 돌파 위험 줄어듦.",
+      "중립 — 돌파 확인 후",
+      `돌파선 + ATR/2 (${(atrPct / 2).toFixed(1)}%)`,
+      "돌파 후 ATR/2 만큼 추가 상승하며 자리 굳힘 확인. 가짜 돌파 위험 줄지만 진입가 ↑.",
       2
     ),
     conservative: buildTier(
-      "conservative",
-      "보수 — 첫 눌림 대기",
-      "돌파선 -1.5%",
-      breakoutLine * 0.985,
-      "돌파 후 돌파선 근처까지 첫 눌림에서 매수. 무산 시 손절선 가까워서 리스크 관리 좋음.",
+      breakoutLine * (1 - pullbackPct / 100),
+      "보수 — 돌파 후 첫 눌림 (디폴트)",
+      `돌파선 - ATR×1.5 (${pullbackPct.toFixed(1)}%)`,
+      "돌파 후 ATR×1.5 만큼 조정한 자리에서 매수 — 한국식 눌림목. 손절선 짧고 가짜 돌파 위험 가장 낮음.",
       3
     ),
   };
 
+  // 추천 tier — 디폴트는 보수(첫 눌림). 점수가 매우 높을 때만 공격으로 올림.
   let recommendedTier;
   let tierExplanation;
-  if (totalScore >= 70) {
+  if (totalScore >= 80) {
     recommendedTier = "aggressive";
-    tierExplanation = "추세·거래량 강세 — 돌파 즉시 진입해도 리스크 낮음.";
-  } else if (totalScore >= 50) {
+    tierExplanation = "추세·거래량 매우 강해 돌파 즉시 진입도 위험 낮음. 다만 손절선은 돌파선 직하단으로 타이트하게.";
+  } else if (totalScore >= 60) {
     recommendedTier = "neutral";
-    tierExplanation = "조건 중립 — 돌파 후 거래량·ATR 확인 후 진입 권장.";
+    tierExplanation = "조건 양호 — 돌파 확인(ATR/2 이상 추가 상승) 후 진입이 안전.";
   } else {
     recommendedTier = "conservative";
-    tierExplanation = "조건 약함 — 돌파 후 첫 눌림 대기 또는 관망.";
+    tierExplanation = "기본 권장 — 돌파 후 ATR×1.5 조정 자리(첫 눌림)에서 매수. 가짜 돌파 위험을 가장 낮춰주는 한국식 진입.";
   }
 
   // 현재 위치 분석
@@ -1728,7 +1782,7 @@ function buildBuyRecommendationBreakout(totalScore, currentPrice, dailyData) {
   let advisory = null;
   if (currentPrice > breakoutLine) {
     const overshoot = ((currentPrice - breakoutLine) / breakoutLine) * 100;
-    advisory = `이미 돌파 진행 중 (현재가가 돌파선보다 +${overshoot.toFixed(2)}% 위). 추격은 신중 — 첫 눌림(돌파선 ${Math.round(breakoutLine).toLocaleString()}원 부근) 대기 권장.`;
+    advisory = `이미 돌파 진행 중 (현재가가 돌파선보다 +${overshoot.toFixed(2)}% 위). 추격 비추 — 첫 눌림(보수 tier ${Math.round(breakoutLine * (1 - pullbackPct / 100)).toLocaleString()}원 부근) 대기 권장.`;
   } else if (gapToBreakout < 3) {
     advisory = `돌파 임박 (돌파선까지 +${gapToBreakout.toFixed(2)}%). 거래량 동반하면 진입 트리거 가능.`;
   } else {
@@ -1740,9 +1794,9 @@ function buildBuyRecommendationBreakout(totalScore, currentPrice, dailyData) {
     recommendedTier,
     tierExplanation,
     breakoutLine: Math.round(breakoutLine),
-    high60: Math.round(high60),
     high20: Math.round(high20),
     atrPercent: atrPct.toFixed(2),
+    pullbackPct: pullbackPct.toFixed(2),
     advisory,
     breakout: { tiers },
   };
@@ -1751,76 +1805,41 @@ function buildBuyRecommendationBreakout(totalScore, currentPrice, dailyData) {
 function buildBuyRecommendation(totalScore, buyZones, currentPrice, dailyData) {
   const supportBins = buyZones.supportBins || [];
 
-  const fixedBands = [
-    { key: "aggressive", label: "공격적 매수", gapMin: 0.01, gapMax: 0.05, fallbackGap: 0.03, ordinal: 1 },
-    { key: "neutral", label: "중립적 매수", gapMin: 0.05, gapMax: 0.10, fallbackGap: 0.07, ordinal: 2 },
-    { key: "conservative", label: "보수적 매수", gapMin: 0.10, gapMax: 0.18, fallbackGap: 0.15, ordinal: 3 },
-  ];
-  const fixed = { tiers: buildTiersFromBands(supportBins, currentPrice, fixedBands) };
+  // 매물대 — 가장 신뢰도 높은 매수가 (자기실현적 지지)
+  const supports = buildSupportTiers(supportBins, currentPrice);
 
-  let atr = null;
-  const atrInfo = calculateATRPercent(dailyData);
-  if (atrInfo && atrInfo.atrPercent > 0) {
-    const atrRatio = atrInfo.atrPercent / 100;
-    const clampGap = (g) => Math.max(0.005, Math.min(0.3, g));
-    const atrBands = [
-      {
-        key: "aggressive", label: "공격적 매수",
-        gapMin: clampGap(atrRatio * 0.5), gapMax: clampGap(atrRatio * 1.5),
-        fallbackGap: clampGap(atrRatio * 1.0), ordinal: 1,
-      },
-      {
-        key: "neutral", label: "중립적 매수",
-        gapMin: clampGap(atrRatio * 1.5), gapMax: clampGap(atrRatio * 3),
-        fallbackGap: clampGap(atrRatio * 2.2), ordinal: 2,
-      },
-      {
-        key: "conservative", label: "보수적 매수",
-        gapMin: clampGap(atrRatio * 3), gapMax: clampGap(atrRatio * 5),
-        fallbackGap: clampGap(atrRatio * 4), ordinal: 3,
-      },
-    ];
-    atr = {
-      tiers: buildTiersFromBands(supportBins, currentPrice, atrBands),
-      atrPercent: atrInfo.atrPercent.toFixed(2),
-      atrValue: Math.round(atrInfo.atr),
-    };
-  }
-
-  let recommendedTier;
-  let tierExplanation;
-  if (totalScore >= 70) {
-    recommendedTier = "aggressive";
-    tierExplanation = "종합 점수가 높아 조건이 우호적이다. 얕은 되돌림(공격 구간)에서 진입해도 리스크가 크지 않다.";
-  } else if (totalScore >= 50) {
-    recommendedTier = "neutral";
-    tierExplanation = "조건이 중립적이다. 중간 수준 되돌림까지 기다리며 분할 진입하는 편이 안전하다.";
-  } else {
-    recommendedTier = "conservative";
-    tierExplanation = "조건이 취약하다. 깊은 조정(보수 구간)까지 기다리거나 관망을 권한다.";
-  }
-
+  // 이평선 — 5일/20일만 (60일은 추세 깨짐이라 제외)
   const mas = calculateMovingAverages(dailyData);
-  const ma = (mas.sma5 || mas.sma20 || mas.sma60)
+  const ma = (mas.sma5 || mas.sma20)
     ? {
         tiers: buildMATiers(currentPrice, mas),
         values: {
           sma5: mas.sma5 ? Math.round(mas.sma5) : null,
           sma20: mas.sma20 ? Math.round(mas.sma20) : null,
-          sma60: mas.sma60 ? Math.round(mas.sma60) : null,
-          sma120: mas.sma120 ? Math.round(mas.sma120) : null,
         },
       }
     : null;
+
+  let recommendedTier;
+  let tierExplanation;
+  if (totalScore >= 70) {
+    recommendedTier = "aggressive";
+    tierExplanation = "조건 우호적 — 얕은 눌림(가까운 매물대 또는 5일선)에서 진입해도 리스크 낮음.";
+  } else if (totalScore >= 50) {
+    recommendedTier = "neutral";
+    tierExplanation = "조건 중립 — 2차 매물대 또는 20일선까지 기다려 분할 진입 권장.";
+  } else {
+    recommendedTier = "conservative";
+    tierExplanation = "조건 취약 — 깊은 조정(3차 매물대) 또는 관망. 단순 % 하락에 매수 금물.";
+  }
 
   return {
     direction: "pullback",
     recommendedTier,
     tierExplanation,
-    fixed,
-    atr,
+    supports,
     ma,
-    hasSupports: supportBins.length > 0,
+    hasSupports: !!supports,
   };
 }
 
