@@ -1868,21 +1868,14 @@ function renderIndex(res, overrides = {}) {
   return res.render("index", {
     query: "",
     error: null,
-    selected: null,
-    currentData: null,
     candidates: [],
-    dailySeries: null,
-    weeklySeries: null,
-    monthlySeries: null,
-    yearlySeries: null,
-    summary: null,
-    scoreModel: null,
-    weights: { ...DEFAULT_MANUAL_WEIGHTS },
-    market: null,
-    marketContext: getMarketContext(),
-    autoMode: pickAutoMode(),
-    returnUrl: null,
-    stockType: null,
+    stockMeta: null,
+    chartRows: null,
+    features: null,
+    high60: null,
+    low60: null,
+    lastDate: null,
+    cacheStale: null,
     ...overrides,
   });
 }
@@ -1905,136 +1898,100 @@ function buildScanReturnUrl(body) {
   return `/scan?mode=${encodeURIComponent(mode)}&candidateLimit=${limit}&includeMinute=${includeMinute}`;
 }
 
+// 단순화된 딥다이브 — Naver 캐시만 사용 (KIS 호출 제거).
+// 종목 정보 + 130일 일봉/거래량 + 14개 패턴 features 만 표시.
 const handleSearch = async (req, res) => {
-  const returnUrl = buildScanReturnUrl(req.body);
-  const weights = { ...DEFAULT_MANUAL_WEIGHTS };
   try {
     const query = String(req.body.stockQuery || "").trim();
-
     if (!query) {
-      return renderIndex(res, {
-        query,
-        error: "종목명 또는 종목코드를 입력하세요.",
-        weights,
-        returnUrl,
-      });
+      return renderIndex(res, { query, error: "종목명 또는 종목코드를 입력하세요." });
     }
 
     const stockInfo = getStockInfoByQuery(query);
-
     if (!stockInfo) {
-      return renderIndex(res, {
-        query,
-        error: "일치하는 종목이 없습니다.",
-        weights,
-        returnUrl,
-      });
+      return renderIndex(res, { query, error: "일치하는 종목이 없습니다." });
+    }
+    const candidates = Array.isArray(stockInfo) ? stockInfo : [stockInfo];
+    const selected = candidates[0];
+    const code = selected.shortCode || selected.standardCode || "";
+
+    // 1) 캐시 우선, 없으면 라이브 fetch
+    let cache = naverFetcher.loadStockChart(code);
+    let rows = cache?.rows || [];
+    let cacheFetchedAt = cache?.meta?.fetchedAt || null;
+
+    if (!rows.length) {
+      try {
+        rows = await naverFetcher.fetchDailyChart(code, 130);
+        if (rows.length) {
+          naverFetcher.saveStockChart(code, rows);
+          cacheFetchedAt = new Date().toISOString();
+        }
+      } catch (e) {
+        return renderIndex(res, { query, error: `차트 조회 실패: ${e.message}` });
+      }
     }
 
-    let selected = stockInfo;
-    let candidates = [];
-
-    if (Array.isArray(stockInfo)) {
-      candidates = stockInfo;
-      selected = stockInfo[0];
+    if (!rows.length) {
+      return renderIndex(res, { query, error: "차트 데이터가 없습니다." });
     }
 
-    const accessToken = await safeApiCall(() => getAccessToken(), 300);
+    // 캐시 stale 일수
+    let cacheStale = null;
+    if (cacheFetchedAt) {
+      const ageDays = Math.floor((Date.now() - new Date(cacheFetchedAt).getTime()) / (24 * 60 * 60 * 1000));
+      if (ageDays >= 2) cacheStale = ageDays;
+    }
 
-    const { startDate, endDate } = getDateRange(6);
-
-    const investorPromise = safeApiCall(() => getInvestorTrend(accessToken, selected.shortCode), 150)
-      .catch((e) => {
-        console.warn(`[flow] 수급 데이터 조회 실패 (${selected.shortCode}): ${e.message || e}`);
-        return null;
-      });
-    const kospiPromise = safeApiCall(() => getIndexPrice(accessToken, "0001"), 150)
-      .catch((e) => {
-        console.warn(`[market] KOSPI 조회 실패: ${e.message || e}`);
-        return null;
-      });
-    const kosdaqPromise = safeApiCall(() => getIndexPrice(accessToken, "1001"), 150)
-      .catch((e) => {
-        console.warn(`[market] KOSDAQ 조회 실패: ${e.message || e}`);
-        return null;
-      });
-
-    const [currentRaw, dailyRaw, weeklyRaw, monthlyRaw, yearlyRaw, investorRaw, kospiRaw, kosdaqRaw] = await Promise.all([
-      safeApiCall(() => getCurrentPrice(accessToken, selected.shortCode), 150),
-      safeApiCall(() => getPeriodChart(accessToken, selected.shortCode, "D", startDate, endDate), 150),
-      safeApiCall(() => getPeriodChart(accessToken, selected.shortCode, "W", startDate, endDate), 150),
-      safeApiCall(() => getPeriodChart(accessToken, selected.shortCode, "M", startDate, endDate), 150),
-      safeApiCall(() => getPeriodChart(accessToken, selected.shortCode, "Y", startDate, endDate), 150),
-      investorPromise,
-      kospiPromise,
-      kosdaqPromise,
-    ]);
-
-    const currentData = normalizeCurrentPrice(currentRaw, selected);
-    const investorRows = investorRaw ? normalizeInvestorTrend(investorRaw) : [];
-    const market = {
-      kospi: kospiRaw ? normalizeIndex(kospiRaw, "코스피") : null,
-      kosdaq: kosdaqRaw ? normalizeIndex(kosdaqRaw, "코스닥") : null,
+    // 2) Naver master 메타 (시총·종가·등락)
+    const naverList = naverFetcher.loadStocksList();
+    const naverMeta = naverList?.stocks?.find((s) => s.code === code);
+    const lastRow = rows[rows.length - 1];
+    const stockMeta = {
+      name: selected.name || naverMeta?.name || "-",
+      code,
+      market: naverMeta?.market || selected.market || null,
+      marketCap: naverMeta?.marketValue || 0,
+      closePrice: naverMeta?.closePrice || lastRow.close,
+      changeRate: naverMeta?.changeRate != null ? naverMeta.changeRate : 0,
     };
-    const stockMarket = (selected.market || "").toUpperCase();
-    const ownIndex = stockMarket.includes("KOSDAQ") ? market.kosdaq : market.kospi;
-    market.relativeRate = ownIndex
-      ? Number((currentData.changeRate - ownIndex.changeRate).toFixed(2))
-      : null;
-    market.ownIndexLabel = ownIndex?.label || null;
 
-    const dailyData = normalizePeriodData(dailyRaw, selected, "DAY");
-    const weeklyData = normalizePeriodData(weeklyRaw, selected, "WEEK");
-    const monthlyData = normalizePeriodData(monthlyRaw, selected, "MONTH");
-    const yearlyData = normalizePeriodData(yearlyRaw, selected, "YEAR");
-
-    const dailySeries = buildSeries(dailyData, currentData.currentPrice, 60);
-    const weeklySeries = buildSeries(weeklyData, currentData.currentPrice, 52);
-    const monthlySeries = buildSeries(monthlyData, currentData.currentPrice, 36);
-    const yearlySeries = buildSeries(yearlyData, currentData.currentPrice, 5);
-
-    const summary = buildSummary(currentData, dailyData, weeklyData, monthlyData, yearlyData);
-    const scoreModel = buildScoreModel(
-      currentData,
-      dailyData,
-      weeklyData,
-      monthlyData,
-      yearlyData,
-      dailySeries,
-      weeklySeries,
-      monthlySeries,
-      yearlySeries,
-      weights,
-      investorRows
+    // 3) 14 features (오늘 = 마지막 캐시일 기준)
+    const sharesOut = stockMeta.marketCap > 0 && stockMeta.closePrice > 0
+      ? stockMeta.marketCap / stockMeta.closePrice
+      : 0;
+    const features = patternScreener.extractPreIgnitionFeatures(
+      rows, rows.length - 1, stockMeta.marketCap, sharesOut
     );
+
+    // 4) 60일 고/저
+    const last60 = rows.slice(-60);
+    const high60 = Math.max(...last60.map((r) => r.high || 0)) || null;
+    const lows60 = last60.map((r) => r.low).filter((v) => v > 0);
+    const low60 = lows60.length ? Math.min(...lows60) : null;
+
+    // 5) 차트는 마지막 130일 (캐시 그대로)
+    const chartRows = rows.slice(-130).map((r) => ({
+      date: r.date,
+      open: r.open, high: r.high, low: r.low, close: r.close,
+      volume: r.volume,
+    }));
 
     return renderIndex(res, {
       query,
-      selected,
-      currentData,
-      candidates,
-      dailySeries,
-      weeklySeries,
-      monthlySeries,
-      yearlySeries,
-      summary,
-      scoreModel,
-      weights,
-      market,
-      returnUrl,
-      stockType: isWeakTrendStock(dailyData) ? "weakTrend" : "trend",
+      candidates: candidates.length > 1 ? candidates : [],
+      stockMeta,
+      chartRows,
+      features,
+      high60,
+      low60,
+      lastDate: lastRow.date,
+      cacheStale,
     });
   } catch (err) {
-    let message = err.message || "알 수 없는 오류가 발생했습니다.";
-    if (err.response?.data) {
-      message = JSON.stringify(err.response.data, null, 2);
-    }
-
     return renderIndex(res, {
       query: req.body.stockQuery || "",
-      error: message,
-      weights,
-      returnUrl,
+      error: err.message || "알 수 없는 오류",
     });
   }
 };
