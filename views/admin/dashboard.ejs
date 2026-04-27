@@ -130,7 +130,24 @@
           <div class="label">구독자</div>
           <div class="value"><%= subscribers.length %> / <%= maxSubscribers %></div>
         </div>
+        <% if (typeof stocksMaster !== 'undefined' && stocksMaster) { %>
+          <div class="meta-cell">
+            <div class="label">종목 마스터</div>
+            <div class="value">
+              <% if (stocksMaster.stale) { %>
+                <span class="badge-soft run"><%= stocksMaster.ageDays %>일 전 ⚠</span>
+              <% } else { %>
+                <%= stocksMaster.ageDays %>일 전
+              <% } %>
+            </div>
+          </div>
+        <% } %>
       </div>
+      <% if (typeof stocksMaster !== 'undefined' && stocksMaster && stocksMaster.stale) { %>
+        <div class="alert alert-warning small mt-2 mb-0">
+          종목 마스터가 30일 이상 갱신되지 않았습니다. 신규 상장 종목이 누락될 수 있어요 — 터미널에서 <code>npm run generate-stocks</code> 실행 권장.
+        </div>
+      <% } %>
 
       <% if (lastSendStatus) { %>
         <hr class="my-3" />
@@ -177,6 +194,53 @@
         <div class="small text-muted mt-2">아직 수동 발송 이력이 없습니다.</div>
       <% } %>
     </div>
+
+    <!-- 단타 forward 통계 -->
+    <% if (typeof shortForwardStats !== 'undefined' && shortForwardStats) { %>
+      <div class="card-soft">
+        <h2><i class="bi bi-stopwatch me-1"></i>단타 forward 검증 (매일 9:05 자동)</h2>
+        <div class="small text-secondary mb-2">최근 <%= shortForwardStats.totalDays %>일 데이터 · 단타 1위 종목의 N분 후 평균 수익률</div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle small mb-0">
+            <thead>
+              <tr>
+                <th>순위</th>
+                <th class="text-end">5분</th>
+                <th class="text-end">15분</th>
+                <th class="text-end">30분</th>
+                <th class="text-end">60분</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% [1,2,3,4,5].forEach(function(rank) {
+                   var byHorizon = shortForwardStats.byRank[rank] || {};
+              %>
+                <tr>
+                  <td>#<%= rank %></td>
+                  <% ["p5","p15","p30","p60"].forEach(function(h) {
+                       var s = byHorizon[h];
+                  %>
+                    <td class="text-end">
+                      <% if (s && s.n > 0) { %>
+                        <span style="color:<%= s.avgReturn >= 0 ? '#16a34a' : '#dc2626' %>;font-weight:600;">
+                          <%= s.avgReturn >= 0 ? '+' : '' %><%= s.avgReturn.toFixed(2) %>%
+                        </span>
+                        <span class="text-muted">(<%= s.winRate.toFixed(0) %>%, n=<%= s.n %>)</span>
+                      <% } else { %>
+                        <span class="text-muted">-</span>
+                      <% } %>
+                    </td>
+                  <% }); %>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <div class="small text-muted mt-2">
+          ℹ️ 표시: <strong>평균 수익률 (승률, 표본 수)</strong>. 단타 모델이 본격적으로 검증되려면 표본 ≥10일 권장.
+        </div>
+      </div>
+    <% } %>
 
     <!-- 수동 발송 -->
     <div class="card-soft">

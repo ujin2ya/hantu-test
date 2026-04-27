@@ -188,6 +188,11 @@
               <a href="<%= baseUrl %>/scan" style="color:#6366f1;text-decoration:none;font-weight:600;">전체 스캔 보기</a>
               <span style="margin:0 8px;color:#cbd5e1;">·</span>
               <a href="<%= unsubscribeUrl %>" style="color:#64748b;text-decoration:underline;">구독 취소</a>
+              <% if (typeof stocksMaster !== 'undefined' && stocksMaster) { %>
+                <div style="margin-top:6px;font-size:10px;color:<%= stocksMaster.stale ? '#92400e' : '#94a3b8' %>;">
+                  <%= stocksMaster.stale ? '⚠️ ' : '' %>종목 마스터: <%= stocksMaster.ageDays %>일 전 갱신<% if (stocksMaster.stale) { %> — 신규 상장 종목 누락 가능. <code>npm run generate-stocks</code> 권장<% } %>
+                </div>
+              <% } %>
             </td>
           </tr>
 

@@ -111,6 +111,7 @@ app.post("/login", (req, res) => {
 
 const stocksJsonPath = path.join(__dirname, "stocks.json");
 let stocksData = null;
+let stocksMasterMtime = null;
 
 function loadStocks() {
   const content = fs.readFileSync(stocksJsonPath, "utf-8");
@@ -124,6 +125,23 @@ function loadStocks() {
   for (const s of stocksData.stocks) {
     if (s.shortCode) stocksData.byShortCode[s.shortCode] = s;
   }
+
+  try {
+    stocksMasterMtime = fs.statSync(stocksJsonPath).mtime;
+  } catch (_) {
+    stocksMasterMtime = null;
+  }
+}
+
+// 종목 마스터 (stocks.json) 의 신선도 정보. UI 푸터에 "N일 전 갱신" 표시용.
+function getStocksMasterAge() {
+  if (!stocksMasterMtime) return null;
+  const ageDays = Math.floor((Date.now() - stocksMasterMtime.getTime()) / (24 * 60 * 60 * 1000));
+  return {
+    mtime: stocksMasterMtime.toISOString(),
+    ageDays,
+    stale: ageDays >= 30,
+  };
 }
 
 function findStockByQuery(query) {
@@ -1650,7 +1668,9 @@ function mergeRankCandidates(sources, limit) {
   }
   filtered.sort((a, b) => {
     if (b.sources.length !== a.sources.length) return b.sources.length - a.sources.length;
-    return (b.tradeValue || 0) - (a.tradeValue || 0);
+    const tradeValueDiff = (b.tradeValue || 0) - (a.tradeValue || 0);
+    if (tradeValueDiff !== 0) return tradeValueDiff;
+    return (b.cttr || 0) - (a.cttr || 0);
   });
   return filtered.slice(0, limit);
 }
@@ -1726,6 +1746,93 @@ function calcIntradayPosition(currentData) {
   return { ratio, score };
 }
 
+function calculateMinuteMomentumAdaptive(minuteRows) {
+  if (!Array.isArray(minuteRows) || minuteRows.length < 4) {
+    return { score: 40, slope: 0, recentVsPrior: 0, explanation: "분봉 데이터 매우 부족" };
+  }
+
+  const ordered = [...minuteRows].reverse();
+  const closes = ordered.map((r) => r.closePrice);
+  const n = closes.length;
+  const recentN = Math.max(1, Math.min(5, Math.floor(n / 3)));
+  const recent = closes.slice(-recentN);
+  const prior = closes.slice(-recentN * 2, -recentN);
+  const avgRecent = recent.length
+    ? recent.reduce((a, b) => a + b, 0) / recent.length
+    : closes[closes.length - 1];
+  const avgPrior = prior.length
+    ? prior.reduce((a, b) => a + b, 0) / prior.length
+    : avgRecent;
+  const recentVsPrior = prior.length > 0 && avgPrior > 0
+    ? ((avgRecent - avgPrior) / avgPrior) * 100
+    : 0;
+
+  const sumX = (n * (n - 1)) / 2;
+  const sumY = closes.reduce((a, b) => a + b, 0);
+  const sumXY = closes.reduce((acc, y, i) => acc + i * y, 0);
+  const sumX2 = closes.reduce((acc, _, i) => acc + i * i, 0);
+  const denom = n * sumX2 - sumX * sumX;
+  const slopeRaw = denom !== 0 ? (n * sumXY - sumX * sumY) / denom : 0;
+  const lastPrice = closes[closes.length - 1] || 1;
+  const slopePercent = (slopeRaw / lastPrice) * 100;
+
+  let score = 50;
+  if (prior.length > 0) {
+    if (recentVsPrior > 1.0) score = 85;
+    else if (recentVsPrior > 0.3) score = 70;
+    else if (recentVsPrior > -0.3) score = 50;
+    else if (recentVsPrior > -1.0) score = 30;
+    else score = 15;
+  } else if (slopePercent > 0.08) {
+    score = 68;
+  } else if (slopePercent > 0.02) {
+    score = 58;
+  } else if (slopePercent < -0.08) {
+    score = 25;
+  } else if (slopePercent < -0.02) {
+    score = 38;
+  } else {
+    score = 45;
+  }
+
+  if (slopePercent > 0 && score < 100) score = Math.min(100, score + 5);
+  if (slopePercent < 0 && score > 0) score = Math.max(0, score - 5);
+  if (n < 10) score = Math.max(0, score - 5);
+
+  return {
+    score: clampScore(score),
+    slope: slopePercent,
+    recentVsPrior,
+    explanation: prior.length > 0
+      ? `최근 ${recentN}분 평균이 직전 ${recentN}분 대비 ${recentVsPrior.toFixed(2)}%`
+      : `분봉 표본 부족, 기울기 ${slopePercent.toFixed(3)}%로 추정`,
+  };
+}
+
+function calcIntradayPositionAdaptive(currentData) {
+  const range = currentData.highPrice - currentData.lowPrice;
+  if (range <= 0) return { ratio: 0.5, score: 50, explanation: "당일 range 부족" };
+
+  const ratio = (currentData.currentPrice - currentData.lowPrice) / range;
+  const strongBreakout =
+    Number(currentData.changeRate || 0) > 2.5 && Number(currentData.chegyeolStrength || 0) >= 100;
+
+  let score = 55;
+  if (ratio < 0.2) score = 68;
+  else if (ratio < 0.4) score = 78;
+  else if (ratio < 0.6) score = 62;
+  else if (ratio < 0.8) score = strongBreakout ? 74 : 58;
+  else score = strongBreakout ? 82 : 52;
+
+  return {
+    ratio,
+    score,
+    explanation: strongBreakout
+      ? `고가권이지만 강한 돌파 흐름 (${(ratio * 100).toFixed(0)}%)`
+      : `당일 범위 내 위치 ${(ratio * 100).toFixed(0)}%`,
+  };
+}
+
 function scoreChegyeolStrength(cttr) {
   if (!cttr) return { score: 50, explanation: "체결강도 0" };
   let score = 50;
@@ -1765,8 +1872,8 @@ function scoreChangeRateForShortTerm(changeRate) {
 function buildShortTermScore(currentData, minuteRows) {
   const cheg = scoreChegyeolStrength(currentData.chegyeolStrength);
   const buySell = scoreBuySellRatio(currentData.buySellRatio);
-  const momentum = calculateMinuteMomentum(minuteRows);
-  const intraday = calcIntradayPosition(currentData);
+  const momentum = calculateMinuteMomentumAdaptive(minuteRows);
+  const intraday = calcIntradayPositionAdaptive(currentData);
   const changeBand = scoreChangeRateForShortTerm(currentData.changeRate);
 
   const weights = { chegyeol: 30, buySell: 20, momentum: 20, intraday: 15, changeBand: 15 };
@@ -1793,7 +1900,10 @@ function buildShortTermScore(currentData, minuteRows) {
   };
 }
 
-const SCAN_CACHE_TTL_MS = 5 * 60 * 1000;
+const SHORT_SCAN_CACHE_TTL_MS = 60 * 1000;
+const SHORT_SCAN_OPENING_CACHE_TTL_MS = 20 * 1000;
+const SWING_SCAN_CACHE_TTL_MS = 2 * 60 * 1000;
+const OFF_MARKET_SCAN_CACHE_TTL_MS = 5 * 60 * 1000;
 const scanCache = new Map();
 
 function getScanCache(key) {
@@ -1806,8 +1916,33 @@ function getScanCache(key) {
   return hit.value;
 }
 
-function setScanCache(key, value) {
-  scanCache.set(key, { value, expiresAt: Date.now() + SCAN_CACHE_TTL_MS });
+function setScanCache(key, value, ttlMs) {
+  scanCache.set(key, { value, expiresAt: Date.now() + ttlMs });
+}
+
+function getMinutesSinceOpenKST(now = new Date()) {
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const day = kst.getUTCDay();
+  const hour = kst.getUTCHours();
+  const minute = kst.getUTCMinutes();
+  const totalMin = hour * 60 + minute;
+  const openMin = 9 * 60;
+  const closeMin = 15 * 60 + 30;
+  const isWeekday = day >= 1 && day <= 5;
+  if (!isWeekday || totalMin < openMin || totalMin >= closeMin) return null;
+  return totalMin - openMin;
+}
+
+function getScanCacheTtlMs(mode) {
+  if (isOffMarketKST()) return OFF_MARKET_SCAN_CACHE_TTL_MS;
+  if (mode === "short") {
+    const minutesSinceOpen = getMinutesSinceOpenKST();
+    if (minutesSinceOpen !== null && minutesSinceOpen < 15) {
+      return SHORT_SCAN_OPENING_CACHE_TTL_MS;
+    }
+    return SHORT_SCAN_CACHE_TTL_MS;
+  }
+  return SWING_SCAN_CACHE_TTL_MS;
 }
 
 function nowHHMMSS() {
@@ -1963,7 +2098,7 @@ function getCachedBacktestSummary(shortCode) {
 // 후보 풀 캐시 — 장중·장 마감 후 정상 호출 시 저장 → 새벽/주말 스캔에서 재사용.
 // KIS 거래대금/거래증가율 순위 API 가 장 시작 전에 비정상 데이터를 반환하는 문제를 우회.
 const SCAN_CANDIDATES_CACHE_PATH = path.join(__dirname, "cache", "scan-candidates.json");
-const SCAN_CANDIDATES_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7일
+const SCAN_CANDIDATES_CACHE_TTL_MS = 36 * 60 * 60 * 1000; // 36 hours
 
 function isOffMarketKST() {
   const kst = new Date(Date.now() + 9 * 60 * 60 * 1000);
@@ -1975,6 +2110,59 @@ function isOffMarketKST() {
   if (hour > 15) return true;                         // 장 마감 후 (16시 이후)
   if (hour === 15 && minute > 30) return true;        // 15:30 이후
   return false;
+}
+
+function getSwingCandidatePoolLimit(candidateLimit) {
+  return Math.max(candidateLimit, Math.min(60, candidateLimit + 20));
+}
+
+function getSwingRawCandidateLimit(candidateLimit) {
+  return Math.max(getSwingCandidatePoolLimit(candidateLimit), Math.min(80, candidateLimit + 35));
+}
+
+function calculateSwingSetupPrefilterScore(dailyData) {
+  const currentPrice = Number(dailyData?.items?.[0]?.closePrice || 0);
+  if (!currentPrice) {
+    return {
+      score: 35,
+      components: { dryUp: 50, squeeze: 50, trendFollow: 50, breakoutReady: 30 },
+      explanation: "종가 데이터 부족",
+    };
+  }
+
+  const dryUp = calculateDryUpScore(dailyData);
+  const squeeze = calculateSqueezeScore(dailyData, currentPrice);
+  const trendFollow = calculateTrendFollowingScore(dailyData);
+  const highs20 = (dailyData.items || []).slice(0, 20).map((it) => Number(it.highPrice || 0)).filter((v) => v > 0);
+  const high20 = highs20.length ? Math.max(...highs20) : 0;
+  const breakoutRatio = high20 > 0 ? currentPrice / high20 : 0;
+
+  let breakoutReady = 45;
+  if (breakoutRatio >= 0.995) breakoutReady = 88;
+  else if (breakoutRatio >= 0.98) breakoutReady = 76;
+  else if (breakoutRatio >= 0.95) breakoutReady = 62;
+  else if (breakoutRatio >= 0.9) breakoutReady = 48;
+  else breakoutReady = 32;
+
+  let score =
+    dryUp.score * 0.35 +
+    squeeze.score * 0.25 +
+    trendFollow.score * 0.25 +
+    breakoutReady * 0.15;
+
+  if (isWeakTrendStock(dailyData)) score -= 10;
+  score = clampScore(score);
+
+  return {
+    score,
+    components: {
+      dryUp: dryUp.score,
+      squeeze: squeeze.score,
+      trendFollow: trendFollow.score,
+      breakoutReady,
+    },
+    explanation: `dryUp ${dryUp.score} / squeeze ${squeeze.score} / trendFollow ${trendFollow.score} / breakout ${breakoutReady}`,
+  };
 }
 
 function loadScanCandidatesCache() {
@@ -2005,6 +2193,8 @@ function saveScanCandidatesCache(candidates) {
 
 async function runSwingScan({ candidateLimit }) {
   const accessToken = await safeApiCall(() => getAccessToken(), 300);
+  const candidatePoolLimit = getSwingCandidatePoolLimit(candidateLimit);
+  const rawCandidateLimit = getSwingRawCandidateLimit(candidateLimit);
 
   let candidates;
 
@@ -2012,7 +2202,7 @@ async function runSwingScan({ candidateLimit }) {
   if (isOffMarketKST()) {
     const cache = loadScanCandidatesCache();
     if (cache) {
-      candidates = cache.candidates.slice(0, candidateLimit);
+      candidates = cache.candidates.slice(0, rawCandidateLimit);
       const ageH = ((Date.now() - new Date(cache.savedAt).getTime()) / 3600000).toFixed(1);
       console.log(`[SWING] 장외 시간 → 캐시된 후보 풀 사용 (저장 ${cache.savedAt}, ${ageH}시간 전, ${candidates.length}건)`);
     }
@@ -2024,13 +2214,17 @@ async function runSwingScan({ candidateLimit }) {
     console.log(`[SWING] volume-rank(BLNG=3) output rows: ${Array.isArray(volumeRaw.output) ? volumeRaw.output.length : "N/A"}`);
     const increaseRaw = await safeApiCall(() => getVolumeRank(accessToken, "1"), 600);
     console.log(`[SWING] volume-rank(BLNG=1, 거래증가율) output rows: ${Array.isArray(increaseRaw.output) ? increaseRaw.output.length : "N/A"}`);
+    const powerRaw = await safeApiCall(() => getVolumePowerRank(accessToken), 600);
+    console.log(`[SWING] volume-power output rows: ${Array.isArray(powerRaw.output) ? powerRaw.output.length : "N/A"}`);
 
     const volumeRows = normalizeRankRows(volumeRaw, "거래대금");
     const increaseRows = normalizeRankRows(increaseRaw, "거래증가율");
+    const powerRows = normalizeRankRows(powerRaw, "체결강도");
     candidates = mergeRankCandidates([
       { rows: volumeRows, label: "거래대금" },
       { rows: increaseRows, label: "거래증가율" },
-    ], candidateLimit);
+      { rows: powerRows, label: "체결강도" },
+    ], rawCandidateLimit);
     console.log(`[SWING] candidates after merge: ${candidates.length}`);
 
     // 정상 시간대 호출 결과만 캐시 갱신 (장외 시간엔 비정상 데이터일 수 있어서 저장 안 함)
@@ -2039,6 +2233,51 @@ async function runSwingScan({ candidateLimit }) {
       console.log(`[SWING] candidates 캐시 갱신 (${candidates.length}건)`);
     }
   }
+
+  const prefilterDateRange = getDateRange(1);
+  const prefilteredCandidates = await processBatched(candidates, 5, async (cand) => {
+    try {
+      const meta = stocksData.byShortCode?.[cand.shortCode] || null;
+      const stockMeta = {
+        shortCode: cand.shortCode,
+        name: cand.name || meta?.name || cand.shortCode,
+        market: meta?.market || "-",
+      };
+      const dailyRaw = await safeApiCall(
+        () => getPeriodChart(
+          accessToken,
+          cand.shortCode,
+          "D",
+          prefilterDateRange.startDate,
+          prefilterDateRange.endDate
+        ),
+        120
+      );
+      const dailyData = normalizePeriodData(dailyRaw, stockMeta, "DAY");
+      const prefilter = calculateSwingSetupPrefilterScore(dailyData);
+      return { ...cand, prefilter };
+    } catch (e) {
+      return {
+        ...cand,
+        prefilter: {
+          score: 0,
+          components: null,
+          explanation: e.message || String(e),
+        },
+      };
+    }
+  });
+
+  prefilteredCandidates.sort((a, b) => {
+    const scoreDiff = (b.prefilter?.score || 0) - (a.prefilter?.score || 0);
+    if (scoreDiff !== 0) return scoreDiff;
+    if ((b.sources?.length || 0) !== (a.sources?.length || 0)) {
+      return (b.sources?.length || 0) - (a.sources?.length || 0);
+    }
+    return (b.tradeValue || 0) - (a.tradeValue || 0);
+  });
+  candidates = prefilteredCandidates.slice(0, candidatePoolLimit);
+  console.log(`[SWING] prefilter narrowed candidates: raw=${prefilteredCandidates.length}, final=${candidates.length}`);
 
   const { startDate, endDate } = getDateRange(6);
   const defaultWeights = { volume: 25, position: 17, trend: 8, rsi: 5, macd: 5, resistance: 15, volatility: 10, flow: 15 };
@@ -2234,7 +2473,12 @@ async function runSwingScan({ candidateLimit }) {
   if (weakTrendCount > 0) {
     console.log(`[SWING] 추세 약함 ${weakTrendCount}건 (제외 안 함, 라벨로 표시)`);
   }
-  results.sort((a, b) => (b.scoreModel?.totalScore || -1) - (a.scoreModel?.totalScore || -1));
+  results.sort((a, b) => {
+    const nightlyDiff =
+      (b.nightlyExtras?.nightlyTotal ?? -1) - (a.nightlyExtras?.nightlyTotal ?? -1);
+    if (nightlyDiff !== 0) return nightlyDiff;
+    return (b.scoreModel?.totalScore || -1) - (a.scoreModel?.totalScore || -1);
+  });
 
   // Phase 6 — top 15 에 백테스트 요약 라벨 자동 부착 (캐시 우선, 없으면 즉시 계산).
   // 메일/스캔에서 "📈 +150% / 📉 -15%" 라벨로 모델 신뢰도 즉시 표시.
@@ -2261,6 +2505,7 @@ async function runSwingScan({ candidateLimit }) {
   return {
     scannedAt: new Date().toISOString(),
     candidateCount: candidates.length,
+    requestedCandidateLimit: candidateLimit,
     mode: "swing",
     results,
   };
@@ -2348,7 +2593,7 @@ app.post("/scan", async (req, res) => {
       scanResult = await runScan({ candidateLimit, includeMinute });
       scanResult.mode = "short";
     }
-    setScanCache(cacheKey, scanResult);
+    setScanCache(cacheKey, scanResult, getScanCacheTtlMs(effectiveMode));
     res.render("scan", {
       error: null,
       scanResult,
@@ -2966,9 +3211,11 @@ async function sendSwingScanEmails(opts = {}) {
   const dateStr = new Date().toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" });
   const baseUrl = process.env.PUBLIC_URL || "https://ydata.co.kr";
 
+  const stocksMaster = getStocksMasterAge();
+
   if (dryRun) {
     const html = await renderEmailHtml("swing-scan", {
-      top, market, dateStr, baseUrl,
+      top, market, dateStr, baseUrl, stocksMaster,
       unsubscribeUrl: `${baseUrl}/unsubscribe?token=PREVIEW`,
     });
     return { sent: 0, failed: 0, dryRun: true, htmlLength: html.length, top: top.length };
@@ -2979,7 +3226,7 @@ async function sendSwingScanEmails(opts = {}) {
   for (const sub of subscribers) {
     try {
       const html = await renderEmailHtml("swing-scan", {
-        top, market, dateStr, baseUrl,
+        top, market, dateStr, baseUrl, stocksMaster,
         unsubscribeUrl: `${baseUrl}/unsubscribe?token=${encodeURIComponent(sub.unsubscribeToken)}`,
       });
       const unsubAddr = `${baseUrl}/unsubscribe?token=${encodeURIComponent(sub.unsubscribeToken)}`;
@@ -3175,6 +3422,8 @@ app.get("/admin", requireAdmin, (req, res) => {
     isSending,
     cronEnabled: process.env.MAIL_CRON_ENABLED === "1",
     flash: req.query.flash || null,
+    stocksMaster: getStocksMasterAge(),
+    shortForwardStats: getShortForwardStats(),
   });
 });
 
@@ -3414,9 +3663,11 @@ async function runBacktest({ stockMeta, monthsBack, threshold, horizons }) {
   const dateIdx = new Map(series.map((s, i) => [s.date, i]));
   const horizonResults = horizons.map((h) => {
     const trades = [];
+    let nextEntryIdx = 0;
     for (const sig of signals) {
       const idx = dateIdx.get(sig.date);
       if (idx === undefined || idx + h >= series.length) continue;
+      if (idx < nextEntryIdx) continue;
       const exit = series[idx + h];
       const ret = ((exit.closePrice - sig.closePrice) / sig.closePrice) * 100;
       trades.push({
@@ -3427,16 +3678,33 @@ async function runBacktest({ stockMeta, monthsBack, threshold, horizons }) {
         exitPrice: exit.closePrice,
         returnPct: ret,
       });
+      nextEntryIdx = idx + h + 1;
     }
     const n = trades.length;
     const wins = trades.filter((t) => t.returnPct > 0).length;
     const winRate = n ? (wins / n) * 100 : 0;
     const avgReturn = n ? trades.reduce((a, t) => a + t.returnPct, 0) / n : 0;
     let cumulative = 1;
-    for (const t of trades) cumulative *= 1 + t.returnPct / 100;
+    let peak = 1;
+    let maxDrawdownPct = 0;
+    for (const t of trades) {
+      cumulative *= 1 + t.returnPct / 100;
+      if (cumulative > peak) peak = cumulative;
+      const drawdownPct = ((cumulative / peak) - 1) * 100;
+      if (drawdownPct < maxDrawdownPct) maxDrawdownPct = drawdownPct;
+    }
     const cumulativeReturn = (cumulative - 1) * 100;
-    const mdd = trades.length ? Math.min(...trades.map((t) => t.returnPct)) : 0;
-    return { horizon: h, n, winRate, avgReturn, cumulativeReturn, mdd, trades };
+    const worstTrade = trades.length ? Math.min(...trades.map((t) => t.returnPct)) : 0;
+    return {
+      horizon: h,
+      n,
+      winRate,
+      avgReturn,
+      cumulativeReturn,
+      mdd: maxDrawdownPct,
+      worstTrade,
+      trades,
+    };
   });
 
   // 종목 분류 (현재 시점 기준) — 백테스트 결과 헤더에 라벨 표시용
@@ -3546,6 +3814,168 @@ app.post("/backtest", async (req, res) => {
   }
 });
 
+// ============================================================
+// 단타 forward test — 단타는 백테스팅 불가능하므로 매일 실시간 추적으로 모델 검증.
+// 매 거래일 9:05 단타 스캔 → top 5 종목 기록 → 5/15/30/60분 후 가격 자동 추적.
+// 결과 누적해서 "단타 1위 종목의 평균 수익률" 통계 산출.
+// ============================================================
+
+const SHORT_FORWARD_LOG_PATH = path.join(__dirname, "cache", "short-forward-log.json");
+
+function loadShortForwardLog() {
+  try {
+    return JSON.parse(fs.readFileSync(SHORT_FORWARD_LOG_PATH, "utf-8"));
+  } catch (_) {
+    return { entries: [] };
+  }
+}
+
+function saveShortForwardLog(log) {
+  try {
+    const dir = path.dirname(SHORT_FORWARD_LOG_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(SHORT_FORWARD_LOG_PATH, JSON.stringify(log, null, 2));
+  } catch (e) {
+    console.warn("[SHORT forward] 로그 저장 실패:", e.message);
+  }
+}
+
+// 단타 스캔 → top 5 종목 기록 → 백그라운드에서 5/15/30/60분 후 가격 추적
+async function recordShortForwardSnapshot() {
+  console.log("[SHORT forward] 단타 스캔 시작");
+  const accessToken = await safeApiCall(() => getAccessToken(), 300);
+  let scanResult;
+  try {
+    scanResult = await runScan({ candidateLimit: 30, includeMinute: true });
+  } catch (e) {
+    console.error("[SHORT forward] 스캔 실패:", e.message);
+    return;
+  }
+  const top = (scanResult.results || []).filter((r) => !r.error).slice(0, 5);
+  if (top.length === 0) {
+    console.log("[SHORT forward] 유효 결과 0건 — 건너뜀");
+    return;
+  }
+
+  const recordedAt = new Date().toISOString();
+  const dateStr = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const entry = {
+    recordedAt,
+    date: dateStr,
+    items: top.map((r, i) => ({
+      rank: i + 1,
+      shortCode: r.shortCode,
+      name: r.name,
+      entryPrice: r.currentPrice,
+      score: r.score?.totalScore || 0,
+      verdict: r.score?.verdict || "",
+      followUp: { p5: null, p15: null, p30: null, p60: null }, // 추후 채워짐
+    })),
+  };
+
+  const log = loadShortForwardLog();
+  log.entries.unshift(entry);
+  // 최근 60개 (3개월) 만 유지
+  if (log.entries.length > 60) log.entries = log.entries.slice(0, 60);
+  saveShortForwardLog(log);
+
+  console.log(`[SHORT forward] 기록 완료 — ${top.length}종목 (1위: ${top[0].name} ${top[0].currentPrice}원)`);
+
+  // 백그라운드 추적 — 5/15/30/60분 후 가격 조회
+  scheduleFollowUp(entry, accessToken);
+}
+
+function scheduleFollowUp(entry, accessToken) {
+  const intervals = [
+    { key: "p5",  delayMs: 5  * 60 * 1000 },
+    { key: "p15", delayMs: 15 * 60 * 1000 },
+    { key: "p30", delayMs: 30 * 60 * 1000 },
+    { key: "p60", delayMs: 60 * 60 * 1000 },
+  ];
+  for (const { key, delayMs } of intervals) {
+    setTimeout(async () => {
+      try {
+        for (const item of entry.items) {
+          const stockMeta = stocksData?.byShortCode?.[item.shortCode] || {};
+          const meta = { name: item.name, market: stockMeta.market || "-", shortCode: item.shortCode };
+          const priceRaw = await safeApiCall(() => getCurrentPrice(accessToken, item.shortCode), 200);
+          const cur = normalizeCurrentPrice(priceRaw, meta);
+          const ret = item.entryPrice > 0
+            ? ((cur.currentPrice - item.entryPrice) / item.entryPrice) * 100
+            : 0;
+          item.followUp[key] = { price: cur.currentPrice, returnPct: ret, at: new Date().toISOString() };
+        }
+        // 같은 entry 가 로그 안에 있으니 통째로 업데이트
+        const log = loadShortForwardLog();
+        const idx = log.entries.findIndex((e) => e.recordedAt === entry.recordedAt);
+        if (idx !== -1) {
+          log.entries[idx] = entry;
+          saveShortForwardLog(log);
+          console.log(`[SHORT forward] ${key} 추적 완료 (1위 ${entry.items[0].name} ${entry.items[0].followUp[key].returnPct.toFixed(2)}%)`);
+        }
+      } catch (e) {
+        console.warn(`[SHORT forward] ${key} 추적 실패:`, e.message);
+      }
+    }, delayMs);
+  }
+}
+
+// 누적 통계 — admin 대시보드용
+function getShortForwardStats() {
+  const log = loadShortForwardLog();
+  if (!log.entries.length) return null;
+  const ranks = [1, 2, 3, 4, 5];
+  const horizons = ["p5", "p15", "p30", "p60"];
+  const stats = { totalDays: log.entries.length, byRank: {} };
+  for (const rank of ranks) {
+    stats.byRank[rank] = {};
+    for (const h of horizons) {
+      const returns = log.entries
+        .map((e) => e.items.find((i) => i.rank === rank)?.followUp?.[h]?.returnPct)
+        .filter((v) => v !== null && v !== undefined);
+      if (returns.length === 0) {
+        stats.byRank[rank][h] = null;
+        continue;
+      }
+      const wins = returns.filter((r) => r > 0).length;
+      const avg = returns.reduce((a, b) => a + b, 0) / returns.length;
+      stats.byRank[rank][h] = {
+        n: returns.length,
+        winRate: (wins / returns.length) * 100,
+        avgReturn: avg,
+      };
+    }
+  }
+  return stats;
+}
+
+// 메일 후보 종목 (캐시된 후보 풀의 상위 15) 의 백테스트 요약을 미리 빌드.
+// 22시 cron 메일 발송 시 캐시 적중되어 발송 시간 단축. 사용자 새벽 스캔도 즉시 응답.
+async function precomputeBacktestSummaries() {
+  const cache = loadScanCandidatesCache();
+  if (!cache?.candidates?.length) {
+    console.log("[BACKTEST precompute] 후보 풀 캐시 없음 — 건너뜀");
+    return { built: 0, cached: 0, total: 0 };
+  }
+  const top = cache.candidates.slice(0, 15);
+  console.log(`[BACKTEST precompute] ${top.length}종목 시작`);
+  const t0 = Date.now();
+  let built = 0;
+  let cachedCount = 0;
+  for (const c of top) {
+    if (getCachedBacktestSummary(c.shortCode)) { cachedCount++; continue; }
+    await getOrComputeBacktestSummary({
+      shortCode: c.shortCode,
+      name: c.name,
+      market: c.market || "-",
+    });
+    built++;
+  }
+  const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+  console.log(`[BACKTEST precompute] 완료 (${elapsed}s) — 신규 ${built}건, 캐시 적중 ${cachedCount}건`);
+  return { built, cached: cachedCount, total: top.length };
+}
+
 if (process.env.MAIL_CRON_ENABLED === "1") {
   cron.schedule("0 22 * * 1-5", async () => {
     console.log("[cron] 평일 22:00 KST — 스윙 스캔 발송 시작");
@@ -3556,6 +3986,28 @@ if (process.env.MAIL_CRON_ENABLED === "1") {
     }
   }, { timezone: "Asia/Seoul" });
   console.log("[cron] 평일 22:00 KST 스윙 스캔 발송 스케줄 등록 완료");
+
+  // 평일 새벽 4시 — 백테스트 캐시 미리 빌드
+  cron.schedule("0 4 * * 1-5", async () => {
+    console.log("[cron] 평일 04:00 KST — 백테스트 캐시 사전 빌드 시작");
+    try {
+      await precomputeBacktestSummaries();
+    } catch (e) {
+      console.error("[cron] 백테스트 캐시 빌드 오류:", e.message || e);
+    }
+  }, { timezone: "Asia/Seoul" });
+  console.log("[cron] 평일 04:00 KST 백테스트 캐시 사전 빌드 스케줄 등록 완료");
+
+  // 평일 9:05 — 단타 forward test 시작 (장 시작 5분 후 시그널 기록 + 5/15/30/60분 후 추적)
+  cron.schedule("5 9 * * 1-5", async () => {
+    console.log("[cron] 평일 09:05 KST — 단타 forward test 시작");
+    try {
+      await recordShortForwardSnapshot();
+    } catch (e) {
+      console.error("[cron] 단타 forward test 오류:", e.message || e);
+    }
+  }, { timezone: "Asia/Seoul" });
+  console.log("[cron] 평일 09:05 KST 단타 forward test 스케줄 등록 완료");
 }
 
 loadStocks();
