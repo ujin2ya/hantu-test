@@ -474,6 +474,7 @@ async function analyzeAll({ logProgress = false } = {}) {
     const { score, breakdown } = scoreFromTables(features, tables);
     const match = computeMatch(features, signature);
     const breakout = detectRecentBreakout(rows, 3);
+    const chartAnalysis = breakout ? analyzeChartContext(rows, breakout) : null;
     candidates.push({
       code, name: meta.name, market: meta.market,
       marketCap: meta.marketValue,
@@ -484,6 +485,7 @@ async function analyzeAll({ logProgress = false } = {}) {
       matched: match.matched, totalKeys: match.total,
       sigBreakdown: match.breakdown,
       breakout, // 최근 3일 안 거래량+양봉 폭발 (있으면 객체, 없으면 null)
+      chartAnalysis, // 차트 자동 검증 verdict (breakout 있을 때만)
     });
   }
   candidates.sort((a, b) => b.score - a.score);
@@ -516,6 +518,86 @@ async function analyzeAll({ logProgress = false } = {}) {
 
   fs.writeFileSync(PATTERN_RESULT_CACHE, JSON.stringify(result, null, 0));
   return result;
+}
+
+// ─────────── Phase B-4: 차트 자동 검증 (verdict) ───────────
+// 후보 카드의 시그니처 매칭만으론 부족 — 작전주, 점화 후 fade, 거래량 식음 등이 위양성으로 들어옴.
+// 차트 휴리스틱 6가지로 자동 판정해서 STRONG/GOOD/MIXED/WEAK 등급 부여.
+function analyzeChartContext(rows, breakout) {
+  if (!breakout || rows.length < 90) return null;
+  const last = rows.length - 1;
+  const today = rows[last];
+  const flags = { positive: [], negative: [] };
+  const vol = (arr) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+
+  // 1. breakout 후 follow-through (이후 추가 상승 vs 즉시 fade)
+  if (breakout.daysAgo > 0) {
+    const breakoutIdx = last - breakout.daysAgo;
+    const breakoutClose = rows[breakoutIdx]?.close;
+    if (breakoutClose > 0) {
+      const since = (today.close - breakoutClose) / breakoutClose;
+      if (since >= 0.02) flags.positive.push(`breakout 이후 +${(since * 100).toFixed(1)}% 추가 상승 (follow-through)`);
+      else if (since <= -0.02) flags.negative.push(`breakout 이후 ${(since * 100).toFixed(1)}% 되돌림 (fade)`);
+    }
+  }
+
+  // 2. 거래량 추세 — 최근 5일 vs 60일 평균
+  const vol60 = vol(rows.slice(-60).map((r) => r.volume).filter((v) => v > 0));
+  const vol5 = vol(rows.slice(-5).map((r) => r.volume).filter((v) => v > 0));
+  if (vol60 > 0) {
+    const ratio = vol5 / vol60;
+    if (ratio >= 1.3) flags.positive.push(`거래량 증가 (60일 평균의 ${(ratio * 100).toFixed(0)}%)`);
+    else if (ratio < 0.5) flags.negative.push(`거래량 식음 (60일 평균의 ${(ratio * 100).toFixed(0)}%)`);
+  }
+
+  // 3. 60일내 거래량+양봉 spike 누적 — 매집 (최근 집중) vs 반복 실패 (분산)
+  const spikes = [];
+  for (let i = Math.max(20, rows.length - 60); i < rows.length; i++) {
+    const prior20Vol = vol(rows.slice(i - 20, i).map((r) => r.volume).filter((v) => v > 0));
+    if (prior20Vol <= 0) continue;
+    const r = rows[i];
+    if (r.volume / prior20Vol >= 2 && r.close >= r.open) {
+      spikes.push({ idx: i, daysAgo: last - i });
+    }
+  }
+  const recentSpikes = spikes.filter((s) => s.daysAgo <= 7);
+  if (recentSpikes.length >= 2) flags.positive.push(`최근 7일내 spike ${recentSpikes.length}회 (매집 패턴)`);
+  // 트렌드 계산 — 가용 데이터의 시작점 기준 (보통 ~110일)
+  const startIdx = Math.max(0, last - 129);
+  const startClose = rows[startIdx]?.close;
+  const trendDays = last - startIdx;
+  const trendN = startClose > 0 ? (today.close - startClose) / startClose : 0;
+  const oldSpikes = spikes.filter((s) => s.daysAgo > 14);
+  if (oldSpikes.length >= 2 && trendN < -0.05) {
+    flags.negative.push(`과거 spike ${oldSpikes.length}회 있었으나 ${trendDays}일 ${(trendN * 100).toFixed(0)}% 하락 (작전주 의심)`);
+  }
+
+  // 4. 장기 트렌드
+  if (trendN >= 0.10) flags.positive.push(`${trendDays}일 +${(trendN * 100).toFixed(0)}% 우상향`);
+  else if (trendN <= -0.10) flags.negative.push(`${trendDays}일 ${(trendN * 100).toFixed(0)}% 하락`);
+
+  // 5. breakout 다음날 fade (오늘이 1일전 spike 다음날인 경우 — 가장 흔한 fade 시그널)
+  if (breakout.daysAgo === 1 && rows[last - 1]) {
+    const todayChange = (today.close - rows[last - 1].close) / rows[last - 1].close;
+    if (todayChange <= -0.02) flags.negative.push(`breakout 다음날 ${(todayChange * 100).toFixed(1)}% fade`);
+  }
+
+  // 6. 30일 진폭 좁음 (깨끗한 base)
+  const r30 = rows.slice(-30);
+  const r30Hi = Math.max(...r30.map((r) => r.high || 0));
+  const r30Lo = Math.min(...r30.map((r) => r.low || Infinity).filter((v) => v < Infinity));
+  if (r30Lo > 0) {
+    const range = (r30Hi - r30Lo) / r30Lo;
+    if (range < 0.15) flags.positive.push(`30일 진폭 ${(range * 100).toFixed(0)}% (좁은 base)`);
+  }
+
+  const score = flags.positive.length - flags.negative.length;
+  let verdict;
+  if (score >= 3) verdict = "STRONG";
+  else if (score >= 1) verdict = "GOOD";
+  else if (score === 0) verdict = "MIXED";
+  else verdict = "WEAK";
+  return { verdict, score, flags };
 }
 
 // ─────────── Phase B-3: 최근 breakout 감지 ───────────

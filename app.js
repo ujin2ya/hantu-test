@@ -2251,9 +2251,16 @@ app.get("/pattern", (req, res) => {
     const cq = cQuery.toLowerCase();
     const matchSearch = (c) => !cq || (c.name || "").toLowerCase().includes(cq) || (c.code || "").toLowerCase().includes(cq);
 
+    const verdictOrder = { STRONG: 4, GOOD: 3, MIXED: 2, WEAK: 1 };
     activeCandidates = result.candidates.top
       .filter((c) => (c.matched || 0) >= 12 && c.breakout && matchSearch(c))
-      .sort((a, b) => (b.matched - a.matched) || ((b.breakout?.score || 0) - (a.breakout?.score || 0)));
+      .sort((a, b) => {
+        const va = verdictOrder[a.chartAnalysis?.verdict] || 0;
+        const vb = verdictOrder[b.chartAnalysis?.verdict] || 0;
+        if (va !== vb) return vb - va; // verdict 우선
+        if (a.matched !== b.matched) return b.matched - a.matched;
+        return (b.breakout?.score || 0) - (a.breakout?.score || 0);
+      });
 
     const activeCodes = new Set(activeCandidates.map((c) => c.code));
     watchCandidates = result.candidates.top

@@ -211,7 +211,16 @@
                 ['igniteValueRatio',  '오늘 거래대금',  fmtPct(c.features?.igniteValueRatio)],
               ];
             %>
-              <div class="item-card" style="border-left:3px solid #f59e0b;">
+              <%
+                const ca = c.chartAnalysis;
+                const verdictColor = ca ?
+                  (ca.verdict === 'STRONG' ? { bg:'#dcfce7', fg:'#166534', border:'#16a34a', icon:'✅', label:'STRONG' }
+                  : ca.verdict === 'GOOD' ? { bg:'#d1fae5', fg:'#047857', border:'#10b981', icon:'🟢', label:'GOOD' }
+                  : ca.verdict === 'MIXED' ? { bg:'#fef3c7', fg:'#92400e', border:'#f59e0b', icon:'🟡', label:'MIXED' }
+                  : { bg:'#fee2e2', fg:'#991b1b', border:'#dc2626', icon:'❌', label:'WEAK' })
+                  : { border:'#f59e0b' };
+              %>
+              <div class="item-card" style="border-left:3px solid <%= verdictColor.border %>;">
                 <div class="row1">
                   <div class="name-block">
                     <span class="rk">#<%= idx + 1 %></span>
@@ -220,12 +229,27 @@
                       <span class="cd"><%= c.code %></span>
                       <i class="bi bi-box-arrow-up-right arr"></i>
                     </a>
+                    <% if (ca) { %>
+                      <span class="score-pill ms-1" style="background:<%= verdictColor.bg %>; color:<%= verdictColor.fg %>; font-size:0.7rem; font-weight:700;">
+                        <%= verdictColor.icon %> <%= verdictColor.label %>
+                      </span>
+                    <% } %>
                     <span class="score-pill ms-1" style="background:#fef3c7; color:#92400e; font-size:0.68rem;" title="<%= c.breakout.date.slice(4,6)+'/'+c.breakout.date.slice(6,8) %> 거래량 <%= c.breakout.volRatio %>x">
                       🔥 <%= c.breakout.daysAgo === 0 ? '오늘' : c.breakout.daysAgo + '일전' %> +<%= c.breakout.dayChange %>% (<%= c.breakout.volRatio %>x)
                     </span>
                   </div>
                   <span class="score-pill" style="background: <%= matchColor.bg %>; color: <%= matchColor.fg %>;"><%= matched %>/<%= totalK %></span>
                 </div>
+                <% if (ca && (ca.flags.positive.length || ca.flags.negative.length)) { %>
+                  <div style="margin:6px 0; padding:6px 8px; background:#f8fafc; border-radius:6px; font-size:0.72rem; line-height:1.5;">
+                    <% ca.flags.positive.forEach(function(f) { %>
+                      <div style="color:#166534;">✓ <%= f %></div>
+                    <% }) %>
+                    <% ca.flags.negative.forEach(function(f) { %>
+                      <div style="color:#991b1b;">✗ <%= f %></div>
+                    <% }) %>
+                  </div>
+                <% } %>
                 <div class="row2">
                   <span>시총 <strong><%= (c.marketCap / 1e8).toFixed(0) %>억</strong></span>
                   <span>종가 <strong><%= c.closePrice ? c.closePrice.toLocaleString() : '-' %></strong></span>
