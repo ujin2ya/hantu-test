@@ -171,6 +171,26 @@
                     <div>✓ <%= f.msg %></div>
                   <% }) %>
                 </div>
+                <%
+                  // 추가 콘텍스트 — 130일 추세 + 60일 spike 횟수
+                  const t130 = m.trend130;
+                  const trendClass = t130 >= 80 ? { fg:'#991b1b', icon:'⚠', msg:'이미 폭등 — 추격 위험' }
+                    : t130 >= 30 ? { fg:'#92400e', icon:'📈', msg:'진행 중' }
+                    : t130 >= -20 ? { fg:'#166534', icon:'✓', msg:'안정 추세' }
+                    : { fg:'#92400e', icon:'⬇', msg:'장기 하락' };
+                  const sp = m.spikes60 || 0;
+                  const spClass = sp >= 6 ? { fg:'#991b1b', icon:'⚠', msg:'반복 펌프 (작전 의심)' }
+                    : sp >= 4 ? { fg:'#92400e', icon:'⚠', msg:'spike 다소 많음' }
+                    : { fg:'#166534', icon:'✓', msg:'정상' };
+                %>
+                <div style="margin:6px 0; padding:6px 8px; background:#f8fafc; border-radius:6px; font-size:0.72rem; line-height:1.6;">
+                  <div style="color:<%= trendClass.fg %>;">
+                    <%= trendClass.icon %> <strong>130일 <%= t130 >= 0 ? '+' : '' %><%= t130 %>%</strong> — <%= trendClass.msg %>
+                  </div>
+                  <div style="color:<%= spClass.fg %>;">
+                    <%= spClass.icon %> <strong>60일내 spike <%= sp %>회</strong> — <%= spClass.msg %>
+                  </div>
+                </div>
                 <% if (m.similarOutcome) { %>
                   <% const o = m.similarOutcome; %>
                   <div style="margin:6px 0; padding:8px 10px; background:#fef9c3; border-left:3px solid #ca8a04; border-radius:4px; font-size:0.72rem; line-height:1.6; color:#713f12;">

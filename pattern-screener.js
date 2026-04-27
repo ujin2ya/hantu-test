@@ -507,6 +507,21 @@ function scanTodaysMomentum({
       // 종합 모멘텀 점수
       const score = (dayChange * 100) + (Math.min(volRatio, 20) * 3) + (Math.min(valuePct, 0.5) * 100) + (closePos * 5);
 
+      // 130일 추세 — 이미 폭등 종목 vs 안정 종목 구분
+      const start = rows[0];
+      const trend130 = start.close > 0 ? (today.close - start.close) / start.close : 0;
+
+      // 60일내 거래량+양봉 spike 횟수 — 작전주 의심 판별
+      let spikes60 = 0;
+      for (let i = Math.max(20, last - 60); i < last; i++) {
+        const r = rows[i];
+        if (!r || !(r.close >= r.open)) continue;
+        const prior = rows.slice(i - 20, i).map((rr) => rr.volume).filter((v) => v > 0);
+        if (prior.length < 10) continue;
+        const a = prior.reduce((x, y) => x + y, 0) / prior.length;
+        if (a > 0 && r.volume / a >= 2) spikes60++;
+      }
+
       const mover = {
         code: meta.code, name: meta.name, market: meta.market,
         marketCap: meta.marketValue, closePrice: today.close,
@@ -516,6 +531,8 @@ function scanTodaysMomentum({
         closePos: Number(closePos.toFixed(2)),
         score: Number(score.toFixed(1)),
         date: today.date,
+        trend130: Math.round(trend130 * 100), // 130일 누적 변동 %
+        spikes60, // 60일내 양봉+거래량spike 횟수
       };
       // 모든 tier 에 품질 평가 — fade 없음 / 종가 강함 / 좁은 base 3가지 필터
       mover.startingQuality = evaluateStartingQuality(rows, mover);
