@@ -120,10 +120,20 @@
                             <%= escapeHtml(item.shortCode) %><% if (item.market && item.market !== "-") { %> · <%= escapeHtml(item.market) %><% } %><% if (ne.marketCap) { %> · <%= fmtMarketCap(ne.marketCap) %><% } %>
                           </div>
                         </td>
-                        <td align="right" valign="top" style="white-space:nowrap;width:80px;">
+                        <td align="right" valign="top" style="white-space:nowrap;width:120px;">
                           <span style="display:inline-block;min-width:36px;padding:4px 10px;border-radius:6px;font-weight:700;color:#ffffff;background:<%= scoreColor(displayScore) %>;font-size:13px;">
                             <%= fmtNum(displayScore, 0) %>
                           </span>
+                          <% if (item.aiAdjust && Number.isFinite(item.aiAdjust.bonus) && !item.aiAdjust.error) {
+                               var ab = item.aiAdjust.bonus;
+                               var aBg = ab > 0 ? '#dcfce7' : ab < 0 ? '#fee2e2' : '#f1f5f9';
+                               var aColor = ab > 0 ? '#166534' : ab < 0 ? '#991b1b' : '#475569';
+                          %>
+                            <span style="display:inline-block;margin-left:4px;padding:3px 7px;border-radius:6px;background:<%= aBg %>;color:<%= aColor %>;font-size:11px;font-weight:700;vertical-align:top;"
+                                  title="<%= escapeHtml(item.aiAdjust.reasoning || 'AI 보정') %>">
+                              AI <%= ab >= 0 ? '+' : '' %><%= ab %>
+                            </span>
+                          <% } %>
                         </td>
                       </tr>
                       <% if (sm.verdict || ne.flow || ne.dryUp || ne.squeeze) { %>

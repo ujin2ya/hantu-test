@@ -35,6 +35,11 @@ const {
   loadWeightTunerCache,
   mapLiveToBacktestWeights,
 } = require("./weight-tuner");
+const {
+  applyAiAdjustToTopN,
+  getAiAdjustForStock,
+  loadDailyCounter: loadAiGroundingDailyCounter,
+} = require("./ai-grounding");
 
 const app = express();
 const PORT = process.env.PORT || 3012;
@@ -2507,6 +2512,20 @@ async function runSwingScan({ candidateLimit }) {
     console.log(`[SWING] 백테스트 요약 신규 계산 ${computedCount}건 (${((Date.now() - tBT) / 1000).toFixed(1)}s)`);
   }
 
+  // Phase 7 — 상위 5에 Gemini 그라운딩(Google 검색) 기반 AI 보정 컬럼 부착.
+  // 베이스라인 점수는 손대지 않고, 별도 r.aiAdjust = {bonus: ±10, reasoning} 만 추가.
+  if (process.env.GEMINI_API_KEY) {
+    const tAI = Date.now();
+    try {
+      const { applied, dailyCounter } = await applyAiAdjustToTopN(results.filter((r) => !r.error), 5);
+      if (applied > 0) {
+        console.log(`[SWING] AI 그라운딩 보정 ${applied}건 (${((Date.now() - tAI) / 1000).toFixed(1)}s, 일일 누적 ${dailyCounter?.count ?? "?"}/${process.env.AI_GROUNDING_DAILY_LIMIT || 30})`);
+      }
+    } catch (e) {
+      console.warn("[SWING] AI 그라운딩 일괄 실패:", e.message);
+    }
+  }
+
   return {
     scannedAt: new Date().toISOString(),
     candidateCount: candidates.length,
@@ -3098,6 +3117,30 @@ const handleSearch = async (req, res) => {
 };
 
 app.post("/search", handleSearch);
+
+// AI 그라운딩 보정 단건 호출 — index 상세 페이지의 "AI 보정 받기" 버튼이 fetch 로 사용.
+// 캐시 적중 시 즉시 반환, 아니면 Gemini Google 검색 그라운딩 1회 호출 (~3~10초).
+app.post("/ai/adjust", express.json(), async (req, res) => {
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ error: "GEMINI_API_KEY가 서버에 설정되지 않았습니다." });
+    }
+    const shortCode = String(req.body.shortCode || "").trim();
+    const name = String(req.body.name || "").trim();
+    const currentPrice = Number(req.body.currentPrice) || 0;
+    const changeRate = Number(req.body.changeRate) || 0;
+    const baselineScore = Number(req.body.baselineScore) || 0;
+    const market = String(req.body.market || "").trim();
+    if (!shortCode || !name) {
+      return res.status(400).json({ error: "shortCode 및 name 필수" });
+    }
+    const adj = await getAiAdjustForStock({ shortCode, name, currentPrice, changeRate, baselineScore, market });
+    res.json({ ok: true, aiAdjust: adj, daily: loadAiGroundingDailyCounter() });
+  } catch (err) {
+    console.error("[/ai/adjust] error:", err.message || err);
+    res.status(500).json({ error: err.message || "AI 보정 실패" });
+  }
+});
 
 // ============================================================
 // 이메일 구독 / 발송 / 크론 (밤 배치 스윙 스캔 발송)

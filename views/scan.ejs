@@ -538,7 +538,19 @@
                     <div class="stock-code"><%= r.shortCode %><% if (r.market) { %> · <%= r.market %><% } %></div>
                   </div>
                   <% if (!hasErr) { %>
-                    <span class="score-pill <%= cls %>"><%= sc %></span>
+                    <div class="text-end" style="white-space:nowrap;">
+                      <span class="score-pill <%= cls %>"><%= sc %></span>
+                      <% if (r.aiAdjust && Number.isFinite(r.aiAdjust.bonus) && !r.aiAdjust.error) {
+                           var ab = r.aiAdjust.bonus;
+                           var aBg = ab > 0 ? '#dcfce7' : ab < 0 ? '#fee2e2' : '#f1f5f9';
+                           var aColor = ab > 0 ? '#166534' : ab < 0 ? '#991b1b' : '#475569';
+                      %>
+                        <div style="margin-top:3px;display:inline-block;padding:2px 6px;border-radius:6px;background:<%= aBg %>;color:<%= aColor %>;font-size:10px;font-weight:700;"
+                             title="<%= r.aiAdjust.reasoning || 'AI 보정' %>">
+                          AI <%= ab >= 0 ? '+' : '' %><%= ab %>
+                        </div>
+                      <% } %>
+                    </div>
                   <% } %>
                 </div>
                 <% if (hasErr) { %>
@@ -624,7 +636,19 @@
                     <div class="stock-code"><%= r.shortCode %><% if (r.market) { %> · <%= r.market %><% } %></div>
                   </div>
                   <% if (!hasErr) { %>
-                    <span class="score-pill <%= cls %>"><%= sc %></span>
+                    <div class="text-end" style="white-space:nowrap;">
+                      <span class="score-pill <%= cls %>"><%= sc %></span>
+                      <% if (r.aiAdjust && Number.isFinite(r.aiAdjust.bonus) && !r.aiAdjust.error) {
+                           var ab = r.aiAdjust.bonus;
+                           var aBg = ab > 0 ? '#dcfce7' : ab < 0 ? '#fee2e2' : '#f1f5f9';
+                           var aColor = ab > 0 ? '#166534' : ab < 0 ? '#991b1b' : '#475569';
+                      %>
+                        <div style="margin-top:3px;display:inline-block;padding:2px 6px;border-radius:6px;background:<%= aBg %>;color:<%= aColor %>;font-size:10px;font-weight:700;"
+                             title="<%= r.aiAdjust.reasoning || 'AI 보정' %>">
+                          AI <%= ab >= 0 ? '+' : '' %><%= ab %>
+                        </div>
+                      <% } %>
+                    </div>
                   <% } %>
                 </div>
                 <% if (hasErr) { %>
@@ -727,6 +751,16 @@
                         <% var sc = r.scoreModel.totalScore;
                            var cls = sc >= 75 ? 'score-strong' : sc >= 60 ? 'score-good' : sc >= 45 ? 'score-mid' : 'score-weak'; %>
                         <span class="score-pill <%= cls %>"><%= sc %></span>
+                        <% if (r.aiAdjust && Number.isFinite(r.aiAdjust.bonus) && !r.aiAdjust.error) {
+                             var ab2 = r.aiAdjust.bonus;
+                             var aBg2 = ab2 > 0 ? '#dcfce7' : ab2 < 0 ? '#fee2e2' : '#f1f5f9';
+                             var aColor2 = ab2 > 0 ? '#166534' : ab2 < 0 ? '#991b1b' : '#475569';
+                        %>
+                          <div style="margin-top:2px;display:inline-block;padding:1px 5px;border-radius:5px;background:<%= aBg2 %>;color:<%= aColor2 %>;font-size:10px;font-weight:700;"
+                               title="<%= r.aiAdjust.reasoning || 'AI 보정' %>">
+                            AI <%= ab2 >= 0 ? '+' : '' %><%= ab2 %>
+                          </div>
+                        <% } %>
                       </td>
                       <td class="verdict-cell"><%= r.scoreModel.verdict %></td>
                       <td class="small text-secondary">

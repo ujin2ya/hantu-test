@@ -820,6 +820,19 @@
             <div class="metric-label">종합 점수</div>
             <div class="metric-value"><%= safeScoreModel.totalScore %>점</div>
             <span class="verdict-badge"><%= safeScoreModel.verdict %></span>
+            <div id="ai-adjust-block" class="mt-2" style="font-size: 0.78rem;">
+              <button type="button" id="ai-adjust-btn" class="btn btn-sm btn-outline-light"
+                      style="border-color: rgba(255,255,255,0.5); color: #fff;"
+                      data-shortcode="<%= selected ? selected.shortCode : '' %>"
+                      data-name="<%= selected ? (selected.name || '') : '' %>"
+                      data-price="<%= currentData ? (currentData.currentPrice || 0) : 0 %>"
+                      data-change="<%= currentData ? (currentData.changeRate || 0) : 0 %>"
+                      data-baseline="<%= safeScoreModel.totalScore %>"
+                      data-market="<%= selected ? (selected.market || '') : '' %>">
+                <i class="bi bi-magic me-1"></i>AI 보정 받기 (Google 검색)
+              </button>
+              <div id="ai-adjust-result" style="display:none;margin-top:8px;"></div>
+            </div>
           </div>
         </div>
         <% const subScores = [
@@ -1246,6 +1259,59 @@
           createMixedChart("monthlyChart", monthlySeries, "rgba(245, 158, 11, 1)");
           createMixedChart("yearlyChart", yearlySeries, "rgba(139, 92, 246, 1)");
         });
+      </script>
+      <script>
+        // AI 보정 (Gemini 그라운딩) — 종합 점수 카드 안의 "AI 보정 받기" 버튼.
+        (function () {
+          const btn = document.getElementById("ai-adjust-btn");
+          if (!btn) return;
+          const resultBox = document.getElementById("ai-adjust-result");
+          btn.addEventListener("click", async function () {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>AI 검색 중…';
+            resultBox.style.display = "none";
+            try {
+              const payload = {
+                shortCode: btn.dataset.shortcode,
+                name: btn.dataset.name,
+                currentPrice: Number(btn.dataset.price) || 0,
+                changeRate: Number(btn.dataset.change) || 0,
+                baselineScore: Number(btn.dataset.baseline) || 0,
+                market: btn.dataset.market || "",
+              };
+              const r = await fetch("/ai/adjust", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              });
+              const data = await r.json();
+              if (!r.ok || !data.ok) throw new Error(data.error || "AI 보정 실패");
+              const a = data.aiAdjust || {};
+              const bonus = a.bonus;
+              const isErr = !!a.error;
+              const sign = bonus > 0 ? "+" : (bonus < 0 ? "" : "±");
+              const bg = isErr ? "#fff7ed" : (bonus > 0 ? "#dcfce7" : (bonus < 0 ? "#fee2e2" : "#f1f5f9"));
+              const fg = isErr ? "#92400e" : (bonus > 0 ? "#166534" : (bonus < 0 ? "#991b1b" : "#475569"));
+              resultBox.innerHTML =
+                '<div style="background:' + bg + ';color:' + fg +
+                ';padding:8px 10px;border-radius:8px;line-height:1.5;">' +
+                '<div style="font-weight:700;font-size:0.95rem;">AI ' + sign + (Number.isFinite(bonus) ? bonus : "?") + 'p ' +
+                (isErr ? "(" + (a.error || "오류") + ")" : "") + '</div>' +
+                '<div style="margin-top:3px;color:' + fg + ';opacity:0.85;">' + (a.reasoning || "") + '</div>' +
+                (a.cached ? '<div style="margin-top:3px;font-size:0.7rem;color:#64748b;">캐시 적중 · 일일 누적 ' + (data.daily?.count ?? "?") + '회</div>' :
+                  '<div style="margin-top:3px;font-size:0.7rem;color:#64748b;">일일 누적 ' + (data.daily?.count ?? "?") + '회</div>') +
+                '</div>';
+              resultBox.style.display = "block";
+              btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>다시 받기';
+              btn.disabled = false;
+            } catch (e) {
+              resultBox.innerHTML = '<div class="text-warning small">AI 보정 실패: ' + (e.message || e) + '</div>';
+              resultBox.style.display = "block";
+              btn.innerHTML = '<i class="bi bi-magic me-1"></i>AI 보정 받기';
+              btn.disabled = false;
+            }
+          });
+        })();
       </script>
     <% } %>
   </main>
