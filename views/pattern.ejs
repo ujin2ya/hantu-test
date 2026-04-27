@@ -36,6 +36,10 @@
     .item-card .row1 .name-block { flex: 1; min-width: 0; }
     .item-card .row1 .name-block .nm { font-weight: 700; color: #0f172a; }
     .item-card .row1 .name-block .cd { color: #94a3b8; font-size: 0.78rem; margin-left: 4px; }
+    .item-card .row1 .name-block a.deep-link { text-decoration: none; color: inherit; display: inline-flex; align-items: center; gap: 2px; }
+    .item-card .row1 .name-block a.deep-link:hover .nm { color: #2563eb; text-decoration: underline; }
+    .item-card .row1 .name-block a.deep-link .arr { color: #cbd5e1; font-size: 0.7rem; margin-left: 2px; }
+    .item-card .row1 .name-block a.deep-link:hover .arr { color: #2563eb; }
     .item-card .row1 .name-block .rk { color: #64748b; font-size: 0.78rem; margin-right: 6px; font-variant-numeric: tabular-nums; }
     .item-card .row2, .item-card .row3 {
       display: flex; flex-wrap: wrap; gap: 4px 12px;
@@ -195,8 +199,11 @@
                 <div class="row1">
                   <div class="name-block">
                     <span class="rk">#<%= rank %></span>
-                    <span class="nm"><%= c.name %></span>
-                    <span class="cd"><%= c.code %></span>
+                    <a class="deep-link" href="/?query=<%= encodeURIComponent(c.code) %>" target="_blank" rel="noopener" title="딥다이브 분석 (새 탭)">
+                      <span class="nm"><%= c.name %></span>
+                      <span class="cd"><%= c.code %></span>
+                      <i class="bi bi-box-arrow-up-right arr"></i>
+                    </a>
                   </div>
                   <span class="score-pill" style="background: <%= scoreColor.bg %>; color: <%= scoreColor.fg %>;"><%= c.score.toFixed(2) %></span>
                 </div>
@@ -311,8 +318,11 @@
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
-                  <span class="nm"><%= e.name %></span>
-                  <span class="cd"><%= e.code %></span>
+                  <a class="deep-link" href="/?query=<%= encodeURIComponent(e.code) %>" target="_blank" rel="noopener" title="딥다이브 분석 (새 탭)">
+                    <span class="nm"><%= e.name %></span>
+                    <span class="cd"><%= e.code %></span>
+                    <i class="bi bi-box-arrow-up-right arr"></i>
+                  </a>
                   <% if (e.inProgress) { %><span class="badge bg-warning text-dark ms-1" style="font-size:0.62rem;">진행중</span><% } %>
                 </div>
                 <span class="magnitude-pill">+<%= (e.magnitude * 100).toFixed(0) %>%</span>
