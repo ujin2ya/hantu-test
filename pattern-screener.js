@@ -648,10 +648,9 @@ async function analyzeAll({ logProgress = false } = {}) {
   // ─── Layer 2: 오늘의 모멘텀 스캔 ───
   const momentumMovers = scanTodaysMomentum({ stocksList });
 
-  // PREMIUM 종목한테 과거 유사 사례 outcome 추정 (참고 통계)
+  // PREMIUM 종목한테 과거 유사 사례 outcome 추정 + 가격 타깃 계산
   for (const m of momentumMovers) {
     if (m.startingQuality?.quality !== "PREMIUM") continue;
-    // 오늘 시점 features 계산 (모멘텀 종목 cache 에서)
     try {
       const cache = JSON.parse(fs.readFileSync(path.join(CACHE_DIR, m.code + ".json"), "utf-8"));
       const rows = cache.rows || [];
@@ -661,7 +660,28 @@ async function analyzeAll({ logProgress = false } = {}) {
       const sharesOut = meta.closePrice > 0 ? meta.marketValue / meta.closePrice : 0;
       const features = extractPreIgnitionFeatures(rows, rows.length - 1, meta.marketValue, sharesOut);
       if (!features) continue;
-      m.similarOutcome = findSimilarOutcomes(features, successEvents, 30);
+      const outcome = findSimilarOutcomes(features, successEvents, 30);
+      if (!outcome) continue;
+
+      // 30일 저점 = 현재 surge 기준 base 가격 (대략적)
+      const last30 = rows.slice(-30);
+      const lowsArr = last30.map((r) => r.low).filter((v) => v > 0);
+      const baseLow = lowsArr.length ? Math.min(...lowsArr) : null;
+
+      if (baseLow && baseLow > 0) {
+        outcome.baseLow = Math.round(baseLow);
+        outcome.targetMedian = Math.round(baseLow * (1 + outcome.magMedian));
+        outcome.targetP25 = Math.round(baseLow * (1 + outcome.magP25));
+        outcome.targetP75 = Math.round(baseLow * (1 + outcome.magP75));
+        outcome.targetMax = Math.round(baseLow * (1 + outcome.magMax));
+        // 현재가 → median 타깃 잔여 상승률
+        const currentGain = (m.closePrice - baseLow) / baseLow;
+        outcome.currentGainFromBase = Math.round(currentGain * 100);
+        outcome.remainingToMedian = outcome.magMedian > currentGain
+          ? Math.round((outcome.magMedian - currentGain) * 100)
+          : 0;
+      }
+      m.similarOutcome = outcome;
     } catch (_) {}
   }
 

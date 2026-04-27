@@ -172,14 +172,21 @@
                   <% }) %>
                 </div>
                 <% if (m.similarOutcome) { %>
+                  <% const o = m.similarOutcome; %>
                   <div style="margin:6px 0; padding:8px 10px; background:#fef9c3; border-left:3px solid #ca8a04; border-radius:4px; font-size:0.72rem; line-height:1.6; color:#713f12;">
-                    📊 <strong>과거 유사 setup <%= m.similarOutcome.n %>개 결말</strong> (참고만 — 예측 아님)
-                    <div style="margin-top:3px;">
-                      • 폭등률: median <strong>+<%= Math.round(m.similarOutcome.magMedian * 100) %>%</strong>
-                      (p25 +<%= Math.round(m.similarOutcome.magP25 * 100) %>% ~ p75 +<%= Math.round(m.similarOutcome.magP75 * 100) %>%, max +<%= Math.round(m.similarOutcome.magMax * 100) %>%)
-                    </div>
-                    <div>• 기간: median <strong><%= m.similarOutcome.durMedian %>일</strong> (p25 <%= m.similarOutcome.durP25 %>일 ~ p75 <%= m.similarOutcome.durP75 %>일)</div>
-                    <div>• <%= m.similarOutcome.pctReached60 %>% 가 +60% 이상 도달, <%= m.similarOutcome.pctReached100 %>% 가 +100% 이상 도달</div>
+                    📊 <strong>과거 유사 setup <%= o.n %>개 결말 — 타깃가</strong> (참고만, 예측 아님)
+                    <% if (o.baseLow) { %>
+                      <div style="margin-top:4px; padding:4px 6px; background:#fff; border-radius:3px;">
+                        <strong>30일 저점 <%= o.baseLow.toLocaleString() %>원 기준 → 현재 +<%= o.currentGainFromBase %>%</strong>
+                      </div>
+                      <div style="margin-top:4px;">
+                        🎯 <strong>median 타깃: <%= o.targetMedian.toLocaleString() %>원</strong> (현재가 대비 <%= o.remainingToMedian > 0 ? '+' + o.remainingToMedian + '% 잔여' : '이미 도달' %>)
+                      </div>
+                      <div>📈 p75 타깃: <strong><%= o.targetP75.toLocaleString() %>원</strong> · 최대 도달: <strong><%= o.targetMax.toLocaleString() %>원</strong></div>
+                      <div style="font-size:0.68rem; opacity:0.8;">• 평균 기간 <%= o.durMedian %>일 · +60% 도달 <%= o.pctReached60 %>% · +100% 도달 <%= o.pctReached100 %>%</div>
+                    <% } else { %>
+                      <div>• 폭등률 median +<%= Math.round(o.magMedian * 100) %>% (p25~p75 +<%= Math.round(o.magP25*100) %>~+<%= Math.round(o.magP75*100) %>%)</div>
+                    <% } %>
                   </div>
                 <% } %>
                 <div class="row2">
