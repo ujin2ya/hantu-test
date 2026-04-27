@@ -403,7 +403,8 @@ function evaluateStartingQuality(rows, mover) {
     const hi = Math.max(...highs);
     const lo = Math.min(...lows);
     const range = lo > 0 ? (hi - lo) / lo : 0;
-    if (range <= 0.06) flags.push({ ok: true, msg: `7일 base 진폭 ${(range * 100).toFixed(1)}% (좁음)` });
+    // 임계값 12% — 6% 는 너무 빡빡 (대부분의 모멘텀 종목이 8~12% 진폭)
+    if (range <= 0.12) flags.push({ ok: true, msg: `7일 base 진폭 ${(range * 100).toFixed(1)}% (괜찮은 base)` });
     else flags.push({ ok: false, msg: `7일 base 진폭 ${(range * 100).toFixed(1)}% (변동 큼)` });
   }
 
