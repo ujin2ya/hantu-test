@@ -460,6 +460,16 @@ async function analyzeAll({ logProgress = false } = {}) {
     // ⭐ 후보 추세 필터 — 성공 이벤트와 동일 기준: 점화 직전 MA60 가 -3% 이상 하락 중이면 제외.
     // 인투셀 (5개월 다운트렌드) 같은 종목이 14/14 매칭 들어오는 걸 막음.
     if (features.ma60Slope != null && features.ma60Slope < 0.97) continue;
+    // ⭐ "이미 한참 오른" 종목 제외 — MA60 이 +12% 이상 상승 중이면 base 단계 아님 (팜스코 같은 case).
+    if (features.ma60Slope != null && features.ma60Slope > 1.12) continue;
+    // ⭐ 박스권 확인 — 최근 30일 진폭이 25% 이상이면 base 패턴 아님 (쿠콘·아이텍 같은 변동 큰 case).
+    const last30 = rows.slice(-30);
+    const r30Hi = Math.max(...last30.map((r) => r.high || 0));
+    const r30LowsArr = last30.map((r) => r.low).filter((v) => v > 0);
+    if (r30LowsArr.length >= 20) {
+      const r30Lo = Math.min(...r30LowsArr);
+      if (r30Lo > 0 && (r30Hi - r30Lo) / r30Lo > 0.25) continue;
+    }
 
     const { score, breakdown } = scoreFromTables(features, tables);
     const match = computeMatch(features, signature);
