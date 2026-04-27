@@ -186,6 +186,11 @@ function extractPreIgnitionFeatures(rows, ignitionIdx, marketCap, listedShares) 
   const high60 = Math.max(...rows.slice(ref60Start, ignitionIdx).map((r) => r.high || 0));
   const positionPct = high60 > 0 ? ignitionRow.close / high60 : 1;
 
+  // 6-2. 60일 저점 대비 상승률: 점화일 가격 / 직전 60일 저점 (1.0 = 저점, 1.5 = 저점 +50%)
+  const lowsForRange = rows.slice(ref60Start, ignitionIdx).map((r) => r.low).filter((v) => v > 0);
+  const low60 = lowsForRange.length ? Math.min(...lowsForRange) : null;
+  const positionFromLow = low60 ? ignitionRow.close / low60 : null;
+
   // 7~8. 이평선 위치: 점화일 종가 / 20·60일 SMA
   const closes20 = window.map((r) => r.close).filter((v) => Number.isFinite(v) && v > 0);
   const ma20 = closes20.length >= 5 ? avg(closes20) : null;
@@ -194,9 +199,10 @@ function extractPreIgnitionFeatures(rows, ignitionIdx, marketCap, listedShares) 
   const maPos20 = ma20 ? ignitionRow.close / ma20 : null;
   const maPos60 = ma60 ? ignitionRow.close / ma60 : null;
 
-  // 9. 매물대: 60일 OHLC 거래량 가중 24-bin 히스토그램에서 점화일 종가 위쪽 비율
+  // 9. 매물대: 60일 OHLC 거래량 가중 24-bin 히스토그램에서 점화일 종가 위쪽 비율 + 점화가 ±5% 매물 밀도
   const ref60Rows = rows.slice(ref60Start, ignitionIdx);
   let resistAbove = null;
+  let localResistance = null;
   if (ref60Rows.length >= 20) {
     const lows = ref60Rows.map((r) => r.low).filter((v) => Number.isFinite(v) && v > 0);
     const highs = ref60Rows.map((r) => r.high).filter((v) => Number.isFinite(v) && v > 0);
@@ -219,6 +225,13 @@ function extractPreIgnitionFeatures(rows, ignitionIdx, marketCap, listedShares) 
           const igniteBin = Math.min(BINS - 1, Math.max(0, Math.floor((ignitionRow.close - minP) / range * BINS)));
           const above = sum(bins.slice(igniteBin + 1));
           resistAbove = above / totalV;
+          // 점화가 ±5% 가격대 매물 밀도 (가격기준 ±5% → bin 단위 환산)
+          const bandFrac = 0.05 * ignitionRow.close / range; // 가격 ±5%가 range 의 몇 비율
+          const bandBins = Math.max(1, Math.round(bandFrac * BINS));
+          const localStart = Math.max(0, igniteBin - bandBins);
+          const localEnd = Math.min(BINS - 1, igniteBin + bandBins);
+          const local = sum(bins.slice(localStart, localEnd + 1));
+          localResistance = local / totalV;
         }
       }
     }
@@ -249,9 +262,11 @@ function extractPreIgnitionFeatures(rows, ignitionIdx, marketCap, listedShares) 
     foreignDelta: foreignDelta != null ? Number(foreignDelta.toFixed(2)) : null,
     atrCompress: Number(atrCompress.toFixed(2)),            // 1 미만 = 변동성 수렴
     positionPct: Number(positionPct.toFixed(3)),            // 1 = 60일 고점, 0.5 = 절반
+    positionFromLow: positionFromLow != null ? Number(positionFromLow.toFixed(3)) : null,  // 1.0 = 저점, 1.5 = 저점 +50%
     maPos20: maPos20 != null ? Number(maPos20.toFixed(3)) : null,    // 1 = 20일선 위, <1 = 아래
     maPos60: maPos60 != null ? Number(maPos60.toFixed(3)) : null,    // 1 = 60일선 위, <1 = 아래
     resistAbove: resistAbove != null ? Number(resistAbove.toFixed(3)) : null,  // 0 = 위쪽 매물대 없음, 1 = 모두 위
+    localResistance: localResistance != null ? Number(localResistance.toFixed(3)) : null,  // 점화가 ±5% 매물 밀도
     boxDays,                                                 // 0~30 (점화 직전 좁은 변동폭 연속일)
     igniteValueRatio: Number(igniteValueRatio.toFixed(4)),  // 점화일 거래대금/시총
     igniteVolumeRatio: Number(igniteVolumeRatio.toFixed(2)),// 점화일 거래량 / 20일평균
@@ -316,8 +331,11 @@ function quantile(arr, p) {
 }
 
 const FEATURE_KEYS = [
-  "turnover", "bullBearRatio", "volumeSurge", "foreignDelta", "atrCompress", "positionPct",
-  "maPos20", "maPos60", "resistAbove", "boxDays", "igniteValueRatio", "igniteVolumeRatio",
+  "turnover", "bullBearRatio", "volumeSurge", "foreignDelta", "atrCompress",
+  "positionPct", "positionFromLow",
+  "maPos20", "maPos60",
+  "resistAbove", "localResistance",
+  "boxDays", "igniteValueRatio", "igniteVolumeRatio",
 ];
 
 function summarizeFeatures(events) {
