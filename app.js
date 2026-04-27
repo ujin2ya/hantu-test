@@ -30,6 +30,11 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const cron = require("node-cron");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const {
+  runWeightTuner,
+  loadWeightTunerCache,
+  mapLiveToBacktestWeights,
+} = require("./weight-tuner");
 
 const app = express();
 const PORT = process.env.PORT || 3012;
@@ -2889,6 +2894,12 @@ app.get("/", (req, res) => {
     req.body = { stockQuery: incomingQuery };
     return handleSearch(req, res);
   }
+  // query 파라미터에 가중치(volumeWeight 등)가 있으면 폼 디폴트로 반영 — admin 가중치 추천 링크용
+  const hasWeightParams = ["volumeWeight","positionWeight","trendWeight","rsiWeight","macdWeight","resistanceWeight","volatilityWeight","flowWeight"]
+    .some((k) => req.query[k] !== undefined);
+  const weights = hasWeightParams
+    ? parseWeights(req.query)
+    : { volume: 25, position: 17, trend: 8, rsi: 5, macd: 5, resistance: 15, volatility: 10, flow: 15 };
   res.render("index", {
     query: "",
     error: null,
@@ -2901,16 +2912,7 @@ app.get("/", (req, res) => {
     yearlySeries: null,
     summary: null,
     scoreModel: null,
-    weights: {
-      volume: 25,
-      position: 17,
-      trend: 8,
-      rsi: 5,
-      macd: 5,
-      resistance: 15,
-      volatility: 10,
-      flow: 15,
-    },
+    weights,
     market: null,
     autoMode: pickAutoMode(),
     returnUrl: null,
@@ -3414,6 +3416,24 @@ app.get("/admin/logout", (req, res) => {
   res.redirect("/admin/login");
 });
 
+// 가중치 튜너 — 백그라운드 실행 (스윙은 1~2분 소요).
+const weightTunerState = {
+  running: false,
+  startedAt: null,
+  finishedAt: null,
+  mode: null,
+  error: null,
+};
+
+function getWeightTunerDeps() {
+  return {
+    runBacktest,
+    loadScanCandidatesCache,
+    getShortForwardStats,
+    stocksDataGetter: () => stocksData,
+  };
+}
+
 app.get("/admin", requireAdmin, (req, res) => {
   res.render("admin/dashboard", {
     subscribers: loadSubscribers(),
@@ -3424,7 +3444,33 @@ app.get("/admin", requireAdmin, (req, res) => {
     flash: req.query.flash || null,
     stocksMaster: getStocksMasterAge(),
     shortForwardStats: getShortForwardStats(),
+    weightTunerCache: loadWeightTunerCache(),
+    weightTunerState,
   });
+});
+
+app.post("/admin/weight-tuner/run", requireAdmin, (req, res) => {
+  if (weightTunerState.running) {
+    return res.redirect("/admin?flash=tuner_running");
+  }
+  const requested = String(req.body.mode || "all");
+  const mode = ["swing", "short", "all"].includes(requested) ? requested : "all";
+  weightTunerState.running = true;
+  weightTunerState.startedAt = new Date().toISOString();
+  weightTunerState.finishedAt = null;
+  weightTunerState.mode = mode;
+  weightTunerState.error = null;
+  res.redirect("/admin?flash=tuner_started");
+  // fire-and-forget
+  runWeightTuner(getWeightTunerDeps(), { mode })
+    .catch((e) => {
+      weightTunerState.error = e.message || String(e);
+      console.error("[weight-tuner] 실행 오류:", e.message || e);
+    })
+    .finally(() => {
+      weightTunerState.running = false;
+      weightTunerState.finishedAt = new Date().toISOString();
+    });
 });
 
 app.post("/admin/send", requireAdmin, (req, res) => {
@@ -3572,7 +3618,7 @@ const synthesizeMonthly = (itemsAsc) => aggregateBars(itemsAsc, (x) => x.date.sl
 const synthesizeYearly  = (itemsAsc) => aggregateBars(itemsAsc, (x) => x.date.slice(0, 4));
 
 // 시점 T 에서 그날까지의 데이터만으로 점수 계산
-function computeBacktestScoreAt(allItemsDesc, t, stockMeta) {
+function computeBacktestScoreAt(allItemsDesc, t, stockMeta, weightsOverride) {
   const sliceDesc = allItemsDesc.slice(t); // 최신=t시점
   if (sliceDesc.length < 60) return null;
 
@@ -3599,8 +3645,11 @@ function computeBacktestScoreAt(allItemsDesc, t, stockMeta) {
   const monthlySeries = buildSeries(monthlyData, currentData.currentPrice, 36);
   const yearlySeries  = buildSeries(yearlyData,  currentData.currentPrice, 5);
 
-  // flow=0 으로 두고 buildScoreModel 호출 → flow 기여 0
-  const weights = { volume: 18, position: 12, trend: 8, rsi: 5, macd: 5, resistance: 10, volatility: 8, flow: 0 };
+  // flow=0 으로 두고 buildScoreModel 호출 → flow 기여 0.
+  // weightsOverride 는 라이브 8개 가중치 (합 100) — mapLiveToBacktestWeights 로 백테스트 차원(합 66, flow=0) 매핑.
+  const weights = weightsOverride
+    ? mapLiveToBacktestWeights(weightsOverride)
+    : { volume: 18, position: 12, trend: 8, rsi: 5, macd: 5, resistance: 10, volatility: 8, flow: 0 };
   const sm = buildScoreModel(
     currentData, dailyData, weeklyData, monthlyData, yearlyData,
     dailySeries, weeklySeries, monthlySeries, yearlySeries,
@@ -3639,7 +3688,7 @@ function computeBacktestScoreAt(allItemsDesc, t, stockMeta) {
 }
 
 // 백테스트 메인
-async function runBacktest({ stockMeta, monthsBack, threshold, horizons }) {
+async function runBacktest({ stockMeta, monthsBack, threshold, horizons, weightsOverride }) {
   if (!stockMeta || !stockMeta.shortCode) {
     throw new Error("종목 정보가 없습니다.");
   }
@@ -3653,7 +3702,7 @@ async function runBacktest({ stockMeta, monthsBack, threshold, horizons }) {
   // 모든 거래일에 대해 점수 계산 (look-ahead 없는 슬라이스)
   const series = [];
   for (let t = 0; t < allItemsDesc.length - 60; t++) {
-    const s = computeBacktestScoreAt(allItemsDesc, t, stockMeta);
+    const s = computeBacktestScoreAt(allItemsDesc, t, stockMeta, weightsOverride);
     if (s) series.push(s);
   }
   series.sort((a, b) => a.date.localeCompare(b.date));
@@ -3869,6 +3918,14 @@ async function recordShortForwardSnapshot() {
       entryPrice: r.currentPrice,
       score: r.score?.totalScore || 0,
       verdict: r.score?.verdict || "",
+      // 가중치 튜너용 — 향후 component별 효과 분석을 위해 시그널 시점 5개 sub-score 동봉.
+      components: r.score?.components ? {
+        cheg: r.score.components.cheg?.score ?? null,
+        buySell: r.score.components.buySell?.score ?? null,
+        momentum: r.score.components.momentum?.score ?? null,
+        intraday: r.score.components.intraday?.score ?? null,
+        changeBand: r.score.components.changeBand?.score ?? null,
+      } : null,
       followUp: { p5: null, p15: null, p30: null, p60: null }, // 추후 채워짐
     })),
   };
@@ -4008,6 +4065,30 @@ if (process.env.MAIL_CRON_ENABLED === "1") {
     }
   }, { timezone: "Asia/Seoul" });
   console.log("[cron] 평일 09:05 KST 단타 forward test 스케줄 등록 완료");
+
+  // 평일 04:30 — 백테스트 캐시 빌드(04:00) 직후 Gemini 가중치 튜너 실행 (스윙 + 단타).
+  cron.schedule("30 4 * * 1-5", async () => {
+    console.log("[cron] 평일 04:30 KST — Gemini 가중치 튜너 시작");
+    if (weightTunerState.running) {
+      console.log("[cron] 가중치 튜너 이미 실행 중 — 건너뜀");
+      return;
+    }
+    weightTunerState.running = true;
+    weightTunerState.startedAt = new Date().toISOString();
+    weightTunerState.finishedAt = null;
+    weightTunerState.mode = "all";
+    weightTunerState.error = null;
+    try {
+      await runWeightTuner(getWeightTunerDeps(), { mode: "all" });
+    } catch (e) {
+      weightTunerState.error = e.message || String(e);
+      console.error("[cron] 가중치 튜너 오류:", e.message || e);
+    } finally {
+      weightTunerState.running = false;
+      weightTunerState.finishedAt = new Date().toISOString();
+    }
+  }, { timezone: "Asia/Seoul" });
+  console.log("[cron] 평일 04:30 KST Gemini 가중치 튜너 스케줄 등록 완료");
 }
 
 loadStocks();

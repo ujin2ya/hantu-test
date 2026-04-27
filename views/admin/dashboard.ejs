@@ -94,6 +94,8 @@
           missing_email: { type: "danger", msg: "이메일이 비어 있습니다." },
           not_found: { type: "danger", msg: "해당 이메일을 찾을 수 없습니다." },
           removed: { type: "success", msg: "구독자를 제거했습니다." },
+          tuner_started: { type: "success", msg: "가중치 튜너를 시작했습니다 (1~2분 소요). 페이지를 새로고침하면 결과가 갱신됩니다." },
+          tuner_running: { type: "warning", msg: "가중치 튜너가 이미 실행 중입니다." },
         };
         const f = flashMap[flash];
       %>
@@ -241,6 +243,187 @@
         </div>
       </div>
     <% } %>
+
+    <!-- Gemini 가중치 추천 -->
+    <div class="card-soft">
+      <h2><i class="bi bi-magic me-1"></i>Gemini 가중치 추천 (평일 4:30 자동 + 수동)</h2>
+      <%
+        const tuner = (typeof weightTunerCache !== 'undefined' && weightTunerCache) ? weightTunerCache : {};
+        const tunerState = (typeof weightTunerState !== 'undefined' && weightTunerState) ? weightTunerState : { running: false };
+        const swing = tuner.swing || null;
+        const shortT = tuner.short || null;
+        function fmtTime(iso) {
+          if (!iso) return "-";
+          try { return new Date(iso).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }); } catch(_) { return iso; }
+        }
+      %>
+      <div class="meta-grid mb-3">
+        <div class="meta-cell">
+          <div class="label">실행 상태</div>
+          <div class="value">
+            <% if (tunerState.running) { %>
+              <span class="badge-soft run">실행 중 (<%= tunerState.mode || "all" %>)</span>
+            <% } else { %>
+              <span class="badge-soft off">대기</span>
+            <% } %>
+          </div>
+        </div>
+        <div class="meta-cell">
+          <div class="label">스윙 마지막 실행</div>
+          <div class="value"><%= swing ? fmtTime(swing.runAt) : "-" %></div>
+        </div>
+        <div class="meta-cell">
+          <div class="label">단타 마지막 실행</div>
+          <div class="value"><%= shortT ? fmtTime(shortT.runAt) : "-" %></div>
+        </div>
+        <% if (tunerState.error) { %>
+          <div class="meta-cell">
+            <div class="label">최근 오류</div>
+            <div class="value text-danger small"><%= tunerState.error %></div>
+          </div>
+        <% } %>
+      </div>
+
+      <form method="post" action="/admin/weight-tuner/run" class="row g-2 align-items-end mb-3">
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">실행 범위</label>
+          <select name="mode" class="form-select form-select-sm">
+            <option value="all">전체 (스윙 + 단타)</option>
+            <option value="swing">스윙만</option>
+            <option value="short">단타만</option>
+          </select>
+        </div>
+        <div class="col-md-4 text-end ms-auto">
+          <button type="submit" class="btn btn-brand btn-sm w-100" <%= tunerState.running ? "disabled" : "" %>>
+            <i class="bi bi-play-fill me-1"></i><%= tunerState.running ? "실행 중…" : "지금 실행" %>
+          </button>
+        </div>
+      </form>
+
+      <!-- 스윙 결과 -->
+      <% if (swing) { %>
+        <hr class="my-3" />
+        <div class="d-flex justify-content-between align-items-baseline mb-2">
+          <h2 class="mb-0" style="font-size:0.95rem;"><i class="bi bi-graph-up me-1"></i>스윙 추천</h2>
+          <% if (swing.marketRegime) { %>
+            <span class="badge-soft <%= swing.marketRegime.regime === '강세' ? 'on' : (swing.marketRegime.regime === '약세' ? 'off' : 'run') %>">
+              시장: <%= swing.marketRegime.regime %> (평균 <%= swing.marketRegime.avgChangePct %>%)
+            </span>
+          <% } %>
+        </div>
+        <% if (!swing.ok) { %>
+          <div class="alert alert-warning small mb-2">스윙 튜너 실행 실패: <%= swing.error || "알 수 없음" %></div>
+        <% } %>
+        <% if (swing.recommendation && swing.recommendation.weights) { %>
+          <% const w = swing.recommendation.weights; %>
+          <div class="meta-grid">
+            <% ["volume","position","trend","rsi","macd","resistance","volatility","flow"].forEach(function(k) { %>
+              <div class="meta-cell">
+                <div class="label"><%= k %></div>
+                <div class="value"><%= w[k] %></div>
+              </div>
+            <% }); %>
+          </div>
+          <%
+            const params = new URLSearchParams();
+            ["volume","position","trend","rsi","macd","resistance","volatility","flow"].forEach(function(k) {
+              params.set(k + "Weight", w[k]);
+            });
+          %>
+          <div class="mt-2">
+            <a href="/?<%= params.toString() %>" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-arrow-up-right me-1"></i>이 가중치로 검색 페이지 열기
+            </a>
+          </div>
+        <% } else if (swing.ok) { %>
+          <div class="small text-muted">추천 가중치 파싱 실패 (Gemini 응답 형식 오류 가능). 원문 근거만 표시:</div>
+        <% } %>
+        <% if (swing.recommendation && swing.recommendation.reasoning) { %>
+          <div class="small text-secondary mt-2" style="white-space: pre-wrap; line-height: 1.5;"><%= swing.recommendation.reasoning %></div>
+        <% } %>
+
+        <!-- 가중치 프리셋 백테스트 비교표 -->
+        <% if (swing.presets && swing.presets.length) { %>
+          <details class="mt-3">
+            <summary class="small text-secondary" style="cursor:pointer;">백테스트 비교표 (가중치 프리셋 × 상위 <%= swing.sampleSize || swing.presets[0].stockResults.length %>종목)</summary>
+            <div class="table-responsive mt-2">
+              <table class="table table-sm align-middle small mb-0">
+                <thead>
+                  <tr>
+                    <th>프리셋</th>
+                    <th class="text-end">유효종목</th>
+                    <th class="text-end">h5 승률</th>
+                    <th class="text-end">h5 평균수익</th>
+                    <th class="text-end">h5 MDD</th>
+                    <th class="text-end">h10 승률</th>
+                    <th class="text-end">h10 평균수익</th>
+                    <th class="text-end">h10 MDD</th>
+                    <th class="text-end">h10 누적</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% swing.presets.forEach(function(p) { var a = p.aggregate; %>
+                    <tr>
+                      <td><%= p.label %></td>
+                      <td class="text-end"><%= a.validStocks %></td>
+                      <td class="text-end"><%= a.h5AvgWinRate ?? "-" %></td>
+                      <td class="text-end"><%= a.h5AvgReturn ?? "-" %>%</td>
+                      <td class="text-end"><%= a.h5AvgMdd ?? "-" %>%</td>
+                      <td class="text-end"><%= a.h10AvgWinRate ?? "-" %></td>
+                      <td class="text-end"><%= a.h10AvgReturn ?? "-" %>%</td>
+                      <td class="text-end"><%= a.h10AvgMdd ?? "-" %>%</td>
+                      <td class="text-end"><%= a.h10AvgCum ?? "-" %>%</td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </details>
+        <% } %>
+      <% } %>
+
+      <!-- 단타 결과 -->
+      <% if (shortT) { %>
+        <hr class="my-3" />
+        <div class="d-flex justify-content-between align-items-baseline mb-2">
+          <h2 class="mb-0" style="font-size:0.95rem;"><i class="bi bi-stopwatch me-1"></i>단타 추천</h2>
+          <% if (shortT.recommendation && shortT.recommendation.confidence) { %>
+            <span class="badge-soft <%= shortT.recommendation.confidence === 'medium' ? 'on' : 'off' %>">
+              신뢰도: <%= shortT.recommendation.confidence %>
+            </span>
+          <% } %>
+        </div>
+        <% if (!shortT.ok) { %>
+          <div class="alert alert-warning small mb-2">단타 튜너 실행 실패: <%= shortT.error || "알 수 없음" %></div>
+        <% } %>
+        <% if (shortT.recommendation && shortT.recommendation.sampleNote) { %>
+          <div class="small text-muted mb-2"><%= shortT.recommendation.sampleNote %></div>
+        <% } %>
+        <% if (shortT.recommendation && shortT.recommendation.weights) { %>
+          <% const sw = shortT.recommendation.weights; %>
+          <div class="meta-grid">
+            <% ["chegyeol","buySell","momentum","intraday","changeBand"].forEach(function(k) { %>
+              <div class="meta-cell">
+                <div class="label"><%= k %></div>
+                <div class="value"><%= sw[k] %></div>
+              </div>
+            <% }); %>
+          </div>
+          <div class="small text-muted mt-2">
+            ⚠ 단타 가중치는 현재 코드 하드코드 (<code>buildShortTermScore</code>). 적용하려면 <code>app.js:1879</code> 직접 수정 필요.
+          </div>
+        <% } else if (shortT.ok) { %>
+          <div class="small text-muted">추천 가중치 없음 (표본 부족 또는 파싱 실패).</div>
+        <% } %>
+        <% if (shortT.recommendation && shortT.recommendation.reasoning) { %>
+          <div class="small text-secondary mt-2" style="white-space: pre-wrap; line-height: 1.5;"><%= shortT.recommendation.reasoning %></div>
+        <% } %>
+      <% } %>
+
+      <% if (!swing && !shortT) { %>
+        <div class="small text-muted">아직 실행 이력이 없습니다. "지금 실행" 버튼을 눌러 첫 추천을 받아보세요. (스윙은 1~2분 소요, 단타는 즉시)</div>
+      <% } %>
+    </div>
 
     <!-- 수동 발송 -->
     <div class="card-soft">
