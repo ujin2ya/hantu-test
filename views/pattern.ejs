@@ -125,44 +125,116 @@
         </div>
       <% } %>
 
-      <!-- 최근 +40% 이벤트 리스트 -->
+      <!-- +40% 이벤트 리스트 + 검색·필터·페이징 -->
       <div class="glass">
-        <h2><i class="bi bi-list-stars me-1"></i>최근 +40% 이벤트 (상위 30)</h2>
-        <%
-          const top = (result.success.events || []).slice().sort((a,b) => (b.peakDate||"").localeCompare(a.peakDate||"")).slice(0, 30);
-        %>
-        <div class="table-responsive">
-          <table class="event-table">
-            <thead>
-              <tr>
-                <th>종목</th>
-                <th class="text-end">시총</th>
-                <th>점화일</th>
-                <th>피크일</th>
-                <th class="text-end">상승률</th>
-                <th class="text-end">기간</th>
-                <th>국면</th>
-                <th class="text-end">회전율</th>
-                <th class="text-end">양봉/음봉</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% top.forEach(function(e) { %>
-                <tr>
-                  <td><strong><%= e.name %></strong> <span class="text-secondary small"><%= e.code %></span><% if (e.inProgress) { %> <span class="badge bg-warning text-dark" style="font-size:0.65rem;">진행중</span><% } %></td>
-                  <td class="text-end"><%= (e.marketCap / 1e8).toFixed(0) %>억</td>
-                  <td><%= e.ignitionDate.slice(4,6) + "/" + e.ignitionDate.slice(6,8) %></td>
-                  <td><%= e.peakDate.slice(4,6) + "/" + e.peakDate.slice(6,8) %></td>
-                  <td class="text-end"><span class="magnitude-pill">+<%= (e.magnitude * 100).toFixed(0) %>%</span></td>
-                  <td class="text-end"><%= e.duration %>일</td>
-                  <td><span class="<%= e.regime === '강세' ? 'regime-bull' : (e.regime === '약세' ? 'regime-bear' : 'regime-side') %>"><%= e.regime %></span></td>
-                  <td class="text-end"><%= e.features?.turnover ?? '-' %></td>
-                  <td class="text-end"><%= e.features?.bullBearRatio ?? '-' %></td>
-                </tr>
-              <% }) %>
-            </tbody>
-          </table>
+        <h2><i class="bi bi-list-stars me-1"></i>+40% 이벤트 — 검색 / 필터 / 페이징</h2>
+
+        <form method="get" action="/pattern" class="row g-2 align-items-end mb-3">
+          <div class="col-12 col-md-5">
+            <label class="form-label small text-secondary mb-1">종목 검색 (이름 또는 코드)</label>
+            <input type="text" name="q" value="<%= query || '' %>" placeholder="예: 삼성전자 or 005930" class="form-control form-control-sm" />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label small text-secondary mb-1">상승 기간 버킷</label>
+            <select name="bucket" class="form-select form-select-sm">
+              <option value="all" <%= bucket === 'all' ? 'selected' : '' %>>전체</option>
+              <option value="A" <%= bucket === 'A' ? 'selected' : '' %>>A: 속전속결 (~30일)</option>
+              <option value="B" <%= bucket === 'B' ? 'selected' : '' %>>B: 중기 (31~50일)</option>
+              <option value="C" <%= bucket === 'C' ? 'selected' : '' %>>C: 장기 (51~70일)</option>
+              <option value="D" <%= bucket === 'D' ? 'selected' : '' %>>D: 느린 (71~90일)</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100">
+              <i class="bi bi-search me-1"></i>검색
+            </button>
+          </div>
+          <div class="col-12 col-md-2 text-end">
+            <a href="/pattern" class="btn btn-outline-secondary btn-sm w-100">초기화</a>
+          </div>
+        </form>
+
+        <div class="text-secondary small mb-2">
+          총 <strong><%= totalEvents %></strong>건
+          <% if (totalEvents > 0) { %>
+            · <%= (page - 1) * pageSize + 1 %>~<%= Math.min(page * pageSize, totalEvents) %> 표시 (페이지 <%= page %>/<%= totalPages %>)
+          <% } %>
+          <% if (query || bucket !== 'all') { %>
+            <span class="text-warning">(필터 적용 중)</span>
+          <% } %>
         </div>
+
+        <% if (pagedEvents.length === 0) { %>
+          <div class="alert alert-light small mb-0">조건에 맞는 이벤트가 없습니다.</div>
+        <% } else { %>
+          <div class="table-responsive">
+            <table class="event-table">
+              <thead>
+                <tr>
+                  <th>종목</th>
+                  <th class="text-end">시총</th>
+                  <th>점화일</th>
+                  <th>피크일</th>
+                  <th class="text-end">상승률</th>
+                  <th class="text-end">기간</th>
+                  <th>국면</th>
+                  <th class="text-end">회전율</th>
+                  <th class="text-end">양봉/음봉</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% pagedEvents.forEach(function(e) { %>
+                  <tr>
+                    <td><strong><%= e.name %></strong> <span class="text-secondary small"><%= e.code %></span><% if (e.inProgress) { %> <span class="badge bg-warning text-dark" style="font-size:0.65rem;">진행중</span><% } %></td>
+                    <td class="text-end"><%= (e.marketCap / 1e8).toFixed(0) %>억</td>
+                    <td><%= e.ignitionDate.slice(4,6) + "/" + e.ignitionDate.slice(6,8) %></td>
+                    <td><%= e.peakDate.slice(4,6) + "/" + e.peakDate.slice(6,8) %></td>
+                    <td class="text-end"><span class="magnitude-pill">+<%= (e.magnitude * 100).toFixed(0) %>%</span></td>
+                    <td class="text-end"><%= e.duration %>일</td>
+                    <td><span class="<%= e.regime === '강세' ? 'regime-bull' : (e.regime === '약세' ? 'regime-bear' : 'regime-side') %>"><%= e.regime %></span></td>
+                    <td class="text-end"><%= e.features?.turnover ?? '-' %></td>
+                    <td class="text-end"><%= e.features?.bullBearRatio ?? '-' %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+
+          <% if (totalPages > 1) {
+            function pageUrl(p) {
+              const params = new URLSearchParams();
+              if (query) params.set("q", query);
+              if (bucket !== "all") params.set("bucket", bucket);
+              params.set("page", p);
+              return "/pattern?" + params.toString();
+            }
+            // 표시할 페이지 번호 — 현재 페이지 ±2
+            const start = Math.max(1, page - 2);
+            const end = Math.min(totalPages, page + 2);
+          %>
+            <nav class="mt-3">
+              <ul class="pagination pagination-sm justify-content-center mb-0">
+                <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
+                  <a class="page-link" href="<%= pageUrl(1) %>">«</a>
+                </li>
+                <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
+                  <a class="page-link" href="<%= pageUrl(Math.max(1, page - 1)) %>">‹</a>
+                </li>
+                <% for (let p = start; p <= end; p++) { %>
+                  <li class="page-item <%= p === page ? 'active' : '' %>">
+                    <a class="page-link" href="<%= pageUrl(p) %>"><%= p %></a>
+                  </li>
+                <% } %>
+                <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
+                  <a class="page-link" href="<%= pageUrl(Math.min(totalPages, page + 1)) %>">›</a>
+                </li>
+                <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
+                  <a class="page-link" href="<%= pageUrl(totalPages) %>">»</a>
+                </li>
+              </ul>
+            </nav>
+          <% } %>
+        <% } %>
       </div>
     <% } %>
 

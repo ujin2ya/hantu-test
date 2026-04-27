@@ -2245,7 +2245,50 @@ app.get("/pattern", (req, res) => {
     if (fs.existsSync(p)) result = JSON.parse(fs.readFileSync(p, "utf-8"));
   } catch (_) {}
   const seededCount = patternScreener.listSeededStocks().length;
-  res.render("pattern", { result, seededCount, patternState });
+
+  // 페이징 + 버킷 필터 + 검색
+  const PAGE_SIZE = 50;
+  const requestedBucket = String(req.query.bucket || "all").toUpperCase();
+  const bucket = ["A", "B", "C", "D"].includes(requestedBucket) ? requestedBucket : "all";
+  const requestedPage = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const query = String(req.query.q || "").trim();
+
+  let pagedEvents = [];
+  let totalEvents = 0;
+  let totalPages = 1;
+  let page = requestedPage;
+  if (result?.success?.events?.length) {
+    const all = result.success.events.slice();
+    all.sort((a, b) => (b.peakDate || "").localeCompare(a.peakDate || ""));
+    const byBucket = bucket === "all"
+      ? all
+      : all.filter((e) => {
+        const d = e.duration;
+        if (bucket === "A") return d <= 30;
+        if (bucket === "B") return d <= 50 && d > 30;
+        if (bucket === "C") return d <= 70 && d > 50;
+        if (bucket === "D") return d <= 90 && d > 70;
+        return true;
+      });
+    const q = query.toLowerCase();
+    const filtered = q
+      ? byBucket.filter((e) =>
+          (e.name || "").toLowerCase().includes(q) ||
+          (e.code || "").toLowerCase().includes(q)
+        )
+      : byBucket;
+    totalEvents = filtered.length;
+    totalPages = Math.max(1, Math.ceil(totalEvents / PAGE_SIZE));
+    page = Math.min(page, totalPages);
+    const start = (page - 1) * PAGE_SIZE;
+    pagedEvents = filtered.slice(start, start + PAGE_SIZE);
+  }
+
+  res.render("pattern", {
+    result, seededCount, patternState,
+    pagedEvents, page, totalPages, totalEvents,
+    pageSize: PAGE_SIZE, bucket, query,
+  });
 });
 
 app.post("/admin/pattern/seed", requireAdmin, (req, res) => {
