@@ -2247,9 +2247,12 @@ app.get("/pattern", (req, res) => {
   const cQuery = String(req.query.cq || "").trim();
   let activeCandidates = [];
   let watchCandidates = [];
+  let momentumMovers = [];
   if (result?.candidates?.top?.length) {
     const cq = cQuery.toLowerCase();
-    const matchSearch = (c) => !cq || (c.name || "").toLowerCase().includes(cq) || (c.code || "").toLowerCase().includes(cq);
+    const matchSearch = (item) => !cq || (item.name || "").toLowerCase().includes(cq) || (item.code || "").toLowerCase().includes(cq);
+
+    momentumMovers = (result.momentum?.movers || []).filter(matchSearch);
 
     const verdictOrder = { STRONG: 4, GOOD: 3, MIXED: 2, WEAK: 1 };
     activeCandidates = result.candidates.top
@@ -2272,7 +2275,7 @@ app.get("/pattern", (req, res) => {
     result, seededCount, patternState,
     pagedEvents, page, totalPages, totalEvents,
     pageSize: PAGE_SIZE, bucket, query,
-    activeCandidates, watchCandidates, cQuery,
+    momentumMovers, activeCandidates, watchCandidates, cQuery,
   });
 });
 

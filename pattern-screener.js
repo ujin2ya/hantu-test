@@ -371,6 +371,62 @@ function summarizeFeatures(events) {
   return summary;
 }
 
+// ─────────── Phase B-5: 오늘의 모멘텀 스캐너 ───────────
+// SHAPE 매칭과 별개로 *오늘* 큰 가격·거래량 움직임 있는 종목 전체에서 스캔.
+// 점화 후 종목 (SHAPE 매칭 아닌) + 시동 종목 (SHAPE 매칭 + 모멘텀) 모두 잡음.
+// 내일 상한가 후보의 가장 흔한 baseline 시그널.
+function scanTodaysMomentum({
+  stocksList,
+  minPriceChange = 0.05,   // 5% 이상 상승
+  minVolRatio = 3,         // 거래량 3배 이상
+  topN = 30,
+} = {}) {
+  const movers = [];
+  for (const meta of stocksList) {
+    if (meta.isSpecial) continue;
+    try {
+      const cache = JSON.parse(fs.readFileSync(path.join(CACHE_DIR, meta.code + ".json"), "utf-8"));
+      const rows = cache.rows || [];
+      if (rows.length < 25) continue;
+      const last = rows.length - 1;
+      const today = rows[last];
+      const prev = rows[last - 1];
+      if (!prev || !(prev.close > 0)) continue;
+
+      const dayChange = (today.close - prev.close) / prev.close;
+      const prior20 = rows.slice(last - 20, last).map((r) => r.volume).filter((v) => v > 0);
+      const avgVol = prior20.length ? prior20.reduce((a, b) => a + b, 0) / prior20.length : 0;
+      const volRatio = avgVol > 0 ? today.volume / avgVol : 0;
+      const valuePct = meta.marketValue > 0 ? (today.valueApprox || 0) / meta.marketValue : 0;
+
+      // 둘 중 하나라도 충족 (큰 상승 OR 거래량 폭증)
+      if (dayChange < minPriceChange && volRatio < minVolRatio) continue;
+      // 일일 상한 (+30%) 초과는 액면분할·무상증자 등 anomaly — 제외
+      if (dayChange > 0.31) continue;
+
+      // 종가 위치 — 1.0 = 고가에 마감 (강한 마감), 0.0 = 저가에 마감 (약한 마감)
+      const range = today.high - today.low;
+      const closePos = range > 0 ? (today.close - today.low) / range : 0.5;
+
+      // 종합 모멘텀 점수
+      const score = (dayChange * 100) + (Math.min(volRatio, 20) * 3) + (Math.min(valuePct, 0.5) * 100) + (closePos * 5);
+
+      movers.push({
+        code: meta.code, name: meta.name, market: meta.market,
+        marketCap: meta.marketValue, closePrice: today.close,
+        dayChange: Number((dayChange * 100).toFixed(2)),
+        volRatio: Number(volRatio.toFixed(2)),
+        valuePct: Number((valuePct * 100).toFixed(2)),
+        closePos: Number(closePos.toFixed(2)),
+        score: Number(score.toFixed(1)),
+        date: today.date,
+      });
+    } catch (_) {}
+  }
+  movers.sort((a, b) => b.score - a.score);
+  return movers.slice(0, topN);
+}
+
 // ─────────── 메인 분석 ───────────
 
 function listSeededStocks() {
@@ -490,6 +546,23 @@ async function analyzeAll({ logProgress = false } = {}) {
   }
   candidates.sort((a, b) => b.score - a.score);
 
+  // ─── Layer 2: 오늘의 모멘텀 스캔 ───
+  const momentumMovers = scanTodaysMomentum({ stocksList });
+
+  // ─── 교차 매칭 — SHAPE 후보 × 모멘텀 ───
+  // 두 풀 다 들어간 종목은 가장 강력한 시그널 (setup 좋음 + 오늘 시동 시작)
+  const candidateCodes = new Map(candidates.map((c) => [c.code, c]));
+  const momentumCodes = new Set(momentumMovers.map((m) => m.code));
+  for (const c of candidates) {
+    c.inMomentum = momentumCodes.has(c.code);
+  }
+  for (const m of momentumMovers) {
+    const cand = candidateCodes.get(m.code);
+    m.inShape = !!cand;
+    m.shapeMatched = cand?.matched || 0;
+    m.shapeTotalKeys = cand?.totalKeys || 0;
+  }
+
   const result = {
     analyzedAt: new Date().toISOString(),
     seeded: seededCodes.length,
@@ -513,6 +586,10 @@ async function analyzeAll({ logProgress = false } = {}) {
       top: candidates, // 전체 저장 (점수·매칭 두 관점에서 필터링 가능하게)
       tables, // 디버깅용
       signature, // 공통점 시그니처 (p10~p90)
+    },
+    momentum: {
+      date: candidates[0]?.lastDate || null,
+      movers: momentumMovers,
     },
   };
 

@@ -102,59 +102,6 @@
     </div>
 
     <% if (result) { %>
-      <!-- 버킷별 점화 전 지표 분포 -->
-      <div class="glass">
-        <h2><i class="bi bi-bar-chart-line me-1"></i>점화 전 지표 — 상승 기간별 버킷 분포</h2>
-        <div class="bucket-grid">
-          <%
-            const buckets = result.success.buckets;
-            const bucketMeta = [
-              { key: 'A', label: '속전속결 (~30일)', color: '#dc2626' },
-              { key: 'B', label: '중기 상승 (31~50일)', color: '#ea580c' },
-              { key: 'C', label: '장기 누적 (51~70일)', color: '#16a34a' },
-              { key: 'D', label: '느린 트렌드 (71~90일)', color: '#0ea5e9' },
-            ];
-            const featureLabels = {
-              turnover: '회전율 (시총 대비)',
-              bullBearRatio: '양봉/음봉 거래대금',
-              volumeSurge: '거래량 급증 배수',
-              foreignDelta: '외인 보유율 변화 %p',
-              atrCompress: 'ATR 수렴비',
-              positionPct: '60일 고점 대비 위치',
-              positionFromLow: '60일 저점 대비 상승률',
-              maPos20: '20일선 대비 위치',
-              maPos60: '60일선 대비 위치',
-              ma20Slope: '20일선 기울기',
-              ma60Slope: '60일선 기울기',
-              resistAbove: '위쪽 매물대 비율',
-              localResistance: '점화가 ±5% 매물 밀도',
-              boxDays: '박스권 연속 일수',
-              igniteValueRatio: '점화일 거래대금/시총',
-              igniteVolumeRatio: '점화일 거래량 배수',
-            };
-          %>
-          <% bucketMeta.forEach(function(bm) { var b = buckets[bm.key]; %>
-            <div class="bucket-card" style="border-left: 3px solid <%= bm.color %>;">
-              <h3><%= bm.label %></h3>
-              <div class="text-secondary small mb-2">이벤트 <strong><%= b.n %></strong>건</div>
-              <% if (b.summary) { %>
-                <% Object.keys(featureLabels).forEach(function(k) { var f = b.summary[k]; %>
-                  <% if (f) { %>
-                    <div class="feature-row">
-                      <span><%= featureLabels[k] %></span>
-                      <strong><%= f.median %><span class="text-secondary" style="font-weight:400;font-size:0.7rem;"> (p25~p75: <%= f.p25 %>~<%= f.p75 %>)</span></strong>
-                    </div>
-                  <% } %>
-                <% }) %>
-              <% } else { %>
-                <div class="text-muted small">데이터 없음</div>
-              <% } %>
-            </div>
-          <% }) %>
-        </div>
-      </div>
-
-
       <!-- 현재 후보 (Phase B: Likelihood Ratio 스코어링) -->
       <% if (result.candidates && result.candidates.top && result.candidates.top.length) { %>
         <%
@@ -169,11 +116,11 @@
           }
         %>
 
-        <!-- 검색 폼 (필터 컨트롤 제거 — 자동 분류) -->
+        <!-- 검색 폼 -->
         <div class="glass">
           <form method="get" action="/pattern" class="row g-2 align-items-end">
             <div class="col-9 col-md-10">
-              <input type="text" name="cq" value="<%= cQuery || '' %>" placeholder="후보 검색 (예: 서울반도체 or 046890)" class="form-control form-control-sm" />
+              <input type="text" name="cq" value="<%= cQuery || '' %>" placeholder="검색 (모멘텀·후보 동시) 예: 서울반도체 or 046890" class="form-control form-control-sm" />
             </div>
             <div class="col-3 col-md-2">
               <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search"></i></button>
@@ -181,11 +128,79 @@
           </form>
         </div>
 
-        <!-- 🔥 시동 단계 후보 -->
+        <!-- 🚀 오늘의 모멘텀 (메인 도구) -->
         <div class="glass">
-          <h2><i class="bi bi-fire me-1"></i>시동 단계 후보 (<%= activeCandidates.length %>건)</h2>
-          <div class="alert small mb-3" style="background:#fef3c7; border:1px solid #fde68a; color:#92400e;">
-            <strong>매칭 12+/16 + 최근 3일 거래량 폭증 + 양봉</strong> = 점화 직전 모습 + 막 시동 시작 — 실전 매수 검토 후보.
+          <h2><i class="bi bi-rocket-takeoff me-1"></i>오늘의 모멘텀 (<%= momentumMovers.length %>건)</h2>
+          <div class="text-secondary small mb-3">
+            오늘 +5% 이상 또는 거래량 3배 이상. <strong>🌱 시동 단계 가 가장 valuable</strong> (조기 시그널).
+          </div>
+          <% if (momentumMovers.length === 0) { %>
+            <div class="alert alert-light small mb-0">오늘 모멘텀 종목 없음.</div>
+          <% } else { %>
+            <%
+              // 4단계 분류 — 시동 단계가 가장 가치있음 (조기 시그널)
+              function tierOf(m) {
+                if (m.dayChange >= 25) return { key: 'limit', label: '🚀 상한가급', color: '#dc2626', bg: '#fee2e2' };
+                if (m.dayChange >= 15) return { key: 'strong', label: '🔥 강한 상승', color: '#ea580c', bg: '#fed7aa' };
+                if (m.dayChange >= 10) return { key: 'rising', label: '📈 상승 중', color: '#ca8a04', bg: '#fef3c7' };
+                return { key: 'starting', label: '🌱 시동 단계', color: '#16a34a', bg: '#dcfce7' };
+              }
+              // 단계별 분류 + 단계 안에서는 score 순
+              const tierGroups = { starting: [], rising: [], strong: [], limit: [] };
+              momentumMovers.forEach((m) => tierGroups[tierOf(m).key].push(m));
+              const tierMeta = [
+                { key: 'starting', label: '🌱 시동 단계 (5~10% + 거래량 폭증) — 조기 시그널, 가장 가치있음' },
+                { key: 'rising',   label: '📈 상승 중 (10~15%) — 모멘텀 진행' },
+                { key: 'strong',   label: '🔥 강한 상승 (15~25%) — 빠르게 진행 중' },
+                { key: 'limit',    label: '🚀 상한가급 (≥25%) — 이미 큰 상승, 추격 리스크' },
+              ];
+            %>
+            <% tierMeta.forEach(function(tm) { const list = tierGroups[tm.key]; if (!list.length) return; %>
+              <h3 style="font-size:0.95rem; font-weight:700; margin:14px 0 8px; color:#0f172a;"><%= tm.label %> <span style="color:#94a3b8; font-weight:400;">(<%= list.length %>건)</span></h3>
+              <% list.forEach(function(m, idx) {
+                const tier = tierOf(m);
+                const closeBar = Math.round(m.closePos * 100);
+              %>
+                <div class="item-card" style="border-left:3px solid <%= tier.color %>;">
+                  <div class="row1">
+                    <div class="name-block">
+                      <span class="rk">#<%= idx + 1 %></span>
+                      <a class="deep-link" href="/?query=<%= encodeURIComponent(m.code) %>" target="_blank" rel="noopener" title="딥다이브 분석">
+                        <span class="nm"><%= m.name %></span>
+                        <span class="cd"><%= m.code %></span>
+                        <i class="bi bi-box-arrow-up-right arr"></i>
+                      </a>
+                      <% if (m.inShape) { %>
+                        <span class="score-pill ms-1" style="background:#dcfce7; color:#166534; font-size:0.68rem; font-weight:700;" title="SHAPE matcher 와 교차">
+                          🎯 SHAPE <%= m.shapeMatched %>/<%= m.shapeTotalKeys %>
+                        </span>
+                      <% } %>
+                    </div>
+                    <span class="score-pill" style="background:<%= tier.bg %>; color:<%= tier.color %>; font-weight:700;">+<%= m.dayChange %>%</span>
+                  </div>
+                  <div class="row2">
+                    <span>시총 <strong><%= (m.marketCap / 1e8).toFixed(0) %>억</strong></span>
+                    <span>종가 <strong><%= m.closePrice.toLocaleString() %></strong></span>
+                    <span class="text-secondary"><%= m.market || '' %></span>
+                  </div>
+                  <div class="row3">
+                    <span class="feat feat-good">거래량 <strong><%= m.volRatio %>배</strong></span>
+                    <span class="feat feat-good">거래대금/시총 <strong><%= m.valuePct %>%</strong></span>
+                    <span class="feat <%= m.closePos >= 0.7 ? 'feat-good' : (m.closePos <= 0.3 ? 'feat-bad' : 'feat-neu') %>" title="당일 종가가 저~고가 사이 어디에 위치 (1=고가, 0=저가)">
+                      종가위치 <strong><%= closeBar %>%</strong>
+                    </span>
+                  </div>
+                </div>
+              <% }) %>
+            <% }) %>
+          <% } %>
+        </div>
+
+        <!-- 🔥 시동 단계 후보 (보조: SHAPE 기반) -->
+        <div class="glass">
+          <h2><i class="bi bi-fire me-1"></i>SHAPE 시동 후보 (<%= activeCandidates.length %>건) <span style="font-size:0.7rem; color:#94a3b8; font-weight:400;">— 보조 도구</span></h2>
+          <div class="text-secondary small mb-3">
+            과거 +40% 종목 패턴 매칭 12+/16 + 최근 거래량+양봉 시그널.
           </div>
           <% if (activeCandidates.length === 0) { %>
             <div class="alert alert-light small mb-0">오늘은 시동 단계 후보 없음. <strong>조용한 watchlist</strong> 모니터링 중.</div>
@@ -270,43 +285,11 @@
           <% } %>
         </div>
 
-        <!-- 🌙 조용한 watchlist -->
+        <!-- 🌙 SHAPE Watchlist (보조: 모니터링 풀) -->
         <div class="glass">
-          <h2><i class="bi bi-moon me-1"></i>조용한 Watchlist (<%= watchCandidates.length %>건)</h2>
-          <div class="alert small mb-3" style="background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46;">
-            <strong>매칭 14+/16, 시동 시그널 아직 없음</strong> = 점화 직전 모습이지만 거래량 잠잠 — 매일 모니터링.
-            점화 시그널 (거래량 폭증) 뜨면 위쪽 "시동 단계 후보" 로 자동 이동.
-            <details class="mt-2" style="font-size:0.72rem;">
-              <summary style="cursor:pointer;">📖 features 읽는 법 / 공통 시그니처</summary>
-              <% if (result.candidates && result.candidates.signature) { %>
-                <%
-                  const sig = result.candidates.signature;
-                  function sigFmt(k, v) {
-                    if (v == null) return '-';
-                    if (k === 'turnover' || k === 'igniteValueRatio' || k === 'localResistance' || k === 'resistAbove') return (v*100).toFixed(0) + '%';
-                    if (k === 'positionPct' || k === 'positionFromLow' || k === 'maPos20' || k === 'maPos60' || k === 'ma20Slope' || k === 'ma60Slope') {
-                      const d = (v - 1) * 100; return (d >= 0 ? '+' : '') + d.toFixed(0) + '%';
-                    }
-                    if (k === 'igniteVolumeRatio' || k === 'volumeSurge' || k === 'atrCompress' || k === 'bullBearRatio') return v.toFixed(2) + '배';
-                    if (k === 'boxDays') return v + '일';
-                    if (k === 'foreignDelta') return (v >= 0 ? '+' : '') + (v*100).toFixed(0) + '%p';
-                    return v;
-                  }
-                  const sigOrder = [
-                    ['ma60Slope','60일선 기울기 ⭐'],['ma20Slope','20일선 기울기'],['turnover','20일 회전율'],['boxDays','박스권'],
-                    ['positionPct','60일 고점 대비'],['positionFromLow','60일 저점 대비'],['maPos20','20일선 대비'],['maPos60','60일선 대비'],
-                    ['localResistance','현재가 매물밀도'],['resistAbove','위쪽 매물대'],['igniteValueRatio','오늘 거래대금/시총'],
-                    ['igniteVolumeRatio','오늘 거래량 (평소 대비)'],['volumeSurge','5일 평균 거래량'],['bullBearRatio','양봉/음봉'],
-                    ['atrCompress','ATR 수렴'],['foreignDelta','외인 보유율 변화'],
-                  ];
-                %>
-                <ul class="mb-0 mt-1 ps-3" style="line-height:1.5;">
-                  <% sigOrder.forEach(function(p) { const k = p[0], lbl = p[1], s = sig[k]; if (!s) return; %>
-                    <li><strong><%= lbl %></strong>: <%= sigFmt(k, s.lo) %> ~ <%= sigFmt(k, s.hi) %> <span class="text-secondary">(median <%= sigFmt(k, s.p50) %>)</span></li>
-                  <% }) %>
-                </ul>
-              <% } %>
-            </details>
+          <h2><i class="bi bi-moon me-1"></i>SHAPE Watchlist (<%= watchCandidates.length %>건) <span style="font-size:0.7rem; color:#94a3b8; font-weight:400;">— 보조 도구</span></h2>
+          <div class="text-secondary small mb-3">
+            과거 +40% 종목 패턴 매칭 14+/16, 거래량 잠잠 — 시동 기다리는 watchlist.
           </div>
           <% if (watchCandidates.length === 0) { %>
             <div class="alert alert-light small mb-0">조건에 맞는 watchlist 없음.</div>
@@ -364,122 +347,6 @@
           <% } %>
         </div>
       <% } %>
-
-      <!-- +40% 이벤트 리스트 + 검색·필터·페이징 -->
-      <div class="glass">
-        <h2><i class="bi bi-list-stars me-1"></i>+40% 이벤트 — 과거 데이터 (검증·드릴다운용)</h2>
-        <div class="alert alert-secondary small mb-3" style="background:#f1f5f9; border-color:#cbd5e1; color:#334155;">
-          <i class="bi bi-archive me-1"></i><strong>과거에 이미 +40% 오른 종목들의 원본 리스트</strong> — 위쪽 "현재 후보" 모델이 학습한 데이터예요.
-          <ul class="mb-0 mt-1 ps-3" style="font-size:0.78rem;">
-            <li>매매에는 직접 안 씀 (이미 다 끝난 사건들). 아래 용도로 가끔 보세요:</li>
-            <li><strong>검증</strong> — 내가 아는 종목(예: 서울반도체)이 잡혔나? 시총·기간 분포가 합리적인가?</li>
-            <li><strong>드릴다운</strong> — 특정 종목·버킷이 어떤 features 로 점화됐는지 확인</li>
-          </ul>
-        </div>
-
-        <form method="get" action="/pattern" class="row g-2 align-items-end mb-3">
-          <div class="col-12 col-md-5">
-            <label class="form-label small text-secondary mb-1">종목 검색 (이름 또는 코드)</label>
-            <input type="text" name="q" value="<%= query || '' %>" placeholder="예: 삼성전자 or 005930" class="form-control form-control-sm" />
-          </div>
-          <div class="col-6 col-md-3">
-            <label class="form-label small text-secondary mb-1">상승 기간 버킷</label>
-            <select name="bucket" class="form-select form-select-sm">
-              <option value="all" <%= bucket === 'all' ? 'selected' : '' %>>전체</option>
-              <option value="A" <%= bucket === 'A' ? 'selected' : '' %>>A: 속전속결 (~30일)</option>
-              <option value="B" <%= bucket === 'B' ? 'selected' : '' %>>B: 중기 (31~50일)</option>
-              <option value="C" <%= bucket === 'C' ? 'selected' : '' %>>C: 장기 (51~70일)</option>
-              <option value="D" <%= bucket === 'D' ? 'selected' : '' %>>D: 느린 (71~90일)</option>
-            </select>
-          </div>
-          <div class="col-6 col-md-2">
-            <button type="submit" class="btn btn-primary btn-sm w-100">
-              <i class="bi bi-search me-1"></i>검색
-            </button>
-          </div>
-          <div class="col-12 col-md-2 text-end">
-            <a href="/pattern" class="btn btn-outline-secondary btn-sm w-100">초기화</a>
-          </div>
-        </form>
-
-        <div class="text-secondary small mb-2">
-          총 <strong><%= totalEvents %></strong>건
-          <% if (totalEvents > 0) { %>
-            · <%= (page - 1) * pageSize + 1 %>~<%= Math.min(page * pageSize, totalEvents) %> 표시 (페이지 <%= page %>/<%= totalPages %>)
-          <% } %>
-          <% if (query || bucket !== 'all') { %>
-            <span class="text-warning">(필터 적용 중)</span>
-          <% } %>
-        </div>
-
-        <% if (pagedEvents.length === 0) { %>
-          <div class="alert alert-light small mb-0">조건에 맞는 이벤트가 없습니다.</div>
-        <% } else { %>
-          <% pagedEvents.forEach(function(e) {
-            const regimeCls = e.regime === '강세' ? 'regime-bull' : (e.regime === '약세' ? 'regime-bear' : 'regime-side');
-            const ignMd = e.ignitionDate.slice(4,6) + '/' + e.ignitionDate.slice(6,8);
-            const pkMd = e.peakDate.slice(4,6) + '/' + e.peakDate.slice(6,8);
-          %>
-            <div class="item-card">
-              <div class="row1">
-                <div class="name-block">
-                  <a class="deep-link" href="/?query=<%= encodeURIComponent(e.code) %>" target="_blank" rel="noopener" title="딥다이브 분석 (새 탭)">
-                    <span class="nm"><%= e.name %></span>
-                    <span class="cd"><%= e.code %></span>
-                    <i class="bi bi-box-arrow-up-right arr"></i>
-                  </a>
-                  <% if (e.inProgress) { %><span class="badge bg-warning text-dark ms-1" style="font-size:0.62rem;">진행중</span><% } %>
-                </div>
-                <span class="magnitude-pill">+<%= (e.magnitude * 100).toFixed(0) %>%</span>
-              </div>
-              <div class="row2">
-                <span>시총 <strong><%= (e.marketCap / 1e8).toFixed(0) %>억</strong></span>
-                <span><%= ignMd %> → <%= pkMd %> <strong><%= e.duration %>일</strong></span>
-                <span class="<%= regimeCls %>"><%= e.regime %></span>
-              </div>
-              <div class="row3">
-                <span>회전율 <strong><%= e.features?.turnover ?? '-' %></strong></span>
-                <span>양/음봉 <strong><%= e.features?.bullBearRatio ?? '-' %></strong></span>
-              </div>
-            </div>
-          <% }) %>
-
-          <% if (totalPages > 1) {
-            function pageUrl(p) {
-              const params = new URLSearchParams();
-              if (query) params.set("q", query);
-              if (bucket !== "all") params.set("bucket", bucket);
-              params.set("page", p);
-              return "/pattern?" + params.toString();
-            }
-            // 표시할 페이지 번호 — 현재 페이지 ±2
-            const start = Math.max(1, page - 2);
-            const end = Math.min(totalPages, page + 2);
-          %>
-            <nav class="mt-3">
-              <ul class="pagination pagination-sm justify-content-center mb-0">
-                <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
-                  <a class="page-link" href="<%= pageUrl(1) %>">«</a>
-                </li>
-                <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
-                  <a class="page-link" href="<%= pageUrl(Math.max(1, page - 1)) %>">‹</a>
-                </li>
-                <% for (let p = start; p <= end; p++) { %>
-                  <li class="page-item <%= p === page ? 'active' : '' %>">
-                    <a class="page-link" href="<%= pageUrl(p) %>"><%= p %></a>
-                  </li>
-                <% } %>
-                <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
-                  <a class="page-link" href="<%= pageUrl(Math.min(totalPages, page + 1)) %>">›</a>
-                </li>
-                <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
-                  <a class="page-link" href="<%= pageUrl(totalPages) %>">»</a>
-                </li>
-              </ul>
-            </nav>
-          <% } %>
-        <% } %>
-      </div>
     <% } %>
 
     <div class="text-center text-secondary small mt-4">
