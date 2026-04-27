@@ -187,8 +187,18 @@
               <span class="swatch feat-good">초록</span> = 성공 패턴 닮음
               <span class="swatch feat-bad">빨강</span> = 실패 패턴 닮음
               <span class="swatch feat-neu">회색</span> = 중립
-              <span class="text-secondary" style="font-size:0.7rem;">· 카드 아래쪽 features 마우스 올리면 LR 값 표시</span>
             </div>
+            <details class="mt-2" style="font-size:0.75rem;">
+              <summary style="cursor:pointer; color:#065f46;">📖 features 읽는 법</summary>
+              <ul class="mb-0 mt-1 ps-3" style="font-size:0.72rem; line-height:1.5;">
+                <li><strong>20일선 / 60일 고점·저점</strong> = 종가가 그 선·점에서 ±몇 %인지 (양수=위, 음수=아래)</li>
+                <li><strong>현재가 매물밀도</strong> = 직전 60일 거래대금 중 종가 ±5% 가격대에 쌓인 비율 (높을수록 매물 두꺼움)</li>
+                <li><strong>20일 회전율</strong> = 직전 20일 거래대금 합계가 시총의 몇 % (100% = 시총만큼 거래됨)</li>
+                <li><strong>박스권</strong> = 점화 직전 일변동 ≤4% 가 며칠 연속이었나 (성공 종목은 보통 0일 — 박스 없이 점화)</li>
+                <li><strong>오늘 거래량</strong> = 오늘 거래량 / 직전 20일 평균 (1배=평소, 3배+=급증)</li>
+                <li><strong>오늘 거래대금</strong> = 오늘 거래대금 / 시총 (시총의 몇 % 가 오늘 거래됐나)</li>
+              </ul>
+            </details>
           </div>
 
           <form method="get" action="/pattern" class="row g-2 align-items-end mb-3">
@@ -235,32 +245,49 @@
                   <span>종가 <strong><%= c.closePrice ? c.closePrice.toLocaleString() : '-' %></strong></span>
                   <span class="<%= changeCls %>"><%= c.changeRate != null ? (c.changeRate > 0 ? '+' : '') + c.changeRate.toFixed(2) + '%' : '-' %></span>
                 </div>
+                <%
+                  function featCls(lr) {
+                    if (lr == null || isNaN(lr)) return 'feat feat-neu';
+                    if (lr >= 0.3) return 'feat feat-good';
+                    if (lr <= -0.3) return 'feat feat-bad';
+                    return 'feat feat-neu';
+                  }
+                  // 사람이 읽기 좋은 포맷
+                  function fmtPct(v)  { return v == null ? '-' : (v * 100).toFixed(0) + '%'; }
+                  function fmtDelta(v){ if (v == null) return '-'; const d = (v - 1) * 100; return (d >= 0 ? '+' : '') + d.toFixed(0) + '%'; }
+                  function fmtMult(v) { return v == null ? '-' : v.toFixed(1) + '배'; }
+                  function fmtDays(v) { return v == null ? '-' : v + '일'; }
+
+                  const featRowsA = [
+                    // 가격/위치 관점
+                    ['maPos20',          '20일선 대비',     fmtDelta(c.features?.maPos20),          c.features?.maPos20 != null ? `종가 / 20일 SMA = ${c.features.maPos20}` : ''],
+                    ['positionPct',      '60일 고점',       fmtDelta(c.features?.positionPct),       c.features?.positionPct != null ? `종가 / 60일 고점 = ${c.features.positionPct}` : ''],
+                    ['positionFromLow',  '60일 저점',       fmtDelta(c.features?.positionFromLow),   c.features?.positionFromLow != null ? `종가 / 60일 저점 = ${c.features.positionFromLow}` : ''],
+                    ['localResistance',  '현재가 매물밀도', fmtPct(c.features?.localResistance),     c.features?.localResistance != null ? `점화가 ±5% 60일 거래대금 비율` : ''],
+                  ];
+                  const featRowsB = [
+                    // 행동/거래 관점
+                    ['turnover',          '20일 회전율',    fmtPct(c.features?.turnover),            '직전 20일 거래대금 / 시총'],
+                    ['boxDays',           '박스권',         fmtDays(c.features?.boxDays),            '점화 직전 일변동 ≤4% 연속일수'],
+                    ['igniteVolumeRatio', '오늘 거래량',    fmtMult(c.features?.igniteVolumeRatio), '오늘 거래량 / 직전 20일 평균'],
+                    ['igniteValueRatio',  '오늘 거래대금',  fmtPct(c.features?.igniteValueRatio),    '오늘 거래대금 / 시총'],
+                  ];
+                %>
                 <div class="row3">
-                  <%
-                    const featRows = [
-                      ['turnover', '회전', ''],
-                      ['maPos20', '20선', ''],
-                      ['positionPct', '60고', ''],
-                      ['boxDays', '박스', '일'],
-                      ['localResistance', '매물', ''],
-                      ['igniteVolumeRatio', '점화량', 'x'],
-                      ['igniteValueRatio', '점화금', ''],
-                      ['positionFromLow', '저점x', ''],
-                    ];
-                    function featCls(lr) {
-                      if (lr == null || isNaN(lr)) return 'feat feat-neu';
-                      if (lr >= 0.3) return 'feat feat-good';
-                      if (lr <= -0.3) return 'feat feat-bad';
-                      return 'feat feat-neu';
-                    }
+                  <% featRowsA.forEach(function(fr) {
+                    const lr = c.breakdown ? c.breakdown[fr[0]] : null;
                   %>
-                  <% featRows.forEach(function(fr) {
-                    const key = fr[0], lbl = fr[1], suf = fr[2];
-                    const v = c.features ? c.features[key] : null;
-                    const lr = c.breakdown ? c.breakdown[key] : null;
+                    <span class="<%= featCls(lr) %>" title="<%= fr[3] %> · LR=<%= lr != null ? lr.toFixed(2) : '-' %>">
+                      <%= fr[1] %> <strong><%= fr[2] %></strong>
+                    </span>
+                  <% }) %>
+                </div>
+                <div class="row3">
+                  <% featRowsB.forEach(function(fr) {
+                    const lr = c.breakdown ? c.breakdown[fr[0]] : null;
                   %>
-                    <span class="<%= featCls(lr) %>" title="<%= key %> · LR=<%= lr ?? '-' %>">
-                      <%= lbl %> <strong><%= v ?? '-' %></strong><%= suf %>
+                    <span class="<%= featCls(lr) %>" title="<%= fr[3] %> · LR=<%= lr != null ? lr.toFixed(2) : '-' %>">
+                      <%= fr[1] %> <strong><%= fr[2] %></strong>
                     </span>
                   <% }) %>
                 </div>
