@@ -2287,7 +2287,7 @@ app.get("/pattern", (req, res) => {
   // 후보 페이징 + 정렬 + 매칭 필터
   const cPage = Math.max(1, parseInt(req.query.cpage, 10) || 1);
   const cQuery = String(req.query.cq || "").trim();
-  const cSort = ["match", "score"].includes(req.query.csort) ? req.query.csort : "score";
+  const cSort = "match"; // 매칭 기준만 노출 (점수 정렬은 단순화 위해 제거)
   const cMinMatch = Math.max(0, Math.min(14, parseInt(req.query.cmin, 10) || 0));
   let pagedCandidates = [];
   let totalCandidates = 0;

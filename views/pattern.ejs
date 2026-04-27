@@ -87,7 +87,9 @@
         <% if (result) { %>
           <div class="col"><div class="meta-cell"><div class="label">분석된 종목</div><div class="value"><%= result.processed %></div></div></div>
           <div class="col"><div class="meta-cell"><div class="label">+40% 이벤트</div><div class="value"><%= result.successCount %></div></div></div>
-          <div class="col"><div class="meta-cell"><div class="label">실패 이벤트 (15~30%)</div><div class="value"><%= result.failedCount %></div></div></div>
+          <% if (result.candidates) { %>
+            <div class="col"><div class="meta-cell"><div class="label">현재 후보</div><div class="value"><%= result.candidates.total %></div></div></div>
+          <% } %>
         <% } %>
       </div>
       <div class="muted-text small mt-3 text-secondary">
@@ -150,47 +152,23 @@
         </div>
       </div>
 
-      <!-- 실패 이벤트 분포 (survivorship counter) -->
-      <% if (result.failed && result.failed.total && result.failed.total.summary) { %>
-        <div class="glass">
-          <h2><i class="bi bi-shield-x me-1"></i>실패 이벤트 분포 (15~30% 만 오른 케이스)</h2>
-          <div class="text-secondary small mb-2">이벤트 <strong><%= result.failed.total.n %></strong>건 — 점화 전 지표가 비슷해도 못 간 케이스. 성공 분포와 *명확히 다른* 지표가 진짜 판별력 있는 신호.</div>
-          <div class="bucket-grid">
-            <div class="bucket-card" style="border-left: 3px solid #94a3b8;">
-              <% Object.keys(featureLabels).forEach(function(k) { var f = result.failed.total.summary[k]; %>
-                <% if (f) { %>
-                  <div class="feature-row">
-                    <span><%= featureLabels[k] %></span>
-                    <strong><%= f.median %><span class="text-secondary" style="font-weight:400;font-size:0.7rem;"> (p25~p75: <%= f.p25 %>~<%= f.p75 %>)</span></strong>
-                  </div>
-                <% } %>
-              <% }) %>
-            </div>
-          </div>
-        </div>
-      <% } %>
 
       <!-- 현재 후보 (Phase B: Likelihood Ratio 스코어링) -->
       <% if (result.candidates && result.candidates.top && result.candidates.top.length) { %>
         <div class="glass">
-          <h2><i class="bi bi-radar me-1"></i>현재 후보 — 성공 패턴과 닮은 종목 (점수 ↓ 정렬)</h2>
+          <h2><i class="bi bi-radar me-1"></i>현재 후보 — +40% 종목 패턴 닮은 종목</h2>
           <div class="alert alert-success small mb-2" style="background:#ecfdf5; border-color:#a7f3d0; color:#065f46;">
-            <i class="bi bi-stars me-1"></i><strong>실전 매매용 — 지금 살 만한 종목 찾기.</strong>
-            오늘 기준 직전 20일 거래 패턴이 과거 +40% 종목들의 <em>점화 직전</em> 패턴과 얼마나 닮았는지 점수화 한 결과예요.
+            <i class="bi bi-stars me-1"></i><strong>지금 살 만한 종목 찾기.</strong>
+            오늘 기준 직전 20일 거래 패턴이 과거 +40% 종목들의 <em>점화 직전</em> 패턴과 얼마나 닮았는지 — 14개 차원 중 몇 개가 매칭되는지 카운트.
             <ul class="mb-0 mt-1 ps-3" style="font-size:0.78rem;">
-              <li><strong>점수 ≥ 1.5 (초록)</strong> = 성공 패턴과 매우 흡사 — 우선 관심</li>
-              <li><strong>0.5 ~ 1.5 (노랑)</strong> = 약하게 닮음 — 추가 확인</li>
-              <li><strong>&lt; 0.5 (빨강)</strong> = 닮지 않음 — 패스</li>
+              <li><strong>14/14 (초록)</strong> = 모든 차원에서 +40% 종목 전형 패턴 — 최우선 관심</li>
+              <li><strong>11~13/14 (노랑)</strong> = 강하게 닮음</li>
+              <li><strong>그 이하 (회색)</strong> = 약하게 닮음</li>
             </ul>
             <div class="mt-1" style="font-size:0.75rem;">⚠ <strong>"언제" 점화될지는 모름</strong> — 1주 안일 수도, 한 달 뒤일 수도. 후보군일 뿐 매수 시그널 아님.</div>
-            <div class="legend mt-2">
-              <span class="swatch feat-good">초록</span> = 성공 패턴 닮음
-              <span class="swatch feat-bad">빨강</span> = 실패 패턴 닮음
-              <span class="swatch feat-neu">회색</span> = 중립
-            </div>
             <% if (result.candidates && result.candidates.signature) { %>
               <details class="mt-2" style="font-size:0.75rem;">
-                <summary style="cursor:pointer; color:#065f46;">🎯 성공 종목들의 공통 시그니처 (80% 가 들어가는 밴드)</summary>
+                <summary style="cursor:pointer; color:#065f46;">🎯 +40% 종목들이 공통으로 보였던 패턴 (14개 차원)</summary>
                 <%
                   const sig = result.candidates.signature;
                   function sigFmt(k, v) {
@@ -228,8 +206,7 @@
                   <% }) %>
                 </ul>
                 <div class="mt-1" style="font-size:0.7rem; color:#475569;">
-                  💡 <strong>"매칭 X/14"</strong> = 후보가 14개 features 중 몇 개를 이 시그니처 밴드 안에 들어가는지.
-                  10/14 이상이면 전형적 패턴, 14/14 면 거의 완벽 매칭. 점수와는 다른 관점 — 점수는 극단값에 강하게 반응, 매칭은 골고루 정상 범주.
+                  💡 후보 카드의 <strong>"N/14"</strong> = 그 후보가 14개 차원 중 몇 개를 이 밴드 안에 들어가는지.
                 </div>
               </details>
             <% } %>
@@ -247,18 +224,11 @@
           </div>
 
           <form method="get" action="/pattern" class="row g-2 align-items-end mb-3">
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-5">
               <label class="form-label small text-secondary mb-1">후보 검색</label>
               <input type="text" name="cq" value="<%= cQuery || '' %>" placeholder="예: 서울반도체 or 046890" class="form-control form-control-sm" />
             </div>
             <div class="col-6 col-md-3">
-              <label class="form-label small text-secondary mb-1">정렬</label>
-              <select name="csort" class="form-select form-select-sm">
-                <option value="score" <%= cSort === 'score' ? 'selected' : '' %>>점수 (한 방 시그널)</option>
-                <option value="match" <%= cSort === 'match' ? 'selected' : '' %>>매칭 (전형 패턴)</option>
-              </select>
-            </div>
-            <div class="col-6 col-md-2">
               <label class="form-label small text-secondary mb-1">최소 매칭</label>
               <select name="cmin" class="form-select form-select-sm">
                 <% [0,8,10,11,12,13,14].forEach(function(n) { %>
@@ -269,7 +239,7 @@
             <div class="col-6 col-md-2">
               <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search me-1"></i>적용</button>
             </div>
-            <div class="col-6 col-md-1">
+            <div class="col-6 col-md-2">
               <a href="/pattern" class="btn btn-outline-secondary btn-sm w-100">초기화</a>
             </div>
           </form>
@@ -295,9 +265,9 @@
                 const matched = c.matched || 0;
                 const totalK = c.totalKeys || 14;
                 const matchPct = totalK > 0 ? matched / totalK : 0;
-                const matchColor = matchPct >= 0.8 ? { bg: '#dcfce7', fg: '#166534' }
-                  : (matchPct >= 0.6 ? { bg: '#fef3c7', fg: '#92400e' }
-                  : { bg: '#fee2e2', fg: '#991b1b' });
+                const matchColor = matched === totalK ? { bg: '#dcfce7', fg: '#166534' }   // 14/14 만점
+                  : (matchPct >= 11/14 ? { bg: '#fef3c7', fg: '#92400e' }                  // 11~13/14
+                  : { bg: '#f1f5f9', fg: '#64748b' });                                       // 그 이하
               %>
               <div class="item-card">
                 <div class="row1">
@@ -306,14 +276,9 @@
                     <span class="nm"><%= c.name %></span>
                     <span class="cd"><%= c.code %></span>
                   </div>
-                  <div style="display:flex; gap:4px;">
-                    <span class="score-pill" style="background: <%= matchColor.bg %>; color: <%= matchColor.fg %>;" title="시그니처 매칭 (성공 종목 p10~p90 밴드 안에 들어가는 features 수)">
-                      <%= matched %>/<%= totalK %>
-                    </span>
-                    <span class="score-pill" style="background: <%= scoreColor.bg %>; color: <%= scoreColor.fg %>;" title="log likelihood ratio 점수">
-                      <%= c.score.toFixed(2) %>
-                    </span>
-                  </div>
+                  <span class="score-pill" style="background: <%= matchColor.bg %>; color: <%= matchColor.fg %>;" title="14개 차원 중 +40% 종목 패턴 밴드(p10~p90) 안에 들어가는 차원 수">
+                    <%= matched %>/<%= totalK %>
+                  </span>
                 </div>
                 <div class="row2">
                   <span>시총 <strong><%= (c.marketCap / 1e8).toFixed(0) %>억</strong></span>
@@ -321,11 +286,10 @@
                   <span class="<%= changeCls %>"><%= c.changeRate != null ? (c.changeRate > 0 ? '+' : '') + c.changeRate.toFixed(2) + '%' : '-' %></span>
                 </div>
                 <%
-                  function featCls(lr) {
-                    if (lr == null || isNaN(lr)) return 'feat feat-neu';
-                    if (lr >= 0.3) return 'feat feat-good';
-                    if (lr <= -0.3) return 'feat feat-bad';
-                    return 'feat feat-neu';
+                  // 시그니처 밴드 (p10~p90) 안에 들어가면 초록, 아니면 회색
+                  function featCls(inBand) {
+                    if (inBand == null) return 'feat feat-neu';
+                    return inBand ? 'feat feat-good' : 'feat feat-neu';
                   }
                   // 사람이 읽기 좋은 포맷
                   function fmtPct(v)  { return v == null ? '-' : (v * 100).toFixed(0) + '%'; }
@@ -350,9 +314,9 @@
                 %>
                 <div class="row3">
                   <% featRowsA.forEach(function(fr) {
-                    const lr = c.breakdown ? c.breakdown[fr[0]] : null;
+                    const inBand = c.sigBreakdown ? c.sigBreakdown[fr[0]] : null;
                   %>
-                    <span class="<%= featCls(lr) %>" title="<%= fr[3] %> · LR=<%= lr != null ? lr.toFixed(2) : '-' %>">
+                    <span class="<%= featCls(inBand) %>" title="<%= fr[3] %><%= inBand === true ? ' · ✓ 밴드 안' : (inBand === false ? ' · 밴드 밖' : '') %>">
                       <%= fr[1] %> <strong><%= fr[2] %></strong>
                     </span>
                   <% }) %>
