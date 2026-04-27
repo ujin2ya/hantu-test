@@ -24,14 +24,35 @@
     .bucket-card h3 { font-size: 0.95rem; font-weight: 700; margin: 0 0 6px; }
     .bucket-card .feature-row { display: flex; justify-content: space-between; font-size: 0.78rem; color: #475569; margin-bottom: 2px; }
     .bucket-card .feature-row strong { color: #0f172a; }
-    .event-table { width: 100%; font-size: 0.85rem; }
-    .event-table th { font-weight: 600; color: #475569; padding: 6px 8px; border-bottom: 1px solid #e2e8f0; font-size: 0.78rem; }
-    .event-table td { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; }
     .magnitude-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 700; }
     .regime-bull { color: #166534; font-weight: 600; }
     .regime-bear { color: #991b1b; font-weight: 600; }
     .regime-side { color: #475569; }
     .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+
+    /* ─── 카드 리스트 (모바일·데스크탑 공통) ─── */
+    .item-card { background: #f8fafc; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+    .item-card .row1 { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+    .item-card .row1 .name-block { flex: 1; min-width: 0; }
+    .item-card .row1 .name-block .nm { font-weight: 700; color: #0f172a; }
+    .item-card .row1 .name-block .cd { color: #94a3b8; font-size: 0.78rem; margin-left: 4px; }
+    .item-card .row1 .name-block .rk { color: #64748b; font-size: 0.78rem; margin-right: 6px; font-variant-numeric: tabular-nums; }
+    .item-card .row2, .item-card .row3 {
+      display: flex; flex-wrap: wrap; gap: 4px 12px;
+      font-size: 0.78rem; color: #475569;
+    }
+    .item-card .row2 strong, .item-card .row3 strong { color: #0f172a; font-variant-numeric: tabular-nums; }
+    .item-card .row3 { margin-top: 3px; padding-top: 4px; border-top: 1px dashed #e2e8f0; }
+    .score-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    @media (max-width: 576px) {
+      body { padding: 16px 10px; }
+      .glass { padding: 14px; border-radius: 12px; margin-bottom: 14px; }
+      h1 { font-size: 1.1rem; }
+      .topbar { gap: 8px; }
+      .topbar h1 i { display: none; }
+      .item-card .row2, .item-card .row3 { font-size: 0.74rem; gap: 3px 10px; }
+    }
   </style>
 </head>
 <body>
@@ -163,46 +184,35 @@
           <% if (pagedCandidates.length === 0) { %>
             <div class="alert alert-light small mb-0">조건에 맞는 후보가 없습니다.</div>
           <% } else { %>
-            <div class="table-responsive">
-              <table class="event-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>종목</th>
-                    <th class="text-end">시총</th>
-                    <th class="text-end">종가</th>
-                    <th class="text-end">등락</th>
-                    <th class="text-end">점수</th>
-                    <th class="text-end">회전율</th>
-                    <th class="text-end">양/음봉</th>
-                    <th class="text-end">거래량</th>
-                    <th class="text-end">60일위치</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% pagedCandidates.forEach(function(c, idx) { %>
-                    <tr>
-                      <td class="text-secondary small"><%= (candidatePage - 1) * pageSize + idx + 1 %></td>
-                      <td><strong><%= c.name %></strong> <span class="text-secondary small"><%= c.code %></span></td>
-                      <td class="text-end"><%= (c.marketCap / 1e8).toFixed(0) %>억</td>
-                      <td class="text-end"><%= c.closePrice ? c.closePrice.toLocaleString() : '-' %></td>
-                      <td class="text-end <%= (c.changeRate || 0) > 0 ? 'regime-bull' : (c.changeRate < 0 ? 'regime-bear' : 'regime-side') %>">
-                        <%= c.changeRate != null ? (c.changeRate > 0 ? '+' : '') + c.changeRate.toFixed(2) + '%' : '-' %>
-                      </td>
-                      <td class="text-end">
-                        <span class="magnitude-pill" style="background: <%= c.score >= 1.5 ? '#dcfce7' : (c.score >= 0.5 ? '#fef3c7' : '#fee2e2') %>; color: <%= c.score >= 1.5 ? '#166534' : (c.score >= 0.5 ? '#92400e' : '#991b1b') %>;">
-                          <%= c.score.toFixed(2) %>
-                        </span>
-                      </td>
-                      <td class="text-end"><%= c.features?.turnover ?? '-' %></td>
-                      <td class="text-end"><%= c.features?.bullBearRatio ?? '-' %></td>
-                      <td class="text-end"><%= c.features?.volumeSurge ?? '-' %></td>
-                      <td class="text-end"><%= c.features?.positionPct ?? '-' %></td>
-                    </tr>
-                  <% }) %>
-                </tbody>
-              </table>
-            </div>
+            <% pagedCandidates.forEach(function(c, idx) {
+              const rank = (candidatePage - 1) * pageSize + idx + 1;
+              const scoreColor = c.score >= 1.5 ? { bg: '#dcfce7', fg: '#166534' }
+                : (c.score >= 0.5 ? { bg: '#fef3c7', fg: '#92400e' }
+                : { bg: '#fee2e2', fg: '#991b1b' });
+              const changeCls = (c.changeRate || 0) > 0 ? 'regime-bull' : (c.changeRate < 0 ? 'regime-bear' : 'regime-side');
+            %>
+              <div class="item-card">
+                <div class="row1">
+                  <div class="name-block">
+                    <span class="rk">#<%= rank %></span>
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </div>
+                  <span class="score-pill" style="background: <%= scoreColor.bg %>; color: <%= scoreColor.fg %>;"><%= c.score.toFixed(2) %></span>
+                </div>
+                <div class="row2">
+                  <span>시총 <strong><%= (c.marketCap / 1e8).toFixed(0) %>억</strong></span>
+                  <span>종가 <strong><%= c.closePrice ? c.closePrice.toLocaleString() : '-' %></strong></span>
+                  <span class="<%= changeCls %>"><%= c.changeRate != null ? (c.changeRate > 0 ? '+' : '') + c.changeRate.toFixed(2) + '%' : '-' %></span>
+                </div>
+                <div class="row3">
+                  <span>회전율 <strong><%= c.features?.turnover ?? '-' %></strong></span>
+                  <span>60일위치 <strong><%= c.features?.positionPct ?? '-' %></strong></span>
+                  <span>거래량 <strong><%= c.features?.volumeSurge ?? '-' %></strong></span>
+                  <span>양/음봉 <strong><%= c.features?.bullBearRatio ?? '-' %></strong></span>
+                </div>
+              </div>
+            <% }) %>
 
             <% if (totalCandidatePages > 1) {
               function candidatePageUrl(p) {
@@ -293,38 +303,31 @@
         <% if (pagedEvents.length === 0) { %>
           <div class="alert alert-light small mb-0">조건에 맞는 이벤트가 없습니다.</div>
         <% } else { %>
-          <div class="table-responsive">
-            <table class="event-table">
-              <thead>
-                <tr>
-                  <th>종목</th>
-                  <th class="text-end">시총</th>
-                  <th>점화일</th>
-                  <th>피크일</th>
-                  <th class="text-end">상승률</th>
-                  <th class="text-end">기간</th>
-                  <th>국면</th>
-                  <th class="text-end">회전율</th>
-                  <th class="text-end">양봉/음봉</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% pagedEvents.forEach(function(e) { %>
-                  <tr>
-                    <td><strong><%= e.name %></strong> <span class="text-secondary small"><%= e.code %></span><% if (e.inProgress) { %> <span class="badge bg-warning text-dark" style="font-size:0.65rem;">진행중</span><% } %></td>
-                    <td class="text-end"><%= (e.marketCap / 1e8).toFixed(0) %>억</td>
-                    <td><%= e.ignitionDate.slice(4,6) + "/" + e.ignitionDate.slice(6,8) %></td>
-                    <td><%= e.peakDate.slice(4,6) + "/" + e.peakDate.slice(6,8) %></td>
-                    <td class="text-end"><span class="magnitude-pill">+<%= (e.magnitude * 100).toFixed(0) %>%</span></td>
-                    <td class="text-end"><%= e.duration %>일</td>
-                    <td><span class="<%= e.regime === '강세' ? 'regime-bull' : (e.regime === '약세' ? 'regime-bear' : 'regime-side') %>"><%= e.regime %></span></td>
-                    <td class="text-end"><%= e.features?.turnover ?? '-' %></td>
-                    <td class="text-end"><%= e.features?.bullBearRatio ?? '-' %></td>
-                  </tr>
-                <% }) %>
-              </tbody>
-            </table>
-          </div>
+          <% pagedEvents.forEach(function(e) {
+            const regimeCls = e.regime === '강세' ? 'regime-bull' : (e.regime === '약세' ? 'regime-bear' : 'regime-side');
+            const ignMd = e.ignitionDate.slice(4,6) + '/' + e.ignitionDate.slice(6,8);
+            const pkMd = e.peakDate.slice(4,6) + '/' + e.peakDate.slice(6,8);
+          %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <span class="nm"><%= e.name %></span>
+                  <span class="cd"><%= e.code %></span>
+                  <% if (e.inProgress) { %><span class="badge bg-warning text-dark ms-1" style="font-size:0.62rem;">진행중</span><% } %>
+                </div>
+                <span class="magnitude-pill">+<%= (e.magnitude * 100).toFixed(0) %>%</span>
+              </div>
+              <div class="row2">
+                <span>시총 <strong><%= (e.marketCap / 1e8).toFixed(0) %>억</strong></span>
+                <span><%= ignMd %> → <%= pkMd %> <strong><%= e.duration %>일</strong></span>
+                <span class="<%= regimeCls %>"><%= e.regime %></span>
+              </div>
+              <div class="row3">
+                <span>회전율 <strong><%= e.features?.turnover ?? '-' %></strong></span>
+                <span>양/음봉 <strong><%= e.features?.bullBearRatio ?? '-' %></strong></span>
+              </div>
+            </div>
+          <% }) %>
 
           <% if (totalPages > 1) {
             function pageUrl(p) {
