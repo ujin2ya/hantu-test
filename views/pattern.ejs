@@ -7,6 +7,10 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
   <style>
+    @keyframes premiumGlow {
+      0%, 100% { box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3), 0 4px 12px rgba(34, 197, 94, 0.15); }
+      50%      { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.5), 0 6px 18px rgba(34, 197, 94, 0.25); }
+    }
     body {
       background: #f3f5fb; color: #1f2937;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
@@ -128,6 +132,61 @@
           </form>
         </div>
 
+        <!-- ⭐ PREMIUM 종목 (최상단 강조) -->
+        <%
+          const premiumMovers = momentumMovers.filter(m => m.startingQuality?.quality === 'PREMIUM');
+        %>
+        <% if (premiumMovers.length) { %>
+          <div class="glass" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 2px solid #16a34a;">
+            <h2 style="color:#15803d;"><i class="bi bi-star-fill me-1"></i>⭐ PREMIUM 종목 — 최우선 검토 (<%= premiumMovers.length %>건)</h2>
+            <div class="text-secondary small mb-3" style="color:#166534 !important;">
+              <strong>3가지 품질 필터 모두 통과</strong> — fade 없음 · 강한 마감 · 깨끗한 base. 오늘 가장 신뢰도 높은 후보.
+            </div>
+            <% premiumMovers.forEach(function(m, idx) {
+              const closeBar = Math.round(m.closePos * 100);
+              const tierLabel = m.dayChange < 10 ? '시동 (5~10%)' : m.dayChange < 15 ? '상승 중 (10~15%)' : m.dayChange < 25 ? '강한 상승 (15~25%)' : '상한가급 (≥25%)';
+            %>
+              <div class="item-card" style="background:#fff; border:2px solid #16a34a; animation: premiumGlow 2.5s ease-in-out infinite; padding:14px 16px;">
+                <div class="row1">
+                  <div class="name-block">
+                    <span class="rk" style="color:#15803d; font-weight:700;">#<%= idx + 1 %></span>
+                    <a class="deep-link" href="/?query=<%= encodeURIComponent(m.code) %>" target="_blank" rel="noopener" title="딥다이브 분석">
+                      <span class="nm" style="font-size:1.05rem;"><%= m.name %></span>
+                      <span class="cd"><%= m.code %></span>
+                      <i class="bi bi-box-arrow-up-right arr"></i>
+                    </a>
+                    <span class="score-pill ms-1" style="background:#16a34a; color:#fff; font-size:0.72rem; font-weight:700;">
+                      ⭐ PREMIUM
+                    </span>
+                    <% if (m.inShape) { %>
+                      <span class="score-pill ms-1" style="background:#dcfce7; color:#166534; font-size:0.68rem; font-weight:700;">
+                        🎯 SHAPE <%= m.shapeMatched %>/<%= m.shapeTotalKeys %>
+                      </span>
+                    <% } %>
+                  </div>
+                  <span class="score-pill" style="background:#16a34a; color:#fff; font-weight:700; font-size:0.95rem;">+<%= m.dayChange %>%</span>
+                </div>
+                <div style="margin:6px 0; padding:6px 8px; background:#f0fdf4; border-radius:6px; font-size:0.72rem; line-height:1.5; color:#166534;">
+                  <% m.startingQuality.flags.forEach(function(f) { %>
+                    <div>✓ <%= f.msg %></div>
+                  <% }) %>
+                </div>
+                <div class="row2">
+                  <span style="color:#15803d;"><strong><%= tierLabel %></strong></span>
+                  <span>시총 <strong><%= (m.marketCap / 1e8).toFixed(0) %>억</strong></span>
+                  <span>종가 <strong><%= m.closePrice.toLocaleString() %></strong></span>
+                  <span class="text-secondary"><%= m.market || '' %></span>
+                </div>
+                <div class="row3">
+                  <span class="feat feat-good">거래량 <strong><%= m.volRatio %>배</strong></span>
+                  <span class="feat feat-good">거래대금/시총 <strong><%= m.valuePct %>%</strong></span>
+                  <span class="feat feat-good">종가위치 <strong><%= closeBar %>%</strong></span>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+
         <!-- 🚀 오늘의 모멘텀 (메인 도구) -->
         <div class="glass">
           <h2><i class="bi bi-rocket-takeoff me-1"></i>오늘의 모멘텀 (<%= momentumMovers.length %>건)</h2>
@@ -146,8 +205,11 @@
                 return { key: 'starting', label: '🌱 시동 단계', color: '#16a34a', bg: '#dcfce7' };
               }
               // 단계별 분류 + 각 tier 안에서 품질순 정렬 (PREMIUM > FRESH > SUSPECT)
+              // PREMIUM 은 위쪽 별도 섹션에서 표시되므로 tier 에선 제외
               const tierGroups = { starting: [], rising: [], strong: [], limit: [] };
-              momentumMovers.forEach((m) => tierGroups[tierOf(m).key].push(m));
+              momentumMovers
+                .filter((m) => m.startingQuality?.quality !== 'PREMIUM')
+                .forEach((m) => tierGroups[tierOf(m).key].push(m));
               const qOrder = { PREMIUM: 3, FRESH: 2, SUSPECT: 1 };
               const sortByQuality = (a, b) => {
                 const qa = qOrder[a.startingQuality?.quality] || 0;
