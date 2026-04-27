@@ -14,7 +14,7 @@ const CACHE_DIR = path.join(__dirname, "cache", "ai-grounding");
 const COUNTER_PATH = path.join(CACHE_DIR, "_daily.json");
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6시간
 const DEFAULT_DAILY_LIMIT = Number(process.env.AI_GROUNDING_DAILY_LIMIT) || 50;
-const SCHEMA_VERSION = 2; // bonus + buyPriceRec
+const SCHEMA_VERSION = 3; // bonus + action recommendation
 
 function ensureDir() {
   if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
@@ -74,16 +74,11 @@ function getModelName() {
 
 function buildPrompt({ name, shortCode, currentPrice, changeRate, baselineScore, market, technicalBuyPrice, technicalStopLoss }) {
   const techLine = technicalBuyPrice
-    ? `기술적 추천 매수가: ${Math.round(technicalBuyPrice).toLocaleString()}원 (참고)`
-    : "기술적 추천 매수가: 산출 안 됨";
-  const stopLine = technicalStopLoss
-    ? `기술적 손절선: ${Math.round(technicalStopLoss).toLocaleString()}원 (참고)`
-    : "";
+    ? `기술적 1차 매수가 후보: ${Math.round(technicalBuyPrice).toLocaleString()}원 (참고)`
+    : "기술적 매수가 후보: 산출 안 됨";
   return [
-    "한국 주식 종목 하나에 대해 Google 검색으로 최근 1~3개월 뉴스/공시/실적/섹터 동향을 확인하고",
-    "두 가지를 출력해주세요:",
-    "(1) 기술적 베이스라인 점수에 정성 보정값(-10~+10)",
-    "(2) 단일 추천 매수가와 손절선 + 근거",
+    "한국 주식 종목 하나에 대해 Google 검색으로 *오늘~3거래일 내* 매수 액션 권고를 내려주세요.",
+    "긴 호흡(분기 단위) 분석가 목표주가가 아니라 *지금 이 종목을 어떻게 다뤄야 하나* 를 핵심으로.",
     "",
     `종목명: ${name}`,
     `종목코드: ${shortCode}${market && market !== "-" ? ` (${market})` : ""}`,
@@ -91,57 +86,54 @@ function buildPrompt({ name, shortCode, currentPrice, changeRate, baselineScore,
     `당일 등락: ${changeRate}%`,
     `기술적 베이스라인 점수: ${baselineScore} / 100`,
     techLine,
-    stopLine,
     "",
     "검색해서 가능하면 다음을 확인:",
-    "- 최근 분석가 목표주가 (증권사 컨센서스)",
-    "- 최근 실적 (어닝 서프라이즈/쇼크)",
-    "- 최근 1개월 주요 뉴스/공시 (악재/호재)",
-    "- 섹터 흐름 (반도체·2차전지·바이오 등 산업별 모멘텀)",
+    "- 최근 1~2주 단기 모멘텀 (수급·체결·외인동향)",
+    "- 단기 매수 추천 또는 경고 (증권사 단기 데일리 코멘트)",
+    "- 최근 1개월 주요 뉴스/공시 (호재/악재)",
+    "- 섹터 흐름 (반도체·2차전지·AI 등 — 오늘 강세/약세)",
     "- 종목명 동음이의어 주의 — 반드시 종목코드/사업영역 일치 확인",
     "",
-    "보정 가이드 (bonus):",
-    "- 강한 호재(어닝 서프라이즈, 대형 수주, 우호적 정책, 섹터 강세): +5~+10",
-    "- 약한 호재 또는 시장 호의적 분위기: +1~+5",
-    "- 특이 뉴스 없음: 0",
-    "- 약한 악재(소폭 부진, 경쟁사 호조): -1~-5",
-    "- 강한 악재(어닝 쇼크, 대형 소송/제재, 섹터 구조적 악화): -5~-10",
+    "출력 액션 권고 (action):",
+    "- \"buy_now\": 지금 시가 또는 현재가 매수 가능. 단기 강한 모멘텀 + 호재.",
+    "- \"wait_pullback\": 현재가에서 -1~-5% 가벼운 눌림 대기 후 매수. 추세 양호하나 추격 부담.",
+    "- \"wait_deeper\": -5~-10% 깊은 조정 후 매수. 추세 약화 또는 단기 과열.",
+    "- \"avoid\": 매수 비추 — 악재, 추세 깨짐, 섹터 구조적 약세.",
     "",
-    "매수가 가이드:",
-    "- 기술적 추천 매수가가 있으면 그것을 *기준선*으로 삼고 ±10% 안에서 조정. 절대 그 범위 밖으로 벗어나지 말 것.",
-    "- 강한 호재면 기준선보다 약간 높여도 OK (이미 시장이 반영하고 있어서). 강한 악재면 더 낮춤.",
-    "- 손절선은 매수가 대비 -2~-5% 안. 보통 ATR 또는 직전 지지선 기반.",
-    "- 정보가 부족하면 기준선 그대로 사용 + confidence='low'.",
+    "보정값 (bonus, -10~+10):",
+    "- +5~+10: 강한 호재 (어닝 서프라이즈·대형 수주·정책 수혜·섹터 강세 명확)",
+    "- +1~+5: 약한 호재 또는 시장 호의적 분위기",
+    "- 0: 특이 정보 없음",
+    "- -1~-5: 약한 악재 (소폭 부진·경쟁사 호조·노이즈)",
+    "- -5~-10: 강한 악재 (어닝 쇼크·소송·핵심 이탈·섹터 구조적 악화)",
     "",
-    "confidence 가이드:",
-    "- high: 분석가 컨센서스 + 최근 실적 + 명확한 섹터 흐름 모두 확인됨",
-    "- medium: 일부 정보 확인됨 (예: 뉴스만 또는 컨센서스만)",
-    "- low: 정보 거의 없음 또는 종목 특정 어려움 → 기술적 가격 그대로 사용 권장",
+    "confidence:",
+    "- high: 단기 코멘트 + 명확한 섹터 흐름 + 최근 실적 모두 확인",
+    "- medium: 일부 정보만 확인",
+    "- low: 정보 부족 또는 종목 특정 어려움",
     "",
     "출력은 정확히 다음 JSON 코드블록만:",
     "```json",
     `{
   "bonus": <정수 -10..+10>,
   "reasoning": "<bonus 근거 한 줄, 60자 이내>",
-  "buyPriceRec": {
-    "price": <정수 원, 매수가>,
-    "stopLoss": <정수 원, 손절선 (price 보다 작아야 함)>,
-    "confidence": "low" | "medium" | "high",
-    "rationale": "<매수가 근거 1~2문장, 200자 이내>",
-    "context": {
-      "analystTarget": <정수 원 또는 null, 분석가 목표주가>,
-      "recentNews": "<주요 뉴스 한 줄 또는 null>",
-      "sectorTrend": "<섹터 흐름 한 줄 또는 null>",
-      "earnings": "<최근 실적 한 줄 또는 null>"
-    }
+  "action": "buy_now" | "wait_pullback" | "wait_deeper" | "avoid",
+  "actionDetail": "<액션 권고 근거 1~2문장, 200자 이내. 왜 지금/대기/회피인지>",
+  "confidence": "low" | "medium" | "high",
+  "context": {
+    "shortTermComment": "<증권사 단기 코멘트 또는 시장 분위기 한 줄 또는 null>",
+    "recentNews": "<주요 뉴스 한 줄 또는 null>",
+    "sectorTrend": "<오늘 섹터 흐름 한 줄 또는 null>",
+    "earnings": "<최근 실적 한 줄 또는 null>",
+    "analystTarget": <정수 원 또는 null, 평균 목표주가 (참고용)>
   }
 }`,
     "```",
-    "검색 결과가 없거나 종목 특정이 어려우면: bonus=0, reasoning=\"특이 정보 없음\", price=기술적 매수가 그대로, confidence=\"low\".",
+    "검색 결과가 없거나 종목 특정이 어려우면: bonus=0, action=\"wait_pullback\", confidence=\"low\".",
   ].filter(Boolean).join("\n");
 }
 
-function parseResponse(text, anchor) {
+function parseResponse(text) {
   const m = text.match(/```json\s*(\{[\s\S]+?\})\s*```/) || text.match(/(\{[\s\S]*?"bonus"[\s\S]*?\})/);
   if (!m) return null;
   let parsed;
@@ -151,69 +143,37 @@ function parseResponse(text, anchor) {
     return null;
   }
 
-  // bonus 파싱
+  // bonus
   let bonus = Number(parsed.bonus);
   if (!Number.isFinite(bonus)) return null;
   bonus = Math.round(bonus);
   if (bonus < -10) bonus = -10;
   if (bonus > 10) bonus = 10;
-
   const reasoning = String(parsed.reasoning || "").slice(0, 200);
 
-  // buyPriceRec 파싱 + 클램프
-  let buyPriceRec = null;
-  const rec = parsed.buyPriceRec;
-  if (rec && Number.isFinite(Number(rec.price))) {
-    let price = Math.round(Number(rec.price));
-    let stopLoss = Number.isFinite(Number(rec.stopLoss)) ? Math.round(Number(rec.stopLoss)) : null;
-    let clamped = false;
+  // action — 알려진 값만 허용
+  const validActions = ["buy_now", "wait_pullback", "wait_deeper", "avoid"];
+  const action = validActions.includes(parsed.action) ? parsed.action : "wait_pullback";
+  const actionDetail = String(parsed.actionDetail || "").slice(0, 400);
+  const confidence = ["low", "medium", "high"].includes(parsed.confidence) ? parsed.confidence : "low";
 
-    // 안전 장치: 기술적 매수가 ±10% 밖이면 강제 클램프
-    if (anchor && anchor.technicalBuyPrice) {
-      const lo = Math.round(anchor.technicalBuyPrice * 0.90);
-      const hi = Math.round(anchor.technicalBuyPrice * 1.10);
-      if (price < lo) { price = lo; clamped = true; }
-      if (price > hi) { price = hi; clamped = true; }
-    }
-    // 추가 안전 장치: 현재가 ±20% 밖이면 무시 (할루시네이션)
-    if (anchor && anchor.currentPrice) {
-      const absLo = Math.round(anchor.currentPrice * 0.80);
-      const absHi = Math.round(anchor.currentPrice * 1.20);
-      if (price < absLo || price > absHi) {
-        // 절대 범위 벗어나면 anchor 값으로 폴백
-        price = anchor.technicalBuyPrice ? Math.round(anchor.technicalBuyPrice) : Math.round(anchor.currentPrice);
-        clamped = true;
-      }
-    }
-    // 손절선: 매수가 대비 -2~-8% 안에서만 허용
-    if (stopLoss === null || stopLoss >= price) {
-      stopLoss = Math.round(price * 0.97);
-    } else if (stopLoss < price * 0.92) {
-      stopLoss = Math.round(price * 0.92);
-    }
+  const ctx = parsed.context || {};
+  const cleanContext = {
+    shortTermComment: ctx.shortTermComment ? String(ctx.shortTermComment).slice(0, 200) : null,
+    recentNews: ctx.recentNews ? String(ctx.recentNews).slice(0, 200) : null,
+    sectorTrend: ctx.sectorTrend ? String(ctx.sectorTrend).slice(0, 200) : null,
+    earnings: ctx.earnings ? String(ctx.earnings).slice(0, 200) : null,
+    analystTarget: Number.isFinite(Number(ctx.analystTarget)) ? Math.round(Number(ctx.analystTarget)) : null,
+  };
 
-    const confidence = ["low", "medium", "high"].includes(rec.confidence) ? rec.confidence : "low";
-    const rationale = String(rec.rationale || "").slice(0, 400);
-
-    const ctx = rec.context || {};
-    const cleanContext = {
-      analystTarget: Number.isFinite(Number(ctx.analystTarget)) ? Math.round(Number(ctx.analystTarget)) : null,
-      recentNews: ctx.recentNews ? String(ctx.recentNews).slice(0, 200) : null,
-      sectorTrend: ctx.sectorTrend ? String(ctx.sectorTrend).slice(0, 200) : null,
-      earnings: ctx.earnings ? String(ctx.earnings).slice(0, 200) : null,
-    };
-
-    buyPriceRec = {
-      price,
-      stopLoss,
-      confidence,
-      rationale,
-      context: cleanContext,
-      clamped,
-    };
-  }
-
-  return { bonus, reasoning, buyPriceRec };
+  return {
+    bonus,
+    reasoning,
+    action,
+    actionDetail,
+    confidence,
+    context: cleanContext,
+  };
 }
 
 async function callGroundingOnce(meta) {
@@ -249,7 +209,10 @@ async function getAiAdjustForStock(meta) {
     return {
       bonus: 0,
       reasoning: `일일 한도 ${DEFAULT_DAILY_LIMIT}회 초과 — 보정 0`,
-      buyPriceRec: null,
+      action: "wait_pullback",
+      actionDetail: "AI 일일 한도 초과로 액션 권고 없음.",
+      confidence: "low",
+      context: null,
       error: "daily_limit",
       date: todayKST(),
       calledAt: new Date().toISOString(),
@@ -257,15 +220,15 @@ async function getAiAdjustForStock(meta) {
   }
   try {
     const { text, model } = await callGroundingOnce(meta);
-    const parsed = parseResponse(text, {
-      technicalBuyPrice: meta.technicalBuyPrice,
-      currentPrice: meta.currentPrice,
-    });
+    const parsed = parseResponse(text);
     if (!parsed) {
       return {
         bonus: 0,
         reasoning: "AI 응답 파싱 실패",
-        buyPriceRec: null,
+        action: "wait_pullback",
+        actionDetail: "AI 응답 형식 오류 — 액션 권고 보류.",
+        confidence: "low",
+        context: null,
         error: "parse_failed",
         date: todayKST(),
         calledAt: new Date().toISOString(),
@@ -276,7 +239,10 @@ async function getAiAdjustForStock(meta) {
     const payload = {
       bonus: parsed.bonus,
       reasoning: parsed.reasoning,
-      buyPriceRec: parsed.buyPriceRec,
+      action: parsed.action,
+      actionDetail: parsed.actionDetail,
+      confidence: parsed.confidence,
+      context: parsed.context,
       model,
       date: todayKST(),
       calledAt: new Date().toISOString(),
@@ -288,7 +254,10 @@ async function getAiAdjustForStock(meta) {
     return {
       bonus: 0,
       reasoning: `AI 호출 실패: ${e.message?.slice(0, 80) || "unknown"}`,
-      buyPriceRec: null,
+      action: "wait_pullback",
+      actionDetail: "AI 호출 실패로 액션 권고 없음.",
+      confidence: "low",
+      context: null,
       error: "api_failed",
       date: todayKST(),
       calledAt: new Date().toISOString(),

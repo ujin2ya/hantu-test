@@ -770,55 +770,62 @@
       </div>
 
       <%
-        const _safeBuy = safeScoreModel.buyRecommendation;
-        const _gradeColor = _safeBuy?.gradeColor || 'warn';
+        const _buyRec = safeScoreModel.buyRecommendation;
+        const _tiers = (_buyRec && Array.isArray(_buyRec.tiers)) ? _buyRec.tiers : [];
+        const _gradeColor = _buyRec?.gradeColor || 'warn';
         const _gradeBg = _gradeColor === 'good' ? '#dcfce7' : _gradeColor === 'bad' ? '#fee2e2' : '#fef3c7';
         const _gradeFg = _gradeColor === 'good' ? '#166534' : _gradeColor === 'bad' ? '#991b1b' : '#92400e';
+        const _recIdx = (typeof _buyRec?.recommendedIdx === 'number') ? _buyRec.recommendedIdx : -1;
       %>
       <div class="glass-card p-3 p-lg-4 mb-4" style="border-left: 4px solid <%= _gradeFg %>;">
         <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
           <div>
-            <h2 class="section-title mb-2"><i class="bi bi-shield-check"></i>안전 매수가 추천</h2>
+            <h2 class="section-title mb-2"><i class="bi bi-cash-coin"></i>매수가 후보 (현실적)</h2>
             <span style="display: inline-block; padding: 4px 12px; border-radius: 999px; background: <%= _gradeBg %>; color: <%= _gradeFg %>; font-size: 0.95rem; font-weight: 700;">
-              <%= _safeBuy?.grade || '관망' %>
+              <%= _buyRec?.grade || '관망' %>
             </span>
+            <% if (_recIdx >= 0 && _tiers[_recIdx]) { %>
+              <span class="muted-text small ms-2">권고: <strong><%= _tiers[_recIdx].tierLabel %></strong></span>
+            <% } %>
           </div>
-          <% if (_safeBuy && _safeBuy.price) { %>
-            <div class="text-end">
-              <div class="muted-text small">매수가</div>
-              <div style="font-size: 1.6rem; font-weight: 700; color: #0f172a;"><%= fmtNumber(_safeBuy.price) %>원</div>
-              <div class="muted-text small">현재가 -<%= _safeBuy.gapPct %>%</div>
-            </div>
-          <% } %>
+          <div class="muted-text small text-end" style="max-width: 360px;">
+            5일선 / 5일 저점 / 10일선 / 20일선 등 *오늘~며칠 내 도달 가능*한 자리만 표시.
+          </div>
         </div>
-        <% if (_safeBuy && _safeBuy.price) { %>
-          <div class="row g-3 mb-2">
-            <div class="col-md-4">
-              <div class="metric-card p-2" style="background: #fff;">
-                <div class="metric-label small">손절선</div>
-                <div style="font-size: 1.1rem; font-weight: 700; color: #991b1b;"><%= fmtNumber(_safeBuy.stopLoss) %>원</div>
-                <div class="muted-text small">매수가 -<%= _safeBuy.maxLossPct %>% (최대 손실)</div>
+        <% if (_tiers.length > 0) { %>
+          <div class="row g-3">
+            <% _tiers.forEach(function(t, i) { %>
+              <div class="col-12 col-md-4">
+                <div class="buy-tier<%= i === _recIdx ? ' active' : '' %>">
+                  <div class="tier-label">
+                    <%= t.tierLabel %>
+                    <span class="tier-band">(<%= t.type %>)</span>
+                  </div>
+                  <div class="tier-price"><%= fmtNumber(t.price) %>원</div>
+                  <div class="tier-gap">현재가 -<%= t.gapPct %>%</div>
+                  <div class="tier-desc">
+                    <%= t.label %><br/>
+                    <span class="text-secondary">손절 <%= fmtNumber(t.stopLoss) %>원 (-<%= t.maxLossPct %>%)</span>
+                  </div>
+                  <div class="muted-text small mt-2"><%= t.hint %></div>
+                </div>
               </div>
-            </div>
-            <div class="col-md-8">
-              <div class="metric-card p-2" style="background: #fff;">
-                <div class="metric-label small">근거</div>
-                <div style="font-weight: 600;"><%= _safeBuy.anchorType %> — <%= _safeBuy.anchorLabel %></div>
-                <div class="muted-text small mt-1"><%= _safeBuy.reasonDetail %></div>
-              </div>
-            </div>
+            <% }) %>
           </div>
         <% } else { %>
           <div class="alert alert-warning small mb-0" style="border-radius: 10px;">
-            <%= _safeBuy?.reasonDetail || '안전 매수 자리를 산출할 수 없습니다.' %>
+            <%= _buyRec?.reasonDetail || '매수가 후보를 산출할 수 없습니다.' %>
           </div>
         <% } %>
-        <div class="muted-text small mt-2">
-          ※ "잃지 않는 매수" = <strong>강한 지지선에서 진입 + 명확한 손절선으로 최대 손실 사전 확정</strong>. 매수가까지 도달했어도 <strong>손절선이 깨지면 손실 확정</strong>해야 합니다 (가장 중요). 투자 조언이 아닙니다.
+        <div class="muted-text small mt-3">
+          <%= _buyRec?.reasonDetail || '' %>
+        </div>
+        <div class="muted-text small mt-1">
+          ※ 추세 강하면 1차(얕은 자리) 권고, 약하면 2차/3차. 매수가 도달 후에도 <strong>손절선 깨지면 즉시 손실 확정</strong>이 가장 중요합니다. 투자 조언 아님.
         </div>
       </div>
 
-      <!-- AI 종합 추천 매수가 — 기술적 가격 + Google 검색 그라운딩 -->
+      <!-- AI 액션 권고 — 단기 매수 액션 + Google 검색 컨텍스트 -->
       <div id="ai-buy-price-panel" class="glass-card p-3 p-lg-4 mb-4" style="display:none;"></div>
 
       <div class="row g-3 mb-4">
@@ -828,8 +835,7 @@
             <div class="metric-value"><%= safeScoreModel.totalScore %>점</div>
             <span class="verdict-badge"><%= safeScoreModel.verdict %></span>
             <%
-              const _aiTechBuyPrice = safeScoreModel.buyRecommendation?.price || null;
-              const _aiTechStopLoss = safeScoreModel.buyRecommendation?.stopLoss || null;
+              const _aiTechBuyPrice = (_tiers && _tiers[0]) ? _tiers[0].price : null;
             %>
             <div id="ai-adjust-block" class="mt-2" style="font-size: 0.78rem;">
               <button type="button" id="ai-adjust-btn" class="btn btn-sm btn-outline-light"
@@ -840,9 +846,8 @@
                       data-change="<%= currentData ? (currentData.changeRate || 0) : 0 %>"
                       data-baseline="<%= safeScoreModel.totalScore %>"
                       data-market="<%= selected ? (selected.market || '') : '' %>"
-                      data-tech-buy-price="<%= _aiTechBuyPrice || '' %>"
-                      data-tech-stop-loss="<%= _aiTechStopLoss || '' %>">
-                <i class="bi bi-magic me-1"></i>AI 검증 (뉴스/실적)
+                      data-tech-buy-price="<%= _aiTechBuyPrice || '' %>">
+                <i class="bi bi-magic me-1"></i>AI 액션 권고
               </button>
               <div id="ai-adjust-result" style="display:none;margin-top:8px;"></div>
             </div>
@@ -1246,14 +1251,19 @@
                 '</div>';
               resultBox.style.display = "block";
 
-              // 2. AI 종합 매수가 (큰 패널)
-              const rec = a.buyPriceRec;
-              if (buyPanel && rec && Number.isFinite(rec.price)) {
-                const techPrice = Number(btn.dataset.techBuyPrice) || null;
-                const aiPrice = rec.price;
-                const diffPct = techPrice ? (((aiPrice - techPrice) / techPrice) * 100).toFixed(2) : null;
-                const ctx = rec.context || {};
-                const conf = rec.confidence || "low";
+              // 2. AI 단기 액션 권고 (큰 패널)
+              if (buyPanel && a.action) {
+                const action = a.action;
+                const detail = a.actionDetail || "";
+                const ctx = a.context || {};
+                const conf = a.confidence || "low";
+                const actionMeta = {
+                  buy_now:        { label: "지금 매수 가능",     bg: "#dcfce7", fg: "#166534", icon: "bi-lightning-charge-fill" },
+                  wait_pullback:  { label: "가벼운 눌림 대기",   bg: "#fef3c7", fg: "#92400e", icon: "bi-hourglass-split" },
+                  wait_deeper:    { label: "깊은 조정 대기",     bg: "#fed7aa", fg: "#9a3412", icon: "bi-graph-down-arrow" },
+                  avoid:          { label: "매수 비추 / 회피",   bg: "#fee2e2", fg: "#991b1b", icon: "bi-x-octagon-fill" },
+                };
+                const am = actionMeta[action] || actionMeta.wait_pullback;
                 const confColors = {
                   high: { bg: "#dcfce7", fg: "#166534" },
                   medium: { bg: "#fef3c7", fg: "#92400e" },
@@ -1262,63 +1272,42 @@
                 const cc = confColors[conf] || confColors.low;
 
                 let ctxHtml = "";
-                if (ctx.analystTarget) ctxHtml += '<div><strong>분석가 목표가:</strong> ' + fmtN(ctx.analystTarget) + '원</div>';
+                if (ctx.shortTermComment) ctxHtml += '<div><strong>단기 코멘트:</strong> ' + escHtml(ctx.shortTermComment) + '</div>';
                 if (ctx.recentNews) ctxHtml += '<div><strong>최근 뉴스:</strong> ' + escHtml(ctx.recentNews) + '</div>';
                 if (ctx.sectorTrend) ctxHtml += '<div><strong>섹터:</strong> ' + escHtml(ctx.sectorTrend) + '</div>';
                 if (ctx.earnings) ctxHtml += '<div><strong>실적:</strong> ' + escHtml(ctx.earnings) + '</div>';
-                if (!ctxHtml) ctxHtml = '<div class="text-muted">추가 컨텍스트 정보 없음 (검색 결과 부족)</div>';
-
-                const stopGap = ((aiPrice - rec.stopLoss) / aiPrice * 100).toFixed(2);
-                const clampedNote = rec.clamped ? '<div class="muted-text small mt-1">⚠ AI 가격이 기술적 매수가 ±10% 범위로 강제 클램프됨 (할루시네이션 방어)</div>' : '';
+                if (ctx.analystTarget) ctxHtml += '<div><strong>분석가 평균 목표가 (참고):</strong> ' + fmtN(ctx.analystTarget) + '원</div>';
+                if (!ctxHtml) ctxHtml = '<div class="text-muted">추가 컨텍스트 정보 없음 (검색 결과 부족 또는 종목 특정 어려움)</div>';
 
                 buyPanel.innerHTML =
                   '<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">' +
                     '<div>' +
-                      '<h2 class="section-title mb-2"><i class="bi bi-magic"></i>AI 종합 매수가 (Google 검색 그라운딩)</h2>' +
-                      '<span style="display:inline-block;padding:3px 10px;border-radius:999px;background:' + cc.bg + ';color:' + cc.fg + ';font-size:0.85rem;font-weight:700;">신뢰도: ' + conf + '</span>' +
-                    '</div>' +
-                    '<div class="text-end">' +
-                      '<div class="muted-text small">AI 추천 매수가</div>' +
-                      '<div style="font-size:1.6rem;font-weight:700;color:#0f172a;">' + fmtN(aiPrice) + '원</div>' +
-                      (diffPct !== null ? '<div class="muted-text small">기술적 매수가 대비 ' + (Number(diffPct) >= 0 ? '+' : '') + diffPct + '%</div>' : '') +
+                      '<h2 class="section-title mb-2"><i class="bi bi-magic"></i>AI 단기 액션 권고 (Google 검색 그라운딩)</h2>' +
+                      '<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:' + am.bg + ';color:' + am.fg + ';font-size:1rem;font-weight:700;">' +
+                        '<i class="bi ' + am.icon + ' me-1"></i>' + am.label +
+                      '</span>' +
+                      '<span style="display:inline-block;margin-left:8px;padding:3px 10px;border-radius:999px;background:' + cc.bg + ';color:' + cc.fg + ';font-size:0.78rem;font-weight:600;">신뢰도: ' + conf + '</span>' +
                     '</div>' +
                   '</div>' +
-                  '<div class="row g-3 mb-2">' +
-                    '<div class="col-md-4">' +
-                      '<div class="metric-card p-2" style="background:#fff;">' +
-                        '<div class="metric-label small">손절선</div>' +
-                        '<div style="font-size:1.05rem;font-weight:700;color:#991b1b;">' + fmtN(rec.stopLoss) + '원</div>' +
-                        '<div class="muted-text small">AI 매수가 -' + stopGap + '%</div>' +
-                      '</div>' +
-                    '</div>' +
-                    '<div class="col-md-8">' +
-                      '<div class="metric-card p-2" style="background:#fff;">' +
-                        '<div class="metric-label small">근거</div>' +
-                        '<div class="small" style="line-height:1.5;">' + escHtml(rec.rationale || "") + '</div>' +
-                      '</div>' +
-                    '</div>' +
+                  '<div class="metric-card p-3 mb-2" style="background:#fff;">' +
+                    '<div class="metric-label small mb-1">근거</div>' +
+                    '<div style="line-height:1.6;">' + escHtml(detail) + '</div>' +
                   '</div>' +
                   '<div class="metric-card p-2 small" style="background:#fff;">' +
                     '<div class="metric-label small mb-1">검색 컨텍스트</div>' +
                     ctxHtml +
                   '</div>' +
-                  clampedNote +
-                  '<div class="muted-text small mt-2">※ AI 매수가는 기술적 매수가의 ±10% 안으로 강제 클램프됩니다. 손절선이 깨지면 즉시 손실 확정 — 가장 중요한 규칙. 투자 조언 아님.</div>';
+                  '<div class="muted-text small mt-2">※ AI 액션은 단기(오늘~3일) 시장 흐름 기준 권고입니다. 가격 자체는 좌측 매수가 후보 중에서 골라 사용하세요. 손절선이 깨지면 즉시 손실 확정. 투자 조언 아님.</div>';
                 buyPanel.style.display = "block";
                 buyPanel.scrollIntoView({ behavior: "smooth", block: "center" });
-              } else if (buyPanel) {
-                buyPanel.innerHTML =
-                  '<div class="muted-text small"><i class="bi bi-info-circle me-1"></i>AI 매수가 추천 없음 — ' +
-                  escHtml(rec?.rationale || "AI 응답에 매수가 정보가 없거나 정보 부족.") + '</div>';
-                buyPanel.style.display = "block";
               }
 
-              btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>다시 검증';
+              btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>다시 받기';
               btn.disabled = false;
             } catch (e) {
-              resultBox.innerHTML = '<div class="text-warning small">AI 검증 실패: ' + escHtml(e.message || String(e)) + '</div>';
+              resultBox.innerHTML = '<div class="text-warning small">AI 호출 실패: ' + escHtml(e.message || String(e)) + '</div>';
               resultBox.style.display = "block";
-              btn.innerHTML = '<i class="bi bi-magic me-1"></i>AI 검증';
+              btn.innerHTML = '<i class="bi bi-magic me-1"></i>AI 액션 권고';
               btn.disabled = false;
             }
           });

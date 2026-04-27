@@ -1308,7 +1308,7 @@ function calculateMovingAverages(dailyData) {
     if (closes.length < n) return null;
     return closes.slice(0, n).reduce((a, b) => a + b, 0) / n;
   }
-  return { sma5: sma(5), sma20: sma(20), sma60: sma(60), sma120: sma(120) };
+  return { sma5: sma(5), sma10: sma(10), sma20: sma(20), sma60: sma(60), sma120: sma(120) };
 }
 
 
@@ -1337,114 +1337,117 @@ function calculateATRPercent(dailyData, period = 14) {
   return { atr, atrPercent: (atr / refClose) * 100 };
 }
 
-// 돌파 매수가 — 20일 박스권 상단 기준. 한국 시장 정서상 60일 고점은 너무 적극적이라
-// 20일 박스 돌파를 신호로 사용. 보수 tier 는 돌파 후 ATR×1.5 조정 자리 (현재가 아래일
-// 수도 있음 = 한국식 첫 눌림 매수). direction: "breakout" 으로 별도 패널 렌더.
-
-// 안전 매수가 — 단일 가격 + 손절선 + 추천 등급. "잃지 않는 매수" 의 정의:
-// 1) 자기실현적 지지에 진입 (60일 거래량 매물대 또는 20일선 중 강한 쪽)
-// 2) 손절선을 -1.5~-5% 안에 둬서 *최대 손실금액* 사전 확정
-// 3) 추세 깨짐(60일선 아래) 또는 점수 약세 종목은 "관망" 권고
-function buildSafeBuyRecommendation({ totalScore, currentPrice, dailyData, supportBins, mas }) {
-  const items60 = (dailyData?.items || []).slice(0, 60);
-  const lows60 = items60.map((x) => Number(x.lowPrice || 0)).filter((v) => v > 0);
-  const low60 = lows60.length ? Math.min(...lows60) : null;
-
-  // 후보 — 현재가 -15% 이내 가까운 지지선만
-  const candidates = [];
-  const strongSupports = (supportBins || [])
-    .filter((b) => b.mid < currentPrice && b.mid > currentPrice * 0.85)
-    .sort((a, b) => b.volume - a.volume);
-  if (strongSupports.length) {
-    const top = strongSupports[0];
-    candidates.push({
-      type: "매물대",
-      label: `60일 거래량 ${top.volume.toLocaleString()}주 집중 구간`,
-      price: top.mid,
-      rangeStart: top.start,
-      rangeEnd: top.end,
-    });
-  }
-  if (mas?.sma20 && mas.sma20 < currentPrice && mas.sma20 > currentPrice * 0.85) {
-    candidates.push({
-      type: "20일선",
-      label: "20일 이동평균선 (단기 추세 지지)",
-      price: Math.round(mas.sma20),
-    });
+// 현실적 매수가 — 한국 시장 *오늘~며칠 내 도달 가능*한 자리만 후보화.
+// 5일선 / 5일 저점 / 10일선 / 20일선 / 20일 저점 → 현재가에서 가까운 순으로 3 tier 추출.
+// "60일 가장 강한 매물대" 는 너무 멀어서 *못 사는* 추천이 되니 단독 추천에선 제외 (AI 검증에서만 참조).
+function buildRealisticBuyTiers({ totalScore, currentPrice, dailyData, mas }) {
+  const items = (dailyData?.items || []).slice(0, 60);
+  if (!items.length || !currentPrice) {
+    return { grade: "관망", gradeColor: "bad", tiers: [], conditions: [], reasonDetail: "데이터 부족." };
   }
 
-  // 추세 / 시장 컨디션 진단 — 등급 결정에 사용
+  const last5lows = items.slice(0, 5).map((x) => Number(x.lowPrice || 0)).filter((v) => v > 0);
+  const last20lows = items.slice(0, 20).map((x) => Number(x.lowPrice || 0)).filter((v) => v > 0);
+  const low5 = last5lows.length ? Math.min(...last5lows) : null;
+  const low20 = last20lows.length ? Math.min(...last20lows) : null;
+
+  // 후보 산출 — 현재가 -10% 이내만 (그 밖은 비현실적이라 제외)
+  const minReach = currentPrice * 0.90;
+  const raw = [];
+  const push = (type, label, price, hint) => {
+    if (!price || price <= 0) return;
+    if (price >= currentPrice) return;       // 현재가 이상은 매수가 아님
+    if (price < minReach) return;            // -10% 밖은 비현실적
+    raw.push({ type, label, price: Math.round(price), hint });
+  };
+
+  push("5일선", "5일 이동평균선 — 강한 추세 종목의 첫 눌림", mas?.sma5,
+    "추세 유효 시 가장 자주 닿는 자리. 도달 빈도 높음.");
+  push("5일 저점", "최근 5거래일 저점 — 단기 박스 하단", low5,
+    "최근 일주일 안에 형성된 단기 지지. 직접 본 가격이라 신뢰도 높음.");
+  push("10일선", "10일 이동평균선 — 두 번째 눌림", mas?.sma10,
+    "5일선 깨질 때 다음 지지. 정상적 조정 자리.");
+  push("20일선", "20일 이동평균선 — 정상 눌림목 한계선", mas?.sma20,
+    "여기까지 내려가면 단기 추세 의심. 매수 후 손절 빠르게.");
+  push("20일 저점", "최근 20거래일 저점 — 깊은 조정 라인", low20,
+    "20일 박스권 하단. 여기 깨지면 추세 전환 위험.");
+
+  // 가까운 순 정렬 (price 큰 순 = 현재가에 가까움)
+  raw.sort((a, b) => b.price - a.price);
+
+  // 중복/근접 제거 — 가격 차이가 0.5% 미만이면 더 의미 있는 type 선택
+  const dedup = [];
+  for (const c of raw) {
+    const near = dedup.find((d) => Math.abs(d.price - c.price) / c.price < 0.005);
+    if (!near) dedup.push(c);
+  }
+
+  // 추세 / 컨디션 진단
   const aboveSma60 = mas?.sma60 ? currentPrice > mas.sma60 : true;
   const trendUp = (mas?.sma5 && mas?.sma20) ? mas.sma5 > mas.sma20 : null;
+  const trendStrong = aboveSma60 && trendUp === true && totalScore >= 65;
   const conditions = [];
   conditions.push(`점수 ${totalScore}`);
   conditions.push(aboveSma60 ? "60일선 위" : "⚠ 60일선 아래 (추세 깨짐)");
   if (trendUp === true) conditions.push("5일선 ≥ 20일선 (단기 추세 유효)");
   else if (trendUp === false) conditions.push("⚠ 5일선 < 20일선 (단기 약세)");
 
-  // 매수 자리 자체가 없으면 — 관망
-  if (candidates.length === 0) {
+  // 등급
+  let grade, gradeColor;
+  if (totalScore >= 65 && aboveSma60 && trendUp === true) {
+    grade = "매수 가능"; gradeColor = "good";
+  } else if (totalScore >= 50 && aboveSma60) {
+    grade = "조건부 매수"; gradeColor = "warn";
+  } else {
+    grade = "관망"; gradeColor = "bad";
+  }
+
+  // 후보 없으면 관망
+  if (dedup.length === 0) {
     return {
-      grade: "관망",
-      gradeColor: "bad",
-      price: null,
-      gapPct: null,
-      stopLoss: null,
-      maxLossPct: null,
-      anchorType: null,
-      anchorLabel: null,
-      reasonShort: "현재가 -15% 이내에 가까운 지지선이 없습니다.",
-      reasonDetail: `${conditions.join(" · ")} · 매물대도 20일선도 매수가로 사용할 수 있는 자리에 없음. 가격 조정 또는 매물대 형성 후 재검토 권장.`,
+      grade: "관망", gradeColor: "bad", tiers: [],
       conditions,
+      reasonDetail: `${conditions.join(" · ")} · 현재가 -10% 안에 매수가 후보 없음. 단기 강세이거나 저항선까지 가까이 닿지 않음 — 약간의 조정 후 재검토 권장.`,
     };
   }
 
-  // 매물대 우선, 없으면 20일선
-  const chosen = candidates.find((c) => c.type === "매물대") || candidates[0];
-  const buyPrice = chosen.price;
-  const gapPct = ((currentPrice - buyPrice) / currentPrice) * 100;
+  // 추세 강할수록 *얕은 자리* 우선 (5일선/5일저점), 약할수록 *깊은 자리* (10일선/20일선)
+  // dedup 가까운 순 → 그대로 위에서 3개. 단 추세 약한데 5일선만 가까이 있으면 무리한 추격이 될 수 있음.
+  // 단순화: 그냥 가까운 순 3개. 사용자가 자기 성향에 맞게 선택.
+  const top3 = dedup.slice(0, 3);
 
-  // 손절선: 디폴트 매수가 -3%, 60일 저점이 더 가까우면 그 위 (타이트하게)
-  let stopLoss = Math.round(buyPrice * 0.97);
-  if (low60 && low60 < buyPrice && low60 > buyPrice * 0.93) {
-    stopLoss = Math.round(low60 * 1.005);
-  }
-  // -1.5% ~ -5% 안으로 clamp (최소 손실 정의 + 너무 헐거운 손절 방지)
-  if (stopLoss > buyPrice * 0.985) stopLoss = Math.round(buyPrice * 0.985);
-  if (stopLoss < buyPrice * 0.95) stopLoss = Math.round(buyPrice * 0.95);
-  const maxLossPct = ((buyPrice - stopLoss) / buyPrice) * 100;
+  // 3 tier 부여 — 가까움 / 중간 / 깊음
+  const labels = ["1차 (가까움)", "2차", "3차 (깊음)"];
+  const tiers = top3.map((c, i) => {
+    const gap = ((currentPrice - c.price) / currentPrice) * 100;
+    const stopPct = trendStrong ? 2.5 : (i === 0 ? 2 : i === 1 ? 2.5 : 3);
+    const stopLoss = Math.round(c.price * (1 - stopPct / 100));
+    return {
+      tierLabel: labels[i],
+      type: c.type,
+      label: c.label,
+      hint: c.hint,
+      price: c.price,
+      gapPct: gap.toFixed(2),
+      stopLoss,
+      maxLossPct: stopPct.toFixed(1),
+    };
+  });
 
-  // 등급 결정
-  let grade;
-  let gradeColor;
-  if (totalScore >= 65 && aboveSma60 && trendUp === true) {
-    grade = "매수 가능";
-    gradeColor = "good";
-  } else if (totalScore >= 50 && aboveSma60) {
-    grade = "조건부 매수";
-    gradeColor = "warn";
-  } else {
-    grade = "관망";
-    gradeColor = "bad";
-  }
+  // 추천 tier — 추세 강하면 1차 (얕은 자리), 중립이면 2차, 약하면 3차 또는 관망
+  let recommendedIdx;
+  if (grade === "매수 가능") recommendedIdx = 0;
+  else if (grade === "조건부 매수") recommendedIdx = Math.min(1, tiers.length - 1);
+  else recommendedIdx = -1; // 관망 — 강조 표시 안 함
 
-  const reasonShort =
-    `${chosen.type} ${buyPrice.toLocaleString()}원 (현재가 -${gapPct.toFixed(1)}%) · ` +
-    `손절 ${stopLoss.toLocaleString()}원 (-${maxLossPct.toFixed(1)}%)`;
-  const reasonDetail = `${conditions.join(" · ")} · ${chosen.label}`;
+  const reasonDetail = `${conditions.join(" · ")} · ${tiers.length}개 매수가 후보 (-${(((currentPrice - tiers[tiers.length - 1].price) / currentPrice) * 100).toFixed(1)}% 까지)`;
 
   return {
-    grade,
-    gradeColor,
-    price: buyPrice,
-    gapPct: gapPct.toFixed(2),
-    stopLoss,
-    maxLossPct: maxLossPct.toFixed(2),
-    anchorType: chosen.type,
-    anchorLabel: chosen.label,
-    reasonShort,
-    reasonDetail,
+    grade, gradeColor,
+    tiers,
+    recommendedIdx,
     conditions,
+    reasonDetail,
   };
 }
 
@@ -1479,12 +1482,11 @@ function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearly
   else if (total >= 50) verdict = "중립";
   else verdict = "보수적 접근";
 
-  // 단일 안전 매수가 — "잃지 않는 매수" 정의 (강한 지지 + 명확한 손절 + 추세 정합성)
-  const buyRecommendation = buildSafeBuyRecommendation({
+  // 현실적 매수가 후보 3개 — 5일선/5일저점/10일선/20일선 등 가까운 자리 위주 (오늘~며칠 내 도달 가능).
+  const buyRecommendation = buildRealisticBuyTiers({
     totalScore,
     currentPrice: currentData.currentPrice,
     dailyData,
-    supportBins: buyZones.supportBins,
     mas,
   });
 
