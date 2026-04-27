@@ -273,10 +273,13 @@
                 <div class="row1">
                   <div class="name-block">
                     <span class="rk">#<%= rank %></span>
-                    <span class="nm"><%= c.name %></span>
-                    <span class="cd"><%= c.code %></span>
+                    <a class="deep-link" href="/?query=<%= encodeURIComponent(c.code) %>" target="_blank" rel="noopener" title="딥다이브 분석 (새 탭)">
+                      <span class="nm"><%= c.name %></span>
+                      <span class="cd"><%= c.code %></span>
+                      <i class="bi bi-box-arrow-up-right arr"></i>
+                    </a>
                   </div>
-                  <span class="score-pill" style="background: <%= matchColor.bg %>; color: <%= matchColor.fg %>;" title="14개 차원 중 +40% 종목 패턴 밴드(p10~p90) 안에 들어가는 차원 수">
+                  <span class="score-pill" style="background: <%= matchColor.bg %>; color: <%= matchColor.fg %>;" title="14개 차원 중 +40% 종목 패턴 밴드 안에 들어가는 차원 수">
                     <%= matched %>/<%= totalK %>
                   </span>
                 </div>
@@ -432,8 +435,11 @@
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
-                  <span class="nm"><%= e.name %></span>
-                  <span class="cd"><%= e.code %></span>
+                  <a class="deep-link" href="/?query=<%= encodeURIComponent(e.code) %>" target="_blank" rel="noopener" title="딥다이브 분석 (새 탭)">
+                    <span class="nm"><%= e.name %></span>
+                    <span class="cd"><%= e.code %></span>
+                    <i class="bi bi-box-arrow-up-right arr"></i>
+                  </a>
                   <% if (e.inProgress) { %><span class="badge bg-warning text-dark ms-1" style="font-size:0.62rem;">진행중</span><% } %>
                 </div>
                 <span class="magnitude-pill">+<%= (e.magnitude * 100).toFixed(0) %>%</span>
