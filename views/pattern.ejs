@@ -171,6 +171,17 @@
                     <div>✓ <%= f.msg %></div>
                   <% }) %>
                 </div>
+                <% if (m.similarOutcome) { %>
+                  <div style="margin:6px 0; padding:8px 10px; background:#fef9c3; border-left:3px solid #ca8a04; border-radius:4px; font-size:0.72rem; line-height:1.6; color:#713f12;">
+                    📊 <strong>과거 유사 setup <%= m.similarOutcome.n %>개 결말</strong> (참고만 — 예측 아님)
+                    <div style="margin-top:3px;">
+                      • 폭등률: median <strong>+<%= Math.round(m.similarOutcome.magMedian * 100) %>%</strong>
+                      (p25 +<%= Math.round(m.similarOutcome.magP25 * 100) %>% ~ p75 +<%= Math.round(m.similarOutcome.magP75 * 100) %>%, max +<%= Math.round(m.similarOutcome.magMax * 100) %>%)
+                    </div>
+                    <div>• 기간: median <strong><%= m.similarOutcome.durMedian %>일</strong> (p25 <%= m.similarOutcome.durP25 %>일 ~ p75 <%= m.similarOutcome.durP75 %>일)</div>
+                    <div>• <%= m.similarOutcome.pctReached60 %>% 가 +60% 이상 도달, <%= m.similarOutcome.pctReached100 %>% 가 +100% 이상 도달</div>
+                  </div>
+                <% } %>
                 <div class="row2">
                   <span style="color:#15803d;"><strong><%= tierLabel %></strong></span>
                   <span>시총 <strong><%= (m.marketCap / 1e8).toFixed(0) %>억</strong></span>

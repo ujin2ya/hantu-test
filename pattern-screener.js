@@ -371,6 +371,57 @@ function summarizeFeatures(events) {
   return summary;
 }
 
+// ─────────── Phase B-7: 과거 유사 사례 outcome 추정 ───────────
+// PREMIUM 종목한테 "과거 비슷한 setup 의 평균 결말" 을 통계로 보여줌.
+// 예측이 아닌 참고 — "이런 패턴은 보통 어디까지 갔나" 정보.
+function findSimilarOutcomes(targetFeatures, successEvents, K = 30) {
+  if (!targetFeatures) return null;
+  const FK = ["turnover", "positionPct", "positionFromLow", "maPos20", "maPos60",
+              "ma20Slope", "ma60Slope", "localResistance", "boxDays",
+              "igniteValueRatio", "igniteVolumeRatio"];
+  // 각 feature 의 대략적 scale (정규화용)
+  const scales = {
+    turnover: 1.5, positionPct: 0.3, positionFromLow: 0.5, maPos20: 0.3, maPos60: 0.3,
+    ma20Slope: 0.3, ma60Slope: 0.3, localResistance: 0.5, boxDays: 30,
+    igniteValueRatio: 0.05, igniteVolumeRatio: 3,
+  };
+  const distances = [];
+  for (const e of successEvents) {
+    if (!e.features) continue;
+    let dist = 0;
+    let count = 0;
+    for (const k of FK) {
+      const a = targetFeatures[k];
+      const b = e.features[k];
+      if (!Number.isFinite(a) || !Number.isFinite(b)) continue;
+      const scale = scales[k] || 1;
+      dist += ((a - b) / scale) ** 2;
+      count++;
+    }
+    if (count >= 6) distances.push({ event: e, dist: Math.sqrt(dist / count) });
+  }
+  distances.sort((a, b) => a.dist - b.dist);
+  const top = distances.slice(0, K).map((d) => d.event);
+  if (top.length < 5) return null;
+  const mags = top.map((e) => e.magnitude).sort((a, b) => a - b);
+  const durs = top.map((e) => e.duration).sort((a, b) => a - b);
+  const n = mags.length;
+  const reached100 = mags.filter((m) => m >= 1.0).length;
+  const reached60  = mags.filter((m) => m >= 0.6).length;
+  return {
+    n,
+    magMedian: Number(mags[Math.floor(n * 0.5)].toFixed(2)),
+    magP25: Number(mags[Math.floor(n * 0.25)].toFixed(2)),
+    magP75: Number(mags[Math.floor(n * 0.75)].toFixed(2)),
+    magMax: Number(mags[n - 1].toFixed(2)),
+    durMedian: durs[Math.floor(n * 0.5)],
+    durP25: durs[Math.floor(n * 0.25)],
+    durP75: durs[Math.floor(n * 0.75)],
+    pctReached60: Math.round((reached60 / n) * 100),
+    pctReached100: Math.round((reached100 / n) * 100),
+  };
+}
+
 // ─────────── Phase B-6: 시동 단계 품질 평가 ───────────
 // 시동 단계 (5~10%) 후보 중 진짜 "조기 시그널" vs 추격 의심 분리.
 // 3가지 필터: ① 5일내 fade 없음 ② 종가위치 ≥ 0.5 ③ 7일 base 진폭 ≤ 6%
@@ -596,6 +647,23 @@ async function analyzeAll({ logProgress = false } = {}) {
 
   // ─── Layer 2: 오늘의 모멘텀 스캔 ───
   const momentumMovers = scanTodaysMomentum({ stocksList });
+
+  // PREMIUM 종목한테 과거 유사 사례 outcome 추정 (참고 통계)
+  for (const m of momentumMovers) {
+    if (m.startingQuality?.quality !== "PREMIUM") continue;
+    // 오늘 시점 features 계산 (모멘텀 종목 cache 에서)
+    try {
+      const cache = JSON.parse(fs.readFileSync(path.join(CACHE_DIR, m.code + ".json"), "utf-8"));
+      const rows = cache.rows || [];
+      if (rows.length < 30) continue;
+      const meta = stockMeta.get(m.code);
+      if (!meta) continue;
+      const sharesOut = meta.closePrice > 0 ? meta.marketValue / meta.closePrice : 0;
+      const features = extractPreIgnitionFeatures(rows, rows.length - 1, meta.marketValue, sharesOut);
+      if (!features) continue;
+      m.similarOutcome = findSimilarOutcomes(features, successEvents, 30);
+    } catch (_) {}
+  }
 
   // ─── 교차 매칭 — SHAPE 후보 × 모멘텀 ───
   // 두 풀 다 들어간 종목은 가장 강력한 시그널 (setup 좋음 + 오늘 시동 시작)
