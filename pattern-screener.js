@@ -465,10 +465,8 @@ function scanTodaysMomentum({
         score: Number(score.toFixed(1)),
         date: today.date,
       };
-      // 시동 단계 (5~10%) 만 품질 평가 — 진짜 조기 시그널 vs 추격 의심 분리
-      if (mover.dayChange >= 5 && mover.dayChange < 10) {
-        mover.startingQuality = evaluateStartingQuality(rows, mover);
-      }
+      // 모든 tier 에 품질 평가 — fade 없음 / 종가 강함 / 좁은 base 3가지 필터
+      mover.startingQuality = evaluateStartingQuality(rows, mover);
       movers.push(mover);
     } catch (_) {}
   }

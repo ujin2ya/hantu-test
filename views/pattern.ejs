@@ -145,17 +145,20 @@
                 if (m.dayChange >= 10) return { key: 'rising', label: '📈 상승 중', color: '#ca8a04', bg: '#fef3c7' };
                 return { key: 'starting', label: '🌱 시동 단계', color: '#16a34a', bg: '#dcfce7' };
               }
-              // 단계별 분류 + 단계 안에서는 score 순
+              // 단계별 분류 + 각 tier 안에서 품질순 정렬 (PREMIUM > FRESH > SUSPECT)
               const tierGroups = { starting: [], rising: [], strong: [], limit: [] };
               momentumMovers.forEach((m) => tierGroups[tierOf(m).key].push(m));
-              // 시동 단계는 품질순 정렬 (PREMIUM > FRESH > SUSPECT)
               const qOrder = { PREMIUM: 3, FRESH: 2, SUSPECT: 1 };
-              tierGroups.starting.sort((a, b) => {
+              const sortByQuality = (a, b) => {
                 const qa = qOrder[a.startingQuality?.quality] || 0;
                 const qb = qOrder[b.startingQuality?.quality] || 0;
                 if (qa !== qb) return qb - qa;
                 return b.score - a.score;
-              });
+              };
+              tierGroups.starting.sort(sortByQuality);
+              tierGroups.rising.sort(sortByQuality);
+              tierGroups.strong.sort(sortByQuality);
+              tierGroups.limit.sort(sortByQuality);
               const tierMeta = [
                 { key: 'starting', label: '🌱 시동 단계 (5~10% + 거래량 폭증) — 조기 시그널, 가장 가치있음' },
                 { key: 'rising',   label: '📈 상승 중 (10~15%) — 모멘텀 진행' },
