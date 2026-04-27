@@ -594,20 +594,11 @@
     const safeSummary = summary || null;
     const safeScoreModel = scoreModel || null;
     const safeMarket = (typeof market !== 'undefined' && market) ? market : null;
-    const safeStrategyPresetOptions = Array.isArray(strategyPresetOptions) ? strategyPresetOptions : [];
-    const safeSelectedStrategyPreset = selectedStrategyPreset || "auto";
-    const safeAppliedStrategy = appliedStrategy || null;
+    const safeMarketContext = (typeof marketContext !== 'undefined' && marketContext) ? marketContext : null;
     const safeWeights = weights || {
-      volume: 25,
-      position: 17,
-      trend: 8,
-      rsi: 5,
-      macd: 5,
-      resistance: 15,
-      volatility: 10,
-      flow: 15,
+      volume: 25, position: 17, trend: 8, rsi: 5, macd: 5,
+      resistance: 15, volatility: 10, flow: 15,
     };
-    const currentStrategyPreset = safeStrategyPresetOptions.find((item) => item.key === safeSelectedStrategyPreset) || null;
 
     function fmtNumber(value) {
       return Number(value || 0).toLocaleString();
@@ -618,7 +609,7 @@
     <div class="container-fluid px-3 px-lg-5 d-flex justify-content-between align-items-start gap-3 flex-wrap">
       <div>
         <h1><i class="bi bi-graph-up-arrow me-2"></i>주식앱 스타일 차트 + 점수화</h1>
-        <div class="subtitle">한국투자증권 Open API · 일/주/월/연봉 + 8요소 점수 + 전략 프리셋</div>
+        <div class="subtitle">한국투자증권 Open API · 일/주/월/연봉 + 안전 매수가 + AI 검증</div>
       </div>
       <div class="d-flex gap-2 align-self-center flex-wrap">
         <button type="button" onclick="history.back()" class="btn btn-light btn-sm">
@@ -670,84 +661,12 @@
           </div>
         </div>
 
-        <div class="row g-3 align-items-start mb-3">
-          <div class="col-12 col-lg-4">
-            <label for="strategyPresetSelect" class="form-label small text-secondary mb-1">전략 프리셋</label>
-            <select id="strategyPresetSelect" name="strategyPreset" class="form-select form-select-lg">
-              <% safeStrategyPresetOptions.forEach(function(option) { %>
-                <option
-                  value="<%= option.key %>"
-                  data-description="<%= option.description %>"
-                  <%= safeSelectedStrategyPreset === option.key ? "selected" : "" %>
-                >
-                  <%= option.label %>
-                </option>
-              <% }) %>
-            </select>
+        <% if (safeMarketContext) { %>
+          <div class="muted-text small mt-2">
+            <i class="bi bi-clock me-1"></i>
+            <strong><%= safeMarketContext.label %></strong> · <%= safeMarketContext.description %>
           </div>
-          <div class="col-12 col-lg-8">
-            <div class="muted-text" id="strategyPresetHelp">
-              <%= currentStrategyPreset ? currentStrategyPreset.description : "자동 추천은 조회 후 돌파/눌림목 성향을 비교해 프리셋을 고릅니다." %>
-            </div>
-            <div class="muted-text mt-2">
-              기본은 숫자 비중을 직접 만지지 않고 전략만 고르는 흐름입니다. 세부 가중치는 <strong>고급 설정(수동)</strong>을 선택했을 때만 열립니다.
-            </div>
-          </div>
-        </div>
-
-        <div id="manual-weight-panel" style="display:<%= safeSelectedStrategyPreset === 'custom' ? 'block' : 'none' %>;">
-          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-            <div class="section-title"><i class="bi bi-sliders"></i>수동 가중치</div>
-            <div class="muted-text">합계는 서버에서 자동으로 100으로 정규화됩니다.</div>
-          </div>
-
-          <div class="row g-2 row-cols-2 row-cols-md-4 row-cols-xl-8">
-          <% const weightFields = [
-            { key: 'volume', name: 'volumeWeight', label: '거래량',
-              desc: '오늘 거래량을 20일 평균과 비교 + 주/월/연 거래 비율. 양봉·종가 상단 위치면 가점, 음봉·종가 하단이면 감점.' },
-            { key: 'position', name: 'positionWeight', label: '위치',
-              desc: '현재가가 일/주/월/연봉 차트의 고저 범위에서 어디에 있는지. 하단~중하단(눌림목)을 선호하고 고점 부근이면 감점.' },
-            { key: 'trend', name: 'trendWeight', label: '추세',
-              desc: '현재가가 일봉 5/20/60일 이동평균선과 주봉 4/12주 이평선 위/아래에 있는지. 정배열일수록 가점.' },
-            { key: 'rsi', name: 'rsiWeight', label: 'RSI',
-              desc: '최근 60일 종가 기반 14기간 상대강도지수. 70 이상은 과매수(감점), 30 이하는 과매도(가점), 40~60이 가장 우호적.' },
-            { key: 'macd', name: 'macdWeight', label: 'MACD',
-              desc: '12/26/9 이동평균 수렴확산. 시그널선을 막 상향 돌파(골든크로스)면 가점, 하향 돌파(데드크로스)면 감점.' },
-            { key: 'resistance', name: 'resistanceWeight', label: '매물 압력',
-              desc: '최근 120일을 24구간 가격대별 거래량 히스토그램으로 변환해 현재가 위쪽 매물대 비중을 점수화. 위쪽 매물 적을수록 점수 ↑.' },
-            { key: 'volatility', name: 'volatilityWeight', label: '변동성',
-              desc: '최근 20일 평균 일중 변동폭(고저-종가 비율). 낮을수록 점수 ↑ (반비례) — 안정적인 종목 선호.' },
-            { key: 'flow', name: 'flowWeight', label: '수급',
-              desc: '최근 5일/20일 외국인·기관 누적 순매수와 동반매수·동반매도 일수. 큰손이 사들이고 있을수록 점수 ↑ — 한국 시장 심리 선행 지표.' },
-          ]; %>
-          <% weightFields.forEach(function(f) { %>
-            <div class="col">
-              <div class="weight-item">
-                <label>
-                  <span><%= f.label %> 가중치</span>
-                  <i class="bi bi-question-circle weight-help"
-                     data-bs-toggle="tooltip"
-                     data-bs-placement="top"
-                     data-bs-html="true"
-                     data-bs-title="<%= f.desc %>"></i>
-                </label>
-                <input
-                  type="number"
-                  class="form-control form-control-sm"
-                  name="<%= f.name %>"
-                  value="<%= safeWeights[f.key] %>"
-                  min="0"
-                  max="100"
-                  <%= safeSelectedStrategyPreset === 'custom' ? '' : 'disabled' %>
-                />
-              </div>
-            </div>
-          <% }) %>
-          </div>
-          <div class="muted-text mt-3">
-            수동 모드는 백테스트나 비교 실험을 할 때만 권장합니다. 평소에는 자동 추천 또는 단타/스윙 프리셋을 그대로 쓰는 편이 더 일관됩니다.
-          </div>
-        </div>
+        <% } %>
       </form>
     </div>
 
@@ -850,39 +769,57 @@
         </div>
       </div>
 
-      <% if (safeAppliedStrategy) { %>
-        <div class="glass-card p-3 p-lg-4 mb-4">
-          <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
-            <div>
-              <h2 class="section-title mb-2"><i class="bi bi-compass"></i>적용 전략</h2>
-              <div style="font-size: 1.05rem; font-weight: 700;">
-                <%= safeAppliedStrategy.isAuto ? "자동 추천 → " : "" %><%= safeAppliedStrategy.label %>
-                <% if (safeAppliedStrategy.marketContext) { %>
-                  <span style="display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: #e0e7ff; color: #4338ca; font-size: 0.72rem; font-weight: 600; vertical-align: middle;">
-                    <%= safeAppliedStrategy.marketContext.label %>
-                  </span>
-                <% } %>
-              </div>
-              <% if (safeAppliedStrategy.marketContext) { %>
-                <div class="muted-text mt-1" style="font-size: 0.78rem;"><%= safeAppliedStrategy.marketContext.description %></div>
-              <% } %>
-              <div class="muted-text mt-2"><%= safeAppliedStrategy.reason || safeAppliedStrategy.description %></div>
-            </div>
-            <% if (safeAppliedStrategy.setupScores) { %>
-              <div class="d-flex gap-2 flex-wrap">
-                <div class="pill">
-                  <strong>돌파 점수</strong>
-                  <span><%= safeAppliedStrategy.setupScores.breakout %>점</span>
-                </div>
-                <div class="pill">
-                  <strong>눌림목 점수</strong>
-                  <span><%= safeAppliedStrategy.setupScores.pullback %>점</span>
-                </div>
-              </div>
-            <% } %>
+      <%
+        const _safeBuy = safeScoreModel.buyRecommendation;
+        const _gradeColor = _safeBuy?.gradeColor || 'warn';
+        const _gradeBg = _gradeColor === 'good' ? '#dcfce7' : _gradeColor === 'bad' ? '#fee2e2' : '#fef3c7';
+        const _gradeFg = _gradeColor === 'good' ? '#166534' : _gradeColor === 'bad' ? '#991b1b' : '#92400e';
+      %>
+      <div class="glass-card p-3 p-lg-4 mb-4" style="border-left: 4px solid <%= _gradeFg %>;">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+          <div>
+            <h2 class="section-title mb-2"><i class="bi bi-shield-check"></i>안전 매수가 추천</h2>
+            <span style="display: inline-block; padding: 4px 12px; border-radius: 999px; background: <%= _gradeBg %>; color: <%= _gradeFg %>; font-size: 0.95rem; font-weight: 700;">
+              <%= _safeBuy?.grade || '관망' %>
+            </span>
           </div>
+          <% if (_safeBuy && _safeBuy.price) { %>
+            <div class="text-end">
+              <div class="muted-text small">매수가</div>
+              <div style="font-size: 1.6rem; font-weight: 700; color: #0f172a;"><%= fmtNumber(_safeBuy.price) %>원</div>
+              <div class="muted-text small">현재가 -<%= _safeBuy.gapPct %>%</div>
+            </div>
+          <% } %>
         </div>
-      <% } %>
+        <% if (_safeBuy && _safeBuy.price) { %>
+          <div class="row g-3 mb-2">
+            <div class="col-md-4">
+              <div class="metric-card p-2" style="background: #fff;">
+                <div class="metric-label small">손절선</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: #991b1b;"><%= fmtNumber(_safeBuy.stopLoss) %>원</div>
+                <div class="muted-text small">매수가 -<%= _safeBuy.maxLossPct %>% (최대 손실)</div>
+              </div>
+            </div>
+            <div class="col-md-8">
+              <div class="metric-card p-2" style="background: #fff;">
+                <div class="metric-label small">근거</div>
+                <div style="font-weight: 600;"><%= _safeBuy.anchorType %> — <%= _safeBuy.anchorLabel %></div>
+                <div class="muted-text small mt-1"><%= _safeBuy.reasonDetail %></div>
+              </div>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="alert alert-warning small mb-0" style="border-radius: 10px;">
+            <%= _safeBuy?.reasonDetail || '안전 매수 자리를 산출할 수 없습니다.' %>
+          </div>
+        <% } %>
+        <div class="muted-text small mt-2">
+          ※ "잃지 않는 매수" = <strong>강한 지지선에서 진입 + 명확한 손절선으로 최대 손실 사전 확정</strong>. 매수가까지 도달했어도 <strong>손절선이 깨지면 손실 확정</strong>해야 합니다 (가장 중요). 투자 조언이 아닙니다.
+        </div>
+      </div>
+
+      <!-- AI 종합 추천 매수가 — 기술적 가격 + Google 검색 그라운딩 -->
+      <div id="ai-buy-price-panel" class="glass-card p-3 p-lg-4 mb-4" style="display:none;"></div>
 
       <div class="row g-3 mb-4">
         <div class="col-12 col-xl-3">
@@ -890,6 +827,10 @@
             <div class="metric-label">종합 점수</div>
             <div class="metric-value"><%= safeScoreModel.totalScore %>점</div>
             <span class="verdict-badge"><%= safeScoreModel.verdict %></span>
+            <%
+              const _aiTechBuyPrice = safeScoreModel.buyRecommendation?.price || null;
+              const _aiTechStopLoss = safeScoreModel.buyRecommendation?.stopLoss || null;
+            %>
             <div id="ai-adjust-block" class="mt-2" style="font-size: 0.78rem;">
               <button type="button" id="ai-adjust-btn" class="btn btn-sm btn-outline-light"
                       style="border-color: rgba(255,255,255,0.5); color: #fff;"
@@ -898,8 +839,10 @@
                       data-price="<%= currentData ? (currentData.currentPrice || 0) : 0 %>"
                       data-change="<%= currentData ? (currentData.changeRate || 0) : 0 %>"
                       data-baseline="<%= safeScoreModel.totalScore %>"
-                      data-market="<%= selected ? (selected.market || '') : '' %>">
-                <i class="bi bi-magic me-1"></i>AI 보정 받기 (Google 검색)
+                      data-market="<%= selected ? (selected.market || '') : '' %>"
+                      data-tech-buy-price="<%= _aiTechBuyPrice || '' %>"
+                      data-tech-stop-loss="<%= _aiTechStopLoss || '' %>">
+                <i class="bi bi-magic me-1"></i>AI 검증 (뉴스/실적)
               </button>
               <div id="ai-adjust-result" style="display:none;margin-top:8px;"></div>
             </div>
@@ -925,139 +868,6 @@
             </div>
           <% } %>
         <% }) %>
-      </div>
-
-      <% const buyRec = safeScoreModel.buyRecommendation;
-         const tierOrder = ['aggressive', 'neutral', 'conservative'];
-         const isBreakout = buyRec.direction === 'breakout';
-         const variants = isBreakout ? [
-           { key: 'breakout', label: '돌파 매수', icon: 'bi-arrow-up-right-circle', enabled: true },
-         ] : [
-           { key: 'supports', label: '매물대 지지', icon: 'bi-bar-chart-steps', enabled: !!buyRec.supports },
-           { key: 'ma', label: '이동평균선 (5/20일)', icon: 'bi-graph-up-arrow', enabled: !!buyRec.ma },
-         ];
-         function tierLabelFromVariant(v) {
-           const data = buyRec[v.key];
-           if (!data || !data.tiers) return null;
-           const t = data.tiers[buyRec.recommendedTier];
-           if (!t || t.unavailable) return null;
-           return t.label;
-         }
-         const recommendedTierLabel = isBreakout
-           ? buyRec.breakout.tiers[buyRec.recommendedTier].label
-           : (variants.map(tierLabelFromVariant).find((x) => x) || (buyRec.recommendedTier === 'aggressive' ? '공격' : buyRec.recommendedTier === 'neutral' ? '중립' : '보수')); %>
-      <div class="glass-card p-3 p-lg-4 mb-4">
-        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
-          <h2 class="section-title mb-0">
-            <i class="bi <%= isBreakout ? 'bi-arrow-up-right-circle' : 'bi-cash-coin' %>"></i>
-            <%= isBreakout ? '돌파 매수가' : '추천 매수 구간' %>
-          </h2>
-          <span class="recommend-badge recommend-<%= buyRec.recommendedTier %>">
-            권고: <strong><%= recommendedTierLabel %></strong>
-          </span>
-        </div>
-
-        <% if (isBreakout) { %>
-          <div class="muted-text mb-3">
-            <strong>돌파선:</strong> <%= fmtNumber(buyRec.breakoutLine) %>원
-            (60일 고점 <%= fmtNumber(buyRec.high60) %>원 + 0.3% 버퍼) ·
-            <strong>14일 ATR:</strong> <%= buyRec.atrPercent %>%
-          </div>
-          <% if (buyRec.advisory) { %>
-            <div class="alert alert-info small py-2 px-3 mb-3" style="border-radius: 10px;">
-              <i class="bi bi-info-circle me-1"></i><%= buyRec.advisory %>
-            </div>
-          <% } %>
-          <div class="row g-3">
-            <% tierOrder.forEach(function(k) { %>
-              <% const t = buyRec.breakout.tiers[k]; %>
-              <div class="col-12 col-md-4">
-                <div class="buy-tier<%= buyRec.recommendedTier === k ? ' active' : '' %>">
-                  <div class="tier-label"><%= t.label %> <span class="tier-band">(<%= t.bandLabel %>)</span></div>
-                  <div class="tier-price"><%= fmtNumber(t.price) %>원</div>
-                  <div class="tier-gap <%= t.gapAbove ? 'text-warning' : '' %>">
-                    현재가 <%= t.gapAbove ? '+' : '' %><%= t.gapPercent %>% <%= t.gapAbove ? '위' : '아래' %>
-                  </div>
-                  <div class="tier-desc"><%= t.description %></div>
-                </div>
-              </div>
-            <% }) %>
-          </div>
-          <div class="muted-text mt-3"><%= buyRec.tierExplanation %></div>
-          <div class="muted-text mt-1">
-            ※ 60일·20일 고점과 14일 ATR 기반 추정. 가짜 돌파 가능성 항상 존재 — 손절선 사전 설정 필수.
-          </div>
-        <% } else { %>
-
-        <ul class="nav nav-pills buy-tabs mb-3" role="tablist">
-          <% variants.forEach(function(v, idx) { %>
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link <%= idx === 0 ? 'active' : '' %>"
-                data-bs-toggle="pill"
-                data-bs-target="#buy-pane-<%= v.key %>"
-                type="button"
-                role="tab"
-                <%= v.enabled ? '' : 'disabled' %>
-              >
-                <i class="bi <%= v.icon %> me-1"></i><%= v.label %>
-              </button>
-            </li>
-          <% }) %>
-        </ul>
-
-        <div class="tab-content">
-          <% variants.forEach(function(v, idx) { %>
-            <div
-              id="buy-pane-<%= v.key %>"
-              class="tab-pane fade <%= idx === 0 ? 'show active' : '' %>"
-              role="tabpanel"
-            >
-              <% if (!v.enabled) { %>
-                <div class="muted-text">
-                  <% if (v.key === 'supports') { %>현재가 아래 충분한 매물대를 찾지 못했습니다 — 60일간 거래가 거의 없거나 신고가 종목.<% } %>
-                  <% if (v.key === 'ma') { %>이평선 계산에 필요한 일봉 데이터가 부족합니다.<% } %>
-                </div>
-              <% } else { %>
-                <% const variantData = buyRec[v.key]; %>
-                <div class="muted-text mb-3">
-                  <% if (v.key === 'supports') { %>
-                    <strong>매물대 지지 방식</strong> — 60일 거래량 히스토그램에서 *실제 거래가 일어난* 가격대 상위 3개를 그대로 매수가로 사용. 본전 매수자들이 대기하는 자리라 자기실현적 지지가 작동합니다. 단순 % 하락보다 신뢰도 높음.
-                  <% } else if (v.key === 'ma') { %>
-                    <strong>이동평균선 지지 방식 (5/20일)</strong> — 한국 차트의 표준 단기 지지선. 5일선은 강한 추세 유지 시, 20일선은 정상적 눌림목 자리. <strong>60일선은 추세 깨짐 신호</strong>라 매수가에서 제외했습니다.
-                  <% } %>
-                </div>
-                <div class="row g-3">
-                  <% tierOrder.forEach(function(k) { %>
-                    <% const t = variantData.tiers[k]; %>
-                    <div class="col-12 col-md-4">
-                      <div class="buy-tier<%= buyRec.recommendedTier === k && !t.unavailable && !t.broken ? ' active' : '' %><%= t.unavailable ? ' tier-unavailable' : '' %>">
-                        <div class="tier-label"><%= t.label %> <span class="tier-band">(<%= t.bandLabel %>)</span></div>
-                        <% if (t.unavailable) { %>
-                          <div class="tier-price text-muted">—</div>
-                          <div class="tier-gap text-muted">계산 불가</div>
-                        <% } else if (t.broken) { %>
-                          <div class="tier-price"><%= fmtNumber(t.price) %>원</div>
-                          <div class="tier-gap text-warning">현재가 +<%= t.gapPercent %>% 위 (저항)</div>
-                        <% } else { %>
-                          <div class="tier-price"><%= fmtNumber(t.price) %>원</div>
-                          <div class="tier-gap">현재가 대비 <%= t.gapPercent %>% 하회</div>
-                        <% } %>
-                        <div class="tier-desc"><%= t.description %></div>
-                      </div>
-                    </div>
-                  <% }) %>
-                </div>
-              <% } %>
-            </div>
-          <% }) %>
-        </div>
-
-        <div class="muted-text mt-3"><%= buyRec.tierExplanation %></div>
-        <div class="muted-text mt-1">
-          ※ 매물대(60일 거래량 분포)와 5/20일 이평선 기반. 단순 -% 밴드는 의미 적어 제외했습니다. 60일선까지 내려갔다면 추세 깨짐이라 별도 매수가로 권하지 않습니다.
-        </div>
-        <% } %>
       </div>
 
       <div class="row g-3 mb-4">
@@ -1239,13 +1049,7 @@
           buySellRatio: currentData.buySellRatio,
           totalScore: safeScoreModel.totalScore,
           verdict: safeScoreModel.verdict,
-          strategy: safeAppliedStrategy ? {
-            requested: safeSelectedStrategyPreset,
-            applied: safeAppliedStrategy.label,
-            isAuto: !!safeAppliedStrategy.isAuto,
-            reason: safeAppliedStrategy.reason || safeAppliedStrategy.description,
-            setupScores: safeAppliedStrategy.setupScores || null,
-          } : null,
+          safeBuyRec: safeScoreModel.buyRecommendation || null,
           components: {
             volume:     { score: safeScoreModel.volume.score,     explanation: safeScoreModel.volume.explanation },
             position:   { score: safeScoreModel.position.score,   explanation: safeScoreModel.position.explanation },
@@ -1384,15 +1188,27 @@
         });
       </script>
       <script>
-        // AI 보정 (Gemini 그라운딩) — 종합 점수 카드 안의 "AI 보정 받기" 버튼.
+        // AI 검증 (Gemini 그라운딩) — Google 검색으로 뉴스/실적/섹터/분석가 목표가 확인.
         (function () {
           const btn = document.getElementById("ai-adjust-btn");
           if (!btn) return;
           const resultBox = document.getElementById("ai-adjust-result");
+          const buyPanel = document.getElementById("ai-buy-price-panel");
+
+          function escHtml(s) {
+            return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+              "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+            })[c]);
+          }
+          function fmtN(n) {
+            return Number(n || 0).toLocaleString();
+          }
+
           btn.addEventListener("click", async function () {
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>AI 검색 중…';
             resultBox.style.display = "none";
+            if (buyPanel) buyPanel.style.display = "none";
             try {
               const payload = {
                 shortCode: btn.dataset.shortcode,
@@ -1401,6 +1217,8 @@
                 changeRate: Number(btn.dataset.change) || 0,
                 baselineScore: Number(btn.dataset.baseline) || 0,
                 market: btn.dataset.market || "",
+                technicalBuyPrice: Number(btn.dataset.techBuyPrice) || null,
+                technicalStopLoss: Number(btn.dataset.techStopLoss) || null,
               };
               const r = await fetch("/ai/adjust", {
                 method: "POST",
@@ -1410,6 +1228,8 @@
               const data = await r.json();
               if (!r.ok || !data.ok) throw new Error(data.error || "AI 보정 실패");
               const a = data.aiAdjust || {};
+
+              // 1. 점수 보정 (작은 inline 블록)
               const bonus = a.bonus;
               const isErr = !!a.error;
               const sign = bonus > 0 ? "+" : (bonus < 0 ? "" : "±");
@@ -1418,19 +1238,87 @@
               resultBox.innerHTML =
                 '<div style="background:' + bg + ';color:' + fg +
                 ';padding:8px 10px;border-radius:8px;line-height:1.5;">' +
-                '<div style="font-weight:700;font-size:0.95rem;">AI ' + sign + (Number.isFinite(bonus) ? bonus : "?") + 'p ' +
-                (isErr ? "(" + (a.error || "오류") + ")" : "") + '</div>' +
-                '<div style="margin-top:3px;color:' + fg + ';opacity:0.85;">' + (a.reasoning || "") + '</div>' +
-                (a.cached ? '<div style="margin-top:3px;font-size:0.7rem;color:#64748b;">캐시 적중 · 일일 누적 ' + (data.daily?.count ?? "?") + '회</div>' :
-                  '<div style="margin-top:3px;font-size:0.7rem;color:#64748b;">일일 누적 ' + (data.daily?.count ?? "?") + '회</div>') +
+                '<div style="font-weight:700;font-size:0.95rem;">AI 점수 보정 ' + sign + (Number.isFinite(bonus) ? bonus : "?") + 'p ' +
+                (isErr ? "(" + escHtml(a.error || "오류") + ")" : "") + '</div>' +
+                '<div style="margin-top:3px;opacity:0.85;">' + escHtml(a.reasoning || "") + '</div>' +
+                '<div style="margin-top:3px;font-size:0.7rem;color:#64748b;">' +
+                (a.cached ? '캐시 적중 · ' : '') + '일일 누적 ' + (data.daily?.count ?? "?") + '회</div>' +
                 '</div>';
               resultBox.style.display = "block";
-              btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>다시 받기';
+
+              // 2. AI 종합 매수가 (큰 패널)
+              const rec = a.buyPriceRec;
+              if (buyPanel && rec && Number.isFinite(rec.price)) {
+                const techPrice = Number(btn.dataset.techBuyPrice) || null;
+                const aiPrice = rec.price;
+                const diffPct = techPrice ? (((aiPrice - techPrice) / techPrice) * 100).toFixed(2) : null;
+                const ctx = rec.context || {};
+                const conf = rec.confidence || "low";
+                const confColors = {
+                  high: { bg: "#dcfce7", fg: "#166534" },
+                  medium: { bg: "#fef3c7", fg: "#92400e" },
+                  low: { bg: "#fee2e2", fg: "#991b1b" },
+                };
+                const cc = confColors[conf] || confColors.low;
+
+                let ctxHtml = "";
+                if (ctx.analystTarget) ctxHtml += '<div><strong>분석가 목표가:</strong> ' + fmtN(ctx.analystTarget) + '원</div>';
+                if (ctx.recentNews) ctxHtml += '<div><strong>최근 뉴스:</strong> ' + escHtml(ctx.recentNews) + '</div>';
+                if (ctx.sectorTrend) ctxHtml += '<div><strong>섹터:</strong> ' + escHtml(ctx.sectorTrend) + '</div>';
+                if (ctx.earnings) ctxHtml += '<div><strong>실적:</strong> ' + escHtml(ctx.earnings) + '</div>';
+                if (!ctxHtml) ctxHtml = '<div class="text-muted">추가 컨텍스트 정보 없음 (검색 결과 부족)</div>';
+
+                const stopGap = ((aiPrice - rec.stopLoss) / aiPrice * 100).toFixed(2);
+                const clampedNote = rec.clamped ? '<div class="muted-text small mt-1">⚠ AI 가격이 기술적 매수가 ±10% 범위로 강제 클램프됨 (할루시네이션 방어)</div>' : '';
+
+                buyPanel.innerHTML =
+                  '<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">' +
+                    '<div>' +
+                      '<h2 class="section-title mb-2"><i class="bi bi-magic"></i>AI 종합 매수가 (Google 검색 그라운딩)</h2>' +
+                      '<span style="display:inline-block;padding:3px 10px;border-radius:999px;background:' + cc.bg + ';color:' + cc.fg + ';font-size:0.85rem;font-weight:700;">신뢰도: ' + conf + '</span>' +
+                    '</div>' +
+                    '<div class="text-end">' +
+                      '<div class="muted-text small">AI 추천 매수가</div>' +
+                      '<div style="font-size:1.6rem;font-weight:700;color:#0f172a;">' + fmtN(aiPrice) + '원</div>' +
+                      (diffPct !== null ? '<div class="muted-text small">기술적 매수가 대비 ' + (Number(diffPct) >= 0 ? '+' : '') + diffPct + '%</div>' : '') +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="row g-3 mb-2">' +
+                    '<div class="col-md-4">' +
+                      '<div class="metric-card p-2" style="background:#fff;">' +
+                        '<div class="metric-label small">손절선</div>' +
+                        '<div style="font-size:1.05rem;font-weight:700;color:#991b1b;">' + fmtN(rec.stopLoss) + '원</div>' +
+                        '<div class="muted-text small">AI 매수가 -' + stopGap + '%</div>' +
+                      '</div>' +
+                    '</div>' +
+                    '<div class="col-md-8">' +
+                      '<div class="metric-card p-2" style="background:#fff;">' +
+                        '<div class="metric-label small">근거</div>' +
+                        '<div class="small" style="line-height:1.5;">' + escHtml(rec.rationale || "") + '</div>' +
+                      '</div>' +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="metric-card p-2 small" style="background:#fff;">' +
+                    '<div class="metric-label small mb-1">검색 컨텍스트</div>' +
+                    ctxHtml +
+                  '</div>' +
+                  clampedNote +
+                  '<div class="muted-text small mt-2">※ AI 매수가는 기술적 매수가의 ±10% 안으로 강제 클램프됩니다. 손절선이 깨지면 즉시 손실 확정 — 가장 중요한 규칙. 투자 조언 아님.</div>';
+                buyPanel.style.display = "block";
+                buyPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+              } else if (buyPanel) {
+                buyPanel.innerHTML =
+                  '<div class="muted-text small"><i class="bi bi-info-circle me-1"></i>AI 매수가 추천 없음 — ' +
+                  escHtml(rec?.rationale || "AI 응답에 매수가 정보가 없거나 정보 부족.") + '</div>';
+                buyPanel.style.display = "block";
+              }
+
+              btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>다시 검증';
               btn.disabled = false;
             } catch (e) {
-              resultBox.innerHTML = '<div class="text-warning small">AI 보정 실패: ' + (e.message || e) + '</div>';
+              resultBox.innerHTML = '<div class="text-warning small">AI 검증 실패: ' + escHtml(e.message || String(e)) + '</div>';
               resultBox.style.display = "block";
-              btn.innerHTML = '<i class="bi bi-magic me-1"></i>AI 보정 받기';
+              btn.innerHTML = '<i class="bi bi-magic me-1"></i>AI 검증';
               btn.disabled = false;
             }
           });
@@ -1470,39 +1358,6 @@
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-  <script>
-    (function () {
-      const select = document.getElementById("strategyPresetSelect");
-      const help = document.getElementById("strategyPresetHelp");
-      const manualPanel = document.getElementById("manual-weight-panel");
-      if (!select) return;
-
-      const manualInputs = manualPanel
-        ? manualPanel.querySelectorAll('input[name$="Weight"]')
-        : [];
-
-      function syncStrategyPresetUi() {
-        const option = select.options[select.selectedIndex];
-        const isCustom = select.value === "custom";
-
-        if (help) {
-          help.textContent = option?.dataset.description || "";
-        }
-
-        if (manualPanel) {
-          manualPanel.style.display = isCustom ? "block" : "none";
-        }
-
-        manualInputs.forEach(function (input) {
-          input.disabled = !isCustom;
-        });
-      }
-
-      select.addEventListener("change", syncStrategyPresetUi);
-      syncStrategyPresetUi();
-    })();
-  </script>
 
   <script>
     (function () {

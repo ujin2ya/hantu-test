@@ -1004,88 +1004,6 @@ const WEIGHT_PARAM_KEYS = Object.freeze([
   "flowWeight",
 ]);
 
-const STRATEGY_PRESET_MAP = Object.freeze({
-  auto: {
-    key: "auto",
-    label: "자동 추천",
-    description: "조회 후 돌파/눌림목 성향을 비교하고, 장중에는 단타 기준·장마감 후에는 스윙 기준으로 프리셋을 자동 선택합니다.",
-    weights: DEFAULT_MANUAL_WEIGHTS,
-  },
-  short_breakout: {
-    key: "short_breakout",
-    label: "단타 돌파",
-    description: "장중 강한 거래량, 추세, 체결 강도와 수급이 붙는 종목을 우선합니다. 고점 추격 리스크는 감수하고 빠른 확산을 노립니다.",
-    weights: {
-      volume: 25,
-      position: 6,
-      trend: 18,
-      rsi: 8,
-      macd: 10,
-      resistance: 12,
-      volatility: 5,
-      flow: 16,
-    },
-  },
-  short_pullback: {
-    key: "short_pullback",
-    label: "단타 눌림목",
-    description: "기존 상승 흐름 안에서 짧게 눌린 구간을 노립니다. 위치와 지지 확인을 더 중시하고 과열 추격을 줄입니다.",
-    weights: {
-      volume: 18,
-      position: 22,
-      trend: 14,
-      rsi: 8,
-      macd: 5,
-      resistance: 12,
-      volatility: 6,
-      flow: 15,
-    },
-  },
-  swing_breakout: {
-    key: "swing_breakout",
-    label: "스윙 돌파",
-    description: "주도주 성격의 추세 지속과 위쪽 매물 가벼움을 중시합니다. 하루보다는 수일~수주 확산을 보는 프리셋입니다.",
-    weights: {
-      volume: 18,
-      position: 8,
-      trend: 24,
-      rsi: 6,
-      macd: 8,
-      resistance: 14,
-      volatility: 6,
-      flow: 16,
-    },
-  },
-  swing_pullback: {
-    key: "swing_pullback",
-    label: "스윙 눌림목",
-    description: "좋은 추세 종목이 이평선·매물 지지 구간까지 눌렸을 때를 우선합니다. 자리와 추세 지속성을 가장 중요하게 봅니다.",
-    weights: {
-      volume: 14,
-      position: 24,
-      trend: 18,
-      rsi: 8,
-      macd: 4,
-      resistance: 14,
-      volatility: 6,
-      flow: 12,
-    },
-  },
-  custom: {
-    key: "custom",
-    label: "고급 설정(수동)",
-    description: "직접 가중치를 입력합니다. 입력값 합계는 서버에서 자동으로 100으로 정규화됩니다.",
-    weights: DEFAULT_MANUAL_WEIGHTS,
-  },
-});
-
-const STRATEGY_PRESET_OPTIONS = Object.freeze(
-  Object.values(STRATEGY_PRESET_MAP).map(({ key, label, description }) => ({
-    key,
-    label,
-    description,
-  }))
-);
 
 function normalizeWeights(rawWeights, defaults = DEFAULT_MANUAL_WEIGHTS) {
   const clean = {};
@@ -1128,40 +1046,6 @@ function parseWeights(body = {}) {
   };
 
   return normalizeWeights(raw, DEFAULT_MANUAL_WEIGHTS);
-}
-
-function hasWeightParams(input = {}) {
-  return WEIGHT_PARAM_KEYS.some((key) => input[key] !== undefined);
-}
-
-function getStrategyPresetKey(value, fallback = "auto") {
-  const key = String(value || "").trim().toLowerCase();
-  return STRATEGY_PRESET_MAP[key] ? key : fallback;
-}
-
-function getRequestedStrategyPreset(input = {}, fallback = "auto") {
-  if (input.strategyPreset !== undefined) {
-    return getStrategyPresetKey(input.strategyPreset, fallback);
-  }
-  if (hasWeightParams(input)) {
-    return "custom";
-  }
-  return fallback;
-}
-
-function getPresetWeights(presetKey) {
-  const meta = STRATEGY_PRESET_MAP[presetKey] || STRATEGY_PRESET_MAP.auto;
-  return normalizeWeights(meta.weights || DEFAULT_MANUAL_WEIGHTS, DEFAULT_MANUAL_WEIGHTS);
-}
-
-function buildAppliedStrategy(presetKey, extra = {}) {
-  const meta = STRATEGY_PRESET_MAP[presetKey] || STRATEGY_PRESET_MAP.auto;
-  return {
-    key: presetKey,
-    label: meta.label,
-    description: meta.description,
-    ...extra,
-  };
 }
 
 function calculateVolatilityScore(dailyData) {
@@ -1366,128 +1250,6 @@ function calculateOverheatPenalty(dailyData) {
   };
 }
 
-function determineAutoStrategy(currentData, dailyData, weeklyData, monthlyData, yearlyData, dailySeries, weeklySeries, monthlySeries, yearlySeries, investorRows) {
-  const volume = calculateVolumeScore(currentData, dailyData, weeklyData, monthlyData, yearlyData);
-  const position = calculatePositionScore(dailySeries, weeklySeries, monthlySeries, yearlySeries);
-  const trend = calculateTrendScore(dailyData, weeklyData, currentData.currentPrice);
-  const resistance = estimateTrappedZones(dailyData, currentData.currentPrice).resistanceScore;
-  const volatility = calculateVolatilityScore(dailyData);
-  const flow = calculateFlowScore(investorRows);
-  const dryUp = calculateDryUpScore(dailyData);
-  const squeeze = calculateSqueezeScore(dailyData, currentData.currentPrice);
-  const trendFollowing = calculateTrendFollowingScore(dailyData);
-  const overheat = calculateOverheatPenalty(dailyData);
-
-  // 돌파 점수 — overheat 페널티는 ×0.70 (강한 돌파는 일정 과열 동반이 정상이라 ×1.20 은 과함)
-  const breakoutScore = clampScore(
-    trendFollowing.score * 0.30 +
-    volume.score * 0.22 +
-    flow.score * 0.14 +
-    resistance.score * 0.12 +
-    squeeze.score * 0.12 +
-    trend.score * 0.10 -
-    overheat.penalty * 0.70
-  );
-
-  const pullbackScore = clampScore(
-    position.score * 0.24 +
-    dryUp.score * 0.24 +
-    trend.score * 0.18 +
-    resistance.score * 0.12 +
-    flow.score * 0.10 +
-    volatility.score * 0.12
-  );
-
-  const context = getMarketContext();
-  const autoMode = context.horizon;
-
-  // 박빙(차이가 phase별 임계 미만)이면 보수적인 pullback 으로. 장중은 임계 3, 장외는 8.
-  const margin = breakoutScore - pullbackScore;
-  const setupType = margin >= context.breakoutMargin ? "breakout" : "pullback";
-  const presetKey = `${autoMode}_${setupType}`;
-  const horizonLabel = autoMode === "short" ? "단타" : "스윙";
-
-  let reason =
-    `자동 ${horizonLabel} 모드 · ${context.label} · ` +
-    `돌파 ${breakoutScore}점 / 눌림목 ${pullbackScore}점 (격차 ${margin >= 0 ? "+" : ""}${margin}, 임계 ${context.breakoutMargin})`;
-  if (setupType === "breakout") {
-    reason += ` · ${trendFollowing.explanation} · ${squeeze.explanation}`;
-    if (overheat.penalty > 0) {
-      reason += ` · 과열 체크: ${overheat.explanation}`;
-    }
-  } else {
-    reason += ` · ${dryUp.explanation} · ${position.explanation}`;
-    if (margin >= 0 && margin < context.breakoutMargin) {
-      reason += ` · 돌파/눌림목 점수 박빙 → 보수 fallback`;
-    }
-  }
-
-  return buildAppliedStrategy(presetKey, {
-    requestedKey: "auto",
-    isAuto: true,
-    autoMode,
-    setupType,
-    marketContext: context,
-    setupScores: {
-      breakout: breakoutScore,
-      pullback: pullbackScore,
-      margin,
-      threshold: context.breakoutMargin,
-    },
-    diagnostics: {
-      dryUp,
-      squeeze,
-      trendFollowing,
-      overheat,
-    },
-    reason,
-  });
-}
-
-// 프리셋 키에서 setupType 추출. `short_breakout` → "breakout", `swing_pullback` → "pullback", custom/auto → null
-function getSetupTypeFromKey(key) {
-  if (typeof key !== "string") return null;
-  if (key.endsWith("_breakout")) return "breakout";
-  if (key.endsWith("_pullback")) return "pullback";
-  return null;
-}
-
-function resolveAppliedStrategy(requestedPreset, currentData, dailyData, weeklyData, monthlyData, yearlyData, dailySeries, weeklySeries, monthlySeries, yearlySeries, investorRows, formSource) {
-  if (requestedPreset === "auto") {
-    const autoStrategy = determineAutoStrategy(
-      currentData,
-      dailyData,
-      weeklyData,
-      monthlyData,
-      yearlyData,
-      dailySeries,
-      weeklySeries,
-      monthlySeries,
-      yearlySeries,
-      investorRows
-    );
-    return {
-      ...autoStrategy,
-      weights: getPresetWeights(autoStrategy.key),
-    };
-  }
-
-  if (requestedPreset === "custom") {
-    return buildAppliedStrategy("custom", {
-      requestedKey: "custom",
-      isAuto: false,
-      weights: parseWeights(formSource || {}),
-      reason: "수동 가중치 설정을 적용했습니다.",
-    });
-  }
-
-  return buildAppliedStrategy(requestedPreset, {
-    requestedKey: requestedPreset,
-    isAuto: false,
-    weights: getPresetWeights(requestedPreset),
-    reason: `${STRATEGY_PRESET_MAP[requestedPreset].label} 프리셋을 적용했습니다.`,
-  });
-}
 
 function estimateBuyZones(dailyData, currentPrice) {
   const items = dailyData.items.slice(0, 60);
@@ -1537,38 +1299,6 @@ function estimateBuyZones(dailyData, currentPrice) {
   return { supportBins };
 }
 
-function buildTiersFromBands(supportBins, currentPrice, bands) {
-  function pickSupportInBand(gapMin, gapMax) {
-    const upperBound = currentPrice * (1 - gapMin);
-    const lowerBound = currentPrice * (1 - gapMax);
-    const candidates = supportBins.filter((b) => b.mid <= upperBound && b.mid >= lowerBound);
-    if (candidates.length === 0) return null;
-    return candidates.reduce((best, cur) => (cur.volume > best.volume ? cur : best), candidates[0]);
-  }
-
-  const tiers = {};
-  bands.forEach(({ key, label, gapMin, gapMax, fallbackGap, ordinal }) => {
-    const support = pickSupportInBand(gapMin, gapMax);
-    let price;
-    let description;
-    if (support) {
-      price = support.mid;
-      description = `${ordinal}차 지지 매물대 (${support.start.toLocaleString()}~${support.end.toLocaleString()}원, 60일 거래량 집중 구간)`;
-    } else {
-      price = Math.round(currentPrice * (1 - fallbackGap));
-      description = `현재가 -${(fallbackGap * 100).toFixed(1)}% 기본값 (해당 밴드에 지지 매물대 없음)`;
-    }
-    const gap = currentPrice > 0 ? ((currentPrice - price) / currentPrice) * 100 : 0;
-    tiers[key] = {
-      label,
-      price,
-      description,
-      gapPercent: gap.toFixed(1),
-      bandLabel: `-${(gapMin * 100).toFixed(1)}% ~ -${(gapMax * 100).toFixed(1)}%`,
-    };
-  });
-  return tiers;
-}
 
 function calculateMovingAverages(dailyData) {
   const closes = (dailyData?.items || [])
@@ -1581,106 +1311,7 @@ function calculateMovingAverages(dailyData) {
   return { sma5: sma(5), sma20: sma(20), sma60: sma(60), sma120: sma(120) };
 }
 
-function buildMATiers(currentPrice, mas) {
-  // 60일선까지 내려가면 추세 깨짐 신호라 매수가로는 사용하지 않음 — 5일/20일 두 tier 만.
-  // conservative 자리는 unavailable 로 두고 supports 탭이 보수 권고를 담당.
-  const tiersConfig = [
-    { key: "aggressive", label: "5일선 매수", maKey: "sma5", period: 5 },
-    { key: "neutral", label: "20일선 매수", maKey: "sma20", period: 20 },
-  ];
-  const tiers = {};
-  tiersConfig.forEach((cfg) => {
-    const ma = mas[cfg.maKey];
-    if (!ma || ma <= 0) {
-      tiers[cfg.key] = {
-        label: cfg.label,
-        bandLabel: `${cfg.period}일 SMA`,
-        price: null,
-        gapPercent: "-",
-        description: `${cfg.period}일 이평선 계산 불가 (일봉 데이터 부족)`,
-        unavailable: true,
-      };
-      return;
-    }
-    if (ma >= currentPrice) {
-      const overGap = ((ma - currentPrice) / currentPrice) * 100;
-      tiers[cfg.key] = {
-        label: cfg.label,
-        bandLabel: `${cfg.period}일 SMA`,
-        price: Math.round(ma),
-        gapPercent: overGap.toFixed(1),
-        description: `${cfg.period}일선이 현재가 위(${overGap.toFixed(1)}% 상단)에 있어 저항 역할 — 돌파 후 진입 검토`,
-        broken: true,
-      };
-      return;
-    }
-    const gap = ((currentPrice - ma) / currentPrice) * 100;
-    tiers[cfg.key] = {
-      label: cfg.label,
-      bandLabel: `${cfg.period}일 SMA`,
-      price: Math.round(ma),
-      gapPercent: gap.toFixed(1),
-      description: `${cfg.period}일 이동평균이 ${gap.toFixed(1)}% 아래에서 지지`,
-    };
-  });
-  // conservative 자리는 명시적으로 unavailable — UI 가 첫 두 tier 만 채움
-  tiers.conservative = {
-    label: "60일선 미사용",
-    bandLabel: "60일 SMA",
-    price: null,
-    gapPercent: "-",
-    description: "60일선까지 내려갔다는 건 추세 깨짐 신호 — 매수보다 관망 또는 추세 재확인 후 진입 권장.",
-    unavailable: true,
-  };
-  return tiers;
-}
 
-// 매물대 직접 매수가 — 60일 거래량 히스토그램의 현재가 아래 봉우리 3개를 그대로 매수가로 사용.
-// fixed/atr 처럼 기계적 % 가 아니라 *실제 거래가 일어난 가격대*라 자기실현적 지지가 작동.
-function buildSupportTiers(supportBins, currentPrice) {
-  if (!Array.isArray(supportBins) || supportBins.length === 0) return null;
-
-  // 거래량 큰 순 → 그중 가까운 순 위주 — 현재가에서 가까운 강한 매물대 3개
-  const ranked = [...supportBins]
-    .filter((b) => b.mid < currentPrice && b.volume > 0)
-    .sort((a, b) => b.volume - a.volume)
-    .slice(0, 3)
-    .sort((a, b) => b.mid - a.mid); // 현재가에서 가까운 순으로 재정렬
-
-  if (ranked.length === 0) return null;
-
-  const config = [
-    { key: "aggressive", label: "1차 매물대 — 가장 가까움" },
-    { key: "neutral", label: "2차 매물대" },
-    { key: "conservative", label: "3차 매물대 — 가장 깊음" },
-  ];
-
-  const tiers = {};
-  config.forEach((cfg, i) => {
-    const bin = ranked[i];
-    if (!bin) {
-      tiers[cfg.key] = {
-        label: cfg.label,
-        bandLabel: "—",
-        price: null,
-        gapPercent: "-",
-        description: "현재가 아래 충분한 매물대 없음.",
-        unavailable: true,
-      };
-      return;
-    }
-    const gap = ((currentPrice - bin.mid) / currentPrice) * 100;
-    tiers[cfg.key] = {
-      label: cfg.label,
-      bandLabel: `${bin.start.toLocaleString()}~${bin.end.toLocaleString()}원`,
-      price: bin.mid,
-      gapPercent: gap.toFixed(1),
-      description: `60일 거래량 ${bin.volume.toLocaleString()}주 집중 — 본전 매수자 대기 가격대 (현재가 -${gap.toFixed(1)}%)`,
-    };
-  });
-
-  return { tiers };
-}
 
 function calculateATRPercent(dailyData, period = 14) {
   const items = dailyData.items.slice(0, period + 1);
@@ -1709,141 +1340,115 @@ function calculateATRPercent(dailyData, period = 14) {
 // 돌파 매수가 — 20일 박스권 상단 기준. 한국 시장 정서상 60일 고점은 너무 적극적이라
 // 20일 박스 돌파를 신호로 사용. 보수 tier 는 돌파 후 ATR×1.5 조정 자리 (현재가 아래일
 // 수도 있음 = 한국식 첫 눌림 매수). direction: "breakout" 으로 별도 패널 렌더.
-function buildBuyRecommendationBreakout(totalScore, currentPrice, dailyData) {
-  const items = (dailyData?.items || []).slice(0, 60);
-  if (items.length < 20 || !currentPrice) return null;
 
-  const highs20 = items.slice(0, 20).map((x) => Number(x.highPrice || 0)).filter((v) => v > 0);
-  if (!highs20.length) return null;
-  const high20 = Math.max(...highs20);
-  // 돌파선: 20일 박스권 상단 + 0.3% 버퍼 (가짜 돌파 거르는 마진)
-  const breakoutLine = high20 * 1.003;
+// 안전 매수가 — 단일 가격 + 손절선 + 추천 등급. "잃지 않는 매수" 의 정의:
+// 1) 자기실현적 지지에 진입 (60일 거래량 매물대 또는 20일선 중 강한 쪽)
+// 2) 손절선을 -1.5~-5% 안에 둬서 *최대 손실금액* 사전 확정
+// 3) 추세 깨짐(60일선 아래) 또는 점수 약세 종목은 "관망" 권고
+function buildSafeBuyRecommendation({ totalScore, currentPrice, dailyData, supportBins, mas }) {
+  const items60 = (dailyData?.items || []).slice(0, 60);
+  const lows60 = items60.map((x) => Number(x.lowPrice || 0)).filter((v) => v > 0);
+  const low60 = lows60.length ? Math.min(...lows60) : null;
 
-  const atrInfo = calculateATRPercent(dailyData);
-  const atrPct = atrInfo?.atrPercent && atrInfo.atrPercent > 0 ? atrInfo.atrPercent : 2;
-  const pullbackPct = atrPct * 1.5; // 돌파 후 첫 눌림 = ATR × 1.5
+  // 후보 — 현재가 -15% 이내 가까운 지지선만
+  const candidates = [];
+  const strongSupports = (supportBins || [])
+    .filter((b) => b.mid < currentPrice && b.mid > currentPrice * 0.85)
+    .sort((a, b) => b.volume - a.volume);
+  if (strongSupports.length) {
+    const top = strongSupports[0];
+    candidates.push({
+      type: "매물대",
+      label: `60일 거래량 ${top.volume.toLocaleString()}주 집중 구간`,
+      price: top.mid,
+      rangeStart: top.start,
+      rangeEnd: top.end,
+    });
+  }
+  if (mas?.sma20 && mas.sma20 < currentPrice && mas.sma20 > currentPrice * 0.85) {
+    candidates.push({
+      type: "20일선",
+      label: "20일 이동평균선 (단기 추세 지지)",
+      price: Math.round(mas.sma20),
+    });
+  }
 
-  const buildTier = (price, label, bandLabel, description, ordinal) => {
-    const gap = ((price - currentPrice) / currentPrice) * 100;
+  // 추세 / 시장 컨디션 진단 — 등급 결정에 사용
+  const aboveSma60 = mas?.sma60 ? currentPrice > mas.sma60 : true;
+  const trendUp = (mas?.sma5 && mas?.sma20) ? mas.sma5 > mas.sma20 : null;
+  const conditions = [];
+  conditions.push(`점수 ${totalScore}`);
+  conditions.push(aboveSma60 ? "60일선 위" : "⚠ 60일선 아래 (추세 깨짐)");
+  if (trendUp === true) conditions.push("5일선 ≥ 20일선 (단기 추세 유효)");
+  else if (trendUp === false) conditions.push("⚠ 5일선 < 20일선 (단기 약세)");
+
+  // 매수 자리 자체가 없으면 — 관망
+  if (candidates.length === 0) {
     return {
-      label,
-      bandLabel,
-      price: Math.round(price),
-      gapPercent: gap.toFixed(2),
-      gapAbove: gap >= 0,
-      description,
-      ordinal,
+      grade: "관망",
+      gradeColor: "bad",
+      price: null,
+      gapPct: null,
+      stopLoss: null,
+      maxLossPct: null,
+      anchorType: null,
+      anchorLabel: null,
+      reasonShort: "현재가 -15% 이내에 가까운 지지선이 없습니다.",
+      reasonDetail: `${conditions.join(" · ")} · 매물대도 20일선도 매수가로 사용할 수 있는 자리에 없음. 가격 조정 또는 매물대 형성 후 재검토 권장.`,
+      conditions,
     };
-  };
-
-  // 공격: 돌파선 즉시 (강한 추세 종목에만 권장)
-  // 중립: 돌파선 + ATR/2 (확인 매수)
-  // 보수: 돌파 후 ATR×1.5 조정 자리 (한국식 첫 눌림 — 디폴트)
-  const tiers = {
-    aggressive: buildTier(
-      breakoutLine,
-      "공격 — 돌파 즉시",
-      "돌파선",
-      "20일 박스권 상단 통과 즉시 추격. 강한 거래량 동반 시에만 권장 — 가짜 돌파 손절선 필수.",
-      1
-    ),
-    neutral: buildTier(
-      breakoutLine * (1 + atrPct / 200),
-      "중립 — 돌파 확인 후",
-      `돌파선 + ATR/2 (${(atrPct / 2).toFixed(1)}%)`,
-      "돌파 후 ATR/2 만큼 추가 상승하며 자리 굳힘 확인. 가짜 돌파 위험 줄지만 진입가 ↑.",
-      2
-    ),
-    conservative: buildTier(
-      breakoutLine * (1 - pullbackPct / 100),
-      "보수 — 돌파 후 첫 눌림 (디폴트)",
-      `돌파선 - ATR×1.5 (${pullbackPct.toFixed(1)}%)`,
-      "돌파 후 ATR×1.5 만큼 조정한 자리에서 매수 — 한국식 눌림목. 손절선 짧고 가짜 돌파 위험 가장 낮음.",
-      3
-    ),
-  };
-
-  // 추천 tier — 디폴트는 보수(첫 눌림). 점수가 매우 높을 때만 공격으로 올림.
-  let recommendedTier;
-  let tierExplanation;
-  if (totalScore >= 80) {
-    recommendedTier = "aggressive";
-    tierExplanation = "추세·거래량 매우 강해 돌파 즉시 진입도 위험 낮음. 다만 손절선은 돌파선 직하단으로 타이트하게.";
-  } else if (totalScore >= 60) {
-    recommendedTier = "neutral";
-    tierExplanation = "조건 양호 — 돌파 확인(ATR/2 이상 추가 상승) 후 진입이 안전.";
-  } else {
-    recommendedTier = "conservative";
-    tierExplanation = "기본 권장 — 돌파 후 ATR×1.5 조정 자리(첫 눌림)에서 매수. 가짜 돌파 위험을 가장 낮춰주는 한국식 진입.";
   }
 
-  // 현재 위치 분석
-  const gapToBreakout = ((breakoutLine - currentPrice) / currentPrice) * 100;
-  let advisory = null;
-  if (currentPrice > breakoutLine) {
-    const overshoot = ((currentPrice - breakoutLine) / breakoutLine) * 100;
-    advisory = `이미 돌파 진행 중 (현재가가 돌파선보다 +${overshoot.toFixed(2)}% 위). 추격 비추 — 첫 눌림(보수 tier ${Math.round(breakoutLine * (1 - pullbackPct / 100)).toLocaleString()}원 부근) 대기 권장.`;
-  } else if (gapToBreakout < 3) {
-    advisory = `돌파 임박 (돌파선까지 +${gapToBreakout.toFixed(2)}%). 거래량 동반하면 진입 트리거 가능.`;
-  } else {
-    advisory = `돌파선까지 +${gapToBreakout.toFixed(2)}% 거리. 아직 진입 시점은 아니며 돌파 시도 모니터링 단계.`;
+  // 매물대 우선, 없으면 20일선
+  const chosen = candidates.find((c) => c.type === "매물대") || candidates[0];
+  const buyPrice = chosen.price;
+  const gapPct = ((currentPrice - buyPrice) / currentPrice) * 100;
+
+  // 손절선: 디폴트 매수가 -3%, 60일 저점이 더 가까우면 그 위 (타이트하게)
+  let stopLoss = Math.round(buyPrice * 0.97);
+  if (low60 && low60 < buyPrice && low60 > buyPrice * 0.93) {
+    stopLoss = Math.round(low60 * 1.005);
   }
+  // -1.5% ~ -5% 안으로 clamp (최소 손실 정의 + 너무 헐거운 손절 방지)
+  if (stopLoss > buyPrice * 0.985) stopLoss = Math.round(buyPrice * 0.985);
+  if (stopLoss < buyPrice * 0.95) stopLoss = Math.round(buyPrice * 0.95);
+  const maxLossPct = ((buyPrice - stopLoss) / buyPrice) * 100;
+
+  // 등급 결정
+  let grade;
+  let gradeColor;
+  if (totalScore >= 65 && aboveSma60 && trendUp === true) {
+    grade = "매수 가능";
+    gradeColor = "good";
+  } else if (totalScore >= 50 && aboveSma60) {
+    grade = "조건부 매수";
+    gradeColor = "warn";
+  } else {
+    grade = "관망";
+    gradeColor = "bad";
+  }
+
+  const reasonShort =
+    `${chosen.type} ${buyPrice.toLocaleString()}원 (현재가 -${gapPct.toFixed(1)}%) · ` +
+    `손절 ${stopLoss.toLocaleString()}원 (-${maxLossPct.toFixed(1)}%)`;
+  const reasonDetail = `${conditions.join(" · ")} · ${chosen.label}`;
 
   return {
-    direction: "breakout",
-    recommendedTier,
-    tierExplanation,
-    breakoutLine: Math.round(breakoutLine),
-    high20: Math.round(high20),
-    atrPercent: atrPct.toFixed(2),
-    pullbackPct: pullbackPct.toFixed(2),
-    advisory,
-    breakout: { tiers },
+    grade,
+    gradeColor,
+    price: buyPrice,
+    gapPct: gapPct.toFixed(2),
+    stopLoss,
+    maxLossPct: maxLossPct.toFixed(2),
+    anchorType: chosen.type,
+    anchorLabel: chosen.label,
+    reasonShort,
+    reasonDetail,
+    conditions,
   };
 }
 
-function buildBuyRecommendation(totalScore, buyZones, currentPrice, dailyData) {
-  const supportBins = buyZones.supportBins || [];
-
-  // 매물대 — 가장 신뢰도 높은 매수가 (자기실현적 지지)
-  const supports = buildSupportTiers(supportBins, currentPrice);
-
-  // 이평선 — 5일/20일만 (60일은 추세 깨짐이라 제외)
-  const mas = calculateMovingAverages(dailyData);
-  const ma = (mas.sma5 || mas.sma20)
-    ? {
-        tiers: buildMATiers(currentPrice, mas),
-        values: {
-          sma5: mas.sma5 ? Math.round(mas.sma5) : null,
-          sma20: mas.sma20 ? Math.round(mas.sma20) : null,
-        },
-      }
-    : null;
-
-  let recommendedTier;
-  let tierExplanation;
-  if (totalScore >= 70) {
-    recommendedTier = "aggressive";
-    tierExplanation = "조건 우호적 — 얕은 눌림(가까운 매물대 또는 5일선)에서 진입해도 리스크 낮음.";
-  } else if (totalScore >= 50) {
-    recommendedTier = "neutral";
-    tierExplanation = "조건 중립 — 2차 매물대 또는 20일선까지 기다려 분할 진입 권장.";
-  } else {
-    recommendedTier = "conservative";
-    tierExplanation = "조건 취약 — 깊은 조정(3차 매물대) 또는 관망. 단순 % 하락에 매수 금물.";
-  }
-
-  return {
-    direction: "pullback",
-    recommendedTier,
-    tierExplanation,
-    supports,
-    ma,
-    hasSupports: !!supports,
-  };
-}
-
-function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearlyData, dailySeries, weeklySeries, monthlySeries, yearlySeries, weights, investorRows, setupType) {
+function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearlyData, dailySeries, weeklySeries, monthlySeries, yearlySeries, weights, investorRows) {
   const volume = calculateVolumeScore(currentData, dailyData, weeklyData, monthlyData, yearlyData);
   const position = calculatePositionScore(dailySeries, weeklySeries, monthlySeries, yearlySeries);
   const trend = calculateTrendScore(dailyData, weeklyData, currentData.currentPrice);
@@ -1854,6 +1459,7 @@ function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearly
   const volatility = calculateVolatilityScore(dailyData);
   const flow = calculateFlowScore(investorRows);
   const buyZones = estimateBuyZones(dailyData, currentData.currentPrice);
+  const mas = calculateMovingAverages(dailyData);
 
   const total =
     volume.score * (weights.volume / 100) +
@@ -1873,15 +1479,14 @@ function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearly
   else if (total >= 50) verdict = "중립";
   else verdict = "보수적 접근";
 
-  // setupType "breakout" 이면 돌파 매수가, 아니면 (pullback / null / custom) 기존 매수가.
-  // 돌파 함수가 데이터 부족으로 null 반환하면 기존 함수로 fallback.
-  let buyRecommendation = null;
-  if (setupType === "breakout") {
-    buyRecommendation = buildBuyRecommendationBreakout(totalScore, currentData.currentPrice, dailyData);
-  }
-  if (!buyRecommendation) {
-    buyRecommendation = buildBuyRecommendation(totalScore, buyZones, currentData.currentPrice, dailyData);
-  }
+  // 단일 안전 매수가 — "잃지 않는 매수" 정의 (강한 지지 + 명확한 손절 + 추세 정합성)
+  const buyRecommendation = buildSafeBuyRecommendation({
+    totalScore,
+    currentPrice: currentData.currentPrice,
+    dailyData,
+    supportBins: buyZones.supportBins,
+    mas,
+  });
 
   return {
     totalScore,
@@ -1897,6 +1502,11 @@ function buildScoreModel(currentData, dailyData, weeklyData, monthlyData, yearly
     flow,
     trappedZones: trapped.trappedZones,
     supportBins: buyZones.supportBins,
+    movingAverages: {
+      sma5: mas.sma5 ? Math.round(mas.sma5) : null,
+      sma20: mas.sma20 ? Math.round(mas.sma20) : null,
+      sma60: mas.sma60 ? Math.round(mas.sma60) : null,
+    },
     buyRecommendation,
   };
 }
@@ -2265,12 +1875,10 @@ function renderIndex(res, overrides = {}) {
     scoreModel: null,
     weights: { ...DEFAULT_MANUAL_WEIGHTS },
     market: null,
+    marketContext: getMarketContext(),
     autoMode: pickAutoMode(),
     returnUrl: null,
     stockType: null,
-    strategyPresetOptions: STRATEGY_PRESET_OPTIONS,
-    selectedStrategyPreset: "auto",
-    appliedStrategy: null,
     ...overrides,
   });
 }
@@ -2281,16 +1889,7 @@ app.get("/", (req, res) => {
     req.body = { ...req.query, stockQuery: incomingQuery };
     return handleSearch(req, res);
   }
-
-  const selectedStrategyPreset = getRequestedStrategyPreset(req.query, "auto");
-  const weights = selectedStrategyPreset === "custom"
-    ? parseWeights(req.query)
-    : getPresetWeights(selectedStrategyPreset);
-
-  return renderIndex(res, {
-    weights,
-    selectedStrategyPreset,
-  });
+  return renderIndex(res);
 });
 
 function buildScanReturnUrl(body) {
@@ -2304,10 +1903,7 @@ function buildScanReturnUrl(body) {
 
 const handleSearch = async (req, res) => {
   const returnUrl = buildScanReturnUrl(req.body);
-  const requestedStrategyPreset = getRequestedStrategyPreset(req.body, "auto");
-  const previewWeights = requestedStrategyPreset === "custom"
-    ? parseWeights(req.body)
-    : getPresetWeights(requestedStrategyPreset);
+  const weights = { ...DEFAULT_MANUAL_WEIGHTS };
   try {
     const query = String(req.body.stockQuery || "").trim();
 
@@ -2315,9 +1911,8 @@ const handleSearch = async (req, res) => {
       return renderIndex(res, {
         query,
         error: "종목명 또는 종목코드를 입력하세요.",
-        weights: previewWeights,
+        weights,
         returnUrl,
-        selectedStrategyPreset: requestedStrategyPreset,
       });
     }
 
@@ -2327,9 +1922,8 @@ const handleSearch = async (req, res) => {
       return renderIndex(res, {
         query,
         error: "일치하는 종목이 없습니다.",
-        weights: previewWeights,
+        weights,
         returnUrl,
-        selectedStrategyPreset: requestedStrategyPreset,
       });
     }
 
@@ -2395,22 +1989,6 @@ const handleSearch = async (req, res) => {
     const monthlySeries = buildSeries(monthlyData, currentData.currentPrice, 36);
     const yearlySeries = buildSeries(yearlyData, currentData.currentPrice, 5);
 
-    const appliedStrategy = resolveAppliedStrategy(
-      requestedStrategyPreset,
-      currentData,
-      dailyData,
-      weeklyData,
-      monthlyData,
-      yearlyData,
-      dailySeries,
-      weeklySeries,
-      monthlySeries,
-      yearlySeries,
-      investorRows,
-      req.body
-    );
-    const weights = appliedStrategy.weights;
-    const setupType = appliedStrategy.setupType || getSetupTypeFromKey(appliedStrategy.key);
     const summary = buildSummary(currentData, dailyData, weeklyData, monthlyData, yearlyData);
     const scoreModel = buildScoreModel(
       currentData,
@@ -2423,8 +2001,7 @@ const handleSearch = async (req, res) => {
       monthlySeries,
       yearlySeries,
       weights,
-      investorRows,
-      setupType
+      investorRows
     );
 
     return renderIndex(res, {
@@ -2441,8 +2018,6 @@ const handleSearch = async (req, res) => {
       weights,
       market,
       returnUrl,
-      selectedStrategyPreset: requestedStrategyPreset,
-      appliedStrategy,
       stockType: isWeakTrendStock(dailyData) ? "weakTrend" : "trend",
     });
   } catch (err) {
@@ -2454,9 +2029,8 @@ const handleSearch = async (req, res) => {
     return renderIndex(res, {
       query: req.body.stockQuery || "",
       error: message,
-      weights: previewWeights,
+      weights,
       returnUrl,
-      selectedStrategyPreset: requestedStrategyPreset,
     });
   }
 };
@@ -2476,10 +2050,16 @@ app.post("/ai/adjust", express.json(), async (req, res) => {
     const changeRate = Number(req.body.changeRate) || 0;
     const baselineScore = Number(req.body.baselineScore) || 0;
     const market = String(req.body.market || "").trim();
+    // 기술적 추천 매수가/손절선 — AI 가 ±10% 안에서 조정하도록 anchor 로 전달
+    const technicalBuyPrice = Number(req.body.technicalBuyPrice) || null;
+    const technicalStopLoss = Number(req.body.technicalStopLoss) || null;
     if (!shortCode || !name) {
       return res.status(400).json({ error: "shortCode 및 name 필수" });
     }
-    const adj = await getAiAdjustForStock({ shortCode, name, currentPrice, changeRate, baselineScore, market });
+    const adj = await getAiAdjustForStock({
+      shortCode, name, currentPrice, changeRate, baselineScore, market,
+      technicalBuyPrice, technicalStopLoss,
+    });
     res.json({ ok: true, aiAdjust: adj, daily: loadAiGroundingDailyCounter() });
   } catch (err) {
     console.error("[/ai/adjust] error:", err.message || err);
