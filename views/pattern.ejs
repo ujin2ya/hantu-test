@@ -49,6 +49,18 @@
     .item-card .row3 { margin-top: 3px; padding-top: 4px; border-top: 1px dashed #e2e8f0; }
     .score-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 
+    /* per-feature LR 기여도 색상 */
+    .feat { padding: 1px 6px; border-radius: 4px; }
+    .feat-good { background: #dcfce7; color: #166534; }
+    .feat-good strong { color: #166534; }
+    .feat-bad  { background: #fee2e2; color: #991b1b; }
+    .feat-bad strong { color: #991b1b; }
+    .feat-neu  { background: transparent; color: #475569; }
+    .feat .lr { font-size: 0.7rem; opacity: 0.7; margin-left: 2px; }
+
+    .legend { display: inline-flex; gap: 8px; font-size: 0.72rem; margin-top: 4px; }
+    .legend .swatch { display: inline-block; padding: 1px 6px; border-radius: 4px; }
+
     @media (max-width: 576px) {
       body { padding: 16px 10px; }
       .glass { padding: 14px; border-radius: 12px; margin-bottom: 14px; }
@@ -171,6 +183,12 @@
               <li><strong>&lt; 0.5 (빨강)</strong> = 닮지 않음 — 패스</li>
             </ul>
             <div class="mt-1" style="font-size:0.75rem;">⚠ <strong>"언제" 점화될지는 모름</strong> — 1주 안일 수도, 한 달 뒤일 수도. 후보군일 뿐 매수 시그널 아님.</div>
+            <div class="legend mt-2">
+              <span class="swatch feat-good">초록</span> = 성공 패턴 닮음
+              <span class="swatch feat-bad">빨강</span> = 실패 패턴 닮음
+              <span class="swatch feat-neu">회색</span> = 중립
+              <span class="text-secondary" style="font-size:0.7rem;">· 카드 아래쪽 features 마우스 올리면 LR 값 표시</span>
+            </div>
           </div>
 
           <form method="get" action="/pattern" class="row g-2 align-items-end mb-3">
@@ -218,12 +236,33 @@
                   <span class="<%= changeCls %>"><%= c.changeRate != null ? (c.changeRate > 0 ? '+' : '') + c.changeRate.toFixed(2) + '%' : '-' %></span>
                 </div>
                 <div class="row3">
-                  <span>회전율 <strong><%= c.features?.turnover ?? '-' %></strong></span>
-                  <span>20일선 <strong><%= c.features?.maPos20 ?? '-' %></strong></span>
-                  <span>60일위치 <strong><%= c.features?.positionPct ?? '-' %></strong></span>
-                  <span>박스 <strong><%= c.features?.boxDays ?? '-' %></strong>일</span>
-                  <span>위매물대 <strong><%= c.features?.resistAbove ?? '-' %></strong></span>
-                  <span>당일거래량 <strong><%= c.features?.igniteVolumeRatio ?? '-' %></strong>x</span>
+                  <%
+                    const featRows = [
+                      ['turnover', '회전', ''],
+                      ['maPos20', '20선', ''],
+                      ['positionPct', '60고', ''],
+                      ['boxDays', '박스', '일'],
+                      ['localResistance', '매물', ''],
+                      ['igniteVolumeRatio', '점화량', 'x'],
+                      ['igniteValueRatio', '점화금', ''],
+                      ['positionFromLow', '저점x', ''],
+                    ];
+                    function featCls(lr) {
+                      if (lr == null || isNaN(lr)) return 'feat feat-neu';
+                      if (lr >= 0.3) return 'feat feat-good';
+                      if (lr <= -0.3) return 'feat feat-bad';
+                      return 'feat feat-neu';
+                    }
+                  %>
+                  <% featRows.forEach(function(fr) {
+                    const key = fr[0], lbl = fr[1], suf = fr[2];
+                    const v = c.features ? c.features[key] : null;
+                    const lr = c.breakdown ? c.breakdown[key] : null;
+                  %>
+                    <span class="<%= featCls(lr) %>" title="<%= key %> · LR=<%= lr ?? '-' %>">
+                      <%= lbl %> <strong><%= v ?? '-' %></strong><%= suf %>
+                    </span>
+                  <% }) %>
                 </div>
               </div>
             <% }) %>
