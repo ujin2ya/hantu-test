@@ -424,6 +424,7 @@ async function analyzeAll({ logProgress = false } = {}) {
 
   // ─── Phase B: 현재 종목 후보 스코어링 ───
   const tables = buildLikelihoodTables(successEvents, failedEvents, FEATURE_KEYS, 10);
+  const signature = buildSignature(successEvents, FEATURE_KEYS); // 공통점 시그니처
   const candidates = [];
   for (const code of seededCodes) {
     const meta = stockMeta.get(code);
@@ -438,6 +439,7 @@ async function analyzeAll({ logProgress = false } = {}) {
     const features = extractPreIgnitionFeatures(rows, rows.length - 1, meta.marketValue, sharesOut);
     if (!features) continue;
     const { score, breakdown } = scoreFromTables(features, tables);
+    const match = computeMatch(features, signature);
     candidates.push({
       code, name: meta.name, market: meta.market,
       marketCap: meta.marketValue,
@@ -445,6 +447,8 @@ async function analyzeAll({ logProgress = false } = {}) {
       changeRate: meta.changeRate,
       lastDate: rows[rows.length - 1].date,
       features, score, breakdown,
+      matched: match.matched, totalKeys: match.total,
+      sigBreakdown: match.breakdown,
     });
   }
   candidates.sort((a, b) => b.score - a.score);
@@ -469,13 +473,51 @@ async function analyzeAll({ logProgress = false } = {}) {
     },
     candidates: {
       total: candidates.length,
-      top: candidates.slice(0, 200), // 상위 200개만 저장
+      top: candidates, // 전체 저장 (점수·매칭 두 관점에서 필터링 가능하게)
       tables, // 디버깅용
+      signature, // 공통점 시그니처 (p10~p90)
     },
   };
 
   fs.writeFileSync(PATTERN_RESULT_CACHE, JSON.stringify(result, null, 0));
   return result;
+}
+
+// ─────────── Phase B-2: 성공 시그니처 (공통점 밴드) ───────────
+// 성공 이벤트들 features 의 p10~p90 (80% 가 들어가는 밴드) 을 "공통 시그니처" 로 보고
+// 후보가 몇 개의 시그니처 밴드 안에 있는지 매칭 카운트를 매긴다.
+
+function buildSignature(events, keys) {
+  const sig = {};
+  for (const k of keys) {
+    const vals = events.map((e) => e.features?.[k]).filter((v) => Number.isFinite(v)).sort((a, b) => a - b);
+    if (vals.length < 100) { sig[k] = null; continue; }
+    sig[k] = {
+      n: vals.length,
+      p10: Number(vals[Math.floor(vals.length * 0.10)].toFixed(3)),
+      p25: Number(vals[Math.floor(vals.length * 0.25)].toFixed(3)),
+      p50: Number(vals[Math.floor(vals.length * 0.50)].toFixed(3)),
+      p75: Number(vals[Math.floor(vals.length * 0.75)].toFixed(3)),
+      p90: Number(vals[Math.floor(vals.length * 0.90)].toFixed(3)),
+    };
+  }
+  return sig;
+}
+
+function computeMatch(features, signature) {
+  let matched = 0;
+  let total = 0;
+  const breakdown = {};
+  for (const [k, sig] of Object.entries(signature)) {
+    if (!sig) continue;
+    const v = features?.[k];
+    if (!Number.isFinite(v)) continue;
+    total++;
+    const inBand = v >= sig.p10 && v <= sig.p90;
+    if (inBand) matched++;
+    breakdown[k] = inBand;
+  }
+  return { matched, total, breakdown };
 }
 
 // ─────────── Phase B: Likelihood Ratio 후보 스코어링 ───────────
@@ -542,4 +584,6 @@ module.exports = {
   getKospiCached,
   buildLikelihoodTables,
   scoreFromTables,
+  buildSignature,
+  computeMatch,
 };

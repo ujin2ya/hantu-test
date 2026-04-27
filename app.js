@@ -2284,21 +2284,29 @@ app.get("/pattern", (req, res) => {
     pagedEvents = filtered.slice(start, start + PAGE_SIZE);
   }
 
-  // 후보 페이징 (별도 쿼리: cpage, cq)
+  // 후보 페이징 + 정렬 + 매칭 필터
   const cPage = Math.max(1, parseInt(req.query.cpage, 10) || 1);
   const cQuery = String(req.query.cq || "").trim();
+  const cSort = ["match", "score"].includes(req.query.csort) ? req.query.csort : "score";
+  const cMinMatch = Math.max(0, Math.min(14, parseInt(req.query.cmin, 10) || 0));
   let pagedCandidates = [];
   let totalCandidates = 0;
   let totalCandidatePages = 1;
   let candidatePage = cPage;
   if (result?.candidates?.top?.length) {
-    const cq = cQuery.toLowerCase();
-    const filtered = cq
-      ? result.candidates.top.filter((c) =>
-          (c.name || "").toLowerCase().includes(cq) ||
-          (c.code || "").toLowerCase().includes(cq)
-        )
-      : result.candidates.top;
+    let filtered = result.candidates.top.slice();
+    if (cMinMatch > 0) filtered = filtered.filter((c) => (c.matched || 0) >= cMinMatch);
+    if (cQuery) {
+      const cq = cQuery.toLowerCase();
+      filtered = filtered.filter((c) =>
+        (c.name || "").toLowerCase().includes(cq) ||
+        (c.code || "").toLowerCase().includes(cq));
+    }
+    if (cSort === "match") {
+      filtered.sort((a, b) => (b.matched || 0) - (a.matched || 0) || b.score - a.score);
+    } else {
+      filtered.sort((a, b) => b.score - a.score);
+    }
     totalCandidates = filtered.length;
     totalCandidatePages = Math.max(1, Math.ceil(totalCandidates / PAGE_SIZE));
     candidatePage = Math.min(candidatePage, totalCandidatePages);
@@ -2311,6 +2319,7 @@ app.get("/pattern", (req, res) => {
     pagedEvents, page, totalPages, totalEvents,
     pageSize: PAGE_SIZE, bucket, query,
     pagedCandidates, candidatePage, totalCandidatePages, totalCandidates, cQuery,
+    cSort, cMinMatch,
   });
 });
 

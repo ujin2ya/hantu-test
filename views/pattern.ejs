@@ -188,6 +188,51 @@
               <span class="swatch feat-bad">빨강</span> = 실패 패턴 닮음
               <span class="swatch feat-neu">회색</span> = 중립
             </div>
+            <% if (result.candidates && result.candidates.signature) { %>
+              <details class="mt-2" style="font-size:0.75rem;">
+                <summary style="cursor:pointer; color:#065f46;">🎯 성공 종목들의 공통 시그니처 (80% 가 들어가는 밴드)</summary>
+                <%
+                  const sig = result.candidates.signature;
+                  function sigFmt(k, v) {
+                    if (v == null) return '-';
+                    if (k === 'turnover' || k === 'igniteValueRatio' || k === 'localResistance' || k === 'resistAbove') return (v*100).toFixed(0) + '%';
+                    if (k === 'positionPct' || k === 'positionFromLow' || k === 'maPos20' || k === 'maPos60') {
+                      const d = (v - 1) * 100;
+                      return (d >= 0 ? '+' : '') + d.toFixed(0) + '%';
+                    }
+                    if (k === 'igniteVolumeRatio' || k === 'volumeSurge' || k === 'atrCompress' || k === 'bullBearRatio') return v.toFixed(2) + '배';
+                    if (k === 'boxDays') return v + '일';
+                    if (k === 'foreignDelta') return (v >= 0 ? '+' : '') + (v*100).toFixed(0) + '%p';
+                    return v;
+                  }
+                  const sigOrder = [
+                    ['turnover', '20일 회전율'],
+                    ['boxDays', '박스권'],
+                    ['positionPct', '60일 고점 대비'],
+                    ['positionFromLow', '60일 저점 대비'],
+                    ['maPos20', '20일선 대비'],
+                    ['maPos60', '60일선 대비'],
+                    ['localResistance', '현재가 매물밀도'],
+                    ['resistAbove', '위쪽 매물대'],
+                    ['igniteValueRatio', '오늘 거래대금/시총'],
+                    ['igniteVolumeRatio', '오늘 거래량 (평소 대비)'],
+                    ['volumeSurge', '5일 평균 거래량'],
+                    ['bullBearRatio', '양봉/음봉 거래대금'],
+                    ['atrCompress', 'ATR 수렴'],
+                    ['foreignDelta', '외인 보유율 변화'],
+                  ];
+                %>
+                <ul class="mb-0 mt-1 ps-3" style="font-size:0.72rem; line-height:1.5;">
+                  <% sigOrder.forEach(function(p) { const k = p[0], lbl = p[1], s = sig[k]; if (!s) return; %>
+                    <li><strong><%= lbl %></strong>: <%= sigFmt(k, s.p10) %> ~ <%= sigFmt(k, s.p90) %> <span class="text-secondary">(median <%= sigFmt(k, s.p50) %>)</span></li>
+                  <% }) %>
+                </ul>
+                <div class="mt-1" style="font-size:0.7rem; color:#475569;">
+                  💡 <strong>"매칭 X/14"</strong> = 후보가 14개 features 중 몇 개를 이 시그니처 밴드 안에 들어가는지.
+                  10/14 이상이면 전형적 패턴, 14/14 면 거의 완벽 매칭. 점수와는 다른 관점 — 점수는 극단값에 강하게 반응, 매칭은 골고루 정상 범주.
+                </div>
+              </details>
+            <% } %>
             <details class="mt-2" style="font-size:0.75rem;">
               <summary style="cursor:pointer; color:#065f46;">📖 features 읽는 법</summary>
               <ul class="mb-0 mt-1 ps-3" style="font-size:0.72rem; line-height:1.5;">
@@ -202,14 +247,29 @@
           </div>
 
           <form method="get" action="/pattern" class="row g-2 align-items-end mb-3">
-            <div class="col-12 col-md-6">
+            <div class="col-12 col-md-4">
               <label class="form-label small text-secondary mb-1">후보 검색</label>
               <input type="text" name="cq" value="<%= cQuery || '' %>" placeholder="예: 서울반도체 or 046890" class="form-control form-control-sm" />
             </div>
             <div class="col-6 col-md-3">
-              <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search me-1"></i>검색</button>
+              <label class="form-label small text-secondary mb-1">정렬</label>
+              <select name="csort" class="form-select form-select-sm">
+                <option value="score" <%= cSort === 'score' ? 'selected' : '' %>>점수 (한 방 시그널)</option>
+                <option value="match" <%= cSort === 'match' ? 'selected' : '' %>>매칭 (전형 패턴)</option>
+              </select>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-2">
+              <label class="form-label small text-secondary mb-1">최소 매칭</label>
+              <select name="cmin" class="form-select form-select-sm">
+                <% [0,8,10,11,12,13,14].forEach(function(n) { %>
+                  <option value="<%= n %>" <%= cMinMatch === n ? 'selected' : '' %>><%= n === 0 ? '제한 없음' : (n === 14 ? '14/14 (만점만)' : n + '/14 이상') %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-6 col-md-2">
+              <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search me-1"></i>적용</button>
+            </div>
+            <div class="col-6 col-md-1">
               <a href="/pattern" class="btn btn-outline-secondary btn-sm w-100">초기화</a>
             </div>
           </form>
@@ -231,6 +291,14 @@
                 : { bg: '#fee2e2', fg: '#991b1b' });
               const changeCls = (c.changeRate || 0) > 0 ? 'regime-bull' : (c.changeRate < 0 ? 'regime-bear' : 'regime-side');
             %>
+              <%
+                const matched = c.matched || 0;
+                const totalK = c.totalKeys || 14;
+                const matchPct = totalK > 0 ? matched / totalK : 0;
+                const matchColor = matchPct >= 0.8 ? { bg: '#dcfce7', fg: '#166534' }
+                  : (matchPct >= 0.6 ? { bg: '#fef3c7', fg: '#92400e' }
+                  : { bg: '#fee2e2', fg: '#991b1b' });
+              %>
               <div class="item-card">
                 <div class="row1">
                   <div class="name-block">
@@ -238,7 +306,14 @@
                     <span class="nm"><%= c.name %></span>
                     <span class="cd"><%= c.code %></span>
                   </div>
-                  <span class="score-pill" style="background: <%= scoreColor.bg %>; color: <%= scoreColor.fg %>;"><%= c.score.toFixed(2) %></span>
+                  <div style="display:flex; gap:4px;">
+                    <span class="score-pill" style="background: <%= matchColor.bg %>; color: <%= matchColor.fg %>;" title="시그니처 매칭 (성공 종목 p10~p90 밴드 안에 들어가는 features 수)">
+                      <%= matched %>/<%= totalK %>
+                    </span>
+                    <span class="score-pill" style="background: <%= scoreColor.bg %>; color: <%= scoreColor.fg %>;" title="log likelihood ratio 점수">
+                      <%= c.score.toFixed(2) %>
+                    </span>
+                  </div>
                 </div>
                 <div class="row2">
                   <span>시총 <strong><%= (c.marketCap / 1e8).toFixed(0) %>억</strong></span>
@@ -298,6 +373,8 @@
               function candidatePageUrl(p) {
                 const params = new URLSearchParams();
                 if (cQuery) params.set("cq", cQuery);
+                if (cSort && cSort !== "score") params.set("csort", cSort);
+                if (cMinMatch > 0) params.set("cmin", cMinMatch);
                 params.set("cpage", p);
                 if (query) params.set("q", query);
                 if (bucket !== "all") params.set("bucket", bucket);
