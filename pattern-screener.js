@@ -199,6 +199,18 @@ function extractPreIgnitionFeatures(rows, ignitionIdx, marketCap, listedShares) 
   const maPos20 = ma20 ? ignitionRow.close / ma20 : null;
   const maPos60 = ma60 ? ignitionRow.close / ma60 : null;
 
+  // 8-2. MA60 slope — 60일선이 상승 중인지 하락 중인지 (= 점화 직전 추세 방향)
+  // today 의 MA60 / 30일 전 시점에서 본 MA60. 1.0 = 평탄, > 1.0 = 우상향, < 1.0 = 우하향.
+  const ref90Start = Math.max(0, ignitionIdx - 90);
+  const ma60PastSlice = rows.slice(ref90Start, Math.max(0, ignitionIdx - 30)).map((r) => r.close).filter((v) => v > 0);
+  const ma60Past = ma60PastSlice.length >= 20 ? avg(ma60PastSlice) : null;
+  const ma60Slope = (ma60 && ma60Past && ma60Past > 0) ? ma60 / ma60Past : null;
+
+  // 8-3. MA20 slope — 20일선 추세
+  const ma20PastSlice = rows.slice(Math.max(0, ignitionIdx - 40), Math.max(0, ignitionIdx - 20)).map((r) => r.close).filter((v) => v > 0);
+  const ma20Past = ma20PastSlice.length >= 10 ? avg(ma20PastSlice) : null;
+  const ma20Slope = (ma20 && ma20Past && ma20Past > 0) ? ma20 / ma20Past : null;
+
   // 9. 매물대: 60일 OHLC 거래량 가중 24-bin 히스토그램에서 점화일 종가 위쪽 비율 + 점화가 ±5% 매물 밀도
   const ref60Rows = rows.slice(ref60Start, ignitionIdx);
   let resistAbove = null;
@@ -265,6 +277,8 @@ function extractPreIgnitionFeatures(rows, ignitionIdx, marketCap, listedShares) 
     positionFromLow: positionFromLow != null ? Number(positionFromLow.toFixed(3)) : null,  // 1.0 = 저점, 1.5 = 저점 +50%
     maPos20: maPos20 != null ? Number(maPos20.toFixed(3)) : null,    // 1 = 20일선 위, <1 = 아래
     maPos60: maPos60 != null ? Number(maPos60.toFixed(3)) : null,    // 1 = 60일선 위, <1 = 아래
+    ma20Slope: ma20Slope != null ? Number(ma20Slope.toFixed(3)) : null, // 20일선 기울기 (1.0 = 평탄)
+    ma60Slope: ma60Slope != null ? Number(ma60Slope.toFixed(3)) : null, // 60일선 기울기 — 점화 전 추세 방향
     resistAbove: resistAbove != null ? Number(resistAbove.toFixed(3)) : null,  // 0 = 위쪽 매물대 없음, 1 = 모두 위
     localResistance: localResistance != null ? Number(localResistance.toFixed(3)) : null,  // 점화가 ±5% 매물 밀도
     boxDays,                                                 // 0~30 (점화 직전 좁은 변동폭 연속일)
@@ -333,7 +347,7 @@ function quantile(arr, p) {
 const FEATURE_KEYS = [
   "turnover", "bullBearRatio", "volumeSurge", "foreignDelta", "atrCompress",
   "positionPct", "positionFromLow",
-  "maPos20", "maPos60",
+  "maPos20", "maPos60", "ma20Slope", "ma60Slope",
   "resistAbove", "localResistance",
   "boxDays", "igniteValueRatio", "igniteVolumeRatio",
 ];
@@ -389,10 +403,14 @@ async function analyzeAll({ logProgress = false } = {}) {
 
     const sharesOut = meta.closePrice > 0 ? meta.marketValue / meta.closePrice : 0;
 
-    // 성공 이벤트
+    // 성공 이벤트 — "long base → 폭발" 패턴만 선택 (점화 전 MA60 가 큰 하락 중이 아닌 것)
+    // 이 필터로 V자 반등·낙폭과대 종목·하락 추세 폭등은 제외됨.
     const successes = detectRiseEvents(rows);
     for (const e of successes) {
       const features = extractPreIgnitionFeatures(rows, e.ignitionIdx, meta.marketValue, sharesOut);
+      if (!features) continue;
+      // ⭐ 근본 필터: 점화 직전 MA60 가 -3% 이상 하락 중이었으면 "long base" 아님 → 제외
+      if (features.ma60Slope != null && features.ma60Slope < 0.97) continue;
       const regime = classifyMarketRegime(kospi, e.ignitionDate);
       successEvents.push({
         code, name: meta.name, market: meta.market,
@@ -403,7 +421,7 @@ async function analyzeAll({ logProgress = false } = {}) {
       });
     }
 
-    // 실패 이벤트
+    // 실패 이벤트 (signature 비교용 — 동일 필터 적용 안함, 풀 사이즈 유지)
     const failures = detectFailedEvents(rows);
     for (const e of failures) {
       const features = extractPreIgnitionFeatures(rows, e.ignitionIdx, meta.marketValue, sharesOut);
@@ -439,18 +457,9 @@ async function analyzeAll({ logProgress = false } = {}) {
     const features = extractPreIgnitionFeatures(rows, rows.length - 1, meta.marketValue, sharesOut);
     if (!features) continue;
 
-    // 활성 하락 필터 — 오늘 종가가 5일선 대비 -4% 이하면 (큰 음봉, 추세 하락중) 후보 제외.
-    // 이유: 엔알비 같은 "점화 후 fade" 종목이 14/14 매칭 들어오는 걸 막음.
-    //
-    // ⚠ Trade-off: 성공 이벤트 점화일 종가 vs 5일선 분포에서 median 이 -5.1% 라
-    // 이 필터는 성공 패턴의 약 58% 도 걸러냄 (drop-and-bounce 패턴 일부 누락).
-    // 그래도 14/14 strict 매칭에선 보수적 filtering 이 더 실전적이라 유지.
-    const last5 = rows.slice(rows.length - 6, rows.length - 1).map((r) => r.close).filter((v) => v > 0);
-    if (last5.length === 5) {
-      const sma5Prior = last5.reduce((a, b) => a + b, 0) / 5;
-      const todayVs5MA = sma5Prior > 0 ? (rows[rows.length - 1].close - sma5Prior) / sma5Prior : 0;
-      if (todayVs5MA < -0.04) continue; // 4% 이상 5일선 아래 = 활성 하락
-    }
+    // ⭐ 후보 추세 필터 — 성공 이벤트와 동일 기준: 점화 직전 MA60 가 -3% 이상 하락 중이면 제외.
+    // 인투셀 (5개월 다운트렌드) 같은 종목이 14/14 매칭 들어오는 걸 막음.
+    if (features.ma60Slope != null && features.ma60Slope < 0.97) continue;
 
     const { score, breakdown } = scoreFromTables(features, tables);
     const match = computeMatch(features, signature);

@@ -2245,11 +2245,11 @@ app.get("/pattern", (req, res) => {
   const cPage = Math.max(1, parseInt(req.query.cpage, 10) || 1);
   const cQuery = String(req.query.cq || "").trim();
   const cSort = "match"; // 매칭 기준만 노출 (점수 정렬은 단순화 위해 제거)
-  // 기본값 13/14 — 현재 후보 약 25개로 자동 좁힘. URL ?cmin=0 으로 풀 수 있음.
+  // 기본값 14/16 — 현재 후보 약 27개로 자동 좁힘. URL ?cmin=0 으로 풀 수 있음.
   const cMinRaw = req.query.cmin;
   const cMinMatch = cMinRaw !== undefined
-    ? Math.max(0, Math.min(14, parseInt(cMinRaw, 10) || 0))
-    : 13;
+    ? Math.max(0, Math.min(16, parseInt(cMinRaw, 10) || 0))
+    : 14;
   let pagedCandidates = [];
   let totalCandidates = 0;
   let totalCandidatePages = 1;
