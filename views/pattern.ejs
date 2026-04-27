@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>패턴 스크리너 — +40% 종목 분석</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    body {
+      background: #f3f5fb; color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      padding: 24px 16px;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    .glass { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 6px 18px rgba(15,23,42,0.06); margin-bottom: 20px; }
+    h1 { font-size: 1.4rem; font-weight: 700; margin: 0 0 6px; }
+    h2 { font-size: 1.05rem; font-weight: 700; margin: 0 0 12px; }
+    .meta-cell { background: #f8fafc; border-radius: 10px; padding: 10px 12px; }
+    .meta-cell .label { color: #64748b; font-size: 0.72rem; margin-bottom: 4px; }
+    .meta-cell .value { font-weight: 600; color: #0f172a; }
+    .bucket-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .bucket-card { background: #f8fafc; border-radius: 10px; padding: 12px; }
+    .bucket-card h3 { font-size: 0.95rem; font-weight: 700; margin: 0 0 6px; }
+    .bucket-card .feature-row { display: flex; justify-content: space-between; font-size: 0.78rem; color: #475569; margin-bottom: 2px; }
+    .bucket-card .feature-row strong { color: #0f172a; }
+    .event-table { width: 100%; font-size: 0.85rem; }
+    .event-table th { font-weight: 600; color: #475569; padding: 6px 8px; border-bottom: 1px solid #e2e8f0; font-size: 0.78rem; }
+    .event-table td { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; }
+    .magnitude-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 700; }
+    .regime-bull { color: #166534; font-weight: 600; }
+    .regime-bear { color: #991b1b; font-weight: 600; }
+    .regime-side { color: #475569; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <h1><i class="bi bi-graph-up-arrow me-2"></i>패턴 스크리너 — +40% 상승 종목 분석</h1>
+      <a href="/" class="text-secondary small text-decoration-none">
+        <i class="bi bi-arrow-left me-1"></i>홈으로
+      </a>
+    </div>
+
+    <div class="glass">
+      <h2><i class="bi bi-info-circle me-1"></i>현황</h2>
+      <div class="row g-2 row-cols-2 row-cols-md-4">
+        <div class="col"><div class="meta-cell"><div class="label">시드된 종목</div><div class="value"><%= seededCount %></div></div></div>
+        <% if (result) { %>
+          <div class="col"><div class="meta-cell"><div class="label">분석된 종목</div><div class="value"><%= result.processed %></div></div></div>
+          <div class="col"><div class="meta-cell"><div class="label">+40% 이벤트</div><div class="value"><%= result.successCount %></div></div></div>
+          <div class="col"><div class="meta-cell"><div class="label">실패 이벤트 (15~30%)</div><div class="value"><%= result.failedCount %></div></div></div>
+        <% } %>
+      </div>
+      <div class="muted-text small mt-3 text-secondary">
+        <% if (!result) { %>
+          분석 결과 없음. <strong>관리자 페이지</strong>에서 시드(약 4분) → 분석(약 1분) 실행 필요.
+        <% } else { %>
+          분석 완료: <%= new Date(result.analyzedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %>
+        <% } %>
+      </div>
+    </div>
+
+    <% if (result) { %>
+      <!-- 버킷별 점화 전 지표 분포 -->
+      <div class="glass">
+        <h2><i class="bi bi-bar-chart-line me-1"></i>점화 전 지표 — 상승 기간별 버킷 분포</h2>
+        <div class="bucket-grid">
+          <%
+            const buckets = result.success.buckets;
+            const bucketMeta = [
+              { key: 'A', label: '속전속결 (~30일)', color: '#dc2626' },
+              { key: 'B', label: '중기 상승 (31~50일)', color: '#ea580c' },
+              { key: 'C', label: '장기 누적 (51~70일)', color: '#16a34a' },
+              { key: 'D', label: '느린 트렌드 (71~90일)', color: '#0ea5e9' },
+            ];
+            const featureLabels = {
+              turnover: '회전율 (시총 대비)',
+              bullBearRatio: '양봉/음봉 거래대금',
+              volumeSurge: '거래량 급증 배수',
+              foreignDelta: '외인 보유율 변화 %p',
+              atrCompress: 'ATR 수렴비',
+              positionPct: '60일 고점 대비 위치',
+            };
+          %>
+          <% bucketMeta.forEach(function(bm) { var b = buckets[bm.key]; %>
+            <div class="bucket-card" style="border-left: 3px solid <%= bm.color %>;">
+              <h3><%= bm.label %></h3>
+              <div class="text-secondary small mb-2">이벤트 <strong><%= b.n %></strong>건</div>
+              <% if (b.summary) { %>
+                <% Object.keys(featureLabels).forEach(function(k) { var f = b.summary[k]; %>
+                  <% if (f) { %>
+                    <div class="feature-row">
+                      <span><%= featureLabels[k] %></span>
+                      <strong><%= f.median %><span class="text-secondary" style="font-weight:400;font-size:0.7rem;"> (p25~p75: <%= f.p25 %>~<%= f.p75 %>)</span></strong>
+                    </div>
+                  <% } %>
+                <% }) %>
+              <% } else { %>
+                <div class="text-muted small">데이터 없음</div>
+              <% } %>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- 실패 이벤트 분포 (survivorship counter) -->
+      <% if (result.failed && result.failed.total && result.failed.total.summary) { %>
+        <div class="glass">
+          <h2><i class="bi bi-shield-x me-1"></i>실패 이벤트 분포 (15~30% 만 오른 케이스)</h2>
+          <div class="text-secondary small mb-2">이벤트 <strong><%= result.failed.total.n %></strong>건 — 점화 전 지표가 비슷해도 못 간 케이스. 성공 분포와 *명확히 다른* 지표가 진짜 판별력 있는 신호.</div>
+          <div class="bucket-grid">
+            <div class="bucket-card" style="border-left: 3px solid #94a3b8;">
+              <% Object.keys(featureLabels).forEach(function(k) { var f = result.failed.total.summary[k]; %>
+                <% if (f) { %>
+                  <div class="feature-row">
+                    <span><%= featureLabels[k] %></span>
+                    <strong><%= f.median %><span class="text-secondary" style="font-weight:400;font-size:0.7rem;"> (p25~p75: <%= f.p25 %>~<%= f.p75 %>)</span></strong>
+                  </div>
+                <% } %>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- 최근 +40% 이벤트 리스트 -->
+      <div class="glass">
+        <h2><i class="bi bi-list-stars me-1"></i>최근 +40% 이벤트 (상위 30)</h2>
+        <%
+          const top = (result.success.events || []).slice().sort((a,b) => (b.peakDate||"").localeCompare(a.peakDate||"")).slice(0, 30);
+        %>
+        <div class="table-responsive">
+          <table class="event-table">
+            <thead>
+              <tr>
+                <th>종목</th>
+                <th class="text-end">시총</th>
+                <th>점화일</th>
+                <th>피크일</th>
+                <th class="text-end">상승률</th>
+                <th class="text-end">기간</th>
+                <th>국면</th>
+                <th class="text-end">회전율</th>
+                <th class="text-end">양봉/음봉</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% top.forEach(function(e) { %>
+                <tr>
+                  <td><strong><%= e.name %></strong> <span class="text-secondary small"><%= e.code %></span><% if (e.inProgress) { %> <span class="badge bg-warning text-dark" style="font-size:0.65rem;">진행중</span><% } %></td>
+                  <td class="text-end"><%= (e.marketCap / 1e8).toFixed(0) %>억</td>
+                  <td><%= e.ignitionDate.slice(4,6) + "/" + e.ignitionDate.slice(6,8) %></td>
+                  <td><%= e.peakDate.slice(4,6) + "/" + e.peakDate.slice(6,8) %></td>
+                  <td class="text-end"><span class="magnitude-pill">+<%= (e.magnitude * 100).toFixed(0) %>%</span></td>
+                  <td class="text-end"><%= e.duration %>일</td>
+                  <td><span class="<%= e.regime === '강세' ? 'regime-bull' : (e.regime === '약세' ? 'regime-bear' : 'regime-side') %>"><%= e.regime %></span></td>
+                  <td class="text-end"><%= e.features?.turnover ?? '-' %></td>
+                  <td class="text-end"><%= e.features?.bullBearRatio ?? '-' %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="text-center text-secondary small mt-4">
+      <a href="/admin" class="text-decoration-none text-secondary">
+        <i class="bi bi-gear me-1"></i>관리자 페이지에서 시드/분석 실행
+      </a>
+    </div>
+  </div>
+</body>
+</html>

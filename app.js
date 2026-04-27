@@ -32,6 +32,8 @@ const {
   getAiAdjustForStock,
   loadDailyCounter: loadAiGroundingDailyCounter,
 } = require("./ai-grounding");
+const naverFetcher = require("./naver-fetcher");
+const patternScreener = require("./pattern-screener");
 
 const app = express();
 const PORT = process.env.PORT || 3012;
@@ -2203,6 +2205,8 @@ app.get("/admin", requireAdmin, (req, res) => {
     maxSubscribers: MAX_SUBSCRIBERS,
     flash: req.query.flash || null,
     stocksMaster: getStocksMasterAge(),
+    patternState,
+    seededCount: patternScreener.listSeededStocks().length,
   });
 });
 
@@ -2226,6 +2230,56 @@ app.get("/scan", (req, res) => res.render("scan", {}));
 app.post("/scan", (req, res) => res.render("scan", {}));
 app.get("/backtest", (req, res) => res.render("backtest", {}));
 app.post("/backtest", (req, res) => res.render("backtest", {}));
+
+// ─────────── 패턴 스크리너 ───────────
+const patternState = {
+  seeding: false, seedStartedAt: null, seedFinishedAt: null, seedProgress: null, seedError: null,
+  analyzing: false, analyzeStartedAt: null, analyzeFinishedAt: null, analyzeError: null,
+};
+
+app.get("/pattern", (req, res) => {
+  let result = null;
+  try {
+    const fs = require("fs");
+    const p = path.join(__dirname, "cache", "pattern-result.json");
+    if (fs.existsSync(p)) result = JSON.parse(fs.readFileSync(p, "utf-8"));
+  } catch (_) {}
+  const seededCount = patternScreener.listSeededStocks().length;
+  res.render("pattern", { result, seededCount, patternState });
+});
+
+app.post("/admin/pattern/seed", requireAdmin, (req, res) => {
+  if (patternState.seeding) return res.redirect("/admin?flash=pattern_seeding");
+  patternState.seeding = true;
+  patternState.seedStartedAt = new Date().toISOString();
+  patternState.seedFinishedAt = null;
+  patternState.seedProgress = { i: 0, total: 0, code: "", name: "" };
+  patternState.seedError = null;
+  res.redirect("/admin?flash=pattern_seed_started");
+  naverFetcher.seedHistorical({
+    onProgress: (p) => { patternState.seedProgress = p; },
+  })
+    .catch((e) => { patternState.seedError = e.message; })
+    .finally(() => {
+      patternState.seeding = false;
+      patternState.seedFinishedAt = new Date().toISOString();
+    });
+});
+
+app.post("/admin/pattern/analyze", requireAdmin, (req, res) => {
+  if (patternState.analyzing) return res.redirect("/admin?flash=pattern_analyzing");
+  patternState.analyzing = true;
+  patternState.analyzeStartedAt = new Date().toISOString();
+  patternState.analyzeFinishedAt = null;
+  patternState.analyzeError = null;
+  res.redirect("/admin?flash=pattern_analyze_started");
+  patternScreener.analyzeAll({ logProgress: true })
+    .catch((e) => { patternState.analyzeError = e.message; })
+    .finally(() => {
+      patternState.analyzing = false;
+      patternState.analyzeFinishedAt = new Date().toISOString();
+    });
+});
 
 loadStocks();
 

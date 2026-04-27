@@ -187,8 +187,9 @@ async function seedHistorical({
   maxMarketCap = 50_000_000_000, // 500억
   minMarketCap = 5_000_000_000,  // 50억 (잡주 컷)
   lookbackDays = 130,
-  throttleMs = 1000,
+  throttleMs = 500,
   onProgress = null,
+  resume = true, // true: 이미 캐시된 종목 skip (재실행 가능)
 } = {}) {
   const t0 = Date.now();
   console.log("[seed] 종목 마스터 fetch …");
@@ -206,8 +207,13 @@ async function seedHistorical({
 
   let success = 0;
   let fail = 0;
+  let skipped = 0;
   for (let i = 0; i < targets.length; i++) {
     const s = targets[i];
+    if (resume && loadStockChart(s.code)) {
+      skipped++;
+      continue;
+    }
     try {
       const rows = await fetchDailyChart(s.code, lookbackDays);
       saveStockChart(s.code, rows);
@@ -220,8 +226,8 @@ async function seedHistorical({
     if (i < targets.length - 1) await sleep(throttleMs);
   }
   const elapsed = ((Date.now() - t0) / 1000).toFixed(0);
-  console.log(`[seed] 완료 — 성공 ${success} / 실패 ${fail} (${elapsed}s)`);
-  return { success, fail, elapsed, targetCount: targets.length };
+  console.log(`[seed] 완료 — 신규 ${success} / 실패 ${fail} / 캐시 적중 ${skipped} (${elapsed}s)`);
+  return { success, fail, skipped, elapsed, targetCount: targets.length };
 }
 
 module.exports = {
