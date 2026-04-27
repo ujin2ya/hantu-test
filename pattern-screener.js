@@ -186,6 +186,62 @@ function extractPreIgnitionFeatures(rows, ignitionIdx, marketCap, listedShares) 
   const high60 = Math.max(...rows.slice(ref60Start, ignitionIdx).map((r) => r.high || 0));
   const positionPct = high60 > 0 ? ignitionRow.close / high60 : 1;
 
+  // 7~8. 이평선 위치: 점화일 종가 / 20·60일 SMA
+  const closes20 = window.map((r) => r.close).filter((v) => Number.isFinite(v) && v > 0);
+  const ma20 = closes20.length >= 5 ? avg(closes20) : null;
+  const ref60ForMa = rows.slice(ref60Start, ignitionIdx).map((r) => r.close).filter((v) => Number.isFinite(v) && v > 0);
+  const ma60 = ref60ForMa.length >= 20 ? avg(ref60ForMa) : null;
+  const maPos20 = ma20 ? ignitionRow.close / ma20 : null;
+  const maPos60 = ma60 ? ignitionRow.close / ma60 : null;
+
+  // 9. 매물대: 60일 OHLC 거래량 가중 24-bin 히스토그램에서 점화일 종가 위쪽 비율
+  const ref60Rows = rows.slice(ref60Start, ignitionIdx);
+  let resistAbove = null;
+  if (ref60Rows.length >= 20) {
+    const lows = ref60Rows.map((r) => r.low).filter((v) => Number.isFinite(v) && v > 0);
+    const highs = ref60Rows.map((r) => r.high).filter((v) => Number.isFinite(v) && v > 0);
+    if (lows.length && highs.length) {
+      const minP = Math.min(...lows);
+      const maxP = Math.max(...highs);
+      const range = maxP - minP;
+      if (range > 0) {
+        const BINS = 24;
+        const bins = new Array(BINS).fill(0);
+        for (const r of ref60Rows) {
+          if (!(r.low > 0 && r.high > 0 && r.volume > 0)) continue;
+          const bLow = Math.min(BINS - 1, Math.max(0, Math.floor((r.low - minP) / range * BINS)));
+          const bHigh = Math.min(BINS - 1, Math.max(0, Math.floor((r.high - minP) / range * BINS)));
+          const span = Math.max(1, bHigh - bLow + 1);
+          for (let b = bLow; b <= bHigh; b++) bins[b] += r.volume / span;
+        }
+        const totalV = sum(bins);
+        if (totalV > 0) {
+          const igniteBin = Math.min(BINS - 1, Math.max(0, Math.floor((ignitionRow.close - minP) / range * BINS)));
+          const above = sum(bins.slice(igniteBin + 1));
+          resistAbove = above / totalV;
+        }
+      }
+    }
+  }
+
+  // 10. 박스권 횡보: 점화 직전 N일 동안 일일 변동폭 (high-low)/close ≤ 4% 인 연속 일수 (최대 30)
+  let boxDays = 0;
+  for (let i = ignitionIdx - 1; i >= Math.max(0, ignitionIdx - 30); i--) {
+    const r = rows[i];
+    if (!(r.close > 0)) break;
+    const rangePct = (r.high - r.low) / r.close;
+    if (rangePct <= 0.04) boxDays++;
+    else break;
+  }
+
+  // 11. 점화일 거래대금 / 시총 (점화일 단독)
+  const igniteValueRatio = ignitionMcap > 0 ? (ignitionRow.valueApprox || 0) / ignitionMcap : 0;
+
+  // 12. 점화일 거래량 / 직전 20일 평균 거래량
+  const ref20Vols = window.map((r) => r.volume).filter((v) => Number.isFinite(v) && v > 0);
+  const ref20VolAvg = ref20Vols.length ? avg(ref20Vols) : 0;
+  const igniteVolumeRatio = ref20VolAvg > 0 ? (ignitionRow.volume || 0) / ref20VolAvg : 0;
+
   return {
     turnover: Number(turnover.toFixed(3)),                  // 0~1+ (1 = 시총만큼 거래대금)
     bullBearRatio: Number(bullBearRatio.toFixed(2)),        // 1 미만 = 매도 우세, 1 초과 = 매수 우세
@@ -193,6 +249,12 @@ function extractPreIgnitionFeatures(rows, ignitionIdx, marketCap, listedShares) 
     foreignDelta: foreignDelta != null ? Number(foreignDelta.toFixed(2)) : null,
     atrCompress: Number(atrCompress.toFixed(2)),            // 1 미만 = 변동성 수렴
     positionPct: Number(positionPct.toFixed(3)),            // 1 = 60일 고점, 0.5 = 절반
+    maPos20: maPos20 != null ? Number(maPos20.toFixed(3)) : null,    // 1 = 20일선 위, <1 = 아래
+    maPos60: maPos60 != null ? Number(maPos60.toFixed(3)) : null,    // 1 = 60일선 위, <1 = 아래
+    resistAbove: resistAbove != null ? Number(resistAbove.toFixed(3)) : null,  // 0 = 위쪽 매물대 없음, 1 = 모두 위
+    boxDays,                                                 // 0~30 (점화 직전 좁은 변동폭 연속일)
+    igniteValueRatio: Number(igniteValueRatio.toFixed(4)),  // 점화일 거래대금/시총
+    igniteVolumeRatio: Number(igniteVolumeRatio.toFixed(2)),// 점화일 거래량 / 20일평균
   };
 }
 
@@ -253,9 +315,14 @@ function quantile(arr, p) {
   return sorted[idx];
 }
 
+const FEATURE_KEYS = [
+  "turnover", "bullBearRatio", "volumeSurge", "foreignDelta", "atrCompress", "positionPct",
+  "maPos20", "maPos60", "resistAbove", "boxDays", "igniteValueRatio", "igniteVolumeRatio",
+];
+
 function summarizeFeatures(events) {
   if (!events.length) return null;
-  const keys = ["turnover", "bullBearRatio", "volumeSurge", "foreignDelta", "atrCompress", "positionPct"];
+  const keys = FEATURE_KEYS;
   const summary = {};
   for (const k of keys) {
     const vals = events.map((e) => e.features?.[k]).filter((v) => Number.isFinite(v));
@@ -338,7 +405,6 @@ async function analyzeAll({ logProgress = false } = {}) {
   const failedBuckets = bucketByDuration(failedEvents);
 
   // ─── Phase B: 현재 종목 후보 스코어링 ───
-  const FEATURE_KEYS = ["turnover", "bullBearRatio", "volumeSurge", "foreignDelta", "atrCompress", "positionPct"];
   const tables = buildLikelihoodTables(successEvents, failedEvents, FEATURE_KEYS, 10);
   const candidates = [];
   for (const code of seededCodes) {

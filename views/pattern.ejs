@@ -107,6 +107,12 @@
               foreignDelta: '외인 보유율 변화 %p',
               atrCompress: 'ATR 수렴비',
               positionPct: '60일 고점 대비 위치',
+              maPos20: '20일선 대비 위치',
+              maPos60: '60일선 대비 위치',
+              resistAbove: '위쪽 매물대 비율',
+              boxDays: '박스권 연속 일수',
+              igniteValueRatio: '점화일 거래대금/시총',
+              igniteVolumeRatio: '점화일 거래량 배수',
             };
           %>
           <% bucketMeta.forEach(function(bm) { var b = buckets[bm.key]; %>
@@ -199,11 +205,8 @@
                 <div class="row1">
                   <div class="name-block">
                     <span class="rk">#<%= rank %></span>
-                    <a class="deep-link" href="/?query=<%= encodeURIComponent(c.code) %>" target="_blank" rel="noopener" title="딥다이브 분석 (새 탭)">
-                      <span class="nm"><%= c.name %></span>
-                      <span class="cd"><%= c.code %></span>
-                      <i class="bi bi-box-arrow-up-right arr"></i>
-                    </a>
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
                   </div>
                   <span class="score-pill" style="background: <%= scoreColor.bg %>; color: <%= scoreColor.fg %>;"><%= c.score.toFixed(2) %></span>
                 </div>
@@ -214,9 +217,11 @@
                 </div>
                 <div class="row3">
                   <span>회전율 <strong><%= c.features?.turnover ?? '-' %></strong></span>
+                  <span>20일선 <strong><%= c.features?.maPos20 ?? '-' %></strong></span>
                   <span>60일위치 <strong><%= c.features?.positionPct ?? '-' %></strong></span>
-                  <span>거래량 <strong><%= c.features?.volumeSurge ?? '-' %></strong></span>
-                  <span>양/음봉 <strong><%= c.features?.bullBearRatio ?? '-' %></strong></span>
+                  <span>박스 <strong><%= c.features?.boxDays ?? '-' %></strong>일</span>
+                  <span>위매물대 <strong><%= c.features?.resistAbove ?? '-' %></strong></span>
+                  <span>당일거래량 <strong><%= c.features?.igniteVolumeRatio ?? '-' %></strong>x</span>
                 </div>
               </div>
             <% }) %>
@@ -318,11 +323,8 @@
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
-                  <a class="deep-link" href="/?query=<%= encodeURIComponent(e.code) %>" target="_blank" rel="noopener" title="딥다이브 분석 (새 탭)">
-                    <span class="nm"><%= e.name %></span>
-                    <span class="cd"><%= e.code %></span>
-                    <i class="bi bi-box-arrow-up-right arr"></i>
-                  </a>
+                  <span class="nm"><%= e.name %></span>
+                  <span class="cd"><%= e.code %></span>
                   <% if (e.inProgress) { %><span class="badge bg-warning text-dark ms-1" style="font-size:0.62rem;">진행중</span><% } %>
                 </div>
                 <span class="magnitude-pill">+<%= (e.magnitude * 100).toFixed(0) %>%</span>
