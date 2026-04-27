@@ -2241,49 +2241,31 @@ app.get("/pattern", (req, res) => {
     pagedEvents = filtered.slice(start, start + PAGE_SIZE);
   }
 
-  // 후보 페이징 + 정렬 + 매칭 필터
-  const cPage = Math.max(1, parseInt(req.query.cpage, 10) || 1);
+  // 후보 자동 분류 — 사용자가 필터 만질 필요 없이 두 섹션으로 자동 분리.
+  // 1) 🔥 active: 12+/16 매칭 + 최근 breakout 시그널 = 실전 매수 검토
+  // 2) 🌙 watch: 14+/16 매칭 (active 제외) = 조용한 watchlist
   const cQuery = String(req.query.cq || "").trim();
-  const cSort = "match"; // 매칭 기준만 노출 (점수 정렬은 단순화 위해 제거)
-  // 기본값 14/16 — 현재 후보 약 27개로 자동 좁힘. URL ?cmin=0 으로 풀 수 있음.
-  const cMinRaw = req.query.cmin;
-  const cMinMatch = cMinRaw !== undefined
-    ? Math.max(0, Math.min(16, parseInt(cMinRaw, 10) || 0))
-    : 14;
-  // 최근 breakout (거래량 폭증 + 양봉) 시그널만 필터
-  const cOnlyBreakout = req.query.cbreak === "1";
-  let pagedCandidates = [];
-  let totalCandidates = 0;
-  let totalCandidatePages = 1;
-  let candidatePage = cPage;
+  let activeCandidates = [];
+  let watchCandidates = [];
   if (result?.candidates?.top?.length) {
-    let filtered = result.candidates.top.slice();
-    if (cMinMatch > 0) filtered = filtered.filter((c) => (c.matched || 0) >= cMinMatch);
-    if (cOnlyBreakout) filtered = filtered.filter((c) => !!c.breakout);
-    if (cQuery) {
-      const cq = cQuery.toLowerCase();
-      filtered = filtered.filter((c) =>
-        (c.name || "").toLowerCase().includes(cq) ||
-        (c.code || "").toLowerCase().includes(cq));
-    }
-    if (cSort === "match") {
-      filtered.sort((a, b) => (b.matched || 0) - (a.matched || 0) || b.score - a.score);
-    } else {
-      filtered.sort((a, b) => b.score - a.score);
-    }
-    totalCandidates = filtered.length;
-    totalCandidatePages = Math.max(1, Math.ceil(totalCandidates / PAGE_SIZE));
-    candidatePage = Math.min(candidatePage, totalCandidatePages);
-    const cStart = (candidatePage - 1) * PAGE_SIZE;
-    pagedCandidates = filtered.slice(cStart, cStart + PAGE_SIZE);
+    const cq = cQuery.toLowerCase();
+    const matchSearch = (c) => !cq || (c.name || "").toLowerCase().includes(cq) || (c.code || "").toLowerCase().includes(cq);
+
+    activeCandidates = result.candidates.top
+      .filter((c) => (c.matched || 0) >= 12 && c.breakout && matchSearch(c))
+      .sort((a, b) => (b.matched - a.matched) || ((b.breakout?.score || 0) - (a.breakout?.score || 0)));
+
+    const activeCodes = new Set(activeCandidates.map((c) => c.code));
+    watchCandidates = result.candidates.top
+      .filter((c) => (c.matched || 0) >= 14 && !activeCodes.has(c.code) && matchSearch(c))
+      .sort((a, b) => (b.matched - a.matched) || (b.score - a.score));
   }
 
   res.render("pattern", {
     result, seededCount, patternState,
     pagedEvents, page, totalPages, totalEvents,
     pageSize: PAGE_SIZE, bucket, query,
-    pagedCandidates, candidatePage, totalCandidatePages, totalCandidates, cQuery,
-    cSort, cMinMatch, cOnlyBreakout,
+    activeCandidates, watchCandidates, cQuery,
   });
 });
 
