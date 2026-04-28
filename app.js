@@ -2103,12 +2103,13 @@ const handleSearch = async (req, res) => {
             formula: 'clamp(ATR%×2.5, 8%, 12%) — 종가 기준',
           };
         }
+        const tradePlan = patternScreener.buildCsbTradePlan(csbRes.metrics, lastClose);
 
         csbDetail = {
           passed: true, category, categoryLabel,
           score: csbRes.score, bucket: csbRes.bucket, displayGrade: csbRes.displayGrade,
           stages, stageCount, tags: csbRes.tags, warnings: csbRes.warnings,
-          metrics: csbRes.metrics, breakdown: csbRes.breakdown, stopGuide,
+          metrics: csbRes.metrics, breakdown: csbRes.breakdown, stopGuide, tradePlan,
         };
       } else if (csbRes) {
         csbDetail = { passed: false, rejectReason: csbRes.rejectReason };

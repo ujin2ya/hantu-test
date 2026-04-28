@@ -846,6 +846,7 @@ async function analyzeAll({ logProgress = false } = {}) {
     try { csb = calculateCompressionSupportBreakoutScore(rows, flowRows, meta, lastIdx); } catch (_) {}
     // CSB stop 가이드 (Dc 채택: relaxed close stop = clamp(ATR×2.5, 8%, 12%))
     let csbStopGuide = null;
+    let csbTradePlan = null;
     if (csb?.passed && csb.metrics?.atrPct && closePrice > 0) {
       const stopPctFinal = Math.max(0.08, Math.min(0.12, csb.metrics.atrPct * 2.5));
       csbStopGuide = {
@@ -855,6 +856,9 @@ async function analyzeAll({ logProgress = false } = {}) {
         atrMultiplier: 2.5,
         formula: 'clamp(ATR%×2.5, 8%, 12%) — 종가 기준',
       };
+    }
+    if (csb?.passed) {
+      csbTradePlan = buildCsbTradePlan(csb.metrics, closePrice);
     }
 
     // 가격 컨텍스트 — 과열/구조붕괴/고변동 판정용
@@ -949,6 +953,7 @@ async function analyzeAll({ logProgress = false } = {}) {
         metrics: csb.metrics,
         breakdown: csb.breakdown,
         stopGuide: csbStopGuide,
+        tradePlan: csbTradePlan,
         stageCount: Object.values(csb.stages || {}).filter(Boolean).length,
       } : null,
       tags,
@@ -2318,12 +2323,15 @@ function calculateCompressionSupportBreakoutScore(rows, flowRows, meta = {}, idx
   if (atrPct > 0.16) warnings.push('고변동성 (ATR% > 16)');
   if (worst1d <= -0.05) warnings.push('최근 5일 단일일 -5% 이상 하락');
 
+  // prevHigh — 매매 계획용 (전일 고가)
+  const prevHigh = idx > 0 ? (rows[idx - 1].high || rows[idx - 1].close) : null;
+
   const metrics = {
     close, ret5d, ret20d, atrPct,
     avg5Value, avg20Value, valueRatio5d20d,
     ma20, ma60, ma120,
     tr5avg, tr20avg, compressionRatio,
-    high20, high60, distFromHigh20, distFromHigh60,
+    high20, high60, prevHigh, distFromHigh20, distFromHigh60,
     supports20, supports60, low5, low20, worst1d,
     flow: flowSignals,
   };
@@ -2350,6 +2358,56 @@ function calculateCompressionSupportBreakoutScore(rows, flowRows, meta = {}, idx
 function compressionSupportBreakoutUniverse(rows, meta = {}, idx = null) {
   const r = calculateCompressionSupportBreakoutScore(rows, [], meta, idx);
   return { passed: r.passed, reason: r.rejectReason };
+}
+
+// CSB 매매 계획 가이드 — Dc 룰 기반 (관찰가 / 확인 진입 / 종가 손절 / 1차·2차 목표 / 손익비)
+// 표현 규칙: 매수/매도 추천 X, "관찰 / 확인 / 손절 / 목표 구간"으로만.
+function buildCsbTradePlan(metrics, currentPrice) {
+  if (!metrics || !currentPrice) return null;
+  const high20 = metrics.high20 || null;
+  const prevHigh = metrics.prevHigh || null;
+  const atrPct = metrics.atrPct || null;
+
+  // 확인 진입가 = max(전일 고가, 20일 고점) × 1.003 (+0.3% 여유)
+  let triggerPrice = null;
+  let triggerSource = null;
+  if (high20 || prevHigh) {
+    const ref = Math.max(high20 || 0, prevHigh || 0);
+    triggerPrice = Math.round(ref * 1.003);
+    if (high20 && (!prevHigh || high20 >= prevHigh)) triggerSource = '20일 고점 +0.3%';
+    else triggerSource = '전일 고가 +0.3%';
+  } else if (currentPrice > 0) {
+    // fallback — 현재가 +1%
+    triggerPrice = Math.round(currentPrice * 1.01);
+    triggerSource = '20일 고점 돌파 시 (현재가 +1% 임시 추정)';
+  }
+  if (!triggerPrice) return null;
+
+  // 손절폭 = clamp(ATR%×2.5, 8%, 12%), atrPct 없으면 10%
+  const stopPct = atrPct
+    ? Math.max(0.08, Math.min(0.12, atrPct * 2.5))
+    : 0.10;
+  const stopPrice = Math.round(triggerPrice * (1 - stopPct));
+
+  const target1 = Math.round(triggerPrice * 1.10);
+  const target2 = Math.round(triggerPrice * 1.20);
+
+  const risk = triggerPrice - stopPrice;
+  const rr1 = risk > 0 ? +((target1 - triggerPrice) / risk).toFixed(2) : null;
+  const rr2 = risk > 0 ? +((target2 - triggerPrice) / risk).toFixed(2) : null;
+
+  return {
+    observePrice: Math.round(currentPrice),
+    triggerPrice,
+    triggerSource,
+    stopPct: +(stopPct * 100).toFixed(1),
+    stopPrice,
+    stopBasis: '종가 기준',
+    target1,
+    target2,
+    rr1, rr2,
+    horizon: '20~40거래일 관찰',
+  };
 }
 
 // ─────────── CSB v2 — 조건 완화 + sweet spot 점수 + 시총 500억 universe ───────────
@@ -2784,6 +2842,7 @@ module.exports = {
   compressionSupportBreakoutUniverse,
   calculateCompressionSupportBreakoutScoreV2,
   compressionSupportBreakoutUniverseV2,
+  buildCsbTradePlan,
   calculateReboundScore,
   extractPreIgnitionFeatures,
 };

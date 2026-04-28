@@ -168,9 +168,9 @@
         <% } else { %>
           <div class="small mb-3" style="color:<%= headerColor %>;">
             <% if (isMain) { %>
-              압축 형성, 지지 확인, 돌파 대기, 거래대금 재활성 4개 조건이 동시에 나타난 종목입니다.
+              4개 태그가 모두 충족된 상승 전 압축 후보입니다. 확인 진입가는 돌파 확인용 가격대이며, 손절은 장중 변동이 아니라 종가 기준으로 판단합니다.
             <% } else { %>
-              핵심 조건 중 3개가 충족된 예비 관찰 후보입니다.
+              3개 태그가 충족된 예비 압축 후보입니다. 부족한 조건이 충족되는지 확인한 뒤 관찰하는 보조 후보입니다.
             <% } %>
           </div>
 
@@ -215,17 +215,50 @@
             <% } %>
           </div>
 
-          <!-- 손절 가이드 -->
-          <% if (sg) { %>
-            <div class="mb-3" style="background:white; border:1px solid <%= headerBorder %>; padding:12px 14px; border-radius:8px;">
-              <div class="small mb-1" style="color:<%= headerColor %>; font-weight:600;">
-                <i class="bi bi-shield-exclamation me-1"></i>손절 가이드 (Dc 룰)
+          <!-- 매매 계획 가이드 -->
+          <% var tp = csbDetail.tradePlan; if (tp) { %>
+            <div class="mb-3" style="background:white; border:1px solid <%= headerBorder %>; padding:14px 16px; border-radius:8px;">
+              <div class="small mb-2" style="color:<%= headerColor %>; font-weight:700;">
+                <i class="bi bi-flag me-1"></i>매매 계획 가이드 — <%= tp.horizon %>
               </div>
-              <div class="small">
-                손절 폭 <strong><%= sg.stopPct %>%</strong> 적용 시 손절 가격 <strong><%= sg.stopPrice.toLocaleString() %>원</strong>
+              <div class="row g-2 row-cols-2 row-cols-md-4 mb-2">
+                <div class="col">
+                  <div class="meta-cell" style="background:#f8fafc;">
+                    <div class="label">관찰가</div>
+                    <div class="value"><%= tp.observePrice.toLocaleString() %>원</div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="meta-cell" style="background:#ecfdf5;">
+                    <div class="label" style="color:#065f46;">확인 진입</div>
+                    <div class="value" style="color:#047857;"><%= tp.triggerPrice.toLocaleString() %>원</div>
+                    <div class="small text-secondary" style="font-size:0.7rem;"><%= tp.triggerSource %></div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="meta-cell" style="background:#fef2f2;">
+                    <div class="label" style="color:#991b1b;">종가 손절</div>
+                    <div class="value" style="color:#b91c1c;"><%= tp.stopPrice.toLocaleString() %>원</div>
+                    <div class="small text-secondary" style="font-size:0.7rem;">-<%= tp.stopPct %>% (<%= tp.stopBasis %>)</div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="meta-cell" style="background:#eff6ff;">
+                    <div class="label" style="color:#1e40af;">1차 목표 구간</div>
+                    <div class="value" style="color:#1d4ed8;"><%= tp.target1.toLocaleString() %>원</div>
+                    <% if (tp.rr1) { %><div class="small text-secondary" style="font-size:0.7rem;">손익비 <%= tp.rr1 %></div><% } %>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="meta-cell" style="background:#faf5ff;">
+                    <div class="label" style="color:#6b21a8;">2차 목표 구간</div>
+                    <div class="value" style="color:#7c3aed;"><%= tp.target2.toLocaleString() %>원</div>
+                    <% if (tp.rr2) { %><div class="small text-secondary" style="font-size:0.7rem;">손익비 <%= tp.rr2 %></div><% } %>
+                  </div>
+                </div>
               </div>
-              <div class="small text-secondary mt-1">
-                공식: <code>clamp(ATR%×2.5, 8%, 12%)</code> · 종가 기준 손절 판단 — 장중 저가가 일시적으로 손절선을 깨도 종가가 회복하면 보유 유지.
+              <div class="small text-secondary mt-1" style="border-top:1px dashed #e2e8f0; padding-top:8px;">
+                손절 공식: <code>clamp(ATR%×2.5, 8%, 12%)</code> · <strong>종가 기준 이탈 시 무효화</strong> (장중 저가가 일시적으로 손절선을 깨도 종가가 회복하면 보유 유지).
               </div>
             </div>
           <% } %>
