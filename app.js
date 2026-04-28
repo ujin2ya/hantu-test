@@ -1649,6 +1649,104 @@ function setAiCache(key, value) {
   aiCommentCache.set(key, { value, expiresAt: Date.now() + AI_CACHE_TTL_MS });
 }
 
+// ─── 패턴 상세 페이지 AI 관찰 포인트 (Gemini) ───
+const AI_COMMENTS_DIR = path.join(__dirname, "cache", "ai-comments");
+const PATTERN_AI_PROMPT_VERSION = "v2";  // prompt 변경 시 bump → 모든 캐시 자동 무효화
+
+function ensureAiCommentsDir() {
+  if (!fs.existsSync(AI_COMMENTS_DIR)) fs.mkdirSync(AI_COMMENTS_DIR, { recursive: true });
+}
+
+function computePatternAiHash(detail) {
+  const crypto = require("crypto");
+  const payload = {
+    promptVersion: PATTERN_AI_PROMPT_VERSION,
+    code: detail.code,
+    updatedAt: detail.updatedAt,
+    category: detail.category,
+    scores: detail.scores,
+    returns: detail.returns,
+    flow: detail.flow,
+    risk: detail.risk,
+    warnings: detail.warnings,
+  };
+  return crypto.createHash("sha256").update(JSON.stringify(payload)).digest("hex").slice(0, 16);
+}
+
+function loadPatternAiCache(code, dataHash) {
+  try {
+    const p = path.join(AI_COMMENTS_DIR, `${code}.json`);
+    if (!fs.existsSync(p)) return null;
+    const data = JSON.parse(fs.readFileSync(p, "utf-8"));
+    if (data.dataHash === dataHash) return data;
+  } catch (_) { /* skip */ }
+  return null;
+}
+
+function savePatternAiCache(code, dataHash, payload) {
+  try {
+    ensureAiCommentsDir();
+    const p = path.join(AI_COMMENTS_DIR, `${code}.json`);
+    fs.writeFileSync(p, JSON.stringify({ dataHash, ...payload }));
+  } catch (e) {
+    console.error("[AI Pattern] cache save failed:", e.message);
+  }
+}
+
+function buildPatternAiPrompt(detail) {
+  const tagLabel = (t) => ({
+    FLOW_LEAD: "자금 선행", REBOUND: "과매도 반등", BULL_TREND_WATCH: "강세장 추세",
+    OVERHEAT_WARNING: "과열 주의", HIGH_VOLATILITY: "고변동성",
+    STRUCTURE_BROKEN: "구조 붕괴", NO_SIGNAL: "신호 없음",
+  })[t] || t;
+  return [
+    "당신은 신중한 한국 주식 분석가입니다. 아래 JSON 데이터만 근거로 종목 \"" + detail.name + "\" (" + detail.code + ") 의 \"AI 관찰 포인트\"를 한국어로 작성하세요.",
+    "",
+    "[행동 권유 금지 — 사용자에게 행동을 권하지 말 것]",
+    "1. 매수하세요 / 매도하세요 / 진입하세요 / 추천합니다 / 강력 추천 같은 권유 표현을 절대 쓰지 않는다.",
+    "2. 목표가 X원 / 상승 확률 X% / 수익 가능성 / 확실 / 안전 / 무조건 / 바닥 / 저점매수 같은 단정 표현을 쓰지 않는다.",
+    "3. 데이터에 없는 재료, 뉴스, 이벤트, 기업가치 평가를 추측하지 않는다.",
+    "",
+    "[허용 — 시장 데이터 표준 용어]",
+    "\"외국인 순매수\", \"기관 순매도\", \"순매수대금\", \"매수세\", \"매도세\" 같은 시장 데이터 용어는 자연스러운 한국 주식 시장 표현이므로 그대로 사용해도 좋다. 단, 이는 어디까지나 데이터 묘사이며 사용자에게 \"매수하세요\" 같은 권유로 해석되지 않게 신중히 표현한다.",
+    "",
+    "[권장 표현]",
+    "관찰, 후보, 상태, 신호, 확인 필요, 리스크, 약화될 수 있음, 강화될 수 있음, 둔화, 둔화 신호, 회복.",
+    "",
+    "[작성 구조 — 3개 섹션, 각 2~4문장 정도, 데이터 인용]",
+    "1. 분류 사유: 이 종목이 왜 \"" + tagLabel(detail.category) + "\" 카테고리로 분류됐는지. 점수·수급·수익률·이격 등 데이터를 근거로.",
+    "2. 관찰 포인트: 앞으로 무엇을 확인하면 신호가 강화/약화되는지. 구체적 지표.",
+    "3. 리스크: 신호가 약해지거나 무효화될 수 있는 조건. 변동성·구조 등.",
+    "",
+    "[출력 형식]",
+    "각 섹션 제목 (분류 사유 / 관찰 포인트 / 리스크) 을 \"■\" 로 표시하고 줄바꿈. 너무 짧지 말고 데이터를 충분히 인용. 단, 같은 내용 반복 금지.",
+    "",
+    "[데이터]",
+    JSON.stringify(detail, null, 2),
+  ].join("\n");
+}
+
+async function getPatternAiComment(detail) {
+  const dataHash = computePatternAiHash(detail);
+  const cached = loadPatternAiCache(detail.code, dataHash);
+  if (cached?.text) return { text: cached.text, model: cached.model, generatedAt: cached.generatedAt, cached: true };
+  if (!process.env.GEMINI_API_KEY) return null;
+  try {
+    const client = getGemini();
+    const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+    const model = client.getGenerativeModel({ model: modelName });
+    const prompt = buildPatternAiPrompt(detail);
+    const result = await model.generateContent(prompt);
+    const text = (result.response.text() || "").trim();
+    const payload = { text, model: modelName, generatedAt: new Date().toISOString() };
+    savePatternAiCache(detail.code, dataHash, payload);
+    return { ...payload, cached: false };
+  } catch (e) {
+    console.error("[AI Pattern] error:", e.message);
+    return { error: e.message };
+  }
+}
+
 const DART_CORP_CODE_PATH = path.join(__dirname, ".dart-corp-code.json");
 let dartCorpMap = null;
 let dartCorpLoadInflight = null;
@@ -1874,6 +1972,7 @@ function renderIndex(res, overrides = {}) {
     patternData: null,
     flowSummary: null,
     flowRecent: null,
+    aiComment: null,
     high60: null,
     low60: null,
     lastDate: null,
@@ -2037,6 +2136,43 @@ const handleSearch = async (req, res) => {
       };
     });
 
+    // 7) AI 관찰 포인트 (Gemini) — pattern 데이터 있을 때만, dataHash 기반 캐시
+    let aiComment = null;
+    if (patternData) {
+      const detail = {
+        name: stockMeta.name,
+        code: stockMeta.code,
+        market: stockMeta.market,
+        updatedAt: lastRow.date,
+        category: patternData.primaryTag,
+        scores: {
+          flowLead: patternData.flowLead?.score ?? null,
+          rebound: patternData.rebound?.score ?? null,
+          bullTrend: patternData.setupScore ?? null,
+        },
+        returns: {
+          d5: patternData.ret5d, d10: patternData.rebound?.signals?.ret10d != null ? +(patternData.rebound.signals.ret10d * 100).toFixed(2) : null,
+          d20: patternData.ret20d, d60: patternData.ret60d,
+        },
+        flow: flowSummary ? {
+          total1d: flowSummary.f1 + flowSummary.i1,
+          total5d: flowSummary.f5 + flowSummary.i5,
+          total20d: flowSummary.f20 + flowSummary.i20,
+          foreign5d: flowSummary.f5,
+          inst5d: flowSummary.i5,
+          flowRatio5d: patternData.flowLead?.signals?.flowRatio5d ?? null,
+        } : null,
+        risk: {
+          atrPct: patternData.atrPct,
+          dist20pct: patternData.dist20pct,
+        },
+        regime: patternData.regime,
+        warnings: (patternData.tags || []).filter((t) => ["OVERHEAT_WARNING", "HIGH_VOLATILITY", "STRUCTURE_BROKEN"].includes(t)),
+        tags: patternData.tags || [],
+      };
+      try { aiComment = await getPatternAiComment(detail); } catch (_) { aiComment = null; }
+    }
+
     return renderIndex(res, {
       query,
       candidates: candidates.length > 1 ? candidates : [],
@@ -2045,6 +2181,7 @@ const handleSearch = async (req, res) => {
       patternData,
       flowSummary,
       flowRecent,
+      aiComment,
       high60,
       low60,
       lastDate: lastRow.date,

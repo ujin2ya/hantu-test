@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>큐렉소 — 패턴 정보</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    body {
+      background: #f3f5fb; color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      padding: 20px 12px;
+    }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    .glass { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 4px 16px rgba(15,23,42,0.06); margin-bottom: 14px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    h1 { font-size: 1.2rem; font-weight: 700; margin: 0; }
+    h2 { font-size: 1rem; font-weight: 700; margin: 0 0 12px; }
+    .stock-name { font-size: 1.1rem; font-weight: 700; color: #0f172a; }
+    .stock-code { color: #94a3b8; font-size: 0.85rem; margin-left: 4px; }
+    .price-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: baseline; margin-top: 4px; }
+    .price { font-size: 1.6rem; font-weight: 700; color: #0f172a; font-variant-numeric: tabular-nums; }
+    .change { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .change.up { color: #c11; }
+    .change.down { color: #2563eb; }
+    .market-tag { display: inline-block; padding: 2px 8px; background: #f1f5f9; border-radius: 4px; font-size: 0.75rem; color: #475569; }
+    .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-top: 12px; }
+    .meta-cell { background: #f8fafc; border-radius: 8px; padding: 8px 10px; }
+    .meta-cell .label { color: #64748b; font-size: 0.7rem; margin-bottom: 2px; }
+    .meta-cell .value { font-weight: 600; font-size: 0.9rem; color: #0f172a; font-variant-numeric: tabular-nums; }
+    .feat-grid { display: flex; flex-wrap: wrap; gap: 6px; font-size: 0.82rem; }
+    .feat-item { background: #f8fafc; border-radius: 6px; padding: 5px 9px; }
+    .feat-item strong { color: #0f172a; font-variant-numeric: tabular-nums; margin-left: 4px; }
+    .chart-box { position: relative; height: 360px; }
+    .chart-box.volume { height: 120px; margin-top: 6px; }
+    .period-btn-group { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+    .period-btn { padding: 4px 12px; border: 1px solid #e2e8f0; background: #fff; border-radius: 6px; font-size: 0.78rem; color: #475569; cursor: pointer; }
+    .period-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .period-btn:hover:not(.active) { background: #f1f5f9; }
+    .ma-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.72rem; color: #64748b; margin-top: 6px; }
+    .ma-legend .dot { display: inline-block; width: 10px; height: 2px; vertical-align: middle; margin-right: 4px; }
+    /* 4탭 */
+    .nav-tabs { border-bottom: 2px solid #e2e8f0; margin-bottom: 0; }
+    .nav-tabs .nav-link { color: #64748b; font-weight: 600; border: none; border-radius: 0; padding: 9px 18px; background: transparent; }
+    .nav-tabs .nav-link.active { color: #0f172a; background: transparent; border-bottom: 3px solid #2563eb; margin-bottom: -2px; }
+    .nav-tabs .nav-link:hover { color: #2563eb; }
+    .tab-glass { background: #fff; border-radius: 0 14px 14px 14px; padding: 18px; box-shadow: 0 4px 16px rgba(15,23,42,0.06); margin-bottom: 14px; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+    .ret-pos { color: #16a34a; font-weight: 600; }
+    .ret-neg { color: #dc2626; font-weight: 600; }
+    .tag-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; margin: 2px 4px 2px 0; }
+    .breakdown-bar { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; padding: 4px 0; }
+    .breakdown-bar .bar-label { width: 110px; color: #475569; }
+    .breakdown-bar .bar-track { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+    .breakdown-bar .bar-fill { height: 100%; background: #2563eb; }
+    .breakdown-bar .bar-val { width: 40px; text-align: right; color: #0f172a; font-variant-numeric: tabular-nums; }
+    .reason-block { background: #f8fafc; border-left: 3px solid #2563eb; padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 0.85rem; color: #334155; line-height: 1.6; }
+    .stale-tag { font-size: 0.7rem; color: #92400e; background: #fef3c7; padding: 2px 6px; border-radius: 4px; }
+    @media (max-width: 576px) {
+      body { padding: 12px 8px; }
+      .glass { padding: 14px; border-radius: 12px; }
+      h1 { font-size: 1.05rem; }
+      .price { font-size: 1.4rem; }
+      .chart-box { height: 240px; }
+      .chart-box.volume { height: 90px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <h1><i class="bi bi-bar-chart-line me-2"></i>종목 정보</h1>
+      <a href="/pattern" class="text-secondary small text-decoration-none">
+        <i class="bi bi-arrow-left me-1"></i>패턴 페이지
+      </a>
+    </div>
+
+    
+
+    <div class="glass">
+      <form method="post" action="/search" class="row g-2 align-items-center">
+        <div class="col">
+          <input type="text" name="stockQuery" value="060280" placeholder="종목명 또는 6자리 코드 (예: 엔알비, 475230)" class="form-control form-control-sm" autofocus />
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-primary btn-sm"><i class="bi bi-search me-1"></i>검색</button>
+        </div>
+      </form>
+      
+    </div>
+
+    
+      <div class="glass">
+        <div>
+          <span class="stock-name">큐렉소</span>
+          <span class="stock-code">060280</span>
+          <span class="market-tag ms-2">KOSDAQ</span>
+        </div>
+        <div class="price-row">
+          <span class="price">16,820원</span>
+          
+            <span class="change down">
+              -2.72%
+            </span>
+          
+        </div>
+        <div class="meta-grid">
+          
+            <div class="meta-cell"><div class="label">시가총액</div><div class="value">6940억</div></div>
+          
+          
+            <div class="meta-cell"><div class="label">60일 고점</div><div class="value">22,550</div></div>
+          
+          
+            <div class="meta-cell"><div class="label">60일 저점</div><div class="value">13,550</div></div>
+          
+          
+            <div class="meta-cell"><div class="label">최근 거래일</div><div class="value" style="font-size:0.78rem;">04/28</div></div>
+          
+        </div>
+        
+      </div>
+
+      
+        <div class="glass">
+          <h2><i class="bi bi-graph-up me-1"></i>일봉 + 거래량</h2>
+          <div class="period-btn-group" role="group" aria-label="기간 선택">
+            <button type="button" class="period-btn" data-days="20">1M</button>
+            <button type="button" class="period-btn active" data-days="60">3M</button>
+            <button type="button" class="period-btn" data-days="120">6M</button>
+            <button type="button" class="period-btn" data-days="250">1Y</button>
+          </div>
+          <div class="chart-box"><canvas id="priceChart"></canvas></div>
+          <div class="chart-box volume"><canvas id="volumeChart"></canvas></div>
+          <div class="ma-legend">
+            <span><span class="dot" style="background:#dc2626;"></span>5일선</span>
+            <span><span class="dot" style="background:#7c3aed;"></span>20일선</span>
+            <span><span class="dot" style="background:#16a34a;"></span>60일선</span>
+            <span><span class="dot" style="background:#0891b2;"></span>120일선</span>
+          </div>
+        </div>
+      
+
+      
+
+      
+        
+
+        <!-- ─── 4 탭 ─── -->
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-overview">종합</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-flow">수급</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-model">모델</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-risk">리스크</button></li>
+        </ul>
+
+        <div class="tab-content">
+
+          <!-- 종합 탭 -->
+          <div class="tab-pane tab-glass fade show active" id="tab-overview" role="tabpanel">
+            
+              <div class="info-grid mb-3">
+                <div class="meta-cell"><div class="label">최종 분류</div><div class="value">자금 선행</div></div>
+                <div class="meta-cell"><div class="label">시장 상황</div><div class="value">강세장</div></div>
+                <div class="meta-cell"><div class="label">변동성(ATR)</div><div class="value">4.8%</div></div>
+                <div class="meta-cell"><div class="label">시총</div><div class="value">6,940억</div></div>
+                <div class="meta-cell"><div class="label">20일 평균거래대금</div><div class="value">133억</div></div>
+              </div>
+              <h2 class="small text-secondary mt-3 mb-2">최근 수익률</h2>
+              <div class="info-grid mb-3">
+                <div class="meta-cell"><div class="label">5일</div><div class="value ret-pos">+6.1%</div></div>
+                <div class="meta-cell"><div class="label">20일</div><div class="value ret-pos">+14.8%</div></div>
+                <div class="meta-cell"><div class="label">60일</div><div class="value ret-neg">-11.3%</div></div>
+              </div>
+              <h2 class="small text-secondary mt-3 mb-2">이동평균선 이격</h2>
+              <div class="info-grid mb-3">
+                <div class="meta-cell"><div class="label">20일선</div><div class="value">+8.2%</div></div>
+                
+                
+              </div>
+              
+                <h2 class="small text-secondary mt-3 mb-2">주요 태그</h2>
+                <div>
+                  
+                    <span class="tag-pill" style="background:#dbeafe; color:#1e40af;">자금 선행</span>
+                  
+                </div>
+              
+            
+          </div>
+
+          <!-- 수급 탭 -->
+          <div class="tab-pane tab-glass fade" id="tab-flow" role="tabpanel">
+            
+              <h2 class="small text-secondary mb-2">외국인 + 기관 합산 순매수대금</h2>
+              <div class="info-grid mb-3">
+                <div class="meta-cell"><div class="label">최근 1일</div><div class="value ret-pos">+32억</div></div>
+                <div class="meta-cell"><div class="label">최근 5일</div><div class="value ret-pos">+69억</div></div>
+                <div class="meta-cell"><div class="label">최근 20일</div><div class="value ret-pos">+100억</div></div>
+              </div>
+              <h2 class="small text-secondary mt-3 mb-2">외국인 순매수대금</h2>
+              <div class="info-grid mb-3">
+                <div class="meta-cell"><div class="label">1일</div><div class="value ret-pos">+33억</div></div>
+                <div class="meta-cell"><div class="label">5일</div><div class="value ret-pos">+84억</div></div>
+                <div class="meta-cell"><div class="label">20일</div><div class="value ret-pos">+115억</div></div>
+              </div>
+              <h2 class="small text-secondary mt-3 mb-2">기관 순매수대금</h2>
+              <div class="info-grid mb-3">
+                <div class="meta-cell"><div class="label">1일</div><div class="value ret-neg">-1억</div></div>
+                <div class="meta-cell"><div class="label">5일</div><div class="value ret-neg">-14억</div></div>
+                <div class="meta-cell"><div class="label">20일</div><div class="value ret-neg">-15억</div></div>
+              </div>
+              
+                <div class="info-grid mb-3">
+                  <div class="meta-cell"><div class="label">수급 강도 (5일 / 20일 평균거래대금)</div><div class="value">52%</div></div>
+                </div>
+              
+              <div class="chart-box volume"><canvas id="flowChart"></canvas></div>
+              <div class="small text-secondary mt-2">
+                ※ 데이터 마지막 일자: 20260427 · 수집 일수: 819일 · 종가 × 순매수 주식수 환산
+              </div>
+            
+          </div>
+
+          <!-- 모델 탭 -->
+          <div class="tab-pane tab-glass fade" id="tab-model" role="tabpanel">
+            
+              <div class="info-grid mb-3">
+                <div class="meta-cell" style="background:#eff6ff;"><div class="label" style="color:#1e40af;">자금 점수 (FlowLead)</div><div class="value" style="color:#1d4ed8; font-size:1.3rem;">65</div></div>
+                <div class="meta-cell" style="background:#f0fdf4;"><div class="label" style="color:#065f46;">반등 점수 (Rebound)</div><div class="value" style="color:#047857; font-size:1.3rem;">미통과</div></div>
+                <div class="meta-cell" style="background:#fefce8;"><div class="label" style="color:#854d0e;">추세 점수 (Bull Trend)</div><div class="value" style="color:#a16207; font-size:1.3rem;">미통과</div></div>
+                
+              </div>
+
+              
+                <h2 class="small text-secondary mt-3 mb-2">분류 사유</h2>
+                <div class="reason-block">
+                  
+                    <div>· 5일간 외국인+기관이 69억 순매수 했습니다.</div>
+                  
+                    <div>· 20일 평균 거래대금 대비 52% 규모로 수급이 들어왔습니다.</div>
+                  
+                    <div>· 5일 수익률 +6.1% 로 단기 과열 상태가 아닙니다.</div>
+                  
+                </div>
+              
+
+              
+                <h2 class="small text-secondary mt-4 mb-2">자금 점수 (FlowLead) 점수 내역</h2>
+                
+                  <div class="breakdown-bar">
+                    <span class="bar-label">시장 상황</span>
+                    <span class="bar-track"><span class="bar-fill" style="width:53.333333333333336%; background:#3b82f6;"></span></span>
+                    <span class="bar-val">8/15</span>
+                  </div>
+                
+                  <div class="breakdown-bar">
+                    <span class="bar-label">수급 강도</span>
+                    <span class="bar-track"><span class="bar-fill" style="width:53.333333333333336%; background:#3b82f6;"></span></span>
+                    <span class="bar-val">16/30</span>
+                  </div>
+                
+                  <div class="breakdown-bar">
+                    <span class="bar-label">가격 미과열</span>
+                    <span class="bar-track"><span class="bar-fill" style="width:53.333333333333336%; background:#3b82f6;"></span></span>
+                    <span class="bar-val">8/15</span>
+                  </div>
+                
+                  <div class="breakdown-bar">
+                    <span class="bar-label">거래대금 확장</span>
+                    <span class="bar-track"><span class="bar-fill" style="width:100%; background:#3b82f6;"></span></span>
+                    <span class="bar-val">15/15</span>
+                  </div>
+                
+                  <div class="breakdown-bar">
+                    <span class="bar-label">재무</span>
+                    <span class="bar-track"><span class="bar-fill" style="width:50%; background:#3b82f6;"></span></span>
+                    <span class="bar-val">5/10</span>
+                  </div>
+                
+                  <div class="breakdown-bar">
+                    <span class="bar-label">추세 회복</span>
+                    <span class="bar-track"><span class="bar-fill" style="width:100%; background:#3b82f6;"></span></span>
+                    <span class="bar-val">10/10</span>
+                  </div>
+                
+                  <div class="breakdown-bar">
+                    <span class="bar-label">변동성</span>
+                    <span class="bar-track"><span class="bar-fill" style="width:60%; background:#3b82f6;"></span></span>
+                    <span class="bar-val">3/5</span>
+                  </div>
+                
+              
+
+              
+            
+          </div>
+
+          <!-- 리스크 탭 -->
+          <div class="tab-pane tab-glass fade" id="tab-risk" role="tabpanel">
+            
+              <div class="info-grid mb-3">
+                <div class="meta-cell"><div class="label">변동성(ATR%)</div><div class="value">4.8%</div></div>
+                
+                  <div class="meta-cell"><div class="label">ATR×2 손절 폭</div><div class="value">-9.6%</div></div>
+                
+                
+                  <div class="meta-cell"><div class="label">예상 손절가</div><div class="value">15,205원</div></div>
+                
+              </div>
+              <h2 class="small text-secondary mt-3 mb-2">상태 체크</h2>
+              <div class="info-grid mb-3">
+                <div class="meta-cell" style="background:#f0fdf4;"><div class="label">고변동성</div><div class="value" style="color:#065f46;">정상</div></div>
+                <div class="meta-cell" style="background:#f0fdf4;"><div class="label">장기 구조</div><div class="value" style="color:#065f46;">유지</div></div>
+                <div class="meta-cell" style="background:#f0fdf4;"><div class="label">과열 신호</div><div class="value" style="color:#065f46;">없음</div></div>
+              </div>
+              <div class="reason-block" style="border-left-color:#dc2626;">
+                <strong>리스크 안내</strong><br/>
+                · ATR×2 는 단순 참고용 손절 폭이며, 실제 매매 시 호가/슬리피지/세금 등을 추가 고려해야 합니다.<br/>
+                · 변동성 큰 종목은 손절 폭이 그만큼 넓어지므로 비중 관리가 중요합니다.<br/>
+                · 본 페이지는 매수 추천이 아니라 <strong>종목 상태 분석</strong> 화면입니다.
+              </div>
+            
+          </div>
+
+        </div>
+
+        <!-- 주의 문구 -->
+        <div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px; padding:12px 16px; font-size:0.82rem; color:#475569; margin: 16px 0;">
+          <strong>본 페이지는 매수 추천이 아닙니다.</strong>
+          종목의 모델별 상태·수급·리스크를 보여주는 분석 도구입니다.
+          각 모델은 서로 다른 가설을 기반으로 하며, 시장 상황에 따라 성과가 달라집니다.
+          투자 판단과 책임은 사용자 본인에게 있습니다.
+        </div>
+      
+    
+  </div>
+
+  
+    <script>
+      // Chart.js — 옛 차트 모양 + 기간 버튼 + MA120 추가 + 수급 누적 막대
+      const allRows = [{"date":"20250418","open":8290,"high":8560,"low":8210,"close":8500,"volume":116948,"valueApprox":981193720,"ma5":8350,"ma20":8138.5,"ma60":8967.666666666666,"ma120":7947.25,"foreignValue":-150832500,"instValue":-50099000,"totalFlowValue":-200931500},{"date":"20250421","open":8520,"high":8540,"low":8260,"close":8370,"volume":120906,"valueApprox":1018330785,"ma5":8372,"ma20":8102.5,"ma60":8939.666666666666,"ma120":7958.916666666667,"foreignValue":84779730,"instValue":-103620600,"totalFlowValue":-18840870},{"date":"20250422","open":8360,"high":8430,"low":8230,"close":8300,"volume":124967,"valueApprox":1040975110,"ma5":8350,"ma20":8086,"ma60":8909.166666666666,"ma120":7972.666666666667,"foreignValue":125678600,"instValue":12375300,"totalFlowValue":138053900},{"date":"20250423","open":8390,"high":8540,"low":8340,"close":8530,"volume":79229,"valueApprox":669485050,"ma5":8416,"ma20":8067.5,"ma60":8885.333333333334,"ma120":7988.5,"foreignValue":170582940,"instValue":69289190,"totalFlowValue":239872130},{"date":"20250424","open":8530,"high":8650,"low":8400,"close":8430,"volume":218518,"valueApprox":1857949295,"ma5":8426,"ma20":8058.5,"ma60":8862.333333333334,"ma120":8002.083333333333,"foreignValue":-80481210,"instValue":24767340,"totalFlowValue":-55713870},{"date":"20250425","open":8580,"high":8630,"low":8470,"close":8470,"volume":133652,"valueApprox":1141053950,"ma5":8420,"ma20":8062,"ma60":8839.5,"ma120":8017,"foreignValue":265771660,"instValue":207692870,"totalFlowValue":473464530},{"date":"20250428","open":8700,"high":9240,"low":8610,"close":8840,"volume":469543,"valueApprox":4154281692,"ma5":8514,"ma20":8105,"ma60":8820.5,"ma120":8035,"foreignValue":54578160,"instValue":133634280,"totalFlowValue":188212440},{"date":"20250429","open":9320,"high":9830,"low":9020,"close":9190,"volume":1159346,"valueApprox":10828291640,"ma5":8692,"ma20":8161,"ma60":8822.166666666666,"ma120":8054.75,"foreignValue":-437333720,"instValue":447755180,"totalFlowValue":10421460},{"date":"20250430","open":9300,"high":9390,"low":8830,"close":8900,"volume":241610,"valueApprox":2199859050,"ma5":8766,"ma20":8203,"ma60":8814.166666666666,"ma120":8073.25,"foreignValue":2874700,"instValue":-174279800,"totalFlowValue":-171405100},{"date":"20250502","open":8880,"high":9180,"low":8720,"close":8970,"volume":115121,"valueApprox":1028893937,"ma5":8874,"ma20":8256,"ma60":8797.333333333334,"ma120":8091.333333333333,"foreignValue":54851550,"instValue":47146320,"totalFlowValue":101997870},{"date":"20250507","open":8820,"high":9040,"low":8770,"close":8930,"volume":89812,"valueApprox":798428680,"ma5":8966,"ma20":8306,"ma60":8775.166666666666,"ma120":8108,"foreignValue":-4438210,"instValue":27441890,"totalFlowValue":23003680},{"date":"20250508","open":9310,"high":9680,"low":9130,"close":9420,"volume":614910,"valueApprox":5770930350,"ma5":9082,"ma20":8413.5,"ma60":8760.5,"ma120":8130.5,"foreignValue":192252780,"instValue":32743920,"totalFlowValue":224996700},{"date":"20250509","open":9500,"high":9500,"low":9040,"close":9260,"volume":220984,"valueApprox":2060675800,"ma5":9096,"ma20":8509.5,"ma60":8739.833333333334,"ma120":8151.333333333333,"foreignValue":-632522820,"instValue":18807060,"totalFlowValue":-613715760},{"date":"20250512","open":9420,"high":9500,"low":9200,"close":9370,"volume":172828,"valueApprox":1619830430,"ma5":9190,"ma20":8622.5,"ma60":8728,"ma120":8173.416666666667,"foreignValue":-66573850,"instValue":100624430,"totalFlowValue":34050580},{"date":"20250513","open":9430,"high":9700,"low":9370,"close":9600,"volume":336064,"valueApprox":3201009600,"ma5":9316,"ma20":8717.5,"ma60":8729.666666666666,"ma120":8200.083333333334,"foreignValue":6172800,"instValue":241248000,"totalFlowValue":247420800},{"date":"20250514","open":9600,"high":9940,"low":9420,"close":9920,"volume":333636,"valueApprox":3242941920,"ma5":9514,"ma20":8812.5,"ma60":8739.666666666666,"ma120":8230.75,"foreignValue":145189120,"instValue":222922240,"totalFlowValue":368111360},{"date":"20250515","open":9930,"high":10020,"low":9330,"close":9440,"volume":385147,"valueApprox":3728222960,"ma5":9518,"ma20":8871.5,"ma60":8743.166666666666,"ma120":8257.916666666666,"foreignValue":-681681280,"instValue":-309131680,"totalFlowValue":-990812960},{"date":"20250516","open":9440,"high":9600,"low":9350,"close":9440,"volume":188201,"valueApprox":1779910957,"ma5":9554,"ma20":8923,"ma60":8739,"ma120":8285.416666666666,"foreignValue":111089920,"instValue":-1944640,"totalFlowValue":109145280},{"date":"20250519","open":9270,"high":9340,"low":9060,"close":9210,"volume":164667,"valueApprox":1518229740,"ma5":9522,"ma20":8973.5,"ma60":8721.166666666666,"ma120":8309.666666666666,"foreignValue":365102820,"instValue":-319679100,"totalFlowValue":45423720},{"date":"20250520","open":9180,"high":9320,"low":9070,"close":9130,"volume":123730,"valueApprox":1135222750,"ma5":9428,"ma20":9011,"ma60":8705.166666666666,"ma120":8331.75,"foreignValue":130924200,"instValue":69223660,"totalFlowValue":200147860},{"date":"20250521","open":9160,"high":9800,"low":9090,"close":9150,"volume":441864,"valueApprox":4109335200,"ma5":9274,"ma20":9043.5,"ma60":8695.666666666666,"ma120":8349,"foreignValue":-452357700,"instValue":225337050,"totalFlowValue":-227020650},{"date":"20250522","open":9490,"high":9950,"low":9280,"close":9770,"volume":854141,"valueApprox":8218971772,"ma5":9340,"ma20":9113.5,"ma60":8698.333333333334,"ma120":8371.416666666666,"foreignValue":140121340,"instValue":1206907640,"totalFlowValue":1347028980},{"date":"20250523","open":9930,"high":10190,"low":9510,"close":9770,"volume":488658,"valueApprox":4813281300,"ma5":9406,"ma20":9187,"ma60":8705,"ma120":8396.166666666666,"foreignValue":-826512690,"instValue":425805910,"totalFlowValue":-400706780},{"date":"20250526","open":9790,"high":9890,"low":9590,"close":9790,"volume":195768,"valueApprox":1911674520,"ma5":9522,"ma20":9250,"ma60":8712.333333333334,"ma120":8415.666666666666,"foreignValue":22986920,"instValue":119858970,"totalFlowValue":142845890},{"date":"20250527","open":9710,"high":9770,"low":9390,"close":9540,"volume":202667,"valueApprox":1946109867,"ma5":9604,"ma20":9305.5,"ma60":8717.833333333334,"ma120":8431.916666666666,"foreignValue":-289262340,"instValue":-66303000,"totalFlowValue":-355565340},{"date":"20250528","open":9560,"high":9830,"low":9540,"close":9650,"volume":264354,"valueApprox":2549694330,"ma5":9704,"ma20":9364.5,"ma60":8728.666666666666,"ma120":8449,"foreignValue":618478150,"instValue":352919800,"totalFlowValue":971397950},{"date":"20250529","open":9780,"high":9780,"low":9410,"close":9470,"volume":203763,"valueApprox":1958162430,"ma5":9644,"ma20":9396,"ma60":8746,"ma120":8464.416666666666,"foreignValue":-455374420,"instValue":-297992490,"totalFlowValue":-753366910},{"date":"20250530","open":9420,"high":9430,"low":9180,"close":9350,"volume":89926,"valueApprox":840358470,"ma5":9560,"ma20":9404,"ma60":8761.333333333334,"ma120":8481,"foreignValue":110993850,"instValue":38306950,"totalFlowValue":149300800},{"date":"20250602","open":9380,"high":9570,"low":9250,"close":9390,"volume":91440,"valueApprox":859307400,"ma5":9480,"ma20":9428.5,"ma60":8776,"ma120":8496.916666666666,"foreignValue":-20836410,"instValue":11277390,"totalFlowValue":-9559020},{"date":"20250604","open":9540,"high":10060,"low":9400,"close":9930,"volume":338710,"valueApprox":3296495075,"ma5":9558,"ma20":9476.5,"ma60":8805.333333333334,"ma120":8521.75,"foreignValue":1398729870,"instValue":615421680,"totalFlowValue":2014151550},{"date":"20250605","open":10190,"high":10190,"low":9810,"close":9980,"volume":231734,"valueApprox":2327188695,"ma5":9624,"ma20":9529,"ma60":8836.666666666666,"ma120":8546.666666666666,"foreignValue":-24221460,"instValue":8193580,"totalFlowValue":-16027880},{"date":"20250609","open":10160,"high":10170,"low":9730,"close":9810,"volume":216462,"valueApprox":2157584985,"ma5":9692,"ma20":9548.5,"ma60":8865.666666666666,"ma120":8573,"foreignValue":-143039610,"instValue":-98207910,"totalFlowValue":-241247520},{"date":"20250610","open":9870,"high":9890,"low":9670,"close":9770,"volume":145118,"valueApprox":1422156400,"ma5":9776,"ma20":9574,"ma60":8891.333333333334,"ma120":8599.25,"foreignValue":-104060270,"instValue":-128680670,"totalFlowValue":-232740940},{"date":"20250611","open":9780,"high":9840,"low":9700,"close":9720,"volume":223311,"valueApprox":2179515360,"ma5":9842,"ma20":9591.5,"ma60":8911,"ma120":8625.833333333334,"foreignValue":501163200,"instValue":-734734800,"totalFlowValue":-233571600},{"date":"20250612","open":9760,"high":10250,"low":9580,"close":10010,"volume":522695,"valueApprox":5174680500,"ma5":9858,"ma20":9612,"ma60":8940.833333333334,"ma120":8660.666666666666,"foreignValue":1379828450,"instValue":636666030,"totalFlowValue":2016494480},{"date":"20250613","open":10120,"high":10120,"low":9500,"close":9790,"volume":359629,"valueApprox":3554033592,"ma5":9820,"ma20":9605.5,"ma60":8947,"ma120":8691.166666666666,"foreignValue":-1380948030,"instValue":1056996930,"totalFlowValue":-323951100},{"date":"20250616","open":9750,"high":9960,"low":9500,"close":9900,"volume":209298,"valueApprox":2046411195,"ma5":9838,"ma20":9628.5,"ma60":8947.5,"ma120":8719.166666666666,"foreignValue":-32986800,"instValue":627580800,"totalFlowValue":594594000},{"date":"20250617","open":9860,"high":9890,"low":9130,"close":9310,"volume":401460,"valueApprox":3832939350,"ma5":9746,"ma20":9622,"ma60":8941.5,"ma120":8743.916666666666,"foreignValue":-1132617360,"instValue":-329816060,"totalFlowValue":-1462433420},{"date":"20250618","open":9300,"high":9580,"low":9240,"close":9510,"volume":227345,"valueApprox":2138748087,"ma5":9704,"ma20":9637,"ma60":8943.666666666666,"ma120":8767.583333333334,"foreignValue":577209450,"instValue":76793250,"totalFlowValue":654002700},{"date":"20250619","open":9530,"high":9700,"low":9180,"close":9320,"volume":228993,"valueApprox":2159976472,"ma5":9566,"ma20":9646.5,"ma60":8943,"ma120":8789.583333333334,"foreignValue":90851360,"instValue":-631075840,"totalFlowValue":-540224480},{"date":"20250620","open":9250,"high":9660,"low":9220,"close":9370,"volume":209001,"valueApprox":1959384375,"ma5":9482,"ma20":9657.5,"ma60":8946.5,"ma120":8813.083333333334,"foreignValue":388883110,"instValue":108682630,"totalFlowValue":497565740},{"date":"20250623","open":9390,"high":9690,"low":9170,"close":9600,"volume":259307,"valueApprox":2453692487,"ma5":9422,"ma20":9649,"ma60":8955,"ma120":8835.833333333334,"foreignValue":266352000,"instValue":-1449600,"totalFlowValue":264902400},{"date":"20250624","open":9900,"high":9960,"low":9770,"close":9940,"volume":297815,"valueApprox":2946134887,"ma5":9548,"ma20":9657.5,"ma60":8976.833333333334,"ma120":8864,"foreignValue":621597900,"instValue":328049820,"totalFlowValue":949647720},{"date":"20250625","open":9960,"high":10230,"low":9680,"close":9990,"volume":470070,"valueApprox":4684247550,"ma5":9644,"ma20":9667.5,"ma60":8995,"ma120":8895.25,"foreignValue":155094750,"instValue":293376330,"totalFlowValue":448471080},{"date":"20250626","open":10100,"high":10100,"low":9600,"close":9920,"volume":274750,"valueApprox":2728267500,"ma5":9764,"ma20":9686.5,"ma60":9016.833333333334,"ma120":8925.583333333334,"foreignValue":-924315840,"instValue":268008640,"totalFlowValue":-656307200},{"date":"20250627","open":9860,"high":9900,"low":9550,"close":9620,"volume":186147,"valueApprox":1811675677,"ma5":9814,"ma20":9685,"ma60":9037.166666666666,"ma120":8953,"foreignValue":-288484560,"instValue":291187780,"totalFlowValue":2703220},{"date":"20250630","open":9750,"high":9800,"low":9350,"close":9500,"volume":95372,"valueApprox":915571200,"ma5":9794,"ma20":9686.5,"ma60":9062.5,"ma120":8980.333333333334,"foreignValue":-66357500,"instValue":46293500,"totalFlowValue":-20064000},{"date":"20250701","open":9900,"high":10090,"low":9660,"close":9690,"volume":336013,"valueApprox":3304687855,"ma5":9744,"ma20":9703.5,"ma60":9089.5,"ma120":9010.666666666666,"foreignValue":48168990,"instValue":183460770,"totalFlowValue":231629760},{"date":"20250702","open":9720,"high":9720,"low":9390,"close":9520,"volume":161923,"valueApprox":1552436762,"ma5":9650,"ma20":9710,"ma60":9113.833333333334,"ma120":9036.166666666666,"foreignValue":-434616560,"instValue":-31958640,"totalFlowValue":-466575200},{"date":"20250703","open":9550,"high":9570,"low":9400,"close":9400,"volume":157400,"valueApprox":1492152000,"ma5":9546,"ma20":9683.5,"ma60":9138.666666666666,"ma120":9050.666666666666,"foreignValue":-96801200,"instValue":-544701800,"totalFlowValue":-641503000},{"date":"20250704","open":9600,"high":9660,"low":9230,"close":9280,"volume":162951,"valueApprox":1538664817,"ma5":9478,"ma20":9648.5,"ma60":9161.166666666666,"ma120":9068,"foreignValue":-528737280,"instValue":34772160,"totalFlowValue":-493965120},{"date":"20250707","open":9330,"high":9330,"low":8860,"close":8950,"volume":234311,"valueApprox":2136330542,"ma5":9368,"ma20":9605.5,"ma60":9189.166666666666,"ma120":9079.666666666666,"foreignValue":-431730100,"instValue":-824706700,"totalFlowValue":-1256436800},{"date":"20250708","open":9000,"high":9040,"low":8900,"close":8960,"volume":155910,"valueApprox":1399292250,"ma5":9222,"ma20":9565,"ma60":9216.166666666666,"ma120":9091.75,"foreignValue":428825600,"instValue":-735642880,"totalFlowValue":-306817280},{"date":"20250709","open":9000,"high":9190,"low":8930,"close":9130,"volume":93268,"valueApprox":845241250,"ma5":9144,"ma20":9535.5,"ma60":9249.833333333334,"ma120":9106.583333333334,"foreignValue":239489030,"instValue":-165700370,"totalFlowValue":73788660},{"date":"20250710","open":9110,"high":9180,"low":8890,"close":8920,"volume":141758,"valueApprox":1279365950,"ma5":9048,"ma20":9481,"ma60":9270.166666666666,"ma120":9116.5,"foreignValue":-27214920,"instValue":-173770520,"totalFlowValue":-200985440},{"date":"20250711","open":8950,"high":8950,"low":8690,"close":8860,"volume":133813,"valueApprox":1185917712,"ma5":8964,"ma20":9434.5,"ma60":9284.166666666666,"ma120":9128.833333333334,"foreignValue":-78481880,"instValue":5546360,"totalFlowValue":-72935520},{"date":"20250714","open":8870,"high":8890,"low":8640,"close":8750,"volume":97434,"valueApprox":856201275,"ma5":8924,"ma20":9377,"ma60":9292.333333333334,"ma120":9141.416666666666,"foreignValue":110390000,"instValue":43776250,"totalFlowValue":154166250},{"date":"20250715","open":8750,"high":8950,"low":8700,"close":8880,"volume":84986,"valueApprox":749576520,"ma5":8908,"ma20":9355.5,"ma60":9300.166666666666,"ma120":9142.916666666666,"foreignValue":-30325200,"instValue":-100930080,"totalFlowValue":-131255280},{"date":"20250716","open":8860,"high":8890,"low":8700,"close":8780,"volume":106857,"valueApprox":941143027,"ma5":8838,"ma20":9319,"ma60":9309.833333333334,"ma120":9144.916666666666,"foreignValue":4205620,"instValue":-203801360,"totalFlowValue":-199595740},{"date":"20250717","open":8830,"high":9010,"low":8700,"close":9010,"volume":120024,"valueApprox":1066713300,"ma5":8856,"ma20":9303.5,"ma60":9320.333333333334,"ma120":9146.666666666666,"foreignValue":-49960450,"instValue":-23669270,"totalFlowValue":-73629720},{"date":"20250718","open":8970,"high":9080,"low":8930,"close":9070,"volume":178303,"valueApprox":1606955787,"ma5":8898,"ma20":9288.5,"ma60":9329.833333333334,"ma120":9148.75,"foreignValue":525869530,"instValue":-434171830,"totalFlowValue":91697700},{"date":"20250721","open":9070,"high":9230,"low":9030,"close":9180,"volume":98090,"valueApprox":895316475,"ma5":8984,"ma20":9267.5,"ma60":9343.333333333334,"ma120":9141.5,"foreignValue":111206520,"instValue":184288500,"totalFlowValue":295495020},{"date":"20250722","open":9220,"high":9220,"low":8860,"close":8900,"volume":123391,"valueApprox":1116688550,"ma5":8988,"ma20":9215.5,"ma60":9353.333333333334,"ma120":9131.25,"foreignValue":-122597500,"instValue":-24635200,"totalFlowValue":-147232700},{"date":"20250723","open":8910,"high":8950,"low":8770,"close":8840,"volume":76588,"valueApprox":679144090,"ma5":9000,"ma20":9158,"ma60":9358.5,"ma120":9121.916666666666,"foreignValue":-48222200,"instValue":2846480,"totalFlowValue":-45375720},{"date":"20250724","open":8870,"high":9000,"low":8740,"close":8740,"volume":48294,"valueApprox":426798225,"ma5":8946,"ma20":9099,"ma60":9363.666666666666,"ma120":9113,"foreignValue":-105133460,"instValue":-25092540,"totalFlowValue":-130226000},{"date":"20250725","open":8670,"high":8820,"low":8650,"close":8650,"volume":60761,"valueApprox":528468797,"ma5":8862,"ma20":9050.5,"ma60":9366.666666666666,"ma120":9103.083333333334,"foreignValue":-30560450,"instValue":-4307700,"totalFlowValue":-34868150},{"date":"20250728","open":8660,"high":8700,"low":8200,"close":8580,"volume":79988,"valueApprox":682697580,"ma5":8742,"ma20":9004.5,"ma60":9362.333333333334,"ma120":9091.416666666666,"foreignValue":170939340,"instValue":-39828360,"totalFlowValue":131110980},{"date":"20250729","open":8450,"high":8560,"low":8420,"close":8460,"volume":58021,"valueApprox":491582922,"ma5":8654,"ma20":8943,"ma60":9350.166666666666,"ma120":9086.166666666666,"foreignValue":77129820,"instValue":-52468920,"totalFlowValue":24660900},{"date":"20250730","open":8380,"high":8640,"low":8380,"close":8510,"volume":66649,"valueApprox":565016897,"ma5":8588,"ma20":8892.5,"ma60":9343.666666666666,"ma120":9078.916666666666,"foreignValue":82649120,"instValue":-6186770,"totalFlowValue":76462350},{"date":"20250731","open":8450,"high":8520,"low":8380,"close":8440,"volume":73267,"valueApprox":618922982,"ma5":8528,"ma20":8844.5,"ma60":9334.833333333334,"ma120":9066.083333333334,"foreignValue":7655080,"instValue":-92755600,"totalFlowValue":-85100520},{"date":"20250801","open":8600,"high":8600,"low":8190,"close":8260,"volume":112091,"valueApprox":942965537,"ma5":8450,"ma20":8793.5,"ma60":9323.666666666666,"ma120":9049.416666666666,"foreignValue":-1486800,"instValue":58869020,"totalFlowValue":57382220},{"date":"20250804","open":8310,"high":8510,"low":8210,"close":8450,"volume":48730,"valueApprox":407870100,"ma5":8424,"ma20":8768.5,"ma60":9307.5,"ma120":9034,"foreignValue":53716650,"instValue":59690800,"totalFlowValue":113407450},{"date":"20250805","open":8890,"high":9150,"low":8590,"close":8660,"volume":235445,"valueApprox":2077213512,"ma5":8464,"ma20":8753.5,"ma60":9297.5,"ma120":9018.666666666666,"foreignValue":-214923880,"instValue":-41697900,"totalFlowValue":-256621780},{"date":"20250806","open":8670,"high":8760,"low":8600,"close":8750,"volume":73064,"valueApprox":635291480,"ma5":8512,"ma20":8734.5,"ma60":9287.166666666666,"ma120":9007.583333333334,"foreignValue":133428750,"instValue":71933750,"totalFlowValue":205362500},{"date":"20250807","open":8820,"high":8820,"low":8620,"close":8710,"volume":41371,"valueApprox":361685967,"ma5":8566,"ma20":8724,"ma60":9272.333333333334,"ma120":9001,"foreignValue":35371310,"instValue":-818740,"totalFlowValue":34552570},{"date":"20250808","open":8710,"high":8790,"low":8250,"close":8620,"volume":57997,"valueApprox":498339222,"ma5":8638,"ma20":8712,"ma60":9250.666666666666,"ma120":8995.166666666666,"foreignValue":45289480,"instValue":-77157620,"totalFlowValue":-31868140},{"date":"20250811","open":8640,"high":8790,"low":8530,"close":8750,"volume":62843,"valueApprox":545320132,"ma5":8698,"ma20":8712,"ma60":9239.166666666666,"ma120":8991.166666666666,"foreignValue":41553750,"instValue":-28612500,"totalFlowValue":12941250},{"date":"20250812","open":8670,"high":8860,"low":8570,"close":8620,"volume":67752,"valueApprox":588087360,"ma5":8690,"ma20":8699,"ma60":9225.5,"ma120":8982.25,"foreignValue":-18808840,"instValue":-40695020,"totalFlowValue":-59503860},{"date":"20250813","open":8620,"high":8690,"low":8460,"close":8490,"volume":73443,"valueApprox":629039295,"ma5":8638,"ma20":8684.5,"ma60":9213.5,"ma120":8967.333333333334,"foreignValue":-46372380,"instValue":-110921850,"totalFlowValue":-157294230},{"date":"20250814","open":8550,"high":8550,"low":8400,"close":8400,"volume":55491,"valueApprox":470286225,"ma5":8576,"ma20":8654,"ma60":9201.333333333334,"ma120":8953.25,"foreignValue":-7308000,"instValue":-90711600,"totalFlowValue":-98019600},{"date":"20250818","open":8380,"high":8410,"low":8100,"close":8110,"volume":108067,"valueApprox":891552750,"ma5":8474,"ma20":8606,"ma60":9184,"ma120":8939.833333333334,"foreignValue":-111553050,"instValue":-240112770,"totalFlowValue":-351665820},{"date":"20250819","open":8110,"high":8190,"low":8050,"close":8110,"volume":43867,"valueApprox":355980705,"ma5":8346,"ma20":8552.5,"ma60":9156.333333333334,"ma120":8927.333333333334,"foreignValue":40914950,"instValue":-27379360,"totalFlowValue":13535590},{"date":"20250820","open":8080,"high":8080,"low":7880,"close":7990,"volume":79624,"valueApprox":637589180,"ma5":8220,"ma20":8507,"ma60":9126.666666666666,"ma120":8915.833333333334,"foreignValue":25504080,"instValue":28172740,"totalFlowValue":53676820},{"date":"20250821","open":7910,"high":8060,"low":7910,"close":7970,"volume":64068,"valueApprox":510141450,"ma5":8116,"ma20":8463.5,"ma60":9096.333333333334,"ma120":8904.333333333334,"foreignValue":161097610,"instValue":-58188970,"totalFlowValue":102908640},{"date":"20250822","open":7910,"high":8120,"low":7910,"close":8100,"volume":60122,"valueApprox":481577220,"ma5":8056,"ma20":8431.5,"ma60":9072.333333333334,"ma120":8895.083333333334,"foreignValue":127575000,"instValue":-77241600,"totalFlowValue":50333400},{"date":"20250825","open":8090,"high":8500,"low":7970,"close":8440,"volume":106187,"valueApprox":876042750,"ma5":8122,"ma20":8421,"ma60":9052.166666666666,"ma120":8890.416666666666,"foreignValue":131621800,"instValue":106208960,"totalFlowValue":237830760},{"date":"20250826","open":8350,"high":8470,"low":8330,"close":8370,"volume":62835,"valueApprox":526557300,"ma5":8174,"ma20":8410.5,"ma60":9033.833333333334,"ma120":8889.916666666666,"foreignValue":136556550,"instValue":-223646400,"totalFlowValue":-87089850},{"date":"20250827","open":8370,"high":8470,"low":8220,"close":8370,"volume":62107,"valueApprox":519059252,"ma5":8250,"ma20":8406,"ma60":9017.5,"ma120":8889.416666666666,"foreignValue":42260130,"instValue":-100758060,"totalFlowValue":-58497930},{"date":"20250828","open":8470,"high":8470,"low":8280,"close":8340,"volume":47296,"valueApprox":396813440,"ma5":8324,"ma20":8397.5,"ma60":9000,"ma120":8888,"foreignValue":-67854240,"instValue":76728000,"totalFlowValue":8873760},{"date":"20250829","open":8260,"high":8380,"low":8220,"close":8230,"volume":35216,"valueApprox":291324360,"ma5":8350,"ma20":8387,"ma60":8971.666666666666,"ma120":8888.5,"foreignValue":-31520900,"instValue":-71296490,"totalFlowValue":-102817390},{"date":"20250901","open":8280,"high":8320,"low":8150,"close":8240,"volume":38281,"valueApprox":315722547,"ma5":8310,"ma20":8386,"ma60":8942.666666666666,"ma120":8889.666666666666,"foreignValue":56518160,"instValue":-18507040,"totalFlowValue":38011120},{"date":"20250902","open":8250,"high":8570,"low":8250,"close":8560,"volume":94924,"valueApprox":798073530,"ma5":8348,"ma20":8391.5,"ma60":8921.833333333334,"ma120":8893.75,"foreignValue":239038000,"instValue":-57574560,"totalFlowValue":181463440},{"date":"20250903","open":8480,"high":8590,"low":8330,"close":8450,"volume":54117,"valueApprox":457965112,"ma5":8364,"ma20":8381,"ma60":8899.833333333334,"ma120":8895.583333333334,"foreignValue":-26752700,"instValue":-71901050,"totalFlowValue":-98653750},{"date":"20250904","open":8400,"high":8580,"low":8400,"close":8490,"volume":54560,"valueApprox":461986800,"ma5":8394,"ma20":8368,"ma60":8879.333333333334,"ma120":8895.166666666666,"foreignValue":141698100,"instValue":-51822960,"totalFlowValue":89875140},{"date":"20250905","open":8530,"high":8570,"low":8190,"close":8500,"volume":75245,"valueApprox":635632137,"ma5":8448,"ma20":8357.5,"ma60":8854.166666666666,"ma120":8897.5,"foreignValue":204212500,"instValue":-39074500,"totalFlowValue":165138000},{"date":"20250908","open":8420,"high":8560,"low":8400,"close":8500,"volume":65558,"valueApprox":555276260,"ma5":8500,"ma20":8351.5,"ma60":8832.666666666666,"ma120":8889.833333333334,"foreignValue":91026500,"instValue":35300500,"totalFlowValue":126327000},{"date":"20250909","open":8590,"high":8710,"low":8500,"close":8690,"volume":98525,"valueApprox":849531812,"ma5":8526,"ma20":8348.5,"ma60":8812.5,"ma120":8880,"foreignValue":168342680,"instValue":66913000,"totalFlowValue":235255680},{"date":"20250910","open":8800,"high":8900,"low":8690,"close":8770,"volume":127268,"valueApprox":1118685720,"ma5":8590,"ma20":8356,"ma60":8803.5,"ma120":8872.5,"foreignValue":-16663000,"instValue":66213500,"totalFlowValue":49550500},{"date":"20250911","open":8780,"high":8790,"low":8540,"close":8660,"volume":104729,"valueApprox":910356832,"ma5":8624,"ma20":8364.5,"ma60":8789.333333333334,"ma120":8866.5,"foreignValue":-59875240,"instValue":17458560,"totalFlowValue":-42416680},{"date":"20250912","open":8750,"high":8900,"low":8680,"close":8840,"volume":114289,"valueApprox":1004886032,"ma5":8692,"ma20":8386.5,"ma60":8781.333333333334,"ma120":8862.166666666666,"foreignValue":184269800,"instValue":-42060720,"totalFlowValue":142209080},{"date":"20250915","open":8920,"high":9050,"low":8830,"close":8910,"volume":149840,"valueApprox":1337696600,"ma5":8774,"ma20":8426.5,"ma60":8773.666666666666,"ma120":8860.083333333334,"foreignValue":-18016020,"instValue":-111553200,"totalFlowValue":-129569220},{"date":"20250916","open":9120,"high":9200,"low":8840,"close":8900,"volume":182034,"valueApprox":1641036510,"ma5":8816,"ma20":8466,"ma60":8762,"ma120":8858.5,"foreignValue":-687792000,"instValue":106346100,"totalFlowValue":-581445900},{"date":"20250917","open":8900,"high":8900,"low":8650,"close":8670,"volume":125915,"valueApprox":1105533700,"ma5":8796,"ma20":8500,"ma60":8740.833333333334,"ma120":8858.833333333334,"foreignValue":20573910,"instValue":-82625100,"totalFlowValue":-62051190},{"date":"20250918","open":8700,"high":8900,"low":8700,"close":8860,"volume":120386,"valueApprox":1058192940,"ma5":8836,"ma20":8544.5,"ma60":8722,"ma120":8858.5,"foreignValue":302896820,"instValue":75088500,"totalFlowValue":377985320},{"date":"20250919","open":8860,"high":9180,"low":8740,"close":9100,"volume":345271,"valueApprox":3097080870,"ma5":8888,"ma20":8594.5,"ma60":8708.333333333334,"ma120":8862.583333333334,"foreignValue":-241905300,"instValue":-27554800,"totalFlowValue":-269460100},{"date":"20250922","open":9360,"high":9370,"low":9000,"close":9010,"volume":233495,"valueApprox":2144651575,"ma5":8908,"ma20":8623,"ma60":8698.166666666666,"ma120":8867.666666666666,"foreignValue":-415964670,"instValue":5451050,"totalFlowValue":-410513620},{"date":"20250923","open":9100,"high":9120,"low":8870,"close":9000,"volume":87531,"valueApprox":789748447,"ma5":8928,"ma20":8654.5,"ma60":8689.833333333334,"ma120":8876.166666666666,"foreignValue":-126432000,"instValue":-30438000,"totalFlowValue":-156870000},{"date":"20250924","open":9060,"high":9070,"low":8820,"close":8820,"volume":121786,"valueApprox":1089071305,"ma5":8958,"ma20":8677,"ma60":8675.333333333334,"ma120":8882.416666666666,"foreignValue":22940820,"instValue":-171231480,"totalFlowValue":-148290660},{"date":"20250925","open":8840,"high":8950,"low":8660,"close":8750,"volume":128628,"valueApprox":1131926400,"ma5":8936,"ma20":8697.5,"ma60":8662.5,"ma120":8888.166666666666,"foreignValue":87036250,"instValue":31185000,"totalFlowValue":118221250},{"date":"20250926","open":8780,"high":8850,"low":8410,"close":8530,"volume":136515,"valueApprox":1179830887,"ma5":8822,"ma20":8712.5,"ma60":8648,"ma120":8893.333333333334,"foreignValue":-285729410,"instValue":68521490,"totalFlowValue":-217207920},{"date":"20250929","open":8530,"high":8680,"low":8360,"close":8400,"volume":83862,"valueApprox":712198035,"ma5":8700,"ma20":8720.5,"ma60":8633.333333333334,"ma120":8897.25,"foreignValue":-208756800,"instValue":70081200,"totalFlowValue":-138675600},{"date":"20250930","open":8430,"high":8430,"low":8160,"close":8290,"volume":68387,"valueApprox":569492742,"ma5":8558,"ma20":8707,"ma60":8622.333333333334,"ma120":8905.75,"foreignValue":-153563960,"instValue":-8704500,"totalFlowValue":-162268460},{"date":"20251001","open":8260,"high":8440,"low":8200,"close":8440,"volume":65524,"valueApprox":546142540,"ma5":8482,"ma20":8706.5,"ma60":8613.666666666666,"ma120":8914.916666666666,"foreignValue":-99710160,"instValue":52125440,"totalFlowValue":-47584720},{"date":"20251002","open":8560,"high":9630,"low":8560,"close":9200,"volume":1346512,"valueApprox":12101776600,"ma5":8572,"ma20":8742,"ma60":8614.833333333334,"ma120":8932.333333333334,"foreignValue":2460420400,"instValue":229337600,"totalFlowValue":2689758000},{"date":"20251010","open":9420,"high":10180,"low":9290,"close":10060,"volume":1222260,"valueApprox":11901756750,"ma5":8878,"ma20":8820,"ma60":8633.833333333334,"ma120":8952,"foreignValue":2226408780,"instValue":43589980,"totalFlowValue":2269998760},{"date":"20251013","open":9940,"high":10180,"low":9760,"close":10100,"volume":495683,"valueApprox":4954351585,"ma5":9218,"ma20":8900,"ma60":8654.5,"ma120":8969.333333333334,"foreignValue":127209500,"instValue":11140300,"totalFlowValue":138349800},{"date":"20251014","open":10400,"high":10480,"low":9610,"close":9840,"volume":596471,"valueApprox":6013918857,"ma5":9528,"ma20":8957.5,"ma60":8672.666666666666,"ma120":8982.5,"foreignValue":-78149280,"instValue":-30533520,"totalFlowValue":-108682800},{"date":"20251015","open":10080,"high":10720,"low":9890,"close":10620,"volume":824167,"valueApprox":8511584692,"ma5":9964,"ma20":9050,"ma60":8701.666666666666,"ma120":9000.916666666666,"foreignValue":739523700,"instValue":942684300,"totalFlowValue":1682208000},{"date":"20251016","open":11050,"high":11060,"low":10350,"close":10540,"volume":556940,"valueApprox":5987105000,"ma5":10232,"ma20":9144,"ma60":8731,"ma120":9020.416666666666,"foreignValue":-1039138600,"instValue":-159280480,"totalFlowValue":-1198419080},{"date":"20251017","open":10110,"high":10430,"low":10000,"close":10000,"volume":362017,"valueApprox":3669042295,"ma5":10220,"ma20":9202,"ma60":8747.5,"ma120":9033.916666666666,"foreignValue":4350000,"instValue":35490000,"totalFlowValue":39840000},{"date":"20251020","open":10370,"high":10990,"low":10180,"close":10940,"volume":807373,"valueApprox":8574301260,"ma5":10388,"ma20":9303.5,"ma60":8778.666666666666,"ma120":9054.25,"foreignValue":817469620,"instValue":406377240,"totalFlowValue":1223846860},{"date":"20251021","open":12500,"high":13120,"low":11380,"close":11680,"volume":4422309,"valueApprox":53819500530,"ma5":10756,"ma20":9442.5,"ma60":8820.333333333334,"ma120":9081.833333333334,"foreignValue":-5890107200,"instValue":-190862880,"totalFlowValue":-6080970080},{"date":"20251022","open":12000,"high":12020,"low":11170,"close":11540,"volume":798130,"valueApprox":9324153725,"ma5":10940,"ma20":9586,"ma60":8864.333333333334,"ma120":9108.833333333334,"foreignValue":-640723880,"instValue":64624000,"totalFlowValue":-576099880},{"date":"20251023","open":11760,"high":11770,"low":11100,"close":11120,"volume":555039,"valueApprox":6348258562,"ma5":11056,"ma20":9699,"ma60":8902.333333333334,"ma120":9130.416666666666,"foreignValue":-631994080,"instValue":-85546160,"totalFlowValue":-717540240},{"date":"20251024","open":11150,"high":11280,"low":11050,"close":11130,"volume":408097,"valueApprox":4551301792,"ma5":11282,"ma20":9800.5,"ma60":8942.166666666666,"ma120":9152.916666666666,"foreignValue":-190111530,"instValue":38676750,"totalFlowValue":-151434780},{"date":"20251027","open":10880,"high":10920,"low":10620,"close":10780,"volume":424584,"valueApprox":4585507200,"ma5":11250,"ma20":9889,"ma60":8977.666666666666,"ma120":9172.166666666666,"foreignValue":722238440,"instValue":-291060,"totalFlowValue":721947380},{"date":"20251028","open":10880,"high":10880,"low":10500,"close":10600,"volume":302642,"valueApprox":3242809030,"ma5":11034,"ma20":9969,"ma60":9011.333333333334,"ma120":9186.833333333334,"foreignValue":20447400,"instValue":-196608800,"totalFlowValue":-176161400},{"date":"20251029","open":10670,"high":10680,"low":10360,"close":10540,"volume":297817,"valueApprox":3145692062,"ma5":10834,"ma20":10055,"ma60":9046,"ma120":9198.083333333334,"foreignValue":559252400,"instValue":120345720,"totalFlowValue":679598120},{"date":"20251030","open":10390,"high":10410,"low":10080,"close":10250,"volume":264705,"valueApprox":2721829162,"ma5":10660,"ma20":10130,"ma60":9075,"ma120":9209.333333333334,"foreignValue":543567750,"instValue":-63355250,"totalFlowValue":480212500},{"date":"20251031","open":10720,"high":10750,"low":10330,"close":10550,"volume":439603,"valueApprox":4654296762,"ma5":10544,"ma20":10231,"ma60":9110.166666666666,"ma120":9222.5,"foreignValue":-896570650,"instValue":254255000,"totalFlowValue":-642315650},{"date":"20251103","open":10990,"high":11410,"low":10900,"close":11140,"volume":1058888,"valueApprox":11764245680,"ma5":10616,"ma20":10368,"ma60":9158.166666666666,"ma120":9240.916666666666,"foreignValue":149264860,"instValue":1285076980,"totalFlowValue":1434341840},{"date":"20251104","open":11990,"high":11990,"low":11350,"close":11660,"volume":829991,"valueApprox":9750319272,"ma5":10828,"ma20":10536.5,"ma60":9211.666666666666,"ma120":9259.583333333334,"foreignValue":-1496537680,"instValue":482001080,"totalFlowValue":-1014536600},{"date":"20251105","open":11340,"high":11360,"low":10720,"close":11180,"volume":449180,"valueApprox":5008357000,"ma5":10956,"ma20":10673.5,"ma60":9253.666666666666,"ma120":9275.583333333334,"foreignValue":-170226680,"instValue":318909500,"totalFlowValue":148682820},{"date":"20251106","open":11510,"high":12840,"low":11320,"close":12170,"volume":3968791,"valueApprox":47466740360,"ma5":11340,"ma20":10822,"ma60":9310.666666666666,"ma120":9298.916666666666,"foreignValue":716922530,"instValue":728812620,"totalFlowValue":1445735150},{"date":"20251107","open":11650,"high":11740,"low":11070,"close":11270,"volume":740475,"valueApprox":8465480437,"ma5":11484,"ma20":10882.5,"ma60":9353.333333333334,"ma120":9312.833333333334,"foreignValue":-991309200,"instValue":149541630,"totalFlowValue":-841767570},{"date":"20251110","open":11530,"high":11830,"low":11200,"close":11500,"volume":651499,"valueApprox":7502010985,"ma5":11556,"ma20":10952.5,"ma60":9401.333333333334,"ma120":9326,"foreignValue":-431572000,"instValue":215866500,"totalFlowValue":-215705500},{"date":"20251111","open":11530,"high":11660,"low":10810,"close":11050,"volume":486514,"valueApprox":5479363925,"ma5":11434,"ma20":11013,"ma60":9439.666666666666,"ma120":9339.416666666666,"foreignValue":-298902500,"instValue":58609200,"totalFlowValue":-240293300},{"date":"20251112","open":11250,"high":11540,"low":11080,"close":11350,"volume":457516,"valueApprox":5172218380,"ma5":11468,"ma20":11049.5,"ma60":9485.166666666666,"ma120":9355.333333333334,"foreignValue":-424853200,"instValue":-46489600,"totalFlowValue":-471342800},{"date":"20251113","open":11340,"high":11670,"low":11100,"close":11400,"volume":492385,"valueApprox":5602110337,"ma5":11314,"ma20":11092.5,"ma60":9533.666666666666,"ma120":9373.583333333334,"foreignValue":-178934400,"instValue":38817000,"totalFlowValue":-140117400},{"date":"20251114","open":11050,"high":11180,"low":10590,"close":10670,"volume":320701,"valueApprox":3486821622,"ma5":11194,"ma20":11126,"ma60":9571.5,"ma120":9386.416666666666,"foreignValue":-540638230,"instValue":2027300,"totalFlowValue":-538610930},{"date":"20251117","open":10700,"high":10850,"low":10290,"close":10410,"volume":266448,"valueApprox":2814357000,"ma5":10976,"ma20":11099.5,"ma60":9609.833333333334,"ma120":9396.916666666666,"foreignValue":545713020,"instValue":-106535940,"totalFlowValue":439177080},{"date":"20251118","open":10210,"high":10400,"low":9910,"close":9970,"volume":335097,"valueApprox":3392019382,"ma5":10760,"ma20":11014,"ma60":9640.833333333334,"ma120":9398.583333333334,"foreignValue":673443590,"instValue":-198373090,"totalFlowValue":475070500},{"date":"20251119","open":10200,"high":10270,"low":9810,"close":9990,"volume":237794,"valueApprox":2393991095,"ma5":10488,"ma20":10936.5,"ma60":9674.166666666666,"ma120":9400.416666666666,"foreignValue":-164515320,"instValue":41438520,"totalFlowValue":-123076800},{"date":"20251120","open":10140,"high":10240,"low":9970,"close":10000,"volume":185259,"valueApprox":1868800162,"ma5":10208,"ma20":10880.5,"ma60":9708,"ma120":9402.166666666666,"foreignValue":-113120000,"instValue":-70410000,"totalFlowValue":-183530000},{"date":"20251121","open":9510,"high":9660,"low":9470,"close":9550,"volume":144390,"valueApprox":1378563525,"ma5":9984,"ma20":10801.5,"ma60":9732.166666666666,"ma120":9402.25,"foreignValue":-112126550,"instValue":19539300,"totalFlowValue":-92587250},{"date":"20251124","open":9860,"high":10310,"low":9700,"close":10120,"volume":349712,"valueApprox":3496245720,"ma5":9926,"ma20":10768.5,"ma60":9760.166666666666,"ma120":9406.166666666666,"foreignValue":-25340480,"instValue":80858800,"totalFlowValue":55518320},{"date":"20251125","open":10360,"high":10440,"low":9900,"close":10090,"volume":203696,"valueApprox":2077189960,"ma5":9950,"ma20":10743,"ma60":9788.833333333334,"ma120":9411.333333333334,"foreignValue":-148544980,"instValue":13641680,"totalFlowValue":-134903300},{"date":"20251126","open":10190,"high":10210,"low":9700,"close":10070,"volume":158622,"valueApprox":1592961435,"ma5":9966,"ma20":10719.5,"ma60":9817.166666666666,"ma120":9417.333333333334,"foreignValue":-109460900,"instValue":38688940,"totalFlowValue":-70771960},{"date":"20251127","open":10120,"high":10240,"low":10060,"close":10180,"volume":209259,"valueApprox":2123978850,"ma5":10002,"ma20":10716,"ma60":9847.833333333334,"ma120":9423.916666666666,"foreignValue":350181820,"instValue":13814260,"totalFlowValue":363996080},{"date":"20251128","open":11640,"high":12170,"low":11050,"close":11940,"volume":3847487,"valueApprox":45015597900,"ma5":10480,"ma20":10785.5,"ma60":9909.666666666666,"ma120":9440.666666666666,"foreignValue":6627273120,"instValue":1102826160,"totalFlowValue":7730099280},{"date":"20251201","open":13590,"high":13620,"low":12200,"close":12340,"volume":2889609,"valueApprox":37384316437,"ma5":10924,"ma20":10845.5,"ma60":9978,"ma120":9460.333333333334,"foreignValue":-5847346020,"instValue":703182560,"totalFlowValue":-5144163460},{"date":"20251202","open":12890,"high":14080,"low":12820,"close":13670,"volume":7247914,"valueApprox":96868370610,"ma5":11640,"ma20":10946,"ma60":10063.166666666666,"ma120":9492.5,"foreignValue":1781474400,"instValue":2339989590,"totalFlowValue":4121463990},{"date":"20251203","open":14470,"high":14950,"low":13750,"close":14020,"volume":3510184,"valueApprox":50186855740,"ma5":12430,"ma20":11088,"ma60":10156,"ma120":9527.916666666666,"foreignValue":-4978558080,"instValue":-317104360,"totalFlowValue":-5295662440},{"date":"20251204","open":13840,"high":14150,"low":13690,"close":14000,"volume":1611761,"valueApprox":22435713120,"ma5":13194,"ma20":11179.5,"ma60":10247.833333333334,"ma120":9563.583333333334,"foreignValue":339808000,"instValue":54670000,"totalFlowValue":394478000},{"date":"20251205","open":14640,"high":14650,"low":13180,"close":13230,"volume":1796285,"valueApprox":25013268625,"ma5":13452,"ma20":11277.5,"ma60":10326.666666666666,"ma120":9590.416666666666,"foreignValue":-1909816650,"instValue":-95467680,"totalFlowValue":-2005284330},{"date":"20251208","open":13450,"high":13600,"low":12800,"close":13030,"volume":989336,"valueApprox":13079021920,"ma5":13590,"ma20":11354,"ma60":10402.166666666666,"ma120":9617.416666666666,"foreignValue":1069867240,"instValue":-1344969630,"totalFlowValue":-275102390},{"date":"20251209","open":13270,"high":13950,"low":12900,"close":13800,"volume":1826121,"valueApprox":24616111080,"ma5":13616,"ma20":11491.5,"ma60":10487.333333333334,"ma120":9649.916666666666,"foreignValue":1566258600,"instValue":1000707000,"totalFlowValue":2566965600},{"date":"20251210","open":14360,"high":14560,"low":13760,"close":14270,"volume":1554762,"valueApprox":22135923975,"ma5":13666,"ma20":11637.5,"ma60":10579,"ma120":9691.25,"foreignValue":-2713369150,"instValue":1019405990,"totalFlowValue":-1693963160},{"date":"20251211","open":14150,"high":14310,"low":13840,"close":13930,"volume":1003927,"valueApprox":14112703802,"ma5":13652,"ma20":11764,"ma60":10666.833333333334,"ma120":9728.083333333334,"foreignValue":-173943910,"instValue":-522416790,"totalFlowValue":-696360700},{"date":"20251212","open":13780,"high":13830,"low":13470,"close":13610,"volume":761874,"valueApprox":10416722265,"ma5":13728,"ma20":11911,"ma60":10746.333333333334,"ma120":9763.833333333334,"foreignValue":70785610,"instValue":-77617830,"totalFlowValue":-6832220},{"date":"20251215","open":13200,"high":13840,"low":13140,"close":13780,"volume":721898,"valueApprox":9738404020,"ma5":13878,"ma20":12079.5,"ma60":10827.5,"ma120":9800.583333333334,"foreignValue":413827180,"instValue":-6076980,"totalFlowValue":407750200},{"date":"20251216","open":13540,"high":13580,"low":12810,"close":12830,"volume":830787,"valueApprox":10958080530,"ma5":13684,"ma20":12222.5,"ma60":10893,"ma120":9827.5,"foreignValue":586446470,"instValue":-390198790,"totalFlowValue":196247680},{"date":"20251217","open":12880,"high":12960,"low":12200,"close":12300,"volume":604536,"valueApprox":7608085560,"ma5":13290,"ma20":12338,"ma60":10953.5,"ma120":9847.166666666666,"foreignValue":568100100,"instValue":148350300,"totalFlowValue":716450400},{"date":"20251218","open":11850,"high":12460,"low":11850,"close":12050,"volume":429283,"valueApprox":5173933357,"ma5":12914,"ma20":12440.5,"ma60":11006.666666666666,"ma120":9864.333333333334,"foreignValue":387636450,"instValue":319553950,"totalFlowValue":707190400},{"date":"20251219","open":12760,"high":12880,"low":12220,"close":12490,"volume":513823,"valueApprox":6467747012,"ma5":12690,"ma20":12587.5,"ma60":11063.166666666666,"ma120":9885.75,"foreignValue":-1137814020,"instValue":363721290,"totalFlowValue":-774092730},{"date":"20251222","open":12950,"high":13680,"low":12850,"close":13670,"volume":1094754,"valueApprox":14546543775,"ma5":12668,"ma20":12765,"ma60":11140.833333333334,"ma120":9919.5,"foreignValue":1787885630,"instValue":932922820,"totalFlowValue":2720808450},{"date":"20251223","open":14200,"high":14270,"low":13390,"close":13730,"volume":1324866,"valueApprox":18412325235,"ma5":12848,"ma20":12947,"ma60":11219.666666666666,"ma120":9954.75,"foreignValue":-3663232650,"instValue":223098770,"totalFlowValue":-3440133880},{"date":"20251224","open":13550,"high":13560,"low":13090,"close":13240,"volume":678340,"valueApprox":9062622400,"ma5":13036,"ma20":13105.5,"ma60":11293.333333333334,"ma120":9984.333333333334,"foreignValue":-908926000,"instValue":335276520,"totalFlowValue":-573649480},{"date":"20251226","open":13300,"high":13360,"low":12820,"close":12870,"volume":485412,"valueApprox":6352829550,"ma5":13200,"ma20":13240,"ma60":11362,"ma120":10012.25,"foreignValue":-94221270,"instValue":446486040,"totalFlowValue":352264770},{"date":"20251229","open":12880,"high":13710,"low":12840,"close":13700,"volume":684590,"valueApprox":9093066675,"ma5":13442,"ma20":13328,"ma60":11448.166666666666,"ma120":10048.083333333334,"foreignValue":2592177000,"instValue":58115400,"totalFlowValue":2650292400},{"date":"20251230","open":13550,"high":13630,"low":12930,"close":12960,"volume":587434,"valueApprox":7793780595,"ma5":13300,"ma20":13359,"ma60":11524.166666666666,"ma120":10078.75,"foreignValue":-2366521920,"instValue":183656160,"totalFlowValue":-2182865760},{"date":"20260102","open":13000,"high":13800,"low":12970,"close":13600,"volume":961772,"valueApprox":12832442910,"ma5":13274,"ma20":13355.5,"ma60":11612.666666666666,"ma120":10117.5,"foreignValue":1578715200,"instValue":243372000,"totalFlowValue":1822087200},{"date":"20260105","open":13490,"high":13500,"low":13110,"close":13210,"volume":487847,"valueApprox":6501780892,"ma5":13268,"ma20":13315,"ma60":11692.166666666666,"ma120":10152.916666666666,"foreignValue":-1161172210,"instValue":-60858470,"totalFlowValue":-1222030680},{"date":"20260106","open":13300,"high":13300,"low":12640,"close":12730,"volume":495627,"valueApprox":6439433797,"ma5":13240,"ma20":13251.5,"ma60":11751,"ma120":10182.916666666666,"foreignValue":-966767120,"instValue":-62364270,"totalFlowValue":-1029131390},{"date":"20260107","open":12860,"high":12920,"low":12450,"close":12580,"volume":397955,"valueApprox":5055023387,"ma5":13016,"ma20":13219,"ma60":11793,"ma120":10213.416666666666,"foreignValue":-85606900,"instValue":-143160400,"totalFlowValue":-228767300},{"date":"20260108","open":12580,"high":12650,"low":12170,"close":12250,"volume":420206,"valueApprox":5215806975,"ma5":12874,"ma20":13180,"ma60":11828.833333333334,"ma120":10241.666666666666,"foreignValue":443143750,"instValue":-1062528250,"totalFlowValue":-619384500},{"date":"20260109","open":12400,"high":12640,"low":12320,"close":12530,"volume":368947,"valueApprox":4601691457,"ma5":12660,"ma20":13116.5,"ma60":11873.666666666666,"ma120":10273.166666666666,"foreignValue":291710930,"instValue":163955050,"totalFlowValue":455665980},{"date":"20260112","open":13390,"high":13570,"low":12870,"close":13070,"volume":915311,"valueApprox":12104987975,"ma5":12632,"ma20":13056.5,"ma60":11914.5,"ma120":10308.083333333334,"foreignValue":107448470,"instValue":333664030,"totalFlowValue":441112500},{"date":"20260113","open":13300,"high":13880,"low":13000,"close":13500,"volume":1489857,"valueApprox":19993880940,"ma5":12786,"ma20":13035,"ma60":11963.833333333334,"ma120":10347.416666666666,"foreignValue":-1214905500,"instValue":-126657000,"totalFlowValue":-1341562500},{"date":"20260114","open":13360,"high":13380,"low":13060,"close":13150,"volume":355934,"valueApprox":4711676325,"ma5":12900,"ma20":13012,"ma60":12016.333333333334,"ma120":10381.916666666666,"foreignValue":-367529350,"instValue":267773450,"totalFlowValue":-99755900},{"date":"20260115","open":13360,"high":14420,"low":13190,"close":14190,"volume":2569107,"valueApprox":35427985530,"ma5":13288,"ma20":13032.5,"ma60":12070.5,"ma120":10424.583333333334,"foreignValue":6108227400,"instValue":524221170,"totalFlowValue":6632448570},{"date":"20260116","open":14450,"high":14450,"low":13680,"close":13780,"volume":1509481,"valueApprox":21268587290,"ma5":13538,"ma20":13080,"ma60":12105.5,"ma120":10462.916666666666,"foreignValue":186636320,"instValue":179704980,"totalFlowValue":366341300},{"date":"20260119","open":14020,"high":14580,"low":13780,"close":14360,"volume":1624792,"valueApprox":23047674520,"ma5":13796,"ma20":13183,"ma60":12152.5,"ma120":10508.416666666666,"foreignValue":-632184640,"instValue":212815200,"totalFlowValue":-419369440},{"date":"20260120","open":15530,"high":15570,"low":14040,"close":14930,"volume":2737400,"valueApprox":41108904500,"ma5":14082,"ma20":13327,"ma60":12216,"ma120":10559.166666666666,"foreignValue":-828719510,"instValue":1234263100,"totalFlowValue":405543590},{"date":"20260121","open":14410,"high":17890,"low":14380,"close":17060,"volume":11295874,"valueApprox":179999752190,"ma5":14864,"ma20":13555.5,"ma60":12314.833333333334,"ma120":10628.5,"foreignValue":4973160600,"instValue":1806636940,"totalFlowValue":6779797540},{"date":"20260122","open":19760,"high":20750,"low":17470,"close":18660,"volume":6123099,"valueApprox":117318576840,"ma5":15758,"ma20":13805,"ma60":12446.166666666666,"ma120":10711.916666666666,"foreignValue":-4300476900,"instValue":1025143080,"totalFlowValue":-3275333820},{"date":"20260123","open":19100,"high":19620,"low":18040,"close":18150,"volume":2970404,"valueApprox":55628240910,"ma5":16632,"ma20":14026,"ma60":12572,"ma120":10791.666666666666,"foreignValue":3131564700,"instValue":2294940450,"totalFlowValue":5426505150},{"date":"20260126","open":18010,"high":19100,"low":17660,"close":18840,"volume":2263756,"valueApprox":41658769790,"ma5":17528,"ma20":14306,"ma60":12710.333333333334,"ma120":10878.166666666666,"foreignValue":-2034135960,"instValue":6315375240,"totalFlowValue":4281239280},{"date":"20260127","open":18950,"high":19360,"low":18000,"close":18300,"volume":1757633,"valueApprox":32784249532,"ma5":18202,"ma20":14577.5,"ma60":12844.5,"ma120":10959.75,"foreignValue":-3433281300,"instValue":523526400,"totalFlowValue":-2909754900},{"date":"20260128","open":18440,"high":19180,"low":18210,"close":18920,"volume":1634741,"valueApprox":30549222437,"ma5":18574,"ma20":14838.5,"ma60":12984,"ma120":11047.083333333334,"foreignValue":1140440840,"instValue":4957002160,"totalFlowValue":6097443000},{"date":"20260129","open":19680,"high":20350,"low":18610,"close":19250,"volume":2314204,"valueApprox":45063337390,"ma5":18692,"ma20":15153,"ma60":13119.166666666666,"ma120":11138.666666666666,"foreignValue":-2057132000,"instValue":5039611500,"totalFlowValue":2982479500},{"date":"20260130","open":19440,"high":20650,"low":19200,"close":19830,"volume":3065310,"valueApprox":60631831800,"ma5":19028,"ma20":15464.5,"ma60":13255.333333333334,"ma120":11233.5,"foreignValue":6116087580,"instValue":5051057940,"totalFlowValue":11167145520},{"date":"20260202","open":21000,"high":22550,"low":19170,"close":19690,"volume":4148561,"valueApprox":85470728002,"ma5":19198,"ma20":15788.5,"ma60":13397.166666666666,"ma120":11325.416666666666,"foreignValue":-4241048790,"instValue":-1190831510,"totalFlowValue":-5431880300},{"date":"20260203","open":20400,"high":20400,"low":19190,"close":19790,"volume":1222718,"valueApprox":24387110510,"ma5":19496,"ma20":16141.5,"ma60":13524.166666666666,"ma120":11417.416666666666,"foreignValue":-1337012400,"instValue":2562567520,"totalFlowValue":1225555120},{"date":"20260204","open":20200,"high":20750,"low":19880,"close":20350,"volume":1146483,"valueApprox":23267872485,"ma5":19782,"ma20":16530,"ma60":13675.5,"ma120":11514.416666666666,"foreignValue":2412492500,"instValue":233251700,"totalFlowValue":2645744200},{"date":"20260205","open":20600,"high":21100,"low":19200,"close":19650,"volume":1184902,"valueApprox":23860964025,"ma5":19862,"ma20":16900,"ma60":13811.333333333334,"ma120":11606.333333333334,"foreignValue":-2022653100,"instValue":-515301600,"totalFlowValue":-2537954700},{"date":"20260206","open":18590,"high":18810,"low":17800,"close":18300,"volume":955143,"valueApprox":17550752625,"ma5":19556,"ma20":17188.5,"ma60":13932.166666666666,"ma120":11685.916666666666,"foreignValue":794567700,"instValue":-83557800,"totalFlowValue":711009900},{"date":"20260209","open":18910,"high":19700,"low":18590,"close":19620,"volume":755896,"valueApprox":14516982680,"ma5":19542,"ma20":17516,"ma60":14070,"ma120":11777.583333333334,"foreignValue":2326618080,"instValue":2104990560,"totalFlowValue":4431608640},{"date":"20260210","open":20000,"high":20250,"low":19010,"close":19060,"volume":713855,"valueApprox":13977280900,"ma5":19396,"ma20":17794,"ma60":14197.666666666666,"ma120":11865.666666666666,"foreignValue":-2596353200,"instValue":438418120,"totalFlowValue":-2157935080},{"date":"20260211","open":19150,"high":19180,"low":18440,"close":18770,"volume":366392,"valueApprox":6919312920,"ma5":19080,"ma20":18075,"ma60":14332.666666666666,"ma120":11952.083333333334,"foreignValue":-99987790,"instValue":-189107750,"totalFlowValue":-289095540},{"date":"20260212","open":18790,"high":18830,"low":17500,"close":17500,"volume":1524053,"valueApprox":27669182215,"ma5":18650,"ma20":18240.5,"ma60":14450.833333333334,"ma120":12030.333333333334,"foreignValue":-543935000,"instValue":-1289837500,"totalFlowValue":-1833772500},{"date":"20260213","open":17450,"high":17770,"low":17070,"close":17440,"volume":772321,"valueApprox":13463485832,"ma5":18478,"ma20":18423.5,"ma60":14575.333333333334,"ma120":12108.083333333334,"foreignValue":433174720,"instValue":-278848160,"totalFlowValue":154326560},{"date":"20260219","open":17450,"high":18370,"low":17070,"close":18240,"volume":991235,"valueApprox":17626636387,"ma5":18202,"ma20":18617.5,"ma60":14712.833333333334,"ma120":12193.5,"foreignValue":4161091200,"instValue":2103163200,"totalFlowValue":6264254400},{"date":"20260220","open":18240,"high":18290,"low":17370,"close":17430,"volume":816353,"valueApprox":14557614872,"ma5":17876,"ma20":18742.5,"ma60":14836.666666666666,"ma120":12272.333333333334,"foreignValue":-2741355540,"instValue":267567930,"totalFlowValue":-2473787610},{"date":"20260223","open":17490,"high":17760,"low":17020,"close":17160,"volume":663728,"valueApprox":11520658760,"ma5":17554,"ma20":18747.5,"ma60":14963.5,"ma120":12347.833333333334,"foreignValue":1105876200,"instValue":-321355320,"totalFlowValue":784520880},{"date":"20260224","open":17150,"high":17900,"low":17010,"close":17600,"volume":635177,"valueApprox":11061607455,"ma5":17574,"ma20":18694.5,"ma60":15088.166666666666,"ma120":12424.166666666666,"foreignValue":1544435200,"instValue":-261800000,"totalFlowValue":1282635200},{"date":"20260225","open":17670,"high":17840,"low":17205,"close":17530,"volume":711787,"valueApprox":12499869453,"ma5":17592,"ma20":18663.5,"ma60":15212.166666666666,"ma120":12500.5,"foreignValue":202068310,"instValue":-812007130,"totalFlowValue":-609938820},{"date":"20260226","open":17570,"high":17780,"low":16910,"close":17170,"volume":865200,"valueApprox":15017709000,"ma5":17378,"ma20":18580,"ma60":15330.5,"ma120":12573.833333333334,"foreignValue":1234128090,"instValue":-471745750,"totalFlowValue":762382340},{"date":"20260227","open":17080,"high":17240,"low":16690,"close":16990,"volume":693829,"valueApprox":11795093000,"ma5":17290,"ma20":18514.5,"ma60":15444,"ma120":12645.916666666666,"foreignValue":1518922990,"instValue":380168240,"totalFlowValue":1899091230},{"date":"20260303","open":16690,"high":17330,"low":16000,"close":16000,"volume":1091820,"valueApprox":18020489100,"ma5":17058,"ma20":18368.5,"ma60":15511.666666666666,"ma120":12710.666666666666,"foreignValue":3504224000,"instValue":-364352000,"totalFlowValue":3139872000},{"date":"20260304","open":15640,"high":15800,"low":13550,"close":13560,"volume":1601293,"valueApprox":23438926287,"ma5":16250,"ma20":18084,"ma60":15532,"ma120":12755,"foreignValue":6053238240,"instValue":-329209680,"totalFlowValue":5724028560},{"date":"20260305","open":14520,"high":15980,"low":14520,"close":15380,"volume":1088968,"valueApprox":16443416800,"ma5":15820,"ma20":17861.5,"ma60":15560.5,"ma120":12811.833333333334,"foreignValue":993671040,"instValue":682226040,"totalFlowValue":1675897080},{"date":"20260306","open":15300,"high":16310,"low":15100,"close":16190,"volume":704932,"valueApprox":11085055700,"ma5":15624,"ma20":17686.5,"ma60":15596.666666666666,"ma120":12876.333333333334,"foreignValue":-616191400,"instValue":190669630,"totalFlowValue":-425521770},{"date":"20260309","open":15000,"high":17020,"low":14710,"close":15650,"volume":1024656,"valueApprox":15979510320,"ma5":15356,"ma20":17479.5,"ma60":15624.166666666666,"ma120":12936,"foreignValue":-2366499100,"instValue":131334800,"totalFlowValue":-2235164300},{"date":"20260310","open":16320,"high":16350,"low":15550,"close":15650,"volume":632287,"valueApprox":10096042672,"ma5":15286,"ma20":17244.5,"ma60":15664.5,"ma120":12995.583333333334,"foreignValue":-334456150,"instValue":-808885900,"totalFlowValue":-1143342050},{"date":"20260311","open":15900,"high":16180,"low":15420,"close":15630,"volume":624234,"valueApprox":9851973105,"ma5":15700,"ma20":17043.5,"ma60":15707.833333333334,"ma120":13055,"foreignValue":1327924800,"instValue":-1124515980,"totalFlowValue":203408820},{"date":"20260312","open":15490,"high":15690,"low":15030,"close":15100,"volume":459167,"valueApprox":7037882192,"ma5":15644,"ma20":16883.5,"ma60":15729.5,"ma120":13108.416666666666,"foreignValue":-724905700,"instValue":-741153300,"totalFlowValue":-1466059000},{"date":"20260313","open":14600,"high":15520,"low":14550,"close":15100,"volume":407748,"valueApprox":6092774490,"ma5":15426,"ma20":16657.5,"ma60":15743.333333333334,"ma120":13161.166666666666,"foreignValue":951707700,"instValue":-1077687000,"totalFlowValue":-125979300},{"date":"20260316","open":15100,"high":15260,"low":14700,"close":14930,"volume":291134,"valueApprox":4366282165,"ma5":15282,"ma20":16451,"ma60":15760,"ma120":13213.416666666666,"foreignValue":1073437140,"instValue":-594318510,"totalFlowValue":479118630},{"date":"20260317","open":15220,"high":15800,"low":15030,"close":15170,"volume":587441,"valueApprox":8990784505,"ma5":15186,"ma20":16271,"ma60":15786,"ma120":13266.166666666666,"foreignValue":-1163205260,"instValue":-122846660,"totalFlowValue":-1286051920},{"date":"20260318","open":15610,"high":16620,"low":15290,"close":16350,"volume":1099373,"valueApprox":17554238377,"ma5":15330,"ma20":16213.5,"ma60":15828.833333333334,"ma120":13328.166666666666,"foreignValue":1155192900,"instValue":1635931950,"totalFlowValue":2791124850},{"date":"20260319","open":16100,"high":16110,"low":15510,"close":15520,"volume":524896,"valueApprox":8298605760,"ma5":15414,"ma20":16117.5,"ma60":15873.666666666666,"ma120":13383.333333333334,"foreignValue":-2549020320,"instValue":-577437120,"totalFlowValue":-3126457440},{"date":"20260320","open":15650,"high":15690,"low":15230,"close":15230,"volume":311525,"valueApprox":4813061250,"ma5":15440,"ma20":15967,"ma60":15922.5,"ma120":13438,"foreignValue":-647275000,"instValue":-89263030,"totalFlowValue":-736538030},{"date":"20260323","open":14550,"high":14600,"low":14080,"close":14140,"volume":342571,"valueApprox":4913324567,"ma5":15282,"ma20":15802.5,"ma60":15957.333333333334,"ma120":13482,"foreignValue":235954180,"instValue":-237170220,"totalFlowValue":-1216040},{"date":"20260324","open":14720,"high":14940,"low":14230,"close":14930,"volume":308153,"valueApprox":4531389865,"ma5":15234,"ma20":15691,"ma60":15998,"ma120":13530.583333333334,"foreignValue":1202820520,"instValue":40296070,"totalFlowValue":1243116590},{"date":"20260325","open":14930,"high":15270,"low":14870,"close":15000,"volume":209327,"valueApprox":3143568222,"ma5":14964,"ma20":15561,"ma60":16020.166666666666,"ma120":13580.5,"foreignValue":286305000,"instValue":-139620000,"totalFlowValue":146685000},{"date":"20260326","open":15000,"high":19400,"low":14650,"close":17260,"volume":10134977,"valueApprox":168012581217,"ma5":15312,"ma20":15547.5,"ma60":16079,"ma120":13649.333333333334,"foreignValue":-7261696240,"instValue":2881246320,"totalFlowValue":-4380449920},{"date":"20260327","open":17020,"high":18060,"low":16300,"close":17460,"volume":3317643,"valueApprox":57096636030,"ma5":15758,"ma20":15562,"ma60":16149.333333333334,"ma120":13721.333333333334,"foreignValue":1661196780,"instValue":224134020,"totalFlowValue":1885330800},{"date":"20260330","open":16790,"high":17110,"low":16130,"close":16200,"volume":913220,"valueApprox":15120640150,"ma5":16170,"ma20":15522.5,"ma60":16204.833333333334,"ma120":13783.416666666666,"foreignValue":-1864328400,"instValue":-308480400,"totalFlowValue":-2172808800},{"date":"20260331","open":15900,"high":16190,"low":14450,"close":14610,"volume":1236242,"valueApprox":18899049575,"ma5":16106,"ma20":15453,"ma60":16220,"ma120":13834.083333333334,"foreignValue":2628748080,"instValue":-306050280,"totalFlowValue":2322697800},{"date":"20260401","open":15130,"high":16170,"low":15130,"close":15920,"volume":708468,"valueApprox":11043244950,"ma5":16290,"ma20":15571,"ma60":16269.333333333334,"ma120":13896.75,"foreignValue":2429360160,"instValue":800409840,"totalFlowValue":3229770000},{"date":"20260402","open":16500,"high":16630,"low":14950,"close":15230,"volume":935966,"valueApprox":14814001865,"ma5":15884,"ma20":15563.5,"ma60":16296.5,"ma120":13954.583333333334,"foreignValue":-222830130,"instValue":52832870,"totalFlowValue":-169997260},{"date":"20260403","open":15510,"high":15680,"low":14820,"close":14950,"volume":526001,"valueApprox":8016255240,"ma5":15382,"ma20":15501.5,"ma60":16325.5,"ma120":14008.833333333334,"foreignValue":-1149191550,"instValue":-341771950,"totalFlowValue":-1490963500},{"date":"20260406","open":15000,"high":15050,"low":14280,"close":14380,"volume":443945,"valueApprox":6516002737,"ma5":15018,"ma20":15438,"ma60":16353,"ma120":14052,"foreignValue":-41975220,"instValue":-356638380,"totalFlowValue":-398613600},{"date":"20260407","open":14450,"high":15100,"low":14350,"close":14470,"volume":351065,"valueApprox":5122916012,"ma5":14990,"ma20":15379,"ma60":16384.5,"ma120":14088.75,"foreignValue":516318540,"instValue":308977910,"totalFlowValue":825296450},{"date":"20260408","open":15400,"high":15700,"low":15210,"close":15480,"volume":465478,"valueApprox":7190471405,"ma5":14902,"ma20":15371.5,"ma60":16438.333333333332,"ma120":14133.583333333334,"foreignValue":1466126280,"instValue":1103197680,"totalFlowValue":2569323960},{"date":"20260409","open":15440,"high":15440,"low":14710,"close":14840,"volume":356967,"valueApprox":5392878952,"ma5":14824,"ma20":15358.5,"ma60":16476.833333333332,"ma120":14175.25,"foreignValue":-1021318480,"instValue":-872354560,"totalFlowValue":-1893673040},{"date":"20260410","open":15040,"high":15120,"low":14640,"close":14700,"volume":314620,"valueApprox":4679972500,"ma5":14774,"ma20":15338.5,"ma60":16504,"ma120":14209.25,"foreignValue":-610976100,"instValue":-478779000,"totalFlowValue":-1089755100},{"date":"20260413","open":14590,"high":14590,"low":14220,"close":14280,"volume":337121,"valueApprox":4861284820,"ma5":14754,"ma20":15306,"ma60":16517,"ma120":14240.416666666666,"foreignValue":-113383200,"instValue":-827026200,"totalFlowValue":-940409400},{"date":"20260414","open":14600,"high":15070,"low":14500,"close":14890,"volume":455603,"valueApprox":6726978295,"ma5":14838,"ma20":15292,"ma60":16546,"ma120":14281.166666666666,"foreignValue":1740209190,"instValue":-438867860,"totalFlowValue":1301341330},{"date":"20260415","open":15270,"high":15620,"low":14930,"close":15590,"volume":651317,"valueApprox":9999344242,"ma5":14860,"ma20":15254,"ma60":16569.333333333332,"ma120":14319.916666666666,"foreignValue":-1383861940,"instValue":590065910,"totalFlowValue":-793796030},{"date":"20260416","open":15720,"high":15960,"low":15450,"close":15580,"volume":471772,"valueApprox":7396205530,"ma5":15008,"ma20":15257,"ma60":16599.333333333332,"ma120":14352.416666666666,"foreignValue":-445868440,"instValue":654562540,"totalFlowValue":208694100},{"date":"20260417","open":15720,"high":16410,"low":15440,"close":15990,"volume":889037,"valueApprox":14126797930,"ma5":15266,"ma20":15295,"ma60":16626.5,"ma120":14389.5,"foreignValue":74977110,"instValue":139720620,"totalFlowValue":214697730},{"date":"20260420","open":16000,"high":16160,"low":15530,"close":15690,"volume":366927,"valueApprox":5813958315,"ma5":15548,"ma20":15372.5,"ma60":16639.166666666668,"ma120":14427.583333333334,"foreignValue":-719260980,"instValue":-140927580,"totalFlowValue":-860188560},{"date":"20260421","open":15770,"high":15940,"low":15560,"close":15810,"volume":377125,"valueApprox":5947261250,"ma5":15732,"ma20":15416.5,"ma60":16618.333333333332,"ma120":14466.583333333334,"foreignValue":294745830,"instValue":-50481330,"totalFlowValue":244264500},{"date":"20260422","open":15790,"high":15860,"low":15450,"close":15770,"volume":392540,"valueApprox":6169747450,"ma5":15768,"ma20":15455,"ma60":16570.166666666668,"ma120":14508.166666666666,"foreignValue":527348800,"instValue":-386333460,"totalFlowValue":141015340},{"date":"20260423","open":16000,"high":16160,"low":15300,"close":15570,"volume":533470,"valueApprox":8406153525,"ma5":15766,"ma20":15370.5,"ma60":16527.166666666668,"ma120":14549.583333333334,"foreignValue":-351586170,"instValue":-544529610,"totalFlowValue":-896115780},{"date":"20260424","open":15610,"high":17680,"low":15610,"close":16920,"volume":4896485,"valueApprox":80571660675,"ma5":15952,"ma20":15343.5,"ma60":16495.166666666668,"ma120":14602.75,"foreignValue":4576064760,"instValue":-318231360,"totalFlowValue":4257833400},{"date":"20260427","open":17190,"high":18110,"low":17060,"close":17290,"volume":2179327,"valueApprox":37947531387,"ma5":16272,"ma20":15398,"ma60":16478.333333333332,"ma120":14661.416666666666,"foreignValue":3316049100,"instValue":-127237110,"totalFlowValue":3188811990},{"date":"20260428","open":17520,"high":17540,"low":16580,"close":16780,"volume":835187,"valueApprox":14285873635,"ma5":16466,"ma20":15506.5,"ma60":16442.666666666668,"ma120":14713.333333333334,"foreignValue":null,"instValue":null,"totalFlowValue":null}];
+
+      let priceChart = null, volumeChart = null, flowChart = null;
+
+      function buildPriceVolume(days) {
+        const rows = allRows.slice(-days);
+        const labels = rows.map(r => r.date.slice(4,6)+'/'+r.date.slice(6,8));
+        const wickData = rows.map(r => [r.low, r.high]);
+        const bodyData = rows.map(r => [Math.min(r.open, r.close), Math.max(r.open, r.close)]);
+        const bodyColors = rows.map(r => r.close >= r.open ? 'rgba(220, 38, 38, 0.85)' : 'rgba(37, 99, 235, 0.85)');
+
+        if (priceChart) priceChart.destroy();
+        priceChart = new Chart(document.getElementById('priceChart'), {
+          data: {
+            labels,
+            datasets: [
+              { type: 'bar', data: wickData, backgroundColor: 'rgba(100,116,139,0.6)', borderWidth: 0, barPercentage: 0.15, categoryPercentage: 0.95, order: 3 },
+              { type: 'bar', data: bodyData, backgroundColor: bodyColors, borderWidth: 0, barPercentage: 0.7, categoryPercentage: 0.95, order: 2 },
+              { type: 'line', label: '5일선',  data: rows.map(r => r.ma5),  borderColor: '#dc2626', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
+              { type: 'line', label: '20일선', data: rows.map(r => r.ma20), borderColor: '#7c3aed', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
+              { type: 'line', label: '60일선', data: rows.map(r => r.ma60), borderColor: '#16a34a', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
+              { type: 'line', label: '120일선', data: rows.map(r => r.ma120), borderColor: '#0891b2', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+              x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 10 } } },
+              y: { position: 'right', ticks: { font: { size: 10 } }, grid: { color: '#f1f5f9' } },
+            },
+            plugins: {
+              legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12, filter: (l) => l.text && !l.text.startsWith('Dataset') } },
+              tooltip: {
+                callbacks: {
+                  title: (items) => labels[items[0].dataIndex],
+                  label: (item) => {
+                    const r = rows[item.dataIndex];
+                    if (item.datasetIndex === 0 || item.datasetIndex === 1) {
+                      return [`시 ${r.open.toLocaleString()}`, `고 ${r.high.toLocaleString()}`, `저 ${r.low.toLocaleString()}`, `종 ${r.close.toLocaleString()}`];
+                    }
+                    return `${item.dataset.label}: ${item.raw != null ? Math.round(item.raw).toLocaleString() : '-'}`;
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        if (volumeChart) volumeChart.destroy();
+        const volColors = rows.map(r => r.close >= r.open ? 'rgba(220, 38, 38, 0.7)' : 'rgba(37, 99, 235, 0.7)');
+        volumeChart = new Chart(document.getElementById('volumeChart'), {
+          type: 'bar',
+          data: { labels, datasets: [{ data: rows.map(r => r.volume), backgroundColor: volColors, borderWidth: 0, barPercentage: 0.85, categoryPercentage: 0.95 }] },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 9 } } },
+              y: { position: 'right', ticks: { font: { size: 9 }, callback: (v) => v >= 1e6 ? (v/1e6).toFixed(0)+'M' : (v/1e3).toFixed(0)+'K' }, grid: { color: '#f1f5f9' } },
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: (items) => labels[items[0].dataIndex],
+                  label: (item) => `거래량: ${item.raw.toLocaleString()}`,
+                },
+              },
+            },
+          },
+        });
+      }
+      buildPriceVolume(60);  // 기본 3M
+
+      // 기간 버튼
+      document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          buildPriceVolume(parseInt(btn.dataset.days, 10));
+        });
+      });
+
+      // ─── 수급 탭 — 외+기 일별 누적 막대 (Chart.js bar) ───
+      function ensureFlowChart() {
+        if (flowChart) return;
+        const fRows = allRows.slice(-60).filter(r => r.totalFlowValue != null);
+        if (!fRows.length) return;
+        const fLabels = fRows.map(r => r.date.slice(4,6)+'/'+r.date.slice(6,8));
+        const fColors = fRows.map(r => r.totalFlowValue >= 0 ? 'rgba(220, 38, 38, 0.7)' : 'rgba(37, 99, 235, 0.7)');
+        flowChart = new Chart(document.getElementById('flowChart'), {
+          type: 'bar',
+          data: { labels: fLabels, datasets: [{ data: fRows.map(r => r.totalFlowValue), backgroundColor: fColors, borderWidth: 0, barPercentage: 0.85, categoryPercentage: 0.95 }] },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: {
+              x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 9 } } },
+              y: { position: 'right', ticks: { font: { size: 9 }, callback: (v) => Math.round(v/1e8) + '억' }, grid: { color: '#f1f5f9' } },
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: (items) => fLabels[items[0].dataIndex],
+                  label: (item) => `외+기: ${(item.raw >= 0 ? '+' : '') + Math.round(item.raw / 1e8).toLocaleString() + '억'}`,
+                },
+              },
+            },
+          },
+        });
+      }
+      const flowTabBtn = document.querySelector('[data-bs-target="#tab-flow"]');
+      if (flowTabBtn) flowTabBtn.addEventListener('shown.bs.tab', ensureFlowChart);
+    </script>
+  
+
+  <!-- Bootstrap bundle — 탭 토글용 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,4084 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>패턴 스크리너 — 종목 상태 분석 도구</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    body {
+      background: #f3f5fb; color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      padding: 24px 16px;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    .glass { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 6px 18px rgba(15,23,42,0.06); margin-bottom: 20px; }
+    .glass.compact { padding: 16px 18px; }
+    h1 { font-size: 1.4rem; font-weight: 700; margin: 0 0 6px; }
+    h2 { font-size: 1.1rem; font-weight: 700; margin: 0 0 14px; color: #0f172a; }
+    h2 .count { color: #64748b; font-weight: 500; font-size: 0.85rem; margin-left: 6px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
+
+    /* 현황 셀 */
+    .meta-cell { background: #f8fafc; border-radius: 10px; padding: 10px 12px; }
+    .meta-cell .label { color: #64748b; font-size: 0.72rem; margin-bottom: 4px; }
+    .meta-cell .value { font-weight: 700; color: #0f172a; font-size: 1.05rem; }
+
+    /* 카테고리 배너 — 모델 설명 */
+    .cat-banner {
+      background: #f1f5f9; border-left: 4px solid #94a3b8; padding: 10px 14px;
+      border-radius: 0 8px 8px 0; font-size: 0.82rem; color: #475569; margin-bottom: 12px;
+    }
+    .cat-banner.flow    { background: #eff6ff; border-color: #3b82f6; color: #1e40af; }
+    .cat-banner.rebound { background: #f0fdf4; border-color: #10b981; color: #065f46; }
+    .cat-banner.bull    { background: #fefce8; border-color: #eab308; color: #854d0e; }
+    .cat-banner.warn    { background: #fef2f2; border-color: #ef4444; color: #991b1b; }
+    .cat-banner.holding { background: #faf5ff; border-color: #a855f7; color: #6b21a8; }
+    .cat-banner.report  { background: #f8fafc; border-color: #475569; color: #334155; }
+
+    /* 종목 카드 */
+    .item-card { background: #f8fafc; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; }
+    .item-card .row1 { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+    .item-card .name-block { flex: 1; min-width: 0; }
+    .item-card .nm { font-weight: 700; color: #0f172a; }
+    .item-card .cd { color: #94a3b8; font-size: 0.78rem; margin-left: 4px; }
+    .item-card .mkt { color: #64748b; font-size: 0.7rem; margin-left: 6px; padding: 1px 6px; background: #e2e8f0; border-radius: 4px; }
+    /* 종목명 클릭 → 상세 페이지 (/?query=code) */
+    .item-card a.deep-link { text-decoration: none; color: inherit; display: inline-flex; align-items: center; gap: 4px; }
+    .item-card a.deep-link:hover .nm { color: #2563eb; text-decoration: underline; }
+    .item-card .row2, .item-card .row3 { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.78rem; color: #475569; }
+    .item-card .row2 strong, .item-card .row3 strong { color: #0f172a; font-variant-numeric: tabular-nums; }
+    .item-card .row3 { margin-top: 4px; padding-top: 5px; border-top: 1px dashed #e2e8f0; }
+
+    /* 점수 pill */
+    .score-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .score-pill.flow    { background: #dbeafe; color: #1e40af; }
+    .score-pill.rebound { background: #d1fae5; color: #065f46; }
+    .score-pill.bull    { background: #fef3c7; color: #854d0e; }
+    .score-pill.warn    { background: #fee2e2; color: #991b1b; }
+
+    /* 태그 뱃지 */
+    .tag-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: 0.7rem; font-weight: 600; margin-right: 4px;
+    }
+    .tag-FLOW_LEAD          { background: #dbeafe; color: #1e40af; }
+    .tag-REBOUND            { background: #d1fae5; color: #065f46; }
+    .tag-BULL_TREND_WATCH   { background: #fef3c7; color: #854d0e; }
+    .tag-OVERHEAT_WARNING   { background: #fee2e2; color: #991b1b; }
+    .tag-HIGH_VOLATILITY    { background: #fef9c3; color: #713f12; }
+    .tag-STRUCTURE_BROKEN   { background: #f1f5f9; color: #475569; text-decoration: line-through; }
+    .tag-NO_SIGNAL          { background: #f1f5f9; color: #94a3b8; }
+
+    /* 탭 네비 */
+    .nav-tabs { border-bottom: 2px solid #e2e8f0; margin-bottom: 20px; }
+    .nav-tabs .nav-link {
+      color: #64748b; font-weight: 600; border: none; border-radius: 0;
+      padding: 10px 20px; background: transparent;
+    }
+    .nav-tabs .nav-link.active {
+      color: #0f172a; background: transparent;
+      border-bottom: 3px solid #2563eb; margin-bottom: -2px;
+    }
+    .nav-tabs .nav-link:hover { color: #2563eb; }
+
+    .ret-pos { color: #16a34a; font-weight: 600; }
+    .ret-neg { color: #dc2626; font-weight: 600; }
+
+    .service-notice {
+      background: #f8fafc; border-radius: 10px; padding: 12px 16px;
+      font-size: 0.82rem; color: #475569; line-height: 1.6;
+      border: 1px dashed #cbd5e1; margin-top: 16px;
+    }
+
+    .empty-state {
+      text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem;
+      background: #f8fafc; border-radius: 10px;
+    }
+
+    @media (max-width: 576px) {
+      body { padding: 16px 10px; }
+      .glass { padding: 16px; border-radius: 12px; margin-bottom: 14px; }
+      h1 { font-size: 1.1rem; }
+      .topbar h1 i { display: none; }
+      .nav-tabs .nav-link { padding: 8px 12px; font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+
+
+  <!-- ─── 헤더 ─── -->
+  <div class="topbar">
+    <h1><i class="bi bi-graph-up-arrow me-2"></i>종목 상태 분석 도구</h1>
+    <div class="d-flex gap-2 align-items-center">
+      <a href="/subscribe" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-envelope me-1"></i>구독
+      </a>
+      <a href="/admin" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-gear me-1"></i>관리자
+      </a>
+    </div>
+  </div>
+
+  <!-- ─── 현황 요약 ─── -->
+  <div class="glass compact">
+    <div class="row g-2 row-cols-2 row-cols-md-6">
+      
+        <div class="col"><div class="meta-cell" style="background:#eff6ff;"><div class="label" style="color:#1e40af;">자금 선행</div><div class="value" style="color:#1d4ed8;">32</div></div></div>
+        <div class="col"><div class="meta-cell" style="background:#f0fdf4;"><div class="label" style="color:#065f46;">과매도 반등</div><div class="value" style="color:#047857;">35</div></div></div>
+        <div class="col"><div class="meta-cell" style="background:#fefce8;"><div class="label" style="color:#854d0e;">강세장 추세</div><div class="value" style="color:#a16207;">4</div></div></div>
+        <div class="col"><div class="meta-cell" style="background:#fef2f2;"><div class="label" style="color:#991b1b;">과열/추격주의</div><div class="value" style="color:#b91c1c;">360</div></div></div>
+        <div class="col"><div class="meta-cell"><div class="label">분석 종목</div><div class="value">2426</div></div></div>
+        <div class="col"><div class="meta-cell"><div class="label">시드</div><div class="value">511</div></div></div>
+      
+    </div>
+    <div class="small mt-3 text-secondary">
+      
+        분석 완료: 2026. 4. 28. 오후 6:51:34
+        
+          · 시장 regime: KOSPI <strong>bull</strong> / KOSDAQ <strong>bull</strong>
+        
+      
+    </div>
+  </div>
+
+
+
+  <!-- ─── 검색 ─── -->
+  <div class="glass compact">
+    <form method="get" action="/pattern" class="row g-2 align-items-end">
+      <div class="col-9 col-md-10">
+        <input type="text" name="cq" value="" placeholder="검색 (예: 서울반도체 or 046890)" class="form-control form-control-sm" />
+      </div>
+      <div class="col-3 col-md-2">
+        <button type="submit" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-search me-1"></i>검색</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ─── 3탭 ─── -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-today">오늘의 후보</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-warn">주의 종목</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-validation">모델 검증</button></li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 1: 오늘의 후보 (자금선행 / 과매도반등 / 강세장 추세 관찰) -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane fade show active" id="tab-today" role="tabpanel">
+
+      <!-- 1. 자금 선행 후보 (FlowLead) -->
+      <div class="glass">
+        <h2><i class="bi bi-graph-up me-1"></i>자금 선행 후보 <span class="count">(32건)</span></h2>
+        <div class="cat-banner flow">
+          외국인·기관 자금이 먼저 들어오고 있으나, 단기 가격 상승은 아직 과열되지 않은 종목입니다.
+          자금 선행 가능성을 관찰하는 후보군입니다 (매수 추천 아님).
+        </div>
+        
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=096770" class="deep-link" title="상세 보기">
+                    <span class="nm">SK이노베이션</span>
+                    <span class="cd">096770</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 78</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>133,000원</strong></span>
+                <span>5일 외+기 순매수 <strong>1013억</strong></span>
+                <span>20일 <strong>2923억</strong></span>
+                <span>수급 강도 <strong>141%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-neg">-0.4%</strong></span>
+                <span>20일 <strong class="ret-pos">22.4%</strong></span>
+                <span>변동성(ATR) <strong>3.5%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>221628억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=161890" class="deep-link" title="상세 보기">
+                    <span class="nm">한국콜마</span>
+                    <span class="cd">161890</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 76</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>89,900원</strong></span>
+                <span>5일 외+기 순매수 <strong>118억</strong></span>
+                <span>20일 <strong>334억</strong></span>
+                <span>수급 강도 <strong>63%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">4.2%</strong></span>
+                <span>20일 <strong class="ret-pos">18.3%</strong></span>
+                <span>변동성(ATR) <strong>3.7%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>21221억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=373220" class="deep-link" title="상세 보기">
+                    <span class="nm">LG에너지솔루션</span>
+                    <span class="cd">373220</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 75</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>472,000원</strong></span>
+                <span>5일 외+기 순매수 <strong>1229억</strong></span>
+                <span>20일 <strong>4123억</strong></span>
+                <span>수급 강도 <strong>60%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-neg">-1.3%</strong></span>
+                <span>20일 <strong class="ret-pos">19.6%</strong></span>
+                <span>변동성(ATR) <strong>3.9%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>1097460억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=192820" class="deep-link" title="상세 보기">
+                    <span class="nm">코스맥스</span>
+                    <span class="cd">192820</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 70</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>221,000원</strong></span>
+                <span>5일 외+기 순매수 <strong>173억</strong></span>
+                <span>20일 <strong>328억</strong></span>
+                <span>수급 강도 <strong>99%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">3.3%</strong></span>
+                <span>20일 <strong class="ret-pos">12.5%</strong></span>
+                <span>변동성(ATR) <strong>4.2%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>25196억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=033780" class="deep-link" title="상세 보기">
+                    <span class="nm">KT&amp;G</span>
+                    <span class="cd">033780</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 69</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>178,000원</strong></span>
+                <span>5일 외+기 순매수 <strong>209억</strong></span>
+                <span>20일 <strong>455억</strong></span>
+                <span>수급 강도 <strong>48%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">2.9%</strong></span>
+                <span>20일 <strong class="ret-pos">11.8%</strong></span>
+                <span>변동성(ATR) <strong>2.5%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>203895억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=000880" class="deep-link" title="상세 보기">
+                    <span class="nm">한화</span>
+                    <span class="cd">000880</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 68</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>129,100원</strong></span>
+                <span>5일 외+기 순매수 <strong>168억</strong></span>
+                <span>20일 <strong>890억</strong></span>
+                <span>수급 강도 <strong>65%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-neg">-1.1%</strong></span>
+                <span>20일 <strong class="ret-pos">20.5%</strong></span>
+                <span>변동성(ATR) <strong>4.0%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>91731억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=105840" class="deep-link" title="상세 보기">
+                    <span class="nm">우진</span>
+                    <span class="cd">105840</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 67</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>27,800원</strong></span>
+                <span>5일 외+기 순매수 <strong>114억</strong></span>
+                <span>20일 <strong>66억</strong></span>
+                <span>수급 강도 <strong>59%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">5.5%</strong></span>
+                <span>20일 <strong class="ret-pos">24.4%</strong></span>
+                <span>변동성(ATR) <strong>5.2%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>5696억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=036810" class="deep-link" title="상세 보기">
+                    <span class="nm">에프에스티</span>
+                    <span class="cd">036810</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill flow">자금 점수 67</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>43,700원</strong></span>
+                <span>5일 외+기 순매수 <strong>46억</strong></span>
+                <span>20일 <strong>43억</strong></span>
+                <span>수급 강도 <strong>51%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-neg">-2.7%</strong></span>
+                <span>20일 <strong class="ret-pos">19.7%</strong></span>
+                <span>변동성(ATR) <strong>4.8%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>9623억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=281740" class="deep-link" title="상세 보기">
+                    <span class="nm">레이크머티리얼즈</span>
+                    <span class="cd">281740</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill flow">자금 점수 67</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>24,350원</strong></span>
+                <span>5일 외+기 순매수 <strong>131억</strong></span>
+                <span>20일 <strong>7억</strong></span>
+                <span>수급 강도 <strong>47%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-neg">-1.2%</strong></span>
+                <span>20일 <strong class="ret-pos">24.8%</strong></span>
+                <span>변동성(ATR) <strong>5.9%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>16005억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=047050" class="deep-link" title="상세 보기">
+                    <span class="nm">포스코인터내셔널</span>
+                    <span class="cd">047050</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 66</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>85,000원</strong></span>
+                <span>5일 외+기 순매수 <strong>638억</strong></span>
+                <span>20일 <strong>1039억</strong></span>
+                <span>수급 강도 <strong>91%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">9.7%</strong></span>
+                <span>20일 <strong class="ret-pos">18.9%</strong></span>
+                <span>변동성(ATR) <strong>3.3%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>150414억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=060280" class="deep-link" title="상세 보기">
+                    <span class="nm">큐렉소</span>
+                    <span class="cd">060280</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill flow">자금 점수 65</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>16,780원</strong></span>
+                <span>5일 외+기 순매수 <strong>69억</strong></span>
+                <span>20일 <strong>100억</strong></span>
+                <span>수급 강도 <strong>52%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">6.1%</strong></span>
+                <span>20일 <strong class="ret-pos">14.9%</strong></span>
+                <span>변동성(ATR) <strong>4.8%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>6940억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=011170" class="deep-link" title="상세 보기">
+                    <span class="nm">롯데케미칼</span>
+                    <span class="cd">011170</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 65</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>94,500원</strong></span>
+                <span>5일 외+기 순매수 <strong>80억</strong></span>
+                <span>20일 <strong>411억</strong></span>
+                <span>수급 강도 <strong>43%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">5.1%</strong></span>
+                <span>20일 <strong class="ret-pos">17.2%</strong></span>
+                <span>변동성(ATR) <strong>4.9%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>40637억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=036460" class="deep-link" title="상세 보기">
+                    <span class="nm">한국가스공사</span>
+                    <span class="cd">036460</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 63</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>39,050원</strong></span>
+                <span>5일 외+기 순매수 <strong>124억</strong></span>
+                <span>20일 <strong>152억</strong></span>
+                <span>수급 강도 <strong>147%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">5.4%</strong></span>
+                <span>20일 <strong class="ret-pos">11.7%</strong></span>
+                <span>변동성(ATR) <strong>1.8%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>35771억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=078930" class="deep-link" title="상세 보기">
+                    <span class="nm">GS</span>
+                    <span class="cd">078930</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 63</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>76,800원</strong></span>
+                <span>5일 외+기 순매수 <strong>115억</strong></span>
+                <span>20일 <strong>350억</strong></span>
+                <span>수급 강도 <strong>67%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">8.5%</strong></span>
+                <span>20일 <strong class="ret-pos">20.4%</strong></span>
+                <span>변동성(ATR) <strong>3.7%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>71917억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=000210" class="deep-link" title="상세 보기">
+                    <span class="nm">DL</span>
+                    <span class="cd">000210</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 62</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>70,400원</strong></span>
+                <span>5일 외+기 순매수 <strong>53억</strong></span>
+                <span>20일 <strong>258억</strong></span>
+                <span>수급 강도 <strong>49%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">10.2%</strong></span>
+                <span>20일 <strong class="ret-pos">16.6%</strong></span>
+                <span>변동성(ATR) <strong>5.2%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>14313억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=282330" class="deep-link" title="상세 보기">
+                    <span class="nm">BGF리테일</span>
+                    <span class="cd">282330</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 62</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>131,400원</strong></span>
+                <span>5일 외+기 순매수 <strong>25억</strong></span>
+                <span>20일 <strong>126억</strong></span>
+                <span>수급 강도 <strong>34%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-neg">-2.0%</strong></span>
+                <span>20일 <strong class="ret-neg">-5.7%</strong></span>
+                <span>변동성(ATR) <strong>5.2%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>22573억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=097950" class="deep-link" title="상세 보기">
+                    <span class="nm">CJ제일제당</span>
+                    <span class="cd">097950</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 61</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>233,000원</strong></span>
+                <span>5일 외+기 순매수 <strong>60억</strong></span>
+                <span>20일 <strong>1238억</strong></span>
+                <span>수급 강도 <strong>31%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-neg">-1.9%</strong></span>
+                <span>20일 <strong class="ret-pos">7.6%</strong></span>
+                <span>변동성(ATR) <strong>2.2%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>35152억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=200710" class="deep-link" title="상세 보기">
+                    <span class="nm">에이디테크놀로지</span>
+                    <span class="cd">200710</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill flow">자금 점수 60</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>56,800원</strong></span>
+                <span>5일 외+기 순매수 <strong>70억</strong></span>
+                <span>20일 <strong>10억</strong></span>
+                <span>수급 강도 <strong>37%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">2.7%</strong></span>
+                <span>20일 <strong class="ret-pos">18.3%</strong></span>
+                <span>변동성(ATR) <strong>6.5%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>7741억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=001120" class="deep-link" title="상세 보기">
+                    <span class="nm">LX인터내셔널</span>
+                    <span class="cd">001120</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 60</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>55,700원</strong></span>
+                <span>5일 외+기 순매수 <strong>83억</strong></span>
+                <span>20일 <strong>321억</strong></span>
+                <span>수급 강도 <strong>66%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">11.2%</strong></span>
+                <span>20일 <strong class="ret-pos">23.1%</strong></span>
+                <span>변동성(ATR) <strong>3.6%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>21744억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=018670" class="deep-link" title="상세 보기">
+                    <span class="nm">SK가스</span>
+                    <span class="cd">018670</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 58</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>266,500원</strong></span>
+                <span>5일 외+기 순매수 <strong>32억</strong></span>
+                <span>20일 <strong>142억</strong></span>
+                <span>수급 강도 <strong>38%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">9.2%</strong></span>
+                <span>20일 <strong class="ret-neg">-0.9%</strong></span>
+                <span>변동성(ATR) <strong>3.3%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>24809억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=126340" class="deep-link" title="상세 보기">
+                    <span class="nm">비나텍</span>
+                    <span class="cd">126340</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill flow">자금 점수 57</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>141,100원</strong></span>
+                <span>5일 외+기 순매수 <strong>92억</strong></span>
+                <span>20일 <strong>46억</strong></span>
+                <span>수급 강도 <strong>46%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">5.1%</strong></span>
+                <span>20일 <strong class="ret-pos">22.6%</strong></span>
+                <span>변동성(ATR) <strong>8.0%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>10301억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=263750" class="deep-link" title="상세 보기">
+                    <span class="nm">펄어비스</span>
+                    <span class="cd">263750</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill flow">자금 점수 56</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>60,600원</strong></span>
+                <span>5일 외+기 순매수 <strong>245억</strong></span>
+                <span>20일 <strong>327억</strong></span>
+                <span>수급 강도 <strong>31%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">11.4%</strong></span>
+                <span>20일 <strong class="ret-neg">-12.2%</strong></span>
+                <span>변동성(ATR) <strong>4.6%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>39512억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=108320" class="deep-link" title="상세 보기">
+                    <span class="nm">LX세미콘</span>
+                    <span class="cd">108320</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 54</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>60,500원</strong></span>
+                <span>5일 외+기 순매수 <strong>43억</strong></span>
+                <span>20일 <strong>38억</strong></span>
+                <span>수급 강도 <strong>55%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">10.4%</strong></span>
+                <span>20일 <strong class="ret-pos">25.0%</strong></span>
+                <span>변동성(ATR) <strong>4.3%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>10279억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span><span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=009420" class="deep-link" title="상세 보기">
+                    <span class="nm">한올바이오파마</span>
+                    <span class="cd">009420</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 51</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>51,500원</strong></span>
+                <span>5일 외+기 순매수 <strong>85억</strong></span>
+                <span>20일 <strong>296억</strong></span>
+                <span>수급 강도 <strong>42%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">5.2%</strong></span>
+                <span>20일 <strong class="ret-neg">-6.9%</strong></span>
+                <span>변동성(ATR) <strong>4.2%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>27217억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=474650" class="deep-link" title="상세 보기">
+                    <span class="nm">링크솔루션</span>
+                    <span class="cd">474650</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill flow">자금 점수 48</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>62,600원</strong></span>
+                <span>5일 외+기 순매수 <strong>29억</strong></span>
+                <span>20일 <strong>32억</strong></span>
+                <span>수급 강도 <strong>53%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">5.0%</strong></span>
+                <span>20일 <strong class="ret-pos">11.0%</strong></span>
+                <span>변동성(ATR) <strong>6.5%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3669억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=214150" class="deep-link" title="상세 보기">
+                    <span class="nm">클래시스</span>
+                    <span class="cd">214150</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill flow">자금 점수 48</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>57,500원</strong></span>
+                <span>5일 외+기 순매수 <strong>46억</strong></span>
+                <span>20일 <strong>116억</strong></span>
+                <span>수급 강도 <strong>37%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">0.7%</strong></span>
+                <span>20일 <strong class="ret-pos">13.9%</strong></span>
+                <span>변동성(ATR) <strong>3.5%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>38228억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=358570" class="deep-link" title="상세 보기">
+                    <span class="nm">지아이이노베이션</span>
+                    <span class="cd">358570</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill flow">자금 점수 48</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>15,760원</strong></span>
+                <span>5일 외+기 순매수 <strong>63억</strong></span>
+                <span>20일 <strong>178억</strong></span>
+                <span>수급 강도 <strong>65%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">7.4%</strong></span>
+                <span>20일 <strong class="ret-pos">24.8%</strong></span>
+                <span>변동성(ATR) <strong>6.3%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>10227억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=064400" class="deep-link" title="상세 보기">
+                    <span class="nm">LG씨엔에스</span>
+                    <span class="cd">064400</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill flow">자금 점수 46</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>67,500원</strong></span>
+                <span>5일 외+기 순매수 <strong>110억</strong></span>
+                <span>20일 <strong>113억</strong></span>
+                <span>수급 강도 <strong>35%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">0.7%</strong></span>
+                <span>20일 <strong class="ret-pos">21.0%</strong></span>
+                <span>변동성(ATR) <strong>3.4%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>65786억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=140410" class="deep-link" title="상세 보기">
+                    <span class="nm">메지온</span>
+                    <span class="cd">140410</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill flow">자금 점수 46</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>92,800원</strong></span>
+                <span>5일 외+기 순매수 <strong>39억</strong></span>
+                <span>20일 <strong>213억</strong></span>
+                <span>수급 강도 <strong>30%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">3.1%</strong></span>
+                <span>20일 <strong class="ret-pos">7.2%</strong></span>
+                <span>변동성(ATR) <strong>4.7%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>28508억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=475830" class="deep-link" title="상세 보기">
+                    <span class="nm">오름테라퓨틱</span>
+                    <span class="cd">475830</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill flow">자금 점수 46</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>91,500원</strong></span>
+                <span>5일 외+기 순매수 <strong>128억</strong></span>
+                <span>20일 <strong>279억</strong></span>
+                <span>수급 강도 <strong>71%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">11.0%</strong></span>
+                <span>20일 <strong class="ret-pos">6.4%</strong></span>
+                <span>변동성(ATR) <strong>5.6%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>19319억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=456160" class="deep-link" title="상세 보기">
+                    <span class="nm">지투지바이오</span>
+                    <span class="cd">456160</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill flow">자금 점수 42</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>79,000원</strong></span>
+                <span>5일 외+기 순매수 <strong>157억</strong></span>
+                <span>20일 <strong>141억</strong></span>
+                <span>수급 강도 <strong>81%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">2.6%</strong></span>
+                <span>20일 <strong class="ret-pos">20.1%</strong></span>
+                <span>변동성(ATR) <strong>5.1%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>13336억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=466100" class="deep-link" title="상세 보기">
+                    <span class="nm">클로봇</span>
+                    <span class="cd">466100</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill flow">자금 점수 38</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>52,900원</strong></span>
+                <span>5일 외+기 순매수 <strong>94억</strong></span>
+                <span>20일 <strong>140억</strong></span>
+                <span>수급 강도 <strong>43%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="ret-pos">7.1%</strong></span>
+                <span>20일 <strong class="ret-pos">9.4%</strong></span>
+                <span>변동성(ATR) <strong>5.6%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>13396억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-FLOW_LEAD">자금 선행</span>
+              </div>
+            </div>
+          
+        
+      </div>
+
+      <!-- 2. 과매도 반등 후보 (Rebound) -->
+      <div class="glass">
+        <h2><i class="bi bi-arrow-counterclockwise me-1"></i>과매도 반등 후보 <span class="count">(35건)</span></h2>
+        <div class="cat-banner rebound">
+          최근 단기 과매도 상태이지만, 장기 구조가 완전히 무너지지 않은 종목입니다.
+          d1~d5 단기 반등 관찰용 후보입니다 (매수 추천 아님).
+        </div>
+        
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=008350" class="deep-link" title="상세 보기">
+                    <span class="nm">남선알미늄</span>
+                    <span class="cd">008350</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 70</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>2,350원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-2.5%</strong></span>
+                <span>10일 <strong class="ret-neg">-23.7%</strong></span>
+                <span>20일 <strong class="ret-pos">30.6%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>12.8%</strong></span>
+                <span>120일선 거리 <strong>68.8%</strong></span>
+                <span>3일 외+기 순매수 <strong>-5억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3020억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span><span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=037030" class="deep-link" title="상세 보기">
+                    <span class="nm">파워넷</span>
+                    <span class="cd">037030</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 70</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>5,890원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-8.5%</strong></span>
+                <span>10일 <strong class="ret-neg">-30.5%</strong></span>
+                <span>20일 <strong class="ret-pos">12.8%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>13.9%</strong></span>
+                <span>120일선 거리 <strong>67.1%</strong></span>
+                <span>3일 외+기 순매수 <strong>5억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>1536억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=327260" class="deep-link" title="상세 보기">
+                    <span class="nm">RF머트리얼즈</span>
+                    <span class="cd">327260</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 70</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>89,100원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-17.0%</strong></span>
+                <span>10일 <strong class="ret-neg">-12.5%</strong></span>
+                <span>20일 <strong class="ret-pos">43.9%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>14.2%</strong></span>
+                <span>120일선 거리 <strong>109.7%</strong></span>
+                <span>3일 외+기 순매수 <strong>-19억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>7561억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span><span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=230240" class="deep-link" title="상세 보기">
+                    <span class="nm">에치에프알</span>
+                    <span class="cd">230240</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 66</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>25,200원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-13.7%</strong></span>
+                <span>10일 <strong class="ret-neg">-17.1%</strong></span>
+                <span>20일 <strong class="ret-neg">-8.7%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>9.6%</strong></span>
+                <span>120일선 거리 <strong>35.7%</strong></span>
+                <span>3일 외+기 순매수 <strong>-7억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3407억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=187660" class="deep-link" title="상세 보기">
+                    <span class="nm">페니트리움바이오</span>
+                    <span class="cd">187660</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 65</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>12,510원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">1.3%</strong></span>
+                <span>10일 <strong class="ret-neg">-17.8%</strong></span>
+                <span>20일 <strong class="ret-pos">13.2%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>12.8%</strong></span>
+                <span>120일선 거리 <strong>71.1%</strong></span>
+                <span>3일 외+기 순매수 <strong>19억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>6961억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=043260" class="deep-link" title="상세 보기">
+                    <span class="nm">성호전자</span>
+                    <span class="cd">043260</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 65</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>41,500원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-21.4%</strong></span>
+                <span>10일 <strong class="ret-neg">-22.0%</strong></span>
+                <span>20일 <strong class="ret-pos">9.9%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>13.1%</strong></span>
+                <span>120일선 거리 <strong>87.0%</strong></span>
+                <span>3일 외+기 순매수 <strong>-264억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>29220억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=127120" class="deep-link" title="상세 보기">
+                    <span class="nm">제이에스링크</span>
+                    <span class="cd">127120</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 65</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>42,300원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">3.3%</strong></span>
+                <span>10일 <strong class="ret-neg">-10.7%</strong></span>
+                <span>20일 <strong class="ret-pos">11.5%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>6.9%</strong></span>
+                <span>120일선 거리 <strong>49.9%</strong></span>
+                <span>3일 외+기 순매수 <strong>1억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>14919억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=072950" class="deep-link" title="상세 보기">
+                    <span class="nm">빛샘전자</span>
+                    <span class="cd">072950</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 62</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>13,010원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-7.1%</strong></span>
+                <span>10일 <strong class="ret-neg">-28.6%</strong></span>
+                <span>20일 <strong class="ret-pos">94.2%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>21.0%</strong></span>
+                <span>120일선 거리 <strong>85.1%</strong></span>
+                <span>3일 외+기 순매수 <strong>-2억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>1050억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span><span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span><span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=034220" class="deep-link" title="상세 보기">
+                    <span class="nm">LG디스플레이</span>
+                    <span class="cd">034220</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 62</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>12,750원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-13.7%</strong></span>
+                <span>10일 <strong class="ret-neg">-0.9%</strong></span>
+                <span>20일 <strong class="ret-pos">17.5%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>6.4%</strong></span>
+                <span>120일선 거리 <strong>2.6%</strong></span>
+                <span>3일 외+기 순매수 <strong>-1249억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>64050억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=003000" class="deep-link" title="상세 보기">
+                    <span class="nm">부광약품</span>
+                    <span class="cd">003000</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 61</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>6,680원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-8.4%</strong></span>
+                <span>10일 <strong class="ret-neg">-18.3%</strong></span>
+                <span>20일 <strong class="ret-neg">-8.5%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>9.1%</strong></span>
+                <span>120일선 거리 <strong>31.9%</strong></span>
+                <span>3일 외+기 순매수 <strong>4억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>6512억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=347700" class="deep-link" title="상세 보기">
+                    <span class="nm">스피어</span>
+                    <span class="cd">347700</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 61</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>39,700원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-10.3%</strong></span>
+                <span>10일 <strong class="ret-neg">-15.9%</strong></span>
+                <span>20일 <strong class="ret-neg">-8.1%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>8.7%</strong></span>
+                <span>120일선 거리 <strong>42.6%</strong></span>
+                <span>3일 외+기 순매수 <strong>-177억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>20286억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=024060" class="deep-link" title="상세 보기">
+                    <span class="nm">흥구석유</span>
+                    <span class="cd">024060</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 60</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>17,280원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-2.4%</strong></span>
+                <span>10일 <strong class="ret-neg">-11.1%</strong></span>
+                <span>20일 <strong class="ret-neg">-10.2%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>5.3%</strong></span>
+                <span>120일선 거리 <strong>8.1%</strong></span>
+                <span>3일 외+기 순매수 <strong>11억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>2588억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=448900" class="deep-link" title="상세 보기">
+                    <span class="nm">한국피아이엠</span>
+                    <span class="cd">448900</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 60</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>97,700원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-8.5%</strong></span>
+                <span>10일 <strong class="ret-pos">7.4%</strong></span>
+                <span>20일 <strong class="ret-neg">-9.1%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>10.2%</strong></span>
+                <span>120일선 거리 <strong>26.7%</strong></span>
+                <span>3일 외+기 순매수 <strong>-56억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>6038억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=175330" class="deep-link" title="상세 보기">
+                    <span class="nm">JB금융지주</span>
+                    <span class="cd">175330</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 60</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>27,300원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-11.8%</strong></span>
+                <span>10일 <strong class="ret-neg">-10.8%</strong></span>
+                <span>20일 <strong class="ret-neg">-8.1%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>3.6%</strong></span>
+                <span>120일선 거리 <strong>-0.1%</strong></span>
+                <span>3일 외+기 순매수 <strong>-236억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>51770억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=203650" class="deep-link" title="상세 보기">
+                    <span class="nm">드림시큐리티</span>
+                    <span class="cd">203650</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 59</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>3,035원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-20.1%</strong></span>
+                <span>10일 <strong class="ret-pos">44.5%</strong></span>
+                <span>20일 <strong class="ret-pos">92.3%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>17.3%</strong></span>
+                <span>120일선 거리 <strong>69.5%</strong></span>
+                <span>3일 외+기 순매수 <strong>-11억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>2850억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span><span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span><span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=053690" class="deep-link" title="상세 보기">
+                    <span class="nm">한미글로벌</span>
+                    <span class="cd">053690</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 58</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>28,250원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-2.9%</strong></span>
+                <span>10일 <strong class="ret-neg">-12.5%</strong></span>
+                <span>20일 <strong class="ret-pos">5.0%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>7.0%</strong></span>
+                <span>120일선 거리 <strong>33.3%</strong></span>
+                <span>3일 외+기 순매수 <strong>-50억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3145억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=073490" class="deep-link" title="상세 보기">
+                    <span class="nm">LIG아큐버</span>
+                    <span class="cd">073490</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 58</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>48,450원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-12.4%</strong></span>
+                <span>10일 <strong class="ret-pos">4.0%</strong></span>
+                <span>20일 <strong class="ret-pos">27.3%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>9.8%</strong></span>
+                <span>120일선 거리 <strong>52.4%</strong></span>
+                <span>3일 외+기 순매수 <strong>-51억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3722억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=036170" class="deep-link" title="상세 보기">
+                    <span class="nm">에이치엠넥스</span>
+                    <span class="cd">036170</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 57</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>7,100원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-9.9%</strong></span>
+                <span>10일 <strong class="ret-pos">5.0%</strong></span>
+                <span>20일 <strong class="ret-pos">46.4%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>12.8%</strong></span>
+                <span>120일선 거리 <strong>167.3%</strong></span>
+                <span>3일 외+기 순매수 <strong>-21억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>4474억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span><span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=158430" class="deep-link" title="상세 보기">
+                    <span class="nm">아톤</span>
+                    <span class="cd">158430</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 57</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>8,210원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-12.2%</strong></span>
+                <span>10일 <strong class="ret-pos">20.9%</strong></span>
+                <span>20일 <strong class="ret-pos">38.7%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>12.1%</strong></span>
+                <span>120일선 거리 <strong>20.9%</strong></span>
+                <span>3일 외+기 순매수 <strong>-16억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>2010억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span><span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=368770" class="deep-link" title="상세 보기">
+                    <span class="nm">파이버프로</span>
+                    <span class="cd">368770</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 57</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>23,450원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-9.1%</strong></span>
+                <span>10일 <strong class="ret-neg">-2.3%</strong></span>
+                <span>20일 <strong class="ret-pos">26.4%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>10.8%</strong></span>
+                <span>120일선 거리 <strong>63.8%</strong></span>
+                <span>3일 외+기 순매수 <strong>-44억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>7589억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span><span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=376900" class="deep-link" title="상세 보기">
+                    <span class="nm">로킷헬스케어</span>
+                    <span class="cd">376900</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 55</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>82,200원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-10.9%</strong></span>
+                <span>10일 <strong class="ret-neg">-20.2%</strong></span>
+                <span>20일 <strong class="ret-neg">-34.1%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>10.2%</strong></span>
+                <span>120일선 거리 <strong>7.1%</strong></span>
+                <span>3일 외+기 순매수 <strong>-23억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>13095억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=091580" class="deep-link" title="상세 보기">
+                    <span class="nm">상신이디피</span>
+                    <span class="cd">091580</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 53</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>26,050원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-15.1%</strong></span>
+                <span>10일 <strong class="ret-pos">24.0%</strong></span>
+                <span>20일 <strong class="ret-pos">49.6%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>8.7%</strong></span>
+                <span>120일선 거리 <strong>62.1%</strong></span>
+                <span>3일 외+기 순매수 <strong>-15억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3512억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=017550" class="deep-link" title="상세 보기">
+                    <span class="nm">수산세보틱스</span>
+                    <span class="cd">017550</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 52</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>3,145원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-9.9%</strong></span>
+                <span>10일 <strong class="ret-neg">-0.5%</strong></span>
+                <span>20일 <strong class="ret-pos">70.8%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>11.9%</strong></span>
+                <span>120일선 거리 <strong>60.0%</strong></span>
+                <span>3일 외+기 순매수 <strong>1억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>2000억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span><span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=052710" class="deep-link" title="상세 보기">
+                    <span class="nm">아모텍</span>
+                    <span class="cd">052710</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 52</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>22,950원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-8.9%</strong></span>
+                <span>10일 <strong class="ret-neg">-1.3%</strong></span>
+                <span>20일 <strong class="ret-pos">86.6%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>11.6%</strong></span>
+                <span>120일선 거리 <strong>85.7%</strong></span>
+                <span>3일 외+기 순매수 <strong>-35억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3391억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span><span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=474610" class="deep-link" title="상세 보기">
+                    <span class="nm">RF시스템즈</span>
+                    <span class="cd">474610</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 52</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>13,390원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-10.7%</strong></span>
+                <span>10일 <strong class="ret-neg">-9.8%</strong></span>
+                <span>20일 <strong class="ret-pos">33.5%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>11.8%</strong></span>
+                <span>120일선 거리 <strong>82.2%</strong></span>
+                <span>3일 외+기 순매수 <strong>-35억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>1891억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span><span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=010170" class="deep-link" title="상세 보기">
+                    <span class="nm">대한광통신</span>
+                    <span class="cd">010170</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 52</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>15,090원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-3.9%</strong></span>
+                <span>10일 <strong class="ret-neg">-25.1%</strong></span>
+                <span>20일 <strong class="ret-pos">108.4%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>16.6%</strong></span>
+                <span>120일선 거리 <strong>172.9%</strong></span>
+                <span>3일 외+기 순매수 <strong>190억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>23929억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span><span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span><span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=047810" class="deep-link" title="상세 보기">
+                    <span class="nm">한국항공우주</span>
+                    <span class="cd">047810</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 52</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>168,000원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-7.9%</strong></span>
+                <span>10일 <strong class="ret-neg">-13.1%</strong></span>
+                <span>20일 <strong class="ret-pos">2.0%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>4.1%</strong></span>
+                <span>120일선 거리 <strong>11.3%</strong></span>
+                <span>3일 외+기 순매수 <strong>-3567억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>164830억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=272210" class="deep-link" title="상세 보기">
+                    <span class="nm">한화시스템</span>
+                    <span class="cd">272210</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 52</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>119,900원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-8.8%</strong></span>
+                <span>10일 <strong class="ret-neg">-9.9%</strong></span>
+                <span>20일 <strong class="ret-pos">5.1%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>3.9%</strong></span>
+                <span>120일선 거리 <strong>28.7%</strong></span>
+                <span>3일 외+기 순매수 <strong>-960억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>227081억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=052400" class="deep-link" title="상세 보기">
+                    <span class="nm">코나아이</span>
+                    <span class="cd">052400</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 50</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>56,500원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-9.2%</strong></span>
+                <span>10일 <strong class="ret-neg">-5.4%</strong></span>
+                <span>20일 <strong class="ret-pos">3.7%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>6.7%</strong></span>
+                <span>120일선 거리 <strong>4.6%</strong></span>
+                <span>3일 외+기 순매수 <strong>-82억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>8301억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=138080" class="deep-link" title="상세 보기">
+                    <span class="nm">오이솔루션</span>
+                    <span class="cd">138080</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 50</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>37,600원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-18.6%</strong></span>
+                <span>10일 <strong class="ret-neg">-15.0%</strong></span>
+                <span>20일 <strong class="ret-pos">13.9%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>10.6%</strong></span>
+                <span>120일선 거리 <strong>69.6%</strong></span>
+                <span>3일 외+기 순매수 <strong>-257억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>4704억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=418550" class="deep-link" title="상세 보기">
+                    <span class="nm">제이오</span>
+                    <span class="cd">418550</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 50</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>12,340원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-14.3%</strong></span>
+                <span>10일 <strong class="ret-pos">45.5%</strong></span>
+                <span>20일 <strong class="ret-pos">58.8%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>9.7%</strong></span>
+                <span>120일선 거리 <strong>50.4%</strong></span>
+                <span>3일 외+기 순매수 <strong>-33억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3906억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span><span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=257720" class="deep-link" title="상세 보기">
+                    <span class="nm">실리콘투</span>
+                    <span class="cd">257720</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 50</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>44,650원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-8.3%</strong></span>
+                <span>10일 <strong class="ret-neg">-3.7%</strong></span>
+                <span>20일 <strong class="ret-pos">17.0%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>5.4%</strong></span>
+                <span>120일선 거리 <strong>4.4%</strong></span>
+                <span>3일 외+기 순매수 <strong>-336억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>27405억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=456010" class="deep-link" title="상세 보기">
+                    <span class="nm">아이씨티케이</span>
+                    <span class="cd">456010</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 47</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>23,000원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-8.7%</strong></span>
+                <span>10일 <strong class="ret-pos">30.2%</strong></span>
+                <span>20일 <strong class="ret-pos">66.4%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>13.7%</strong></span>
+                <span>120일선 거리 <strong>40.9%</strong></span>
+                <span>3일 외+기 순매수 <strong>-13억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3281억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span><span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=218410" class="deep-link" title="상세 보기">
+                    <span class="nm">RFHIC</span>
+                    <span class="cd">218410</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 43</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>87,800원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-11.8%</strong></span>
+                <span>10일 <strong class="ret-neg">-8.3%</strong></span>
+                <span>20일 <strong class="ret-pos">17.1%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>8.0%</strong></span>
+                <span>120일선 거리 <strong>63.7%</strong></span>
+                <span>3일 외+기 순매수 <strong>-220억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>23420억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=042520" class="deep-link" title="상세 보기">
+                    <span class="nm">한스바이오메드</span>
+                    <span class="cd">042520</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill rebound">반등 점수 38</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>31,100원</strong></span>
+                <span>5일 수익률 <strong class="ret-neg">-5.9%</strong></span>
+                <span>10일 <strong class="ret-neg">-10.5%</strong></span>
+                <span>20일 <strong class="ret-neg">-7.7%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>9.1%</strong></span>
+                <span>120일선 거리 <strong>-10.8%</strong></span>
+                <span>3일 외+기 순매수 <strong>8억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>4464억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-REBOUND">과매도 반등</span>
+              </div>
+            </div>
+          
+        
+      </div>
+
+      <!-- 3. 강세장 추세 관찰 (BullTrendWatch) -->
+      <div class="glass">
+        <h2><i class="bi bi-eye me-1"></i>강세장 추세 관찰 <span class="count">(4건)</span></h2>
+        <div class="cat-banner bull">
+          이 카테고리는 단기 매수 신호가 아니라 강세장 20일 추세 관찰용입니다.
+          기존 모델은 d5 매수 모델로 실패했고, 75-84점 + bull regime 조합만 d20 추세 관찰로 사용합니다.
+        </div>
+        
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=046940" class="deep-link" title="상세 보기">
+                    <span class="nm">우원개발</span>
+                    <span class="cd">046940</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill bull">추세 점수 77</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>5,930원</strong></span>
+                <span>주봉 추세 <strong>2</strong></span>
+                <span>추세 조건 <strong>5/6</strong></span>
+                <span>손절 폭 <strong>-13.5%</strong></span>
+                
+                <span>시장 <strong>강세장</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-BULL_TREND_WATCH">강세장 추세</span>
+                <span style="margin-left:auto; color:#94a3b8; font-size:0.72rem;">20일 추세 관찰용 · 단기 매수 신호 아님</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=272110" class="deep-link" title="상세 보기">
+                    <span class="nm">케이엔제이</span>
+                    <span class="cd">272110</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill bull">추세 점수 77</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>42,650원</strong></span>
+                <span>주봉 추세 <strong>2</strong></span>
+                <span>추세 조건 <strong>5/6</strong></span>
+                <span>손절 폭 <strong>-12.4%</strong></span>
+                
+                <span>시장 <strong>강세장</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-BULL_TREND_WATCH">강세장 추세</span>
+                <span style="margin-left:auto; color:#94a3b8; font-size:0.72rem;">20일 추세 관찰용 · 단기 매수 신호 아님</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=452280" class="deep-link" title="상세 보기">
+                    <span class="nm">한선엔지니어링</span>
+                    <span class="cd">452280</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill bull">추세 점수 77</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>19,190원</strong></span>
+                <span>주봉 추세 <strong>2</strong></span>
+                <span>추세 조건 <strong>5/6</strong></span>
+                <span>손절 폭 <strong>-18.8%</strong></span>
+                
+                <span>시장 <strong>강세장</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-BULL_TREND_WATCH">강세장 추세</span>
+                <span style="margin-left:auto; color:#94a3b8; font-size:0.72rem;">20일 추세 관찰용 · 단기 매수 신호 아님</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=241520" class="deep-link" title="상세 보기">
+                    <span class="nm">DSC인베스트먼트</span>
+                    <span class="cd">241520</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill bull">추세 점수 75</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>18,190원</strong></span>
+                <span>주봉 추세 <strong>2</strong></span>
+                <span>추세 조건 <strong>5/6</strong></span>
+                <span>손절 폭 <strong>-15.1%</strong></span>
+                
+                <span>시장 <strong>강세장</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-BULL_TREND_WATCH">강세장 추세</span>
+                <span style="margin-left:auto; color:#94a3b8; font-size:0.72rem;">20일 추세 관찰용 · 단기 매수 신호 아님</span>
+              </div>
+            </div>
+          
+        
+      </div>
+
+    </div><!-- /tab-today -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 2: 주의 종목 (과열/추격주의 / 고변동성 / 구조 붕괴) -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tab-warn" role="tabpanel">
+
+      <!-- 4. 과열/추격주의 -->
+      
+      <div class="glass">
+        <h2><i class="bi bi-fire me-1"></i>과열/추격주의 <span class="count">(360건 중 상위 30)</span></h2>
+        <div class="cat-banner warn">
+          추세는 강하지만 단기 과열 가능성이 있어 신규 진입 시 주의가 필요한 종목입니다.
+          신규 추격매수보다는 분할 익절, 보유 시 리스크 관리 관점으로 확인하세요.
+        </div>
+        
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=308080" class="deep-link" title="상세 보기">
+                    <span class="nm">바이젠셀</span>
+                    <span class="cd">308080</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>11,070원</strong></span>
+                <span>5일 <strong class="ret-pos">94.55%</strong></span>
+                <span>20일 <strong class="ret-pos">106.15%</strong></span>
+                <span>20일선 이격 <strong>69.13%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>8.12%</strong></span>
+                <span>거래대금 확장 <strong>5.92배</strong></span>
+                
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>2280억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=083660" class="deep-link" title="상세 보기">
+                    <span class="nm">CSA 코스믹</span>
+                    <span class="cd">083660</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>507원</strong></span>
+                <span>5일 <strong class="ret-pos">94.25%</strong></span>
+                <span>20일 <strong class="ret-pos">77.27%</strong></span>
+                <span>20일선 이격 <strong>73.48%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>7.57%</strong></span>
+                <span>거래대금 확장 <strong>6.51배</strong></span>
+                
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>315억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=900300" class="deep-link" title="상세 보기">
+                    <span class="nm">오가닉티코스메틱</span>
+                    <span class="cd">900300</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>264원</strong></span>
+                <span>5일 <strong class="ret-pos">91.3%</strong></span>
+                <span>20일 <strong class="ret-pos">135.71%</strong></span>
+                <span>20일선 이격 <strong>80.27%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>14.18%</strong></span>
+                <span>거래대금 확장 <strong>5.01배</strong></span>
+                
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>638억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=058430" class="deep-link" title="상세 보기">
+                    <span class="nm">포스코스틸리온</span>
+                    <span class="cd">058430</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>9,130원</strong></span>
+                <span>5일 <strong class="ret-pos">90.21%</strong></span>
+                <span>20일 <strong class="ret-pos">102.89%</strong></span>
+                <span>20일선 이격 <strong>77.08%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>4.19%</strong></span>
+                <span>거래대금 확장 <strong>6.84배</strong></span>
+                <span>추세 점수 <strong>60</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>5478억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=355150" class="deep-link" title="상세 보기">
+                    <span class="nm">코스텍시스</span>
+                    <span class="cd">355150</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>41,300원</strong></span>
+                <span>5일 <strong class="ret-pos">86.04%</strong></span>
+                <span>20일 <strong class="ret-pos">99.04%</strong></span>
+                <span>20일선 이격 <strong>63.67%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>10.08%</strong></span>
+                <span>거래대금 확장 <strong>4.67배</strong></span>
+                <span>추세 점수 <strong>60</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3216억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=147760" class="deep-link" title="상세 보기">
+                    <span class="nm">피엠티</span>
+                    <span class="cd">147760</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>7,150원</strong></span>
+                <span>5일 <strong class="ret-pos">83.33%</strong></span>
+                <span>20일 <strong class="ret-pos">122.05%</strong></span>
+                <span>20일선 이격 <strong>78.37%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>9.02%</strong></span>
+                <span>거래대금 확장 <strong>8.48배</strong></span>
+                <span>추세 점수 <strong>55</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>790억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=138360" class="deep-link" title="상세 보기">
+                    <span class="nm">앤로보틱스</span>
+                    <span class="cd">138360</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>3,805원</strong></span>
+                <span>5일 <strong class="ret-pos">71.78%</strong></span>
+                <span>20일 <strong class="ret-pos">114.97%</strong></span>
+                <span>20일선 이격 <strong>62.15%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>8.37%</strong></span>
+                <span>거래대금 확장 <strong>5.72배</strong></span>
+                <span>추세 점수 <strong>61</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3218억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=058450" class="deep-link" title="상세 보기">
+                    <span class="nm">한주에이알티</span>
+                    <span class="cd">058450</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>5,030원</strong></span>
+                <span>5일 <strong class="ret-pos">68.79%</strong></span>
+                <span>20일 <strong class="ret-pos">56.02%</strong></span>
+                <span>20일선 이격 <strong>57.35%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>3.14%</strong></span>
+                <span>거래대금 확장 <strong>2.42배</strong></span>
+                
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>249억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=406820" class="deep-link" title="상세 보기">
+                    <span class="nm">뷰티스킨</span>
+                    <span class="cd">406820</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>3,310원</strong></span>
+                <span>5일 <strong class="ret-pos">62.65%</strong></span>
+                <span>20일 <strong class="ret-pos">82.87%</strong></span>
+                <span>20일선 이격 <strong>59.25%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>8.12%</strong></span>
+                <span>거래대금 확장 <strong>8.68배</strong></span>
+                
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>471억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=209640" class="deep-link" title="상세 보기">
+                    <span class="nm">와이제이링크</span>
+                    <span class="cd">209640</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>9,050원</strong></span>
+                <span>5일 <strong class="ret-pos">57.94%</strong></span>
+                <span>20일 <strong class="ret-pos">111.7%</strong></span>
+                <span>20일선 이격 <strong>68.87%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>8.6%</strong></span>
+                <span>거래대금 확장 <strong>4.83배</strong></span>
+                <span>추세 점수 <strong>50</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>2546억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=006340" class="deep-link" title="상세 보기">
+                    <span class="nm">대원전선</span>
+                    <span class="cd">006340</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>10,070원</strong></span>
+                <span>5일 <strong class="ret-pos">57.34%</strong></span>
+                <span>20일 <strong class="ret-pos">104.67%</strong></span>
+                <span>20일선 이격 <strong>55.38%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>8.24%</strong></span>
+                <span>거래대금 확장 <strong>5.03배</strong></span>
+                <span>추세 점수 <strong>57</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>7787억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=001250" class="deep-link" title="상세 보기">
+                    <span class="nm">GS글로벌</span>
+                    <span class="cd">001250</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>5,200원</strong></span>
+                <span>5일 <strong class="ret-pos">54.3%</strong></span>
+                <span>20일 <strong class="ret-pos">107.58%</strong></span>
+                <span>20일선 이격 <strong>43.64%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>7.65%</strong></span>
+                <span>거래대금 확장 <strong>4.12배</strong></span>
+                <span>추세 점수 <strong>59</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>4449억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=027360" class="deep-link" title="상세 보기">
+                    <span class="nm">아주IB투자</span>
+                    <span class="cd">027360</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>18,700원</strong></span>
+                <span>5일 <strong class="ret-pos">54.29%</strong></span>
+                <span>20일 <strong class="ret-pos">130.3%</strong></span>
+                <span>20일선 이격 <strong>59.69%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>9.39%</strong></span>
+                <span>거래대금 확장 <strong>2.79배</strong></span>
+                <span>추세 점수 <strong>59</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>21746억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=172670" class="deep-link" title="상세 보기">
+                    <span class="nm">에이엘티</span>
+                    <span class="cd">172670</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>18,850원</strong></span>
+                <span>5일 <strong class="ret-pos">53.75%</strong></span>
+                <span>20일 <strong class="ret-pos">75.68%</strong></span>
+                <span>20일선 이격 <strong>48.63%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>6.68%</strong></span>
+                <span>거래대금 확장 <strong>3.95배</strong></span>
+                <span>추세 점수 <strong>67</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>1708억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=163730" class="deep-link" title="상세 보기">
+                    <span class="nm">핑거</span>
+                    <span class="cd">163730</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>20,750원</strong></span>
+                <span>5일 <strong class="ret-pos">49.28%</strong></span>
+                <span>20일 <strong class="ret-pos">124.08%</strong></span>
+                <span>20일선 이격 <strong>58.69%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>7.82%</strong></span>
+                <span>거래대금 확장 <strong>7.27배</strong></span>
+                <span>추세 점수 <strong>64</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>1881억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=001510" class="deep-link" title="상세 보기">
+                    <span class="nm">SK증권</span>
+                    <span class="cd">001510</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>5,510원</strong></span>
+                <span>5일 <strong class="ret-pos">47.72%</strong></span>
+                <span>20일 <strong class="ret-pos">49.61%</strong></span>
+                <span>20일선 이격 <strong>40.59%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>3.19%</strong></span>
+                <span>거래대금 확장 <strong>1.44배</strong></span>
+                <span>추세 점수 <strong>64</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>13785억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=125210" class="deep-link" title="상세 보기">
+                    <span class="nm">아모그린텍</span>
+                    <span class="cd">125210</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>15,640원</strong></span>
+                <span>5일 <strong class="ret-pos">45.22%</strong></span>
+                <span>20일 <strong class="ret-pos">102.85%</strong></span>
+                <span>20일선 이격 <strong>48.06%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>7.47%</strong></span>
+                <span>거래대금 확장 <strong>7.26배</strong></span>
+                <span>추세 점수 <strong>70</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>2573억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=262260" class="deep-link" title="상세 보기">
+                    <span class="nm">에이프로</span>
+                    <span class="cd">262260</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>8,530원</strong></span>
+                <span>5일 <strong class="ret-pos">44.58%</strong></span>
+                <span>20일 <strong class="ret-pos">74.8%</strong></span>
+                <span>20일선 이격 <strong>43.16%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>6.26%</strong></span>
+                <span>거래대금 확장 <strong>6.87배</strong></span>
+                <span>추세 점수 <strong>50</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>1204억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=456040" class="deep-link" title="상세 보기">
+                    <span class="nm">OCI</span>
+                    <span class="cd">456040</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>140,900원</strong></span>
+                <span>5일 <strong class="ret-pos">43.48%</strong></span>
+                <span>20일 <strong class="ret-pos">49.89%</strong></span>
+                <span>20일선 이격 <strong>34.04%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>7.1%</strong></span>
+                <span>거래대금 확장 <strong>5.15배</strong></span>
+                <span>추세 점수 <strong>51</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>12847억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=092190" class="deep-link" title="상세 보기">
+                    <span class="nm">서울바이오시스</span>
+                    <span class="cd">092190</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>6,730원</strong></span>
+                <span>5일 <strong class="ret-pos">42.28%</strong></span>
+                <span>20일 <strong class="ret-pos">108.68%</strong></span>
+                <span>20일선 이격 <strong>61.78%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>8.27%</strong></span>
+                <span>거래대금 확장 <strong>6.13배</strong></span>
+                <span>추세 점수 <strong>51</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3179억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=010120" class="deep-link" title="상세 보기">
+                    <span class="nm">LS ELECTRIC</span>
+                    <span class="cd">010120</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>261,500원</strong></span>
+                <span>5일 <strong class="ret-pos">41.58%</strong></span>
+                <span>20일 <strong class="ret-pos">82.1%</strong></span>
+                <span>20일선 이격 <strong>41.16%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>5.74%</strong></span>
+                <span>거래대금 확장 <strong>3.11배</strong></span>
+                <span>추세 점수 <strong>67</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>395250억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=460860" class="deep-link" title="상세 보기">
+                    <span class="nm">동국제강</span>
+                    <span class="cd">460860</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>15,140원</strong></span>
+                <span>5일 <strong class="ret-pos">40.32%</strong></span>
+                <span>20일 <strong class="ret-pos">69.92%</strong></span>
+                <span>20일선 이격 <strong>41.79%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>5.01%</strong></span>
+                <span>거래대금 확장 <strong>4.46배</strong></span>
+                <span>추세 점수 <strong>60</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>7491억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=000500" class="deep-link" title="상세 보기">
+                    <span class="nm">가온전선</span>
+                    <span class="cd">000500</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>217,000원</strong></span>
+                <span>5일 <strong class="ret-pos">39.64%</strong></span>
+                <span>20일 <strong class="ret-pos">122.56%</strong></span>
+                <span>20일선 이격 <strong>55.76%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>7.67%</strong></span>
+                <span>거래대금 확장 <strong>3.17배</strong></span>
+                <span>추세 점수 <strong>66</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>36312억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=046890" class="deep-link" title="상세 보기">
+                    <span class="nm">서울반도체</span>
+                    <span class="cd">046890</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>14,800원</strong></span>
+                <span>5일 <strong class="ret-pos">39.49%</strong></span>
+                <span>20일 <strong class="ret-pos">70.7%</strong></span>
+                <span>20일선 이격 <strong>36.64%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>5.81%</strong></span>
+                <span>거래대금 확장 <strong>3.32배</strong></span>
+                <span>추세 점수 <strong>55</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>8769억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=004800" class="deep-link" title="상세 보기">
+                    <span class="nm">효성</span>
+                    <span class="cd">004800</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>227,000원</strong></span>
+                <span>5일 <strong class="ret-pos">38.58%</strong></span>
+                <span>20일 <strong class="ret-pos">76.65%</strong></span>
+                <span>20일선 이격 <strong>43.61%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>5.58%</strong></span>
+                <span>거래대금 확장 <strong>3.76배</strong></span>
+                <span>추세 점수 <strong>69</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>38084억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=061970" class="deep-link" title="상세 보기">
+                    <span class="nm">LB세미콘</span>
+                    <span class="cd">061970</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>6,730원</strong></span>
+                <span>5일 <strong class="ret-pos">38.05%</strong></span>
+                <span>20일 <strong class="ret-pos">69.52%</strong></span>
+                <span>20일선 이격 <strong>41.52%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>6.25%</strong></span>
+                <span>거래대금 확장 <strong>4.76배</strong></span>
+                <span>추세 점수 <strong>54</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3903억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=425040" class="deep-link" title="상세 보기">
+                    <span class="nm">티이엠씨</span>
+                    <span class="cd">425040</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>17,100원</strong></span>
+                <span>5일 <strong class="ret-pos">38.01%</strong></span>
+                <span>20일 <strong class="ret-pos">29.55%</strong></span>
+                <span>20일선 이격 <strong>27.39%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>5.96%</strong></span>
+                <span>거래대금 확장 <strong>2.84배</strong></span>
+                <span>추세 점수 <strong>68</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3696억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=293580" class="deep-link" title="상세 보기">
+                    <span class="nm">나우IB</span>
+                    <span class="cd">293580</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>3,235원</strong></span>
+                <span>5일 <strong class="ret-pos">36.79%</strong></span>
+                <span>20일 <strong class="ret-pos">94.65%</strong></span>
+                <span>20일선 이격 <strong>52.98%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>8.84%</strong></span>
+                <span>거래대금 확장 <strong>1.9배</strong></span>
+                <span>추세 점수 <strong>56</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>3071억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=273640" class="deep-link" title="상세 보기">
+                    <span class="nm">와이엠텍</span>
+                    <span class="cd">273640</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>11,660원</strong></span>
+                <span>5일 <strong class="ret-pos">36.53%</strong></span>
+                <span>20일 <strong class="ret-pos">61.5%</strong></span>
+                <span>20일선 이격 <strong>38.29%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>6.43%</strong></span>
+                <span>거래대금 확장 <strong>10.27배</strong></span>
+                
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>1273억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=073010" class="deep-link" title="상세 보기">
+                    <span class="nm">케이에스피</span>
+                    <span class="cd">073010</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">과열</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>6,100원</strong></span>
+                <span>5일 <strong class="ret-pos">36.47%</strong></span>
+                <span>20일 <strong class="ret-pos">86.83%</strong></span>
+                <span>20일선 이격 <strong>47.96%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong>7.28%</strong></span>
+                <span>거래대금 확장 <strong>7.46배</strong></span>
+                
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>2576억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-OVERHEAT_WARNING">과열 주의</span>
+              </div>
+            </div>
+          
+        
+      </div>
+
+      <!-- 5. 고변동성 / 구조 붕괴 (taggedAll 에서 필터) -->
+      
+      
+
+      <div class="glass">
+        <h2><i class="bi bi-exclamation-triangle me-1"></i>고변동성 종목 <span class="count">(상위 30, ATR ≥15% 우선)</span></h2>
+        <div class="cat-banner warn">
+          ATR 15% 이상 — 일중 변동성이 매우 큰 종목입니다.
+          모델 후보가 아니므로 신규 진입을 권장하지 않습니다.
+        </div>
+        
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=000300" class="deep-link" title="상세 보기">
+                    <span class="nm">DH오토넥스</span>
+                    <span class="cd">000300</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 100%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>4,200원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">0%</strong></span>
+                <span>60일 <strong class="ret-pos">0%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>1740억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=000890" class="deep-link" title="상세 보기">
+                    <span class="nm">보해양조</span>
+                    <span class="cd">000890</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 16.62%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>422원</strong></span>
+                <span>5일 <strong class="ret-neg">-3.21%</strong></span>
+                <span>20일 <strong class="ret-pos">1.2%</strong></span>
+                <span>60일 <strong class="ret-pos">3.43%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>583억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=001130" class="deep-link" title="상세 보기">
+                    <span class="nm">대한제분</span>
+                    <span class="cd">001130</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 37.27%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>156,500원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">10.68%</strong></span>
+                <span>60일 <strong class="ret-pos">9.44%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>2645억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=001380" class="deep-link" title="상세 보기">
+                    <span class="nm">SG글로벌</span>
+                    <span class="cd">001380</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 93.21%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>1,098원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-neg">-16.31%</strong></span>
+                <span>60일 <strong class="ret-neg">-30.42%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>494억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=001470" class="deep-link" title="상세 보기">
+                    <span class="nm">삼부토건</span>
+                    <span class="cd">001470</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 100%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>347원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">0%</strong></span>
+                <span>60일 <strong class="ret-pos">0%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>797억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=001570" class="deep-link" title="상세 보기">
+                    <span class="nm">금양</span>
+                    <span class="cd">001570</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 100%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>9,900원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">0%</strong></span>
+                <span>60일 <strong class="ret-pos">0%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>6333억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=001620" class="deep-link" title="상세 보기">
+                    <span class="nm">케이비아이동국실업</span>
+                    <span class="cd">001620</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 26.06%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>642원</strong></span>
+                <span>5일 <strong class="ret-neg">-2.58%</strong></span>
+                <span>20일 <strong class="ret-pos">4.56%</strong></span>
+                <span>60일 <strong class="ret-pos">16.73%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>715억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=001840" class="deep-link" title="상세 보기">
+                    <span class="nm">이화공영</span>
+                    <span class="cd">001840</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">변동성 100%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>2,215원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">0%</strong></span>
+                <span>60일 <strong class="ret-pos">0%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>626억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=002070" class="deep-link" title="상세 보기">
+                    <span class="nm">비비안</span>
+                    <span class="cd">002070</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 79.84%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>355원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-neg">-2.74%</strong></span>
+                <span>60일 <strong class="ret-neg">-36.83%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>160억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=002210" class="deep-link" title="상세 보기">
+                    <span class="nm">동성제약</span>
+                    <span class="cd">002210</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 100%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>973원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">0%</strong></span>
+                <span>60일 <strong class="ret-pos">0%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>259억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=002410" class="deep-link" title="상세 보기">
+                    <span class="nm">범양건영</span>
+                    <span class="cd">002410</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 100%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>1,935원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">0%</strong></span>
+                <span>60일 <strong class="ret-pos">0%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>532억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=003060" class="deep-link" title="상세 보기">
+                    <span class="nm">에이프로젠바이오로직스</span>
+                    <span class="cd">003060</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 87.17%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>251원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-neg">-14.92%</strong></span>
+                <span>60일 <strong class="ret-neg">-52.28%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>498억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span><span class="tag-badge tag-STRUCTURE_BROKEN">구조 붕괴</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=004060" class="deep-link" title="상세 보기">
+                    <span class="nm">SG세계물산</span>
+                    <span class="cd">004060</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 87.17%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>489원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-neg">-4.31%</strong></span>
+                <span>60일 <strong class="ret-pos">50.46%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>990억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=004270" class="deep-link" title="상세 보기">
+                    <span class="nm">남성</span>
+                    <span class="cd">004270</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 86.02%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>753원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">0.27%</strong></span>
+                <span>60일 <strong class="ret-neg">-8.73%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>273억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=004410" class="deep-link" title="상세 보기">
+                    <span class="nm">서울식품</span>
+                    <span class="cd">004410</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 18.22%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>158원</strong></span>
+                <span>5일 <strong class="ret-neg">-3.07%</strong></span>
+                <span>20일 <strong class="ret-neg">-9.2%</strong></span>
+                <span>60일 <strong class="ret-pos">9.72%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>623억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=005030" class="deep-link" title="상세 보기">
+                    <span class="nm">부산주공</span>
+                    <span class="cd">005030</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 100%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>486원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">0%</strong></span>
+                <span>60일 <strong class="ret-pos">0%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>451억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=005110" class="deep-link" title="상세 보기">
+                    <span class="nm">한창</span>
+                    <span class="cd">005110</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 100%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>1,254원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">0%</strong></span>
+                <span>60일 <strong class="ret-pos">0%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>265억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=006380" class="deep-link" title="상세 보기">
+                    <span class="nm">카프로</span>
+                    <span class="cd">006380</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 100%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>3,660원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">0%</strong></span>
+                <span>60일 <strong class="ret-pos">0%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>6185억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=007280" class="deep-link" title="상세 보기">
+                    <span class="nm">한국특강</span>
+                    <span class="cd">007280</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 72.4%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>1,524원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">6.95%</strong></span>
+                <span>60일 <strong class="ret-pos">9.48%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>927억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=007460" class="deep-link" title="상세 보기">
+                    <span class="nm">에이프로젠</span>
+                    <span class="cd">007460</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 80.89%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>293원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-neg">-5.79%</strong></span>
+                <span>60일 <strong class="ret-neg">-61.8%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>965억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span><span class="tag-badge tag-STRUCTURE_BROKEN">구조 붕괴</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=007610" class="deep-link" title="상세 보기">
+                    <span class="nm">선도전기</span>
+                    <span class="cd">007610</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 100%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>3,000원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">0%</strong></span>
+                <span>60일 <strong class="ret-pos">0%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>540억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=008600" class="deep-link" title="상세 보기">
+                    <span class="nm">윌비스</span>
+                    <span class="cd">008600</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 100%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>2,620원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">0%</strong></span>
+                <span>60일 <strong class="ret-neg">-32.98%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>176억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=009310" class="deep-link" title="상세 보기">
+                    <span class="nm">참엔지니어링</span>
+                    <span class="cd">009310</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 100%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>1,065원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">0%</strong></span>
+                <span>60일 <strong class="ret-neg">-5.33%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>233억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=009440" class="deep-link" title="상세 보기">
+                    <span class="nm">KC그린홀딩스</span>
+                    <span class="cd">009440</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 100%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>756원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">0%</strong></span>
+                <span>60일 <strong class="ret-pos">0%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>176억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=009460" class="deep-link" title="상세 보기">
+                    <span class="nm">한창제지</span>
+                    <span class="cd">009460</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 19.24%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>544원</strong></span>
+                <span>5일 <strong class="ret-pos">0.93%</strong></span>
+                <span>20일 <strong class="ret-neg">-4.73%</strong></span>
+                <span>60일 <strong class="ret-pos">7.09%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>325억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=009810" class="deep-link" title="상세 보기">
+                    <span class="nm">플레이그램</span>
+                    <span class="cd">009810</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 18.09%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>1,178원</strong></span>
+                <span>5일 <strong class="ret-pos">0.43%</strong></span>
+                <span>20일 <strong class="ret-pos">13.82%</strong></span>
+                <span>60일 <strong class="ret-neg">-9.73%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>358억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=010280" class="deep-link" title="상세 보기">
+                    <span class="nm">아이티센엔텍</span>
+                    <span class="cd">010280</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">변동성 100%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>1,145원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-pos">14.61%</strong></span>
+                <span>60일 <strong class="ret-neg">-4.58%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>746억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=011000" class="deep-link" title="상세 보기">
+                    <span class="nm">진원생명과학</span>
+                    <span class="cd">011000</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 18.58%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>918원</strong></span>
+                <span>5일 <strong class="ret-neg">-31.8%</strong></span>
+                <span>20일 <strong class="ret-pos">0.22%</strong></span>
+                <span>60일 <strong class="ret-neg">-52.85%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>830억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span><span class="tag-badge tag-STRUCTURE_BROKEN">구조 붕괴</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=011080" class="deep-link" title="상세 보기">
+                    <span class="nm">형지I&amp;C</span>
+                    <span class="cd">011080</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">변동성 94.94%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>435원</strong></span>
+                <span>5일 <strong class="ret-pos">0%</strong></span>
+                <span>20일 <strong class="ret-neg">-8.42%</strong></span>
+                <span>60일 <strong class="ret-neg">-38.03%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>187억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=011090" class="deep-link" title="상세 보기">
+                    <span class="nm">에넥스</span>
+                    <span class="cd">011090</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">변동성 24.83%</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>428원</strong></span>
+                <span>5일 <strong class="ret-pos">0.71%</strong></span>
+                <span>20일 <strong class="ret-pos">6.73%</strong></span>
+                <span>60일 <strong class="ret-neg">-18.79%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>257억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-HIGH_VOLATILITY">고변동성</span>
+              </div>
+            </div>
+          
+        
+      </div>
+
+      <div class="glass">
+        <h2><i class="bi bi-x-octagon me-1"></i>구조 붕괴 종목 <span class="count">(상위 30, 200MA 큰 폭 이탈/장기 -45% 이하)</span></h2>
+        <div class="cat-banner warn">
+          장기 추세선 (200MA) 큰 폭 이탈 또는 60일 -45% 이하 — 추세 회복까지 상당한 시간이 필요합니다.
+          단기 과매도 반등 모델 (Rebound) 에서도 hard reject 됐으므로 신규 진입 비추천.
+        </div>
+        
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=009730" class="deep-link" title="상세 보기">
+                    <span class="nm">이렘</span>
+                    <span class="cd">009730</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">구조 붕괴</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>333원</strong></span>
+                <span>20일 <strong class="ret-neg">-37.29%</strong></span>
+                <span>60일 <strong class="ret-neg">-44.5%</strong></span>
+                <span>변동성(ATR) <strong>10.32%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>240억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-STRUCTURE_BROKEN">구조 붕괴</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=011330" class="deep-link" title="상세 보기">
+                    <span class="nm">유니켐</span>
+                    <span class="cd">011330</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">구조 붕괴</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>631원</strong></span>
+                <span>20일 <strong class="ret-neg">-10.24%</strong></span>
+                <span>60일 <strong class="ret-neg">-46.39%</strong></span>
+                <span>변동성(ATR) <strong>5.09%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>569억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-STRUCTURE_BROKEN">구조 붕괴</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=071950" class="deep-link" title="상세 보기">
+                    <span class="nm">코아스</span>
+                    <span class="cd">071950</span>
+                  </a>
+                  <span class="mkt">KOSPI</span>
+                </div>
+                <span class="score-pill warn">구조 붕괴</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>1,632원</strong></span>
+                <span>20일 <strong class="ret-pos">6.39%</strong></span>
+                <span>60일 <strong class="ret-neg">-65.64%</strong></span>
+                <span>변동성(ATR) <strong>8.81%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>203억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-STRUCTURE_BROKEN">구조 붕괴</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=078590" class="deep-link" title="상세 보기">
+                    <span class="nm">휴림에이텍</span>
+                    <span class="cd">078590</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">구조 붕괴</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>546원</strong></span>
+                <span>20일 <strong class="ret-neg">-27.2%</strong></span>
+                <span>60일 <strong class="ret-neg">-45.4%</strong></span>
+                <span>변동성(ATR) <strong>9.42%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>544억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-STRUCTURE_BROKEN">구조 붕괴</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=079950" class="deep-link" title="상세 보기">
+                    <span class="nm">인베니아</span>
+                    <span class="cd">079950</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">구조 붕괴</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>1,164원</strong></span>
+                <span>20일 <strong class="ret-pos">14.12%</strong></span>
+                <span>60일 <strong class="ret-neg">-67.03%</strong></span>
+                <span>변동성(ATR) <strong>9.11%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>160억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-STRUCTURE_BROKEN">구조 붕괴</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=084180" class="deep-link" title="상세 보기">
+                    <span class="nm">수성웹툰</span>
+                    <span class="cd">084180</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">구조 붕괴</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>1,159원</strong></span>
+                <span>20일 <strong class="ret-neg">-28.41%</strong></span>
+                <span>60일 <strong class="ret-neg">-58.38%</strong></span>
+                <span>변동성(ATR) <strong>5.13%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>206억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-STRUCTURE_BROKEN">구조 붕괴</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=156100" class="deep-link" title="상세 보기">
+                    <span class="nm">엘앤케이바이오</span>
+                    <span class="cd">156100</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">구조 붕괴</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>7,550원</strong></span>
+                <span>20일 <strong class="ret-neg">-5.39%</strong></span>
+                <span>60일 <strong class="ret-neg">-51.48%</strong></span>
+                <span>변동성(ATR) <strong>4.77%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>1688억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-STRUCTURE_BROKEN">구조 붕괴</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=294140" class="deep-link" title="상세 보기">
+                    <span class="nm">레몬</span>
+                    <span class="cd">294140</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">구조 붕괴</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>3,440원</strong></span>
+                <span>20일 <strong class="ret-pos">11.33%</strong></span>
+                <span>60일 <strong class="ret-neg">-52.62%</strong></span>
+                <span>변동성(ATR) <strong>8.36%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>771억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-STRUCTURE_BROKEN">구조 붕괴</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=000250" class="deep-link" title="상세 보기">
+                    <span class="nm">삼천당제약</span>
+                    <span class="cd">000250</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">구조 붕괴</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>432,000원</strong></span>
+                <span>20일 <strong class="ret-neg">-47.89%</strong></span>
+                <span>60일 <strong class="ret-neg">-1.71%</strong></span>
+                <span>변동성(ATR) <strong>10.92%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>101688억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-STRUCTURE_BROKEN">구조 붕괴</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=214450" class="deep-link" title="상세 보기">
+                    <span class="nm">파마리서치</span>
+                    <span class="cd">214450</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">구조 붕괴</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>325,000원</strong></span>
+                <span>20일 <strong class="ret-pos">8.7%</strong></span>
+                <span>60일 <strong class="ret-neg">-36.89%</strong></span>
+                <span>변동성(ATR) <strong>3.58%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>34286억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-STRUCTURE_BROKEN">구조 붕괴</span>
+              </div>
+            </div>
+          
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=348370" class="deep-link" title="상세 보기">
+                    <span class="nm">엔켐</span>
+                    <span class="cd">348370</span>
+                  </a>
+                  <span class="mkt">KOSDAQ</span>
+                </div>
+                <span class="score-pill warn">구조 붕괴</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong>47,600원</strong></span>
+                <span>20일 <strong class="ret-pos">16.24%</strong></span>
+                <span>60일 <strong class="ret-neg">-46.21%</strong></span>
+                <span>변동성(ATR) <strong>7.45%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong>10364억</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-STRUCTURE_BROKEN">구조 붕괴</span>
+              </div>
+            </div>
+          
+        
+      </div>
+
+    </div><!-- /tab-warn -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 3: 모델 검증 (보유점검 + 검증 리포트) -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tab-validation" role="tabpanel">
+
+      <!-- 5. 보유/관심종목 점검 -->
+      <div class="glass">
+        <h2><i class="bi bi-person-check me-1"></i>보유/관심종목 점검</h2>
+        <div class="cat-banner holding">
+          보유 또는 관심 종목 코드/이름을 입력하면 각 모델이 어떻게 평가하는지 통합 카드로 보여줍니다.
+          매수/매도 추천이 아니라 종목 상태 분석입니다.
+        </div>
+        <form method="get" action="/pattern" class="row g-2 mb-3">
+          <div class="col-md-9">
+            <input type="text" name="holdings" value=""
+                   placeholder="종목 코드/이름 (쉼표/공백 구분, 예: 005930, 한미반도체)"
+                   class="form-control form-control-sm" />
+          </div>
+          <div class="col-md-3">
+            <button type="submit" class="btn btn-outline-primary btn-sm w-100">점검</button>
+          </div>
+          <input type="hidden" name="cq" value="" />
+        </form>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="small text-secondary">기존 검색은 그대로 유지하며, 점검할 종목만 추가 입력됩니다.</span>
+          <a href="/pattern" class="btn btn-link btn-sm">초기화</a>
+        </div>
+
+        
+          <div class="empty-state">점검할 종목을 입력하세요.</div>
+        
+      </div>
+
+      <!-- 6. 모델 검증 리포트 -->
+      <div class="glass">
+        <h2><i class="bi bi-clipboard-data me-1"></i>모델 검증 리포트</h2>
+        <div class="empty-state" style="padding: 48px 24px;">
+          <div style="font-size: 1.2rem; color: #475569; margin-bottom: 12px;">
+            <i class="bi bi-tools me-1"></i><strong>개발 중입니다</strong>
+          </div>
+          <div class="small text-secondary">
+            약 4시간 후 다시 확인 바랍니다.
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-validation -->
+
+  </div><!-- /tab-content -->
+
+  <!-- ─── 서비스 안내 ─── -->
+  <div class="service-notice">
+    <strong>본 서비스는 매수 추천이 아닙니다.</strong>
+    각 종목의 상태와 과거 검증 기반 후보를 보여주는 분석 도구입니다.
+    각 모델은 서로 다른 가설을 기반으로 하며, 시장 상황에 따라 성과가 달라질 수 있습니다.
+    투자 판단과 책임은 사용자 본인에게 있습니다.
+  </div>
+
+
+
+</div><!-- /wrap -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

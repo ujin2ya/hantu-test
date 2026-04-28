@@ -6,7 +6,7 @@
   <title><%= stockMeta ? stockMeta.name + ' — 패턴 정보' : '종목 검색' %></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
-  <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     body {
       background: #f3f5fb; color: #1f2937;
@@ -140,8 +140,8 @@
             <button type="button" class="period-btn" data-days="120">6M</button>
             <button type="button" class="period-btn" data-days="250">1Y</button>
           </div>
-          <div class="chart-box" id="priceChart"></div>
-          <div class="chart-box volume" id="volumeChart"></div>
+          <div class="chart-box"><canvas id="priceChart"></canvas></div>
+          <div class="chart-box volume"><canvas id="volumeChart"></canvas></div>
           <div class="ma-legend">
             <span><span class="dot" style="background:#dc2626;"></span>5일선</span>
             <span><span class="dot" style="background:#7c3aed;"></span>20일선</span>
@@ -299,7 +299,7 @@
                   <div class="meta-cell"><div class="label">수급 강도 (5일 / 20일 평균거래대금)</div><div class="value"><%= Math.round(flowRatio5d * 100) %>%</div></div>
                 </div>
               <% } %>
-              <div class="chart-box volume" id="flowChart"></div>
+              <div class="chart-box volume"><canvas id="flowChart"></canvas></div>
               <div class="small text-secondary mt-2">
                 ※ 데이터 마지막 일자: <%= fs.lastDate %> · 수집 일수: <%= fs.days %>일 · 종가 × 순매수 주식수 환산
               </div>
@@ -386,6 +386,23 @@
 
         </div>
 
+        <!-- AI 관찰 포인트 (Gemini) -->
+        <% if (typeof aiComment !== 'undefined' && aiComment && aiComment.text) { %>
+          <div class="glass" style="border-left: 4px solid #a855f7; margin-top: 16px;">
+            <h2 style="color:#7c3aed;"><i class="bi bi-robot me-1"></i>AI 관찰 포인트</h2>
+            <div style="font-size: 0.92rem; line-height: 1.75; color: #334155; white-space: pre-wrap;"><%= aiComment.text %></div>
+            <div class="small text-secondary mt-3" style="font-size:0.7rem; padding-top:8px; border-top:1px dashed #e2e8f0;">
+              ※ 본 코멘트는 분석 도구의 보조 설명이며 매수/매도 추천이 아닙니다.
+              <% if (aiComment.cached) { %>· 캐시 적중<% } else if (aiComment.model) { %>· <%= aiComment.model %><% } %>
+            </div>
+          </div>
+        <% } else if (typeof aiComment !== 'undefined' && aiComment && aiComment.error) { %>
+          <div class="glass" style="border-left: 4px solid #cbd5e1; margin-top: 16px;">
+            <h2 style="color:#94a3b8;"><i class="bi bi-robot me-1"></i>AI 관찰 포인트</h2>
+            <div class="small text-secondary">코멘트 생성 실패 — 잠시 후 다시 시도해주세요.</div>
+          </div>
+        <% } %>
+
         <!-- 주의 문구 -->
         <div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px; padding:12px 16px; font-size:0.82rem; color:#475569; margin: 16px 0;">
           <strong>본 페이지는 매수 추천이 아닙니다.</strong>
@@ -404,106 +421,122 @@
 
   <% if (stockMeta && chartRows && chartRows.length) { %>
     <script>
-      // lightweight-charts (TradingView) — 캔들 + MA5/20/60/120 + 거래량 + 기간 버튼
+      // Chart.js — 옛 차트 모양 + 기간 버튼 + MA120 추가 + 수급 누적 막대
       const allRows = <%- JSON.stringify(chartRows) %>;
-      const fmtTime = (d) => d.slice(0,4) + '-' + d.slice(4,6) + '-' + d.slice(6,8);
 
-      // 가격 차트 (캔들 + MA)
-      const priceContainer = document.getElementById('priceChart');
-      const priceChart = LightweightCharts.createChart(priceContainer, {
-        width: priceContainer.clientWidth, height: 360,
-        layout: { background: { color: '#fff' }, textColor: '#475569', fontSize: 11 },
-        grid: { vertLines: { color: '#f1f5f9' }, horzLines: { color: '#f1f5f9' } },
-        rightPriceScale: { borderColor: '#e2e8f0' },
-        timeScale: { borderColor: '#e2e8f0', timeVisible: false },
-        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-        localization: { priceFormatter: (p) => Math.round(p).toLocaleString('ko-KR') },
-      });
-      const candle = priceChart.addCandlestickSeries({
-        upColor: '#dc2626', downColor: '#2563eb',
-        borderUpColor: '#dc2626', borderDownColor: '#2563eb',
-        wickUpColor: '#dc2626', wickDownColor: '#2563eb',
-      });
-      const lineOpts = { lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false };
-      const ma5L  = priceChart.addLineSeries({ ...lineOpts, color: '#dc2626' });
-      const ma20L = priceChart.addLineSeries({ ...lineOpts, color: '#7c3aed' });
-      const ma60L = priceChart.addLineSeries({ ...lineOpts, color: '#16a34a' });
-      const ma120L = priceChart.addLineSeries({ ...lineOpts, color: '#0891b2' });
+      let priceChart = null, volumeChart = null, flowChart = null;
 
-      // 거래량 차트
-      const volContainer = document.getElementById('volumeChart');
-      const volChart = LightweightCharts.createChart(volContainer, {
-        width: volContainer.clientWidth, height: 120,
-        layout: { background: { color: '#fff' }, textColor: '#475569', fontSize: 10 },
-        grid: { vertLines: { color: '#f1f5f9' }, horzLines: { color: '#f1f5f9' } },
-        rightPriceScale: { borderColor: '#e2e8f0' },
-        timeScale: { borderColor: '#e2e8f0', timeVisible: false, visible: true },
-        handleScroll: true, handleScale: true,
-      });
-      const volSeries = volChart.addHistogramSeries({ priceFormat: { type: 'volume' }, priceLineVisible: false, lastValueVisible: false });
+      function buildPriceVolume(days) {
+        const rows = allRows.slice(-days);
+        const labels = rows.map(r => r.date.slice(4,6)+'/'+r.date.slice(6,8));
+        const wickData = rows.map(r => [r.low, r.high]);
+        const bodyData = rows.map(r => [Math.min(r.open, r.close), Math.max(r.open, r.close)]);
+        const bodyColors = rows.map(r => r.close >= r.open ? 'rgba(220, 38, 38, 0.85)' : 'rgba(37, 99, 235, 0.85)');
 
-      // 두 차트 시간축 동기화
-      priceChart.timeScale().subscribeVisibleLogicalRangeChange((r) => { if (r) volChart.timeScale().setVisibleLogicalRange(r); });
-      volChart.timeScale().subscribeVisibleLogicalRangeChange((r) => { if (r) priceChart.timeScale().setVisibleLogicalRange(r); });
+        if (priceChart) priceChart.destroy();
+        priceChart = new Chart(document.getElementById('priceChart'), {
+          data: {
+            labels,
+            datasets: [
+              { type: 'bar', data: wickData, backgroundColor: 'rgba(100,116,139,0.6)', borderWidth: 0, barPercentage: 0.15, categoryPercentage: 0.95, order: 3 },
+              { type: 'bar', data: bodyData, backgroundColor: bodyColors, borderWidth: 0, barPercentage: 0.7, categoryPercentage: 0.95, order: 2 },
+              { type: 'line', label: '5일선',  data: rows.map(r => r.ma5),  borderColor: '#dc2626', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
+              { type: 'line', label: '20일선', data: rows.map(r => r.ma20), borderColor: '#7c3aed', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
+              { type: 'line', label: '60일선', data: rows.map(r => r.ma60), borderColor: '#16a34a', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
+              { type: 'line', label: '120일선', data: rows.map(r => r.ma120), borderColor: '#0891b2', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+              x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 10 } } },
+              y: { position: 'right', ticks: { font: { size: 10 } }, grid: { color: '#f1f5f9' } },
+            },
+            plugins: {
+              legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12, filter: (l) => l.text && !l.text.startsWith('Dataset') } },
+              tooltip: {
+                callbacks: {
+                  title: (items) => labels[items[0].dataIndex],
+                  label: (item) => {
+                    const r = rows[item.dataIndex];
+                    if (item.datasetIndex === 0 || item.datasetIndex === 1) {
+                      return [`시 ${r.open.toLocaleString()}`, `고 ${r.high.toLocaleString()}`, `저 ${r.low.toLocaleString()}`, `종 ${r.close.toLocaleString()}`];
+                    }
+                    return `${item.dataset.label}: ${item.raw != null ? Math.round(item.raw).toLocaleString() : '-'}`;
+                  },
+                },
+              },
+            },
+          },
+        });
 
-      // 기간 적용
-      function applyPeriod(days) {
-        const sliced = allRows.slice(-days);
-        candle.setData(sliced.map(r => ({ time: fmtTime(r.date), open: r.open, high: r.high, low: r.low, close: r.close })));
-        ma5L.setData(sliced.filter(r => r.ma5 != null).map(r => ({ time: fmtTime(r.date), value: r.ma5 })));
-        ma20L.setData(sliced.filter(r => r.ma20 != null).map(r => ({ time: fmtTime(r.date), value: r.ma20 })));
-        ma60L.setData(sliced.filter(r => r.ma60 != null).map(r => ({ time: fmtTime(r.date), value: r.ma60 })));
-        ma120L.setData(sliced.filter(r => r.ma120 != null).map(r => ({ time: fmtTime(r.date), value: r.ma120 })));
-        volSeries.setData(sliced.map(r => ({
-          time: fmtTime(r.date), value: r.volume || 0,
-          color: r.close >= r.open ? 'rgba(220, 38, 38, 0.7)' : 'rgba(37, 99, 235, 0.7)',
-        })));
-        priceChart.timeScale().fitContent();
-        volChart.timeScale().fitContent();
+        if (volumeChart) volumeChart.destroy();
+        const volColors = rows.map(r => r.close >= r.open ? 'rgba(220, 38, 38, 0.7)' : 'rgba(37, 99, 235, 0.7)');
+        volumeChart = new Chart(document.getElementById('volumeChart'), {
+          type: 'bar',
+          data: { labels, datasets: [{ data: rows.map(r => r.volume), backgroundColor: volColors, borderWidth: 0, barPercentage: 0.85, categoryPercentage: 0.95 }] },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 9 } } },
+              y: { position: 'right', ticks: { font: { size: 9 }, callback: (v) => v >= 1e6 ? (v/1e6).toFixed(0)+'M' : (v/1e3).toFixed(0)+'K' }, grid: { color: '#f1f5f9' } },
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: (items) => labels[items[0].dataIndex],
+                  label: (item) => `거래량: ${item.raw.toLocaleString()}`,
+                },
+              },
+            },
+          },
+        });
       }
-      applyPeriod(60);
+      buildPriceVolume(60);  // 기본 3M
 
       // 기간 버튼
       document.querySelectorAll('.period-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          applyPeriod(parseInt(btn.dataset.days, 10));
+          buildPriceVolume(parseInt(btn.dataset.days, 10));
         });
       });
 
-      // ─── 수급 탭 — 외+기 일별 누적 차트 (히스토그램) ───
-      const flowContainer = document.getElementById('flowChart');
-      let flowChart = null, flowSeries = null;
+      // ─── 수급 탭 — 외+기 일별 누적 막대 (Chart.js bar) ───
       function ensureFlowChart() {
-        if (flowChart || !flowContainer) return;
-        flowChart = LightweightCharts.createChart(flowContainer, {
-          width: flowContainer.clientWidth, height: 120,
-          layout: { background: { color: '#fff' }, textColor: '#475569', fontSize: 10 },
-          grid: { vertLines: { color: '#f1f5f9' }, horzLines: { color: '#f1f5f9' } },
-          rightPriceScale: { borderColor: '#e2e8f0' },
-          timeScale: { borderColor: '#e2e8f0', timeVisible: false },
-          handleScroll: false, handleScale: false,
-          localization: { priceFormatter: (v) => Math.round(v / 1e8) + '억' },
+        if (flowChart) return;
+        const fRows = allRows.slice(-60).filter(r => r.totalFlowValue != null);
+        if (!fRows.length) return;
+        const fLabels = fRows.map(r => r.date.slice(4,6)+'/'+r.date.slice(6,8));
+        const fColors = fRows.map(r => r.totalFlowValue >= 0 ? 'rgba(220, 38, 38, 0.7)' : 'rgba(37, 99, 235, 0.7)');
+        flowChart = new Chart(document.getElementById('flowChart'), {
+          type: 'bar',
+          data: { labels: fLabels, datasets: [{ data: fRows.map(r => r.totalFlowValue), backgroundColor: fColors, borderWidth: 0, barPercentage: 0.85, categoryPercentage: 0.95 }] },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: {
+              x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 9 } } },
+              y: { position: 'right', ticks: { font: { size: 9 }, callback: (v) => Math.round(v/1e8) + '억' }, grid: { color: '#f1f5f9' } },
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: (items) => fLabels[items[0].dataIndex],
+                  label: (item) => `외+기: ${(item.raw >= 0 ? '+' : '') + Math.round(item.raw / 1e8).toLocaleString() + '억'}`,
+                },
+              },
+            },
+          },
         });
-        flowSeries = flowChart.addHistogramSeries({ priceFormat: { type: 'price', precision: 0, minMove: 1 }, priceLineVisible: false, lastValueVisible: false });
-        const flowData = allRows.slice(-60).filter(r => r.totalFlowValue != null).map(r => ({
-          time: fmtTime(r.date), value: r.totalFlowValue,
-          color: r.totalFlowValue >= 0 ? 'rgba(220, 38, 38, 0.7)' : 'rgba(37, 99, 235, 0.7)',
-        }));
-        flowSeries.setData(flowData);
-        flowChart.timeScale().fitContent();
       }
-      // 수급 탭 처음 활성화 시 차트 그림 (Bootstrap shown.bs.tab 이벤트)
       const flowTabBtn = document.querySelector('[data-bs-target="#tab-flow"]');
       if (flowTabBtn) flowTabBtn.addEventListener('shown.bs.tab', ensureFlowChart);
-
-      // 반응형
-      window.addEventListener('resize', () => {
-        priceChart.applyOptions({ width: priceContainer.clientWidth });
-        volChart.applyOptions({ width: volContainer.clientWidth });
-        if (flowChart && flowContainer) flowChart.applyOptions({ width: flowContainer.clientWidth });
-      });
     </script>
   <% } %>
 
