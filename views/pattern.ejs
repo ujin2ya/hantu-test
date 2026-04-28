@@ -201,14 +201,10 @@ function won(v) {
 
   <!-- ─── 검색 ─── -->
   <div class="glass compact">
-    <div class="row g-2 align-items-end">
-      <div class="col-9 col-md-10">
-        <form method="get" action="/pattern" style="display: flex; gap: 8px; align-items: flex-end;">
-          <input type="text" name="cq" value="<%= cQuery || '' %>" placeholder="검색 (예: 서울반도체 or 046890)" class="form-control form-control-sm" style="flex: 1;" />
-          <button type="submit" class="btn btn-outline-primary btn-sm" style="white-space: nowrap;"><i class="bi bi-search me-1"></i>검색</button>
-        </form>
-      </div>
-    </div>
+    <form method="get" action="/pattern" style="display: flex; gap: 8px; align-items: center;">
+      <input type="text" name="cq" value="<%= cQuery || '' %>" placeholder="검색 (예: 서울반도체 or 046890)" class="form-control form-control-sm" style="flex: 1;" />
+      <button type="submit" class="btn btn-outline-primary btn-sm" style="white-space: nowrap;"><i class="bi bi-search me-1"></i>검색</button>
+    </form>
   </div>
 
   <!-- ─── 4탭 ─── -->
