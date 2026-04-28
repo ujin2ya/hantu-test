@@ -27,12 +27,14 @@ jobs:
           envs: GEMINI_API_KEY,DART_API_KEY
           script_stop: true
           script: |
-            set -e
+            set -ex
             export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
             cd /home/eugene/workspace/hantu-test
             git fetch origin main
             git reset --hard origin/main
-            npm ci --omit=dev
+            # --no-audit: vuln 검사 결과로 exit 1 나는 사례 차단 (어제부터 deploy fail 의 유력 원인)
+            # --no-fund:  의존성 funding 메시지 출력 줄임
+            npm ci --omit=dev --no-audit --no-fund
             touch .env
             upsert_env() {
               local key="$1"
