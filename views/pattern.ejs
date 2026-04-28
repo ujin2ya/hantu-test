@@ -114,6 +114,8 @@
 // PM2 reload 누락 / 부분 deploy / 캐시 미존재 어느 상황에서도 EJS 가 깨지지 않게.
 var csbMainCandidates  = (typeof csbMainCandidates  !== 'undefined' && csbMainCandidates)  ? csbMainCandidates  : ((result && result.csbMainCandidates)  || []);
 var csbSubCandidates   = (typeof csbSubCandidates   !== 'undefined' && csbSubCandidates)   ? csbSubCandidates   : ((result && result.csbSubCandidates)   || []);
+var smallCsbReadyCandidates = (typeof smallCsbReadyCandidates !== 'undefined' && smallCsbReadyCandidates) ? smallCsbReadyCandidates : ((result && result.smallCsbReady) || []);
+var smallCsbWatchCandidates = (typeof smallCsbWatchCandidates !== 'undefined' && smallCsbWatchCandidates) ? smallCsbWatchCandidates : ((result && result.smallCsbWatch) || []);
 var flowLeadCandidates = (typeof flowLeadCandidates !== 'undefined' && flowLeadCandidates) ? flowLeadCandidates : ((result && result.flowLeadCandidates) || []);
 var reboundCandidates  = (typeof reboundCandidates  !== 'undefined' && reboundCandidates)  ? reboundCandidates  : ((result && result.reboundCandidates)  || []);
 var bullTrendWatch     = (typeof bullTrendWatch     !== 'undefined' && bullTrendWatch)     ? bullTrendWatch     : ((result && result.bullTrendWatch)     || []);
@@ -209,9 +211,10 @@ function won(v) {
     </form>
   </div>
 
-  <!-- ─── 3탭 ─── -->
+  <!-- ─── 4탭 ─── -->
   <ul class="nav nav-tabs" role="tablist">
     <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-today">오늘의 후보</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-smallcap">중소형 후보</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-warn">주의 종목</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-validation">모델 검증</button></li>
   </ul>
@@ -339,99 +342,6 @@ function won(v) {
         <% } %>
       </div>
 
-      <!-- 1c. 중소형 상승 전 압축 후보 (500억~1000억) -->
-      <div class="glass">
-        <h2><i class="bi bi-lightning-fill me-1"></i>중소형 상승 전 압축 후보 <span class="count" style="color:#dc2626;">(500억~1000억 · <%= csbSmallCapMainCandidates.length %>건)</span></h2>
-        <div class="alert alert-warning small mb-3" style="border-left:4px solid #dc2626; background:#fff7ed; color:#7c2d12;">
-          <i class="bi bi-exclamation-triangle me-2"></i><strong>중소형 주의</strong> · 이 구간은 변동성과 체결 리스크가 상대적으로 클 수 있습니다.
-          충분한 거래량 확인 후 신중하게 진입하세요.
-        </div>
-        <% if (!csbSmallCapMainCandidates.length) { %>
-          <div class="empty-state">현재 시점 통과 종목 없음</div>
-        <% } else { %>
-          <% csbSmallCapMainCandidates.forEach(function(c) { var m = c.csb?.metrics || {}; var sg = c.csb?.stopGuide; var st = c.csb?.stages || {}; var tp = c.csb?.tradePlan; %>
-            <div class="item-card">
-              <div class="row1">
-                <div class="name-block">
-                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
-                    <span class="nm"><%= c.name %></span>
-                    <span class="cd"><%= c.code %></span>
-                  </a>
-                  <span class="mkt"><%= c.market %></span>
-                </div>
-                <span class="score-pill" style="background:#fee2e2; color:#991b1b;">
-                  <%= c.csb.displayGrade %> · 중소형
-                </span>
-              </div>
-              <div class="row2">
-                <span>관찰가 <strong><%= won(c.closePrice) %></strong></span>
-                <span>압축 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
-                <span>거래대금 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
-                <span>20일 고점거리 <strong><%= ((m.distFromHigh20 || 0) * 100).toFixed(1) %>%</strong></span>
-                <span style="margin-left:auto; color:#64748b;">시총 <strong style="color:#dc2626;"><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
-              </div>
-              <% if (tp) { %>
-                <div class="trade-plan" style="background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:10px 12px; margin:8px 0; font-size:0.85rem;">
-                  <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">
-                    <span><strong style="color:#991b1b;">확인 진입</strong> <%= won(tp.triggerPrice) %></span>
-                    <span><strong style="color:#dc2626;">종가 손절</strong> <%= won(tp.stopPrice) %> (-<%= tp.stopPct %>%)</span>
-                    <span><strong style="color:#1e40af;">1차 목표</strong> <%= won(tp.target1) %></span>
-                    <span><strong style="color:#7c3aed;">2차 목표</strong> <%= won(tp.target2) %></span>
-                  </div>
-                </div>
-              <% } %>
-              <div class="row3">
-                <% if (st.compressionFormed) { %><span class="tag-badge" style="background:#d1fae5; color:#065f46;">압축 형성</span><% } %>
-                <% if (st.supportConfirmed) { %><span class="tag-badge" style="background:#dbeafe; color:#1e40af;">지지 확인</span><% } %>
-                <% if (st.breakoutReady) { %><span class="tag-badge" style="background:#fef3c7; color:#854d0e;">돌파 대기</span><% } %>
-                <% if (st.volumeReturning) { %><span class="tag-badge" style="background:#fce7f3; color:#9d174d;">거래대금 재활성</span><% } %>
-              </div>
-            </div>
-          <% }) %>
-        <% } %>
-      </div>
-
-      <!-- 1d. 중소형 예비 압축 후보 (500억~1000억) -->
-      <div class="glass">
-        <h2><i class="bi bi-eye me-1"></i>중소형 예비 압축 후보 <span class="count" style="color:#dc2626;">(500억~1000억 · <%= csbSmallCapSubCandidates.length %>건)</span></h2>
-        <div class="alert alert-warning small mb-3" style="border-left:4px solid #dc2626; background:#fff7ed; color:#7c2d12;">
-          <i class="bi bi-exclamation-triangle me-2"></i><strong>중소형 주의</strong> · 변동성과 체결 리스크가 상대적으로 클 수 있으며, 거래량 확인이 필수입니다.
-        </div>
-        <% if (!csbSmallCapSubCandidates.length) { %>
-          <div class="empty-state">현재 시점 통과 종목 없음</div>
-        <% } else { %>
-          <% csbSmallCapSubCandidates.slice(0, 15).forEach(function(c) { var m = c.csb?.metrics || {}; var st = c.csb?.stages || {}; var tp = c.csb?.tradePlan; %>
-            <div class="item-card">
-              <div class="row1">
-                <div class="name-block">
-                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
-                    <span class="nm"><%= c.name %></span>
-                    <span class="cd"><%= c.code %></span>
-                  </a>
-                  <span class="mkt"><%= c.market %></span>
-                </div>
-                <span class="score-pill" style="background:#fed7aa; color:#92400e;">중소형</span>
-              </div>
-              <div class="row2">
-                <span>관찰가 <strong><%= won(c.closePrice) %></strong></span>
-                <span>압축 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
-                <span>거래대금 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
-                <span>고점거리 <strong><%= ((m.distFromHigh20 || 0) * 100).toFixed(1) %>%</strong></span>
-                <span style="margin-left:auto; color:#64748b;">시총 <strong style="color:#dc2626;"><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
-              </div>
-              <div class="row3">
-                <% if (st.compressionFormed) { %><span class="tag-badge" style="background:#d1fae5; color:#065f46;">압축 형성</span><% } %>
-                <% if (st.supportConfirmed) { %><span class="tag-badge" style="background:#dbeafe; color:#1e40af;">지지 확인</span><% } %>
-                <% if (st.breakoutReady) { %><span class="tag-badge" style="background:#fef3c7; color:#854d0e;">돌파 대기</span><% } %>
-                <% if (st.volumeReturning) { %><span class="tag-badge" style="background:#fce7f3; color:#9d174d;">거래대금 재활성</span><% } %>
-              </div>
-            </div>
-          <% }) %>
-          <% if (csbSmallCapSubCandidates.length > 15) { %>
-            <div class="small text-secondary mt-2">상위 15개 표시 — 총 <%= csbSmallCapSubCandidates.length %>건</div>
-          <% } %>
-        <% } %>
-      </div>
 
       <!-- 2. 과매도 반등 후보 (Rebound) -->
       <div class="glass">
@@ -517,7 +427,148 @@ function won(v) {
     </div><!-- /tab-today -->
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- TAB 2: 주의 종목 (과열/추격주의 / 고변동성 / 구조 붕괴) -->
+    <!-- TAB 2: 중소형 후보 (500억~3000억) — READY + WATCH -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tab-smallcap" role="tabpanel">
+
+      <div class="glass">
+        <h2><i class="bi bi-lightning-fill me-1"></i>중소형 상승 전 압축 후보 <span class="count" style="color:#dc2626;">(<%= (smallCsbReadyCandidates || []).length %>건)</span></h2>
+        <div class="alert alert-warning small mb-3" style="border-left:4px solid #dc2626; background:#fff7ed; color:#7c2d12;">
+          <i class="bi bi-exclamation-triangle me-2"></i><strong>중소형 주의</strong> · 중소형 후보는 시총 500억~3,000억 구간의 관찰 후보입니다.
+          대형주보다 변동성, 체결 리스크, 급등락 가능성이 클 수 있습니다.
+        </div>
+
+        <!-- 필터 UI -->
+        <div style="background:#f8fafc; border-radius:10px; padding:14px; margin-bottom:16px;">
+          <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start;">
+            <div>
+              <label style="display:block; font-size:0.82rem; font-weight:600; color:#0f172a; margin-bottom:6px;">시총 구간</label>
+              <div style="display:flex; gap:8px;">
+                <button onclick="filterSmallCap('all', 'cap', this)" class="smallcap-filter-cap active" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">전체</button>
+                <button onclick="filterSmallCap('cap500to1000', 'cap', this)" class="smallcap-filter-cap" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">500~1000억</button>
+                <button onclick="filterSmallCap('cap1000to2000', 'cap', this)" class="smallcap-filter-cap" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">1000~2000억</button>
+                <button onclick="filterSmallCap('cap2000to3000', 'cap', this)" class="smallcap-filter-cap" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">2000~3000억</button>
+              </div>
+            </div>
+            <div>
+              <label style="display:block; font-size:0.82rem; font-weight:600; color:#0f172a; margin-bottom:6px;">주가</label>
+              <div style="display:flex; gap:8px;">
+                <button onclick="filterSmallCap('all', 'price', this)" class="smallcap-filter-price active" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">전체</button>
+                <button onclick="filterSmallCap('price50k', 'price', this)" class="smallcap-filter-price" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">5만원이하</button>
+                <button onclick="filterSmallCap('price100k', 'price', this)" class="smallcap-filter-price" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">10만원이하</button>
+                <button onclick="filterSmallCap('price200k', 'price', this)" class="smallcap-filter-price" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">20만원이하</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 후보 표시 -->
+        <% if (!(smallCsbReadyCandidates && smallCsbReadyCandidates.length)) { %>
+          <div class="empty-state">현재 시점 통과 종목 없음</div>
+        <% } else { %>
+          <% smallCsbReadyCandidates.forEach(function(c) { var m = c.csb?.metrics || {}; var st = c.csb?.stages || {}; var capBucket = c.csb?.capBucket || 'unknown'; var price = c.closePrice || 0; var marketCap = c.marketCap || 0; %>
+            <div class="item-card smallcap-item" data-cap="<%= capBucket %>" data-price="<%= price %>" style="display:block;">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
+                  <span class="mkt"><%= c.market %></span>
+                </div>
+                <span class="score-pill" style="background:#fee2e2; color:#991b1b;">
+                  <%= c.csb.displayGrade %> · 4태그
+                </span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong><%= won(price) %></strong></span>
+                <span>시총구간 <strong style="color:#dc2626;"><%= ((marketCap) / 1e8).toFixed(0) %>억</strong></span>
+                <span>20일 거래대금 <strong><%= ((m.avg20dValue || 0) / 1e8).toFixed(0) %>억</strong></span>
+                <span>ATR% <strong><%= ((m.atrPct || 0) * 100).toFixed(1) %>%</strong></span>
+              </div>
+              <div class="row2">
+                <span>압축비 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
+                <span>거래대금비 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
+                <span>고점거리 <strong><%= ((m.distFromHigh20 || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>손절가 <strong><%= won(c.csb?.stopGuide) %></strong></span>
+              </div>
+              <div class="row3">
+                <% if (st.compressionFormed) { %><span class="tag-badge" style="background:#d1fae5; color:#065f46;">압축 형성</span><% } %>
+                <% if (st.supportConfirmed) { %><span class="tag-badge" style="background:#dbeafe; color:#1e40af;">지지 확인</span><% } %>
+                <% if (st.breakoutReady) { %><span class="tag-badge" style="background:#fef3c7; color:#854d0e;">돌파 대기</span><% } %>
+                <% if (st.volumeReturning) { %><span class="tag-badge" style="background:#fce7f3; color:#9d174d;">거래대금 재활성</span><% } %>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+      <div class="glass">
+        <h2><i class="bi bi-hourglass-split me-1"></i>중소형 예비 압축 후보 <span class="count" style="color:#dc2626;">(<%= (smallCsbWatchCandidates || []).length %>건)</span></h2>
+        <div style="background:#f8fafc; border-radius:10px; padding:14px; margin-bottom:16px;">
+          <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start;">
+            <div>
+              <label style="display:block; font-size:0.82rem; font-weight:600; color:#0f172a; margin-bottom:6px;">시총 구간</label>
+              <div style="display:flex; gap:8px;">
+                <button onclick="filterSmallCapWatch('all', 'cap', this)" class="smallcap-filter-cap-watch active" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">전체</button>
+                <button onclick="filterSmallCapWatch('cap500to1000', 'cap', this)" class="smallcap-filter-cap-watch" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">500~1000억</button>
+                <button onclick="filterSmallCapWatch('cap1000to2000', 'cap', this)" class="smallcap-filter-cap-watch" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">1000~2000억</button>
+                <button onclick="filterSmallCapWatch('cap2000to3000', 'cap', this)" class="smallcap-filter-cap-watch" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">2000~3000억</button>
+              </div>
+            </div>
+            <div>
+              <label style="display:block; font-size:0.82rem; font-weight:600; color:#0f172a; margin-bottom:6px;">주가</label>
+              <div style="display:flex; gap:8px;">
+                <button onclick="filterSmallCapWatch('all', 'price', this)" class="smallcap-filter-price-watch active" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">전체</button>
+                <button onclick="filterSmallCapWatch('price50k', 'price', this)" class="smallcap-filter-price-watch" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">5만원이하</button>
+                <button onclick="filterSmallCapWatch('price100k', 'price', this)" class="smallcap-filter-price-watch" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">10만원이하</button>
+                <button onclick="filterSmallCapWatch('price200k', 'price', this)" class="smallcap-filter-price-watch" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; font-size:0.78rem; font-weight:500;">20만원이하</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <% if (!(smallCsbWatchCandidates && smallCsbWatchCandidates.length)) { %>
+          <div class="empty-state">현재 시점 통과 종목 없음</div>
+        <% } else { %>
+          <% smallCsbWatchCandidates.forEach(function(c) { var m = c.csb?.metrics || {}; var st = c.csb?.stages || {}; var capBucket = c.csb?.capBucket || 'unknown'; var price = c.closePrice || 0; var marketCap = c.marketCap || 0; %>
+            <div class="item-card smallcap-item-watch" data-cap="<%= capBucket %>" data-price="<%= price %>" style="display:block;">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
+                  <span class="mkt"><%= c.market %></span>
+                </div>
+                <span class="score-pill" style="background:#ccfbf1; color:#0f766e;">3태그</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong><%= won(price) %></strong></span>
+                <span>시총구간 <strong style="color:#dc2626;"><%= ((marketCap) / 1e8).toFixed(0) %>억</strong></span>
+                <span>20일 거래대금 <strong><%= ((m.avg20dValue || 0) / 1e8).toFixed(0) %>억</strong></span>
+                <span>ATR% <strong><%= ((m.atrPct || 0) * 100).toFixed(1) %>%</strong></span>
+              </div>
+              <div class="row2">
+                <span>압축비 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
+                <span>거래대금비 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
+                <span>고점거리 <strong><%= ((m.distFromHigh20 || 0) * 100).toFixed(1) %>%</strong></span>
+              </div>
+              <div class="row3">
+                <% if (st.compressionFormed) { %><span class="tag-badge" style="background:#d1fae5; color:#065f46;">압축 형성</span><% } %>
+                <% if (st.supportConfirmed) { %><span class="tag-badge" style="background:#dbeafe; color:#1e40af;">지지 확인</span><% } %>
+                <% if (st.breakoutReady) { %><span class="tag-badge" style="background:#fef3c7; color:#854d0e;">돌파 대기</span><% } %>
+                <% if (st.volumeReturning) { %><span class="tag-badge" style="background:#fce7f3; color:#9d174d;">거래대금 재활성</span><% } %>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+    </div><!-- /tab-smallcap -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 3: 주의 종목 (과열/추격주의 / 고변동성 / 구조 붕괴) -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <div class="tab-pane fade" id="tab-warn" role="tabpanel">
 
@@ -643,7 +694,7 @@ function won(v) {
     </div><!-- /tab-warn -->
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- TAB 3: 모델 검증 (보유점검 + 검증 리포트) -->
+    <!-- TAB 4: 모델 검증 (보유점검 + 검증 리포트) -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <div class="tab-pane fade" id="tab-validation" role="tabpanel">
 
@@ -839,5 +890,88 @@ function won(v) {
 </div><!-- /wrap -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// 중소형 READY 필터링
+var smallCapCapFilter = 'all';
+var smallCapPriceFilter = 'all';
+function filterSmallCap(value, type, btn) {
+  if (type === 'cap') {
+    smallCapCapFilter = value;
+    document.querySelectorAll('.smallcap-filter-cap').forEach(b => updateButtonStyle(b, false));
+    updateButtonStyle(btn, true);
+  } else {
+    smallCapPriceFilter = value;
+    document.querySelectorAll('.smallcap-filter-price').forEach(b => updateButtonStyle(b, false));
+    updateButtonStyle(btn, true);
+  }
+  applySmallCapFilters();
+}
+function applySmallCapFilters() {
+  document.querySelectorAll('.smallcap-item').forEach(item => {
+    var cap = item.getAttribute('data-cap');
+    var price = parseInt(item.getAttribute('data-price'));
+    var show = true;
+    if (smallCapCapFilter !== 'all' && cap !== smallCapCapFilter) show = false;
+    if (smallCapPriceFilter === 'price50k' && price > 50000) show = false;
+    if (smallCapPriceFilter === 'price100k' && price > 100000) show = false;
+    if (smallCapPriceFilter === 'price200k' && price > 200000) show = false;
+    item.style.display = show ? 'block' : 'none';
+  });
+}
+
+// 중소형 WATCH 필터링
+var smallCapWatchCapFilter = 'all';
+var smallCapWatchPriceFilter = 'all';
+function filterSmallCapWatch(value, type, btn) {
+  if (type === 'cap') {
+    smallCapWatchCapFilter = value;
+    document.querySelectorAll('.smallcap-filter-cap-watch').forEach(b => updateButtonStyle(b, false));
+    updateButtonStyle(btn, true);
+  } else {
+    smallCapWatchPriceFilter = value;
+    document.querySelectorAll('.smallcap-filter-price-watch').forEach(b => updateButtonStyle(b, false));
+    updateButtonStyle(btn, true);
+  }
+  applySmallCapWatchFilters();
+}
+function applySmallCapWatchFilters() {
+  document.querySelectorAll('.smallcap-item-watch').forEach(item => {
+    var cap = item.getAttribute('data-cap');
+    var price = parseInt(item.getAttribute('data-price'));
+    var show = true;
+    if (smallCapWatchCapFilter !== 'all' && cap !== smallCapWatchCapFilter) show = false;
+    if (smallCapWatchPriceFilter === 'price50k' && price > 50000) show = false;
+    if (smallCapWatchPriceFilter === 'price100k' && price > 100000) show = false;
+    if (smallCapWatchPriceFilter === 'price200k' && price > 200000) show = false;
+    item.style.display = show ? 'block' : 'none';
+  });
+}
+
+// 버튼 스타일 업데이트
+function updateButtonStyle(btn, isActive) {
+  if (isActive) {
+    btn.classList.add('active');
+    btn.style.backgroundColor = '#dbeafe';
+    btn.style.borderColor = '#3b82f6';
+    btn.style.color = '#1e40af';
+  } else {
+    btn.classList.remove('active');
+    btn.style.backgroundColor = '#fff';
+    btn.style.borderColor = '#cbd5e1';
+    btn.style.color = '#334155';
+  }
+}
+
+// 초기 버튼 스타일
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.smallcap-filter-cap, .smallcap-filter-price, .smallcap-filter-cap-watch, .smallcap-filter-price-watch').forEach(btn => {
+    if (btn.classList.contains('active')) {
+      updateButtonStyle(btn, true);
+    } else {
+      updateButtonStyle(btn, false);
+    }
+  });
+});
+</script>
 </body>
 </html>
