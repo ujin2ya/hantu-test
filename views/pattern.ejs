@@ -466,7 +466,7 @@ function won(v) {
         <% if (!(smallCsbReadyCandidates && smallCsbReadyCandidates.length)) { %>
           <div class="empty-state">현재 시점 통과 종목 없음</div>
         <% } else { %>
-          <% smallCsbReadyCandidates.forEach(function(c) { var m = c.smallCsb?.metrics || {}; var st = c.smallCsb?.stages || {}; var capBucket = c.smallCsb?.capBucket || 'unknown'; var price = c.closePrice || 0; var marketCap = c.marketCap || 0; %>
+          <% smallCsbReadyCandidates.forEach(function(c) { var scb = c.smallCsb || c.csb || {}; var m = scb.metrics || {}; var st = scb.stages || {}; var capBucket = scb.capBucket || c.capBucket || 'unknown'; var price = c.closePrice || 0; var marketCap = c.marketCap || 0; %>
             <div class="item-card smallcap-item" data-cap="<%= capBucket %>" data-price="<%= price %>" style="display:block;">
               <div class="row1">
                 <div class="name-block">
@@ -477,7 +477,7 @@ function won(v) {
                   <span class="mkt"><%= c.market %></span>
                 </div>
                 <span class="score-pill" style="background:#fee2e2; color:#991b1b;">
-                  <%= c.smallCsb.displayGrade %> · 4태그
+                  <%= scb.displayGrade || '준비' %> · 4태그
                 </span>
               </div>
               <div class="row2">
@@ -531,7 +531,7 @@ function won(v) {
         <% if (!(smallCsbWatchCandidates && smallCsbWatchCandidates.length)) { %>
           <div class="empty-state">현재 시점 통과 종목 없음</div>
         <% } else { %>
-          <% smallCsbWatchCandidates.forEach(function(c) { var m = c.smallCsb?.metrics || {}; var st = c.smallCsb?.stages || {}; var capBucket = c.smallCsb?.capBucket || 'unknown'; var price = c.closePrice || 0; var marketCap = c.marketCap || 0; %>
+          <% smallCsbWatchCandidates.forEach(function(c) { var scb = c.smallCsb || c.csb || {}; var m = scb.metrics || {}; var st = scb.stages || {}; var capBucket = scb.capBucket || c.capBucket || 'unknown'; var price = c.closePrice || 0; var marketCap = c.marketCap || 0; %>
             <div class="item-card smallcap-item-watch" data-cap="<%= capBucket %>" data-price="<%= price %>" style="display:block;">
               <div class="row1">
                 <div class="name-block">
