@@ -686,6 +686,8 @@ async function analyzeAll({ logProgress = false } = {}) {
   const overheatWarnings = [];
   const csbMainCandidates = [];   // CSB 4개 stage tag 모두 통과 — "상승 전 압축 후보"
   const csbSubCandidates = [];    // CSB 3개 stage (지지+거래대금+(압축 OR 돌파)) — "예비 압축 후보"
+  const smallCsbReady = [];       // CSB-Lite 4개 조건 통과 (중소형 500억~3000억)
+  const smallCsbWatch = [];       // CSB-Lite 3개 조건 통과 (중소형 500억~3000억)
   const taggedAll = [];   // 모든 처리 종목 + 태그 — 보유점검/검색용
 
   let processed = 0;
@@ -844,6 +846,11 @@ async function analyzeAll({ logProgress = false } = {}) {
     // CSB — 매 종목 lastIdx 시점 기준 (수급은 보조 가점만)
     let csb = null;
     try { csb = calculateCompressionSupportBreakoutScore(rows, flowRows, meta, lastIdx); } catch (_) {}
+
+    // CSB-Lite — 중소형 (500억~3000억) 전용
+    let smallCsb = null;
+    try { smallCsb = calculateSmallCapCSB(rows, flowRows, meta, lastIdx); } catch (_) {}
+
     // CSB stop 가이드 (Dc 채택: relaxed close stop = clamp(ATR×2.5, 8%, 12%))
     let csbStopGuide = null;
     let csbTradePlan = null;
@@ -974,6 +981,8 @@ async function analyzeAll({ logProgress = false } = {}) {
 
     if (csbAllFour) csbMainCandidates.push(tagged);
     if (csbThree) csbSubCandidates.push(tagged);
+    if (smallCsb?.passed && smallCsb.bucket === 'SMALL_CSB_READY') smallCsbReady.push(tagged);
+    if (smallCsb?.passed && smallCsb.bucket === 'SMALL_CSB_WATCH') smallCsbWatch.push(tagged);
     if (flowLead?.passed) flowLeadCandidates.push(tagged);
     if (rebound?.passed) reboundCandidates.push(tagged);
     if (overheatHit) overheatWarnings.push(tagged);
@@ -1048,6 +1057,28 @@ async function analyzeAll({ logProgress = false } = {}) {
     csbMainByCap,
     csbSubByCap,
     csbStats,
+
+    // ─── CSB-Lite (중소형 500억~3000억) ───
+    smallCsbReady: smallCsbReady.sort((a, b) => (b.avg20Value || 0) - (a.avg20Value || 0)),
+    smallCsbWatch: smallCsbWatch.sort((a, b) => (b.avg20Value || 0) - (a.avg20Value || 0)),
+    smallCsbStats: {
+      readyCount: smallCsbReady.length,
+      watchCount: smallCsbWatch.length,
+      byCapRange: {
+        cap500to1000: {
+          ready: smallCsbReady.filter(c => c.capBucket === "cap500to1000").length,
+          watch: smallCsbWatch.filter(c => c.capBucket === "cap500to1000").length,
+        },
+        cap1000to2000: {
+          ready: smallCsbReady.filter(c => c.capBucket === "cap1000to3000" && (c.marketCap || 0) < 200_000_000_000).length,
+          watch: smallCsbWatch.filter(c => c.capBucket === "cap1000to3000" && (c.marketCap || 0) < 200_000_000_000).length,
+        },
+        cap2000to3000: {
+          ready: smallCsbReady.filter(c => c.capBucket === "cap1000to3000" && (c.marketCap || 0) >= 200_000_000_000).length,
+          watch: smallCsbWatch.filter(c => c.capBucket === "cap1000to3000" && (c.marketCap || 0) >= 200_000_000_000).length,
+        },
+      }
+    },
 
     // ─── 새 카테고리 (Phase 8) ───
     flowLeadCandidates: flowLeadCandidates.sort((a, b) => (b.flowLead?.score || 0) - (a.flowLead?.score || 0)),
@@ -2559,6 +2590,125 @@ function compressionSupportBreakoutUniverseV2(chartRows, meta = {}) {
     tr5avg, tr20avg, compressionRatio,
     high20, high60, distFromHigh20, distFromHigh60,
     supports20, supports60, low5, low20,
+  };
+}
+
+// ─────────── 중소형 CSB-Lite (500억~3000억) ───────────
+// 시총별 compressionRatio p50 임계값 (상수 → 나중에 동적 계산으로 전환 가능)
+const SMALL_CAP_COMPRESSION_THRESHOLDS = {
+  cap500to1000: 0.6071,   // 500억~1000억
+  cap1000to2000: 0.5977,  // 1000억~2000억
+  cap2000to3000: 0.5920,  // 2000억~3000억
+};
+
+function calculateSmallCapCSB(rows, flowRows, meta = {}, idx = null) {
+  if (!rows || !rows.length) return { passed: false, rejectReason: 'no rows' };
+  if (idx == null) idx = rows.length - 1;
+  if (idx < 60) return { passed: false, rejectReason: 'idx<60' };
+
+  const today = rows[idx];
+  const close = today?.close;
+  if (!close || close <= 0) return { passed: false, rejectReason: 'close<=0' };
+
+  // 시총 필터: 500억 이상 3000억 미만 (1조 미만 범위로 수정)
+  const cap = meta.marketValue || 0;
+  if (cap < 50_000_000_000) return { passed: false, rejectReason: 'cap<500억' };
+  if (cap >= 300_000_000_000) return { passed: false, rejectReason: 'cap>=3000억' };
+
+  // capBucket 결정 — 압축 임계값 선택용
+  let capBucket;
+  let compressionThreshold;
+  if (cap >= 50_000_000_000 && cap < 100_000_000_000) {
+    capBucket = 'cap500to1000';
+    compressionThreshold = SMALL_CAP_COMPRESSION_THRESHOLDS.cap500to1000;
+  } else if (cap >= 100_000_000_000 && cap < 200_000_000_000) {
+    capBucket = 'cap1000to2000';
+    compressionThreshold = SMALL_CAP_COMPRESSION_THRESHOLDS.cap1000to2000;
+  } else if (cap >= 200_000_000_000 && cap < 300_000_000_000) {
+    capBucket = 'cap2000to3000';
+    compressionThreshold = SMALL_CAP_COMPRESSION_THRESHOLDS.cap2000to3000;
+  } else {
+    return { passed: false, rejectReason: 'invalid capBucket' };
+  }
+
+  // 20일 평균 거래대금 50억 이상
+  const last20rows = [];
+  for (let i = Math.max(0, idx - 19); i <= idx; i++) last20rows.push(rows[i]);
+  const last5rows = [];
+  for (let i = Math.max(0, idx - 4); i <= idx; i++) last5rows.push(rows[i]);
+  const last60rows = [];
+  for (let i = Math.max(0, idx - 59); i <= idx; i++) last60rows.push(rows[i]);
+
+  const avg20Value = last20rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last20rows.length, 1);
+  if (avg20Value < 5_000_000_000) return { passed: false, rejectReason: 'avg20Value<50억' };
+
+  // ret5d <= +15%, ret20d <= +35%
+  const ret5d = idx >= 5 ? (close / rows[idx - 5].close - 1) : 0;
+  const ret20d = idx >= 20 ? (close / rows[idx - 20].close - 1) : 0;
+  if (ret5d > 0.15) return { passed: false, rejectReason: 'ret5d>+15%' };
+  if (ret20d > 0.35) return { passed: false, rejectReason: 'ret20d>+35%' };
+
+  // ATR% <= 25%
+  const atrObj = computeATR(rows, idx, 14);
+  if (!atrObj || !(atrObj.atr > 0)) return { passed: false, rejectReason: 'ATR n/a' };
+  const atrPct = atrObj.atr / close;
+  if (atrPct > 0.25) return { passed: false, rejectReason: 'ATR%>25' };
+
+  // 20일선, 60일선 안정성
+  const ma20 = sma(last20rows.map((r) => r.close), 20);
+  const ma60 = idx >= 59 ? sma(last60rows.map((r) => r.close), 60) : null;
+
+  // 지지 확인: 현재가 >= 20일선 * 0.95 OR 60일선 * 0.92
+  const supportFrom20 = ma20 > 0 && close >= ma20 * 0.95;
+  const supportFrom60 = ma60 > 0 && close >= ma60 * 0.92;
+  const supportConfirmed = supportFrom20 || supportFrom60;
+  if (!supportConfirmed) return { passed: false, rejectReason: 'no support' };
+
+  // 거래대금 재활성: valueRatio5d20d >= 0.9
+  const avg5Value = last5rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last5rows.length, 1);
+  const valueRatio5d20d = avg20Value > 0 ? avg5Value / avg20Value : 0;
+  if (valueRatio5d20d < 0.9) return { passed: false, rejectReason: 'valueRatio<0.9' };
+
+  // 압축 형성: 시총별 p50 기준 (상위 50% 압축 상태 = 높은 compressionRatio)
+  const last20high = Math.max(...last20rows.map((r) => r.high || r.close));
+  const last20low = Math.min(...last20rows.map((r) => r.low || r.close));
+  const compressionRatio = last20high > 0 ? last20low / last20high : 1;
+  const compressionFormed = compressionRatio >= compressionThreshold;
+
+  // 돌파 대기: distanceToHigh20 <= 12%
+  const distFromHigh20 = last20high > 0 ? (last20high - close) / last20high : 1;
+  const breakoutReady = distFromHigh20 <= 0.12;
+
+  // 4태그: 지지+거래+압축+돌파
+  const smallCsbReady = supportConfirmed && valueRatio5d20d >= 0.9 && compressionFormed && breakoutReady;
+
+  // 3태그: 지지+거래+(압축 또는 돌파)
+  const smallCsbWatch = supportConfirmed && valueRatio5d20d >= 0.9 && (compressionFormed || breakoutReady);
+
+  if (!smallCsbWatch) return { passed: false, rejectReason: 'not smallCsb' };
+
+  return {
+    passed: true,
+    bucket: smallCsbReady ? 'SMALL_CSB_READY' : 'SMALL_CSB_WATCH',
+    capBucket,
+    compressionThreshold,
+    stageCount: (supportConfirmed ? 1 : 0) + (valueRatio5d20d >= 0.9 ? 1 : 0) + (compressionFormed ? 1 : 0) + (breakoutReady ? 1 : 0),
+    stages: {
+      supportConfirmed,
+      volumeReturning: valueRatio5d20d >= 0.9,
+      compressionFormed,
+      breakoutReady,
+    },
+    metrics: {
+      compressionRatio,
+      distFromHigh20: distFromHigh20 * 100,
+      valueRatio5d20d,
+      avg20Value,
+      avg5Value,
+      ret5d: ret5d * 100,
+      ret20d: ret20d * 100,
+      atrPct: atrPct * 100,
+    },
   };
 }
 
