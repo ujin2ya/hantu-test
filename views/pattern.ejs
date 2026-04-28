@@ -705,7 +705,7 @@ function won(v) {
           <input type="text" name="holdings" value="<%= holdingsRaw || '' %>"
                  placeholder="종목 코드/이름 (쉼표/공백 구분, 예: 005930, 한미반도체)"
                  class="form-control form-control-sm" style="flex: 1;" />
-          <button type="button" onclick="document.getElementById('holdingsForm').submit();" class="btn btn-outline-primary btn-sm" style="white-space: nowrap;">점검</button>
+          <button type="button" onclick="window.location.hash = '#tab-validation'; setTimeout(function() { document.getElementById('holdingsForm').submit(); }, 100);" class="btn btn-outline-primary btn-sm" style="white-space: nowrap;">점검</button>
           <input type="hidden" name="cq" value="<%= cQuery || '' %>" />
         </form>
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -956,6 +956,7 @@ function updateButtonStyle(btn, isActive) {
 
 // 초기 버튼 스타일
 document.addEventListener('DOMContentLoaded', function() {
+  // 필터 버튼 스타일
   document.querySelectorAll('.smallcap-filter-cap, .smallcap-filter-price, .smallcap-filter-cap-watch, .smallcap-filter-price-watch').forEach(btn => {
     if (btn.classList.contains('active')) {
       updateButtonStyle(btn, true);
@@ -963,6 +964,16 @@ document.addEventListener('DOMContentLoaded', function() {
       updateButtonStyle(btn, false);
     }
   });
+
+  // URL hash 확인하고 탭 활성화
+  if (window.location.hash) {
+    var tabId = window.location.hash.substring(1); // '#' 제거
+    var tabElement = document.getElementById(tabId);
+    if (tabElement) {
+      var tab = new bootstrap.Tab(tabElement);
+      tab.show();
+    }
+  }
 });
 </script>
 </body>
