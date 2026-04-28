@@ -48,7 +48,10 @@ jobs:
             upsert_env DART_API_KEY "$DART_API_KEY"
             # 시드 시총 상한 9천억 (서울반도체 등 8천억대 종목 포함)
             upsert_env PATTERN_MAX_MARKETCAP "900000000000"
-            pm2 restart hantu-test --update-env || pm2 start app.js --name hantu-test
+            # PM2 강제 재시작 — restart 가 부분 fail 해서 옛 process 가 살아남는 경우 방지.
+            # delete 후 start 하면 어떤 상태든 깨끗하게 새 코드 로딩 (1~2초 downtime, 폐쇄형이라 OK).
+            pm2 delete hantu-test 2>/dev/null || true
+            pm2 start app.js --name hantu-test --update-env
             pm2 save
             # 자동 analyze 임시 비활성화 — 서버 seed 가 5천억 cap 라 일부 종목 (서울반도체 등) 누락.
             # git push 로 들어오는 cache/pattern-result.json 을 그대로 사용하도록 둠.
