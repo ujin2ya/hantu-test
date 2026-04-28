@@ -1697,6 +1697,13 @@ function calculateReboundScore(chartRows, flowRows, meta = {}) {
   };
 }
 
+// 옛 PREMIUM/FRESH 점수 모델용 14-feature 추출기 — 모델 자체는 폐기됐지만
+// app.js 의 handleSearch (상세 페이지) 가 아직 참조해서 stub 으로 빈 객체 반환.
+// EJS 의 <%= features.x %> 는 모두 빈 문자열 출력 → 페이지 안 깨짐.
+function extractPreIgnitionFeatures(_rows, _idx, _marketCap, _sharesOut) {
+  return {};
+}
+
 module.exports = {
   checkTrendTemplate,
   computeRS,
@@ -1714,4 +1721,5 @@ module.exports = {
   getKosdaqCached,
   calculateFlowLeadScore,
   calculateReboundScore,
+  extractPreIgnitionFeatures,
 };
