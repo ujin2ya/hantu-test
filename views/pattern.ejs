@@ -201,9 +201,9 @@ function won(v) {
 
   <!-- ─── 검색 ─── -->
   <div class="glass compact">
-    <form method="get" action="/pattern" style="display: flex; gap: 8px; align-items: center;">
+    <form id="searchForm" method="get" action="/pattern" style="display: flex; gap: 8px; align-items: center;">
       <input type="text" name="cq" value="<%= cQuery || '' %>" placeholder="검색 (예: 서울반도체 or 046890)" class="form-control form-control-sm" style="flex: 1;" />
-      <button type="submit" class="btn btn-outline-primary btn-sm" style="white-space: nowrap;"><i class="bi bi-search me-1"></i>검색</button>
+      <button type="button" onclick="document.getElementById('searchForm').submit();" class="btn btn-outline-primary btn-sm" style="white-space: nowrap;"><i class="bi bi-search me-1"></i>검색</button>
     </form>
   </div>
 
@@ -701,11 +701,11 @@ function won(v) {
           보유 또는 관심 종목 코드/이름을 입력하면 각 모델이 어떻게 평가하는지 통합 카드로 보여줍니다.
           매수/매도 추천이 아니라 종목 상태 분석입니다.
         </div>
-        <form method="get" action="/pattern" style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <form id="holdingsForm" method="get" action="/pattern" style="display: flex; gap: 8px; margin-bottom: 12px;">
           <input type="text" name="holdings" value="<%= holdingsRaw || '' %>"
                  placeholder="종목 코드/이름 (쉼표/공백 구분, 예: 005930, 한미반도체)"
                  class="form-control form-control-sm" style="flex: 1;" />
-          <button type="submit" class="btn btn-outline-primary btn-sm" style="white-space: nowrap;">점검</button>
+          <button type="button" onclick="document.getElementById('holdingsForm').submit();" class="btn btn-outline-primary btn-sm" style="white-space: nowrap;">점검</button>
           <input type="hidden" name="cq" value="<%= cQuery || '' %>" />
         </form>
         <div class="d-flex justify-content-between align-items-center mb-2">
