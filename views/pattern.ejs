@@ -3,14 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>패턴 스크리너 — +40% 종목 분석</title>
+  <title>패턴 스크리너 — 종목 상태 분석 도구</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
   <style>
-    @keyframes premiumGlow {
-      0%, 100% { box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3), 0 4px 12px rgba(34, 197, 94, 0.15); }
-      50%      { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.5), 0 6px 18px rgba(34, 197, 94, 0.25); }
-    }
     body {
       background: #f3f5fb; color: #1f2937;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
@@ -18,473 +14,497 @@
     }
     .wrap { max-width: 1100px; margin: 0 auto; }
     .glass { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 6px 18px rgba(15,23,42,0.06); margin-bottom: 20px; }
+    .glass.compact { padding: 16px 18px; }
     h1 { font-size: 1.4rem; font-weight: 700; margin: 0 0 6px; }
-    h2 { font-size: 1.05rem; font-weight: 700; margin: 0 0 12px; }
+    h2 { font-size: 1.1rem; font-weight: 700; margin: 0 0 14px; color: #0f172a; }
+    h2 .count { color: #64748b; font-weight: 500; font-size: 0.85rem; margin-left: 6px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
+
+    /* 현황 셀 */
     .meta-cell { background: #f8fafc; border-radius: 10px; padding: 10px 12px; }
     .meta-cell .label { color: #64748b; font-size: 0.72rem; margin-bottom: 4px; }
-    .meta-cell .value { font-weight: 600; color: #0f172a; }
-    .bucket-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-    .bucket-card { background: #f8fafc; border-radius: 10px; padding: 12px; }
-    .bucket-card h3 { font-size: 0.95rem; font-weight: 700; margin: 0 0 6px; }
-    .bucket-card .feature-row { display: flex; justify-content: space-between; font-size: 0.78rem; color: #475569; margin-bottom: 2px; }
-    .bucket-card .feature-row strong { color: #0f172a; }
-    .magnitude-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 700; }
-    .regime-bull { color: #166534; font-weight: 600; }
-    .regime-bear { color: #991b1b; font-weight: 600; }
-    .regime-side { color: #475569; }
-    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .meta-cell .value { font-weight: 700; color: #0f172a; font-size: 1.05rem; }
 
-    /* ─── 카드 리스트 (모바일·데스크탑 공통) ─── */
-    .item-card { background: #f8fafc; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
-    .item-card .row1 { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
-    .item-card .row1 .name-block { flex: 1; min-width: 0; }
-    .item-card .row1 .name-block .nm { font-weight: 700; color: #0f172a; }
-    .item-card .row1 .name-block .cd { color: #94a3b8; font-size: 0.78rem; margin-left: 4px; }
-    .item-card .row1 .name-block a.deep-link { text-decoration: none; color: inherit; display: inline-flex; align-items: center; gap: 2px; }
-    .item-card .row1 .name-block a.deep-link:hover .nm { color: #2563eb; text-decoration: underline; }
-    .item-card .row1 .name-block a.deep-link .arr { color: #cbd5e1; font-size: 0.7rem; margin-left: 2px; }
-    .item-card .row1 .name-block a.deep-link:hover .arr { color: #2563eb; }
-    .item-card .row1 .name-block .rk { color: #64748b; font-size: 0.78rem; margin-right: 6px; font-variant-numeric: tabular-nums; }
-    .item-card .row2, .item-card .row3 {
-      display: flex; flex-wrap: wrap; gap: 4px 12px;
-      font-size: 0.78rem; color: #475569;
+    /* 카테고리 배너 — 모델 설명 */
+    .cat-banner {
+      background: #f1f5f9; border-left: 4px solid #94a3b8; padding: 10px 14px;
+      border-radius: 0 8px 8px 0; font-size: 0.82rem; color: #475569; margin-bottom: 12px;
     }
+    .cat-banner.flow    { background: #eff6ff; border-color: #3b82f6; color: #1e40af; }
+    .cat-banner.rebound { background: #f0fdf4; border-color: #10b981; color: #065f46; }
+    .cat-banner.bull    { background: #fefce8; border-color: #eab308; color: #854d0e; }
+    .cat-banner.warn    { background: #fef2f2; border-color: #ef4444; color: #991b1b; }
+    .cat-banner.holding { background: #faf5ff; border-color: #a855f7; color: #6b21a8; }
+    .cat-banner.report  { background: #f8fafc; border-color: #475569; color: #334155; }
+
+    /* 종목 카드 */
+    .item-card { background: #f8fafc; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; }
+    .item-card .row1 { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+    .item-card .name-block { flex: 1; min-width: 0; }
+    .item-card .nm { font-weight: 700; color: #0f172a; }
+    .item-card .cd { color: #94a3b8; font-size: 0.78rem; margin-left: 4px; }
+    .item-card .mkt { color: #64748b; font-size: 0.7rem; margin-left: 6px; padding: 1px 6px; background: #e2e8f0; border-radius: 4px; }
+    .item-card .row2, .item-card .row3 { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.78rem; color: #475569; }
     .item-card .row2 strong, .item-card .row3 strong { color: #0f172a; font-variant-numeric: tabular-nums; }
-    .item-card .row3 { margin-top: 3px; padding-top: 4px; border-top: 1px dashed #e2e8f0; }
+    .item-card .row3 { margin-top: 4px; padding-top: 5px; border-top: 1px dashed #e2e8f0; }
+
+    /* 점수 pill */
     .score-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .score-pill.flow    { background: #dbeafe; color: #1e40af; }
+    .score-pill.rebound { background: #d1fae5; color: #065f46; }
+    .score-pill.bull    { background: #fef3c7; color: #854d0e; }
+    .score-pill.warn    { background: #fee2e2; color: #991b1b; }
 
-    /* per-feature LR 기여도 색상 */
-    .feat { padding: 1px 6px; border-radius: 4px; }
-    .feat-good { background: #dcfce7; color: #166534; }
-    .feat-good strong { color: #166534; }
-    .feat-bad  { background: #fee2e2; color: #991b1b; }
-    .feat-bad strong { color: #991b1b; }
-    .feat-neu  { background: transparent; color: #475569; }
-    .feat .lr { font-size: 0.7rem; opacity: 0.7; margin-left: 2px; }
+    /* 태그 뱃지 */
+    .tag-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: 0.7rem; font-weight: 600; margin-right: 4px;
+    }
+    .tag-FLOW_LEAD          { background: #dbeafe; color: #1e40af; }
+    .tag-REBOUND            { background: #d1fae5; color: #065f46; }
+    .tag-BULL_TREND_WATCH   { background: #fef3c7; color: #854d0e; }
+    .tag-OVERHEAT_WARNING   { background: #fee2e2; color: #991b1b; }
+    .tag-HIGH_VOLATILITY    { background: #fef9c3; color: #713f12; }
+    .tag-STRUCTURE_BROKEN   { background: #f1f5f9; color: #475569; text-decoration: line-through; }
+    .tag-NO_SIGNAL          { background: #f1f5f9; color: #94a3b8; }
 
-    .legend { display: inline-flex; gap: 8px; font-size: 0.72rem; margin-top: 4px; }
-    .legend .swatch { display: inline-block; padding: 1px 6px; border-radius: 4px; }
+    /* 탭 네비 */
+    .nav-tabs { border-bottom: 2px solid #e2e8f0; margin-bottom: 20px; }
+    .nav-tabs .nav-link {
+      color: #64748b; font-weight: 600; border: none; border-radius: 0;
+      padding: 10px 20px; background: transparent;
+    }
+    .nav-tabs .nav-link.active {
+      color: #0f172a; background: transparent;
+      border-bottom: 3px solid #2563eb; margin-bottom: -2px;
+    }
+    .nav-tabs .nav-link:hover { color: #2563eb; }
+
+    .ret-pos { color: #16a34a; font-weight: 600; }
+    .ret-neg { color: #dc2626; font-weight: 600; }
+
+    .service-notice {
+      background: #f8fafc; border-radius: 10px; padding: 12px 16px;
+      font-size: 0.82rem; color: #475569; line-height: 1.6;
+      border: 1px dashed #cbd5e1; margin-top: 16px;
+    }
+
+    .empty-state {
+      text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem;
+      background: #f8fafc; border-radius: 10px;
+    }
 
     @media (max-width: 576px) {
       body { padding: 16px 10px; }
-      .glass { padding: 14px; border-radius: 12px; margin-bottom: 14px; }
+      .glass { padding: 16px; border-radius: 12px; margin-bottom: 14px; }
       h1 { font-size: 1.1rem; }
-      .topbar { gap: 8px; }
       .topbar h1 i { display: none; }
-      .item-card .row2, .item-card .row3 { font-size: 0.74rem; gap: 3px 10px; }
+      .nav-tabs .nav-link { padding: 8px 12px; font-size: 0.85rem; }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <h1><i class="bi bi-graph-up-arrow me-2"></i>패턴 스크리너 — +40% 상승 종목 분석</h1>
-      <a href="/" class="text-secondary small text-decoration-none">
-        <i class="bi bi-arrow-left me-1"></i>홈으로
-      </a>
-    </div>
+<div class="wrap">
 
-    <div class="glass">
-      <h2><i class="bi bi-info-circle me-1"></i>현황</h2>
-      <div class="row g-2 row-cols-2 row-cols-md-4">
-        <div class="col"><div class="meta-cell"><div class="label">시드된 종목</div><div class="value"><%= seededCount %></div></div></div>
-        <% if (result) { %>
-          <div class="col"><div class="meta-cell"><div class="label">분석된 종목</div><div class="value"><%= result.processed %></div></div></div>
-          <div class="col"><div class="meta-cell"><div class="label">+40% 이벤트</div><div class="value"><%= result.successCount %></div></div></div>
-          <% if (result.candidates) { %>
-            <div class="col"><div class="meta-cell"><div class="label">현재 후보</div><div class="value"><%= result.candidates.total %></div></div></div>
-          <% } %>
+  <!-- ─── 헤더 ─── -->
+  <div class="topbar">
+    <h1><i class="bi bi-graph-up-arrow me-2"></i>종목 상태 분석 도구</h1>
+    <a href="/" class="text-secondary small text-decoration-none">
+      <i class="bi bi-arrow-left me-1"></i>홈으로
+    </a>
+  </div>
+
+  <!-- ─── 현황 요약 ─── -->
+  <div class="glass compact">
+    <div class="row g-2 row-cols-2 row-cols-md-6">
+      <% if (result) { %>
+        <div class="col"><div class="meta-cell" style="background:#eff6ff;"><div class="label" style="color:#1e40af;">자금 선행</div><div class="value" style="color:#1d4ed8;"><%= result.flowLeadCount || 0 %></div></div></div>
+        <div class="col"><div class="meta-cell" style="background:#f0fdf4;"><div class="label" style="color:#065f46;">과매도 반등</div><div class="value" style="color:#047857;"><%= result.reboundCount || 0 %></div></div></div>
+        <div class="col"><div class="meta-cell" style="background:#fefce8;"><div class="label" style="color:#854d0e;">강세장 추세</div><div class="value" style="color:#a16207;"><%= result.bullTrendWatchCount || 0 %></div></div></div>
+        <div class="col"><div class="meta-cell" style="background:#fef2f2;"><div class="label" style="color:#991b1b;">과열/추격주의</div><div class="value" style="color:#b91c1c;"><%= result.overheatCount || 0 %></div></div></div>
+        <div class="col"><div class="meta-cell"><div class="label">분석 종목</div><div class="value"><%= result.processed || 0 %></div></div></div>
+        <div class="col"><div class="meta-cell"><div class="label">시드</div><div class="value"><%= seededCount %></div></div></div>
+      <% } else { %>
+        <div class="col"><div class="meta-cell"><div class="label">시드 종목</div><div class="value"><%= seededCount %></div></div></div>
+      <% } %>
+    </div>
+    <div class="small mt-3 text-secondary">
+      <% if (!result) { %>
+        분석 결과 없음. <strong>관리자 페이지</strong>에서 시드(약 15분) → 분석(약 5분) 실행 필요.
+      <% } else { %>
+        분석 완료: <%= new Date(result.analyzedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %>
+        <% if (result.marketRegime) { %>
+          · 시장 regime: KOSPI <strong><%= result.marketRegime.kospi %></strong> / KOSDAQ <strong><%= result.marketRegime.kosdaq %></strong>
         <% } %>
+      <% } %>
+    </div>
+  </div>
+
+<% if (result) { %>
+
+  <!-- ─── 검색 ─── -->
+  <div class="glass compact">
+    <form method="get" action="/pattern" class="row g-2 align-items-end">
+      <div class="col-9 col-md-10">
+        <input type="text" name="cq" value="<%= cQuery || '' %>" placeholder="검색 (예: 서울반도체 or 046890)" class="form-control form-control-sm" />
       </div>
-      <div class="muted-text small mt-3 text-secondary">
-        <% if (!result) { %>
-          분석 결과 없음. <strong>관리자 페이지</strong>에서 시드(약 4분) → 분석(약 1분) 실행 필요.
+      <div class="col-3 col-md-2">
+        <button type="submit" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-search me-1"></i>검색</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ─── 3탭 ─── -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-today">오늘의 후보</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-warn">주의 종목</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-validation">모델 검증</button></li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 1: 오늘의 후보 (자금선행 / 과매도반등 / 강세장 추세 관찰) -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane fade show active" id="tab-today" role="tabpanel">
+
+      <!-- 1. 자금 선행 후보 (FlowLead) -->
+      <div class="glass">
+        <h2><i class="bi bi-graph-up me-1"></i>자금 선행 후보 <span class="count">(<%= flowLeadCandidates.length %>건)</span></h2>
+        <div class="cat-banner flow">
+          외국인·기관 자금이 먼저 들어오고 있으나, 단기 가격 상승은 아직 과열되지 않은 종목입니다.
+          자금 선행 가능성을 관찰하는 후보군입니다 (매수 추천 아님).
+        </div>
+        <% if (!flowLeadCandidates.length) { %>
+          <div class="empty-state">현재 시점 통과 종목 없음</div>
         <% } else { %>
-          분석 완료: <%= new Date(result.analyzedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %>
+          <% flowLeadCandidates.forEach(function(c) { var s = c.flowLead?.signals || {}; %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <span class="nm"><%= c.name %></span>
+                  <span class="cd"><%= c.code %></span>
+                  <span class="mkt"><%= c.market %></span>
+                </div>
+                <span class="score-pill flow">Flow <%= c.flowLead.score %></span>
+              </div>
+              <div class="row2">
+                <span>5d 외+기 <strong><%= ((s.foreign5d + s.inst5d) / 1e8).toFixed(0) %>억</strong></span>
+                <span>20d <strong><%= ((s.foreign20d + s.inst20d) / 1e8).toFixed(0) %>억</strong></span>
+                <span>비율 <strong><%= ((s.flowRatio5d || 0) * 100).toFixed(0) %>%</strong></span>
+                <span>5d 수익률 <strong class="<%= s.ret5d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret5d || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>20d <strong class="<%= s.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret20d || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>ATR <strong><%= ((s.atrPct || 0) * 100).toFixed(1) %>%</strong></span>
+              </div>
+              <div class="row3">
+                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= t.replace(/_/g, ' ') %></span><% }) %>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+              </div>
+            </div>
+          <% }) %>
         <% } %>
       </div>
-    </div>
 
-    <% if (result) { %>
-      <!-- 현재 후보 (Phase B: Likelihood Ratio 스코어링) -->
-      <% if (result.candidates && result.candidates.top && result.candidates.top.length) { %>
-        <%
-          // 카드 렌더링 헬퍼 — active / watch 양쪽에서 재사용
-          function fmtPct(v)  { return v == null ? '-' : (v * 100).toFixed(0) + '%'; }
-          function fmtDelta(v){ if (v == null) return '-'; const d = (v - 1) * 100; return (d >= 0 ? '+' : '') + d.toFixed(0) + '%'; }
-          function fmtMult(v) { return v == null ? '-' : v.toFixed(1) + '배'; }
-          function fmtDays(v) { return v == null ? '-' : v + '일'; }
-          function featCls(inBand) {
-            if (inBand == null) return 'feat feat-neu';
-            return inBand ? 'feat feat-good' : 'feat feat-neu';
-          }
-        %>
-
-        <!-- 검색 폼 -->
-        <div class="glass">
-          <form method="get" action="/pattern" class="row g-2 align-items-end">
-            <div class="col-9 col-md-10">
-              <input type="text" name="cq" value="<%= cQuery || '' %>" placeholder="검색 (모멘텀·후보 동시) 예: 서울반도체 or 046890" class="form-control form-control-sm" />
-            </div>
-            <div class="col-3 col-md-2">
-              <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search"></i></button>
-            </div>
-          </form>
+      <!-- 2. 과매도 반등 후보 (Rebound) -->
+      <div class="glass">
+        <h2><i class="bi bi-arrow-counterclockwise me-1"></i>과매도 반등 후보 <span class="count">(<%= reboundCandidates.length %>건)</span></h2>
+        <div class="cat-banner rebound">
+          최근 단기 과매도 상태이지만, 장기 구조가 완전히 무너지지 않은 종목입니다.
+          d1~d5 단기 반등 관찰용 후보입니다 (매수 추천 아님).
         </div>
-
-        <!-- ⭐ PREMIUM 종목 (최상단 강조) -->
-        <%
-          const premiumMovers = momentumMovers.filter(m => m.startingQuality?.quality === 'PREMIUM');
-        %>
-        <% if (premiumMovers.length) { %>
-          <div class="glass" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 2px solid #16a34a;">
-            <h2 style="color:#15803d;"><i class="bi bi-star-fill me-1"></i>⭐ PREMIUM 종목 — 최우선 검토 (<%= premiumMovers.length %>건)</h2>
-            <div class="text-secondary small mb-3" style="color:#166534 !important;">
-              <strong>3가지 품질 필터 모두 통과</strong> — fade 없음 · 강한 마감 · 깨끗한 base. 오늘 가장 신뢰도 높은 후보.
-            </div>
-            <% premiumMovers.forEach(function(m, idx) {
-              const closeBar = Math.round(m.closePos * 100);
-              const tierLabel = m.dayChange < 10 ? '시동 (5~10%)' : m.dayChange < 15 ? '상승 중 (10~15%)' : m.dayChange < 25 ? '강한 상승 (15~25%)' : '상한가급 (≥25%)';
-            %>
-              <div class="item-card" style="background:#fff; border:2px solid #16a34a; animation: premiumGlow 2.5s ease-in-out infinite; padding:14px 16px;">
-                <div class="row1">
-                  <div class="name-block">
-                    <span class="rk" style="color:#15803d; font-weight:700;">#<%= idx + 1 %></span>
-                    <a class="deep-link" href="/?query=<%= encodeURIComponent(m.code) %>" target="_blank" rel="noopener" title="딥다이브 분석">
-                      <span class="nm" style="font-size:1.05rem;"><%= m.name %></span>
-                      <span class="cd"><%= m.code %></span>
-                      <i class="bi bi-box-arrow-up-right arr"></i>
-                    </a>
-                    <span class="score-pill ms-1" style="background:#16a34a; color:#fff; font-size:0.72rem; font-weight:700;">
-                      ⭐ PREMIUM
-                    </span>
-                    <% if (m.inShape) { %>
-                      <span class="score-pill ms-1" style="background:#dcfce7; color:#166534; font-size:0.68rem; font-weight:700;">
-                        🎯 SHAPE <%= m.shapeMatched %>/<%= m.shapeTotalKeys %>
-                      </span>
-                    <% } %>
-                  </div>
-                  <span class="score-pill" style="background:#16a34a; color:#fff; font-weight:700; font-size:0.95rem;">+<%= m.dayChange %>%</span>
+        <% if (!reboundCandidates.length) { %>
+          <div class="empty-state">현재 시점 통과 종목 없음</div>
+        <% } else { %>
+          <% reboundCandidates.forEach(function(c) { var s = c.rebound?.signals || {}; %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <span class="nm"><%= c.name %></span>
+                  <span class="cd"><%= c.code %></span>
+                  <span class="mkt"><%= c.market %></span>
                 </div>
-                <div style="margin:6px 0; padding:6px 8px; background:#f0fdf4; border-radius:6px; font-size:0.72rem; line-height:1.5; color:#166534;">
-                  <% m.startingQuality.flags.forEach(function(f) { %>
-                    <div>✓ <%= f.msg %></div>
-                  <% }) %>
-                </div>
-                <%
-                  // 추가 콘텍스트 — 130일 추세 + 60일 spike 횟수
-                  const t130 = m.trend130;
-                  const trendClass = t130 >= 80 ? { fg:'#991b1b', icon:'⚠', msg:'이미 폭등 — 추격 위험' }
-                    : t130 >= 30 ? { fg:'#92400e', icon:'📈', msg:'진행 중' }
-                    : t130 >= -20 ? { fg:'#166534', icon:'✓', msg:'안정 추세' }
-                    : { fg:'#92400e', icon:'⬇', msg:'장기 하락' };
-                  const sp = m.spikes60 || 0;
-                  const spClass = sp >= 6 ? { fg:'#991b1b', icon:'⚠', msg:'반복 펌프 (작전 의심)' }
-                    : sp >= 4 ? { fg:'#92400e', icon:'⚠', msg:'spike 다소 많음' }
-                    : { fg:'#166534', icon:'✓', msg:'정상' };
-                %>
-                <div style="margin:6px 0; padding:6px 8px; background:#f8fafc; border-radius:6px; font-size:0.72rem; line-height:1.6;">
-                  <div style="color:<%= trendClass.fg %>;">
-                    <%= trendClass.icon %> <strong>130일 <%= t130 >= 0 ? '+' : '' %><%= t130 %>%</strong> — <%= trendClass.msg %>
-                  </div>
-                  <div style="color:<%= spClass.fg %>;">
-                    <%= spClass.icon %> <strong>60일내 spike <%= sp %>회</strong> — <%= spClass.msg %>
-                  </div>
-                </div>
-                <% if (m.similarOutcome) { %>
-                  <% const o = m.similarOutcome; %>
-                  <div style="margin:6px 0; padding:8px 10px; background:#fef9c3; border-left:3px solid #ca8a04; border-radius:4px; font-size:0.72rem; line-height:1.6; color:#713f12;">
-                    📊 <strong>과거 유사 setup <%= o.n %>개 결말 — 타깃가</strong> (참고만, 예측 아님)
-                    <% if (o.baseLow) { %>
-                      <div style="margin-top:4px; padding:4px 6px; background:#fff; border-radius:3px;">
-                        <strong>30일 저점 <%= o.baseLow.toLocaleString() %>원 기준 → 현재 +<%= o.currentGainFromBase %>%</strong>
-                      </div>
-                      <div style="margin-top:4px;">
-                        🎯 <strong>median 타깃: <%= o.targetMedian.toLocaleString() %>원</strong> (현재가 대비 <%= o.remainingToMedian > 0 ? '+' + o.remainingToMedian + '% 잔여' : '이미 도달' %>)
-                      </div>
-                      <div>📈 p75 타깃: <strong><%= o.targetP75.toLocaleString() %>원</strong> · 최대 도달: <strong><%= o.targetMax.toLocaleString() %>원</strong></div>
-                      <div style="font-size:0.68rem; opacity:0.8;">• 평균 기간 <%= o.durMedian %>일 · +60% 도달 <%= o.pctReached60 %>% · +100% 도달 <%= o.pctReached100 %>%</div>
-                    <% } else { %>
-                      <div>• 폭등률 median +<%= Math.round(o.magMedian * 100) %>% (p25~p75 +<%= Math.round(o.magP25*100) %>~+<%= Math.round(o.magP75*100) %>%)</div>
-                    <% } %>
-                  </div>
-                <% } %>
-                <div class="row2">
-                  <span style="color:#15803d;"><strong><%= tierLabel %></strong></span>
-                  <span>시총 <strong><%= (m.marketCap / 1e8).toFixed(0) %>억</strong></span>
-                  <span>종가 <strong><%= m.closePrice.toLocaleString() %></strong></span>
-                  <span class="text-secondary"><%= m.market || '' %></span>
-                </div>
-                <div class="row3">
-                  <span class="feat feat-good">거래량 <strong><%= m.volRatio %>배</strong></span>
-                  <span class="feat feat-good">거래대금/시총 <strong><%= m.valuePct %>%</strong></span>
-                  <span class="feat feat-good">종가위치 <strong><%= closeBar %>%</strong></span>
-                </div>
+                <span class="score-pill rebound">Rebound <%= c.rebound.score %></span>
               </div>
-            <% }) %>
-          </div>
+              <div class="row2">
+                <span>5d <strong class="ret-neg"><%= ((s.ret5d || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>10d <strong class="<%= s.ret10d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret10d || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>20d <strong class="<%= s.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret20d || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>ATR <strong><%= ((s.atrPct || 0) * 100).toFixed(1) %>%</strong></span>
+                <% if (s.ma120) { %><span>120MA 거리 <strong><%= ((s.close / s.ma120 - 1) * 100).toFixed(1) %>%</strong></span><% } %>
+                <span>3d 외+기 <strong><%= ((s.sum3 || 0) / 1e8).toFixed(0) %>억</strong></span>
+              </div>
+              <div class="row3">
+                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= t.replace(/_/g, ' ') %></span><% }) %>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+              </div>
+            </div>
+          <% }) %>
         <% } %>
+      </div>
 
-        <!-- 🚀 오늘의 모멘텀 (메인 도구) -->
-        <div class="glass">
-          <h2><i class="bi bi-rocket-takeoff me-1"></i>오늘의 모멘텀 (<%= momentumMovers.length %>건)</h2>
-          <div class="text-secondary small mb-3">
-            오늘 +5% 이상 또는 거래량 3배 이상. <strong>🌱 시동 단계 가 가장 valuable</strong> (조기 시그널).
-          </div>
-          <% if (momentumMovers.length === 0) { %>
-            <div class="alert alert-light small mb-0">오늘 모멘텀 종목 없음.</div>
-          <% } else { %>
-            <%
-              // 4단계 분류 — 시동 단계가 가장 가치있음 (조기 시그널)
-              function tierOf(m) {
-                if (m.dayChange >= 25) return { key: 'limit', label: '🚀 상한가급', color: '#dc2626', bg: '#fee2e2' };
-                if (m.dayChange >= 15) return { key: 'strong', label: '🔥 강한 상승', color: '#ea580c', bg: '#fed7aa' };
-                if (m.dayChange >= 10) return { key: 'rising', label: '📈 상승 중', color: '#ca8a04', bg: '#fef3c7' };
-                return { key: 'starting', label: '🌱 시동 단계', color: '#16a34a', bg: '#dcfce7' };
-              }
-              // 단계별 분류 + 각 tier 안에서 품질순 정렬 (PREMIUM > FRESH > SUSPECT)
-              // PREMIUM 은 위쪽 별도 섹션에서 표시되므로 tier 에선 제외
-              const tierGroups = { starting: [], rising: [], strong: [], limit: [] };
-              momentumMovers
-                .filter((m) => m.startingQuality?.quality !== 'PREMIUM')
-                .forEach((m) => tierGroups[tierOf(m).key].push(m));
-              const qOrder = { PREMIUM: 3, FRESH: 2, SUSPECT: 1 };
-              const sortByQuality = (a, b) => {
-                const qa = qOrder[a.startingQuality?.quality] || 0;
-                const qb = qOrder[b.startingQuality?.quality] || 0;
-                if (qa !== qb) return qb - qa;
-                return b.score - a.score;
-              };
-              tierGroups.starting.sort(sortByQuality);
-              tierGroups.rising.sort(sortByQuality);
-              tierGroups.strong.sort(sortByQuality);
-              tierGroups.limit.sort(sortByQuality);
-              const tierMeta = [
-                { key: 'starting', label: '🌱 시동 단계 (5~10% + 거래량 폭증) — 조기 시그널, 가장 가치있음' },
-                { key: 'rising',   label: '📈 상승 중 (10~15%) — 모멘텀 진행' },
-                { key: 'strong',   label: '🔥 강한 상승 (15~25%) — 빠르게 진행 중' },
-                { key: 'limit',    label: '🚀 상한가급 (≥25%) — 이미 큰 상승, 추격 리스크' },
-              ];
-            %>
-            <% tierMeta.forEach(function(tm) { const list = tierGroups[tm.key]; if (!list.length) return; %>
-              <h3 style="font-size:0.95rem; font-weight:700; margin:14px 0 8px; color:#0f172a;"><%= tm.label %> <span style="color:#94a3b8; font-weight:400;">(<%= list.length %>건)</span></h3>
-              <% list.forEach(function(m, idx) {
-                const tier = tierOf(m);
-                const closeBar = Math.round(m.closePos * 100);
-                const sq = m.startingQuality;
-                const qBadge = sq ? (
-                  sq.quality === 'PREMIUM' ? { icon:'⭐', label:'PREMIUM', bg:'#dcfce7', fg:'#166534' }
-                  : sq.quality === 'FRESH' ? { icon:'🌱', label:'FRESH', bg:'#fef3c7', fg:'#92400e' }
-                  : { icon:'⚠', label:'추격 의심', bg:'#fee2e2', fg:'#991b1b' }
-                ) : null;
-                // PREMIUM/FRESH 만 시동 단계 가치 있음 — SUSPECT 는 시각적으로 약하게
-                const isFaded = sq && sq.quality === 'SUSPECT';
-              %>
-                <div class="item-card" style="border-left:3px solid <%= tier.color %>; <%= isFaded ? 'opacity:0.65;' : '' %>">
-                  <div class="row1">
-                    <div class="name-block">
-                      <span class="rk">#<%= idx + 1 %></span>
-                      <a class="deep-link" href="/?query=<%= encodeURIComponent(m.code) %>" target="_blank" rel="noopener" title="딥다이브 분석">
-                        <span class="nm"><%= m.name %></span>
-                        <span class="cd"><%= m.code %></span>
-                        <i class="bi bi-box-arrow-up-right arr"></i>
-                      </a>
-                      <% if (qBadge) { %>
-                        <span class="score-pill ms-1" style="background:<%= qBadge.bg %>; color:<%= qBadge.fg %>; font-size:0.68rem; font-weight:700;" title="시동 품질 — 3개 필터 중 <%= sq.passCount %>개 통과">
-                          <%= qBadge.icon %> <%= qBadge.label %>
-                        </span>
-                      <% } %>
-                      <% if (m.inShape) { %>
-                        <span class="score-pill ms-1" style="background:#dcfce7; color:#166534; font-size:0.68rem; font-weight:700;" title="SHAPE matcher 와 교차">
-                          🎯 SHAPE <%= m.shapeMatched %>/<%= m.shapeTotalKeys %>
-                        </span>
-                      <% } %>
-                    </div>
-                    <span class="score-pill" style="background:<%= tier.bg %>; color:<%= tier.color %>; font-weight:700;">+<%= m.dayChange %>%</span>
-                  </div>
-                  <% if (sq && sq.flags) { %>
-                    <div style="margin:6px 0; padding:6px 8px; background:#f8fafc; border-radius:6px; font-size:0.72rem; line-height:1.5;">
-                      <% sq.flags.forEach(function(f) { %>
-                        <div style="color:<%= f.ok ? '#166534' : '#991b1b' %>;"><%= f.ok ? '✓' : '✗' %> <%= f.msg %></div>
-                      <% }) %>
-                    </div>
-                  <% } %>
-                  <div class="row2">
-                    <span>시총 <strong><%= (m.marketCap / 1e8).toFixed(0) %>억</strong></span>
-                    <span>종가 <strong><%= m.closePrice.toLocaleString() %></strong></span>
-                    <span class="text-secondary"><%= m.market || '' %></span>
-                  </div>
-                  <div class="row3">
-                    <span class="feat feat-good">거래량 <strong><%= m.volRatio %>배</strong></span>
-                    <span class="feat feat-good">거래대금/시총 <strong><%= m.valuePct %>%</strong></span>
-                    <span class="feat <%= m.closePos >= 0.7 ? 'feat-good' : (m.closePos <= 0.3 ? 'feat-bad' : 'feat-neu') %>" title="당일 종가가 저~고가 사이 어디에 위치 (1=고가, 0=저가)">
-                      종가위치 <strong><%= closeBar %>%</strong>
-                    </span>
-                  </div>
+      <!-- 3. 강세장 추세 관찰 (BullTrendWatch) -->
+      <div class="glass">
+        <h2><i class="bi bi-eye me-1"></i>강세장 추세 관찰 <span class="count">(<%= bullTrendWatch.length %>건)</span></h2>
+        <div class="cat-banner bull">
+          이 카테고리는 단기 매수 신호가 아니라 강세장 20일 추세 관찰용입니다.
+          기존 모델은 d5 매수 모델로 실패했고, 75-84점 + bull regime 조합만 d20 추세 관찰로 사용합니다.
+        </div>
+        <% if (!bullTrendWatch.length) { %>
+          <div class="empty-state">현재 bull regime + 75-84점 + entry-ready 조건 통과 종목 없음</div>
+        <% } else { %>
+          <% bullTrendWatch.forEach(function(c) { %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <span class="nm"><%= c.name %></span>
+                  <span class="cd"><%= c.code %></span>
+                  <span class="mkt"><%= c.market %></span>
                 </div>
-              <% }) %>
-            <% }) %>
-          <% } %>
+                <span class="score-pill bull">Trend <%= c.setupScore %></span>
+              </div>
+              <div class="row2">
+                <% if (c.weekly) { %><span>주봉 <strong><%= c.weekly.stage || '-' %></strong></span><% } %>
+                <% if (c.trend) { %><span>Minervini <strong><%= c.trend.passed %>/6</strong></span><% } %>
+                <% if (c.atr) { %><span>ATR stop <strong><%= c.atr.stopPct || '-' %>%</strong></span><% } %>
+                <% if (c.financials?.score != null) { %><span>실적 <strong><%= c.financials.score %></strong></span><% } %>
+                <span>regime <strong>bull</strong></span>
+                <span>현재가 <strong><%= (c.closePrice || 0).toLocaleString('ko-KR') %>원</strong></span>
+              </div>
+              <div class="row3">
+                <span class="tag-badge tag-BULL_TREND_WATCH">BULL TREND WATCH</span>
+                <span style="margin-left:auto; color:#94a3b8; font-size:0.72rem;">d20 관찰용 · 단기 매수 신호 아님</span>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+    </div><!-- /tab-today -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 2: 주의 종목 (과열/추격주의 / 고변동성 / 구조 붕괴) -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tab-warn" role="tabpanel">
+
+      <!-- 4. 과열/추격주의 -->
+      <% var overheatTop = (overheatWarnings || []).slice(0, 30); %>
+      <div class="glass">
+        <h2><i class="bi bi-fire me-1"></i>과열/추격주의 <span class="count">(<%= overheatWarnings.length %>건 중 상위 30)</span></h2>
+        <div class="cat-banner warn">
+          추세는 강하지만 단기 과열 가능성이 있어 신규 진입 시 주의가 필요한 종목입니다.
+          신규 추격매수보다는 분할 익절, 보유 시 리스크 관리 관점으로 확인하세요.
+        </div>
+        <% if (!overheatTop.length) { %>
+          <div class="empty-state">과열 시그널 종목 없음</div>
+        <% } else { %>
+          <% overheatTop.forEach(function(c) { %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <span class="nm"><%= c.name %></span>
+                  <span class="cd"><%= c.code %></span>
+                  <span class="mkt"><%= c.market %></span>
+                </div>
+                <span class="score-pill warn">Warning</span>
+              </div>
+              <div class="row2">
+                <span>5d <strong class="<%= c.ret5d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret5d %>%</strong></span>
+                <span>20d <strong class="<%= c.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret20d %>%</strong></span>
+                <span>20MA 이격 <strong><%= c.dist20pct %>%</strong></span>
+                <span>ATR <strong><%= c.atrPct %>%</strong></span>
+                <span>거래대금 확장 <strong><%= c.valueExpansion %>x</strong></span>
+                <% if (c.setupScore) { %><span>Trend <strong><%= c.setupScore %></strong></span><% } %>
+              </div>
+              <div class="row3">
+                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= t.replace(/_/g, ' ') %></span><% }) %>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+      <!-- 5. 고변동성 / 구조 붕괴 (taggedAll 에서 필터) -->
+      <% var highVol = (taggedAll || []).filter(function(t) { return t.primaryTag === 'HIGH_VOLATILITY'; }).slice(0, 30); %>
+      <% var broken = (taggedAll || []).filter(function(t) { return t.primaryTag === 'STRUCTURE_BROKEN'; }).slice(0, 30); %>
+
+      <div class="glass">
+        <h2><i class="bi bi-exclamation-triangle me-1"></i>고변동성 종목 <span class="count">(상위 30, ATR ≥15% 우선)</span></h2>
+        <div class="cat-banner warn">
+          ATR 15% 이상 — 일중 변동성이 매우 큰 종목입니다.
+          모델 후보가 아니므로 신규 진입을 권장하지 않습니다.
+        </div>
+        <% if (!highVol.length) { %>
+          <div class="empty-state">해당 종목 없음</div>
+        <% } else { %>
+          <% highVol.forEach(function(c) { %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <span class="nm"><%= c.name %></span>
+                  <span class="cd"><%= c.code %></span>
+                  <span class="mkt"><%= c.market %></span>
+                </div>
+                <span class="score-pill warn">ATR <%= c.atrPct %>%</span>
+              </div>
+              <div class="row2">
+                <span>5d <strong class="<%= c.ret5d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret5d %>%</strong></span>
+                <span>20d <strong class="<%= c.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret20d %>%</strong></span>
+                <span>60d <strong class="<%= c.ret60d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret60d %>%</strong></span>
+                <span>시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+              </div>
+              <div class="row3">
+                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= t.replace(/_/g, ' ') %></span><% }) %>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+      <div class="glass">
+        <h2><i class="bi bi-x-octagon me-1"></i>구조 붕괴 종목 <span class="count">(상위 30, 200MA 큰 폭 이탈/장기 -45% 이하)</span></h2>
+        <div class="cat-banner warn">
+          장기 추세선 (200MA) 큰 폭 이탈 또는 60일 -45% 이하 — 추세 회복까지 상당한 시간이 필요합니다.
+          단기 과매도 반등 모델 (Rebound) 에서도 hard reject 됐으므로 신규 진입 비추천.
+        </div>
+        <% if (!broken.length) { %>
+          <div class="empty-state">해당 종목 없음</div>
+        <% } else { %>
+          <% broken.forEach(function(c) { %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <span class="nm"><%= c.name %></span>
+                  <span class="cd"><%= c.code %></span>
+                  <span class="mkt"><%= c.market %></span>
+                </div>
+                <span class="score-pill warn">붕괴</span>
+              </div>
+              <div class="row2">
+                <span>20d <strong class="<%= c.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret20d %>%</strong></span>
+                <span>60d <strong class="<%= c.ret60d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret60d %>%</strong></span>
+                <span>ATR <strong><%= c.atrPct %>%</strong></span>
+                <span>시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+              </div>
+              <div class="row3">
+                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= t.replace(/_/g, ' ') %></span><% }) %>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+    </div><!-- /tab-warn -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 3: 모델 검증 (보유점검 + 검증 리포트) -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tab-validation" role="tabpanel">
+
+      <!-- 5. 보유/관심종목 점검 -->
+      <div class="glass">
+        <h2><i class="bi bi-person-check me-1"></i>보유/관심종목 점검</h2>
+        <div class="cat-banner holding">
+          보유 또는 관심 종목 코드/이름을 입력하면 각 모델이 어떻게 평가하는지 통합 카드로 보여줍니다.
+          매수/매도 추천이 아니라 종목 상태 분석입니다.
+        </div>
+        <form method="get" action="/pattern" class="row g-2 mb-3">
+          <div class="col-md-9">
+            <input type="text" name="holdings" value="<%= holdingsRaw || '' %>"
+                   placeholder="종목 코드/이름 (쉼표/공백 구분, 예: 005930, 한미반도체)"
+                   class="form-control form-control-sm" />
+          </div>
+          <div class="col-md-3">
+            <button type="submit" class="btn btn-outline-primary btn-sm w-100">점검</button>
+          </div>
+          <input type="hidden" name="cq" value="<%= cQuery || '' %>" />
+        </form>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="small text-secondary">기존 검색은 그대로 유지하며, 점검할 종목만 추가 입력됩니다.</span>
+          <a href="/pattern" class="btn btn-link btn-sm">초기화</a>
         </div>
 
-        <!-- 🔥 시동 단계 후보 (보조: SHAPE 기반) -->
-        <div class="glass">
-          <h2><i class="bi bi-fire me-1"></i>SHAPE 시동 후보 (<%= activeCandidates.length %>건) <span style="font-size:0.7rem; color:#94a3b8; font-weight:400;">— 보조 도구</span></h2>
-          <div class="text-secondary small mb-3">
-            과거 +40% 종목 패턴 매칭 12+/16 + 최근 거래량+양봉 시그널.
-          </div>
-          <% if (activeCandidates.length === 0) { %>
-            <div class="alert alert-light small mb-0">오늘은 시동 단계 후보 없음. <strong>조용한 watchlist</strong> 모니터링 중.</div>
-          <% } else { %>
-            <% activeCandidates.forEach(function(c, idx) {
-              const matched = c.matched || 0;
-              const totalK = c.totalKeys || 14;
-              const matchPct = totalK > 0 ? matched / totalK : 0;
-              const matchColor = matched === totalK ? { bg: '#dcfce7', fg: '#166534' }
-                : (matchPct >= 11/14 ? { bg: '#fef3c7', fg: '#92400e' }
-                : { bg: '#f1f5f9', fg: '#64748b' });
-              const changeCls = (c.changeRate || 0) > 0 ? 'regime-bull' : (c.changeRate < 0 ? 'regime-bear' : 'regime-side');
-              const featRowsA = [
-                ['maPos20',          '20일선 대비',     fmtDelta(c.features?.maPos20)],
-                ['positionPct',      '60일 고점',       fmtDelta(c.features?.positionPct)],
-                ['positionFromLow',  '60일 저점',       fmtDelta(c.features?.positionFromLow)],
-                ['localResistance',  '매물밀도',        fmtPct(c.features?.localResistance)],
-              ];
-              const featRowsB = [
-                ['turnover',          '20일 회전율',    fmtPct(c.features?.turnover)],
-                ['boxDays',           '박스권',         fmtDays(c.features?.boxDays)],
-                ['igniteVolumeRatio', '오늘 거래량',    fmtMult(c.features?.igniteVolumeRatio)],
-                ['igniteValueRatio',  '오늘 거래대금',  fmtPct(c.features?.igniteValueRatio)],
-              ];
-            %>
-              <%
-                const ca = c.chartAnalysis;
-                const verdictColor = ca ?
-                  (ca.verdict === 'STRONG' ? { bg:'#dcfce7', fg:'#166534', border:'#16a34a', icon:'✅', label:'STRONG' }
-                  : ca.verdict === 'GOOD' ? { bg:'#d1fae5', fg:'#047857', border:'#10b981', icon:'🟢', label:'GOOD' }
-                  : ca.verdict === 'MIXED' ? { bg:'#fef3c7', fg:'#92400e', border:'#f59e0b', icon:'🟡', label:'MIXED' }
-                  : { bg:'#fee2e2', fg:'#991b1b', border:'#dc2626', icon:'❌', label:'WEAK' })
-                  : { border:'#f59e0b' };
-              %>
-              <div class="item-card" style="border-left:3px solid <%= verdictColor.border %>;">
+        <% if (!holdingsCards.length) { %>
+          <div class="empty-state">점검할 종목을 입력하세요.</div>
+        <% } else { %>
+          <% holdingsCards.forEach(function(c) { %>
+            <% if (!c.found) { %>
+              <div class="item-card" style="background:#fef3c7;">
                 <div class="row1">
                   <div class="name-block">
-                    <span class="rk">#<%= idx + 1 %></span>
-                    <a class="deep-link" href="/?query=<%= encodeURIComponent(c.code) %>" target="_blank" rel="noopener" title="딥다이브 분석 (새 탭)">
-                      <span class="nm"><%= c.name %></span>
-                      <span class="cd"><%= c.code %></span>
-                      <i class="bi bi-box-arrow-up-right arr"></i>
-                    </a>
-                    <% if (ca) { %>
-                      <span class="score-pill ms-1" style="background:<%= verdictColor.bg %>; color:<%= verdictColor.fg %>; font-size:0.7rem; font-weight:700;">
-                        <%= verdictColor.icon %> <%= verdictColor.label %>
-                      </span>
-                    <% } %>
-                    <span class="score-pill ms-1" style="background:#fef3c7; color:#92400e; font-size:0.68rem;" title="<%= c.breakout.date.slice(4,6)+'/'+c.breakout.date.slice(6,8) %> 거래량 <%= c.breakout.volRatio %>x">
-                      🔥 <%= c.breakout.daysAgo === 0 ? '오늘' : c.breakout.daysAgo + '일전' %> +<%= c.breakout.dayChange %>% (<%= c.breakout.volRatio %>x)
-                    </span>
+                    <span class="nm"><%= c.query %></span>
+                    <span class="cd" style="color:#854d0e;">(미발견)</span>
                   </div>
-                  <span class="score-pill" style="background: <%= matchColor.bg %>; color: <%= matchColor.fg %>;"><%= matched %>/<%= totalK %></span>
                 </div>
-                <% if (ca && (ca.flags.positive.length || ca.flags.negative.length)) { %>
-                  <div style="margin:6px 0; padding:6px 8px; background:#f8fafc; border-radius:6px; font-size:0.72rem; line-height:1.5;">
-                    <% ca.flags.positive.forEach(function(f) { %>
-                      <div style="color:#166534;">✓ <%= f %></div>
-                    <% }) %>
-                    <% ca.flags.negative.forEach(function(f) { %>
-                      <div style="color:#991b1b;">✗ <%= f %></div>
-                    <% }) %>
-                  </div>
-                <% } %>
-                <div class="row2">
-                  <span>시총 <strong><%= (c.marketCap / 1e8).toFixed(0) %>억</strong></span>
-                  <span>종가 <strong><%= c.closePrice ? c.closePrice.toLocaleString() : '-' %></strong></span>
-                  <span class="<%= changeCls %>"><%= c.changeRate != null ? (c.changeRate > 0 ? '+' : '') + c.changeRate.toFixed(2) + '%' : '-' %></span>
-                </div>
-                <div class="row3">
-                  <% featRowsA.forEach(function(fr) { const inBand = c.sigBreakdown ? c.sigBreakdown[fr[0]] : null; %>
-                    <span class="<%= featCls(inBand) %>"><%= fr[1] %> <strong><%= fr[2] %></strong></span>
-                  <% }) %>
-                </div>
-                <div class="row3">
-                  <% featRowsB.forEach(function(fr) { const inBand = c.sigBreakdown ? c.sigBreakdown[fr[0]] : null; %>
-                    <span class="<%= featCls(inBand) %>"><%= fr[1] %> <strong><%= fr[2] %></strong></span>
-                  <% }) %>
-                </div>
+                <div class="row2 small text-secondary">분석 대상 universe 에 없거나 캐시 미시드.</div>
               </div>
-            <% }) %>
-          <% } %>
-        </div>
-
-        <!-- 🌙 SHAPE Watchlist (보조: 모니터링 풀) -->
-        <div class="glass">
-          <h2><i class="bi bi-moon me-1"></i>SHAPE Watchlist (<%= watchCandidates.length %>건) <span style="font-size:0.7rem; color:#94a3b8; font-weight:400;">— 보조 도구</span></h2>
-          <div class="text-secondary small mb-3">
-            과거 +40% 종목 패턴 매칭 14+/16, 거래량 잠잠 — 시동 기다리는 watchlist.
-          </div>
-          <% if (watchCandidates.length === 0) { %>
-            <div class="alert alert-light small mb-0">조건에 맞는 watchlist 없음.</div>
-          <% } else { %>
-            <% watchCandidates.forEach(function(c, idx) {
-              const matched = c.matched || 0;
-              const totalK = c.totalKeys || 14;
-              const matchPct = totalK > 0 ? matched / totalK : 0;
-              const matchColor = matched === totalK ? { bg: '#dcfce7', fg: '#166534' }
-                : (matchPct >= 11/14 ? { bg: '#fef3c7', fg: '#92400e' }
-                : { bg: '#f1f5f9', fg: '#64748b' });
-              const changeCls = (c.changeRate || 0) > 0 ? 'regime-bull' : (c.changeRate < 0 ? 'regime-bear' : 'regime-side');
-              const featRowsA = [
-                ['maPos20',          '20일선 대비',     fmtDelta(c.features?.maPos20)],
-                ['positionPct',      '60일 고점',       fmtDelta(c.features?.positionPct)],
-                ['positionFromLow',  '60일 저점',       fmtDelta(c.features?.positionFromLow)],
-                ['localResistance',  '매물밀도',        fmtPct(c.features?.localResistance)],
-              ];
-              const featRowsB = [
-                ['turnover',          '20일 회전율',    fmtPct(c.features?.turnover)],
-                ['boxDays',           '박스권',         fmtDays(c.features?.boxDays)],
-                ['igniteVolumeRatio', '오늘 거래량',    fmtMult(c.features?.igniteVolumeRatio)],
-                ['igniteValueRatio',  '오늘 거래대금',  fmtPct(c.features?.igniteValueRatio)],
-              ];
-            %>
+            <% } else { %>
               <div class="item-card">
                 <div class="row1">
                   <div class="name-block">
-                    <span class="rk">#<%= idx + 1 %></span>
-                    <a class="deep-link" href="/?query=<%= encodeURIComponent(c.code) %>" target="_blank" rel="noopener" title="딥다이브 분석 (새 탭)">
-                      <span class="nm"><%= c.name %></span>
-                      <span class="cd"><%= c.code %></span>
-                      <i class="bi bi-box-arrow-up-right arr"></i>
-                    </a>
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                    <span class="mkt"><%= c.market %></span>
                   </div>
-                  <span class="score-pill" style="background: <%= matchColor.bg %>; color: <%= matchColor.fg %>;"><%= matched %>/<%= totalK %></span>
+                  <span class="score-pill" style="background:#f1f5f9; color:#0f172a;">primary: <%= (c.primaryTag || '').replace(/_/g, ' ') %></span>
                 </div>
                 <div class="row2">
-                  <span>시총 <strong><%= (c.marketCap / 1e8).toFixed(0) %>억</strong></span>
-                  <span>종가 <strong><%= c.closePrice ? c.closePrice.toLocaleString() : '-' %></strong></span>
-                  <span class="<%= changeCls %>"><%= c.changeRate != null ? (c.changeRate > 0 ? '+' : '') + c.changeRate.toFixed(2) + '%' : '-' %></span>
+                  <span>FlowLead <strong><%= c.flowLead?.score ?? '-' %></strong></span>
+                  <span>Rebound <strong><%= c.rebound?.score ?? '-' %></strong></span>
+                  <span>Trend <strong><%= c.setupScore ?? '-' %></strong></span>
+                  <span>regime <strong><%= c.regime || '-' %></strong></span>
+                  <span>ATR <strong><%= c.atrPct ?? '-' %>%</strong></span>
+                </div>
+                <div class="row2">
+                  <span>5d <strong class="<%= c.ret5d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret5d %>%</strong></span>
+                  <span>20d <strong class="<%= c.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret20d %>%</strong></span>
+                  <span>60d <strong class="<%= c.ret60d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret60d %>%</strong></span>
+                  <span>20MA 이격 <strong><%= c.dist20pct %>%</strong></span>
+                  <span>현재가 <strong><%= (c.closePrice || 0).toLocaleString('ko-KR') %>원</strong></span>
                 </div>
                 <div class="row3">
-                  <% featRowsA.forEach(function(fr) { const inBand = c.sigBreakdown ? c.sigBreakdown[fr[0]] : null; %>
-                    <span class="<%= featCls(inBand) %>"><%= fr[1] %> <strong><%= fr[2] %></strong></span>
-                  <% }) %>
-                </div>
-                <div class="row3">
-                  <% featRowsB.forEach(function(fr) { const inBand = c.sigBreakdown ? c.sigBreakdown[fr[0]] : null; %>
-                    <span class="<%= featCls(inBand) %>"><%= fr[1] %> <strong><%= fr[2] %></strong></span>
-                  <% }) %>
+                  <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= t.replace(/_/g, ' ') %></span><% }) %>
                 </div>
               </div>
-            <% }) %>
-          <% } %>
-        </div>
-      <% } %>
-    <% } %>
+            <% } %>
+          <% }) %>
+        <% } %>
+      </div>
 
-    <div class="text-center text-secondary small mt-4">
-      <a href="/admin" class="text-decoration-none text-secondary">
-        <i class="bi bi-gear me-1"></i>관리자 페이지에서 시드/분석 실행
-      </a>
-    </div>
+      <!-- 6. 모델 검증 리포트 (백필 완료 후 데이터 연동) -->
+      <div class="glass">
+        <h2><i class="bi bi-clipboard-data me-1"></i>모델 검증 리포트</h2>
+        <div class="cat-banner report">
+          각 모델의 백테스트 결과를 표시하는 페이지입니다.
+          비교 대상: FlowLead / Rebound / Bull Trend / baselineTrendRS / baselineAll
+          (구간: d1/d3/d5/d10/d20, regime, market, 시총, 거래대금, winsorize 5%)
+        </div>
+        <div class="empty-state">
+          <strong>백필 진행 중</strong> — 511 종목 × 810일 외국인/기관 수급 데이터<br/>
+          백필 완료 후 자동으로 _runFlowLead.js / _runRebound.js 백테스트 결과가 이 영역에 표시됩니다.<br/>
+          <span class="small text-secondary">결과 JSON 도 인증된 사용자만 접근 가능합니다.</span>
+        </div>
+      </div>
+
+    </div><!-- /tab-validation -->
+
+  </div><!-- /tab-content -->
+
+  <!-- ─── 서비스 안내 ─── -->
+  <div class="service-notice">
+    <strong>본 서비스는 매수 추천이 아닙니다.</strong>
+    각 종목의 상태와 과거 검증 기반 후보를 보여주는 분석 도구입니다.
+    각 모델은 서로 다른 가설을 기반으로 하며, 시장 상황에 따라 성과가 달라질 수 있습니다.
+    투자 판단과 책임은 사용자 본인에게 있습니다.
   </div>
+
+<% } else { %>
+  <div class="glass">
+    <p class="text-secondary mb-0">아직 분석 결과가 없습니다. 관리자 페이지에서 시드 + 분석을 실행하세요.</p>
+  </div>
+<% } %>
+
+</div><!-- /wrap -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

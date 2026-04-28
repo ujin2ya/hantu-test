@@ -1886,7 +1886,8 @@ app.get("/", (req, res) => {
     req.body = { ...req.query, stockQuery: incomingQuery };
     return handleSearch(req, res);
   }
-  return renderIndex(res);
+  // 첫 화면을 패턴 대시보드로 — 검색 쿼리 없을 때 /pattern 으로 이동
+  return res.redirect("/pattern");
 });
 
 function buildScanReturnUrl(body) {
@@ -2203,79 +2204,45 @@ app.get("/pattern", (req, res) => {
   } catch (_) {}
   const seededCount = patternScreener.listSeededStocks().length;
 
-  // 페이징 + 버킷 필터 + 검색
-  const PAGE_SIZE = 50;
-  const requestedBucket = String(req.query.bucket || "all").toUpperCase();
-  const bucket = ["A", "B", "C", "D"].includes(requestedBucket) ? requestedBucket : "all";
-  const requestedPage = Math.max(1, parseInt(req.query.page, 10) || 1);
-  const query = String(req.query.q || "").trim();
-
-  let pagedEvents = [];
-  let totalEvents = 0;
-  let totalPages = 1;
-  let page = requestedPage;
-  if (result?.success?.events?.length) {
-    const all = result.success.events.slice();
-    all.sort((a, b) => (b.peakDate || "").localeCompare(a.peakDate || ""));
-    const byBucket = bucket === "all"
-      ? all
-      : all.filter((e) => {
-        const d = e.duration;
-        if (bucket === "A") return d <= 30;
-        if (bucket === "B") return d <= 50 && d > 30;
-        if (bucket === "C") return d <= 70 && d > 50;
-        if (bucket === "D") return d <= 90 && d > 70;
-        return true;
-      });
-    const q = query.toLowerCase();
-    const filtered = q
-      ? byBucket.filter((e) =>
-          (e.name || "").toLowerCase().includes(q) ||
-          (e.code || "").toLowerCase().includes(q)
-        )
-      : byBucket;
-    totalEvents = filtered.length;
-    totalPages = Math.max(1, Math.ceil(totalEvents / PAGE_SIZE));
-    page = Math.min(page, totalPages);
-    const start = (page - 1) * PAGE_SIZE;
-    pagedEvents = filtered.slice(start, start + PAGE_SIZE);
-  }
-
-  // 후보 자동 분류 — 사용자가 필터 만질 필요 없이 두 섹션으로 자동 분리.
-  // 1) 🔥 active: 12+/16 매칭 + 최근 breakout 시그널 = 실전 매수 검토
-  // 2) 🌙 watch: 14+/16 매칭 (active 제외) = 조용한 watchlist
   const cQuery = String(req.query.cq || "").trim();
-  let activeCandidates = [];
-  let watchCandidates = [];
-  let momentumMovers = [];
-  if (result?.candidates?.top?.length) {
-    const cq = cQuery.toLowerCase();
-    const matchSearch = (item) => !cq || (item.name || "").toLowerCase().includes(cq) || (item.code || "").toLowerCase().includes(cq);
+  const matchSearch = (item) => !cQuery || (item.name || "").toLowerCase().includes(cQuery.toLowerCase()) || (item.code || "").toLowerCase().includes(cQuery.toLowerCase());
 
-    momentumMovers = (result.momentum?.movers || []).filter(matchSearch);
+  // ─── Phase 8 새 카테고리 ───
+  const flowLeadCandidates = (result?.flowLeadCandidates || []).filter(matchSearch);
+  const reboundCandidates = (result?.reboundCandidates || []).filter(matchSearch);
+  const bullTrendWatch = (result?.bullTrendWatch || []).filter(matchSearch);
+  const overheatWarnings = (result?.overheatWarnings || []).filter(matchSearch);
+  const taggedAll = (result?.taggedAll || []).filter(matchSearch);
 
-    const verdictOrder = { STRONG: 4, GOOD: 3, MIXED: 2, WEAK: 1 };
-    activeCandidates = result.candidates.top
-      .filter((c) => (c.matched || 0) >= 12 && c.breakout && matchSearch(c))
-      .sort((a, b) => {
-        const va = verdictOrder[a.chartAnalysis?.verdict] || 0;
-        const vb = verdictOrder[b.chartAnalysis?.verdict] || 0;
-        if (va !== vb) return vb - va; // verdict 우선
-        if (a.matched !== b.matched) return b.matched - a.matched;
-        return (b.breakout?.score || 0) - (a.breakout?.score || 0);
-      });
+  // ─── 보유/관심종목 점검 — 사용자 입력 코드 → 통합 카드 ───
+  const holdingsRaw = String(req.query.holdings || "").trim();
+  const holdingsCodes = holdingsRaw.split(/[\s,]+/).filter(Boolean);
+  const holdingsCards = holdingsCodes.length
+    ? holdingsCodes.map((q) => {
+        // 코드 또는 이름 매칭
+        const lower = q.toLowerCase();
+        const found = (result?.taggedAll || []).find((t) => t.code === q || (t.name || "").toLowerCase() === lower || (t.name || "").toLowerCase().includes(lower));
+        return found ? { query: q, found: true, ...found } : { query: q, found: false };
+      })
+    : [];
 
-    const activeCodes = new Set(activeCandidates.map((c) => c.code));
-    watchCandidates = result.candidates.top
-      .filter((c) => (c.matched || 0) >= 14 && !activeCodes.has(c.code) && matchSearch(c))
-      .sort((a, b) => (b.matched - a.matched) || (b.score - a.score));
-  }
+  // ─── 기존 (역호환 — 모델 검증 페이지에서 사용) ───
+  const buyCandidates = (result?.buyCandidates || []).filter(matchSearch);
+  const watchlist = (result?.watchlist || []).filter(matchSearch);
+  const observationList = (result?.observationList || []).filter(matchSearch);
+  const stage1to2Transitions = (result?.stage1to2Transitions || []).filter(matchSearch);
+  const todaysBreakouts = (result?.todaysBreakouts || []).filter(matchSearch);
+  const vcpForming = (result?.vcpForming || []).filter(matchSearch);
+  const stage2Pool = (result?.stage2Pool || []).filter(matchSearch);
 
   res.render("pattern", {
     result, seededCount, patternState,
-    pagedEvents, page, totalPages, totalEvents,
-    pageSize: PAGE_SIZE, bucket, query,
-    momentumMovers, activeCandidates, watchCandidates, cQuery,
+    cQuery, holdingsRaw,
+    // 새 카테고리
+    flowLeadCandidates, reboundCandidates, bullTrendWatch, overheatWarnings, taggedAll, holdingsCards,
+    // 기존 — 모델 검증 / 역호환
+    buyCandidates, watchlist, observationList,
+    stage1to2Transitions, todaysBreakouts, vcpForming, stage2Pool,
   });
 });
 
@@ -2287,7 +2254,9 @@ app.post("/admin/pattern/seed", requireAdmin, (req, res) => {
   patternState.seedProgress = { i: 0, total: 0, code: "", name: "" };
   patternState.seedError = null;
   res.redirect("/admin?flash=pattern_seed_started");
+  // Minervini Stage 2 분석 위해 250일 lookback (200일 SMA 계산용)
   naverFetcher.seedHistorical({
+    lookbackDays: 250,
     onProgress: (p) => { patternState.seedProgress = p; },
   })
     .catch((e) => { patternState.seedError = e.message; })

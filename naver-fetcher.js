@@ -14,6 +14,7 @@ const axios = require("axios");
 
 const H = { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" };
 const CACHE_DIR = path.join(__dirname, "cache", "stock-charts");
+const WEEKLY_CACHE_DIR = path.join(__dirname, "cache", "stock-charts-weekly");
 const STOCKS_LIST_PATH = path.join(__dirname, "cache", "naver-stocks-list.json");
 
 function ensureDir(p) {
@@ -116,6 +117,75 @@ async function fetchAllStocks({ throttleMs = 300 } = {}) {
 }
 
 // ─────────── 종목별 일봉 ───────────
+
+async function fetchWeeklyChart(itemCode, count = 110) {
+  const url = `https://api.stock.naver.com/chart/domestic/item/${itemCode}?periodType=weekCandle&count=${count}`;
+  const r = await axios.get(url, { headers: H, timeout: 15000 });
+  const rows = (r.data.priceInfos || []).map((p) => {
+    const close = Number(p.closePrice);
+    const volume = Number(p.accumulatedTradingVolume);
+    return {
+      date: String(p.localDate || ""),
+      open: Number(p.openPrice) || 0,
+      high: Number(p.highPrice) || 0,
+      low: Number(p.lowPrice) || 0,
+      close: close || 0,
+      volume: volume || 0,
+      valueApprox: Math.round(((Number(p.openPrice) + Number(p.highPrice) + Number(p.lowPrice) + close) / 4) * volume),
+      foreignRate: Number(p.foreignRetentionRate) || null,
+    };
+  });
+  return rows.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function saveWeeklyChart(code, rows) {
+  ensureDir(WEEKLY_CACHE_DIR);
+  const meta = {
+    code,
+    fetchedAt: new Date().toISOString(),
+    weeks: rows.length,
+    firstDate: rows[0]?.date,
+    lastDate: rows[rows.length - 1]?.date,
+  };
+  fs.writeFileSync(path.join(WEEKLY_CACHE_DIR, `${code}.json`), JSON.stringify({ meta, rows }));
+}
+
+function loadWeeklyChart(code) {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(WEEKLY_CACHE_DIR, `${code}.json`), "utf-8"));
+  } catch (_) { return null; }
+}
+
+// 주봉 일괄 seed (110주 = 약 2년)
+async function seedWeeklyHistorical({
+  throttleMs = 500,
+  resume = true,
+  onProgress = null,
+} = {}) {
+  const t0 = Date.now();
+  const stocksList = loadStocksList();
+  if (!stocksList?.stocks) throw new Error("naver-stocks-list.json 없음 — 일봉 seed 먼저 실행");
+  const targets = stocksList.stocks.filter((s) =>
+    !s.isSpecial && s.closePrice > 0
+  );
+  let success = 0, fail = 0, skipped = 0;
+  for (let i = 0; i < targets.length; i++) {
+    const s = targets[i];
+    if (resume && loadWeeklyChart(s.code)) { skipped++; continue; }
+    try {
+      const rows = await fetchWeeklyChart(s.code, 110);
+      saveWeeklyChart(s.code, rows);
+      success++;
+      if (onProgress) onProgress({ i, total: targets.length, code: s.code, name: s.name, ok: true });
+    } catch (e) {
+      fail++;
+      if (onProgress) onProgress({ i, total: targets.length, code: s.code, name: s.name, ok: false, error: e.message });
+    }
+    if (i < targets.length - 1) await sleep(throttleMs);
+  }
+  const elapsed = ((Date.now() - t0) / 1000).toFixed(0);
+  return { success, fail, skipped, elapsed };
+}
 
 async function fetchDailyChart(itemCode, count = 130) {
   const url = `https://api.stock.naver.com/chart/domestic/item/${itemCode}?periodType=dayCandle&count=${count}`;
@@ -241,4 +311,8 @@ module.exports = {
   saveStocksList,
   loadStocksList,
   seedHistorical,
+  fetchWeeklyChart,
+  saveWeeklyChart,
+  loadWeeklyChart,
+  seedWeeklyHistorical,
 };
