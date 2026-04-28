@@ -924,9 +924,20 @@ async function analyzeAll({ logProgress = false } = {}) {
     const primaryOrder = ["CSB_BREAKOUT", "CSB_COMPRESSION", "REBOUND", "FLOW_LEAD", "BULL_TREND_WATCH", "OVERHEAT_WARNING", "HIGH_VOLATILITY", "STRUCTURE_BROKEN", "NO_SIGNAL"];
     const primaryTag = primaryOrder.find((t) => tags.includes(t));
 
+    // 시총별 분류
+    const getCapBucket = (cap) => {
+      if (!cap) return "unknown";
+      if (cap >= 50_000_000_000 && cap < 100_000_000_000) return "cap500to1000";
+      if (cap >= 100_000_000_000 && cap < 300_000_000_000) return "cap1000to3000";
+      if (cap >= 300_000_000_000 && cap < 1_000_000_000_000) return "cap3000to1t";
+      if (cap >= 1_000_000_000_000) return "cap1tPlus";
+      return "unknown";
+    };
+
     const tagged = {
       code, name: meta.name, market: meta.market,
       marketCap: meta.marketValue,
+      capBucket: getCapBucket(meta.marketValue),
       closePrice,
       changeRate: meta.changeRate,
       lastDate: today.date,
@@ -985,6 +996,37 @@ async function analyzeAll({ logProgress = false } = {}) {
     })
     .sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
 
+  // ─── 시총별 분류 ───
+  const csbMainSorted = csbMainCandidates.sort((a, b) => (b.csb?.metrics?.valueRatio5d20d || 0) - (a.csb?.metrics?.valueRatio5d20d || 0));
+  const csbSubSorted = csbSubCandidates.sort((a, b) => (b.csb?.metrics?.valueRatio5d20d || 0) - (a.csb?.metrics?.valueRatio5d20d || 0));
+
+  const csbMainByCap = {
+    cap500to1000: csbMainSorted.filter(c => c.capBucket === "cap500to1000"),
+    cap1000to3000: csbMainSorted.filter(c => c.capBucket === "cap1000to3000"),
+    cap3000to1t: csbMainSorted.filter(c => c.capBucket === "cap3000to1t"),
+    cap1tPlus: csbMainSorted.filter(c => c.capBucket === "cap1tPlus"),
+  };
+  const csbSubByCap = {
+    cap500to1000: csbSubSorted.filter(c => c.capBucket === "cap500to1000"),
+    cap1000to3000: csbSubSorted.filter(c => c.capBucket === "cap1000to3000"),
+    cap3000to1t: csbSubSorted.filter(c => c.capBucket === "cap3000to1t"),
+    cap1tPlus: csbSubSorted.filter(c => c.capBucket === "cap1tPlus"),
+  };
+
+  const csbSmallCapMainCandidates = csbMainByCap.cap500to1000;
+  const csbSmallCapSubCandidates = csbSubByCap.cap500to1000;
+
+  const csbStats = {
+    mainTotal: csbMainSorted.length,
+    subTotal: csbSubSorted.length,
+    byCap: {
+      cap500to1000: { main: csbMainByCap.cap500to1000.length, sub: csbSubByCap.cap500to1000.length },
+      cap1000to3000: { main: csbMainByCap.cap1000to3000.length, sub: csbSubByCap.cap1000to3000.length },
+      cap3000to1t: { main: csbMainByCap.cap3000to1t.length, sub: csbSubByCap.cap3000to1t.length },
+      cap1tPlus: { main: csbMainByCap.cap1tPlus.length, sub: csbSubByCap.cap1tPlus.length },
+    }
+  };
+
   const result = {
     analyzedAt: new Date().toISOString(),
     seeded: seededCodes.length,
@@ -995,10 +1037,17 @@ async function analyzeAll({ logProgress = false } = {}) {
     // ─── CSB 메인 모델 (Phase 9 — Dc 채택) ───
     // CSB 4태그 통과 = 메인 후보, 3태그 (지지+거래대금 + (압축 OR 돌파)) = 보조
     // 정렬: 거래대금 재활성 비율 (valueRatio5d20d) 기준 — 점수는 변별력 없어 제외
-    csbMainCandidates: csbMainCandidates.sort((a, b) => (b.csb?.metrics?.valueRatio5d20d || 0) - (a.csb?.metrics?.valueRatio5d20d || 0)),
-    csbMainCount: csbMainCandidates.length,
-    csbSubCandidates: csbSubCandidates.sort((a, b) => (b.csb?.metrics?.valueRatio5d20d || 0) - (a.csb?.metrics?.valueRatio5d20d || 0)),
-    csbSubCount: csbSubCandidates.length,
+    csbMainCandidates: csbMainSorted,
+    csbMainCount: csbMainSorted.length,
+    csbSubCandidates: csbSubSorted,
+    csbSubCount: csbSubSorted.length,
+
+    // ─── 시총별 분류 ───
+    csbSmallCapMainCandidates,
+    csbSmallCapSubCandidates,
+    csbMainByCap,
+    csbSubByCap,
+    csbStats,
 
     // ─── 새 카테고리 (Phase 8) ───
     flowLeadCandidates: flowLeadCandidates.sort((a, b) => (b.flowLead?.score || 0) - (a.flowLead?.score || 0)),

@@ -339,6 +339,100 @@ function won(v) {
         <% } %>
       </div>
 
+      <!-- 1c. 중소형 상승 전 압축 후보 (500억~1000억) -->
+      <div class="glass">
+        <h2><i class="bi bi-lightning-fill me-1"></i>중소형 상승 전 압축 후보 <span class="count" style="color:#dc2626;">(500억~1000억 · <%= csbSmallCapMainCandidates.length %>건)</span></h2>
+        <div class="alert alert-warning small mb-3" style="border-left:4px solid #dc2626; background:#fff7ed; color:#7c2d12;">
+          <i class="bi bi-exclamation-triangle me-2"></i><strong>중소형 주의</strong> · 이 구간은 변동성과 체결 리스크가 상대적으로 클 수 있습니다.
+          충분한 거래량 확인 후 신중하게 진입하세요.
+        </div>
+        <% if (!csbSmallCapMainCandidates.length) { %>
+          <div class="empty-state">현재 시점 통과 종목 없음</div>
+        <% } else { %>
+          <% csbSmallCapMainCandidates.forEach(function(c) { var m = c.csb?.metrics || {}; var sg = c.csb?.stopGuide; var st = c.csb?.stages || {}; var tp = c.csb?.tradePlan; %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
+                  <span class="mkt"><%= c.market %></span>
+                </div>
+                <span class="score-pill" style="background:#fee2e2; color:#991b1b;">
+                  <%= c.csb.displayGrade %> · 중소형
+                </span>
+              </div>
+              <div class="row2">
+                <span>관찰가 <strong><%= won(c.closePrice) %></strong></span>
+                <span>압축 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
+                <span>거래대금 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
+                <span>20일 고점거리 <strong><%= ((m.distFromHigh20 || 0) * 100).toFixed(1) %>%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong style="color:#dc2626;"><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+              </div>
+              <% if (tp) { %>
+                <div class="trade-plan" style="background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:10px 12px; margin:8px 0; font-size:0.85rem;">
+                  <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">
+                    <span><strong style="color:#991b1b;">확인 진입</strong> <%= won(tp.triggerPrice) %></span>
+                    <span><strong style="color:#dc2626;">종가 손절</strong> <%= won(tp.stopPrice) %> (-<%= tp.stopPct %>%)</span>
+                    <span><strong style="color:#1e40af;">1차 목표</strong> <%= won(tp.target1) %></span>
+                    <span><strong style="color:#7c3aed;">2차 목표</strong> <%= won(tp.target2) %></span>
+                  </div>
+                </div>
+              <% } %>
+              <div class="row3">
+                <% if (st.compressionFormed) { %><span class="tag-badge" style="background:#d1fae5; color:#065f46;">압축 형성</span><% } %>
+                <% if (st.supportConfirmed) { %><span class="tag-badge" style="background:#dbeafe; color:#1e40af;">지지 확인</span><% } %>
+                <% if (st.breakoutReady) { %><span class="tag-badge" style="background:#fef3c7; color:#854d0e;">돌파 대기</span><% } %>
+                <% if (st.volumeReturning) { %><span class="tag-badge" style="background:#fce7f3; color:#9d174d;">거래대금 재활성</span><% } %>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+      <!-- 1d. 중소형 예비 압축 후보 (500억~1000억) -->
+      <div class="glass">
+        <h2><i class="bi bi-eye me-1"></i>중소형 예비 압축 후보 <span class="count" style="color:#dc2626;">(500억~1000억 · <%= csbSmallCapSubCandidates.length %>건)</span></h2>
+        <div class="alert alert-warning small mb-3" style="border-left:4px solid #dc2626; background:#fff7ed; color:#7c2d12;">
+          <i class="bi bi-exclamation-triangle me-2"></i><strong>중소형 주의</strong> · 변동성과 체결 리스크가 상대적으로 클 수 있으며, 거래량 확인이 필수입니다.
+        </div>
+        <% if (!csbSmallCapSubCandidates.length) { %>
+          <div class="empty-state">현재 시점 통과 종목 없음</div>
+        <% } else { %>
+          <% csbSmallCapSubCandidates.slice(0, 15).forEach(function(c) { var m = c.csb?.metrics || {}; var st = c.csb?.stages || {}; var tp = c.csb?.tradePlan; %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
+                  <span class="mkt"><%= c.market %></span>
+                </div>
+                <span class="score-pill" style="background:#fed7aa; color:#92400e;">중소형</span>
+              </div>
+              <div class="row2">
+                <span>관찰가 <strong><%= won(c.closePrice) %></strong></span>
+                <span>압축 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
+                <span>거래대금 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
+                <span>고점거리 <strong><%= ((m.distFromHigh20 || 0) * 100).toFixed(1) %>%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong style="color:#dc2626;"><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+              </div>
+              <div class="row3">
+                <% if (st.compressionFormed) { %><span class="tag-badge" style="background:#d1fae5; color:#065f46;">압축 형성</span><% } %>
+                <% if (st.supportConfirmed) { %><span class="tag-badge" style="background:#dbeafe; color:#1e40af;">지지 확인</span><% } %>
+                <% if (st.breakoutReady) { %><span class="tag-badge" style="background:#fef3c7; color:#854d0e;">돌파 대기</span><% } %>
+                <% if (st.volumeReturning) { %><span class="tag-badge" style="background:#fce7f3; color:#9d174d;">거래대금 재활성</span><% } %>
+              </div>
+            </div>
+          <% }) %>
+          <% if (csbSmallCapSubCandidates.length > 15) { %>
+            <div class="small text-secondary mt-2">상위 15개 표시 — 총 <%= csbSmallCapSubCandidates.length %>건</div>
+          <% } %>
+        <% } %>
+      </div>
+
       <!-- 2. 과매도 반등 후보 (Rebound) -->
       <div class="glass">
         <h2><i class="bi bi-arrow-counterclockwise me-1"></i>과매도 반등 후보 <span class="count">(<%= reboundCandidates.length %>건)</span></h2>

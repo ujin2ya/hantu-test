@@ -2461,6 +2461,10 @@ app.get("/pattern", (req, res) => {
   const overheatWarnings = (result?.overheatWarnings || []).filter(matchSearch);
   const taggedAll = (result?.taggedAll || []).filter(matchSearch);
 
+  // ─── CSB 시총별 분류 ───
+  const csbSmallCapMainCandidates = (result?.csbSmallCapMainCandidates || []).filter(matchSearch);
+  const csbSmallCapSubCandidates = (result?.csbSmallCapSubCandidates || []).filter(matchSearch);
+
   // ─── 보유/관심종목 점검 — 사용자 입력 코드 → 통합 카드 ───
   const holdingsRaw = String(req.query.holdings || "").trim();
   const holdingsCodes = holdingsRaw.split(/[\s,]+/).filter(Boolean);
@@ -2487,6 +2491,8 @@ app.get("/pattern", (req, res) => {
     cQuery, holdingsRaw,
     // 새 카테고리
     flowLeadCandidates, reboundCandidates, bullTrendWatch, overheatWarnings, taggedAll, holdingsCards,
+    // CSB 시총별 분류
+    csbSmallCapMainCandidates, csbSmallCapSubCandidates,
     // 기존 — 모델 검증 / 역호환
     buyCandidates, watchlist, observationList,
     stage1to2Transitions, todaysBreakouts, vcpForming, stage2Pool,
