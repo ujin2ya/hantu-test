@@ -974,6 +974,13 @@ async function analyzeAll({ logProgress = false } = {}) {
         tradePlan: csbTradePlan,
         stageCount: Object.values(csb.stages || {}).filter(Boolean).length,
       } : null,
+      smallCsb: smallCsb?.passed ? {
+        displayGrade: smallCsb.bucket === 'SMALL_CSB_READY' ? '준비' : '관찰',
+        stages: smallCsb.stages,
+        metrics: smallCsb.metrics,
+        capBucket: smallCsb.capBucket,
+        stopGuide: { stopPrice: closePrice * (1 - 0.08) },
+      } : null,
       tags,
       primaryTag,
     };
