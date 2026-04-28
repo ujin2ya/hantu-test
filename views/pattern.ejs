@@ -118,6 +118,28 @@ var holdingsCards      = (typeof holdingsCards      !== 'undefined' && holdingsC
 var holdingsRaw        = (typeof holdingsRaw        !== 'undefined') ? holdingsRaw        : '';
 var cQuery             = (typeof cQuery             !== 'undefined') ? cQuery             : '';
 var seededCount        = (typeof seededCount        !== 'undefined') ? seededCount        : ((result && result.seeded) || 0);
+
+// 태그 한글 매핑 (CSS class 는 영어 식별자 유지, 화면 표시만 한글)
+var tagLabels = {
+  FLOW_LEAD: '자금 선행',
+  REBOUND: '과매도 반등',
+  BULL_TREND_WATCH: '강세장 추세',
+  OVERHEAT_WARNING: '과열 주의',
+  HIGH_VOLATILITY: '고변동성',
+  STRUCTURE_BROKEN: '구조 붕괴',
+  NO_SIGNAL: '신호 없음'
+};
+function tagText(t) { return tagLabels[t] || t.replace(/_/g, ' '); }
+function regimeText(r) {
+  if (r === 'bull') return '강세장';
+  if (r === 'bear') return '약세장';
+  if (r === 'sideways') return '횡보장';
+  return r || '-';
+}
+function won(v) {
+  if (!v && v !== 0) return '-';
+  return Number(v).toLocaleString('ko-KR') + '원';
+}
 %>
 
   <!-- ─── 헤더 ─── -->
@@ -205,19 +227,22 @@ var seededCount        = (typeof seededCount        !== 'undefined') ? seededCou
                   <span class="cd"><%= c.code %></span>
                   <span class="mkt"><%= c.market %></span>
                 </div>
-                <span class="score-pill flow">Flow <%= c.flowLead.score %></span>
+                <span class="score-pill flow">자금 점수 <%= c.flowLead.score %></span>
               </div>
               <div class="row2">
-                <span>5d 외+기 <strong><%= ((s.foreign5d + s.inst5d) / 1e8).toFixed(0) %>억</strong></span>
-                <span>20d <strong><%= ((s.foreign20d + s.inst20d) / 1e8).toFixed(0) %>억</strong></span>
-                <span>비율 <strong><%= ((s.flowRatio5d || 0) * 100).toFixed(0) %>%</strong></span>
-                <span>5d 수익률 <strong class="<%= s.ret5d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret5d || 0) * 100).toFixed(1) %>%</strong></span>
-                <span>20d <strong class="<%= s.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret20d || 0) * 100).toFixed(1) %>%</strong></span>
-                <span>ATR <strong><%= ((s.atrPct || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>현재가 <strong><%= won(c.closePrice) %></strong></span>
+                <span>5일 외+기 순매수 <strong><%= ((s.foreign5d + s.inst5d) / 1e8).toFixed(0) %>억</strong></span>
+                <span>20일 <strong><%= ((s.foreign20d + s.inst20d) / 1e8).toFixed(0) %>억</strong></span>
+                <span>수급 강도 <strong><%= ((s.flowRatio5d || 0) * 100).toFixed(0) %>%</strong></span>
+              </div>
+              <div class="row2">
+                <span>5일 수익률 <strong class="<%= s.ret5d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret5d || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>20일 <strong class="<%= s.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret20d || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>변동성(ATR) <strong><%= ((s.atrPct || 0) * 100).toFixed(1) %>%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
               </div>
               <div class="row3">
-                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= t.replace(/_/g, ' ') %></span><% }) %>
-                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= tagText(t) %></span><% }) %>
               </div>
             </div>
           <% }) %>
@@ -242,19 +267,22 @@ var seededCount        = (typeof seededCount        !== 'undefined') ? seededCou
                   <span class="cd"><%= c.code %></span>
                   <span class="mkt"><%= c.market %></span>
                 </div>
-                <span class="score-pill rebound">Rebound <%= c.rebound.score %></span>
+                <span class="score-pill rebound">반등 점수 <%= c.rebound.score %></span>
               </div>
               <div class="row2">
-                <span>5d <strong class="ret-neg"><%= ((s.ret5d || 0) * 100).toFixed(1) %>%</strong></span>
-                <span>10d <strong class="<%= s.ret10d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret10d || 0) * 100).toFixed(1) %>%</strong></span>
-                <span>20d <strong class="<%= s.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret20d || 0) * 100).toFixed(1) %>%</strong></span>
-                <span>ATR <strong><%= ((s.atrPct || 0) * 100).toFixed(1) %>%</strong></span>
-                <% if (s.ma120) { %><span>120MA 거리 <strong><%= ((s.close / s.ma120 - 1) * 100).toFixed(1) %>%</strong></span><% } %>
-                <span>3d 외+기 <strong><%= ((s.sum3 || 0) / 1e8).toFixed(0) %>억</strong></span>
+                <span>현재가 <strong><%= won(c.closePrice || s.close) %></strong></span>
+                <span>5일 수익률 <strong class="ret-neg"><%= ((s.ret5d || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>10일 <strong class="<%= s.ret10d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret10d || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>20일 <strong class="<%= s.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret20d || 0) * 100).toFixed(1) %>%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong><%= ((s.atrPct || 0) * 100).toFixed(1) %>%</strong></span>
+                <% if (s.ma120) { %><span>120일선 거리 <strong><%= ((s.close / s.ma120 - 1) * 100).toFixed(1) %>%</strong></span><% } %>
+                <span>3일 외+기 순매수 <strong><%= ((s.sum3 || 0) / 1e8).toFixed(0) %>억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
               </div>
               <div class="row3">
-                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= t.replace(/_/g, ' ') %></span><% }) %>
-                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= tagText(t) %></span><% }) %>
               </div>
             </div>
           <% }) %>
@@ -279,19 +307,19 @@ var seededCount        = (typeof seededCount        !== 'undefined') ? seededCou
                   <span class="cd"><%= c.code %></span>
                   <span class="mkt"><%= c.market %></span>
                 </div>
-                <span class="score-pill bull">Trend <%= c.setupScore %></span>
+                <span class="score-pill bull">추세 점수 <%= c.setupScore %></span>
               </div>
               <div class="row2">
-                <% if (c.weekly) { %><span>주봉 <strong><%= c.weekly.stage || '-' %></strong></span><% } %>
-                <% if (c.trend) { %><span>Minervini <strong><%= c.trend.passed %>/6</strong></span><% } %>
-                <% if (c.atr) { %><span>ATR stop <strong><%= c.atr.stopPct || '-' %>%</strong></span><% } %>
-                <% if (c.financials?.score != null) { %><span>실적 <strong><%= c.financials.score %></strong></span><% } %>
-                <span>regime <strong>bull</strong></span>
-                <span>현재가 <strong><%= (c.closePrice || 0).toLocaleString('ko-KR') %>원</strong></span>
+                <span>현재가 <strong><%= won(c.closePrice) %></strong></span>
+                <% if (c.weekly) { %><span>주봉 추세 <strong><%= c.weekly.stage || '-' %></strong></span><% } %>
+                <% if (c.trend) { %><span>추세 조건 <strong><%= c.trend.passed %>/6</strong></span><% } %>
+                <% if (c.atr) { %><span>손절 폭 <strong><%= c.atr.stopPct || '-' %>%</strong></span><% } %>
+                <% if (c.financials?.score != null) { %><span>실적 점수 <strong><%= c.financials.score %></strong></span><% } %>
+                <span>시장 <strong>강세장</strong></span>
               </div>
               <div class="row3">
-                <span class="tag-badge tag-BULL_TREND_WATCH">BULL TREND WATCH</span>
-                <span style="margin-left:auto; color:#94a3b8; font-size:0.72rem;">d20 관찰용 · 단기 매수 신호 아님</span>
+                <span class="tag-badge tag-BULL_TREND_WATCH">강세장 추세</span>
+                <span style="margin-left:auto; color:#94a3b8; font-size:0.72rem;">20일 추세 관찰용 · 단기 매수 신호 아님</span>
               </div>
             </div>
           <% }) %>
@@ -324,18 +352,22 @@ var seededCount        = (typeof seededCount        !== 'undefined') ? seededCou
                   <span class="cd"><%= c.code %></span>
                   <span class="mkt"><%= c.market %></span>
                 </div>
-                <span class="score-pill warn">Warning</span>
+                <span class="score-pill warn">과열</span>
               </div>
               <div class="row2">
-                <span>5d <strong class="<%= c.ret5d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret5d %>%</strong></span>
-                <span>20d <strong class="<%= c.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret20d %>%</strong></span>
-                <span>20MA 이격 <strong><%= c.dist20pct %>%</strong></span>
-                <span>ATR <strong><%= c.atrPct %>%</strong></span>
-                <span>거래대금 확장 <strong><%= c.valueExpansion %>x</strong></span>
-                <% if (c.setupScore) { %><span>Trend <strong><%= c.setupScore %></strong></span><% } %>
+                <span>현재가 <strong><%= won(c.closePrice) %></strong></span>
+                <span>5일 <strong class="<%= c.ret5d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret5d %>%</strong></span>
+                <span>20일 <strong class="<%= c.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret20d %>%</strong></span>
+                <span>20일선 이격 <strong><%= c.dist20pct %>%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong><%= c.atrPct %>%</strong></span>
+                <span>거래대금 확장 <strong><%= c.valueExpansion %>배</strong></span>
+                <% if (c.setupScore) { %><span>추세 점수 <strong><%= c.setupScore %></strong></span><% } %>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
               </div>
               <div class="row3">
-                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= t.replace(/_/g, ' ') %></span><% }) %>
+                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= tagText(t) %></span><% }) %>
               </div>
             </div>
           <% }) %>
@@ -363,16 +395,17 @@ var seededCount        = (typeof seededCount        !== 'undefined') ? seededCou
                   <span class="cd"><%= c.code %></span>
                   <span class="mkt"><%= c.market %></span>
                 </div>
-                <span class="score-pill warn">ATR <%= c.atrPct %>%</span>
+                <span class="score-pill warn">변동성 <%= c.atrPct %>%</span>
               </div>
               <div class="row2">
-                <span>5d <strong class="<%= c.ret5d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret5d %>%</strong></span>
-                <span>20d <strong class="<%= c.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret20d %>%</strong></span>
-                <span>60d <strong class="<%= c.ret60d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret60d %>%</strong></span>
-                <span>시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+                <span>현재가 <strong><%= won(c.closePrice) %></strong></span>
+                <span>5일 <strong class="<%= c.ret5d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret5d %>%</strong></span>
+                <span>20일 <strong class="<%= c.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret20d %>%</strong></span>
+                <span>60일 <strong class="<%= c.ret60d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret60d %>%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
               </div>
               <div class="row3">
-                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= t.replace(/_/g, ' ') %></span><% }) %>
+                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= tagText(t) %></span><% }) %>
               </div>
             </div>
           <% }) %>
@@ -396,16 +429,17 @@ var seededCount        = (typeof seededCount        !== 'undefined') ? seededCou
                   <span class="cd"><%= c.code %></span>
                   <span class="mkt"><%= c.market %></span>
                 </div>
-                <span class="score-pill warn">붕괴</span>
+                <span class="score-pill warn">구조 붕괴</span>
               </div>
               <div class="row2">
-                <span>20d <strong class="<%= c.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret20d %>%</strong></span>
-                <span>60d <strong class="<%= c.ret60d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret60d %>%</strong></span>
-                <span>ATR <strong><%= c.atrPct %>%</strong></span>
-                <span>시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+                <span>현재가 <strong><%= won(c.closePrice) %></strong></span>
+                <span>20일 <strong class="<%= c.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret20d %>%</strong></span>
+                <span>60일 <strong class="<%= c.ret60d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret60d %>%</strong></span>
+                <span>변동성(ATR) <strong><%= c.atrPct %>%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
               </div>
               <div class="row3">
-                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= t.replace(/_/g, ' ') %></span><% }) %>
+                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= tagText(t) %></span><% }) %>
               </div>
             </div>
           <% }) %>
@@ -464,24 +498,24 @@ var seededCount        = (typeof seededCount        !== 'undefined') ? seededCou
                     <span class="cd"><%= c.code %></span>
                     <span class="mkt"><%= c.market %></span>
                   </div>
-                  <span class="score-pill" style="background:#f1f5f9; color:#0f172a;">primary: <%= (c.primaryTag || '').replace(/_/g, ' ') %></span>
+                  <span class="score-pill" style="background:#f1f5f9; color:#0f172a;">분류: <%= tagText(c.primaryTag || '') %></span>
                 </div>
                 <div class="row2">
-                  <span>FlowLead <strong><%= c.flowLead?.score ?? '-' %></strong></span>
-                  <span>Rebound <strong><%= c.rebound?.score ?? '-' %></strong></span>
-                  <span>Trend <strong><%= c.setupScore ?? '-' %></strong></span>
-                  <span>regime <strong><%= c.regime || '-' %></strong></span>
-                  <span>ATR <strong><%= c.atrPct ?? '-' %>%</strong></span>
+                  <span>현재가 <strong><%= won(c.closePrice) %></strong></span>
+                  <span>자금 점수 <strong><%= c.flowLead?.score ?? '-' %></strong></span>
+                  <span>반등 점수 <strong><%= c.rebound?.score ?? '-' %></strong></span>
+                  <span>추세 점수 <strong><%= c.setupScore ?? '-' %></strong></span>
+                  <span>시장 <strong><%= regimeText(c.regime) %></strong></span>
+                  <span>변동성(ATR) <strong><%= c.atrPct ?? '-' %>%</strong></span>
                 </div>
                 <div class="row2">
-                  <span>5d <strong class="<%= c.ret5d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret5d %>%</strong></span>
-                  <span>20d <strong class="<%= c.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret20d %>%</strong></span>
-                  <span>60d <strong class="<%= c.ret60d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret60d %>%</strong></span>
-                  <span>20MA 이격 <strong><%= c.dist20pct %>%</strong></span>
-                  <span>현재가 <strong><%= (c.closePrice || 0).toLocaleString('ko-KR') %>원</strong></span>
+                  <span>5일 수익률 <strong class="<%= c.ret5d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret5d %>%</strong></span>
+                  <span>20일 <strong class="<%= c.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret20d %>%</strong></span>
+                  <span>60일 <strong class="<%= c.ret60d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= c.ret60d %>%</strong></span>
+                  <span>20일선 이격 <strong><%= c.dist20pct %>%</strong></span>
                 </div>
                 <div class="row3">
-                  <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= t.replace(/_/g, ' ') %></span><% }) %>
+                  <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= tagText(t) %></span><% }) %>
                 </div>
               </div>
             <% } %>
