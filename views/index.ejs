@@ -131,6 +131,130 @@
         <% } %>
       </div>
 
+      <% if (csbDetail && csbDetail.passed) {
+           var cat = csbDetail.category;
+           var st = csbDetail.stages || {};
+           var m = csbDetail.metrics || {};
+           var sg = csbDetail.stopGuide;
+           var isMain = cat === 'CSB_BREAKOUT';
+           var isSub  = cat === 'CSB_COMPRESSION';
+           var headerBg = isMain ? '#ecfdf5' : (isSub ? '#f0fdfa' : '#f8fafc');
+           var headerBorder = isMain ? '#047857' : (isSub ? '#0d9488' : '#cbd5e1');
+           var headerColor = isMain ? '#065f46' : (isSub ? '#0f766e' : '#475569');
+           var dist20 = (m.ma20 && stockMeta.closePrice) ? (stockMeta.closePrice / m.ma20 - 1) : null;
+           var dist60 = (m.ma60 && stockMeta.closePrice) ? (stockMeta.closePrice / m.ma60 - 1) : null;
+      %>
+      <div class="glass" style="border-left:5px solid <%= headerBorder %>; background:<%= headerBg %>;">
+        <div class="d-flex justify-content-between align-items-start flex-wrap mb-2">
+          <h2 style="margin:0; color:<%= headerColor %>;">
+            <i class="bi bi-bullseye me-1"></i>
+            <%= csbDetail.categoryLabel %>
+            <% if (isMain || isSub) { %>
+              <span class="badge ms-2" style="background:<%= headerBorder %>; color:white; font-size:0.7rem;">
+                <%= csbDetail.stageCount %>태그 통과
+              </span>
+            <% } %>
+          </h2>
+          <% if (isMain || isSub) { %>
+            <span class="small" style="color:<%= headerColor %>;">분류 등급 <strong><%= csbDetail.displayGrade %></strong></span>
+          <% } %>
+        </div>
+
+        <% if (cat === 'NONE') { %>
+          <div class="small text-secondary">
+            현재 4태그 / 3태그 어느 조합에도 해당하지 않습니다 (CSB 후보 아님).
+            점수 <%= csbDetail.score %>점 · <%= csbDetail.stageCount %>태그 통과.
+          </div>
+        <% } else { %>
+          <div class="small mb-3" style="color:<%= headerColor %>;">
+            <% if (isMain) { %>
+              압축 형성, 지지 확인, 돌파 대기, 거래대금 재활성 4개 조건이 동시에 나타난 종목입니다.
+            <% } else { %>
+              핵심 조건 중 3개가 충족된 예비 관찰 후보입니다.
+            <% } %>
+          </div>
+
+          <!-- stage chips -->
+          <div class="mb-3" style="display:flex; gap:6px; flex-wrap:wrap;">
+            <span class="badge" style="background:<%= st.compressionFormed ? '#10b981' : '#e2e8f0' %>; color:<%= st.compressionFormed ? 'white' : '#94a3b8' %>;">
+              <%= st.compressionFormed ? '✓' : '○' %> 압축 형성
+            </span>
+            <span class="badge" style="background:<%= st.supportConfirmed ? '#3b82f6' : '#e2e8f0' %>; color:<%= st.supportConfirmed ? 'white' : '#94a3b8' %>;">
+              <%= st.supportConfirmed ? '✓' : '○' %> 지지 확인
+            </span>
+            <span class="badge" style="background:<%= st.breakoutReady ? '#f59e0b' : '#e2e8f0' %>; color:<%= st.breakoutReady ? 'white' : '#94a3b8' %>;">
+              <%= st.breakoutReady ? '✓' : '○' %> 돌파 대기
+            </span>
+            <span class="badge" style="background:<%= st.volumeReturning ? '#ec4899' : '#e2e8f0' %>; color:<%= st.volumeReturning ? 'white' : '#94a3b8' %>;">
+              <%= st.volumeReturning ? '✓' : '○' %> 거래대금 재활성
+            </span>
+          </div>
+
+          <!-- 핵심 지표 -->
+          <div class="row g-2 row-cols-2 row-cols-md-4 mb-3">
+            <% if (m.compressionRatio != null) { %>
+              <div class="col"><div class="meta-cell"><div class="label">압축 비율 (5d/20d range)</div><div class="value"><%= (m.compressionRatio * 100).toFixed(0) %>%</div></div></div>
+            <% } %>
+            <% if (m.valueRatio5d20d != null) { %>
+              <div class="col"><div class="meta-cell"><div class="label">거래대금 (5d/20d)</div><div class="value"><%= m.valueRatio5d20d.toFixed(2) %>x</div></div></div>
+            <% } %>
+            <% if (m.distFromHigh20 != null) { %>
+              <div class="col"><div class="meta-cell"><div class="label">20일 고점 거리</div><div class="value"><%= (m.distFromHigh20 * 100).toFixed(1) %>%</div></div></div>
+            <% } %>
+            <% if (m.distFromHigh60 != null) { %>
+              <div class="col"><div class="meta-cell"><div class="label">60일 고점 거리</div><div class="value"><%= (m.distFromHigh60 * 100).toFixed(1) %>%</div></div></div>
+            <% } %>
+            <% if (dist20 != null) { %>
+              <div class="col"><div class="meta-cell"><div class="label">20일선 이격</div><div class="value"><%= (dist20 * 100 >= 0 ? '+' : '') + (dist20 * 100).toFixed(1) %>%</div></div></div>
+            <% } %>
+            <% if (dist60 != null) { %>
+              <div class="col"><div class="meta-cell"><div class="label">60일선 이격</div><div class="value"><%= (dist60 * 100 >= 0 ? '+' : '') + (dist60 * 100).toFixed(1) %>%</div></div></div>
+            <% } %>
+            <% if (m.atrPct != null) { %>
+              <div class="col"><div class="meta-cell"><div class="label">ATR (변동성)</div><div class="value"><%= (m.atrPct * 100).toFixed(2) %>%</div></div></div>
+            <% } %>
+          </div>
+
+          <!-- 손절 가이드 -->
+          <% if (sg) { %>
+            <div class="mb-3" style="background:white; border:1px solid <%= headerBorder %>; padding:12px 14px; border-radius:8px;">
+              <div class="small mb-1" style="color:<%= headerColor %>; font-weight:600;">
+                <i class="bi bi-shield-exclamation me-1"></i>손절 가이드 (Dc 룰)
+              </div>
+              <div class="small">
+                손절 폭 <strong><%= sg.stopPct %>%</strong> 적용 시 손절 가격 <strong><%= sg.stopPrice.toLocaleString() %>원</strong>
+              </div>
+              <div class="small text-secondary mt-1">
+                공식: <code>clamp(ATR%×2.5, 8%, 12%)</code> · 종가 기준 손절 판단 — 장중 저가가 일시적으로 손절선을 깨도 종가가 회복하면 보유 유지.
+              </div>
+            </div>
+          <% } %>
+
+          <!-- 중소형 경고 + 기타 -->
+          <% if (csbDetail.warnings && csbDetail.warnings.length) { %>
+            <div class="mb-2">
+              <% csbDetail.warnings.forEach(function(w) { %>
+                <div class="small" style="color:#991b1b; background:#fef2f2; padding:8px 12px; border-radius:6px; margin-bottom:4px;">
+                  <i class="bi bi-exclamation-triangle me-1"></i><%= w %>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+          <% if (stockMeta.marketCap && stockMeta.marketCap < 100_000_000_000) { %>
+            <div class="small mb-2" style="color:#991b1b; background:#fef2f2; padding:8px 12px; border-radius:6px;">
+              <i class="bi bi-exclamation-triangle me-1"></i>시총 1,000억 미만 — 변동성 + 유동성 리스크 주의
+            </div>
+          <% } %>
+
+          <!-- 주의 문구 -->
+          <div class="small text-secondary mt-2" style="border-top:1px solid #e2e8f0; padding-top:10px;">
+            <div>이 항목은 매수 추천이 아니라 압축·지지·거래대금 상태를 기반으로 한 관찰 후보입니다.</div>
+            <div>손절 기준은 장중 변동이 아니라 <strong>종가 기준</strong>으로 확인합니다.</div>
+          </div>
+        <% } %>
+      </div>
+      <% } %>
+
       <% if (chartRows && chartRows.length) { %>
         <div class="glass">
           <h2><i class="bi bi-graph-up me-1"></i>일봉 + 거래량</h2>

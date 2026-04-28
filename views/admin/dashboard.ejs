@@ -116,17 +116,23 @@
       </div>
       <% if (typeof seededCount !== 'undefined') { %>
         <div class="meta-cell mt-2">
-          <div class="label">패턴 스크리너 시드</div>
-          <div class="value"><%= seededCount %> 종목 (시총 50억~9000억)</div>
+          <div class="label">차트 시드 종목</div>
+          <div class="value"><%= seededCount %> 종목 — 일봉 캐시 (cache/stock-charts-long)</div>
         </div>
       <% } %>
       <div class="alert alert-info small mt-2 mb-0">
-        스윙/단타 스캔, 백테스트, 자동 메일 발송, AI 가중치 튜너는 점수 모델 재설계 중이라 일시 비활성화되었습니다.
+        현재 메인 모델: <strong>CompressionSupportBreakout (CSB)</strong> — 4태그 통과 = 상승 전 압축 후보, 3태그 = 예비 압축. 보조 모델 = Rebound (과매도 반등).
+        FlowLead v1~v4 / 점수 시스템은 백테스트 검증 실패로 메인에서 제외.
       </div>
     </div>
 
     <div class="card-soft">
-      <h2><i class="bi bi-graph-up-arrow me-1"></i>패턴 스크리너</h2>
+      <h2><i class="bi bi-graph-up-arrow me-1"></i>종목 분석 파이프라인</h2>
+      <div class="small text-secondary mb-3">
+        <strong>① 시드</strong>: KRX 일봉 차트 데이터 다운로드 (cache 갱신, 모델 무관) ·
+        <strong>② 분석</strong>: <code>analyzeAll()</code> 호출 = 현재 코드의 CSB 모델 기준 재분석 (cache/pattern-result.json 업데이트).
+        <br>새 코드 배포 후엔 반드시 <strong>분석</strong>을 다시 실행해야 /pattern 페이지에 반영됩니다.
+      </div>
       <% if (typeof patternState !== 'undefined' && patternState) { %>
         <div class="row g-2 mb-3">
           <div class="col-12 col-md-6">
@@ -171,19 +177,22 @@
         </div>
       <% } %>
       <div class="d-flex gap-2 flex-wrap">
-        <form method="post" action="/admin/pattern/seed" class="m-0" onsubmit="return confirm('시드를 다시 실행할까요? 기존 캐시는 유지하고 신규 종목만 추가합니다 (~10분).');">
+        <form method="post" action="/admin/pattern/seed" class="m-0" onsubmit="return confirm('① 차트 시드를 다시 실행할까요? 기존 캐시는 유지, 신규 종목만 추가 (~10분).');">
           <button type="submit" class="btn btn-outline-primary btn-sm" <%= (typeof patternState !== 'undefined' && patternState?.seeding) ? 'disabled' : '' %>>
-            <i class="bi bi-cloud-download me-1"></i>시드 실행
+            <i class="bi bi-cloud-download me-1"></i>① 차트 시드 (KRX 일봉)
           </button>
         </form>
-        <form method="post" action="/admin/pattern/analyze" class="m-0" onsubmit="return confirm('분석을 다시 실행할까요? (~1분)');">
-          <button type="submit" class="btn btn-outline-success btn-sm" <%= (typeof patternState !== 'undefined' && patternState?.analyzing) ? 'disabled' : '' %>>
-            <i class="bi bi-cpu me-1"></i>분석 실행
+        <form method="post" action="/admin/pattern/analyze" class="m-0" onsubmit="return confirm('② 분석을 다시 실행할까요? CSB 모델 기준 재분석 후 /pattern 페이지 반영 (~1분).');">
+          <button type="submit" class="btn btn-success btn-sm" <%= (typeof patternState !== 'undefined' && patternState?.analyzing) ? 'disabled' : '' %>>
+            <i class="bi bi-cpu me-1"></i>② 분석 실행 (CSB 모델)
           </button>
         </form>
         <a href="/pattern" class="btn btn-outline-secondary btn-sm">
-          <i class="bi bi-eye me-1"></i>패턴 페이지 보기
+          <i class="bi bi-eye me-1"></i>/pattern 보기
         </a>
+      </div>
+      <div class="small text-secondary mt-2">
+        ※ 새 코드 배포 직후엔 <strong>② 분석 실행</strong> 만 누르면 됩니다. 시드는 KRX 일봉 갱신이 필요할 때만.
       </div>
     </div>
 

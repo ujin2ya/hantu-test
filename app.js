@@ -1970,6 +1970,7 @@ function renderIndex(res, overrides = {}) {
     stockMeta: null,
     chartRows: null,
     patternData: null,
+    csbDetail: null,
     flowSummary: null,
     flowRecent: null,
     aiComment: null,
@@ -2067,6 +2068,52 @@ const handleSearch = async (req, res) => {
         patternData = (pr.taggedAll || []).find((t) => t.code === code) || null;
       }
     } catch (_) {}
+
+    // 3b) CSB 재계산 — patternData 의 csb 필드는 cache 의 분석 시점 기준이라 옛 분석이면 누락됨.
+    //     상세 페이지는 항상 최신 chart 기준으로 재계산해서 전달.
+    let csbDetail = null;
+    try {
+      let flowRowsArr = [];
+      const flowPath = path.join(__dirname, "cache", "flow-history", `${code}.json`);
+      if (fs.existsSync(flowPath)) {
+        flowRowsArr = JSON.parse(fs.readFileSync(flowPath, "utf-8")).rows || [];
+      }
+      const csbMeta = { ...stockMeta, marketValue: stockMeta?.marketValue || 0 };
+      const csbRes = patternScreener.calculateCompressionSupportBreakoutScore(rows, flowRowsArr, csbMeta, rows.length - 1);
+      if (csbRes?.passed) {
+        const stages = csbRes.stages || {};
+        const stageCount = Object.values(stages).filter(Boolean).length;
+        const allFour = stages.compressionFormed && stages.supportConfirmed && stages.breakoutReady && stages.volumeReturning;
+        const three = !allFour && stages.supportConfirmed && stages.volumeReturning
+          && (stages.compressionFormed || stages.breakoutReady);
+        let category = 'NONE';
+        let categoryLabel = '해당 없음';
+        if (allFour) { category = 'CSB_BREAKOUT'; categoryLabel = '상승 전 압축 후보'; }
+        else if (three) { category = 'CSB_COMPRESSION'; categoryLabel = '예비 압축 후보'; }
+
+        let stopGuide = null;
+        const lastClose = lastRow.close;
+        if (csbRes.metrics?.atrPct && lastClose > 0) {
+          const stopPctFinal = Math.max(0.08, Math.min(0.12, csbRes.metrics.atrPct * 2.5));
+          stopGuide = {
+            method: 'relaxed-close',
+            stopPct: +(stopPctFinal * 100).toFixed(1),
+            stopPrice: Math.round(lastClose * (1 - stopPctFinal)),
+            atrMultiplier: 2.5,
+            formula: 'clamp(ATR%×2.5, 8%, 12%) — 종가 기준',
+          };
+        }
+
+        csbDetail = {
+          passed: true, category, categoryLabel,
+          score: csbRes.score, bucket: csbRes.bucket, displayGrade: csbRes.displayGrade,
+          stages, stageCount, tags: csbRes.tags, warnings: csbRes.warnings,
+          metrics: csbRes.metrics, breakdown: csbRes.breakdown, stopGuide,
+        };
+      } else if (csbRes) {
+        csbDetail = { passed: false, rejectReason: csbRes.rejectReason };
+      }
+    } catch (e) { csbDetail = { passed: false, rejectReason: e.message }; }
 
     // 4) flow-history (외국인/기관 일별 순매수) 로드 + 1d/5d/20d 합계
     let flowSummary = null;
@@ -2179,6 +2226,7 @@ const handleSearch = async (req, res) => {
       stockMeta,
       chartRows,
       patternData,
+      csbDetail,
       flowSummary,
       flowRecent,
       aiComment,

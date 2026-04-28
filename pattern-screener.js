@@ -684,6 +684,8 @@ async function analyzeAll({ logProgress = false } = {}) {
   const flowLeadCandidates = [];
   const reboundCandidates = [];
   const overheatWarnings = [];
+  const csbMainCandidates = [];   // CSB 4개 stage tag 모두 통과 — "상승 전 압축 후보"
+  const csbSubCandidates = [];    // CSB 3개 stage (지지+거래대금+(압축 OR 돌파)) — "예비 압축 후보"
   const taggedAll = [];   // 모든 처리 종목 + 태그 — 보유점검/검색용
 
   let processed = 0;
@@ -839,6 +841,22 @@ async function analyzeAll({ logProgress = false } = {}) {
       try { rebound = calculateReboundScore(rows, flowRows, meta); } catch (_) {}
     }
 
+    // CSB — 매 종목 lastIdx 시점 기준 (수급은 보조 가점만)
+    let csb = null;
+    try { csb = calculateCompressionSupportBreakoutScore(rows, flowRows, meta, lastIdx); } catch (_) {}
+    // CSB stop 가이드 (Dc 채택: relaxed close stop = clamp(ATR×2.5, 8%, 12%))
+    let csbStopGuide = null;
+    if (csb?.passed && csb.metrics?.atrPct && closePrice > 0) {
+      const stopPctFinal = Math.max(0.08, Math.min(0.12, csb.metrics.atrPct * 2.5));
+      csbStopGuide = {
+        method: 'relaxed-close',
+        stopPct: +(stopPctFinal * 100).toFixed(1),
+        stopPrice: Math.round(closePrice * (1 - stopPctFinal)),
+        atrMultiplier: 2.5,
+        formula: 'clamp(ATR%×2.5, 8%, 12%) — 종가 기준',
+      };
+    }
+
     // 가격 컨텍스트 — 과열/구조붕괴/고변동 판정용
     const ret5d = rows.length >= 6 ? (closePrice / rows[lastIdx - 5].close - 1) : 0;
     const ret20d = rows.length >= 21 ? (closePrice / rows[lastIdx - 20].close - 1) : 0;
@@ -866,6 +884,17 @@ async function analyzeAll({ logProgress = false } = {}) {
 
     // ─── 태그 부여 ───
     const tags = [];
+
+    // CSB stage tag 분류 (메인 모델)
+    const csbStages = csb?.stages || {};
+    const csbAllFour = csb?.passed && csbStages.compressionFormed && csbStages.supportConfirmed
+      && csbStages.breakoutReady && csbStages.volumeReturning;
+    const csbThree = csb?.passed && !csbAllFour && csbStages.supportConfirmed
+      && csbStages.volumeReturning
+      && (csbStages.compressionFormed || csbStages.breakoutReady);
+    if (csbAllFour) tags.push("CSB_BREAKOUT");
+    else if (csbThree) tags.push("CSB_COMPRESSION");
+
     // 모델 통과
     if (flowLead?.passed) tags.push("FLOW_LEAD");
     if (rebound?.passed) tags.push("REBOUND");
@@ -886,9 +915,9 @@ async function analyzeAll({ logProgress = false } = {}) {
     }
     if (!tags.length) tags.push("NO_SIGNAL");
 
-    // primary tag — 카테고리 분류 우선순위
-    //   FLOW_LEAD > REBOUND > BULL_TREND_WATCH > OVERHEAT_WARNING > 그 외
-    const primaryOrder = ["FLOW_LEAD", "REBOUND", "BULL_TREND_WATCH", "OVERHEAT_WARNING", "HIGH_VOLATILITY", "STRUCTURE_BROKEN", "NO_SIGNAL"];
+    // primary tag — 카테고리 분류 우선순위 (CSB 메인 모델로 승격)
+    //   CSB_BREAKOUT > CSB_COMPRESSION > REBOUND > FLOW_LEAD > BULL_TREND_WATCH > OVERHEAT_WARNING > 그 외
+    const primaryOrder = ["CSB_BREAKOUT", "CSB_COMPRESSION", "REBOUND", "FLOW_LEAD", "BULL_TREND_WATCH", "OVERHEAT_WARNING", "HIGH_VOLATILITY", "STRUCTURE_BROKEN", "NO_SIGNAL"];
     const primaryTag = primaryOrder.find((t) => tags.includes(t));
 
     const tagged = {
@@ -909,11 +938,26 @@ async function analyzeAll({ logProgress = false } = {}) {
       regime: stockRegime,
       flowLead: flowLead?.passed ? { score: flowLead.score, breakdown: flowLead.breakdown, signals: flowLead.signals } : null,
       rebound: rebound?.passed ? { score: rebound.score, breakdown: rebound.breakdown, signals: rebound.signals } : null,
+      csb: csb?.passed ? {
+        // 점수는 백테스트에서 변별력 실패했으므로 UI 메인 표시 X — 디버깅용 보조
+        score: csb.score,
+        bucket: csb.bucket,
+        displayGrade: csb.displayGrade,
+        stages: csb.stages,
+        tags: csb.tags,
+        warnings: csb.warnings,
+        metrics: csb.metrics,
+        breakdown: csb.breakdown,
+        stopGuide: csbStopGuide,
+        stageCount: Object.values(csb.stages || {}).filter(Boolean).length,
+      } : null,
       tags,
       primaryTag,
     };
     taggedAll.push(tagged);
 
+    if (csbAllFour) csbMainCandidates.push(tagged);
+    if (csbThree) csbSubCandidates.push(tagged);
     if (flowLead?.passed) flowLeadCandidates.push(tagged);
     if (rebound?.passed) reboundCandidates.push(tagged);
     if (overheatHit) overheatWarnings.push(tagged);
@@ -942,6 +986,14 @@ async function analyzeAll({ logProgress = false } = {}) {
     processed,
     marketDetail,
     marketRegime,
+
+    // ─── CSB 메인 모델 (Phase 9 — Dc 채택) ───
+    // CSB 4태그 통과 = 메인 후보, 3태그 (지지+거래대금 + (압축 OR 돌파)) = 보조
+    // 정렬: 거래대금 재활성 비율 (valueRatio5d20d) 기준 — 점수는 변별력 없어 제외
+    csbMainCandidates: csbMainCandidates.sort((a, b) => (b.csb?.metrics?.valueRatio5d20d || 0) - (a.csb?.metrics?.valueRatio5d20d || 0)),
+    csbMainCount: csbMainCandidates.length,
+    csbSubCandidates: csbSubCandidates.sort((a, b) => (b.csb?.metrics?.valueRatio5d20d || 0) - (a.csb?.metrics?.valueRatio5d20d || 0)),
+    csbSubCount: csbSubCandidates.length,
 
     // ─── 새 카테고리 (Phase 8) ───
     flowLeadCandidates: flowLeadCandidates.sort((a, b) => (b.flowLead?.score || 0) - (a.flowLead?.score || 0)),
@@ -1522,6 +1574,1008 @@ function calculateFlowLeadScore(chartRows, flowRows, meta = {}) {
   };
 }
 
+// ─────────── FlowLead v2 — 수급 선행·가격 미반응 모델 ───────────
+//
+// 핵심 가설: 외국인·기관 순매수대금이 유입되는데 가격은 아직 강하게 오르지 않은
+// 종목은 이후 d10/d20에서 반응할 수 있다.
+//
+// v1 과 차이:
+//   1) Hard reject 양방향 강화 (ret5d ±12%, ret20d -25%/+35%, ATR% 20)
+//   2) MA fallback chain (ma120 → ma60 → ret60d)
+//   3) 점수 7카테고리 (수급강도25 / 지속성20 / 가격미반응20 / 유동성10 / 차트위치10 / 변동성10 / 리스크5)
+//   4) 새 지표: netBuyDays5d / flowRatio20d / flowAcceleration / flowPriceDivergence
+//   5) ret20d +25~+35% 구간은 soft penalty 로 통과
+//   6) matched baseline 은 flowLeadV2Universe 만 통과하면 OK (수급 조건 X)
+function flowLeadV2Universe(chartRows, meta = {}) {
+  if (!chartRows || chartRows.length < 60) return { passed: false, reason: 'chart<60' };
+  const idx = chartRows.length - 1;
+  const today = chartRows[idx];
+  const close = today?.close;
+  if (!close || close <= 0) return { passed: false, reason: 'close<=0' };
+
+  if (meta.isSpecial || meta.isEtf) return { passed: false, reason: 'special/etf' };
+  if ((meta.marketValue || 0) < 100_000_000_000) return { passed: false, reason: 'marketCap<1000억' };
+
+  const last20rows = chartRows.slice(-20);
+  const avg20Value = last20rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last20rows.length, 1);
+  if (avg20Value < 5_000_000_000) return { passed: false, reason: 'avg20Value<50억' };
+
+  const ret5d = chartRows.length >= 6 ? (close / chartRows[chartRows.length - 6].close - 1) : 0;
+  const ret20d = chartRows.length >= 21 ? (close / chartRows[chartRows.length - 21].close - 1) : 0;
+  if (ret5d > 0.12) return { passed: false, reason: 'ret5d>+12%' };
+  if (ret5d < -0.12) return { passed: false, reason: 'ret5d<-12%' };
+  if (ret20d > 0.35) return { passed: false, reason: 'ret20d>+35%' };
+  if (ret20d < -0.25) return { passed: false, reason: 'ret20d<-25%' };
+
+  const atrObj = computeATR(chartRows, idx, 14);
+  if (!atrObj || !(atrObj.atr > 0) || !Number.isFinite(atrObj.atr)) return { passed: false, reason: 'ATR n/a' };
+  const atrPct = atrObj.atr / close;
+  if (atrPct > 0.20) return { passed: false, reason: 'ATR%>20' };
+
+  // 구조 살아있는지 — MA fallback chain
+  const ma60 = chartRows.length >= 60 ? sma(chartRows.slice(-60).map((r) => r.close), 60) : null;
+  const ma120 = chartRows.length >= 120 ? sma(chartRows.slice(-120).map((r) => r.close), 120) : null;
+  if (ma120 != null && ma120 > 0) {
+    if (close / ma120 < 0.85) return { passed: false, reason: 'close/ma120<0.85' };
+  } else if (ma60 != null && ma60 > 0) {
+    if (close / ma60 < 0.80) return { passed: false, reason: 'close/ma60<0.80' };
+  } else {
+    const ret60d = chartRows.length >= 61 ? (close / chartRows[chartRows.length - 61].close - 1) : 0;
+    if (ret60d < -0.30) return { passed: false, reason: 'ret60d<-30%' };
+  }
+
+  return { passed: true, avg20Value, ret5d, ret20d, atrPct, ma60, ma120, close };
+}
+
+function calculateFlowLeadScoreV2(chartRows, flowRows, meta = {}) {
+  const u = flowLeadV2Universe(chartRows, meta);
+  if (!u.passed) return { passed: false, reason: u.reason };
+  if (!flowRows || flowRows.length < 20) return { passed: false, reason: 'flow<20' };
+
+  const { avg20Value, ret5d, ret20d, atrPct, ma60, ma120, close } = u;
+
+  // 20MA 이격도 +20% 이하
+  const ma20 = sma(chartRows.slice(-20).map((r) => r.close), 20);
+  if (ma20 != null && ma20 > 0 && (close / ma20 - 1) > 0.20) {
+    return { passed: false, reason: 'ma20 dev>+20%' };
+  }
+
+  // ret5d/ret20d 통과 범위 (1번 스펙: ret5d -5%~+10%, ret20d -10%~+25%, +25~+35% 는 soft penalty 로 통과)
+  if (ret5d < -0.05 || ret5d > 0.10) return { passed: false, reason: `ret5d out (${(ret5d * 100).toFixed(1)}%)` };
+  if (ret20d < -0.10) return { passed: false, reason: `ret20d<-10% (${(ret20d * 100).toFixed(1)}%)` };
+  // ret20d 가 +25%~+35% 면 통과 (점수에서 penalty), +35% 초과는 universe 에서 이미 reject
+
+  const sumKey = (arr, k) => arr.reduce((s, r) => s + (r?.[k] || 0), 0);
+  const flow5 = flowRows.slice(-5);
+  const flow20 = flowRows.slice(-20);
+
+  const foreign5d = sumKey(flow5, 'foreignNetValue');
+  const inst5d = sumKey(flow5, 'instNetValue');
+  const total5d = foreign5d + inst5d;
+  const foreign20d = sumKey(flow20, 'foreignNetValue');
+  const inst20d = sumKey(flow20, 'instNetValue');
+  const total20d = foreign20d + inst20d;
+
+  if (total5d <= 0) return { passed: false, reason: '5d flow<=0' };
+  if (total20d <= 0) return { passed: false, reason: '20d flow<=0' };
+
+  const flowRatio5d = total5d / avg20Value;
+  const flowRatio20d = total20d / avg20Value;
+  if (flowRatio5d < 0.3) return { passed: false, reason: 'flowRatio5d<0.3' };
+
+  const netBuyDays5d = flow5.filter((r) => (r.foreignNetValue || 0) + (r.instNetValue || 0) > 0).length;
+  const flowAcceleration = total20d > 0 ? (4 * total5d / total20d) : 0;
+  const priceResponse = ret5d;
+  const flowPriceDivergence = flowRatio5d - Math.max(ret5d, 0) * 5;
+
+  // ─── 점수 ───
+  // 1. 수급 강도 25점
+  let flowStrengthScore = 0;
+  if (flowRatio5d >= 1.5) flowStrengthScore = 25;
+  else if (flowRatio5d >= 1.0) flowStrengthScore = 22;
+  else if (flowRatio5d >= 0.7) flowStrengthScore = 18;
+  else if (flowRatio5d >= 0.5) flowStrengthScore = 14;
+  else flowStrengthScore = 10;
+
+  // 2. 수급 지속성 20점 (netBuyDays5d 8 + flowRatio20d 6 + flowAcceleration 6)
+  let flowPersistenceScore = 0;
+  if (netBuyDays5d >= 5) flowPersistenceScore += 8;
+  else if (netBuyDays5d >= 4) flowPersistenceScore += 6;
+  else if (netBuyDays5d >= 3) flowPersistenceScore += 4;
+  else if (netBuyDays5d >= 2) flowPersistenceScore += 2;
+  if (flowRatio20d >= 2.0) flowPersistenceScore += 6;
+  else if (flowRatio20d >= 1.0) flowPersistenceScore += 4;
+  else if (flowRatio20d >= 0.5) flowPersistenceScore += 2;
+  if (flowAcceleration >= 1.5) flowPersistenceScore += 6;
+  else if (flowAcceleration >= 1.0) flowPersistenceScore += 4;
+  else if (flowAcceleration >= 0.7) flowPersistenceScore += 2;
+  flowPersistenceScore = Math.min(flowPersistenceScore, 20);
+
+  // 3. 가격 미반응 20점 (ret5d 12 + ret20d 8, 8 중 +25~+35% 면 -2 penalty)
+  let priceQuietScore = 0;
+  if (ret5d <= 0.00) priceQuietScore += 12;
+  else if (ret5d <= 0.03) priceQuietScore += 10;
+  else if (ret5d <= 0.06) priceQuietScore += 7;
+  else priceQuietScore += 4;
+  if (ret20d >= -0.10 && ret20d <= 0.20) priceQuietScore += 8;
+  else if (ret20d > 0.20 && ret20d <= 0.25) priceQuietScore += 4;
+  else if (ret20d > 0.25 && ret20d <= 0.35) priceQuietScore -= 2;
+  priceQuietScore = Math.max(0, Math.min(priceQuietScore, 20));
+
+  // 4. 유동성 10점 — 5일 평균 / 60일 평균
+  const last5rows = chartRows.slice(-5);
+  const last60rows = chartRows.slice(-60);
+  const avg5Value = last5rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last5rows.length, 1);
+  const avg60Value = last60rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last60rows.length, 1);
+  const valueExpansion = avg60Value > 0 ? avg5Value / avg60Value : 1;
+  let liquidityScore = 0;
+  if (valueExpansion >= 1.5) liquidityScore = 10;
+  else if (valueExpansion >= 1.2) liquidityScore = 8;
+  else if (valueExpansion >= 1.0) liquidityScore = 5;
+  else if (valueExpansion >= 0.8) liquidityScore = 3;
+
+  // 5. 차트 위치 10점
+  let chartScore = 0;
+  if (ma20 != null && close >= ma20) chartScore += 4;
+  if (ma60 != null && close >= ma60) chartScore += 3;
+  if (ma120 != null && close >= ma120) chartScore += 3;
+  if (ma120 == null) {
+    const ret60d = chartRows.length >= 61 ? (close / chartRows[chartRows.length - 61].close - 1) : 0;
+    if (ret60d > -0.10) chartScore += 2;
+  }
+  chartScore = Math.min(chartScore, 10);
+
+  // 6. 변동성 안정 10점 — ATR%
+  let volScore = 0;
+  if (atrPct < 0.03) volScore = 10;
+  else if (atrPct < 0.05) volScore = 7;
+  else if (atrPct < 0.08) volScore = 4;
+  else if (atrPct < 0.12) volScore = 2;
+
+  // 7. 리스크 차감 5점 — 최근 5일 중 최대 단일일 하락
+  let worst1d = 0;
+  for (let i = chartRows.length - 5; i < chartRows.length; i++) {
+    if (i <= 0) continue;
+    const r = chartRows[i].close / chartRows[i - 1].close - 1;
+    if (r < worst1d) worst1d = r;
+  }
+  let riskScore = 0;
+  if (worst1d >= -0.03) riskScore = 5;
+  else if (worst1d >= -0.05) riskScore = 3;
+  else if (worst1d >= -0.07) riskScore = 1;
+
+  const score = flowStrengthScore + flowPersistenceScore + priceQuietScore
+    + liquidityScore + chartScore + volScore + riskScore;
+
+  return {
+    passed: true,
+    score,
+    breakdown: { flowStrengthScore, flowPersistenceScore, priceQuietScore, liquidityScore, chartScore, volScore, riskScore },
+    signals: {
+      foreign5d, inst5d, total5d, foreign20d, inst20d, total20d,
+      flowRatio5d, flowRatio20d, flowAcceleration,
+      netBuyDays5d, priceResponse, flowPriceDivergence,
+      ret5d, ret20d, atrPct,
+      avg5Value, avg20Value, avg60Value, valueExpansion,
+      ma20, ma60, ma120, worst1d,
+    },
+  };
+}
+
+// ─────────── FlowLead v3 — 수급+압축+지지+트리거 실험 모델 ───────────
+//
+// v2 결과: matched baseline 못 이김 (sideways 0/4), score 변별력 zero
+// v3 가설: "수급 + 가격미반응" 단독으로는 부족, 거기에 변동성 수축 + 지지 유지
+//          + 저항선 근접까지 다축 결합하면 d10/d20 우위 확보 가능
+//
+// compressionBaseline = v3 의 universe 통과 시점 (수급 조건 X) — 공정 비교용
+function flowLeadV3CompressionUniverse(chartRows, meta = {}) {
+  if (!chartRows || chartRows.length < 60) return { passed: false, reason: 'chart<60' };
+  const idx = chartRows.length - 1;
+  const today = chartRows[idx];
+  const close = today?.close;
+  if (!close || close <= 0) return { passed: false, reason: 'close<=0' };
+
+  if (meta.isSpecial || meta.isEtf) return { passed: false, reason: 'special/etf' };
+  if ((meta.marketValue || 0) < 100_000_000_000) return { passed: false, reason: 'marketCap<1000억' };
+
+  const last20rows = chartRows.slice(-20);
+  const last5rows = chartRows.slice(-5);
+  const avg20Value = last20rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last20rows.length, 1);
+  if (avg20Value < 5_000_000_000) return { passed: false, reason: 'avg20Value<50억' };
+
+  const ret5d = chartRows.length >= 6 ? (close / chartRows[chartRows.length - 6].close - 1) : 0;
+  const ret20d = chartRows.length >= 21 ? (close / chartRows[chartRows.length - 21].close - 1) : 0;
+  if (ret5d > 0.12) return { passed: false, reason: 'ret5d>+12%' };
+  if (ret5d < -0.12) return { passed: false, reason: 'ret5d<-12%' };
+  if (ret20d > 0.25) return { passed: false, reason: 'ret20d>+25%' };
+  if (ret20d < -0.25) return { passed: false, reason: 'ret20d<-25%' };
+
+  const atrObj = computeATR(chartRows, idx, 14);
+  if (!atrObj || !(atrObj.atr > 0) || !Number.isFinite(atrObj.atr)) return { passed: false, reason: 'ATR n/a' };
+  const atrPct = atrObj.atr / close;
+  if (atrPct > 0.20) return { passed: false, reason: 'ATR%>20' };
+
+  // 구조 — MA fallback chain
+  const ma20 = sma(last20rows.map((r) => r.close), 20);
+  const ma60 = chartRows.length >= 60 ? sma(chartRows.slice(-60).map((r) => r.close), 60) : null;
+  const ma120 = chartRows.length >= 120 ? sma(chartRows.slice(-120).map((r) => r.close), 120) : null;
+  if (ma120 != null && ma120 > 0) {
+    if (close / ma120 < 0.85) return { passed: false, reason: 'close/ma120<0.85' };
+  } else if (ma60 != null && ma60 > 0) {
+    if (close / ma60 < 0.80) return { passed: false, reason: 'close/ma60<0.80' };
+  } else {
+    const ret60d = chartRows.length >= 61 ? (close / chartRows[chartRows.length - 61].close - 1) : 0;
+    if (ret60d < -0.30) return { passed: false, reason: 'ret60d<-30%' };
+  }
+
+  // 지지 유지: close ≥ ma20 × 0.95 OR close ≥ ma60 × 0.93
+  const supports20 = ma20 != null && close >= ma20 * 0.95;
+  const supports60 = ma60 != null && close >= ma60 * 0.93;
+  if (!supports20 && !supports60) return { passed: false, reason: 'support broken' };
+
+  // 변동성 수축: range5d 평균 < range20d 평균
+  const rangeOf = (r) => (r.high && r.low && r.close) ? (r.high - r.low) / r.close : 0;
+  const range5d = last5rows.reduce((s, r) => s + rangeOf(r), 0) / Math.max(last5rows.length, 1);
+  const range20d = last20rows.reduce((s, r) => s + rangeOf(r), 0) / Math.max(last20rows.length, 1);
+  if (!(range5d < range20d) || !(range20d > 0)) return { passed: false, reason: 'no compression' };
+
+  // 20일 고점 거리
+  const high20 = Math.max(...last20rows.map((r) => r.high || r.close));
+  const distFromHigh = high20 > 0 ? (high20 - close) / high20 : 0;
+
+  // 5d/20d 거래대금 비율
+  const avg5Value = last5rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last5rows.length, 1);
+  const valueExp5_20 = avg20Value > 0 ? avg5Value / avg20Value : 1;
+
+  return {
+    passed: true,
+    avg20Value, avg5Value, valueExp5_20,
+    ret5d, ret20d, atrPct,
+    ma20, ma60, ma120, close,
+    range5d, range20d, rangeRatio: range5d / range20d,
+    high20, distFromHigh,
+    supports20, supports60,
+  };
+}
+
+function calculateFlowLeadScoreV3(chartRows, flowRows, meta = {}) {
+  const u = flowLeadV3CompressionUniverse(chartRows, meta);
+  if (!u.passed) return { passed: false, reason: u.reason };
+  if (!flowRows || flowRows.length < 20) return { passed: false, reason: 'flow<20' };
+
+  const {
+    avg20Value, avg5Value, valueExp5_20,
+    ret5d, ret20d, atrPct,
+    ma20, ma60, ma120, close,
+    rangeRatio, distFromHigh,
+    supports20, supports60,
+  } = u;
+
+  const sumKey = (arr, k) => arr.reduce((s, r) => s + (r?.[k] || 0), 0);
+  const flow5 = flowRows.slice(-5);
+  const flow20 = flowRows.slice(-20);
+  const foreign5d = sumKey(flow5, 'foreignNetValue');
+  const inst5d = sumKey(flow5, 'instNetValue');
+  const total5d = foreign5d + inst5d;
+  const foreign20d = sumKey(flow20, 'foreignNetValue');
+  const inst20d = sumKey(flow20, 'instNetValue');
+  const total20d = foreign20d + inst20d;
+
+  if (total5d <= 0) return { passed: false, reason: '5d flow<=0' };
+  if (total20d <= 0) return { passed: false, reason: '20d flow<=0' };
+
+  const flowRatio5d = total5d / avg20Value;
+  const flowRatio20d = total20d / avg20Value;
+  if (flowRatio5d < 0.3) return { passed: false, reason: 'flowRatio5d<0.3' };
+
+  const netBuyDays5d = flow5.filter((r) => (r.foreignNetValue || 0) + (r.instNetValue || 0) > 0).length;
+  if (netBuyDays5d < 2) return { passed: false, reason: 'netBuyDays5d<2' };
+  const flowAcceleration = total20d > 0 ? (4 * total5d / total20d) : 0;
+
+  // ─── 점수 ───
+  // 1. 수급 지속성 25 (netBuyDays5d 10 + flowRatio20d 8 + flowAcceleration 7)
+  let persistenceScore = 0;
+  if (netBuyDays5d >= 5) persistenceScore += 10;
+  else if (netBuyDays5d >= 4) persistenceScore += 8;
+  else if (netBuyDays5d >= 3) persistenceScore += 6;
+  else persistenceScore += 2;
+  if (flowRatio20d >= 2.0) persistenceScore += 8;
+  else if (flowRatio20d >= 1.0) persistenceScore += 5;
+  else if (flowRatio20d >= 0.5) persistenceScore += 3;
+  if (flowAcceleration >= 1.5) persistenceScore += 7;
+  else if (flowAcceleration >= 1.0) persistenceScore += 5;
+  else if (flowAcceleration >= 0.7) persistenceScore += 3;
+  persistenceScore = Math.min(persistenceScore, 25);
+
+  // 2. 수급 강도 20 (flowRatio5d)
+  let strengthScore;
+  if (flowRatio5d >= 1.5) strengthScore = 20;
+  else if (flowRatio5d >= 1.0) strengthScore = 16;
+  else if (flowRatio5d >= 0.7) strengthScore = 12;
+  else if (flowRatio5d >= 0.5) strengthScore = 8;
+  else strengthScore = 4;
+
+  // 3. 가격 미반응 15 (ret5d 8 + ret20d 7)
+  let priceQuietScore = 0;
+  if (ret5d >= -0.03 && ret5d <= 0.07) priceQuietScore += 8;
+  else if (ret5d >= -0.05 && ret5d <= 0.10) priceQuietScore += 5;
+  else if (ret5d > 0.10 && ret5d <= 0.12) priceQuietScore += 2;
+  if (ret20d >= -0.05 && ret20d <= 0.15) priceQuietScore += 7;
+  else if (ret20d > 0.15 && ret20d <= 0.25) priceQuietScore += 3;
+  else if (ret20d < -0.05 && ret20d >= -0.10) priceQuietScore += 4;
+  priceQuietScore = Math.max(0, Math.min(priceQuietScore, 15));
+
+  // 4. 거래대금 증가 10
+  let liquidityScore;
+  if (valueExp5_20 >= 1.5) liquidityScore = 10;
+  else if (valueExp5_20 >= 1.2) liquidityScore = 8;
+  else if (valueExp5_20 >= 1.0) liquidityScore = 5;
+  else if (valueExp5_20 >= 0.8) liquidityScore = 3;
+  else liquidityScore = 0;
+
+  // 5. 지지 유지 10
+  let supportScore = 0;
+  if (supports20 && supports60) supportScore = 9;
+  else if (supports20) supportScore = 6;
+  else if (supports60) supportScore = 4;
+  if (ma120 != null && close >= ma120) supportScore = Math.min(10, supportScore + 1);
+
+  // 6. 변동성 수축 10 (rangeRatio 6 + ATR% 4)
+  let compressionScore = 0;
+  if (rangeRatio <= 0.6) compressionScore += 6;
+  else if (rangeRatio <= 0.8) compressionScore += 4;
+  else if (rangeRatio < 1.0) compressionScore += 2;
+  if (atrPct < 0.04) compressionScore += 4;
+  else if (atrPct < 0.08) compressionScore += 2;
+  else if (atrPct > 0.16) compressionScore -= 2;
+  compressionScore = Math.max(0, Math.min(compressionScore, 10));
+
+  // 7. 저항선 근접 5
+  let triggerScore = 0;
+  if (distFromHigh <= 0.03) triggerScore = 5;
+  else if (distFromHigh <= 0.05) triggerScore = 4;
+  else if (distFromHigh <= 0.08) triggerScore = 2;
+
+  // 8. 리스크 차감 5
+  let worst1d = 0;
+  for (let i = chartRows.length - 5; i < chartRows.length; i++) {
+    if (i <= 0) continue;
+    const r = chartRows[i].close / chartRows[i - 1].close - 1;
+    if (r < worst1d) worst1d = r;
+  }
+  let riskScore = 0;
+  if (worst1d >= -0.03) riskScore = 5;
+  else if (worst1d >= -0.05) riskScore = 3;
+  else if (worst1d >= -0.07) riskScore = 1;
+  if (atrPct > 0.16) riskScore = Math.max(0, riskScore - 2);
+
+  const score = persistenceScore + strengthScore + priceQuietScore + liquidityScore
+    + supportScore + compressionScore + triggerScore + riskScore;
+
+  const stage = {
+    flowDetected: flowRatio5d >= 0.3,
+    flowSustained: netBuyDays5d >= 3 && flowRatio20d >= 0.5,
+    priceCompressed: rangeRatio <= 0.7,
+    triggerReady: distFromHigh <= 0.05,
+  };
+
+  return {
+    passed: true,
+    score,
+    breakdown: { persistenceScore, strengthScore, priceQuietScore, liquidityScore, supportScore, compressionScore, triggerScore, riskScore },
+    stage,
+    signals: {
+      foreign5d, inst5d, total5d, foreign20d, inst20d, total20d,
+      flowRatio5d, flowRatio20d, flowAcceleration,
+      netBuyDays5d, ret5d, ret20d, atrPct,
+      avg5Value, avg20Value, valueExp5_20,
+      ma20, ma60, ma120, rangeRatio, distFromHigh,
+      worst1d, supports20, supports60,
+    },
+  };
+}
+
+// ─────────── FlowLead v4 — Ignition (수급 + 가격 막 움직임 시작) ───────────
+//
+// v3 결론: 수급 시그널이 후행 — 같은 압축 universe 에서 수급 추가 시 오히려 ↓
+// v4 가설: 가격이 0~+5% 막 움직이기 시작한 순간이 진짜 ignition. 거기에 수급 양수면 추가 알파.
+//
+// v3 universe 그대로 통과 + ret5d 0%~+5% 만 추가 hard reject
+// ignitionBaseline = v4 universe 통과 시점 (수급 조건 X) — 공정 비교용
+function flowLeadV4IgnitionUniverse(chartRows, meta = {}) {
+  const v3 = flowLeadV3CompressionUniverse(chartRows, meta);
+  if (!v3.passed) return v3;
+  const { ret5d } = v3;
+  if (ret5d < 0) return { passed: false, reason: 'ret5d<0%' };
+  if (ret5d > 0.05) return { passed: false, reason: 'ret5d>+5%' };
+  return v3;
+}
+
+function calculateFlowLeadScoreV4(chartRows, flowRows, meta = {}) {
+  const u = flowLeadV4IgnitionUniverse(chartRows, meta);
+  if (!u.passed) return { passed: false, reason: u.reason };
+  if (!flowRows || flowRows.length < 20) return { passed: false, reason: 'flow<20' };
+
+  const {
+    avg20Value, avg5Value, valueExp5_20,
+    ret5d, ret20d, atrPct,
+    ma20, ma60, ma120, close,
+    rangeRatio, distFromHigh,
+    supports20, supports60,
+  } = u;
+
+  const sumKey = (arr, k) => arr.reduce((s, r) => s + (r?.[k] || 0), 0);
+  const flow5 = flowRows.slice(-5);
+  const flow20 = flowRows.slice(-20);
+  const foreign5d = sumKey(flow5, 'foreignNetValue');
+  const inst5d = sumKey(flow5, 'instNetValue');
+  const total5d = foreign5d + inst5d;
+  const foreign20d = sumKey(flow20, 'foreignNetValue');
+  const inst20d = sumKey(flow20, 'instNetValue');
+  const total20d = foreign20d + inst20d;
+
+  if (total5d <= 0) return { passed: false, reason: '5d flow<=0' };
+  if (total20d <= 0) return { passed: false, reason: '20d flow<=0' };
+
+  const flowRatio5d = total5d / avg20Value;
+  const flowRatio20d = total20d / avg20Value;
+  if (flowRatio5d < 0.3) return { passed: false, reason: 'flowRatio5d<0.3' };
+
+  const netBuyDays5d = flow5.filter((r) => (r.foreignNetValue || 0) + (r.instNetValue || 0) > 0).length;
+  if (netBuyDays5d < 2) return { passed: false, reason: 'netBuyDays5d<2' };
+  const flowAcceleration = total20d > 0 ? (4 * total5d / total20d) : 0;
+
+  // 점수 — v3 와 동일하되 priceQuietScore 만 0~+5% 분포에 맞게 재조정
+  let persistenceScore = 0;
+  if (netBuyDays5d >= 5) persistenceScore += 10;
+  else if (netBuyDays5d >= 4) persistenceScore += 8;
+  else if (netBuyDays5d >= 3) persistenceScore += 6;
+  else persistenceScore += 2;
+  if (flowRatio20d >= 2.0) persistenceScore += 8;
+  else if (flowRatio20d >= 1.0) persistenceScore += 5;
+  else if (flowRatio20d >= 0.5) persistenceScore += 3;
+  if (flowAcceleration >= 1.5) persistenceScore += 7;
+  else if (flowAcceleration >= 1.0) persistenceScore += 5;
+  else if (flowAcceleration >= 0.7) persistenceScore += 3;
+  persistenceScore = Math.min(persistenceScore, 25);
+
+  let strengthScore;
+  if (flowRatio5d >= 1.5) strengthScore = 20;
+  else if (flowRatio5d >= 1.0) strengthScore = 16;
+  else if (flowRatio5d >= 0.7) strengthScore = 12;
+  else if (flowRatio5d >= 0.5) strengthScore = 8;
+  else strengthScore = 4;
+
+  // v4 의 priceIgnitionScore 15: ret5d 가 0~+1.5% 가장 선호 (= 막 움직임 시작), 3~5% 는 살짝 차감
+  let priceIgnitionScore = 0;
+  if (ret5d >= 0 && ret5d <= 0.015) priceIgnitionScore += 8;
+  else if (ret5d > 0.015 && ret5d <= 0.03) priceIgnitionScore += 6;
+  else if (ret5d > 0.03 && ret5d <= 0.05) priceIgnitionScore += 3;
+  if (ret20d >= -0.05 && ret20d <= 0.15) priceIgnitionScore += 7;
+  else if (ret20d > 0.15 && ret20d <= 0.25) priceIgnitionScore += 3;
+  else if (ret20d < -0.05 && ret20d >= -0.10) priceIgnitionScore += 4;
+  priceIgnitionScore = Math.max(0, Math.min(priceIgnitionScore, 15));
+
+  let liquidityScore;
+  if (valueExp5_20 >= 1.5) liquidityScore = 10;
+  else if (valueExp5_20 >= 1.2) liquidityScore = 8;
+  else if (valueExp5_20 >= 1.0) liquidityScore = 5;
+  else if (valueExp5_20 >= 0.8) liquidityScore = 3;
+  else liquidityScore = 0;
+
+  let supportScore = 0;
+  if (supports20 && supports60) supportScore = 9;
+  else if (supports20) supportScore = 6;
+  else if (supports60) supportScore = 4;
+  if (ma120 != null && close >= ma120) supportScore = Math.min(10, supportScore + 1);
+
+  let compressionScore = 0;
+  if (rangeRatio <= 0.6) compressionScore += 6;
+  else if (rangeRatio <= 0.8) compressionScore += 4;
+  else if (rangeRatio < 1.0) compressionScore += 2;
+  if (atrPct < 0.04) compressionScore += 4;
+  else if (atrPct < 0.08) compressionScore += 2;
+  else if (atrPct > 0.16) compressionScore -= 2;
+  compressionScore = Math.max(0, Math.min(compressionScore, 10));
+
+  let triggerScore = 0;
+  if (distFromHigh <= 0.03) triggerScore = 5;
+  else if (distFromHigh <= 0.05) triggerScore = 4;
+  else if (distFromHigh <= 0.08) triggerScore = 2;
+
+  let worst1d = 0;
+  for (let i = chartRows.length - 5; i < chartRows.length; i++) {
+    if (i <= 0) continue;
+    const r = chartRows[i].close / chartRows[i - 1].close - 1;
+    if (r < worst1d) worst1d = r;
+  }
+  let riskScore = 0;
+  if (worst1d >= -0.03) riskScore = 5;
+  else if (worst1d >= -0.05) riskScore = 3;
+  else if (worst1d >= -0.07) riskScore = 1;
+  if (atrPct > 0.16) riskScore = Math.max(0, riskScore - 2);
+
+  const score = persistenceScore + strengthScore + priceIgnitionScore + liquidityScore
+    + supportScore + compressionScore + triggerScore + riskScore;
+
+  return {
+    passed: true,
+    score,
+    breakdown: { persistenceScore, strengthScore, priceIgnitionScore, liquidityScore, supportScore, compressionScore, triggerScore, riskScore },
+    signals: {
+      foreign5d, inst5d, total5d, foreign20d, inst20d, total20d,
+      flowRatio5d, flowRatio20d, flowAcceleration,
+      netBuyDays5d, ret5d, ret20d, atrPct,
+      avg5Value, avg20Value, valueExp5_20,
+      ma20, ma60, ma120, rangeRatio, distFromHigh,
+      worst1d, supports20, supports60,
+    },
+  };
+}
+
+// ─────────── CompressionSupportBreakout — "상승 전 압축 후보" ───────────
+//
+// 사용자 spec (B+C+D 결합):
+//   - 시총 500억+
+//   - 점수보다 stage tag 중심 (UI)
+//   - sweet spot 점수 (compressionRatio 0.55~0.75 최고, valueRatio 1.1~1.8 최고, distHigh20 2~8% 최고)
+//   - 수급은 보조 가점 5점만
+//
+// 시그니처: calculateCompressionSupportBreakoutScore(rows, flowRows, meta, idx)
+// 반환: { passed, score, bucket, displayGrade, stages, tags, warnings, rejectReason, metrics, breakdown }
+function calculateCompressionSupportBreakoutScore(rows, flowRows, meta = {}, idx = null) {
+  if (!rows || !rows.length) return { passed: false, rejectReason: 'no rows' };
+  if (idx == null) idx = rows.length - 1;
+  if (idx < 60) return { passed: false, rejectReason: 'idx<60' };
+
+  const today = rows[idx];
+  const close = today?.close;
+  if (!close || close <= 0) return { passed: false, rejectReason: 'close<=0' };
+
+  // ─── Hard reject (universe) ───
+  if (meta.isSpecial || meta.isEtf) return { passed: false, rejectReason: 'special/etf' };
+  if ((meta.marketValue || 0) < 50_000_000_000) return { passed: false, rejectReason: 'marketCap<500억' };
+
+  const last20rows = []; for (let i = Math.max(0, idx - 19); i <= idx; i++) last20rows.push(rows[i]);
+  const last5rows  = []; for (let i = Math.max(0, idx - 4);  i <= idx; i++) last5rows.push(rows[i]);
+  const last60rows = []; for (let i = Math.max(0, idx - 59); i <= idx; i++) last60rows.push(rows[i]);
+
+  const avg20Value = last20rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last20rows.length, 1);
+  if (avg20Value < 5_000_000_000) return { passed: false, rejectReason: 'avg20Value<50억' };
+
+  const ret5d = idx >= 5 ? (close / rows[idx - 5].close - 1) : 0;
+  const ret20d = idx >= 20 ? (close / rows[idx - 20].close - 1) : 0;
+  if (ret5d > 0.12) return { passed: false, rejectReason: 'ret5d>+12%' };
+  if (ret20d > 0.30) return { passed: false, rejectReason: 'ret20d>+30%' };
+  if (ret20d < -0.25) return { passed: false, rejectReason: 'ret20d<-25%' };
+
+  const atrObj = computeATR(rows, idx, 14);
+  if (!atrObj || !(atrObj.atr > 0) || !Number.isFinite(atrObj.atr)) return { passed: false, rejectReason: 'ATR n/a' };
+  const atrPct = atrObj.atr / close;
+  if (atrPct > 0.20) return { passed: false, rejectReason: 'ATR%>20' };
+
+  // MA fallback chain
+  const ma20 = sma(last20rows.map((r) => r.close), 20);
+  const ma60 = idx >= 59 ? sma(last60rows.map((r) => r.close), 60) : null;
+  let ma120 = null;
+  if (idx >= 119) {
+    const arr120 = []; for (let i = idx - 119; i <= idx; i++) arr120.push(rows[i].close);
+    ma120 = sma(arr120, 120);
+  }
+  if (ma120 != null && ma120 > 0) {
+    if (close / ma120 < 0.85) return { passed: false, rejectReason: 'close/ma120<0.85' };
+  } else if (ma60 != null && ma60 > 0) {
+    if (close / ma60 < 0.80) return { passed: false, rejectReason: 'close/ma60<0.80' };
+  } else {
+    const ret60d = idx >= 60 ? (close / rows[idx - 60].close - 1) : 0;
+    if (ret60d < -0.30) return { passed: false, rejectReason: 'ret60d<-30%' };
+  }
+
+  // ─── Metrics ───
+  const trueRange = (i) => {
+    const r = rows[i];
+    if (!r || !r.high || !r.low || !r.close) return 0;
+    const prev = i > 0 ? rows[i - 1] : null;
+    if (!prev || !prev.close) return (r.high - r.low) / r.close;
+    const tr = Math.max(r.high - r.low, Math.abs(r.high - prev.close), Math.abs(r.low - prev.close));
+    return tr / r.close;
+  };
+  let tr5sum = 0, tr5n = 0, tr20sum = 0, tr20n = 0;
+  for (let i = Math.max(0, idx - 4);  i <= idx; i++) { tr5sum  += trueRange(i); tr5n++; }
+  for (let i = Math.max(0, idx - 19); i <= idx; i++) { tr20sum += trueRange(i); tr20n++; }
+  const tr5avg = tr5n > 0 ? tr5sum / tr5n : 0;
+  const tr20avg = tr20n > 0 ? tr20sum / tr20n : 0;
+  const compressionRatio = tr20avg > 0 ? tr5avg / tr20avg : null;
+
+  const avg5Value = last5rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last5rows.length, 1);
+  const valueRatio5d20d = avg20Value > 0 ? avg5Value / avg20Value : 0;
+
+  const high20 = Math.max(...last20rows.map((r) => r.high || r.close));
+  const high60 = Math.max(...last60rows.map((r) => r.high || r.close));
+  const distFromHigh20 = high20 > 0 ? (high20 - close) / high20 : 1;
+  const distFromHigh60 = high60 > 0 ? (high60 - close) / high60 : 1;
+
+  const supports20 = ma20 != null && close >= ma20 * 0.97;
+  const supports60 = ma60 != null && close >= ma60 * 0.95;
+  const low5 = Math.min(...last5rows.map((r) => r.low || r.close));
+  const low20 = Math.min(...last20rows.map((r) => r.low || r.close));
+
+  let worst1d = 0;
+  for (let i = Math.max(1, idx - 4); i <= idx; i++) {
+    const r = rows[i].close / rows[i - 1].close - 1;
+    if (r < worst1d) worst1d = r;
+  }
+
+  // ─── Sweet-spot 점수 ───
+
+  // 1. 적정 압축 25
+  let compressionScore = 0;
+  if (compressionRatio != null) {
+    if (compressionRatio >= 0.55 && compressionRatio <= 0.75) compressionScore = 25;
+    else if (compressionRatio > 0.75 && compressionRatio <= 0.90) compressionScore = 18;
+    else if (compressionRatio > 0.90 && compressionRatio <= 1.00) compressionScore = 10;
+    else if (compressionRatio >= 0.40 && compressionRatio < 0.55) compressionScore = 8;
+    else compressionScore = 0;
+  }
+
+  // 2. 지지 유지 20
+  let supportScore = 0;
+  if (supports20 && supports60) supportScore = 14;
+  else if (supports20) supportScore = 10;
+  else if (supports60) supportScore = 7;
+  if (ma20 != null && ma20 > 0) {
+    const dev = close / ma20;
+    if (dev >= 0.99 && dev <= 1.03) supportScore += 4;
+    else if (dev >= 0.97 && dev <= 1.05) supportScore += 2;
+  }
+  if (low5 >= low20) supportScore += 2;
+  supportScore = Math.min(supportScore, 20);
+
+  // 3. 돌파 대기 위치 20 — 2~8% 최고, 0~2% 양호, 8~12% 보통, >12% 감점
+  let breakoutScore = 0;
+  if (distFromHigh20 >= 0.02 && distFromHigh20 <= 0.08) breakoutScore += 12;
+  else if (distFromHigh20 >= 0 && distFromHigh20 < 0.02) breakoutScore += 8;
+  else if (distFromHigh20 > 0.08 && distFromHigh20 <= 0.12) breakoutScore += 5;
+  else breakoutScore -= 2;
+  if (distFromHigh60 <= 0.05) breakoutScore += 8;
+  else if (distFromHigh60 <= 0.08) breakoutScore += 5;
+  else if (distFromHigh60 <= 0.12) breakoutScore += 2;
+  breakoutScore = Math.max(0, Math.min(breakoutScore, 20));
+
+  // 4. 거래대금 재활성 15 — 1.1~1.8 최고, 1.8~2.5 감점, >2.5 / <0.8 = 0
+  let liquidityScore = 0;
+  if (valueRatio5d20d >= 1.1 && valueRatio5d20d <= 1.8) liquidityScore = 15;
+  else if (valueRatio5d20d >= 1.0 && valueRatio5d20d < 1.1) liquidityScore = 10;
+  else if (valueRatio5d20d >= 0.8 && valueRatio5d20d < 1.0) liquidityScore = 5;
+  else if (valueRatio5d20d > 1.8 && valueRatio5d20d <= 2.5) liquidityScore = 8;
+  else liquidityScore = 0;
+
+  // 5. 과열 회피 10
+  let overheatScore = 0;
+  if (ret5d >= -0.03 && ret5d <= 0.04) overheatScore += 6;
+  else if (ret5d > 0.04 && ret5d <= 0.06) overheatScore += 4;
+  else if (ret5d > 0.06 && ret5d <= 0.08) overheatScore += 2;
+  if (ret20d >= -0.05 && ret20d <= 0.10) overheatScore += 4;
+  else if (ret20d > 0.10 && ret20d <= 0.15) overheatScore += 2;
+  overheatScore = Math.min(overheatScore, 10);
+
+  // 6. 리스크 안정 5
+  let riskScore = 0;
+  if (atrPct < 0.04) riskScore += 3;
+  else if (atrPct < 0.08) riskScore += 2;
+  else if (atrPct > 0.16) riskScore -= 1;
+  if (worst1d >= -0.03) riskScore += 2;
+  else if (worst1d >= -0.05) riskScore += 1;
+  riskScore = Math.max(0, Math.min(riskScore, 5));
+
+  // 7. 수급 보조 5
+  let flowBonusScore = 0;
+  let flowSignals = null;
+  if (flowRows && flowRows.length >= 20) {
+    const sumKey = (arr, k) => arr.reduce((s, r) => s + (r?.[k] || 0), 0);
+    const flow5 = flowRows.slice(-5);
+    const flow20 = flowRows.slice(-20);
+    const total5d = sumKey(flow5, 'foreignNetValue') + sumKey(flow5, 'instNetValue');
+    const total20d = sumKey(flow20, 'foreignNetValue') + sumKey(flow20, 'instNetValue');
+    const flowRatio5d = avg20Value > 0 ? total5d / avg20Value : 0;
+    const netBuyDays5d = flow5.filter((r) => (r.foreignNetValue || 0) + (r.instNetValue || 0) > 0).length;
+    if (total5d > 0) flowBonusScore += 2;
+    if (netBuyDays5d >= 3) flowBonusScore += 2;
+    if (flowRatio5d >= 0.3) flowBonusScore += 1;
+    flowBonusScore = Math.min(flowBonusScore, 5);
+    flowSignals = { total5d, total20d, flowRatio5d, netBuyDays5d };
+  }
+
+  const score = compressionScore + supportScore + breakoutScore + liquidityScore
+    + overheatScore + riskScore + flowBonusScore;
+
+  // bucket / displayGrade
+  let bucket, displayGrade;
+  if (score >= 70) { bucket = '70+'; displayGrade = '준비'; }
+  else if (score >= 60) { bucket = '60-69'; displayGrade = '진행'; }
+  else if (score >= 50) { bucket = '50-59'; displayGrade = '초기'; }
+  else { bucket = '<50'; displayGrade = '관찰'; }
+
+  // stages + tags
+  const stages = {
+    compressionFormed: compressionRatio != null && compressionRatio >= 0.40 && compressionRatio <= 0.75,
+    supportConfirmed: supports20 && low5 >= low20 * 0.99,
+    breakoutReady: distFromHigh20 <= 0.05,
+    volumeReturning: valueRatio5d20d >= 1.1,
+  };
+  const tags = [];
+  if (stages.compressionFormed) tags.push('압축 형성');
+  if (stages.supportConfirmed) tags.push('지지 확인');
+  if (stages.breakoutReady) tags.push('돌파 대기');
+  if (stages.volumeReturning) tags.push('거래대금 재활성');
+
+  // warnings
+  const warnings = [];
+  if ((meta.marketValue || 0) >= 50_000_000_000 && (meta.marketValue || 0) < 100_000_000_000) {
+    warnings.push('시총 1,000억 미만 중소형 구간');
+  }
+  if (atrPct > 0.16) warnings.push('고변동성 (ATR% > 16)');
+  if (worst1d <= -0.05) warnings.push('최근 5일 단일일 -5% 이상 하락');
+
+  const metrics = {
+    close, ret5d, ret20d, atrPct,
+    avg5Value, avg20Value, valueRatio5d20d,
+    ma20, ma60, ma120,
+    tr5avg, tr20avg, compressionRatio,
+    high20, high60, distFromHigh20, distFromHigh60,
+    supports20, supports60, low5, low20, worst1d,
+    flow: flowSignals,
+  };
+  const breakdown = {
+    compressionScore, supportScore, breakoutScore, liquidityScore,
+    overheatScore, riskScore, flowBonusScore,
+  };
+
+  return {
+    passed: true,
+    score,
+    bucket,
+    displayGrade,
+    stages,
+    tags,
+    warnings,
+    rejectReason: null,
+    metrics,
+    breakdown,
+  };
+}
+
+// universe wrapper (백테스트의 compressionBaseline 비교 등 효율성을 위해)
+function compressionSupportBreakoutUniverse(rows, meta = {}, idx = null) {
+  const r = calculateCompressionSupportBreakoutScore(rows, [], meta, idx);
+  return { passed: r.passed, reason: r.rejectReason };
+}
+
+// ─────────── CSB v2 — 조건 완화 + sweet spot 점수 + 시총 500억 universe ───────────
+//
+// v1 결론: n=277 너무 작음 + 점수 70+ 가 최악 (역방향)
+// v2 변경:
+//   - 시총 500억+ (v1 1000억)
+//   - 압축 ≤0.9 (v1 0.8)
+//   - 거래대금 ≥1.0 (v1 1.1)
+//   - 20일 고점 거리 ≤10% (v1 8%)
+//   - 압축 <0.40 reject (너무 죽음)
+//   - 점수: 모든 sub-score sweet spot 방식
+function compressionSupportBreakoutUniverseV2(chartRows, meta = {}) {
+  if (!chartRows || chartRows.length < 60) return { passed: false, reason: 'chart<60' };
+  const idx = chartRows.length - 1;
+  const today = chartRows[idx];
+  const close = today?.close;
+  if (!close || close <= 0) return { passed: false, reason: 'close<=0' };
+
+  if (meta.isSpecial || meta.isEtf) return { passed: false, reason: 'special/etf' };
+  if ((meta.marketValue || 0) < 50_000_000_000) return { passed: false, reason: 'marketCap<500억' };
+
+  const last20rows = chartRows.slice(-20);
+  const last5rows = chartRows.slice(-5);
+  const last60rows = chartRows.slice(-60);
+  const avg20Value = last20rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last20rows.length, 1);
+  if (avg20Value < 5_000_000_000) return { passed: false, reason: 'avg20Value<50억' };
+
+  const ret5d = chartRows.length >= 6 ? (close / chartRows[chartRows.length - 6].close - 1) : 0;
+  const ret20d = chartRows.length >= 21 ? (close / chartRows[chartRows.length - 21].close - 1) : 0;
+  if (ret5d < -0.03 || ret5d > 0.08) return { passed: false, reason: 'ret5d out' };
+  if (ret20d < -0.05 || ret20d > 0.18) return { passed: false, reason: 'ret20d out' };
+  if (ret5d > 0.12 || ret20d > 0.30) return { passed: false, reason: 'overheat guard' };
+
+  const atrObj = computeATR(chartRows, idx, 14);
+  if (!atrObj || !(atrObj.atr > 0) || !Number.isFinite(atrObj.atr)) return { passed: false, reason: 'ATR n/a' };
+  const atrPct = atrObj.atr / close;
+  if (atrPct > 0.20) return { passed: false, reason: 'ATR%>20' };
+
+  const ma20 = sma(last20rows.map((r) => r.close), 20);
+  const ma60 = chartRows.length >= 60 ? sma(last60rows.map((r) => r.close), 60) : null;
+  const ma120 = chartRows.length >= 120 ? sma(chartRows.slice(-120).map((r) => r.close), 120) : null;
+  if (ma120 != null && ma120 > 0) {
+    if (close / ma120 < 0.85) return { passed: false, reason: 'close/ma120<0.85' };
+  } else if (ma60 != null && ma60 > 0) {
+    if (close / ma60 < 0.80) return { passed: false, reason: 'close/ma60<0.80' };
+  } else {
+    const ret60d = chartRows.length >= 61 ? (close / chartRows[chartRows.length - 61].close - 1) : 0;
+    if (ret60d < -0.30) return { passed: false, reason: 'ret60d<-30%' };
+  }
+
+  if (ma20 != null && ma20 > 0 && (close / ma20 - 1) > 0.20) {
+    return { passed: false, reason: 'ma20 dev>+20%' };
+  }
+
+  // 압축 — v2: ≤0.9 통과, <0.40 reject (너무 죽음)
+  const trueRange = (i) => {
+    const r = chartRows[i];
+    if (!r || !r.high || !r.low || !r.close) return 0;
+    const prev = i > 0 ? chartRows[i - 1] : null;
+    if (!prev || !prev.close) return (r.high - r.low) / r.close;
+    const tr = Math.max(r.high - r.low, Math.abs(r.high - prev.close), Math.abs(r.low - prev.close));
+    return tr / r.close;
+  };
+  let tr5sum = 0, tr5n = 0, tr20sum = 0, tr20n = 0;
+  for (let i = chartRows.length - 5; i < chartRows.length; i++) { if (i >= 0) { tr5sum += trueRange(i); tr5n++; } }
+  for (let i = chartRows.length - 20; i < chartRows.length; i++) { if (i >= 0) { tr20sum += trueRange(i); tr20n++; } }
+  const tr5avg = tr5n > 0 ? tr5sum / tr5n : 0;
+  const tr20avg = tr20n > 0 ? tr20sum / tr20n : 0;
+  if (!(tr20avg > 0)) return { passed: false, reason: 'tr20=0' };
+  const compressionRatio = tr5avg / tr20avg;
+  if (compressionRatio > 0.9) return { passed: false, reason: 'compRatio>0.9' };
+  if (compressionRatio < 0.40) return { passed: false, reason: 'compRatio<0.40 (too dead)' };
+
+  // 지지 (동일)
+  const supports20 = ma20 != null && close >= ma20 * 0.97;
+  const supports60 = ma60 != null && close >= ma60 * 0.95;
+  if (!supports20 && !supports60) return { passed: false, reason: 'support broken' };
+  const low5 = Math.min(...last5rows.map((r) => r.low || r.close));
+  const low20 = Math.min(...last20rows.map((r) => r.low || r.close));
+  if (low5 < low20 * 0.99) return { passed: false, reason: '5d low broke 20d low' };
+
+  // 돌파 대기 — v2: 10% 까지
+  const high20 = Math.max(...last20rows.map((r) => r.high || r.close));
+  const high60 = Math.max(...last60rows.map((r) => r.high || r.close));
+  const distFromHigh20 = high20 > 0 ? (high20 - close) / high20 : 1;
+  const distFromHigh60 = high60 > 0 ? (high60 - close) / high60 : 1;
+  if (!(distFromHigh20 <= 0.10 || distFromHigh60 <= 0.12)) return { passed: false, reason: 'too far from high' };
+
+  // 거래대금 재증가 — v2: ≥1.0
+  const avg5Value = last5rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last5rows.length, 1);
+  const valueExp5_20 = avg20Value > 0 ? avg5Value / avg20Value : 1;
+  if (valueExp5_20 < 1.0) return { passed: false, reason: 'vol5/20<1.0' };
+
+  return {
+    passed: true,
+    avg20Value, avg5Value, valueExp5_20,
+    ret5d, ret20d, atrPct,
+    ma20, ma60, ma120, close,
+    tr5avg, tr20avg, compressionRatio,
+    high20, high60, distFromHigh20, distFromHigh60,
+    supports20, supports60, low5, low20,
+  };
+}
+
+function calculateCompressionSupportBreakoutScoreV2(chartRows, flowRows, meta = {}) {
+  const u = compressionSupportBreakoutUniverseV2(chartRows, meta);
+  if (!u.passed) return { passed: false, reason: u.reason };
+
+  const {
+    avg20Value, avg5Value, valueExp5_20,
+    ret5d, ret20d, atrPct,
+    ma20, ma60, ma120, close,
+    compressionRatio, distFromHigh20, distFromHigh60,
+    supports20, supports60, low5, low20,
+  } = u;
+
+  // 1. 적정 압축 25 — sweet spot 0.55~0.75 최고, 0.40~0.55 감점
+  let compressionScore;
+  if (compressionRatio >= 0.55 && compressionRatio <= 0.75) compressionScore = 25;
+  else if (compressionRatio > 0.75 && compressionRatio <= 0.90) compressionScore = 18;
+  else if (compressionRatio > 0.90 && compressionRatio <= 1.00) compressionScore = 10;
+  else if (compressionRatio >= 0.40 && compressionRatio < 0.55) compressionScore = 12;
+  else compressionScore = 0;
+
+  // 2. 지지 유지 20
+  let supportScore = 0;
+  if (supports20 && supports60) supportScore = 14;
+  else if (supports20) supportScore = 10;
+  else if (supports60) supportScore = 7;
+  if (ma20 != null && ma20 > 0) {
+    const dev = close / ma20;
+    if (dev >= 0.99 && dev <= 1.03) supportScore += 4;
+    else if (dev >= 0.97 && dev <= 1.05) supportScore += 2;
+  }
+  if (low5 >= low20) supportScore += 2;
+  supportScore = Math.min(supportScore, 20);
+
+  // 3. 돌파 대기 위치 20 — sweet spot 2~8% 최고
+  let breakoutScore = 0;
+  if (distFromHigh20 >= 0.02 && distFromHigh20 <= 0.08) breakoutScore += 12;
+  else if (distFromHigh20 >= 0 && distFromHigh20 < 0.02) breakoutScore += 8;
+  else if (distFromHigh20 > 0.08 && distFromHigh20 <= 0.12) breakoutScore += 5;
+  else breakoutScore -= 2;
+  if (distFromHigh60 <= 0.05) breakoutScore += 8;
+  else if (distFromHigh60 <= 0.08) breakoutScore += 5;
+  else if (distFromHigh60 <= 0.12) breakoutScore += 2;
+  breakoutScore = Math.max(0, Math.min(breakoutScore, 20));
+
+  // 4. 거래대금 재활성 15 — sweet spot 1.1~1.8 최고, >1.8 감점, <0.8 감점
+  let liquidityScore;
+  if (valueExp5_20 >= 1.1 && valueExp5_20 <= 1.8) liquidityScore = 15;
+  else if (valueExp5_20 >= 1.0 && valueExp5_20 < 1.1) liquidityScore = 10;
+  else if (valueExp5_20 >= 0.8 && valueExp5_20 < 1.0) liquidityScore = 5;
+  else if (valueExp5_20 > 1.8) liquidityScore = 8;
+  else liquidityScore = 2;
+
+  // 5. 과열 회피 10
+  let overheatScore = 0;
+  if (ret5d >= -0.03 && ret5d <= 0.04) overheatScore += 6;
+  else if (ret5d > 0.04 && ret5d <= 0.06) overheatScore += 4;
+  else if (ret5d > 0.06) overheatScore += 1;
+  if (ret20d >= -0.05 && ret20d <= 0.10) overheatScore += 4;
+  else if (ret20d > 0.10 && ret20d <= 0.15) overheatScore += 2;
+  overheatScore = Math.min(overheatScore, 10);
+
+  // 6. 리스크 안정 5
+  let worst1d = 0;
+  for (let i = chartRows.length - 5; i < chartRows.length; i++) {
+    if (i <= 0) continue;
+    const r = chartRows[i].close / chartRows[i - 1].close - 1;
+    if (r < worst1d) worst1d = r;
+  }
+  let riskScore = 0;
+  if (atrPct < 0.04) riskScore += 3;
+  else if (atrPct < 0.08) riskScore += 2;
+  else if (atrPct > 0.16) riskScore -= 1;
+  if (worst1d >= -0.03) riskScore += 2;
+  else if (worst1d >= -0.05) riskScore += 1;
+  riskScore = Math.max(0, Math.min(riskScore, 5));
+
+  // 7. 수급 보조 5 (보조 가점만)
+  let flowBonusScore = 0;
+  let flowSignals = null;
+  if (flowRows && flowRows.length >= 20) {
+    const sumKey = (arr, k) => arr.reduce((s, r) => s + (r?.[k] || 0), 0);
+    const flow5 = flowRows.slice(-5);
+    const flow20 = flowRows.slice(-20);
+    const total5d = sumKey(flow5, 'foreignNetValue') + sumKey(flow5, 'instNetValue');
+    const total20d = sumKey(flow20, 'foreignNetValue') + sumKey(flow20, 'instNetValue');
+    const flowRatio5d = avg20Value > 0 ? total5d / avg20Value : 0;
+    const netBuyDays5d = flow5.filter((r) => (r.foreignNetValue || 0) + (r.instNetValue || 0) > 0).length;
+    if (total5d > 0) flowBonusScore += 2;
+    if (netBuyDays5d >= 3) flowBonusScore += 2;
+    if (flowRatio5d >= 0.3) flowBonusScore += 1;
+    flowBonusScore = Math.min(flowBonusScore, 5);
+    flowSignals = { total5d, total20d, flowRatio5d, netBuyDays5d };
+  }
+
+  const score = compressionScore + supportScore + breakoutScore + liquidityScore
+    + overheatScore + riskScore + flowBonusScore;
+
+  const stage = {
+    compressionFormed: compressionRatio <= 0.75,
+    supportConfirmed: supports20 && low5 >= low20,
+    breakoutReady: distFromHigh20 <= 0.05,
+    volumeReturning: valueExp5_20 >= 1.1,
+  };
+
+  return {
+    passed: true,
+    score,
+    breakdown: { compressionScore, supportScore, breakoutScore, liquidityScore, overheatScore, riskScore, flowBonusScore },
+    stage,
+    signals: {
+      ret5d, ret20d, atrPct,
+      avg5Value, avg20Value, valueExp5_20,
+      ma20, ma60, ma120,
+      compressionRatio,
+      distFromHigh20, distFromHigh60,
+      supports20, supports60, low5, low20, worst1d,
+      flow: flowSignals,
+    },
+  };
+}
+
 // ─────────── Korea Rebound Model ───────────
 // Phase 6 보조 모델 — d20 추세 모델이 한국장에서 실패했으므로,
 // 반대로 정상 종목의 단기 과매도 후 d1~d5 반등을 노리는 모델.
@@ -1720,6 +2774,16 @@ module.exports = {
   fetchKosdaqHistory,
   getKosdaqCached,
   calculateFlowLeadScore,
+  calculateFlowLeadScoreV2,
+  flowLeadV2Universe,
+  calculateFlowLeadScoreV3,
+  flowLeadV3CompressionUniverse,
+  calculateFlowLeadScoreV4,
+  flowLeadV4IgnitionUniverse,
+  calculateCompressionSupportBreakoutScore,
+  compressionSupportBreakoutUniverse,
+  calculateCompressionSupportBreakoutScoreV2,
+  compressionSupportBreakoutUniverseV2,
   calculateReboundScore,
   extractPreIgnitionFeatures,
 };

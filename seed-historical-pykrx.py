@@ -10,7 +10,10 @@
 #   - tradingValue >= 50억 (현재 시점 기준)
 #   → 약 1500 종목 추정
 #
-# 실행: python seed-historical-pykrx.py [start_date=20250101]
+# 실행:
+#   python seed-historical-pykrx.py [start_date=20250101] [resume|force] [min_market_cap=100_000_000_000]
+# 예:
+#   python seed-historical-pykrx.py 20230101 resume 50_000_000_000   # 500억+ resume 모드
 
 import json
 import os
@@ -27,11 +30,11 @@ os.makedirs(OUT_DIR, exist_ok=True)
 # 인자
 START_DATE = sys.argv[1] if len(sys.argv) > 1 else "20250101"
 END_DATE = datetime.now().strftime("%Y%m%d")
+RESUME = sys.argv[2] != "force" if len(sys.argv) > 2 else True
 
-# 한국장 universe 필터
-MIN_MARKET_CAP = 100_000_000_000          # 1000억
+# 시총 필터 — 3번째 인자로 변경 가능
+MIN_MARKET_CAP = int(sys.argv[3]) if len(sys.argv) > 3 else 100_000_000_000
 MIN_TRADING_VALUE = 5_000_000_000          # 50억
-RESUME = sys.argv[2] != "force" if len(sys.argv) > 2 else True  # "force" 인자 시 강제 재시드
 
 print(f"start={START_DATE}, end={END_DATE}")
 print(f"universe: 시총≥{MIN_MARKET_CAP / 1e8}억, 거래대금≥{MIN_TRADING_VALUE / 1e8}억")

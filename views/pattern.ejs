@@ -112,6 +112,8 @@
 <%
 // Defensive defaults — 옛 app.js 가 새 변수를 res.render 에 넘기지 않아도 result 에서 자동 fallback.
 // PM2 reload 누락 / 부분 deploy / 캐시 미존재 어느 상황에서도 EJS 가 깨지지 않게.
+var csbMainCandidates  = (typeof csbMainCandidates  !== 'undefined' && csbMainCandidates)  ? csbMainCandidates  : ((result && result.csbMainCandidates)  || []);
+var csbSubCandidates   = (typeof csbSubCandidates   !== 'undefined' && csbSubCandidates)   ? csbSubCandidates   : ((result && result.csbSubCandidates)   || []);
 var flowLeadCandidates = (typeof flowLeadCandidates !== 'undefined' && flowLeadCandidates) ? flowLeadCandidates : ((result && result.flowLeadCandidates) || []);
 var reboundCandidates  = (typeof reboundCandidates  !== 'undefined' && reboundCandidates)  ? reboundCandidates  : ((result && result.reboundCandidates)  || []);
 var bullTrendWatch     = (typeof bullTrendWatch     !== 'undefined' && bullTrendWatch)     ? bullTrendWatch     : ((result && result.bullTrendWatch)     || []);
@@ -124,6 +126,8 @@ var seededCount        = (typeof seededCount        !== 'undefined') ? seededCou
 
 // 태그 한글 매핑 (CSS class 는 영어 식별자 유지, 화면 표시만 한글)
 var tagLabels = {
+  CSB_BREAKOUT: '상승 전 압축',
+  CSB_COMPRESSION: '예비 압축',
   FLOW_LEAD: '자금 선행',
   REBOUND: '과매도 반등',
   BULL_TREND_WATCH: '강세장 추세',
@@ -131,6 +135,13 @@ var tagLabels = {
   HIGH_VOLATILITY: '고변동성',
   STRUCTURE_BROKEN: '구조 붕괴',
   NO_SIGNAL: '신호 없음'
+};
+// CSB stage tag (한글)
+var csbStageLabel = {
+  compressionFormed: '압축 형성',
+  supportConfirmed: '지지 확인',
+  breakoutReady: '돌파 대기',
+  volumeReturning: '거래대금 재활성',
 };
 function tagText(t) { return tagLabels[t] || t.replace(/_/g, ' '); }
 function regimeText(r) {
@@ -162,9 +173,9 @@ function won(v) {
   <div class="glass compact">
     <div class="row g-2 row-cols-2 row-cols-md-6">
       <% if (result) { %>
-        <div class="col"><div class="meta-cell" style="background:#eff6ff;"><div class="label" style="color:#1e40af;">자금 선행</div><div class="value" style="color:#1d4ed8;"><%= result.flowLeadCount || 0 %></div></div></div>
-        <div class="col"><div class="meta-cell" style="background:#f0fdf4;"><div class="label" style="color:#065f46;">과매도 반등</div><div class="value" style="color:#047857;"><%= result.reboundCount || 0 %></div></div></div>
-        <div class="col"><div class="meta-cell" style="background:#fefce8;"><div class="label" style="color:#854d0e;">강세장 추세</div><div class="value" style="color:#a16207;"><%= result.bullTrendWatchCount || 0 %></div></div></div>
+        <div class="col"><div class="meta-cell" style="background:#ecfdf5;"><div class="label" style="color:#065f46;">상승 전 압축</div><div class="value" style="color:#047857;"><%= result.csbMainCount || 0 %></div></div></div>
+        <div class="col"><div class="meta-cell" style="background:#f0fdfa;"><div class="label" style="color:#0f766e;">예비 압축</div><div class="value" style="color:#0d9488;"><%= result.csbSubCount || 0 %></div></div></div>
+        <div class="col"><div class="meta-cell" style="background:#f0fdf4;"><div class="label" style="color:#166534;">과매도 반등</div><div class="value" style="color:#16a34a;"><%= result.reboundCount || 0 %></div></div></div>
         <div class="col"><div class="meta-cell" style="background:#fef2f2;"><div class="label" style="color:#991b1b;">과열/추격주의</div><div class="value" style="color:#b91c1c;"><%= result.overheatCount || 0 %></div></div></div>
         <div class="col"><div class="meta-cell"><div class="label">분석 종목</div><div class="value"><%= result.processed || 0 %></div></div></div>
         <div class="col"><div class="meta-cell"><div class="label">시드</div><div class="value"><%= seededCount %></div></div></div>
@@ -212,17 +223,20 @@ function won(v) {
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <div class="tab-pane fade show active" id="tab-today" role="tabpanel">
 
-      <!-- 1. 자금 선행 후보 (FlowLead) -->
+      <!-- 1. 상승 전 압축 후보 (CSB 4태그) — 메인 모델 -->
       <div class="glass">
-        <h2><i class="bi bi-graph-up me-1"></i>자금 선행 후보 <span class="count">(<%= flowLeadCandidates.length %>건)</span></h2>
-        <div class="cat-banner flow">
-          외국인·기관 자금이 먼저 들어오고 있으나, 단기 가격 상승은 아직 과열되지 않은 종목입니다.
-          자금 선행 가능성을 관찰하는 후보군입니다 (매수 추천 아님).
+        <h2><i class="bi bi-bullseye me-1"></i>상승 전 압축 후보 <span class="count">(<%= csbMainCandidates.length %>건)</span></h2>
+        <div class="cat-banner" style="background:#ecfdf5; border-left:4px solid #047857;">
+          <strong>가격 압축, 지지 유지, 돌파 대기 위치, 거래대금 재활성</strong>이 동시에 나타난 종목입니다.
+          큰 폭 상승 전 매수 시점 후보 (검증 기준 d20 +4.5%·승률 55%·PF 2.3, 매수 추천 아님).
+          <div class="small text-secondary mt-1">
+            손절 가이드 — <strong>clamp(ATR%×2.5, 8%, 12%)</strong> 종가 기준. 진입가 대비 N% 하락 종가 시 청산.
+          </div>
         </div>
-        <% if (!flowLeadCandidates.length) { %>
-          <div class="empty-state">현재 시점 통과 종목 없음</div>
+        <% if (!csbMainCandidates.length) { %>
+          <div class="empty-state">현재 시점 통과 종목 없음 (4태그 모두 통과 까다로움)</div>
         <% } else { %>
-          <% flowLeadCandidates.forEach(function(c) { var s = c.flowLead?.signals || {}; %>
+          <% csbMainCandidates.forEach(function(c) { var m = c.csb?.metrics || {}; var sg = c.csb?.stopGuide; var st = c.csb?.stages || {}; %>
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
@@ -232,25 +246,80 @@ function won(v) {
                   </a>
                   <span class="mkt"><%= c.market %></span>
                 </div>
-                <span class="score-pill flow">자금 점수 <%= c.flowLead.score %></span>
+                <span class="score-pill" style="background:#d1fae5; color:#065f46;">
+                  <%= c.csb.displayGrade %> · 4태그
+                </span>
               </div>
               <div class="row2">
                 <span>현재가 <strong><%= won(c.closePrice) %></strong></span>
-                <span>5일 외+기 순매수 <strong><%= ((s.foreign5d + s.inst5d) / 1e8).toFixed(0) %>억</strong></span>
-                <span>20일 <strong><%= ((s.foreign20d + s.inst20d) / 1e8).toFixed(0) %>억</strong></span>
-                <span>수급 강도 <strong><%= ((s.flowRatio5d || 0) * 100).toFixed(0) %>%</strong></span>
+                <span>압축 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
+                <span>거래대금 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
+                <span>20일 고점거리 <strong><%= ((m.distFromHigh20 || 0) * 100).toFixed(1) %>%</strong></span>
               </div>
               <div class="row2">
-                <span>5일 수익률 <strong class="<%= s.ret5d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret5d || 0) * 100).toFixed(1) %>%</strong></span>
-                <span>20일 <strong class="<%= s.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret20d || 0) * 100).toFixed(1) %>%</strong></span>
-                <span>변동성(ATR) <strong><%= ((s.atrPct || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>5일 수익률 <strong class="<%= (m.ret5d || 0) >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((m.ret5d || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>20일 <strong class="<%= (m.ret20d || 0) >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((m.ret20d || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>변동성(ATR) <strong><%= ((m.atrPct || 0) * 100).toFixed(1) %>%</strong></span>
+                <% if (sg) { %><span style="color:#065f46;">손절선 <strong><%= won(sg.stopPrice) %></strong> (-<%= sg.stopPct %>%)</span><% } %>
                 <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
               </div>
               <div class="row3">
-                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= tagText(t) %></span><% }) %>
+                <% if (st.compressionFormed) { %><span class="tag-badge" style="background:#d1fae5; color:#065f46;">압축 형성</span><% } %>
+                <% if (st.supportConfirmed) { %><span class="tag-badge" style="background:#dbeafe; color:#1e40af;">지지 확인</span><% } %>
+                <% if (st.breakoutReady) { %><span class="tag-badge" style="background:#fef3c7; color:#854d0e;">돌파 대기</span><% } %>
+                <% if (st.volumeReturning) { %><span class="tag-badge" style="background:#fce7f3; color:#9d174d;">거래대금 재활성</span><% } %>
+                <% if (c.csb?.warnings && c.csb.warnings.length) { c.csb.warnings.forEach(function(w) { %>
+                  <span class="tag-badge" style="background:#fef2f2; color:#991b1b;"><i class="bi bi-exclamation-triangle me-1"></i><%= w %></span>
+                <% }) } %>
               </div>
             </div>
           <% }) %>
+        <% } %>
+      </div>
+
+      <!-- 1b. 예비 압축 후보 (CSB 3태그) — 보조 -->
+      <div class="glass">
+        <h2><i class="bi bi-hourglass-split me-1"></i>예비 압축 후보 <span class="count">(<%= csbSubCandidates.length %>건)</span></h2>
+        <div class="cat-banner" style="background:#f0fdfa; border-left:4px solid #0d9488;">
+          지지 확인 + 거래대금 재활성에 더해 압축 또는 돌파 중 한 가지를 만족하는 종목입니다.
+          4태그 통과로 발전할 가능성을 관찰하는 보조 후보입니다.
+        </div>
+        <% if (!csbSubCandidates.length) { %>
+          <div class="empty-state">현재 시점 통과 종목 없음</div>
+        <% } else { %>
+          <% csbSubCandidates.slice(0, 30).forEach(function(c) { var m = c.csb?.metrics || {}; var st = c.csb?.stages || {}; %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
+                  <span class="mkt"><%= c.market %></span>
+                </div>
+                <span class="score-pill" style="background:#ccfbf1; color:#0f766e;">3태그</span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong><%= won(c.closePrice) %></strong></span>
+                <span>압축 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
+                <span>거래대금 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
+                <span>고점거리 <strong><%= ((m.distFromHigh20 || 0) * 100).toFixed(1) %>%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+              </div>
+              <div class="row3">
+                <% if (st.compressionFormed) { %><span class="tag-badge" style="background:#d1fae5; color:#065f46;">압축 형성</span><% } %>
+                <% if (st.supportConfirmed) { %><span class="tag-badge" style="background:#dbeafe; color:#1e40af;">지지 확인</span><% } %>
+                <% if (st.breakoutReady) { %><span class="tag-badge" style="background:#fef3c7; color:#854d0e;">돌파 대기</span><% } %>
+                <% if (st.volumeReturning) { %><span class="tag-badge" style="background:#fce7f3; color:#9d174d;">거래대금 재활성</span><% } %>
+                <% if (c.csb?.warnings && c.csb.warnings.length) { c.csb.warnings.forEach(function(w) { %>
+                  <span class="tag-badge" style="background:#fef2f2; color:#991b1b;"><i class="bi bi-exclamation-triangle me-1"></i><%= w %></span>
+                <% }) } %>
+              </div>
+            </div>
+          <% }) %>
+          <% if (csbSubCandidates.length > 30) { %>
+            <div class="small text-secondary mt-2">상위 30개 표시 — 총 <%= csbSubCandidates.length %>건</div>
+          <% } %>
         <% } %>
       </div>
 
@@ -543,13 +612,99 @@ function won(v) {
       <!-- 6. 모델 검증 리포트 -->
       <div class="glass">
         <h2><i class="bi bi-clipboard-data me-1"></i>모델 검증 리포트</h2>
-        <div class="empty-state" style="padding: 48px 24px;">
-          <div style="font-size: 1.2rem; color: #475569; margin-bottom: 12px;">
-            <i class="bi bi-tools me-1"></i><strong>개발 중입니다</strong>
-          </div>
-          <div class="small text-secondary">
-            약 4시간 후 다시 확인 바랍니다.
-          </div>
+        <div class="small text-secondary mb-3">
+          검증 기간 2023-01 ~ 2026-04 (511 종목, 평균 765 거래일).
+          현재 채택 = <strong>CSB 4태그 + Dc 손절</strong> (day0 매수 + relaxed close stop).
+          ※ 검증 대상이 거의 1조+ 대형주 (n=113). 시총 500-1000억 백필 후 재검증 예정.
+        </div>
+
+        <h3 class="mt-3" style="font-size: 1.1rem;">현재 채택 — Dc · day0 + relaxed close stop <span class="badge bg-success">메인</span></h3>
+        <div class="small text-secondary mb-2">
+          진입: CSB 4태그 통과일 종가 / 손절: <code>clamp(ATR%×2.5, 8%, 12%)</code> 종가 기준.
+          압축 종목은 ATR 작아 ATR×1.5 기존 stop 은 너무 좁음 — 종가 기준 + 8% 하한이 핵심.
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle" style="font-size: 0.875rem;">
+            <thead class="table-light">
+              <tr>
+                <th>구간</th><th class="text-end">표본</th>
+                <th class="text-end">d20</th><th class="text-end">d40</th>
+                <th class="text-end">승률</th><th class="text-end">PF</th>
+                <th class="text-end">worst</th><th class="text-end">stopHit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>전체</td><td class="text-end">113</td><td class="text-end">+4.49%</td><td class="text-end">+12.85%</td><td class="text-end"><strong>55%</strong></td><td class="text-end">2.31</td><td class="text-end">-15.15%</td><td class="text-end">38%</td></tr>
+              <tr><td>강세장</td><td class="text-end">60</td><td class="text-end">+8.38%</td><td class="text-end">+16.95%</td><td class="text-end"><strong>68%</strong></td><td class="text-end">3.51</td><td class="text-end">-12%</td><td class="text-end">40%</td></tr>
+              <tr><td>약세장</td><td class="text-end">15</td><td class="text-end">-4.51%</td><td class="text-end">-3.00%</td><td class="text-end">27%</td><td class="text-end">0.29</td><td class="text-end">-12%</td><td class="text-end">67%</td></tr>
+              <tr><td>횡보장</td><td class="text-end">38</td><td class="text-end">-0.83%</td><td class="text-end">+4.23%</td><td class="text-end">45%</td><td class="text-end">0.75</td><td class="text-end">-12%</td><td class="text-end">39%</td></tr>
+              <tr style="background:#f8fafc;"><td>baselineAll (참고)</td><td class="text-end">181K</td><td class="text-end">+3.09%</td><td class="text-end">+6.19%</td><td class="text-end">49%</td><td class="text-end">1.63</td><td class="text-end">-64.76%</td><td class="text-end">-</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="mt-4" style="font-size: 1.1rem;">참고 — A · day0 매수 (no stop) <span class="badge bg-secondary">참고용</span></h3>
+        <div class="small text-secondary mb-2">손절 없을 때 가장 큰 d40 수익률. 단점: 한 종목 worst -34.45% 가능.</div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle" style="font-size: 0.875rem;">
+            <thead class="table-light">
+              <tr><th>구간</th><th class="text-end">표본</th><th class="text-end">d20</th><th class="text-end">d40</th><th class="text-end">승률</th><th class="text-end">PF</th><th class="text-end">worst</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>전체</td><td class="text-end">113</td><td class="text-end">+4.75%</td><td class="text-end"><strong>+16.24%</strong></td><td class="text-end">56%</td><td class="text-end">2.48</td><td class="text-end">-34.45%</td></tr>
+              <tr><td>강세장</td><td class="text-end">60</td><td class="text-end">+11.18%</td><td class="text-end"><strong>+28.81%</strong></td><td class="text-end"><strong>70%</strong></td><td class="text-end">7.28</td><td class="text-end">-17%</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="mt-4" style="font-size: 1.1rem;">관찰 — Ec · trigger + relaxed close stop <span class="badge bg-warning text-dark">관찰</span></h3>
+        <div class="small text-secondary mb-2">
+          후보 발생 후 3거래일 내 트리거 (전일 고가 돌파 + 거래대금 ≥ 20일 평균 + ma20 -2% 이내) 통과 시 진입.
+          <strong>n=46 표본 부족</strong> — 500-1000억 백필 후 재검토 시 메인 전환 가능성.
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle" style="font-size: 0.875rem;">
+            <thead class="table-light">
+              <tr><th>구간</th><th class="text-end">표본</th><th class="text-end">d20</th><th class="text-end">d40</th><th class="text-end">승률</th><th class="text-end">PF</th><th class="text-end">worst</th><th class="text-end">stopHit</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>전체</td><td class="text-end">46</td><td class="text-end">+6.33%</td><td class="text-end"><strong>+16.37%</strong></td><td class="text-end">48%</td><td class="text-end"><strong>3.15</strong></td><td class="text-end">-13.33%</td><td class="text-end">33%</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="mt-4" style="font-size: 1.1rem;">stage tag 조합별 d20 (CSB 통과 종목, n=136K)</h3>
+        <div class="small text-secondary mb-2">stage tag 갯수가 alpha 의 핵심 — 4태그 모두 통과 시 d20 4.41% (compression baseline 2.37 / all 3.04 모두 우위).</div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle" style="font-size: 0.875rem;">
+            <thead class="table-light">
+              <tr><th>tag 조합</th><th class="text-end">표본</th><th class="text-end">d20</th><th class="text-end">mfe20</th><th class="text-end">hit20</th><th>판정</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>4태그 모두 (메인)</strong></td><td class="text-end">115</td><td class="text-end"><strong>+4.41%</strong></td><td class="text-end">12.22%</td><td class="text-end">38%</td><td><span class="badge bg-success">채택</span></td></tr>
+              <tr><td>지지+거래대금+압축 (3태그)</td><td class="text-end">68</td><td class="text-end">+3.76%</td><td class="text-end">15.01%</td><td class="text-end">43%</td><td><span class="badge bg-info">보조</span></td></tr>
+              <tr><td>압축+지지+돌파 (3태그)</td><td class="text-end">3,141</td><td class="text-end">+2.17%</td><td class="text-end">10.30%</td><td class="text-end">33%</td><td><span class="badge bg-secondary">관찰</span></td></tr>
+              <tr><td>압축만 (1태그)</td><td class="text-end">8,752</td><td class="text-end">+1.32%</td><td class="text-end">14.85%</td><td class="text-end">47%</td><td><span class="badge bg-light text-dark">제외</span></td></tr>
+              <tr style="background:#f8fafc;"><td>baselineAll (참고)</td><td class="text-end">182K</td><td class="text-end">+3.04%</td><td class="text-end">16.50%</td><td class="text-end">50%</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="mt-4" style="font-size: 1.1rem;">폐기된 모델</h3>
+        <ul class="small text-secondary" style="padding-left: 20px;">
+          <li><strong>FlowLead v1~v4 (수급 선행)</strong> — 4번 시도 모두 sideways 0/4. 수급은 보조 가점 5점으로만 사용.</li>
+          <li><strong>tight stop</strong> (-7% / ATR×1.5 가까운 쪽) — 압축 종목 ATR 작아 stop 너무 좁음 (stopHit 59%, win 33%).</li>
+          <li><strong>structure stop</strong> (ma20 종가이탈 / 20일 저점) — stopHit 90%로 거의 모두 청산 (win 36%).</li>
+          <li><strong>intraday low 기준 stop</strong> — wick noise 에 자주 hit. 종가 기준이 압축 종목에 적합.</li>
+          <li><strong>점수 시스템 v1~v4</strong> — 70+ 가 50-59 보다 안 좋은 역방향. 점수 폐기, stage tag 갯수로 분류.</li>
+        </ul>
+
+        <h3 class="mt-4" style="font-size: 1.1rem;">보조 모델 — 과매도 반등 (Rebound)</h3>
+        <div class="small text-secondary">전체 d3/d5 4지표 baseline 대비 우위 (mean +1.69 vs 1.05 / 승률 52 vs 47 / PF 1.63 vs 1.33). bull/sideways 강세장에서 가장 강함.</div>
+
+        <div class="small text-secondary mt-3" style="border-top: 1px solid #e2e8f0; padding-top: 12px;">
+          <strong>다음 단계.</strong> 시총 500-1000억 백필 (731 종목, ~7시간) 진행 후 4태그 후보가 중소형 구간에서 어떻게 나오는지 재검증.
+          현재 검증된 결과는 거의 1조+ 대형주이며, 큰 폭 상승 후보는 중소형에서 더 잘 나올 가능성 있음.
         </div>
       </div>
 
