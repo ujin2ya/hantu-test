@@ -106,6 +106,20 @@
 <body>
 <div class="wrap">
 
+<%
+// Defensive defaults — 옛 app.js 가 새 변수를 res.render 에 넘기지 않아도 result 에서 자동 fallback.
+// PM2 reload 누락 / 부분 deploy / 캐시 미존재 어느 상황에서도 EJS 가 깨지지 않게.
+var flowLeadCandidates = (typeof flowLeadCandidates !== 'undefined' && flowLeadCandidates) ? flowLeadCandidates : ((result && result.flowLeadCandidates) || []);
+var reboundCandidates  = (typeof reboundCandidates  !== 'undefined' && reboundCandidates)  ? reboundCandidates  : ((result && result.reboundCandidates)  || []);
+var bullTrendWatch     = (typeof bullTrendWatch     !== 'undefined' && bullTrendWatch)     ? bullTrendWatch     : ((result && result.bullTrendWatch)     || []);
+var overheatWarnings   = (typeof overheatWarnings   !== 'undefined' && overheatWarnings)   ? overheatWarnings   : ((result && result.overheatWarnings)   || []);
+var taggedAll          = (typeof taggedAll          !== 'undefined' && taggedAll)          ? taggedAll          : ((result && result.taggedAll)          || []);
+var holdingsCards      = (typeof holdingsCards      !== 'undefined' && holdingsCards)      ? holdingsCards      : [];
+var holdingsRaw        = (typeof holdingsRaw        !== 'undefined') ? holdingsRaw        : '';
+var cQuery             = (typeof cQuery             !== 'undefined') ? cQuery             : '';
+var seededCount        = (typeof seededCount        !== 'undefined') ? seededCount        : ((result && result.seeded) || 0);
+%>
+
   <!-- ─── 헤더 ─── -->
   <div class="topbar">
     <h1><i class="bi bi-graph-up-arrow me-2"></i>종목 상태 분석 도구</h1>
