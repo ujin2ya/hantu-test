@@ -2454,6 +2454,10 @@ app.get("/pattern", (req, res) => {
   const cQuery = String(req.query.cq || "").trim();
   const matchSearch = (item) => !cQuery || (item.name || "").toLowerCase().includes(cQuery.toLowerCase()) || (item.code || "").toLowerCase().includes(cQuery.toLowerCase());
 
+  // ─── CSB 메인 (1조+) ───
+  const csbMainCandidates = (result?.csbMainCandidates || []).filter(matchSearch);
+  const csbSubCandidates = (result?.csbSubCandidates || []).filter(matchSearch);
+
   // ─── Phase 8 새 카테고리 ───
   const flowLeadCandidates = (result?.flowLeadCandidates || []).filter(matchSearch);
   const reboundCandidates = (result?.reboundCandidates || []).filter(matchSearch);
@@ -2489,6 +2493,8 @@ app.get("/pattern", (req, res) => {
   res.render("pattern", {
     result, seededCount, patternState,
     cQuery, holdingsRaw,
+    // CSB 메인
+    csbMainCandidates, csbSubCandidates,
     // 새 카테고리
     flowLeadCandidates, reboundCandidates, bullTrendWatch, overheatWarnings, taggedAll, holdingsCards,
     // CSB-Lite 중소형 분류
