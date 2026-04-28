@@ -1871,7 +1871,9 @@ function renderIndex(res, overrides = {}) {
     candidates: [],
     stockMeta: null,
     chartRows: null,
-    features: null,
+    patternData: null,
+    flowSummary: null,
+    flowRecent: null,
     high60: null,
     low60: null,
     lastDate: null,
@@ -1957,33 +1959,92 @@ const handleSearch = async (req, res) => {
       changeRate: naverMeta?.changeRate != null ? naverMeta.changeRate : 0,
     };
 
-    // 3) 14 features (오늘 = 마지막 캐시일 기준)
-    const sharesOut = stockMeta.marketCap > 0 && stockMeta.closePrice > 0
-      ? stockMeta.marketCap / stockMeta.closePrice
-      : 0;
-    const features = patternScreener.extractPreIgnitionFeatures(
-      rows, rows.length - 1, stockMeta.marketCap, sharesOut
-    );
+    // 3) 새 모델 진단 lookup — pattern-result.json 의 taggedAll
+    let patternData = null;
+    try {
+      const patternPath = path.join(__dirname, "cache", "pattern-result.json");
+      if (fs.existsSync(patternPath)) {
+        const pr = JSON.parse(fs.readFileSync(patternPath, "utf-8"));
+        patternData = (pr.taggedAll || []).find((t) => t.code === code) || null;
+      }
+    } catch (_) {}
 
-    // 4) 60일 고/저
+    // 4) flow-history (외국인/기관 일별 순매수) 로드 + 1d/5d/20d 합계
+    let flowSummary = null;
+    let flowRecent = null;
+    let flowByDate = null;   // chartRows merge 용
+    try {
+      const flowPath = path.join(__dirname, "cache", "flow-history", `${code}.json`);
+      if (fs.existsSync(flowPath)) {
+        const flowRows = JSON.parse(fs.readFileSync(flowPath, "utf-8")).rows || [];
+        if (flowRows.length >= 1) {
+          const sumKey = (arr, k) => arr.reduce((s, r) => s + (r[k] || 0), 0);
+          const last1 = flowRows.slice(-1);
+          const last5 = flowRows.slice(-5);
+          const last20 = flowRows.slice(-20);
+          flowSummary = {
+            f1: sumKey(last1, "foreignNetValue"),
+            i1: sumKey(last1, "instNetValue"),
+            f5: sumKey(last5, "foreignNetValue"),
+            i5: sumKey(last5, "instNetValue"),
+            f20: sumKey(last20, "foreignNetValue"),
+            i20: sumKey(last20, "instNetValue"),
+            lastDate: flowRows[flowRows.length - 1].date,
+            days: flowRows.length,
+          };
+          flowRecent = flowRows.slice(-10);
+          flowByDate = new Map(flowRows.map((r) => [r.date, r]));
+        }
+      }
+    } catch (_) {}
+
+    // 5) 60일 고/저
     const last60 = rows.slice(-60);
     const high60 = Math.max(...last60.map((r) => r.high || 0)) || null;
     const lows60 = last60.map((r) => r.low).filter((v) => v > 0);
     const low60 = lows60.length ? Math.min(...lows60) : null;
 
-    // 5) 차트는 마지막 130일 (캐시 그대로)
-    const chartRows = rows.slice(-130).map((r) => ({
-      date: r.date,
-      open: r.open, high: r.high, low: r.low, close: r.close,
-      volume: r.volume,
-    }));
+    // 6) 차트 — 마지막 250일 (1Y) + MA5/20/60/120 + flow merge
+    function smaSeries(arr, period, key) {
+      const out = new Array(arr.length).fill(null);
+      let sum = 0;
+      for (let i = 0; i < arr.length; i++) {
+        sum += arr[i][key] || 0;
+        if (i >= period) sum -= arr[i - period][key] || 0;
+        if (i >= period - 1) out[i] = sum / period;
+      }
+      return out;
+    }
+    const ma5All = smaSeries(rows, 5, "close");
+    const ma20All = smaSeries(rows, 20, "close");
+    const ma60All = smaSeries(rows, 60, "close");
+    const ma120All = smaSeries(rows, 120, "close");
+    const startIdx = Math.max(0, rows.length - 250);
+    const chartRows = rows.slice(startIdx).map((r, i) => {
+      const absIdx = startIdx + i;
+      const f = flowByDate?.get(r.date) || null;
+      const foreignValue = f?.foreignNetValue ?? null;
+      const instValue = f?.instNetValue ?? null;
+      const totalFlowValue = (foreignValue != null || instValue != null)
+        ? (foreignValue || 0) + (instValue || 0) : null;
+      return {
+        date: r.date,
+        open: r.open, high: r.high, low: r.low, close: r.close,
+        volume: r.volume,
+        valueApprox: r.valueApprox || null,
+        ma5: ma5All[absIdx], ma20: ma20All[absIdx], ma60: ma60All[absIdx], ma120: ma120All[absIdx],
+        foreignValue, instValue, totalFlowValue,
+      };
+    });
 
     return renderIndex(res, {
       query,
       candidates: candidates.length > 1 ? candidates : [],
       stockMeta,
       chartRows,
-      features,
+      patternData,
+      flowSummary,
+      flowRecent,
       high60,
       low60,
       lastDate: lastRow.date,

@@ -540,18 +540,16 @@ function won(v) {
         <% } %>
       </div>
 
-      <!-- 6. 모델 검증 리포트 (백필 완료 후 데이터 연동) -->
+      <!-- 6. 모델 검증 리포트 -->
       <div class="glass">
         <h2><i class="bi bi-clipboard-data me-1"></i>모델 검증 리포트</h2>
-        <div class="cat-banner report">
-          각 모델의 백테스트 결과를 표시하는 페이지입니다.
-          비교 대상: FlowLead / Rebound / Bull Trend / baselineTrendRS / baselineAll
-          (구간: d1/d3/d5/d10/d20, regime, market, 시총, 거래대금, winsorize 5%)
-        </div>
-        <div class="empty-state">
-          <strong>백필 진행 중</strong> — 511 종목 × 810일 외국인/기관 수급 데이터<br/>
-          백필 완료 후 자동으로 _runFlowLead.js / _runRebound.js 백테스트 결과가 이 영역에 표시됩니다.<br/>
-          <span class="small text-secondary">결과 JSON 도 인증된 사용자만 접근 가능합니다.</span>
+        <div class="empty-state" style="padding: 48px 24px;">
+          <div style="font-size: 1.2rem; color: #475569; margin-bottom: 12px;">
+            <i class="bi bi-tools me-1"></i><strong>개발 중입니다</strong>
+          </div>
+          <div class="small text-secondary">
+            약 4시간 후 다시 확인 바랍니다.
+          </div>
         </div>
       </div>
 

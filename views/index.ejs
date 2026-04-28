@@ -6,7 +6,7 @@
   <title><%= stockMeta ? stockMeta.name + ' — 패턴 정보' : '종목 검색' %></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
   <style>
     body {
       background: #f3f5fb; color: #1f2937;
@@ -33,8 +33,30 @@
     .feat-grid { display: flex; flex-wrap: wrap; gap: 6px; font-size: 0.82rem; }
     .feat-item { background: #f8fafc; border-radius: 6px; padding: 5px 9px; }
     .feat-item strong { color: #0f172a; font-variant-numeric: tabular-nums; margin-left: 4px; }
-    .chart-box { position: relative; height: 280px; }
-    .chart-box.volume { height: 110px; margin-top: 6px; }
+    .chart-box { position: relative; height: 360px; }
+    .chart-box.volume { height: 120px; margin-top: 6px; }
+    .period-btn-group { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+    .period-btn { padding: 4px 12px; border: 1px solid #e2e8f0; background: #fff; border-radius: 6px; font-size: 0.78rem; color: #475569; cursor: pointer; }
+    .period-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .period-btn:hover:not(.active) { background: #f1f5f9; }
+    .ma-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.72rem; color: #64748b; margin-top: 6px; }
+    .ma-legend .dot { display: inline-block; width: 10px; height: 2px; vertical-align: middle; margin-right: 4px; }
+    /* 4탭 */
+    .nav-tabs { border-bottom: 2px solid #e2e8f0; margin-bottom: 0; }
+    .nav-tabs .nav-link { color: #64748b; font-weight: 600; border: none; border-radius: 0; padding: 9px 18px; background: transparent; }
+    .nav-tabs .nav-link.active { color: #0f172a; background: transparent; border-bottom: 3px solid #2563eb; margin-bottom: -2px; }
+    .nav-tabs .nav-link:hover { color: #2563eb; }
+    .tab-glass { background: #fff; border-radius: 0 14px 14px 14px; padding: 18px; box-shadow: 0 4px 16px rgba(15,23,42,0.06); margin-bottom: 14px; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+    .ret-pos { color: #16a34a; font-weight: 600; }
+    .ret-neg { color: #dc2626; font-weight: 600; }
+    .tag-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; margin: 2px 4px 2px 0; }
+    .breakdown-bar { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; padding: 4px 0; }
+    .breakdown-bar .bar-label { width: 110px; color: #475569; }
+    .breakdown-bar .bar-track { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+    .breakdown-bar .bar-fill { height: 100%; background: #2563eb; }
+    .breakdown-bar .bar-val { width: 40px; text-align: right; color: #0f172a; font-variant-numeric: tabular-nums; }
+    .reason-block { background: #f8fafc; border-left: 3px solid #2563eb; padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 0.85rem; color: #334155; line-height: 1.6; }
     .stale-tag { font-size: 0.7rem; color: #92400e; background: #fef3c7; padding: 2px 6px; border-radius: 4px; }
     @media (max-width: 576px) {
       body { padding: 12px 8px; }
@@ -111,43 +133,265 @@
 
       <% if (chartRows && chartRows.length) { %>
         <div class="glass">
-          <h2><i class="bi bi-graph-up me-1"></i>일봉 + 거래량 (<%= chartRows.length %>일)</h2>
-          <div class="chart-box"><canvas id="priceChart"></canvas></div>
-          <div class="chart-box volume"><canvas id="volumeChart"></canvas></div>
+          <h2><i class="bi bi-graph-up me-1"></i>일봉 + 거래량</h2>
+          <div class="period-btn-group" role="group" aria-label="기간 선택">
+            <button type="button" class="period-btn" data-days="20">1M</button>
+            <button type="button" class="period-btn active" data-days="60">3M</button>
+            <button type="button" class="period-btn" data-days="120">6M</button>
+            <button type="button" class="period-btn" data-days="250">1Y</button>
+          </div>
+          <div class="chart-box" id="priceChart"></div>
+          <div class="chart-box volume" id="volumeChart"></div>
+          <div class="ma-legend">
+            <span><span class="dot" style="background:#dc2626;"></span>5일선</span>
+            <span><span class="dot" style="background:#7c3aed;"></span>20일선</span>
+            <span><span class="dot" style="background:#16a34a;"></span>60일선</span>
+            <span><span class="dot" style="background:#0891b2;"></span>120일선</span>
+          </div>
         </div>
       <% } %>
 
-      <% if (features) { %>
-        <div class="glass">
-          <h2><i class="bi bi-tags me-1"></i>패턴 features (오늘 기준)</h2>
-          <%
-            function fmtPct(v)  { return v == null ? '-' : (v * 100).toFixed(0) + '%'; }
-            function fmtDelta(v){ if (v == null) return '-'; const d = (v - 1) * 100; return (d >= 0 ? '+' : '') + d.toFixed(0) + '%'; }
-            function fmtMult(v) { return v == null ? '-' : v.toFixed(2) + '배'; }
-            function fmtDays(v) { return v == null ? '-' : v + '일'; }
-            function fmtForeign(v){ if (v == null) return '-'; return (v >= 0 ? '+' : '') + (v * 100).toFixed(1) + '%p'; }
-            const featList = [
-              ['20일 회전율',         fmtPct(features.turnover),          '직전 20일 거래대금 / 시총'],
-              ['박스권',              fmtDays(features.boxDays),           '점화 직전 일변동 ≤4% 연속일수'],
-              ['60일 고점 대비',      fmtDelta(features.positionPct),      '종가 / 60일 고점'],
-              ['60일 저점 대비',      fmtDelta(features.positionFromLow),  '종가 / 60일 저점'],
-              ['20일선 대비',         fmtDelta(features.maPos20),          '종가 / 20일 SMA'],
-              ['60일선 대비',         fmtDelta(features.maPos60),          '종가 / 60일 SMA'],
-              ['현재가 매물밀도',     fmtPct(features.localResistance),    '현재가 ±5% 60일 누적 거래대금 비율'],
-              ['위쪽 매물대',         fmtPct(features.resistAbove),        '현재가 위쪽 60일 거래대금 비율'],
-              ['오늘 거래량',         fmtMult(features.igniteVolumeRatio), '오늘 거래량 / 20일 평균'],
-              ['오늘 거래대금/시총',  fmtPct(features.igniteValueRatio),   '오늘 거래대금 / 시총'],
-              ['ATR 수렴',            fmtMult(features.atrCompress),       '5일 ATR / 20일 ATR — <1 = 수렴'],
-              ['양봉/음봉 거래대금',  fmtMult(features.bullBearRatio),     '20일 양봉 거래대금 / 음봉 거래대금'],
-              ['외인 보유 변화',      fmtForeign(features.foreignDelta),   '20일간 외인 보유율 변화'],
-              ['거래량 급증',         fmtMult(features.volumeSurge),       '5일 평균 거래량 / 60일 평균'],
-            ];
-          %>
-          <div class="feat-grid">
-            <% featList.forEach(function(f) { %>
-              <span class="feat-item" title="<%= f[2] %>"><%= f[0] %><strong><%= f[1] %></strong></span>
-            <% }) %>
+      <%
+        // 표시 헬퍼
+        function fmt억(v) { if (v == null) return '-'; return Math.round(v / 1e8).toLocaleString('ko-KR') + '억'; }
+        function fmtSign(v) { if (v == null) return '-'; return (v >= 0 ? '+' : '') + Math.round(v / 1e8).toLocaleString('ko-KR') + '억'; }
+        function fmtPctNum(v) { if (v == null) return '-'; return (v >= 0 ? '+' : '') + Number(v).toFixed(1) + '%'; }
+        function tagLabel(t) {
+          var m = { FLOW_LEAD: '자금 선행', REBOUND: '과매도 반등', BULL_TREND_WATCH: '강세장 추세', OVERHEAT_WARNING: '과열 주의', HIGH_VOLATILITY: '고변동성', STRUCTURE_BROKEN: '구조 붕괴', NO_SIGNAL: '신호 없음' };
+          return m[t] || (t || '-').replace(/_/g, ' ');
+        }
+        function regimeLabel(r) { return r === 'bull' ? '강세장' : r === 'bear' ? '약세장' : r === 'sideways' ? '횡보장' : (r || '-'); }
+        var pd = patternData;
+        var fs = flowSummary;
+      %>
+
+      <% if (pd || fs) { %>
+        <%
+          // 모델 점수 breakdown 헬퍼
+          function bdItems(b) { if (!b) return []; return Object.entries(b).map(([k, v]) => [k, v]); }
+          function bdLabel(k) {
+            var m = {
+              regimeScore: '시장 상황', flowScore: '수급 강도', overheatScore: '가격 미과열',
+              valueScore: '거래대금 확장', finScore: '재무', recoveryScore: '추세 회복', riskScore: '변동성',
+              universeScore: '유동성/필터', oversoldScore: '단기 과매도', structureScore: '장기 구조',
+              exhaustScore: '매도 압력 둔화', triggerScore: '반등 트리거',
+            };
+            return m[k] || k;
+          }
+          function bdMax(k) {
+            var m = { regimeScore: 15, flowScore: 30, overheatScore: 15, valueScore: 15, finScore: 10, recoveryScore: 10, riskScore: 5,
+              universeScore: 15, oversoldScore: 20, structureScore: 15, exhaustScore: 20, triggerScore: 10 };
+            return m[k] || 10;
+          }
+
+          // 분류 사유 (자연어)
+          var reasonLines = [];
+          if (pd && pd.primaryTag === 'FLOW_LEAD' && pd.flowLead) {
+            var s = pd.flowLead.signals || {};
+            reasonLines.push('5일간 외국인+기관이 ' + fmt억((s.foreign5d || 0) + (s.inst5d || 0)) + ' 순매수 했습니다.');
+            reasonLines.push('20일 평균 거래대금 대비 ' + Math.round((s.flowRatio5d || 0) * 100) + '% 규모로 수급이 들어왔습니다.');
+            reasonLines.push('5일 수익률 ' + fmtPctNum((s.ret5d || 0) * 100) + ' 로 단기 과열 상태가 아닙니다.');
+          } else if (pd && pd.primaryTag === 'REBOUND' && pd.rebound) {
+            var s = pd.rebound.signals || {};
+            reasonLines.push('최근 5일 ' + fmtPctNum((s.ret5d || 0) * 100) + ', 10일 ' + fmtPctNum((s.ret10d || 0) * 100) + ' 로 단기 과매도 상태에 진입했습니다.');
+            reasonLines.push('20일 ' + fmtPctNum((s.ret20d || 0) * 100) + ' / 60일 ' + fmtPctNum((s.ret60d || 0) * 100) + ' — 장기 구조는 유지되고 있습니다.');
+            reasonLines.push('변동성(ATR) ' + ((s.atrPct || 0) * 100).toFixed(1) + '% — 손절 폭이 관리 가능한 범위입니다.');
+          } else if (pd && pd.primaryTag === 'BULL_TREND_WATCH') {
+            reasonLines.push('강세장 + 추세 점수 ' + (pd.setupScore || '-') + ' — 20일 추세 관찰 후보입니다.');
+            reasonLines.push('단기 매수 신호가 아니라 추세 상태 모니터링용입니다.');
+          } else if (pd && pd.primaryTag === 'OVERHEAT_WARNING') {
+            reasonLines.push('5일 ' + (pd.ret5d || 0) + '%, 20일선 이격 ' + (pd.dist20pct || 0) + '% — 단기 과열 가능성이 있습니다.');
+            reasonLines.push('신규 진입은 주의가 필요하고, 보유 시 분할 익절·리스크 관리 관점으로 보는 것을 권합니다.');
+          } else if (pd) {
+            reasonLines.push('현재 모델 후보 조건은 만족하지 않으며, 일반 종목 상태 분석으로만 보여집니다.');
+          }
+
+          // 리스크 계산
+          var atrPctFraction = pd?.atrPct != null ? pd.atrPct / 100 : null;
+          var atrStopPct = atrPctFraction != null ? atrPctFraction * 2 : null;
+          var stopPrice = (atrStopPct != null && stockMeta.closePrice) ? Math.round(stockMeta.closePrice * (1 - atrStopPct)) : null;
+          var isHighVol = pd?.tags?.includes('HIGH_VOLATILITY') || (atrPctFraction != null && atrPctFraction >= 0.15);
+          var isStructureBroken = pd?.tags?.includes('STRUCTURE_BROKEN');
+          var isOverheat = pd?.tags?.includes('OVERHEAT_WARNING');
+
+          var flowRatio5d = pd?.flowLead?.signals?.flowRatio5d != null
+            ? pd.flowLead.signals.flowRatio5d
+            : (fs && pd?.avg20Value ? (fs.f5 + fs.i5) / pd.avg20Value : null);
+        %>
+
+        <!-- ─── 4 탭 ─── -->
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-overview">종합</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-flow">수급</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-model">모델</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-risk">리스크</button></li>
+        </ul>
+
+        <div class="tab-content">
+
+          <!-- 종합 탭 -->
+          <div class="tab-pane tab-glass fade show active" id="tab-overview" role="tabpanel">
+            <% if (pd) { %>
+              <div class="info-grid mb-3">
+                <div class="meta-cell"><div class="label">최종 분류</div><div class="value"><%= tagLabel(pd.primaryTag) %></div></div>
+                <div class="meta-cell"><div class="label">시장 상황</div><div class="value"><%= regimeLabel(pd.regime) %></div></div>
+                <div class="meta-cell"><div class="label">변동성(ATR)</div><div class="value"><%= pd.atrPct != null ? pd.atrPct + '%' : '-' %></div></div>
+                <div class="meta-cell"><div class="label">시총</div><div class="value"><%= pd.marketCap ? fmt억(pd.marketCap) : '-' %></div></div>
+                <div class="meta-cell"><div class="label">20일 평균거래대금</div><div class="value"><%= pd.avg20Value ? fmt억(pd.avg20Value) : '-' %></div></div>
+              </div>
+              <h2 class="small text-secondary mt-3 mb-2">최근 수익률</h2>
+              <div class="info-grid mb-3">
+                <div class="meta-cell"><div class="label">5일</div><div class="value <%= pd.ret5d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= fmtPctNum(pd.ret5d) %></div></div>
+                <div class="meta-cell"><div class="label">20일</div><div class="value <%= pd.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= fmtPctNum(pd.ret20d) %></div></div>
+                <div class="meta-cell"><div class="label">60일</div><div class="value <%= pd.ret60d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= fmtPctNum(pd.ret60d) %></div></div>
+              </div>
+              <h2 class="small text-secondary mt-3 mb-2">이동평균선 이격</h2>
+              <div class="info-grid mb-3">
+                <div class="meta-cell"><div class="label">20일선</div><div class="value"><%= fmtPctNum(pd.dist20pct) %></div></div>
+                <% if (pd.flowLead?.signals?.ma60 && stockMeta.closePrice) { %>
+                  <div class="meta-cell"><div class="label">60일선</div><div class="value"><%= fmtPctNum((stockMeta.closePrice / pd.flowLead.signals.ma60 - 1) * 100) %></div></div>
+                <% } else if (pd.rebound?.signals?.ma60 && stockMeta.closePrice) { %>
+                  <div class="meta-cell"><div class="label">60일선</div><div class="value"><%= fmtPctNum((stockMeta.closePrice / pd.rebound.signals.ma60 - 1) * 100) %></div></div>
+                <% } %>
+                <% if (pd.rebound?.signals?.ma120 && stockMeta.closePrice) { %>
+                  <div class="meta-cell"><div class="label">120일선</div><div class="value"><%= fmtPctNum((stockMeta.closePrice / pd.rebound.signals.ma120 - 1) * 100) %></div></div>
+                <% } %>
+              </div>
+              <% if (pd.tags?.length) { %>
+                <h2 class="small text-secondary mt-3 mb-2">주요 태그</h2>
+                <div>
+                  <% pd.tags.forEach(function(t) {
+                    var bg = t === 'FLOW_LEAD' ? '#dbeafe' : t === 'REBOUND' ? '#d1fae5' : t === 'BULL_TREND_WATCH' ? '#fef3c7' : t === 'OVERHEAT_WARNING' ? '#fee2e2' : t === 'HIGH_VOLATILITY' ? '#fef9c3' : '#f1f5f9';
+                    var fg = t === 'FLOW_LEAD' ? '#1e40af' : t === 'REBOUND' ? '#065f46' : t === 'BULL_TREND_WATCH' ? '#854d0e' : t === 'OVERHEAT_WARNING' ? '#991b1b' : t === 'HIGH_VOLATILITY' ? '#713f12' : '#475569';
+                  %>
+                    <span class="tag-pill" style="background:<%= bg %>; color:<%= fg %>;"><%= tagLabel(t) %></span>
+                  <% }) %>
+                </div>
+              <% } %>
+            <% } else { %>
+              <div class="text-secondary small">모델 진단 데이터 없음. 종목 분석이 아직 실행되지 않았거나 universe 미포함.</div>
+            <% } %>
           </div>
+
+          <!-- 수급 탭 -->
+          <div class="tab-pane tab-glass fade" id="tab-flow" role="tabpanel">
+            <% if (fs) { %>
+              <h2 class="small text-secondary mb-2">외국인 + 기관 합산 순매수대금</h2>
+              <div class="info-grid mb-3">
+                <div class="meta-cell"><div class="label">최근 1일</div><div class="value <%= (fs.f1 + fs.i1) >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= fmtSign(fs.f1 + fs.i1) %></div></div>
+                <div class="meta-cell"><div class="label">최근 5일</div><div class="value <%= (fs.f5 + fs.i5) >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= fmtSign(fs.f5 + fs.i5) %></div></div>
+                <div class="meta-cell"><div class="label">최근 20일</div><div class="value <%= (fs.f20 + fs.i20) >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= fmtSign(fs.f20 + fs.i20) %></div></div>
+              </div>
+              <h2 class="small text-secondary mt-3 mb-2">외국인 순매수대금</h2>
+              <div class="info-grid mb-3">
+                <div class="meta-cell"><div class="label">1일</div><div class="value <%= fs.f1 >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= fmtSign(fs.f1) %></div></div>
+                <div class="meta-cell"><div class="label">5일</div><div class="value <%= fs.f5 >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= fmtSign(fs.f5) %></div></div>
+                <div class="meta-cell"><div class="label">20일</div><div class="value <%= fs.f20 >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= fmtSign(fs.f20) %></div></div>
+              </div>
+              <h2 class="small text-secondary mt-3 mb-2">기관 순매수대금</h2>
+              <div class="info-grid mb-3">
+                <div class="meta-cell"><div class="label">1일</div><div class="value <%= fs.i1 >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= fmtSign(fs.i1) %></div></div>
+                <div class="meta-cell"><div class="label">5일</div><div class="value <%= fs.i5 >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= fmtSign(fs.i5) %></div></div>
+                <div class="meta-cell"><div class="label">20일</div><div class="value <%= fs.i20 >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= fmtSign(fs.i20) %></div></div>
+              </div>
+              <% if (flowRatio5d != null) { %>
+                <div class="info-grid mb-3">
+                  <div class="meta-cell"><div class="label">수급 강도 (5일 / 20일 평균거래대금)</div><div class="value"><%= Math.round(flowRatio5d * 100) %>%</div></div>
+                </div>
+              <% } %>
+              <div class="chart-box volume" id="flowChart"></div>
+              <div class="small text-secondary mt-2">
+                ※ 데이터 마지막 일자: <%= fs.lastDate %> · 수집 일수: <%= fs.days %>일 · 종가 × 순매수 주식수 환산
+              </div>
+            <% } else { %>
+              <div class="text-secondary small">수급 데이터 없음.</div>
+            <% } %>
+          </div>
+
+          <!-- 모델 탭 -->
+          <div class="tab-pane tab-glass fade" id="tab-model" role="tabpanel">
+            <% if (pd) { %>
+              <div class="info-grid mb-3">
+                <div class="meta-cell" style="background:#eff6ff;"><div class="label" style="color:#1e40af;">자금 점수 (FlowLead)</div><div class="value" style="color:#1d4ed8; font-size:1.3rem;"><%= pd.flowLead?.score ?? '미통과' %></div></div>
+                <div class="meta-cell" style="background:#f0fdf4;"><div class="label" style="color:#065f46;">반등 점수 (Rebound)</div><div class="value" style="color:#047857; font-size:1.3rem;"><%= pd.rebound?.score ?? '미통과' %></div></div>
+                <div class="meta-cell" style="background:#fefce8;"><div class="label" style="color:#854d0e;">추세 점수 (Bull Trend)</div><div class="value" style="color:#a16207; font-size:1.3rem;"><%= pd.setupScore ?? '미통과' %></div></div>
+                <% if (isOverheat) { %>
+                  <div class="meta-cell" style="background:#fee2e2;"><div class="label" style="color:#991b1b;">과열 경고</div><div class="value" style="color:#b91c1c; font-size:1.1rem;">감지됨</div></div>
+                <% } %>
+              </div>
+
+              <% if (reasonLines.length) { %>
+                <h2 class="small text-secondary mt-3 mb-2">분류 사유</h2>
+                <div class="reason-block">
+                  <% reasonLines.forEach(function(line) { %>
+                    <div>· <%= line %></div>
+                  <% }) %>
+                </div>
+              <% } %>
+
+              <% if (pd.flowLead?.breakdown) { %>
+                <h2 class="small text-secondary mt-4 mb-2">자금 점수 (FlowLead) 점수 내역</h2>
+                <% bdItems(pd.flowLead.breakdown).forEach(function(it) { var pct = Math.max(0, Math.min(100, (it[1] / bdMax(it[0])) * 100)); %>
+                  <div class="breakdown-bar">
+                    <span class="bar-label"><%= bdLabel(it[0]) %></span>
+                    <span class="bar-track"><span class="bar-fill" style="width:<%= pct %>%; background:#3b82f6;"></span></span>
+                    <span class="bar-val"><%= it[1] %>/<%= bdMax(it[0]) %></span>
+                  </div>
+                <% }) %>
+              <% } %>
+
+              <% if (pd.rebound?.breakdown) { %>
+                <h2 class="small text-secondary mt-4 mb-2">반등 점수 (Rebound) 점수 내역</h2>
+                <% bdItems(pd.rebound.breakdown).forEach(function(it) { var pct = Math.max(0, Math.min(100, (it[1] / bdMax(it[0])) * 100)); %>
+                  <div class="breakdown-bar">
+                    <span class="bar-label"><%= bdLabel(it[0]) %></span>
+                    <span class="bar-track"><span class="bar-fill" style="width:<%= pct %>%; background:#10b981;"></span></span>
+                    <span class="bar-val"><%= it[1] %>/<%= bdMax(it[0]) %></span>
+                  </div>
+                <% }) %>
+              <% } %>
+            <% } else { %>
+              <div class="text-secondary small">모델 데이터 없음.</div>
+            <% } %>
+          </div>
+
+          <!-- 리스크 탭 -->
+          <div class="tab-pane tab-glass fade" id="tab-risk" role="tabpanel">
+            <% if (pd) { %>
+              <div class="info-grid mb-3">
+                <div class="meta-cell"><div class="label">변동성(ATR%)</div><div class="value"><%= pd.atrPct != null ? pd.atrPct + '%' : '-' %></div></div>
+                <% if (atrStopPct != null) { %>
+                  <div class="meta-cell"><div class="label">ATR×2 손절 폭</div><div class="value">-<%= (atrStopPct * 100).toFixed(1) %>%</div></div>
+                <% } %>
+                <% if (stopPrice != null) { %>
+                  <div class="meta-cell"><div class="label">예상 손절가</div><div class="value"><%= stopPrice.toLocaleString() %>원</div></div>
+                <% } %>
+              </div>
+              <h2 class="small text-secondary mt-3 mb-2">상태 체크</h2>
+              <div class="info-grid mb-3">
+                <div class="meta-cell" style="background:<%= isHighVol ? '#fef9c3' : '#f0fdf4' %>;"><div class="label">고변동성</div><div class="value" style="color:<%= isHighVol ? '#713f12' : '#065f46' %>;"><%= isHighVol ? '주의 (ATR ≥ 15%)' : '정상' %></div></div>
+                <div class="meta-cell" style="background:<%= isStructureBroken ? '#fee2e2' : '#f0fdf4' %>;"><div class="label">장기 구조</div><div class="value" style="color:<%= isStructureBroken ? '#991b1b' : '#065f46' %>;"><%= isStructureBroken ? '붕괴 (200MA -20% 또는 60일 -45%)' : '유지' %></div></div>
+                <div class="meta-cell" style="background:<%= isOverheat ? '#fee2e2' : '#f0fdf4' %>;"><div class="label">과열 신호</div><div class="value" style="color:<%= isOverheat ? '#991b1b' : '#065f46' %>;"><%= isOverheat ? '감지됨' : '없음' %></div></div>
+              </div>
+              <div class="reason-block" style="border-left-color:#dc2626;">
+                <strong>리스크 안내</strong><br/>
+                · ATR×2 는 단순 참고용 손절 폭이며, 실제 매매 시 호가/슬리피지/세금 등을 추가 고려해야 합니다.<br/>
+                · 변동성 큰 종목은 손절 폭이 그만큼 넓어지므로 비중 관리가 중요합니다.<br/>
+                · 본 페이지는 매수 추천이 아니라 <strong>종목 상태 분석</strong> 화면입니다.
+              </div>
+            <% } else { %>
+              <div class="text-secondary small">리스크 데이터 없음.</div>
+            <% } %>
+          </div>
+
+        </div>
+
+        <!-- 주의 문구 -->
+        <div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px; padding:12px 16px; font-size:0.82rem; color:#475569; margin: 16px 0;">
+          <strong>본 페이지는 매수 추천이 아닙니다.</strong>
+          종목의 모델별 상태·수급·리스크를 보여주는 분석 도구입니다.
+          각 모델은 서로 다른 가설을 기반으로 하며, 시장 상황에 따라 성과가 달라집니다.
+          투자 판단과 책임은 사용자 본인에게 있습니다.
         </div>
       <% } %>
     <% } else if (!error) { %>
@@ -160,97 +404,110 @@
 
   <% if (stockMeta && chartRows && chartRows.length) { %>
     <script>
-      const rows = <%- JSON.stringify(chartRows) %>;
-      const labels = rows.map(r => r.date.slice(4,6)+'/'+r.date.slice(6,8));
+      // lightweight-charts (TradingView) — 캔들 + MA5/20/60/120 + 거래량 + 기간 버튼
+      const allRows = <%- JSON.stringify(chartRows) %>;
+      const fmtTime = (d) => d.slice(0,4) + '-' + d.slice(4,6) + '-' + d.slice(6,8);
 
-      // ─── 일봉 차트 (close-line + 5/20/60 SMA) ───
-      function sma(arr, period) {
-        const out = [];
-        for (let i = 0; i < arr.length; i++) {
-          if (i < period - 1) { out.push(null); continue; }
-          let s = 0;
-          for (let j = i - period + 1; j <= i; j++) s += arr[j];
-          out.push(Math.round(s / period));
-        }
-        return out;
+      // 가격 차트 (캔들 + MA)
+      const priceContainer = document.getElementById('priceChart');
+      const priceChart = LightweightCharts.createChart(priceContainer, {
+        width: priceContainer.clientWidth, height: 360,
+        layout: { background: { color: '#fff' }, textColor: '#475569', fontSize: 11 },
+        grid: { vertLines: { color: '#f1f5f9' }, horzLines: { color: '#f1f5f9' } },
+        rightPriceScale: { borderColor: '#e2e8f0' },
+        timeScale: { borderColor: '#e2e8f0', timeVisible: false },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+        localization: { priceFormatter: (p) => Math.round(p).toLocaleString('ko-KR') },
+      });
+      const candle = priceChart.addCandlestickSeries({
+        upColor: '#dc2626', downColor: '#2563eb',
+        borderUpColor: '#dc2626', borderDownColor: '#2563eb',
+        wickUpColor: '#dc2626', wickDownColor: '#2563eb',
+      });
+      const lineOpts = { lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false };
+      const ma5L  = priceChart.addLineSeries({ ...lineOpts, color: '#dc2626' });
+      const ma20L = priceChart.addLineSeries({ ...lineOpts, color: '#7c3aed' });
+      const ma60L = priceChart.addLineSeries({ ...lineOpts, color: '#16a34a' });
+      const ma120L = priceChart.addLineSeries({ ...lineOpts, color: '#0891b2' });
+
+      // 거래량 차트
+      const volContainer = document.getElementById('volumeChart');
+      const volChart = LightweightCharts.createChart(volContainer, {
+        width: volContainer.clientWidth, height: 120,
+        layout: { background: { color: '#fff' }, textColor: '#475569', fontSize: 10 },
+        grid: { vertLines: { color: '#f1f5f9' }, horzLines: { color: '#f1f5f9' } },
+        rightPriceScale: { borderColor: '#e2e8f0' },
+        timeScale: { borderColor: '#e2e8f0', timeVisible: false, visible: true },
+        handleScroll: true, handleScale: true,
+      });
+      const volSeries = volChart.addHistogramSeries({ priceFormat: { type: 'volume' }, priceLineVisible: false, lastValueVisible: false });
+
+      // 두 차트 시간축 동기화
+      priceChart.timeScale().subscribeVisibleLogicalRangeChange((r) => { if (r) volChart.timeScale().setVisibleLogicalRange(r); });
+      volChart.timeScale().subscribeVisibleLogicalRangeChange((r) => { if (r) priceChart.timeScale().setVisibleLogicalRange(r); });
+
+      // 기간 적용
+      function applyPeriod(days) {
+        const sliced = allRows.slice(-days);
+        candle.setData(sliced.map(r => ({ time: fmtTime(r.date), open: r.open, high: r.high, low: r.low, close: r.close })));
+        ma5L.setData(sliced.filter(r => r.ma5 != null).map(r => ({ time: fmtTime(r.date), value: r.ma5 })));
+        ma20L.setData(sliced.filter(r => r.ma20 != null).map(r => ({ time: fmtTime(r.date), value: r.ma20 })));
+        ma60L.setData(sliced.filter(r => r.ma60 != null).map(r => ({ time: fmtTime(r.date), value: r.ma60 })));
+        ma120L.setData(sliced.filter(r => r.ma120 != null).map(r => ({ time: fmtTime(r.date), value: r.ma120 })));
+        volSeries.setData(sliced.map(r => ({
+          time: fmtTime(r.date), value: r.volume || 0,
+          color: r.close >= r.open ? 'rgba(220, 38, 38, 0.7)' : 'rgba(37, 99, 235, 0.7)',
+        })));
+        priceChart.timeScale().fitContent();
+        volChart.timeScale().fitContent();
       }
-      const closes = rows.map(r => r.close);
-      const sma5 = sma(closes, 5);
-      const sma20 = sma(closes, 20);
-      const sma60 = sma(closes, 60);
+      applyPeriod(60);
 
-      // 상승/하락 막대 — high-low를 floating bar 로
-      const wickData = rows.map(r => [r.low, r.high]);
-      const bodyData = rows.map(r => [Math.min(r.open, r.close), Math.max(r.open, r.close)]);
-      const bodyColors = rows.map(r => r.close >= r.open ? 'rgba(220, 38, 38, 0.85)' : 'rgba(37, 99, 235, 0.85)');
-
-      new Chart(document.getElementById('priceChart'), {
-        data: {
-          labels,
-          datasets: [
-            // wick (low-high 얇은 막대)
-            { type: 'bar', data: wickData, backgroundColor: 'rgba(100,116,139,0.6)', borderWidth: 0, barPercentage: 0.15, categoryPercentage: 0.95, order: 3 },
-            // body (open-close 두꺼운 막대) — 색상은 등락 반영
-            { type: 'bar', data: bodyData, backgroundColor: bodyColors, borderWidth: 0, barPercentage: 0.7, categoryPercentage: 0.95, order: 2 },
-            // SMA lines
-            { type: 'line', label: '5일선', data: sma5, borderColor: '#dc2626', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
-            { type: 'line', label: '20일선', data: sma20, borderColor: '#7c3aed', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
-            { type: 'line', label: '60일선', data: sma60, borderColor: '#16a34a', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
-          scales: {
-            x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 10 } } },
-            y: { position: 'right', ticks: { font: { size: 10 } }, grid: { color: '#f1f5f9' } },
-          },
-          plugins: {
-            legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12, filter: (l) => l.text && !l.text.startsWith('Dataset') } },
-            tooltip: {
-              callbacks: {
-                title: (items) => labels[items[0].dataIndex],
-                label: (item) => {
-                  const r = rows[item.dataIndex];
-                  if (item.datasetIndex === 0 || item.datasetIndex === 1) {
-                    return [`시 ${r.open.toLocaleString()}`, `고 ${r.high.toLocaleString()}`, `저 ${r.low.toLocaleString()}`, `종 ${r.close.toLocaleString()}`];
-                  }
-                  return `${item.dataset.label}: ${item.raw?.toLocaleString() ?? '-'}`;
-                },
-              },
-            },
-          },
-        },
+      // 기간 버튼
+      document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          applyPeriod(parseInt(btn.dataset.days, 10));
+        });
       });
 
-      // ─── 거래량 차트 ───
-      const volColors = rows.map(r => r.close >= r.open ? 'rgba(220, 38, 38, 0.7)' : 'rgba(37, 99, 235, 0.7)');
-      new Chart(document.getElementById('volumeChart'), {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{ data: rows.map(r => r.volume), backgroundColor: volColors, borderWidth: 0, barPercentage: 0.85, categoryPercentage: 0.95 }],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 9 } } },
-            y: { position: 'right', ticks: { font: { size: 9 }, callback: (v) => v >= 1e6 ? (v/1e6).toFixed(0)+'M' : (v/1e3).toFixed(0)+'K' }, grid: { color: '#f1f5f9' } },
-          },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                title: (items) => labels[items[0].dataIndex],
-                label: (item) => `거래량: ${item.raw.toLocaleString()}`,
-              },
-            },
-          },
-        },
+      // ─── 수급 탭 — 외+기 일별 누적 차트 (히스토그램) ───
+      const flowContainer = document.getElementById('flowChart');
+      let flowChart = null, flowSeries = null;
+      function ensureFlowChart() {
+        if (flowChart || !flowContainer) return;
+        flowChart = LightweightCharts.createChart(flowContainer, {
+          width: flowContainer.clientWidth, height: 120,
+          layout: { background: { color: '#fff' }, textColor: '#475569', fontSize: 10 },
+          grid: { vertLines: { color: '#f1f5f9' }, horzLines: { color: '#f1f5f9' } },
+          rightPriceScale: { borderColor: '#e2e8f0' },
+          timeScale: { borderColor: '#e2e8f0', timeVisible: false },
+          handleScroll: false, handleScale: false,
+          localization: { priceFormatter: (v) => Math.round(v / 1e8) + '억' },
+        });
+        flowSeries = flowChart.addHistogramSeries({ priceFormat: { type: 'price', precision: 0, minMove: 1 }, priceLineVisible: false, lastValueVisible: false });
+        const flowData = allRows.slice(-60).filter(r => r.totalFlowValue != null).map(r => ({
+          time: fmtTime(r.date), value: r.totalFlowValue,
+          color: r.totalFlowValue >= 0 ? 'rgba(220, 38, 38, 0.7)' : 'rgba(37, 99, 235, 0.7)',
+        }));
+        flowSeries.setData(flowData);
+        flowChart.timeScale().fitContent();
+      }
+      // 수급 탭 처음 활성화 시 차트 그림 (Bootstrap shown.bs.tab 이벤트)
+      const flowTabBtn = document.querySelector('[data-bs-target="#tab-flow"]');
+      if (flowTabBtn) flowTabBtn.addEventListener('shown.bs.tab', ensureFlowChart);
+
+      // 반응형
+      window.addEventListener('resize', () => {
+        priceChart.applyOptions({ width: priceContainer.clientWidth });
+        volChart.applyOptions({ width: volContainer.clientWidth });
+        if (flowChart && flowContainer) flowChart.applyOptions({ width: flowContainer.clientWidth });
       });
     </script>
   <% } %>
+
+  <!-- Bootstrap bundle — 탭 토글용 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
