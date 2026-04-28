@@ -702,10 +702,10 @@ function won(v) {
           매수/매도 추천이 아니라 종목 상태 분석입니다.
         </div>
         <form id="holdingsForm" method="get" action="/pattern" style="display: flex; gap: 8px; margin-bottom: 12px;">
-          <input type="text" name="holdings" value="<%= holdingsRaw || '' %>"
+          <input type="text" id="holdingsInput" name="holdings" value="<%= holdingsRaw || '' %>"
                  placeholder="종목 코드/이름 (쉼표/공백 구분, 예: 005930, 한미반도체)"
                  class="form-control form-control-sm" style="flex: 1;" />
-          <button type="button" onclick="window.location.hash = '#tab-validation'; setTimeout(function() { document.getElementById('holdingsForm').submit(); }, 100);" class="btn btn-outline-primary btn-sm" style="white-space: nowrap;">점검</button>
+          <button type="button" onclick="submitHoldingsCheck()" class="btn btn-outline-primary btn-sm" style="white-space: nowrap;">점검</button>
           <input type="hidden" name="cq" value="<%= cQuery || '' %>" />
         </form>
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -713,6 +713,7 @@ function won(v) {
           <a href="/pattern" class="btn btn-link btn-sm">초기화</a>
         </div>
 
+        <div id="holdings-results">
         <% if (!holdingsCards.length) { %>
           <div class="empty-state">점검할 종목을 입력하세요.</div>
         <% } else { %>
@@ -760,6 +761,7 @@ function won(v) {
             <% } %>
           <% }) %>
         <% } %>
+        </div>
       </div>
 
       <!-- 6. 모델 검증 리포트 -->
@@ -952,6 +954,38 @@ function updateButtonStyle(btn, isActive) {
     btn.style.borderColor = '#cbd5e1';
     btn.style.color = '#334155';
   }
+}
+
+// 보유/관심종목 점검 폼 AJAX 제출 (페이지 리로드 없이 탭 유지)
+function submitHoldingsCheck() {
+  var holdingsInput = document.getElementById('holdingsInput');
+  var cqInput = document.querySelector('input[name="cq"]');
+
+  if (!holdingsInput.value.trim()) {
+    alert('점검할 종목을 입력하세요.');
+    return;
+  }
+
+  var params = new URLSearchParams();
+  if (holdingsInput.value.trim()) params.append('holdings', holdingsInput.value.trim());
+  if (cqInput && cqInput.value) params.append('cq', cqInput.value);
+
+  var queryString = params.toString();
+  var url = '/pattern' + (queryString ? '?' + queryString : '');
+
+  fetch(url)
+    .then(response => response.text())
+    .then(html => {
+      var parser = new DOMParser();
+      var newDoc = parser.parseFromString(html, 'text/html');
+      var newHoldingsSection = newDoc.querySelector('#holdings-results');
+      var currentHoldingsSection = document.querySelector('#holdings-results');
+
+      if (newHoldingsSection && currentHoldingsSection) {
+        currentHoldingsSection.innerHTML = newHoldingsSection.innerHTML;
+      }
+    })
+    .catch(error => console.error('점검 실패:', error));
 }
 
 // 초기 버튼 스타일
