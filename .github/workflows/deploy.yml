@@ -36,15 +36,14 @@ jobs:
             # --no-fund:  의존성 funding 메시지 출력 줄임
             npm ci --omit=dev --no-audit --no-fund
             touch .env
+            # drone-ssh wrapper 는 set -e 보다 strict 해서 if grep 안의 grep 이 exit 1 이어도 즉시 종료.
+            # 그래서 grep 검사 없이 sed 로 기존 줄 지우고 (없으면 noop) append — idempotent.
             upsert_env() {
               local key="$1"
               local val="$2"
-              if [ -z "$val" ]; then return; fi
-              if grep -q "^${key}=" .env; then
-                sed -i "s|^${key}=.*|${key}=${val}|" .env
-              else
-                echo "${key}=${val}" >> .env
-              fi
+              [ -z "$val" ] && return
+              sed -i "/^${key}=/d" .env
+              echo "${key}=${val}" >> .env
             }
             upsert_env GEMINI_API_KEY "$GEMINI_API_KEY"
             upsert_env DART_API_KEY "$DART_API_KEY"
