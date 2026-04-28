@@ -1899,7 +1899,7 @@ function buildScanReturnUrl(body) {
   return `/scan?mode=${encodeURIComponent(mode)}&candidateLimit=${limit}&includeMinute=${includeMinute}`;
 }
 
-// 단순화된 딥다이브 — Naver 캐시만 사용 (KIS 호출 제거).
+// 단순화된 상세 분석 — Naver 캐시만 사용 (KIS 호출 제거).
 // 종목 정보 + 130일 일봉/거래량 + 14개 패턴 features 만 표시.
 const handleSearch = async (req, res) => {
   try {

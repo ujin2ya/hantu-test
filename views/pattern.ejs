@@ -44,6 +44,9 @@
     .item-card .nm { font-weight: 700; color: #0f172a; }
     .item-card .cd { color: #94a3b8; font-size: 0.78rem; margin-left: 4px; }
     .item-card .mkt { color: #64748b; font-size: 0.7rem; margin-left: 6px; padding: 1px 6px; background: #e2e8f0; border-radius: 4px; }
+    /* 종목명 클릭 → 상세 페이지 (/?query=code) */
+    .item-card a.deep-link { text-decoration: none; color: inherit; display: inline-flex; align-items: center; gap: 4px; }
+    .item-card a.deep-link:hover .nm { color: #2563eb; text-decoration: underline; }
     .item-card .row2, .item-card .row3 { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.78rem; color: #475569; }
     .item-card .row2 strong, .item-card .row3 strong { color: #0f172a; font-variant-numeric: tabular-nums; }
     .item-card .row3 { margin-top: 4px; padding-top: 5px; border-top: 1px dashed #e2e8f0; }
@@ -223,8 +226,10 @@ function won(v) {
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
-                  <span class="nm"><%= c.name %></span>
-                  <span class="cd"><%= c.code %></span>
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
                   <span class="mkt"><%= c.market %></span>
                 </div>
                 <span class="score-pill flow">자금 점수 <%= c.flowLead.score %></span>
@@ -263,8 +268,10 @@ function won(v) {
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
-                  <span class="nm"><%= c.name %></span>
-                  <span class="cd"><%= c.code %></span>
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
                   <span class="mkt"><%= c.market %></span>
                 </div>
                 <span class="score-pill rebound">반등 점수 <%= c.rebound.score %></span>
@@ -303,8 +310,10 @@ function won(v) {
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
-                  <span class="nm"><%= c.name %></span>
-                  <span class="cd"><%= c.code %></span>
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
                   <span class="mkt"><%= c.market %></span>
                 </div>
                 <span class="score-pill bull">추세 점수 <%= c.setupScore %></span>
@@ -348,8 +357,10 @@ function won(v) {
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
-                  <span class="nm"><%= c.name %></span>
-                  <span class="cd"><%= c.code %></span>
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
                   <span class="mkt"><%= c.market %></span>
                 </div>
                 <span class="score-pill warn">과열</span>
@@ -391,8 +402,10 @@ function won(v) {
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
-                  <span class="nm"><%= c.name %></span>
-                  <span class="cd"><%= c.code %></span>
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
                   <span class="mkt"><%= c.market %></span>
                 </div>
                 <span class="score-pill warn">변동성 <%= c.atrPct %>%</span>
@@ -425,8 +438,10 @@ function won(v) {
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
-                  <span class="nm"><%= c.name %></span>
-                  <span class="cd"><%= c.code %></span>
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
                   <span class="mkt"><%= c.market %></span>
                 </div>
                 <span class="score-pill warn">구조 붕괴</span>
@@ -494,8 +509,10 @@ function won(v) {
               <div class="item-card">
                 <div class="row1">
                   <div class="name-block">
-                    <span class="nm"><%= c.name %></span>
-                    <span class="cd"><%= c.code %></span>
+                    <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                      <span class="nm"><%= c.name %></span>
+                      <span class="cd"><%= c.code %></span>
+                    </a>
                     <span class="mkt"><%= c.market %></span>
                   </div>
                   <span class="score-pill" style="background:#f1f5f9; color:#0f172a;">분류: <%= tagText(c.primaryTag || '') %></span>
