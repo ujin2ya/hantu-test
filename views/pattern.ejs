@@ -494,6 +494,28 @@ function won(v) {
                 <% if (st.breakoutReady) { %><span class="tag-badge" style="background:#fef3c7; color:#854d0e;">돌파 대기</span><% } %>
                 <% if (st.volumeReturning) { %><span class="tag-badge" style="background:#fce7f3; color:#9d174d;">거래대금 재활성</span><% } %>
               </div>
+              <% if (scb.buyGuidance) { var bg = scb.buyGuidance; %>
+              <div style="background:#f0fdf4; border-radius:10px; padding:12px; margin-top:8px; border-left:4px solid #10b981; font-size:0.78rem;">
+                <div style="margin-bottom:6px; color:#065f46; font-weight:600;">▸ 거래 가이드</div>
+                <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:6px; color:#475569;">
+                  <span>관찰가 <strong><%= won(bg.observationPrice) %></strong></span>
+                  <span>확인 진입 <strong><%= won(bg.triggerPrice) %></strong></span>
+                  <span>종가 손절 <strong><%= won(bg.stopPrice) %></strong></span>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:10px; color:#475569;">
+                  <span>1차 목표 <strong><%= won(bg.target1) %></strong> (손익비 <strong><%= bg.ratio1.toFixed(2) %></strong>)</span>
+                  <span>2차 목표 <strong><%= won(bg.target2) %></strong> (손익비 <strong><%= bg.ratio2.toFixed(2) %></strong>)</span>
+                </div>
+                <% if (bg.isHighVolatility) { %>
+                  <div style="margin-top:6px; padding:6px 8px; background:#fef2f2; border-radius:6px; color:#991b1b; font-size:0.75rem;">
+                    <i class="bi bi-exclamation-circle me-1"></i>고변동 종목 — 변동성과 체결 리스크가 클 수 있습니다.
+                  </div>
+                <% } %>
+                <div style="margin-top:6px; font-size:0.75rem; color:#64748b;">
+                  중소형 후보는 변동성과 체결 리스크가 상대적으로 클 수 있으므로, 진입가는 확인 가격대이며 손절은 종가 기준으로 판단합니다.
+                </div>
+              </div>
+              <% } %>
             </div>
           <% }) %>
         <% } %>
@@ -556,6 +578,28 @@ function won(v) {
                 <% if (st.breakoutReady) { %><span class="tag-badge" style="background:#fef3c7; color:#854d0e;">돌파 대기</span><% } %>
                 <% if (st.volumeReturning) { %><span class="tag-badge" style="background:#fce7f3; color:#9d174d;">거래대금 재활성</span><% } %>
               </div>
+              <% if (scb.buyGuidance) { var bg = scb.buyGuidance; %>
+              <div style="background:#f0fdf4; border-radius:10px; padding:12px; margin-top:8px; border-left:4px solid #10b981; font-size:0.78rem;">
+                <div style="margin-bottom:6px; color:#065f46; font-weight:600;">▸ 관찰 가이드</div>
+                <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:6px; color:#475569;">
+                  <span>관찰가 <strong><%= won(bg.observationPrice) %></strong></span>
+                  <span>확인 진입 <strong><%= won(bg.triggerPrice) %></strong></span>
+                  <span>종가 손절 <strong><%= won(bg.stopPrice) %></strong></span>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:10px; color:#475569;">
+                  <span>1차 목표 <strong><%= won(bg.target1) %></strong> (손익비 <strong><%= bg.ratio1.toFixed(2) %></strong>)</span>
+                  <span>2차 목표 <strong><%= won(bg.target2) %></strong> (손익비 <strong><%= bg.ratio2.toFixed(2) %></strong>)</span>
+                </div>
+                <% if (bg.isHighVolatility) { %>
+                  <div style="margin-top:6px; padding:6px 8px; background:#fef2f2; border-radius:6px; color:#991b1b; font-size:0.75rem;">
+                    <i class="bi bi-exclamation-circle me-1"></i>고변동 종목 — 변동성과 체결 리스크가 클 수 있습니다.
+                  </div>
+                <% } %>
+                <div style="margin-top:6px; font-size:0.75rem; color:#64748b;">
+                  중소형 후보는 변동성과 체결 리스크가 상대적으로 클 수 있으므로, 진입가는 확인 가격대이며 손절은 종가 기준으로 판단합니다.
+                </div>
+              </div>
+              <% } %>
             </div>
           <% }) %>
         <% } %>

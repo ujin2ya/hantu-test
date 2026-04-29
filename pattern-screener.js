@@ -979,7 +979,7 @@ async function analyzeAll({ logProgress = false } = {}) {
         stages: smallCsb.stages,
         metrics: smallCsb.metrics,
         capBucket: smallCsb.capBucket,
-        stopGuide: { stopPrice: closePrice * (1 - 0.08) },
+        buyGuidance: smallCsb.buyGuidance,
       } : null,
       tags,
       primaryTag,
@@ -2694,6 +2694,17 @@ function calculateSmallCapCSB(rows, flowRows, meta = {}, idx = null) {
 
   if (!smallCsbWatch) return { passed: false, rejectReason: 'not smallCsb' };
 
+  // 거래 가이드 계산 (확인 진입가, 손절가, 목표 구간)
+  const prevHigh = (idx > 0 && rows[idx - 1]?.high) ? rows[idx - 1].high : close;
+  const triggerPrice = Math.max(prevHigh, last20high);
+  const stopPct = Math.max(0.08, Math.min(0.12, atrPct * 2.5));
+  const stopPrice = close * (1 - stopPct);
+  const target1 = triggerPrice * 1.10;
+  const target2 = triggerPrice * 1.20;
+  const profitRange = triggerPrice - stopPrice;
+  const ratio1 = profitRange > 0 ? (target1 - triggerPrice) / profitRange : 0;
+  const ratio2 = profitRange > 0 ? (target2 - triggerPrice) / profitRange : 0;
+
   return {
     passed: true,
     bucket: smallCsbReady ? 'SMALL_CSB_READY' : 'SMALL_CSB_WATCH',
@@ -2715,6 +2726,17 @@ function calculateSmallCapCSB(rows, flowRows, meta = {}, idx = null) {
       ret5d: ret5d * 100,
       ret20d: ret20d * 100,
       atrPct: atrPct * 100,
+    },
+    buyGuidance: {
+      observationPrice: close,
+      triggerPrice,
+      stopPrice,
+      target1,
+      target2,
+      ratio1: Math.max(0, ratio1),
+      ratio2: Math.max(0, ratio2),
+      stopPct: stopPct * 100,
+      isHighVolatility: atrPct > 0.20,
     },
   };
 }
