@@ -292,6 +292,9 @@
       <% if (chartRows && chartRows.length) { %>
         <div class="glass">
           <h2><i class="bi bi-graph-up me-1"></i>일봉 + 거래량</h2>
+          <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:0.8rem; color:#1e40af;">
+            <i class="bi bi-info-circle me-2"></i>이 차트는 매수 추천이 아니라, 후보 신호가 언제 어떤 조건으로 발생했는지 보여주는 설명용 차트입니다.
+          </div>
           <div class="period-btn-group" role="group" aria-label="기간 선택">
             <button type="button" class="period-btn" data-days="20">1M</button>
             <button type="button" class="period-btn active" data-days="60">3M</button>
@@ -300,12 +303,65 @@
           </div>
           <div class="chart-box"><canvas id="priceChart"></canvas></div>
           <div class="chart-box volume"><canvas id="volumeChart"></canvas></div>
+          <!-- 선택일 정보 카드 -->
+          <div id="selectedDayCard" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:12px 14px; margin: 12px 0; display:none; font-size:0.85rem;">
+            <div style="color:#64748b; margin-bottom:8px;">
+              <span style="font-weight:700;" id="selectedDate"></span>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; font-size:0.78rem;">
+              <div><span style="color:#64748b;">시가</span> <strong id="selectedOpen">-</strong></div>
+              <div><span style="color:#64748b;">고가</span> <strong id="selectedHigh">-</strong></div>
+              <div><span style="color:#64748b;">저가</span> <strong id="selectedLow">-</strong></div>
+              <div><span style="color:#64748b;">종가</span> <strong id="selectedClose">-</strong></div>
+              <div><span style="color:#64748b;">거래대금</span> <strong id="selectedValue">-</strong></div>
+              <div><span style="color:#64748b;">거래량</span> <strong id="selectedVolume">-</strong></div>
+            </div>
+          </div>
           <div class="ma-legend">
             <span><span class="dot" style="background:#dc2626;"></span>5일선</span>
             <span><span class="dot" style="background:#7c3aed;"></span>20일선</span>
             <span><span class="dot" style="background:#16a34a;"></span>60일선</span>
             <span><span class="dot" style="background:#0891b2;"></span>120일선</span>
           </div>
+
+          <!-- 신호 타임라인 -->
+          <% if (csbSignalHistory && csbSignalHistory.length > 0) { %>
+            <%
+              // 각 stage 최초 달성일 추출
+              const stageFirstDates = {
+                compressionFormed: null,
+                supportConfirmed: null,
+                breakoutReady: null,
+                volumeReturning: null
+              };
+              csbSignalHistory.forEach(h => {
+                if (h.stages) {
+                  Object.keys(stageFirstDates).forEach(k => {
+                    if (stageFirstDates[k] === null && h.stages[k]) {
+                      stageFirstDates[k] = h.date;
+                    }
+                  });
+                }
+              });
+              const stageLabels = {
+                compressionFormed: '압축 형성',
+                supportConfirmed: '지지 확인',
+                breakoutReady: '돌파 대기',
+                volumeReturning: '거래대금 재활성'
+              };
+            %>
+            <div style="background:#f0fdf4; border:1px solid #dcfce7; border-radius:10px; padding:12px 14px; margin-top:12px;">
+              <div style="color:#065f46; font-weight:700; font-size:0.9rem; margin-bottom:8px;">▸ CSB 신호 타임라인</div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:8px; font-size:0.78rem;">
+                <% Object.keys(stageFirstDates).forEach(k => { %>
+                  <div style="padding:6px 8px; background:white; border-radius:6px; border-left:3px solid #10b981;">
+                    <div style="color:#64748b; font-size:0.7rem;"><%= stageLabels[k] %></div>
+                    <div style="color:#065f46; font-weight:700;"><%= stageFirstDates[k] ? stageFirstDates[k].slice(0,4)+'-'+stageFirstDates[k].slice(4,6)+'-'+stageFirstDates[k].slice(6,8) : '-' %></div>
+                  </div>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
         </div>
       <% } %>
 
@@ -585,6 +641,41 @@
 
       let priceChart = null, volumeChart = null, flowChart = null;
 
+      // Annotation 플러그인으로 거래 가이드 라인 생성
+      function buildAnnotations(tp) {
+        if (!tp) return {};
+        const annotations = {};
+        const prices = {
+          관찰가: { price: tp.observePrice, color: '#94a3b8', dash: [4, 4] },
+          진입가: { price: tp.triggerPrice, color: '#2563eb', dash: [4, 4] },
+          손절가: { price: tp.stopPrice, color: '#dc2626', dash: [4, 4] },
+          '1차목표': { price: tp.target1, color: '#34d399', dash: [2, 4] },
+          '2차목표': { price: tp.target2, color: '#10b981', dash: [2, 4] },
+        };
+
+        let idx = 0;
+        Object.entries(prices).forEach(([label, { price, color, dash }]) => {
+          annotations[`line${idx++}`] = {
+            type: 'line',
+            borderColor: color,
+            borderWidth: 1,
+            borderDash: dash,
+            yMin: price,
+            yMax: price,
+            label: {
+              display: true,
+              content: [label],
+              position: 'end',
+              backgroundColor: 'rgba(255,255,255,0.7)',
+              color: color,
+              font: { size: 9, weight: 'bold' }
+            }
+          };
+        });
+
+        return { annotations };
+      }
+
       function buildPriceVolume(days) {
         const rows = allRows.slice(-days);
         const labels = rows.map(r => r.date.slice(4,6)+'/'+r.date.slice(6,8));
@@ -613,6 +704,20 @@
               x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 10 } } },
               y: { position: 'right', ticks: { font: { size: 10 } }, grid: { color: '#f1f5f9' } },
             },
+            onClick: (event, elements) => {
+              if (elements.length > 0) {
+                const idx = elements[0].index;
+                const r = rows[idx];
+                document.getElementById('selectedDate').textContent = r.date.slice(0,4)+'-'+r.date.slice(4,6)+'-'+r.date.slice(6,8);
+                document.getElementById('selectedOpen').textContent = r.open.toLocaleString()+'원';
+                document.getElementById('selectedHigh').textContent = r.high.toLocaleString()+'원';
+                document.getElementById('selectedLow').textContent = r.low.toLocaleString()+'원';
+                document.getElementById('selectedClose').textContent = r.close.toLocaleString()+'원';
+                document.getElementById('selectedValue').textContent = (r.valueApprox/1e8).toFixed(1)+'억';
+                document.getElementById('selectedVolume').textContent = (r.volume/1e6).toFixed(1)+'M';
+                document.getElementById('selectedDayCard').style.display = 'block';
+              }
+            },
             plugins: {
               legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12, filter: (l) => l.text && !l.text.startsWith('Dataset') } },
               tooltip: {
@@ -627,28 +732,53 @@
                   },
                 },
               },
+              annotation: buildAnnotations(tradePlan),
             },
           },
         });
 
         if (volumeChart) volumeChart.destroy();
+        // 거래대금 + 5일/20일 평균
+        const valueData = rows.map(r => r.valueApprox || 0);
+        const avg5Value = rows.map((r, i) => {
+          const start = Math.max(0, i - 4);
+          const slice = valueData.slice(start, i + 1);
+          return slice.reduce((a, b) => a + b, 0) / slice.length;
+        });
+        const avg20Value = rows.map((r, i) => {
+          const start = Math.max(0, i - 19);
+          const slice = valueData.slice(start, i + 1);
+          return slice.reduce((a, b) => a + b, 0) / slice.length;
+        });
         const volColors = rows.map(r => r.close >= r.open ? 'rgba(220, 38, 38, 0.7)' : 'rgba(37, 99, 235, 0.7)');
+
         volumeChart = new Chart(document.getElementById('volumeChart'), {
           type: 'bar',
-          data: { labels, datasets: [{ data: rows.map(r => r.volume), backgroundColor: volColors, borderWidth: 0, barPercentage: 0.85, categoryPercentage: 0.95 }] },
+          data: {
+            labels,
+            datasets: [
+              { type: 'bar', data: valueData, backgroundColor: volColors, borderWidth: 0, barPercentage: 0.85, categoryPercentage: 0.95, order: 2 },
+              { type: 'line', label: '5일 평균', data: avg5Value, borderColor: '#f97316', borderWidth: 1.5, pointRadius: 0, tension: 0, order: 1 },
+              { type: 'line', label: '20일 평균', data: avg20Value, borderColor: '#8b5cf6', borderWidth: 1.5, pointRadius: 0, tension: 0, order: 1 },
+            ]
+          },
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
             scales: {
               x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 9 } } },
-              y: { position: 'right', ticks: { font: { size: 9 }, callback: (v) => v >= 1e6 ? (v/1e6).toFixed(0)+'M' : (v/1e3).toFixed(0)+'K' }, grid: { color: '#f1f5f9' } },
+              y: { position: 'right', ticks: { font: { size: 9 }, callback: (v) => v >= 1e8 ? (v/1e8).toFixed(0)+'억' : (v/1e6).toFixed(0)+'M' }, grid: { color: '#f1f5f9' } },
             },
             plugins: {
-              legend: { display: false },
+              legend: { position: 'top', labels: { font: { size: 10 }, boxWidth: 10 } },
               tooltip: {
                 callbacks: {
                   title: (items) => labels[items[0].dataIndex],
-                  label: (item) => `거래량: ${item.raw.toLocaleString()}`,
+                  label: (item) => {
+                    if (item.datasetIndex === 0) return `거래대금: ${(item.raw/1e8).toFixed(1)}억`;
+                    return `${item.dataset.label}: ${(item.raw/1e8).toFixed(1)}억`;
+                  },
                 },
               },
             },
