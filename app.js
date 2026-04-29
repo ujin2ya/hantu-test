@@ -2001,6 +2001,39 @@ function buildScanReturnUrl(body) {
   return `/scan?mode=${encodeURIComponent(mode)}&candidateLimit=${limit}&includeMinute=${includeMinute}`;
 }
 
+// CSB 신호 히스토리 계산 — 최근 60일 각 날짜별 스테이지 결과
+function computeCsbSignalHistory(rows, flowRowsArr, stockMeta) {
+  if (!rows || rows.length < 20) return [];
+
+  const history = [];
+  const lookback = Math.min(rows.length, 60);
+  const startIdx = rows.length - lookback;
+
+  // 단계 첫 달성일 추적
+  const stageFirstIdx = { compressionFormed: -1, supportConfirmed: -1, breakoutReady: -1, volumeReturning: -1 };
+
+  for (let i = startIdx; i < rows.length; i++) {
+    const res = patternScreener.calculateCompressionSupportBreakoutScore(rows, flowRowsArr, stockMeta, i);
+    const stages = res?.passed ? res.stages : { compressionFormed: false, supportConfirmed: false, breakoutReady: false, volumeReturning: false };
+
+    // 각 stage 첫 달성일 업데이트
+    Object.keys(stages).forEach(k => {
+      if (stages[k] && stageFirstIdx[k] === -1) {
+        stageFirstIdx[k] = i;
+      }
+    });
+
+    history.push({
+      idx: i,
+      date: rows[i].date,
+      stages,
+      stageFirstIdx: { ...stageFirstIdx },
+    });
+  }
+
+  return history;
+}
+
 // 단순화된 상세 분석 — Naver 캐시만 사용 (KIS 호출 제거).
 // 종목 정보 + 130일 일봉/거래량 + 14개 패턴 features 만 표시.
 const handleSearch = async (req, res) => {
@@ -2116,6 +2149,32 @@ const handleSearch = async (req, res) => {
       }
     } catch (e) { csbDetail = { passed: false, rejectReason: e.message }; }
 
+    // 3c) 중소형 CSB 재계산
+    let smallCsbDetail = null;
+    try {
+      const smallCsbRes = patternScreener.calculateSmallCapCSB(
+        rows, flowRowsArr,
+        { ...stockMeta, marketValue: stockMeta.marketCap },
+        rows.length - 1
+      );
+      if (smallCsbRes?.passed) {
+        smallCsbDetail = {
+          passed: true,
+          bucket: smallCsbRes.bucket,
+          displayGrade: smallCsbRes.bucket === 'SMALL_CSB_READY' ? '준비' : '관찰',
+          stages: smallCsbRes.stages,
+          metrics: smallCsbRes.metrics,
+          buyGuidance: smallCsbRes.buyGuidance,
+        };
+      }
+    } catch (_) {}
+
+    // 3d) CSB 신호 히스토리 (최근 60일 스테이지 변화)
+    let csbSignalHistory = [];
+    try {
+      csbSignalHistory = computeCsbSignalHistory(rows, flowRowsArr, stockMeta);
+    } catch (_) {}
+
     // 4) flow-history (외국인/기관 일별 순매수) 로드 + 1d/5d/20d 합계
     let flowSummary = null;
     let flowRecent = null;
@@ -2228,6 +2287,8 @@ const handleSearch = async (req, res) => {
       chartRows,
       patternData,
       csbDetail,
+      smallCsbDetail,
+      csbSignalHistory,
       flowSummary,
       flowRecent,
       aiComment,
