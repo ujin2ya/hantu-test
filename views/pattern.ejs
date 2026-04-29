@@ -307,7 +307,7 @@ function won(v) {
                 <span>관찰가 <strong><%= won(c.closePrice) %></strong></span>
                 <span>압축 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
                 <span>거래대금 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
-                <span>고점거리 <strong><%= ((m.distFromHigh20 || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>고점거리 <strong><%= (m.distFromHigh20 || 0).toFixed(1) %>%</strong></span>
                 <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
               </div>
               <% if (tp) { %>
@@ -480,12 +480,12 @@ function won(v) {
                 <span>현재가 <strong><%= won(price) %></strong></span>
                 <span>시총구간 <strong style="color:#dc2626;"><%= ((marketCap) / 1e8).toFixed(0) %>억</strong></span>
                 <span>20일 거래대금 <strong><%= ((m.avg20Value || 0) / 1e8).toFixed(0) %>억</strong></span>
-                <span>ATR% <strong><%= ((m.atrPct || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>ATR% <strong><%= (m.atrPct || 0).toFixed(1) %>%</strong></span>
               </div>
               <div class="row2">
                 <span>압축비 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
                 <span>거래대금비 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
-                <span>고점거리 <strong><%= ((m.distFromHigh20 || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>고점거리 <strong><%= (m.distFromHigh20 || 0).toFixed(1) %>%</strong></span>
                 <span>손절가 <strong><%= won((price * 0.92).toFixed(0)) %></strong></span>
               </div>
               <div class="row3">
@@ -543,12 +543,12 @@ function won(v) {
                 <span>현재가 <strong><%= won(price) %></strong></span>
                 <span>시총구간 <strong style="color:#dc2626;"><%= ((marketCap) / 1e8).toFixed(0) %>억</strong></span>
                 <span>20일 거래대금 <strong><%= ((m.avg20Value || 0) / 1e8).toFixed(0) %>억</strong></span>
-                <span>ATR% <strong><%= ((m.atrPct || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>ATR% <strong><%= (m.atrPct || 0).toFixed(1) %>%</strong></span>
               </div>
               <div class="row2">
                 <span>압축비 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
                 <span>거래대금비 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
-                <span>고점거리 <strong><%= ((m.distFromHigh20 || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>고점거리 <strong><%= (m.distFromHigh20 || 0).toFixed(1) %>%</strong></span>
               </div>
               <div class="row3">
                 <% if (st.compressionFormed) { %><span class="tag-badge" style="background:#d1fae5; color:#065f46;">압축 형성</span><% } %>
