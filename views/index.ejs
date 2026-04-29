@@ -579,8 +579,9 @@
 
   <% if (stockMeta && chartRows && chartRows.length) { %>
     <script>
-      // Chart.js — 옛 차트 모양 + 기간 버튼 + MA120 추가 + 수급 누적 막대
+      // Chart.js — 옛 차트 모양 + 기간 버튼 + MA120 추가 + 수급 누적 막대 + 거래 가이드 라인
       const allRows = <%- JSON.stringify(chartRows) %>;
+      const tradePlan = <% if (csbDetail && csbDetail.tradePlan) { %><%- JSON.stringify(csbDetail.tradePlan) %><% } else { %>null<% } %>;
 
       let priceChart = null, volumeChart = null, flowChart = null;
 
