@@ -33,7 +33,10 @@ coverage/
 dist/
 build/
 .cache/
-cache/
+cache/*
+!cache/pattern-result.json
+!cache/flow-history/
+!cache/flow-history/*.json
 
 # 에디터 / OS
 .vscode/
