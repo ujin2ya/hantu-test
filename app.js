@@ -2601,6 +2601,34 @@ app.post("/admin/pattern/analyze", requireAdmin, (req, res) => {
     });
 });
 
+// 캐시 강제 삭제 + 재계산 (원격 서버에서 과매도 반등 등 신호가 안 나올 때)
+app.post("/admin/refresh-pattern-cache", requireAdmin, (req, res) => {
+  const cachePath = path.join(__dirname, "cache", "pattern-result.json");
+  try {
+    if (fs.existsSync(cachePath)) {
+      fs.unlinkSync(cachePath);
+    }
+    // 캐시 삭제 후 즉시 재분석 시작
+    if (!patternState.analyzing) {
+      patternState.analyzing = true;
+      patternState.analyzeStartedAt = new Date().toISOString();
+      patternState.analyzeFinishedAt = null;
+      patternState.analyzeError = null;
+      res.json({ success: true, message: "패턴 캐시 삭제 및 재분석 시작됨" });
+      patternScreener.analyzeAll({ logProgress: true })
+        .catch((e) => { patternState.analyzeError = e.message; })
+        .finally(() => {
+          patternState.analyzing = false;
+          patternState.analyzeFinishedAt = new Date().toISOString();
+        });
+    } else {
+      res.json({ success: false, message: "이미 분석 중입니다" });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 loadStocks();
 
 app.listen(PORT, () => {
