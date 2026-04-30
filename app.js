@@ -2874,10 +2874,19 @@ app.post("/admin/run-daily-update", requireAdmin, (req, res) => {
       const scriptPath = require("path").join(__dirname, "run-daily-analysis.js");
 
       console.log("[Daily Update] 시작:", new Date().toISOString());
-      execSync(`node ${scriptPath}`, { stdio: "inherit" });
-      console.log("[Daily Update] 완료:", new Date().toISOString());
+      console.log("[Daily Update] 스크립트 경로:", scriptPath);
+      try {
+        execSync(`node ${scriptPath}`, { stdio: "inherit", cwd: __dirname });
+        console.log("[Daily Update] 완료:", new Date().toISOString());
+      } catch (execErr) {
+        console.error("[Daily Update] execSync 오류 (exit code:", execErr.status, ")");
+        console.error("[Daily Update] 오류 메시지:", execErr.message);
+        console.error("[Daily Update] stdout:", execErr.stdout?.toString());
+        console.error("[Daily Update] stderr:", execErr.stderr?.toString());
+        throw execErr;
+      }
     } catch (e) {
-      console.error("[Daily Update] 오류:", e.message);
+      console.error("[Daily Update] 최종 오류:", e.message);
       patternState.dailyUpdateError = e.message;
     } finally {
       patternState.dailyUpdating = false;
