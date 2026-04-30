@@ -1,2 +1,2 @@
-pandas-datareader>=0.10.0
+pykrx>=1.2.7
 pandas>=2.0.0
