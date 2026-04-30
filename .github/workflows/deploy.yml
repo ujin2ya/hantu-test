@@ -35,8 +35,8 @@ jobs:
             # --no-audit: vuln 검사 결과로 exit 1 나는 사례 차단 (어제부터 deploy fail 의 유력 원인)
             # --no-fund:  의존성 funding 메시지 출력 줄임
             npm ci --omit=dev --no-audit --no-fund
-            python3 -m pip install --upgrade pip
-            python3 -m pip install -r requirements.txt
+            python3 -m pip install --upgrade pip --user
+            python3 -m pip install --user -r requirements.txt
             touch .env
             # drone-ssh wrapper 는 매 명령마다 exit code 가 1 이면 즉시 종료 (set -e 보다 strict).
             # [ -z "$val" ] 가 false 일 때 exit 1 인데 drone-ssh 가 그걸 잡아서 종료 — 그래서
