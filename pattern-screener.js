@@ -735,6 +735,10 @@ async function analyzeAll({ logProgress = false } = {}) {
   const flowLeadCandidates = [];
   const reboundCandidates = [];
   const vviCandidates = [];
+  const qvaCandidates = [];
+  const qvaReady = [];
+  const qvaWatch = [];
+  const qvaRisk = [];
   const overheatWarnings = [];
   const csbMainCandidates = [];   // CSB 4개 stage tag 모두 통과 — "상승 전 압축 후보"
   const csbSubCandidates = [];    // CSB 3개 stage (지지+거래대금+(압축 OR 돌파)) — "예비 압축 후보"
@@ -900,6 +904,12 @@ async function analyzeAll({ logProgress = false } = {}) {
       }
     }
 
+    // QVA (거래량 이상징후 선행 감지)
+    let qva = null;
+    if (rows.length >= 60) {
+      try { qva = calculateQuietVolumeAnomaly(rows, flowRows, meta); } catch (_) {}
+    }
+
     // VVI 과거 신호 스캔 (최근 1~5 거래일)
     let recentVviSignal = null;
     if (rows.length >= 65 && (flowRows?.length || 0) >= 10) {
@@ -1025,6 +1035,7 @@ async function analyzeAll({ logProgress = false } = {}) {
       flowLead: flowLead?.passed ? { score: flowLead.score, breakdown: flowLead.breakdown, signals: flowLead.signals } : null,
       rebound: rebound?.passed ? { score: rebound.score, breakdown: rebound.breakdown, signals: rebound.signals } : null,
       vvi: vvi?.passed ? { score: vvi.score, category: vvi.category, breakdown: vvi.breakdown, signals: vvi.signals } : null,
+      qva: qva?.passed ? { score: qva.score, category: qva.category, breakdown: qva.breakdown, signals: qva.signals } : null,
       csb: csb?.passed ? {
         // 점수는 백테스트에서 변별력 실패했으므로 UI 메인 표시 X — 디버깅용 보조
         score: csb.score,
@@ -1059,6 +1070,12 @@ async function analyzeAll({ logProgress = false } = {}) {
     if (flowLead?.passed) flowLeadCandidates.push(tagged);
     if (rebound?.passed) reboundCandidates.push(tagged);
     if (vvi?.passed) vviCandidates.push(tagged);
+    if (qva?.passed) {
+      qvaCandidates.push(tagged);
+      if (qva.category === 'QVA_READY') qvaReady.push(tagged);
+      else if (qva.category === 'QVA_WATCH') qvaWatch.push(tagged);
+      else qvaRisk.push(tagged);
+    }
     if (overheatHit) overheatWarnings.push(tagged);
   }
 
@@ -1237,6 +1254,16 @@ async function analyzeAll({ logProgress = false } = {}) {
     vviTodayCandidates,
     vviRecentSignals,
     latestMarketDate,
+
+    // ─── QVA (거래량 이상징후 선행 감지) ───
+    qvaCandidates: qvaCandidates.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
+    qvaReady:  qvaReady.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
+    qvaWatch:  qvaWatch.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
+    qvaRisk:   qvaRisk.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
+    qvaReadyCount: qvaReady.length,
+    qvaWatchCount: qvaWatch.length,
+    qvaRiskCount:  qvaRisk.length,
+
     // ─── 날짜 및 데이터 상태 ───
     expectedMarketDate,
     availableModeDate,
@@ -3362,11 +3389,225 @@ function scanRecentVviSignals(rows, flowRows, meta, lookback) {
   return null;
 }
 
+// ─── QVA (QuietVolumeAnomaly) — 거래량 이상징후 선행 감지 모델 ───
+// VVI(확인형)와 달리 대상승 직전 조용했던 구간에서 거래량/거래대금 선행 증가 포착
+function calculateQuietVolumeAnomaly(chartRows, flowRows, meta = {}) {
+  if (!chartRows || chartRows.length < 60) return null;
+  const reject = (reason) => ({ passed: false, reason });
+
+  // ─── Hard Filter ───
+  if (meta.isSpecial || meta.isEtf) return reject('special/etf');
+  const marketValue = meta.marketValue || 0;
+  if (marketValue > 0 && marketValue < 50_000_000_000) return reject('small_cap');
+
+  const idx = chartRows.length - 1;
+  const today = chartRows[idx];
+  const close = today?.close;
+  if (!close || close <= 0) return null;
+
+  // ATR% 필터 (변동성 30% 이상 제외)
+  const { atr } = computeATR(chartRows, idx, 14);
+  const atrPct = atr / close;
+  if (atrPct >= 0.30) return reject('high_volatility');
+
+  // 오늘 등락 필터 (-2% 하락 ~ +7% 상승)
+  const todayReturn = today.open > 0 ? (close / today.open - 1) : 0;
+  if (todayReturn < -0.02) return reject('big_drop');
+  if (todayReturn > 0.07)  return reject('big_rally');
+
+  // 단기 과열 필터 (5일 +15% / 20일 +30% 초과 제외)
+  const ret5d  = idx >= 5  ? (close / chartRows[idx - 5].close  - 1) : 0;
+  const ret20d = idx >= 20 ? (close / chartRows[idx - 20].close - 1) : 0;
+  if (ret5d  > 0.15) return reject('overheated_5d');
+  if (ret20d > 0.30) return reject('overheated_20d');
+
+  // 거래대금 기본 유동성 (20일 평균 10억 이상)
+  const avg20Value = chartRows.slice(-20).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+  if (avg20Value < 1_000_000_000) return reject('illiquid');
+
+  // ─── 핵심 지표 계산 ───
+  const avg20Vol  = chartRows.slice(-20).reduce((s, r) => s + (r.volume || 0), 0) / 20;
+  const avg60Value = chartRows.slice(-60).reduce((s, r) => s + (r.valueApprox || 0), 0) / 60;
+
+  const volumeRatio20 = today.volume / (avg20Vol || 1);
+  const todayValue = today.valueApprox || (today.close * today.volume);
+  const valueRatio20  = todayValue / (avg20Value || 1);
+  const valueRatio60  = todayValue / (avg60Value || 1);
+  const valueDryness  = avg20Value / (avg60Value || 1);  // <= 1.2 → 조용한 구간
+
+  // MA 거리
+  const ma20 = sma(chartRows.slice(-20).map(r => r.close), 20);
+  const ma60 = chartRows.length >= 60 ? sma(chartRows.slice(-60).map(r => r.close), 60) : null;
+  const distance20 = ma20 ? close / ma20 - 1 : 0;
+  const distance60 = ma60 ? close / ma60 - 1 : 0;
+
+  // 20일 고점 대비 거리
+  const high20 = Math.max(...chartRows.slice(-20).map(r => r.high));
+  const distanceToHigh20 = close / high20 - 1;
+
+  // 종가 위치 (0 = 저가, 1 = 고가)
+  const rangeToday = (today.high - today.low) || 1;
+  const closeLocation = (close - today.low) / rangeToday;
+
+  // 윗꼬리 비율
+  const upperWick = today.high > today.close ? today.high - today.close : 0;
+  const bodyRange = Math.abs(today.close - today.open) || 1;
+  const upperWickRatio = upperWick / bodyRange;
+
+  // ─── Hard Filter: 윗꼬리 과다 ───
+  if (upperWickRatio > 0.55) return reject('upper_wick');
+
+  // ─── 조건 판정 ───
+  const isQuiet        = valueDryness <= 1.2;
+  const strongAnomaly  = volumeRatio20 >= 2.0 && valueRatio20 >= 2.0;
+  const weakAnomaly    = volumeRatio20 >= 1.5 && valueRatio20 >= 1.5;
+  const goodReturn     = todayReturn >= 0 && todayReturn <= 0.07;
+  const hasStructure   = (ma20 != null && close >= ma20 * 0.93)
+                      || (ma60 != null && close >= ma60 * 0.90);
+
+  // 기본 이상징후 없으면 탈락
+  if (!weakAnomaly) return reject('no_anomaly');
+
+  // ─── 카테고리 분류 ───
+  let category;
+  if (strongAnomaly && isQuiet && goodReturn && hasStructure) {
+    category = 'QVA_READY';       // 강한 신호 + 조용한 구간 + 좋은 성과 + 구조 유지
+  } else if (weakAnomaly && hasStructure && goodReturn) {
+    category = 'QVA_WATCH';       // 이상징후 + 구조 + 좋은 성과
+  } else {
+    category = 'QVA_RISK';        // 이상징후 있으나 위험 신호
+  }
+
+  // ─── 스코어 계산 ───
+  const volumeScore = Math.min(40,
+    volumeRatio20 >= 4 ? 40 : volumeRatio20 >= 3 ? 30 : volumeRatio20 >= 2 ? 20 : 10);
+  const valueScore = Math.min(40,
+    valueRatio20 >= 4 ? 40 : valueRatio20 >= 3 ? 30 : valueRatio20 >= 2 ? 20 : 10);
+  const quietBonus = isQuiet ? 15 : 0;
+  const locationScore = closeLocation >= 0.6 ? 10 : closeLocation >= 0.4 ? 5 : 0;
+  const structureScore = hasStructure ? 10 : 0;
+  const riskPenalty = (atrPct > 0.15 ? -10 : 0) + (upperWickRatio > 0.35 ? -5 : 0);
+
+  const score = volumeScore + valueScore + quietBonus + locationScore + structureScore + riskPenalty;
+
+  return {
+    passed: true,
+    category,
+    score: Math.max(0, score),
+    breakdown: { volumeScore, valueScore, quietBonus, locationScore, structureScore, riskPenalty },
+    signals: {
+      volumeRatio20: +(volumeRatio20.toFixed(2)), valueRatio20: +(valueRatio20.toFixed(2)), valueRatio60: +(valueRatio60.toFixed(2)),
+      valueDryness: +(valueDryness.toFixed(2)), closeLocation: +(closeLocation.toFixed(2)),
+      todayReturn: +(todayReturn * 100).toFixed(2), ret5d: +(ret5d * 100).toFixed(2), ret20d: +(ret20d * 100).toFixed(2),
+      distance20: +(distance20 * 100).toFixed(2), distance60: +(distance60 * 100).toFixed(2),
+      distanceToHigh20: +(distanceToHigh20 * 100).toFixed(2),
+      atrPct: +(atrPct * 100).toFixed(2), upperWickRatio: +(upperWickRatio.toFixed(2)), avg20Value,
+    },
+  };
+}
+
 // 옛 PREMIUM/FRESH 점수 모델용 14-feature 추출기 — 모델 자체는 폐기됐지만
 // app.js 의 handleSearch (상세 페이지) 가 아직 참조해서 stub 으로 빈 객체 반환.
 // EJS 의 <%= features.x %> 는 모두 빈 문자열 출력 → 페이지 안 깨짐.
 function extractPreIgnitionFeatures(_rows, _idx, _marketCap, _sharesOut) {
   return {};
+}
+
+// ─── backtestQVA — QVA 신호 백테스트 ───
+// 최근 100 거래일 동안 QVA 신호가 얼마나 수익을 냈는지 통계
+async function backtestQVA(options = {}) {
+  const { daysBack = 100, minScore = 0 } = options;
+
+  const results = {
+    baseline: { n: 0, mean: 0, median: 0, winRate: 0, d10: 0, d20: 0 },
+    qvaAll:   { n: 0, mean: 0, median: 0, winRate: 0, PF: 0, d10: 0, d20: 0 },
+    qvaReady: { n: 0, mean: 0, median: 0, winRate: 0, PF: 0, d10: 0, d20: 0 },
+    qvaWatch: { n: 0, mean: 0, median: 0, winRate: 0, PF: 0, d10: 0, d20: 0 },
+    qvaRisk:  { n: 0, mean: 0, median: 0, winRate: 0, PF: 0, d10: 0, d20: 0 },
+    byMarket: { KOSPI: {}, KOSDAQ: {} },
+    processed: 0,
+  };
+
+  try {
+    const stocksFilePath = path.join(STOCKS_CACHE_DIR, 'naver-stocks-list.json');
+    const stocksData = JSON.parse(fs.readFileSync(stocksFilePath, 'utf-8'));
+    const allStocks = stocksData.stocks || [];
+
+    let baselineReturns = [], qvaAllReturns = [], qvaReadyReturns = [], qvaWatchReturns = [], qvaRiskReturns = [];
+
+    // 각 종목에 대해 과거 backtest
+    for (const stock of allStocks.slice(0, 500)) {  // 첫 500개만 (속도상)
+      const chartPath = path.join(CHART_CACHE_DIR, `${stock.code}.json`);
+      let chart;
+      try {
+        chart = JSON.parse(fs.readFileSync(chartPath, 'utf-8'));
+      } catch (_) { continue; }
+
+      const rows = chart.rows || [];
+      if (rows.length < daysBack + 30) continue;
+
+      // 최근 daysBack 거래일에서 신호 스캔
+      const startIdx = Math.max(0, rows.length - daysBack);
+      for (let i = startIdx; i < rows.length - 21; i++) {
+        const signalRow = rows[i];
+
+        // 과거 시점의 rows 슬라이스로 QVA 재계산 (미래 누출 방지)
+        const histRows = rows.slice(0, i + 1);
+        let qva = null;
+        try {
+          qva = calculateQuietVolumeAnomaly(histRows, [], { code: stock.code, marketValue: stock.marketValue });
+        } catch (_) {}
+
+        // baseline 계산 (모든 거래일)
+        const baselineD10 = rows[Math.min(i + 10, rows.length - 1)]?.close || signalRow.close;
+        const baselineD20 = rows[Math.min(i + 20, rows.length - 1)]?.close || signalRow.close;
+        const baselineRet10 = baselineD10 / signalRow.close - 1;
+        const baselineRet20 = baselineD20 / signalRow.close - 1;
+        baselineReturns.push({ ret10: baselineRet10, ret20: baselineRet20 });
+
+        // QVA 신호 있으면
+        if (qva?.passed) {
+          const d10 = rows[Math.min(i + 10, rows.length - 1)]?.close || signalRow.close;
+          const d20 = rows[Math.min(i + 20, rows.length - 1)]?.close || signalRow.close;
+          const ret10 = d10 / signalRow.close - 1;
+          const ret20 = d20 / signalRow.close - 1;
+
+          qvaAllReturns.push({ ret10, ret20 });
+
+          if (qva.category === 'QVA_READY') qvaReadyReturns.push({ ret10, ret20 });
+          else if (qva.category === 'QVA_WATCH') qvaWatchReturns.push({ ret10, ret20 });
+          else qvaRiskReturns.push({ ret10, ret20 });
+        }
+      }
+      results.processed++;
+    }
+
+    // 통계 계산 헬퍼
+    const calcStats = (returns) => {
+      if (!returns.length) return { n: 0, mean: 0, median: 0, winRate: 0, d10: 0, d20: 0 };
+      const rets10 = returns.map(r => r.ret10);
+      const rets20 = returns.map(r => r.ret20);
+      return {
+        n: returns.length,
+        mean: (rets20.reduce((a, b) => a + b, 0) / rets20.length * 100).toFixed(2),
+        median: (rets20.sort((a, b) => a - b)[Math.floor(rets20.length / 2)] * 100).toFixed(2),
+        winRate: (rets20.filter(r => r > 0).length / rets20.length * 100).toFixed(1),
+        d10: (rets10.reduce((a, b) => a + b, 0) / rets10.length * 100).toFixed(2),
+        d20: (rets20.reduce((a, b) => a + b, 0) / rets20.length * 100).toFixed(2),
+      };
+    };
+
+    results.baseline = calcStats(baselineReturns);
+    results.qvaAll = calcStats(qvaAllReturns);
+    results.qvaReady = calcStats(qvaReadyReturns);
+    results.qvaWatch = calcStats(qvaWatchReturns);
+    results.qvaRisk = calcStats(qvaRiskReturns);
+
+  } catch (e) {
+    console.error('[backtestQVA]', e.message);
+  }
+
+  return results;
 }
 
 module.exports = {
@@ -3379,6 +3620,7 @@ module.exports = {
   analyzeAll,
   backtestMinervini,
   backtestTotalScore,
+  backtestQVA,
   listSeededStocks,
   fetchKospiHistory,
   getKospiCached,

@@ -115,6 +115,9 @@
   const safeVviTodayCandidates = typeof vviTodayCandidates !== 'undefined' ? vviTodayCandidates : [];
   const safeVviRecentSignals = typeof vviRecentSignals !== 'undefined' ? vviRecentSignals : [];
   const safeLatestMarketDate = typeof latestMarketDate !== 'undefined' ? latestMarketDate : null;
+  const safeQvaReady = typeof qvaReady !== 'undefined' ? qvaReady : [];
+  const safeQvaWatch = typeof qvaWatch !== 'undefined' ? qvaWatch : [];
+  const safeQvaRisk  = typeof qvaRisk  !== 'undefined' ? qvaRisk  : [];
   const safeCsbMainCandidates = typeof csbMainCandidates !== 'undefined' ? csbMainCandidates : [];
   const safeCsbSubCandidates = typeof csbSubCandidates !== 'undefined' ? csbSubCandidates : [];
   const safeFlowLeadCandidates = typeof flowLeadCandidates !== 'undefined' ? flowLeadCandidates : [];
@@ -246,6 +249,104 @@ var csbStageLabel = {
     <!-- TAB 1: 오늘의 후보 (자금선행 / 과매도반등 / 강세장 추세 관찰) -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <div class="tab-pane fade show active" id="tab-today" role="tabpanel">
+
+      <!-- 0. 거래량 이상징후 후보 (QVA — QuietVolumeAnomaly) — 대상승 전 선행 감지 -->
+      <div class="glass">
+        <h2><i class="bi bi-lightning me-1"></i>거래량 이상징후 후보 <span class="count">(준비: <%= safeQvaReady.length %> | 관찰: <%= safeQvaWatch.length %> | 위험: <%= safeQvaRisk.length %>)</span></h2>
+        <div class="cat-banner" style="background:#f0f9ff; border-left:4px solid #0284c7; color:#0c4a6e;">
+          <strong>QVA (거래량 이상징후)</strong> — 가격은 아직 크게 오르지 않았으나 거래량/거래대금이 평소보다 먼저 증가하는 선행 신호입니다. 조용했던 구간에서 이상징후가 나타나는 대상승 전 준비 단계를 포착합니다.
+        </div>
+
+        <% if (safeQvaReady.length === 0 && safeQvaWatch.length === 0 && safeQvaRisk.length === 0) { %>
+          <div class="empty-state">현재 거래량 이상징후 종목 없음</div>
+        <% } else { %>
+
+          <% if (safeQvaReady.length > 0) { %>
+          <div style="margin-bottom: 20px;">
+            <h3 style="font-size:0.95rem; color:#1e40af; margin-bottom:10px;">
+              <span style="display:inline-block; background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:6px;">준비</span>
+              강한 이상징후 + 조용한 구간
+            </h3>
+            <% safeQvaReady.forEach(function(c) { var s = c.qva?.signals || {}; %>
+              <div class="item-card">
+                <div class="row1">
+                  <div class="name-block">
+                    <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                      <span class="nm"><%= c.name %></span><span class="cd"><%= c.code %></span>
+                    </a>
+                    <span class="mkt"><%= c.market %></span>
+                  </div>
+                  <span class="score-pill" style="background:#dbeafe; color:#1e40af;">준비 · <%= c.qva?.score || 0 %>점</span>
+                </div>
+                <div class="row2">
+                  <span>거래량비 <strong><%= (s.volumeRatio20 || 0).toFixed(1) %>x</strong></span>
+                  <span>거래대금비 <strong><%= (s.valueRatio20 || 0).toFixed(1) %>x</strong></span>
+                  <span>오늘 <strong class="<%= s.todayReturn >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (s.todayReturn || 0) %>%</strong></span>
+                  <span>종가위치 <strong><%= (s.closeLocation * 100 || 0).toFixed(0) %>%</strong></span>
+                  <span>건조도 <strong><%= (s.valueDryness || 0).toFixed(2) %></strong></span>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+          <% } %>
+
+          <% if (safeQvaWatch.length > 0) { %>
+          <div style="margin-bottom: 20px;">
+            <h3 style="font-size:0.95rem; color:#475569; margin-bottom:10px;">
+              <span style="display:inline-block; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:6px;">관찰</span>
+              이상징후 + 구조 유지
+            </h3>
+            <% safeQvaWatch.forEach(function(c) { var s = c.qva?.signals || {}; %>
+              <div class="item-card">
+                <div class="row1">
+                  <div class="name-block">
+                    <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                      <span class="nm"><%= c.name %></span><span class="cd"><%= c.code %></span>
+                    </a>
+                    <span class="mkt"><%= c.market %></span>
+                  </div>
+                  <span class="score-pill" style="background:#f1f5f9; color:#475569;">관찰 · <%= c.qva?.score || 0 %>점</span>
+                </div>
+                <div class="row2">
+                  <span>거래량비 <strong><%= (s.volumeRatio20 || 0).toFixed(1) %>x</strong></span>
+                  <span>거래대금비 <strong><%= (s.valueRatio20 || 0).toFixed(1) %>x</strong></span>
+                  <span>오늘 <strong class="<%= s.todayReturn >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (s.todayReturn || 0) %>%</strong></span>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+          <% } %>
+
+          <% if (safeQvaRisk.length > 0) { %>
+          <div>
+            <h3 style="font-size:0.95rem; color:#991b1b; margin-bottom:10px;">
+              <span style="display:inline-block; background:#fef2f2; color:#991b1b; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:6px;">위험</span>
+              이상징후 있으나 위험 신호
+            </h3>
+            <div class="small text-secondary" style="margin-bottom: 8px;">윗꼬리 과다, 과열, 또는 조용한 구간이 아님</div>
+            <% safeQvaRisk.forEach(function(c) { var s = c.qva?.signals || {}; %>
+              <div class="item-card">
+                <div class="row1">
+                  <div class="name-block">
+                    <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                      <span class="nm"><%= c.name %></span><span class="cd"><%= c.code %></span>
+                    </a>
+                    <span class="mkt"><%= c.market %></span>
+                  </div>
+                  <span class="score-pill" style="background:#fef2f2; color:#991b1b;">위험 · <%= c.qva?.score || 0 %>점</span>
+                </div>
+                <div class="row2">
+                  <span>거래량비 <strong><%= (s.volumeRatio20 || 0).toFixed(1) %>x</strong></span>
+                  <span>거래대금비 <strong><%= (s.valueRatio20 || 0).toFixed(1) %>x</strong></span>
+                  <span>윗꼬리비 <strong><%= (s.upperWickRatio || 0).toFixed(2) %></strong></span>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+          <% } %>
+
+        <% } %>
+      </div>
 
       <!-- 1. 거래대금 초동 후보 (VVI Breakout Confirm) — 가장 먼저 표시 -->
       <div class="glass">

@@ -2709,6 +2709,11 @@ app.get("/pattern", (req, res) => {
   const vviTodayCandidates = (result?.vviTodayCandidates || []).filter(matchSearch);
   const vviRecentSignals = (result?.vviRecentSignals || []).filter(matchSearch);
 
+  // ─── QVA (거래량 이상징후 선행 감지) ───
+  const qvaReady = (result?.qvaReady || []).filter(matchSearch);
+  const qvaWatch = (result?.qvaWatch || []).filter(matchSearch);
+  const qvaRisk  = (result?.qvaRisk  || []).filter(matchSearch);
+
   // ─── 날짜 및 데이터 상태 ───
   const expectedMarketDate = result?.expectedMarketDate || null;
   const availableModeDate = result?.availableModeDate || null;
@@ -2764,6 +2769,9 @@ app.get("/pattern", (req, res) => {
     vviCandidates: vviCandidates || [],
     vviTodayCandidates: vviTodayCandidates || [],
     vviRecentSignals: vviRecentSignals || [],
+    qvaReady: qvaReady || [],
+    qvaWatch: qvaWatch || [],
+    qvaRisk:  qvaRisk  || [],
     bullTrendWatch: bullTrendWatch || [],
     overheatWarnings: overheatWarnings || [],
     taggedAll: taggedAll || [],
@@ -2820,6 +2828,26 @@ app.post("/admin/pattern/analyze", requireAdmin, (req, res) => {
     .finally(() => {
       patternState.analyzing = false;
       patternState.analyzeFinishedAt = new Date().toISOString();
+    });
+});
+
+app.post("/admin/backtest/qva", requireAdmin, (req, res) => {
+  if (patternState.qvaBacktesting) return res.redirect("/admin?flash=qva_backtest_running");
+  patternState.qvaBacktesting = true;
+  patternState.qvaBacktestStartedAt = new Date().toISOString();
+  patternState.qvaBacktestFinishedAt = null;
+  patternState.qvaBacktestError = null;
+  res.redirect("/admin?flash=qva_backtest_started");
+  patternScreener.backtestQVA({ daysBack: 100 })
+    .then((result) => {
+      const resultPath = path.join(__dirname, 'cache', 'qva-backtest.json');
+      fs.writeFileSync(resultPath, JSON.stringify(result, null, 2), 'utf-8');
+      console.log(`[QVA 백테스트] 완료 — ready=${result.qvaReady?.n || 0}, watch=${result.qvaWatch?.n || 0}, risk=${result.qvaRisk?.n || 0}`);
+    })
+    .catch((e) => { patternState.qvaBacktestError = e.message; })
+    .finally(() => {
+      patternState.qvaBacktesting = false;
+      patternState.qvaBacktestFinishedAt = new Date().toISOString();
     });
 });
 
