@@ -131,22 +131,6 @@
   const safeTaggedAll = typeof taggedAll !== 'undefined' ? taggedAll : [];
 %>
 
-<%
-// Defensive defaults — 옛 app.js 가 새 변수를 res.render 에 넘기지 않아도 result 에서 자동 fallback.
-// PM2 reload 누락 / 부분 deploy / 캐시 미존재 어느 상황에서도 EJS 가 깨지지 않게.
-var safeCsbMainCandidates  = (typeof safeCsbMainCandidates  !== 'undefined' && safeCsbMainCandidates)  ? safeCsbMainCandidates  : ((result && result.safeCsbMainCandidates)  || []);
-var safeCsbSubCandidates   = (typeof safeCsbSubCandidates   !== 'undefined' && safeCsbSubCandidates)   ? safeCsbSubCandidates   : ((result && result.safeCsbSubCandidates)   || []);
-var safeSmallCsbReadyCandidates = (typeof safeSmallCsbReadyCandidates !== 'undefined' && safeSmallCsbReadyCandidates) ? safeSmallCsbReadyCandidates : ((result && result.smallCsbReady) || []);
-var safeSmallCsbWatchCandidates = (typeof safeSmallCsbWatchCandidates !== 'undefined' && safeSmallCsbWatchCandidates) ? safeSmallCsbWatchCandidates : ((result && result.smallCsbWatch) || []);
-var safeFlowLeadCandidates = (typeof safeFlowLeadCandidates !== 'undefined' && safeFlowLeadCandidates) ? safeFlowLeadCandidates : ((result && result.safeFlowLeadCandidates) || []);
-var safeReboundCandidates  = (typeof safeReboundCandidates  !== 'undefined' && safeReboundCandidates)  ? safeReboundCandidates  : ((result && result.safeReboundCandidates)  || []);
-var safeBullTrendWatch     = (typeof safeBullTrendWatch     !== 'undefined' && safeBullTrendWatch)     ? safeBullTrendWatch     : ((result && result.safeBullTrendWatch)     || []);
-var overheatWarnings   = (typeof overheatWarnings   !== 'undefined' && overheatWarnings)   ? overheatWarnings   : ((result && result.overheatWarnings)   || []);
-var safeTaggedAll          = (typeof safeTaggedAll          !== 'undefined' && safeTaggedAll)          ? safeTaggedAll          : ((result && result.safeTaggedAll)          || []);
-var safeHoldingsCards      = (typeof safeHoldingsCards      !== 'undefined' && safeHoldingsCards)      ? safeHoldingsCards      : [];
-var holdingsRaw        = (typeof holdingsRaw        !== 'undefined') ? holdingsRaw        : '';
-var cQuery             = (typeof cQuery             !== 'undefined') ? cQuery             : '';
-var seededCount        = (typeof seededCount        !== 'undefined') ? seededCount        : ((result && result.seeded) || 0);
 
 // 태그 한글 매핑 (CSS class 는 영어 식별자 유지, 화면 표시만 한글)
 var tagLabels = {
