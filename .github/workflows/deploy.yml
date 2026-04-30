@@ -19,12 +19,15 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          KIS_APP_KEY: ${{ secrets.KIS_APP_KEY }}
+          KIS_APP_SECRET: ${{ secrets.KIS_APP_SECRET }}
+          KIS_BASE_URL: ${{ secrets.KIS_BASE_URL }}
         with:
           host: ${{ secrets.SSH_HOST }}
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: GEMINI_API_KEY,DART_API_KEY
+          envs: GEMINI_API_KEY,DART_API_KEY,KIS_APP_KEY,KIS_APP_SECRET,KIS_BASE_URL
           script_stop: true
           script: |
             set -ex
@@ -50,6 +53,9 @@ jobs:
             }
             upsert_env GEMINI_API_KEY "$GEMINI_API_KEY"
             upsert_env DART_API_KEY "$DART_API_KEY"
+            upsert_env KIS_APP_KEY "$KIS_APP_KEY"
+            upsert_env KIS_APP_SECRET "$KIS_APP_SECRET"
+            upsert_env KIS_BASE_URL "$KIS_BASE_URL"
             # 시드 시총 상한 9천억 (서울반도체 등 8천억대 종목 포함)
             upsert_env PATTERN_MAX_MARKETCAP "900000000000"
             # PM2 강제 재시작 — restart 가 부분 fail 해서 옛 process 가 살아남는 경우 방지.
