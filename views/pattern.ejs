@@ -180,6 +180,22 @@ var csbStageLabel = {
     </div>
   </div>
 
+  <!-- ─── 분석 기준 정보 ─── -->
+  <div class="small text-secondary mb-3" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+    <%
+      const today = new Date();
+      const todayStr = today.getFullYear() + '-' +
+        String(today.getMonth() + 1).padStart(2, '0') + '-' +
+        String(today.getDate()).padStart(2, '0');
+      const latestDateStr = safeLatestMarketDate ?
+        safeLatestMarketDate.slice(0,4) + '-' + safeLatestMarketDate.slice(4,6) + '-' + safeLatestMarketDate.slice(6,8)
+        : '미확인';
+    %>
+    <strong>📅 분석 기준:</strong> 오늘 <%= todayStr %> |
+    <strong>📊 데이터 기준:</strong> <%= latestDateStr %> |
+    <strong>💡 신호 기준:</strong> 거래대금 초동은 <%= latestDateStr %> 신호, 최근 신호는 이전 거래일 기준
+  </div>
+
   <!-- ─── 현황 요약 ─── -->
   <div class="glass compact">
     <div class="row g-2 row-cols-2 row-cols-md-6">
@@ -314,7 +330,7 @@ var csbStageLabel = {
 
       <!-- 2. 최근 VVI 신호 추적 (1~5 거래일 사후 상태) -->
       <div class="glass">
-        <h2><i class="bi bi-clock-history me-1"></i>최근 VVI 신호 추적 <span class="count">(<%= safeVviRecentSignals.length %>건)</span></h2>
+        <h2><i class="bi bi-clock-history me-1"></i>최근 VVI 신호 추적 <span class="count">(<%= safeVviRecentSignals.length %>건)</span><% if (safeLatestMarketDate) { %> <small style="color:#94a3b8; font-weight:400; font-size:0.72rem; margin-left:8px;">현재 <%= safeLatestMarketDate %> 기준</small><% } %></h2>
         <div class="cat-banner vvi" style="background:#fef9c3; border-left:4px solid #eab308; color:#713f12;">
           신호 발생 후 1~5 거래일 이내 종목의 추적 현황입니다. 상태별로 대응 방향이 다릅니다.
         </div>
