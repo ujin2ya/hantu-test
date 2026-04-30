@@ -172,7 +172,7 @@ async function main() {
   // 1. 차트 데이터 갱신
   let t1 = Date.now();
   const chartOk = runCommand(
-    `python ${UPDATE_CHART_SCRIPT}`,
+    `python3 ${UPDATE_CHART_SCRIPT}`,
     '차트 데이터 갱신 (pykrx)',
   );
   timings.chartTime = Math.ceil((Date.now() - t1) / 1000);
