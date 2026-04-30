@@ -34,6 +34,8 @@ const {
 } = require("./ai-grounding");
 const naverFetcher = require("./naver-fetcher");
 const patternScreener = require("./pattern-screener");
+const cron = require("node-cron");
+const nodemailer = require("nodemailer");
 
 const app = express();
 const PORT = process.env.PORT || 3012;
@@ -2403,6 +2405,76 @@ app.get("/unsubscribe", (req, res) => {
 });
 
 
+// ─── nodemailer transporter (Gmail SMTP) ───
+const mailTransporter = (process.env.SMTP_USER && process.env.SMTP_PASS)
+  ? nodemailer.createTransport({
+      host: 'smtp.gmail.com', port: 587, secure: false,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    })
+  : null;
+
+async function sendPatternMail(result) {
+  if (!mailTransporter) return;
+  const subscribers = loadSubscribers();
+  if (!subscribers.length) return;
+
+  const vviList = (result?.vviCandidates || []).slice(0, 10);
+  const dateStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '-').replace('.', '');
+  const subject = `[한투신호] VVI 초동 신호 ${vviList.length}종목 (${dateStr})`;
+
+  const rows = vviList.map(c => {
+    const s = c.vvi?.signals || {};
+    const isStrong = c.vvi?.category === 'STRONG_IGNITION';
+    return `<tr>
+      <td>${isStrong ? '⭐ ' : ''}${c.name || c.code}</td>
+      <td>${c.market || ''}</td>
+      <td style="text-align:right">${c.vvi?.score ?? '-'}</td>
+      <td style="text-align:right">${s.valueRatio20 ? s.valueRatio20.toFixed(1) + '배' : '-'}</td>
+      <td style="text-align:right">${s.closeLocation != null ? Math.round(s.closeLocation * 100) + '%' : '-'}</td>
+      <td style="text-align:right;color:${(s.todayReturn || 0) >= 0 ? '#c0392b' : '#2980b9'}">${s.todayReturn != null ? (s.todayReturn >= 0 ? '+' : '') + s.todayReturn.toFixed(2) + '%' : '-'}</td>
+    </tr>`;
+  }).join('');
+
+  const baseUrl = process.env.PUBLIC_URL || 'http://localhost:3012';
+  const html = `<html><body style="font-family:sans-serif;color:#222">
+    <h2 style="color:#b8860b">오늘의 VVI 거래대금 초동 신호</h2>
+    <p>${dateStr} 종가 기준 · ${vviList.length}종목</p>
+    <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%">
+      <thead style="background:#f5f5dc">
+        <tr><th>종목</th><th>시장</th><th>점수</th><th>거래대금배</th><th>종가위치</th><th>등락</th></tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p style="margin-top:20px">
+      <a href="${baseUrl}/pattern" style="color:#b8860b">▶ 전체 신호 보기 (${baseUrl}/pattern)</a>
+    </p>
+    <hr>
+    <p style="font-size:11px;color:#888">
+      이 메일은 자동 발송됩니다. 매수 추천이 아닌 관찰 신호입니다.<br>
+      수신거부: {{UNSUBSCRIBE_LINK}}
+    </p>
+  </body></html>`;
+
+  let sent = 0;
+  for (const sub of subscribers) {
+    try {
+      const personalHtml = html.replace('{{UNSUBSCRIBE_LINK}}',
+        `<a href="${baseUrl}/unsubscribe?token=${sub.unsubscribeToken}">수신거부</a>`);
+      await mailTransporter.sendMail({
+        from: `"한투신호" <${process.env.SMTP_USER}>`,
+        to: sub.email,
+        subject,
+        html: personalHtml,
+      });
+      sent++;
+    } catch (e) {
+      console.error(`[메일발송] ${sub.email} 실패:`, e.message);
+    }
+  }
+  console.log(`[메일발송] 완료: ${sent}/${subscribers.length}명`);
+}
+
+
 // ============================================================
 // 관리자 로그인 + 대시보드 (수동 발송 / 구독자 관리)
 // ============================================================
@@ -2489,7 +2561,18 @@ app.post("/admin/unsubscribe", requireAdmin, (req, res) => {
   res.redirect("/admin?flash=removed");
 });
 
-
+app.post("/admin/send-pattern-mail", requireAdmin, async (req, res) => {
+  try {
+    const resultPath = path.join(__dirname, "cache", "pattern-result.json");
+    if (!fs.existsSync(resultPath)) return res.redirect("/admin?flash=no_result");
+    const result = JSON.parse(fs.readFileSync(resultPath, "utf-8"));
+    await sendPatternMail(result);
+    res.redirect("/admin?flash=mail_sent");
+  } catch (e) {
+    console.error("[수동발송] 에러:", e.message);
+    res.redirect("/admin?flash=mail_error");
+  }
+});
 
 // 스윙/단타 스캔과 백테스트는 점수 모델 재설계 중 — 화면만 stub 으로 유지.
 app.get("/scan", (req, res) => res.render("scan", {}));
@@ -2661,6 +2744,63 @@ app.post("/admin/refresh-pattern-cache", requireAdmin, (req, res) => {
 });
 
 loadStocks();
+
+// ─── 자동 분석 스케줄 (매일 16:10 종가 기준 신호 갱신) ───
+cron.schedule('10 16 * * *', async () => {
+  if (patternState.analyzing) {
+    console.log('[자동분석] 16:10 — 이미 분석 중이므로 스킵');
+    return;
+  }
+  console.log('[자동분석] 16:10 시작 — VVI, CSB, Rebound 등 모든 신호 종가 기준 갱신');
+  patternState.analyzing = true;
+  patternState.analyzeStartedAt = new Date().toISOString();
+  patternState.analyzeError = null;
+  try {
+    const result = await patternScreener.analyzeAll({ logProgress: false });
+    // pattern-result.json에 저장 (클라이언트에서 읽을 수 있도록)
+    const resultPath = path.join(__dirname, 'cache', 'pattern-result.json');
+    fs.writeFileSync(resultPath, JSON.stringify(result, null, 2), 'utf-8');
+    patternState.analyzeFinishedAt = new Date().toISOString();
+    console.log(`[자동분석] 완료: ${patternState.analyzeFinishedAt} — 신호 수: CSB=${result.csbMainCandidates?.length || 0}, VVI=${result.vviCandidates?.length || 0}, Rebound=${result.reboundCandidates?.length || 0}`);
+  } catch (e) {
+    patternState.analyzeError = e.message;
+    console.error('[자동분석] 에러:', e.message);
+  } finally {
+    patternState.analyzing = false;
+  }
+}, {
+  scheduled: true,
+  timezone: "Asia/Seoul"
+});
+console.log('[스케줄] 매일 16:10 종가 기준 자동 분석 활성화 (한국 시간)');
+
+// ─── 자동 메일 발송 스케줄 (매일 18:00, MAIL_CRON_ENABLED=1 시) ───
+if (process.env.MAIL_CRON_ENABLED === '1') {
+  cron.schedule('0 18 * * *', async () => {
+    console.log('[메일발송] 18:00 — pattern-result.json 기반 VVI 신호 메일 발송 시작');
+    try {
+      const resultPath = path.join(__dirname, 'cache', 'pattern-result.json');
+      if (!fs.existsSync(resultPath)) {
+        console.log('[메일발송] pattern-result.json 없음 — 스킵');
+        return;
+      }
+      const result = JSON.parse(fs.readFileSync(resultPath, 'utf-8'));
+      // 오늘 날짜 결과인지 확인 (analyzeFinishedAt 기준)
+      if (result.analyzeFinishedAt) {
+        const resultDate = new Date(result.analyzeFinishedAt).toDateString();
+        const today = new Date().toDateString();
+        if (resultDate !== today) {
+          console.log(`[메일발송] 결과가 오늘자 아님 (${resultDate}) — 스킵`);
+          return;
+        }
+      }
+      await sendPatternMail(result);
+    } catch (e) {
+      console.error('[메일발송] 에러:', e.message);
+    }
+  }, { scheduled: true, timezone: 'Asia/Seoul' });
+  console.log('[스케줄] 매일 18:00 VVI 신호 메일 자동 발송 활성화 (한국 시간)');
+}
 
 app.listen(PORT, () => {
   console.log(`서버 실행: http://localhost:${PORT}`);
