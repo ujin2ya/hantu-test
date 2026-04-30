@@ -30,6 +30,9 @@ from typing import Dict, List, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ─── Config ───
 ROOT = Path(__file__).parent
@@ -248,12 +251,12 @@ def update_daily():
     completed = 0
 
     # 병렬 처리
-    with ThreadPoolExecutor(max_workers=8) as executor:
+    with ThreadPoolExecutor(max_workers=32) as executor:
         futures = {
             executor.submit(process_stock, code, access_token): code for code in codes
         }
 
-        for future in futures:
+        for future in as_completed(futures):
             completed += 1
             status, code = future.result()
 
