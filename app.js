@@ -2522,6 +2522,7 @@ app.get("/pattern", (req, res) => {
   // ─── Phase 8 새 카테고리 ───
   const flowLeadCandidates = (result?.flowLeadCandidates || []).filter(matchSearch);
   const reboundCandidates = (result?.reboundCandidates || []).filter(matchSearch);
+  const vviCandidates = (result?.vviCandidates || []).filter(matchSearch);
   const bullTrendWatch = (result?.bullTrendWatch || []).filter(matchSearch);
   const overheatWarnings = (result?.overheatWarnings || []).filter(matchSearch);
   const taggedAll = (result?.taggedAll || []).filter(matchSearch);
@@ -2557,7 +2558,7 @@ app.get("/pattern", (req, res) => {
     // CSB 메인
     csbMainCandidates, csbSubCandidates,
     // 새 카테고리
-    flowLeadCandidates, reboundCandidates, bullTrendWatch, overheatWarnings, taggedAll, holdingsCards,
+    flowLeadCandidates, reboundCandidates, vviCandidates, bullTrendWatch, overheatWarnings, taggedAll, holdingsCards,
     // CSB-Lite 중소형 분류
     smallCsbReadyCandidates, smallCsbWatchCandidates,
     // 기존 — 모델 검증 / 역호환

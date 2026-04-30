@@ -683,6 +683,7 @@ async function analyzeAll({ logProgress = false } = {}) {
   // 새 모델 (Phase 8) — universe 전체 대상
   const flowLeadCandidates = [];
   const reboundCandidates = [];
+  const vviCandidates = [];
   const overheatWarnings = [];
   const csbMainCandidates = [];   // CSB 4개 stage tag 모두 통과 — "상승 전 압축 후보"
   const csbSubCandidates = [];    // CSB 3개 stage (지지+거래대금+(압축 OR 돌파)) — "예비 압축 후보"
@@ -837,10 +838,11 @@ async function analyzeAll({ logProgress = false } = {}) {
     if (!closePrice) continue;
 
     // 새 모델 점수
-    let flowLead = null, rebound = null;
+    let flowLead = null, rebound = null, vvi = null;
     if (flowRows?.length >= 10) {
       try { flowLead = calculateFlowLeadScore(rows, flowRows, meta); } catch (_) {}
       try { rebound = calculateReboundScore(rows, flowRows, meta); } catch (_) {}
+      try { vvi = calculateVolumeValueIgnition(rows, flowRows, meta); } catch (_) {}
     }
 
     // CSB — 매 종목 lastIdx 시점 기준 (수급은 보조 가점만)
@@ -909,6 +911,7 @@ async function analyzeAll({ logProgress = false } = {}) {
     // 모델 통과
     if (flowLead?.passed) tags.push("FLOW_LEAD");
     if (rebound?.passed) tags.push("REBOUND");
+    if (vvi?.passed) tags.push(vvi.category === 'STRONG_IGNITION' ? 'VVI_STRONG' : 'VVI_IGNITION');
     if (setupScore >= 75 && setupScore < 85 && entryReady && isBull) tags.push("BULL_TREND_WATCH");
     // 과열 — setupScore 85+ OR 복합 과열 시그널
     const overheatHit =
@@ -927,8 +930,8 @@ async function analyzeAll({ logProgress = false } = {}) {
     if (!tags.length) tags.push("NO_SIGNAL");
 
     // primary tag — 카테고리 분류 우선순위 (CSB 메인 모델로 승격)
-    //   CSB_BREAKOUT > CSB_COMPRESSION > REBOUND > FLOW_LEAD > BULL_TREND_WATCH > OVERHEAT_WARNING > 그 외
-    const primaryOrder = ["CSB_BREAKOUT", "CSB_COMPRESSION", "REBOUND", "FLOW_LEAD", "BULL_TREND_WATCH", "OVERHEAT_WARNING", "HIGH_VOLATILITY", "STRUCTURE_BROKEN", "NO_SIGNAL"];
+    //   VVI_STRONG > CSB_BREAKOUT > CSB_COMPRESSION > REBOUND > VVI_IGNITION > FLOW_LEAD > BULL_TREND_WATCH > OVERHEAT_WARNING > 그 외
+    const primaryOrder = ["VVI_STRONG", "CSB_BREAKOUT", "CSB_COMPRESSION", "REBOUND", "VVI_IGNITION", "FLOW_LEAD", "BULL_TREND_WATCH", "OVERHEAT_WARNING", "HIGH_VOLATILITY", "STRUCTURE_BROKEN", "NO_SIGNAL"];
     const primaryTag = primaryOrder.find((t) => tags.includes(t));
 
     // 시총별 분류
@@ -960,6 +963,7 @@ async function analyzeAll({ logProgress = false } = {}) {
       regime: stockRegime,
       flowLead: flowLead?.passed ? { score: flowLead.score, breakdown: flowLead.breakdown, signals: flowLead.signals } : null,
       rebound: rebound?.passed ? { score: rebound.score, breakdown: rebound.breakdown, signals: rebound.signals } : null,
+      vvi: vvi?.passed ? { score: vvi.score, category: vvi.category, breakdown: vvi.breakdown, signals: vvi.signals } : null,
       csb: csb?.passed ? {
         // 점수는 백테스트에서 변별력 실패했으므로 UI 메인 표시 X — 디버깅용 보조
         score: csb.score,
@@ -992,6 +996,7 @@ async function analyzeAll({ logProgress = false } = {}) {
     if (smallCsb?.passed && smallCsb.bucket === 'SMALL_CSB_WATCH') smallCsbWatch.push(tagged);
     if (flowLead?.passed) flowLeadCandidates.push(tagged);
     if (rebound?.passed) reboundCandidates.push(tagged);
+    if (vvi?.passed) vviCandidates.push(tagged);
     if (overheatHit) overheatWarnings.push(tagged);
   }
 
@@ -1092,6 +1097,8 @@ async function analyzeAll({ logProgress = false } = {}) {
     flowLeadCount: flowLeadCandidates.length,
     reboundCandidates: reboundCandidates.sort((a, b) => (b.rebound?.score || 0) - (a.rebound?.score || 0)),
     reboundCount: reboundCandidates.length,
+    vviCandidates: vviCandidates.sort((a, b) => (b.vvi?.score || 0) - (a.vvi?.score || 0)),
+    vviCount: vviCandidates.length,
     bullTrendWatch,
     bullTrendWatchCount: bullTrendWatch.length,
     overheatWarnings: overheatWarnings.sort((a, b) => (b.ret5d || 0) - (a.ret5d || 0)),
@@ -3037,6 +3044,130 @@ function calculateReboundScore(chartRows, flowRows, meta = {}) {
   };
 }
 
+// ─── VolumeValueIgnition (거래대금 초동 후보) ───
+// 평소 거래대금 대비 폭증 + 양호한 종가 마감 → 다음날 진입 성과 검증
+function calculateVolumeValueIgnition(chartRows, flowRows, meta = {}) {
+  if (!chartRows || chartRows.length < 60) return null;
+  if (!flowRows || flowRows.length < 10) return null;
+
+  const idx = chartRows.length - 1;
+  const today = chartRows[idx];
+  const close = today?.close;
+  if (!close || close <= 0) return null;
+
+  const reject = (reason) => ({ passed: false, reason });
+
+  // ─── Hard filter ───
+  if (meta.isSpecial || meta.isEtf) return reject('special/etf');
+  if ((meta.marketValue || 0) < 50_000_000_000) return reject('marketCap<500억');
+
+  const last20rows = chartRows.slice(-20);
+  const avg20Value = last20rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last20rows.length, 1);
+  if (avg20Value < 2_000_000_000) return reject('avg20Value<20억');
+
+  const atrObj = computeATR(chartRows, idx, 14);
+  const atrPct = atrObj ? atrObj.atr / close : null;
+  if (!atrPct) return reject('ATR n/a');
+  if (atrPct >= 0.30) return reject('atrPct>=30%');
+
+  const ret5d = chartRows.length >= 6 ? (close / chartRows[idx - 5].close - 1) : 0;
+  const ret20d = chartRows.length >= 21 ? (close / chartRows[idx - 20].close - 1) : 0;
+  if (ret5d > 0.18) return reject('ret5d>18%');
+  if (ret20d > 0.40) return reject('ret20d>40%');
+
+  const todayReturn = today.open > 0 ? (close / today.open - 1) : 0;
+  if (todayReturn <= 0) return reject('todayReturn<=0');
+
+  const range = today.high - today.low;
+  const closeLocation = range > 0 ? (close - today.low) / range : 0;
+  if (closeLocation < 0.4) return reject('closeLocation<0.4');
+
+  // ─── 핵심 지표 ───
+  const last20vol = last20rows.map(r => r.volume || 0);
+  const avg20Vol = last20vol.reduce((s, v) => s + v, 0) / Math.max(last20rows.length, 1);
+  const volumeRatio20 = avg20Vol > 0 ? (today.volume || 0) / avg20Vol : 0;
+
+  const valueRatio20 = avg20Value > 0 ? (today.valueApprox || 0) / avg20Value : 0;
+  const last60rows = chartRows.slice(-60);
+  const avg60Value = last60rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last60rows.length, 1);
+  const valueRatio60 = avg60Value > 0 ? (today.valueApprox || 0) / avg60Value : 0;
+
+  const ma20 = sma(chartRows.slice(-20).map(r => r.close), 20);
+  const distance20 = ma20 ? (close / ma20 - 1) : 0;
+
+  const upperWick = today.high > today.close ? (today.high - today.close) : 0;
+  const bodyHeight = Math.abs(today.close - today.open);
+  const upperWickRatio = bodyHeight > 0 ? upperWick / bodyHeight : 0;
+
+  // ─── 초동 조건 판정 ───
+  const isIgnition = volumeRatio20 >= 2.0 && valueRatio20 >= 2.0 && valueRatio20 <= 5.0
+    && todayReturn >= 0.02 && todayReturn <= 0.12 && closeLocation >= 0.7 && upperWickRatio <= 0.35;
+  const isStrongIgnition = volumeRatio20 >= 2.5 && valueRatio20 >= 3.0 && valueRatio20 <= 5.0
+    && todayReturn >= 0.03 && todayReturn <= 0.15 && closeLocation >= 0.8 && upperWickRatio <= 0.25;
+  const isOverheat = valueRatio20 > 5.0 || todayReturn > 0.15 || ret5d > 0.18 || upperWickRatio > 0.45;
+
+  if (!isIgnition && !isStrongIgnition) return reject('not ignition');
+  if (isOverheat) return reject('overheat');
+
+  // ─── 점수 계산 ───
+  let valueExplosionScore = 0;
+  if (valueRatio20 >= 5.0) valueExplosionScore = 25;
+  else if (valueRatio20 >= 3.0) valueExplosionScore = 20;
+  else if (valueRatio20 >= 2.0) valueExplosionScore = 12;
+  if (valueRatio60 >= 3.0) valueExplosionScore = Math.min(30, valueExplosionScore + 5);
+
+  let volumeExplosionScore = 0;
+  if (volumeRatio20 >= 3.0) volumeExplosionScore = 20;
+  else if (volumeRatio20 >= 2.5) volumeExplosionScore = 16;
+  else if (volumeRatio20 >= 2.0) volumeExplosionScore = 10;
+
+  let candleQualityScore = 0;
+  if (closeLocation >= 0.8) candleQualityScore += 10;
+  else if (closeLocation >= 0.6) candleQualityScore += 6;
+  if (today.close > today.open) candleQualityScore += 5;
+  if (upperWick < 0.02) candleQualityScore += 5;
+  else if (upperWick < 0.05) candleQualityScore += 2;
+
+  let cooldownScore = 0;
+  if (ret5d <= 0.10) cooldownScore += 5;
+  else if (ret5d <= 0.15) cooldownScore += 2;
+  if (ret20d <= 0.20) cooldownScore += 5;
+  else if (ret20d <= 0.35) cooldownScore += 2;
+
+  let structureScore = 0;
+  if (ma20 && close >= ma20) structureScore += 5;
+  if (distance20 >= -0.05 && distance20 <= 0.15) structureScore += 5;
+
+  let liquidityScore = 0;
+  if (avg20Value >= 30_000_000_000) liquidityScore = 5;
+  else if (avg20Value >= 10_000_000_000) liquidityScore = 3;
+  else if (avg20Value >= 2_000_000_000) liquidityScore = 1;
+
+  let flowScore = 0;
+  if (flowRows?.length >= 3) {
+    const flow3 = flowRows.slice(-3);
+    const net3 = flow3.reduce((s, r) => s + ((r.foreignNetValue || 0) + (r.instNetValue || 0)), 0);
+    if (net3 > 0) flowScore = 5;
+    else if (net3 > -5_000_000_000) flowScore = 2;
+  }
+
+  const category = isStrongIgnition ? 'STRONG_IGNITION' : 'IGNITION';
+  const score = valueExplosionScore + volumeExplosionScore + candleQualityScore
+    + cooldownScore + structureScore + liquidityScore + flowScore;
+
+  return {
+    passed: true,
+    category,
+    score,
+    breakdown: { valueExplosionScore, volumeExplosionScore, candleQualityScore,
+      cooldownScore, structureScore, liquidityScore, flowScore },
+    signals: { volumeRatio20: +(volumeRatio20.toFixed(2)), valueRatio20: +(valueRatio20.toFixed(2)), valueRatio60: +(valueRatio60.toFixed(2)),
+      closeLocation: +(closeLocation.toFixed(2)), todayReturn: +(todayReturn * 100).toFixed(2), ret5d: +(ret5d * 100).toFixed(2),
+      ret20d: +(ret20d * 100).toFixed(2), distance20: +(distance20 * 100).toFixed(2), atrPct: +(atrPct * 100).toFixed(2),
+      avg20Value, upperWickRatio: +(upperWickRatio.toFixed(2)) },
+  };
+}
+
 // 옛 PREMIUM/FRESH 점수 모델용 14-feature 추출기 — 모델 자체는 폐기됐지만
 // app.js 의 handleSearch (상세 페이지) 가 아직 참조해서 stub 으로 빈 객체 반환.
 // EJS 의 <%= features.x %> 는 모두 빈 문자열 출력 → 페이지 안 깨짐.
@@ -3072,5 +3203,6 @@ module.exports = {
   compressionSupportBreakoutUniverseV2,
   buildCsbTradePlan,
   calculateReboundScore,
+  calculateVolumeValueIgnition,
   extractPreIgnitionFeatures,
 };
