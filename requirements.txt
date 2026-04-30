@@ -1,2 +1,2 @@
-finance-datareader>=0.9.110
+pandas-datareader>=0.10.0
 pandas>=2.0.0
