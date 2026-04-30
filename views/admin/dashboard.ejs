@@ -209,11 +209,11 @@
             <i class="bi bi-cpu me-1"></i>② 분석 실행 (CSB 모델)
           </button>
         </form>
-        <form method="post" action="/admin/run-daily-update" class="m-0" onsubmit="return confirm('일일 업데이트를 실행할까요? (차트 + 수급 + 분석, ~5-10분 소요)');">
-          <button type="submit" class="btn btn-outline-info btn-sm" <%= (typeof patternState !== 'undefined' && patternState?.dailyUpdating) ? 'disabled' : '' %>>
-            <i class="bi bi-arrow-clockwise me-1"></i>⚡ 일일 업데이트
-          </button>
-        </form>
+        <button type="button" class="btn btn-outline-info btn-sm"
+          <%= (typeof patternState !== 'undefined' && patternState?.dailyUpdating) ? 'disabled' : '' %>
+          onclick="runDailyUpdate()">
+          <i class="bi bi-arrow-clockwise me-1"></i>⚡ 일일 업데이트
+        </button>
         <form method="post" action="/admin/send-pattern-mail" class="m-0" onsubmit="return confirm('VVI 신호 메일을 지금 발송할까요?');">
           <button type="submit" class="btn btn-outline-warning btn-sm">
             <i class="bi bi-envelope-check me-1"></i>③ VVI 신호 메일 발송
@@ -274,5 +274,24 @@
       <a href="/subscribe" class="text-decoration-none text-secondary"><i class="bi bi-envelope-plus me-1"></i>구독 페이지</a>
     </div>
   </div>
+
+  <script>
+    async function runDailyUpdate() {
+      const msg = '일일 업데이트를 실행할까요? (차트 + 수급 + 분석, ~5-10분 소요)';
+      if (!confirm(msg)) return;
+
+      try {
+        const resp = await fetch('/admin/run-daily-update', { method: 'POST' });
+        if (resp.ok) {
+          alert('일일 업데이트를 시작했습니다. 페이지를 새로고침합니다.');
+          location.href = '/admin';
+        } else {
+          alert('요청 실패: ' + resp.status);
+        }
+      } catch (e) {
+        alert('오류: ' + e.message);
+      }
+    }
+  </script>
 </body>
 </html>
