@@ -1050,6 +1050,7 @@ async function analyzeAll({ logProgress = false } = {}) {
 
   const result = {
     analyzedAt: new Date().toISOString(),
+    analyzeFinishedAt: new Date().toISOString(),
     seeded: seededCodes.length,
     processed,
     marketDetail,
