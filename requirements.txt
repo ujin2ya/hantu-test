@@ -1,2 +1,2 @@
-pykrx==1.2.7
+finance-datareader>=0.9.110
 pandas>=2.0.0

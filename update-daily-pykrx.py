@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Daily chart update — pykrx 기반 최근 5거래일 갱신
+Daily chart update — FinanceDataReader 기반 최근 5거래일 갱신
 
 대상: naver-stocks-list.json의 전체 종목 (4,260개)
-소스: pykrx (KRX 공식 데이터)
+소스: FinanceDataReader (KRX 데이터)
 출력: cache/stock-charts-long/{code}.json
 
 동작:
 1. naver-stocks-list.json에서 종목 코드 읽기
-2. 각 종목별로 pykrx로 최근 5거래일 조회
+2. 각 종목별로 FinanceDataReader로 최근 5거래일 조회
 3. stock-charts-long/{code}.json과 merge
    - 같은 date: replace
    - 새 date: append
@@ -28,7 +28,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any
 
 import pandas as pd
-from pykrx import stock
+import pandas_datareader.data as web
 
 # ─── Config ───
 ROOT = Path(__file__).parent
@@ -49,18 +49,18 @@ def load_stocks_list() -> List[str]:
     return codes
 
 
-def fetch_pykrx_data(code: str, days: int = 5) -> pd.DataFrame:
+def fetch_datareader_data(code: str, days: int = 5) -> pd.DataFrame:
     """
-    pykrx로 최근 N거래일 데이터 조회
+    FinanceDataReader로 최근 N거래일 데이터 조회
 
-    반환: DataFrame { Date, Open, High, Low, Close, Volume }
+    반환: DataFrame { Open, High, Low, Close, Volume }
     """
     try:
         # 최근 days + 여유(10일) 범위 조회
-        end_date = datetime.now().strftime("%Y%m%d")
-        start_date = (datetime.now() - timedelta(days=days + 10)).strftime("%Y%m%d")
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days + 10)
 
-        df = stock.get_market_ohlcv(start_date, end_date, code)
+        df = web.DataReader(code, "krx", start_date, end_date)
 
         if df is None or df.empty:
             return None
@@ -101,16 +101,16 @@ def merge_chart_data(cached: Dict[str, Any], new_df: pd.DataFrame) -> Dict[str, 
     existing_dates = {r["date"]: r for r in existing_rows}
 
     # 새 데이터 추가/업데이트
-    # pykrx 컬럼: '시가', '고가', '저가', '종가', '거래량', '등락률'
+    # FinanceDataReader 컬럼: 'Open', 'High', 'Low', 'Close', 'Volume'
     for idx, row in new_df.iterrows():
         date_str = idx.strftime("%Y%m%d")
         new_row = {
             "date": date_str,
-            "open": int(row.get("시가") or row.get("Open", 0)),
-            "high": int(row.get("고가") or row.get("High", 0)),
-            "low": int(row.get("저가") or row.get("Low", 0)),
-            "close": int(row.get("종가") or row.get("Close", 0)),
-            "volume": int(row.get("거래량") or row.get("Volume", 0)),
+            "open": int(row.get("Open", 0)),
+            "high": int(row.get("High", 0)),
+            "low": int(row.get("Low", 0)),
+            "close": int(row.get("Close", 0)),
+            "volume": int(row.get("Volume", 0)),
             # valueApprox는 별도 계산 필요 (Naver에서 제공하는 거래대금)
             # 일단은 volume * close로 근사값 계산
         }
@@ -177,7 +177,7 @@ def update_daily():
     failed = 0
     skipped = 0
 
-    print(f"\n[시작] pykrx 최근 5거래일 갱신")
+    print(f"\n[시작] FinanceDataReader 최근 5거래일 갱신")
     print(f"대상: {len(codes)}개 종목\n")
 
     for i, code in enumerate(codes, 1):
@@ -185,8 +185,8 @@ def update_daily():
         if i % 50 == 0 or i == 1:
             print(f"[진행] {i}/{len(codes)} ({i*100//len(codes)}%)")
 
-        # pykrx 조회
-        new_df = fetch_pykrx_data(code)
+        # FinanceDataReader 조회
+        new_df = fetch_datareader_data(code)
         if new_df is None or new_df.empty:
             skipped += 1
             continue
