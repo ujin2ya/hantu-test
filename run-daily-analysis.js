@@ -173,7 +173,7 @@ async function main() {
   let t1 = Date.now();
   const chartOk = runCommand(
     `${PYTHON_CMD} "${UPDATE_CHART_SCRIPT}"`,
-    '차트 데이터 갱신 (pykrx)',
+    '차트 데이터 갱신 (KIS API)',
   );
   timings.chartTime = Math.ceil((Date.now() - t1) / 1000);
 
@@ -183,7 +183,7 @@ async function main() {
   let t2 = Date.now();
   const flowOk = runCommand(
     `node "${UPDATE_FLOW_SCRIPT}"`,
-    '수급 데이터 갱신 (Naver)',
+    '수급 데이터 갱신 (KIS API)',
   );
   timings.flowTime = Math.ceil((Date.now() - t2) / 1000);
 

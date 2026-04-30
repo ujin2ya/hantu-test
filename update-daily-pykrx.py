@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Daily chart update — KIS API 기반 최근 5거래일 갱신
+Daily chart update — KIS API 기반 최근 5거래일 갱신 (병렬 처리)
 
 대상: naver-stocks-list.json의 전체 종목 (4,260개)
 소스: KIS API (한국투자증권) — 공식 차트 데이터
@@ -8,16 +8,17 @@ Daily chart update — KIS API 기반 최근 5거래일 갱신
 
 동작:
 1. naver-stocks-list.json에서 종목 코드 읽기
-2. 각 종목별로 KIS API로 최근 5거래일 조회
+2. 각 종목별로 KIS API로 60일 조회 (최근 5거래일 포함)
 3. stock-charts-long/{code}.json과 merge
    - 같은 date: replace
    - 새 date: append
    - 정렬, 중복 제거
    - 최소 120일 보존
-4. 병렬 처리 (8개 스레드)
+4. ThreadPoolExecutor로 병렬 처리 (8개 워커, 5-10배 성능 향상)
 
 실행:
-  python update-daily-pykrx.py
+  python update-daily-pykrx.py [limit]
+  python update-daily-pykrx.py 2  # 테스트: 2개 종목만
 """
 
 import json
