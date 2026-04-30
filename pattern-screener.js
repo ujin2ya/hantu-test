@@ -32,6 +32,54 @@ function sma(prices, period) {
   return avg(prices.slice(-period));
 }
 
+// expectedMarketDate 계산 — 분석 기준일
+// ANALYSIS_DATE 환경변수가 있으면 그걸 사용, 없으면 KST 현재시각으로 계산
+function getExpectedMarketDate() {
+  if (process.env.ANALYSIS_DATE) return process.env.ANALYSIS_DATE;
+
+  const kstNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+  const hours = kstNow.getHours();
+  const minutes = kstNow.getMinutes();
+  const dayOfWeek = kstNow.getDay(); // 0=일, 1=월, ..., 6=토
+
+  // 주중 16:20 이전 또는 주말/공휴일 → 직전 거래일
+  if (dayOfWeek === 0 || dayOfWeek === 6 || hours < 16 || (hours === 16 && minutes < 20)) {
+    // 직전 거래일 계산 (간단: 1일 전, 주말 고려 필요)
+    const yesterday = new Date(kstNow);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // 토요일(6) → 금요일, 일요일(0) → 금요일
+    while (yesterday.getDay() === 0 || yesterday.getDay() === 6) {
+      yesterday.setDate(yesterday.getDate() - 1);
+    }
+
+    return yesterday.toISOString().split('T')[0].replace(/-/g, '');
+  }
+
+  // 16:20 이후 → 오늘 거래일
+  return kstNow.toISOString().split('T')[0].replace(/-/g, '');
+}
+
+// 한국 공휴일 리스트 (간단 버전, 나중에 보강 가능)
+const KR_HOLIDAYS = new Set([
+  '20260101', // 신정
+  '20260217', '20260218', '20260219', // 설
+  '20260301', // 삼일절
+  '20260405', // 국회의원 선거일
+  '20260505', // 어린이날
+  '20260515', // 스승의 날
+  '20260606', // 지방선거일
+  '20260815', // 광복절
+  '20260917', '20260918', '20260919', // 추석
+  '20261003', // 개천절
+  '20261009', // 한글날
+  '20261225', // 성탄절
+]);
+
+function isKrHoliday(dateStr) {
+  return KR_HOLIDAYS.has(dateStr);
+}
+
 // ─────────── KOSPI ───────────
 async function fetchKospiHistory(count = 250) {
   const url = `https://api.stock.naver.com/chart/domestic/index/KOSPI?periodType=dayCandle&count=${count}`;
@@ -664,6 +712,9 @@ async function analyzeAll({ logProgress = false } = {}) {
   const marketDetail = await detectMarketDetail();
   const dartApiKey = process.env.DART_API_KEY;
 
+  // ─── 분석 기준일 설정 ───
+  const expectedMarketDate = getExpectedMarketDate();
+
   // 시장 regime — bull/bear/sideways (BullTrendWatch 게이트용)
   const marketRegime = detectMarketRegime(kospi, kosdaq);
 
@@ -1011,36 +1062,47 @@ async function analyzeAll({ logProgress = false } = {}) {
     if (overheatHit) overheatWarnings.push(tagged);
   }
 
-  // ─── latestMarketDate (전체 종목 lastDate 최빈값) ───
+  // ─── availableModeDate (참고용: 전체 종목 lastDate 최빈값) ───
   const dateFreq = {};
   taggedAll.forEach(t => { if (t.lastDate) dateFreq[t.lastDate] = (dateFreq[t.lastDate] || 0) + 1; });
-  let latestMarketDate = null, maxFreq = 0;
-  for (const [d, c] of Object.entries(dateFreq)) { if (c > maxFreq) { maxFreq = c; latestMarketDate = d; } }
+  let availableModeDate = null, availableModeDateCount = 0, maxFreq = 0;
+  for (const [d, c] of Object.entries(dateFreq)) { if (c > maxFreq) { maxFreq = c; availableModeDate = d; availableModeDateCount = c; } }
 
-  // ─── vviTodayCandidates: signalDate === latestMarketDate ───
-  const vviTodayCandidates = vviCandidates
-    .filter(t => t.lastDate === latestMarketDate)
+  // ─── 데이터 커버리지 계산 ───
+  const totalStocks = taggedAll.length;
+  const expectedDateCount = taggedAll.filter(t => t.lastDate === expectedMarketDate).length;
+  const coverageRatio = totalStocks > 0 ? expectedDateCount / totalStocks : 0;
+  let dataStatus = 'OK';
+  let dataWarning = null;
+  if (coverageRatio < 0.6) {
+    dataStatus = 'STALE';
+    dataWarning = '최신 거래일 데이터가 부족합니다. 차트 데이터를 갱신한 후 다시 분석하세요.';
+  }
+
+  // ─── vviTodayCandidates: lastDate === expectedMarketDate && signalDate === expectedMarketDate ───
+  const vviTodayCandidates = dataStatus === 'OK' ? vviCandidates
+    .filter(t => t.lastDate === expectedMarketDate && t.lastDate === expectedMarketDate)
     .map(t => ({
       ...t,
       signalDate: t.lastDate,
       signalHigh: t.vvi?.signals?.signalHigh || t.closePrice,
       signalClose: t.vvi?.signals?.signalClose || t.closePrice,
       vviStatus: 'WAITING_CONFIRM',
-    }));
+    })) : [];
 
-  // ─── vviRecentSignals: 최근 1~5 거래일 신호 추적 ───
+  // ─── vviRecentSignals: 최근 1~5 거래일 신호 추적 (expectedMarketDate 기준) ───
   const vviRecentSignals = [];
 
-  // A) stale vviCandidates (lastDate < latestMarketDate)
+  // A) stale vviCandidates (lastDate < expectedMarketDate)
   for (const t of vviCandidates) {
-    if (t.lastDate < latestMarketDate) {
+    if (t.lastDate < expectedMarketDate) {
       vviRecentSignals.push({
         code: t.code, name: t.name, market: t.market, marketCap: t.marketCap,
         regime: t.regime, closePrice: t.closePrice, lastDate: t.lastDate,
         signalDate: t.lastDate,
         signalHigh: t.vvi?.signals?.signalHigh || t.closePrice,
         signalClose: t.vvi?.signals?.signalClose || t.closePrice,
-        currentDate: latestMarketDate,
+        currentDate: expectedMarketDate,
         currentPrice: null,
         daysAfterSignal: null,
         vviStatus: 'STALE',
@@ -1053,7 +1115,7 @@ async function analyzeAll({ logProgress = false } = {}) {
   for (const t of taggedAll) {
     if (!t.recentVviSignal) continue;
     const sig = t.recentVviSignal;
-    if (sig.signalDate === latestMarketDate) continue; // 오늘 신호는 vviTodayCandidates에서 처리
+    if (sig.signalDate === expectedMarketDate) continue; // 오늘 신호는 vviTodayCandidates에서 처리
     vviRecentSignals.push({
       code: t.code, name: t.name, market: t.market, marketCap: t.marketCap,
       regime: t.regime, closePrice: t.closePrice, lastDate: t.lastDate,
@@ -1173,7 +1235,15 @@ async function analyzeAll({ logProgress = false } = {}) {
     vviCount: vviCandidates.length,
     vviTodayCandidates,
     vviRecentSignals,
-    latestMarketDate,
+    // ─── 날짜 및 데이터 상태 ───
+    expectedMarketDate,
+    availableModeDate,
+    availableModeDateCount,
+    totalStocks,
+    expectedDateCount,
+    coverageRatio: +(coverageRatio * 100).toFixed(1),
+    dataStatus,
+    dataWarning,
     bullTrendWatch,
     bullTrendWatchCount: bullTrendWatch.length,
     overheatWarnings: overheatWarnings.sort((a, b) => (b.ret5d || 0) - (a.ret5d || 0)),

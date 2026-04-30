@@ -2708,7 +2708,16 @@ app.get("/pattern", (req, res) => {
   // ─── VVI 오늘 후보 + 최근 신호 추적 ───
   const vviTodayCandidates = (result?.vviTodayCandidates || []).filter(matchSearch);
   const vviRecentSignals = (result?.vviRecentSignals || []).filter(matchSearch);
-  const latestMarketDate = result?.latestMarketDate || null;
+
+  // ─── 날짜 및 데이터 상태 ───
+  const expectedMarketDate = result?.expectedMarketDate || null;
+  const availableModeDate = result?.availableModeDate || null;
+  const availableModeDateCount = result?.availableModeDateCount || 0;
+  const totalStocks = result?.totalStocks || 0;
+  const expectedDateCount = result?.expectedDateCount || 0;
+  const coverageRatio = result?.coverageRatio || 0;
+  const dataStatus = result?.dataStatus || 'OK';
+  const dataWarning = result?.dataWarning || null;
 
   const bullTrendWatch = (result?.bullTrendWatch || []).filter(matchSearch);
   const overheatWarnings = (result?.overheatWarnings || []).filter(matchSearch);
@@ -2742,6 +2751,9 @@ app.get("/pattern", (req, res) => {
   res.render("pattern", {
     result, seededCount, patternState,
     cQuery, holdingsRaw,
+    // ─── 날짜 및 데이터 상태 ───
+    expectedMarketDate, availableModeDate, availableModeDateCount,
+    totalStocks, expectedDateCount, coverageRatio, dataStatus, dataWarning,
     // CSB 메인
     csbMainCandidates: csbMainCandidates || [],
     csbSubCandidates: csbSubCandidates || [],
@@ -2751,7 +2763,6 @@ app.get("/pattern", (req, res) => {
     vviCandidates: vviCandidates || [],
     vviTodayCandidates: vviTodayCandidates || [],
     vviRecentSignals: vviRecentSignals || [],
-    latestMarketDate: latestMarketDate || null,
     bullTrendWatch: bullTrendWatch || [],
     overheatWarnings: overheatWarnings || [],
     taggedAll: taggedAll || [],
