@@ -68,6 +68,26 @@ function row(label, s, t = null) {
 function aggKey(trials, key) {
   return summarize(trials.map((t) => t.forward?.[key]).filter(Number.isFinite));
 }
+function summarizeBreakout(trials, entryPriceField, metric) {
+  const rets = trials.filter(t => t.triggered).map(t => t[metric]).filter(Number.isFinite);
+  if (!rets || !rets.length) return null;
+  const sorted = [...rets].sort((a, b) => a - b);
+  const wins = rets.filter((r) => r > 0);
+  const losses = rets.filter((r) => r < 0);
+  const sum = (a) => a.reduce((s, v) => s + v, 0);
+  const mean = sum(rets) / rets.length;
+  const pf = losses.length ? sum(wins) / Math.abs(sum(losses)) : (wins.length ? Infinity : 0);
+  return {
+    triggered: trials.filter(t => t.triggered).length,
+    triggerRate: Math.round((trials.filter(t => t.triggered).length / trials.length) * 100),
+    n: rets.length,
+    mean: +(mean * 100).toFixed(2),
+    median: +(sorted[Math.floor(sorted.length / 2)] * 100).toFixed(2),
+    win: Math.round((wins.length / rets.length) * 100),
+    pf: +pf.toFixed(2),
+    worst: +(sorted[0] * 100).toFixed(2),
+  };
+}
 function trimKey(trials, key) {
   return trimmed(trials.map((t) => t.forward?.[key]).filter(Number.isFinite));
 }
@@ -203,6 +223,32 @@ for (const s of stocksList.stocks) codeMeta.set(s.code, s);
       let vviScore;
       try { vviScore = ps.calculateVolumeValueIgnition(chartsUpTo, flowsUpTo, meta); } catch (_) { vviScore = null; }
       if (vviScore?.passed) {
+        // Breakout Confirm 전략용 데이터 수집
+        const signalHigh = today.high;
+        const triggered = nextBar && nextBar.high > signalHigh;
+
+        // 4가지 진입가로 forward returns 계산 (breakout triggered일 때만)
+        const breakoutReturnsA = {};  // entry = signalHigh
+        const breakoutReturnsB = {};  // entry = signalHigh * 1.003
+        const breakoutReturnsC = {};  // entry = signalHigh * 1.005
+        const breakoutReturnsD = {};  // entry = nextClose (if triggered)
+
+        if (triggered) {
+          const entryA = signalHigh;
+          const entryB = signalHigh * 1.003;
+          const entryC = signalHigh * 1.005;
+          const entryD = nextClosePrice;
+
+          for (const fwd of FORWARD_DAYS) {
+            const fut = chartRows[t + fwd];
+            if (!fut || !(fut.close > 0)) continue;
+            breakoutReturnsA[`d${fwd}`] = fut.close / entryA - 1;
+            breakoutReturnsB[`d${fwd}`] = fut.close / entryB - 1;
+            breakoutReturnsC[`d${fwd}`] = fut.close / entryC - 1;
+            breakoutReturnsD[`d${fwd}`] = fut.close / entryD - 1;
+          }
+        }
+
         vviTrials.push({
           ...baseTrial,
           score: vviScore.score,
@@ -210,6 +256,13 @@ for (const s of stocksList.stocks) codeMeta.set(s.code, s);
           breakdown: vviScore.breakdown,
           signals: vviScore.signals,
           todayReturn: vviScore.signals?.todayReturn || 0,
+          signalHigh,
+          triggered,
+          nextHighBreakoutHigh: nextBar?.high || 0,
+          breakoutReturnsA,
+          breakoutReturnsB,
+          breakoutReturnsC,
+          breakoutReturnsD,
         });
       }
     }
@@ -372,75 +425,174 @@ for (const s of stocksList.stocks) codeMeta.set(s.code, s);
     console.table(compareTab((t) => trGroup(t) === grp, 5, 'nextOpen'));
   }
 
-  // ─── 진입 방식별 상세 분석 ───
+  // ─── VVI Breakout Confirm 전략 백테스트 ───
   console.log('\n\n================================================================');
-  console.log('## 진입 방식 상세 비교 (Next Open 중심)');
+  console.log('## VVI Breakout Confirm 전략');
   console.log('================================================================');
-  function compareDetail(a, b, fwd, method = 'nextOpen') {
-    if (!a || !b) return `  d${fwd}: 표본 부족`;
-    const checks = [
-      ['mean', a.mean > b.mean],
-      ['win%', a.win > b.win],
-      ['PF', a.pf > b.pf],
-      ['median', a.median > b.median],
-    ];
-    const ok = checks.filter(([, v]) => v).length;
-    const detail = checks.map(([k, v]) => `${k}${v ? '✓' : '✗'}`).join(' ');
-    return `  d${fwd}: ${detail}  (${ok}/4)  | VVI n=${a.n} mean=${a.mean}% win=${a.win}% PF=${a.pf}   vs   baseline n=${b.n} mean=${b.mean}% win=${b.win}% PF=${b.pf}`;
+  console.log('신호: VVI v2 신호 발생');
+  console.log('진입조건: 다음 거래일에 전일 고가를 돌파 (nextBar.high > signalDay.high)');
+  console.log('진입가: A) 신호일 고가 / B) 신호일 고가×1.003 / C) 신호일 고가×1.005 / D) 다음일 종가\n');
+
+  function analyzeBreakout(label, trials, entryType) {
+    console.log(`\n### ${label}`);
+
+    // Trigger 통계
+    const triggered = trials.filter(t => t.triggered);
+    const triggerRate = trials.length > 0 ? Math.round((triggered.length / trials.length) * 100) : 0;
+    console.log(`Triggered: ${triggered.length}/${trials.length} (${triggerRate}%)\n`);
+
+    if (triggered.length === 0) {
+      console.log('(진입 기회 없음)');
+      return;
+    }
+
+    // 4가지 진입가별 분석
+    const entries = ['A', 'B', 'C', 'D'];
+    const forwardFields = ['breakoutReturnsA', 'breakoutReturnsB', 'breakoutReturnsC', 'breakoutReturnsD'];
+    const results = [];
+
+    for (let i = 0; i < 4; i++) {
+      const entry = entries[i];
+      const field = forwardFields[i];
+      const d5Rets = triggered.map(t => t[field]?.d5).filter(Number.isFinite);
+
+      if (d5Rets.length === 0) {
+        results.push({ entry, triggered: 0, triggerRate: 0, n: 0, mean: '-', win: '-', pf: '-', worst: '-' });
+      } else {
+        const sorted = d5Rets.sort((a, b) => a - b);
+        const wins = d5Rets.filter(r => r > 0);
+        const losses = d5Rets.filter(r => r < 0);
+        const sum = arr => arr.reduce((s, v) => s + v, 0);
+        const mean = sum(d5Rets) / d5Rets.length;
+        const pf = losses.length ? sum(wins) / Math.abs(sum(losses)) : (wins.length ? Infinity : 0);
+
+        results.push({
+          entry: `Entry ${entry}${entry === 'A' ? ' (고가)' : entry === 'B' ? ' (+0.3%)' : entry === 'C' ? ' (+0.5%)' : ' (다음종가)'}`,
+          triggered: triggered.length,
+          triggerRate,
+          n: d5Rets.length,
+          mean: +(mean * 100).toFixed(2),
+          median: +(sorted[Math.floor(sorted.length / 2)] * 100).toFixed(2),
+          win: Math.round((wins.length / d5Rets.length) * 100),
+          pf: +pf.toFixed(2),
+          worst: +(sorted[0] * 100).toFixed(2),
+        });
+      }
+    }
+    console.table(results);
   }
 
-  const vviD3NextOpen = aggKeyByMethod(vviTrials, 'd3', 'nextOpen');
-  const vviD5NextOpen = aggKeyByMethod(vviTrials, 'd5', 'nextOpen');
-  const vviD10NextOpen = aggKeyByMethod(vviTrials, 'd10', 'nextOpen');
-  const baseD3NextOpen = aggKeyByMethod(allTrials, 'd3', 'nextOpen');
-  const baseD5NextOpen = aggKeyByMethod(allTrials, 'd5', 'nextOpen');
-  const baseD10NextOpen = aggKeyByMethod(allTrials, 'd10', 'nextOpen');
+  // 전체 분석
+  analyzeBreakout('전체 VVI Breakout Confirm (d5 기준)', vviTrials);
 
-  console.log('\n### Next Open (다음 시가 진입) 기준:');
-  console.log(compareDetail(vviD3NextOpen, baseD3NextOpen, 3, 'nextOpen'));
-  console.log(compareDetail(vviD5NextOpen, baseD5NextOpen, 5, 'nextOpen'));
-  console.log(compareDetail(vviD10NextOpen, baseD10NextOpen, 10, 'nextOpen'));
+  // 시총별 분석
+  console.log('\n\n## 시총별 분석 (Entry A - 신호일 고가)');
+  for (const grp of ['500억-1000억', '1000-3000억', '3000억-1조', '1조+']) {
+    const filtered = vviTrials.filter(t => {
+      const mc = t.marketCap || 0;
+      if (grp === '500억-1000억') return mc >= 50_000_000_000 && mc < 100_000_000_000;
+      if (grp === '1000-3000억') return mc >= 100_000_000_000 && mc < 300_000_000_000;
+      if (grp === '3000억-1조') return mc >= 300_000_000_000 && mc < 1_000_000_000_000;
+      if (grp === '1조+') return mc >= 1_000_000_000_000;
+      return false;
+    });
+    if (filtered.length === 0) continue;
+    analyzeBreakout(`${grp} (n=${filtered.length})`, filtered);
+  }
 
-  // Hit rate analysis
-  console.log('\n\n================================================================');
-  console.log('## Hit Rate 분석 (Next Open, d5)');
-  console.log('================================================================');
-  const vviHitRates = {
-    hit5: summarizeByThreshold(vviTrials.map((t) => t.forwardNextOpen?.d5).filter(Number.isFinite), 0.05),
-    hit10: summarizeByThreshold(vviTrials.map((t) => t.forwardNextOpen?.d5).filter(Number.isFinite), 0.10),
-    hit20: summarizeByThreshold(vviTrials.map((t) => t.forwardNextOpen?.d5).filter(Number.isFinite), 0.20),
-  };
-  const baseHitRates = {
-    hit5: summarizeByThreshold(allTrials.map((t) => t.forwardNextOpen?.d5).filter(Number.isFinite), 0.05),
-    hit10: summarizeByThreshold(allTrials.map((t) => t.forwardNextOpen?.d5).filter(Number.isFinite), 0.10),
-    hit20: summarizeByThreshold(allTrials.map((t) => t.forwardNextOpen?.d5).filter(Number.isFinite), 0.20),
-  };
-  console.table([
-    { group: 'VVI', n: vviD5NextOpen?.n, 'hit5%': `${vviHitRates.hit5}%`, 'hit10%': `${vviHitRates.hit10}%`, 'hit20%': `${vviHitRates.hit20}%` },
-    { group: 'baseline', n: baseD5NextOpen?.n, 'hit5%': `${baseHitRates.hit5}%`, 'hit10%': `${baseHitRates.hit10}%`, 'hit20%': `${baseHitRates.hit20}%` },
-  ]);
+  // valueRatio 분석
+  console.log('\n\n## Value Ratio 분석 (Entry A - 신호일 고가)');
+  for (const grp of ['2~3배', '3~5배', '5배+']) {
+    const filtered = vviTrials.filter(t => {
+      const vr = t.signals?.valueRatio20 || 0;
+      if (grp === '2~3배') return vr >= 2.0 && vr < 3.0;
+      if (grp === '3~5배') return vr >= 3.0 && vr < 5.0;
+      if (grp === '5배+') return vr >= 5.0;
+      return false;
+    });
+    if (filtered.length === 0) continue;
+    analyzeBreakout(`${grp} (n=${filtered.length})`, filtered);
+  }
+
+  // closeLocation 분석
+  console.log('\n\n## Close Location 분석 (Entry A - 신호일 고가)');
+  for (const grp of ['0.7-0.8', '0.8+']) {
+    const filtered = vviTrials.filter(t => {
+      const cl = t.signals?.closeLocation || 0;
+      if (grp === '0.7-0.8') return cl >= 0.7 && cl < 0.8;
+      if (grp === '0.8+') return cl >= 0.8;
+      return false;
+    });
+    if (filtered.length === 0) continue;
+    analyzeBreakout(`${grp} (n=${filtered.length})`, filtered);
+  }
+
+  // todayReturn 분석
+  console.log('\n\n## Today Return 분석 (Entry A - 신호일 고가)');
+  for (const grp of ['2-5%', '5-10%', '10-15%']) {
+    const filtered = vviTrials.filter(t => {
+      const tr = (t.todayReturn || 0) / 100;
+      if (grp === '2-5%') return tr >= 0.02 && tr < 0.05;
+      if (grp === '5-10%') return tr >= 0.05 && tr < 0.10;
+      if (grp === '10-15%') return tr >= 0.10 && tr < 0.15;
+      return false;
+    });
+    if (filtered.length === 0) continue;
+    analyzeBreakout(`${grp} (n=${filtered.length})`, filtered);
+  }
+
+  // 장세 분석
+  console.log('\n\n## 장세 분석 (Entry A - 신호일 고가)');
+  for (const reg of ['bull', 'sideways', 'bear']) {
+    const filtered = vviTrials.filter(t => t.regime === reg);
+    if (filtered.length === 0) continue;
+    const regLabel = reg === 'bull' ? '강세' : reg === 'sideways' ? '횡보' : '약세';
+    analyzeBreakout(`${regLabel} (n=${filtered.length})`, filtered);
+  }
+
+  // 시장 분석
+  console.log('\n\n## 시장 분석 (Entry A - 신호일 고가)');
+  for (const m of ['KOSPI', 'KOSDAQ']) {
+    const filtered = vviTrials.filter(t => t.market === m);
+    if (filtered.length === 0) continue;
+    analyzeBreakout(`${m} (n=${filtered.length})`, filtered);
+  }
 
   // ─── 최종 판정 ───
   console.log('\n\n================================================================');
-  console.log('## 최종 판정 (Next Open 기준)');
+  console.log('## 최종 판정 (VVI Breakout Confirm — Entry A)');
   console.log('================================================================');
-  let conclusion;
-  const winThreshold = vviD5NextOpen?.win || 0;
-  const pfThreshold = vviD5NextOpen?.pf || 0;
-  const meanThreshold = vviD5NextOpen?.mean || 0;
-  const sampleSize = vviD5NextOpen?.n || 0;
+  const triggered = vviTrials.filter(t => t.triggered);
+  const trigRate = vviTrials.length > 0 ? Math.round((triggered.length / vviTrials.length) * 100) : 0;
+  const d5Rets = triggered.map(t => t.breakoutReturnsA?.d5).filter(Number.isFinite);
 
-  if (sampleSize >= 500 && winThreshold >= 55 && pfThreshold >= 1.4 && meanThreshold >= 1.0) {
-    conclusion = '✅ VVI 채택 가능 — Next Open 진입으로 충분한 알파 확인 (n≥500, win%≥55%, PF≥1.4, mean≥1.0%)';
-  } else if (sampleSize >= 300 && winThreshold >= 52 && pfThreshold >= 1.2 && meanThreshold >= 0.7) {
-    conclusion = '⚠️ 조건부 채택 — Next Open 진입으로 기본 조건 만족 (n≥300, win%≥52%, PF≥1.2). Bull regime 재검증 필요';
-  } else if (sampleSize >= 100 && winThreshold > 50 && pfThreshold > 1.1) {
-    conclusion = '⚠️ 신호 유지 — Next Open 진입으로 baseline 대비 우위 확인 (n≥100, win%>50%, PF>1.1). 필터 추가 검토';
-  } else if (sampleSize >= 100) {
-    conclusion = '🚨 알파 부족 — 후보 충분하지만 Next Open 진입 성과 미흡. 진입 타이밍 재검토 필요';
+  let summary = null;
+  if (d5Rets.length > 0) {
+    const sorted = d5Rets.sort((a, b) => a - b);
+    const wins = d5Rets.filter(r => r > 0);
+    const losses = d5Rets.filter(r => r < 0);
+    const sum = arr => arr.reduce((s, v) => s + v, 0);
+    const mean = sum(d5Rets) / d5Rets.length;
+    const pf = losses.length ? sum(wins) / Math.abs(sum(losses)) : (wins.length ? Infinity : 0);
+    const medVal = sorted[Math.floor(sorted.length / 2)];
+    const win = Math.round((wins.length / d5Rets.length) * 100);
+
+    summary = { triggered: triggered.length, trigRate, n: d5Rets.length, mean: +(mean * 100).toFixed(2), win, pf: +pf.toFixed(2) };
+
+    let conclusion;
+    if (trigRate >= 40 && win >= 50 && pf >= 1.5 && summary.mean >= 1.0) {
+      conclusion = '✅ 채택 가능 — trigger 40% 이상, d5 win≥50%, PF≥1.5, mean≥1.0%';
+    } else if (trigRate >= 30 && win >= 48 && pf >= 1.3 && summary.mean >= 0.8) {
+      conclusion = '⚠️ 조건부 채택 — trigger 30% 이상, d5 win≥48%, PF≥1.3, mean≥0.8%. 시총 대형주 확인 필요';
+    } else if (trigRate >= 20 && win >= 48 && pf >= 1.2) {
+      conclusion = '⚠️ 신호 유지 — trigger 20% 이상, 기본 조건 만족. UI 노출 검토';
+    } else {
+      conclusion = '🚨 성과 미흡 — trigger 또는 수익성 부족. 진입 조건 재검토';
+    }
+
+    console.log(`\n${conclusion}`);
+    console.log(`\n(VVI Breakout Confirm d5: triggered=${triggered.length}/${vviTrials.length} (${trigRate}%), n=${d5Rets.length}, mean=${summary.mean}%, win=${win}%, PF=${pf.toFixed(2)})`);
   } else {
-    conclusion = '🚨 모델 재설계 — 후보 부족(n<100) 또는 기본 조건 재검토';
+    console.log('\n🚨 분석 불가 — 진입 기회가 없거나 forward data 부족');
   }
-  console.log('\n  ' + conclusion);
-  console.log(`\n  (VVI Next Open d5: n=${sampleSize}, mean=${meanThreshold}%, win=${winThreshold}%, PF=${pfThreshold})`);
 })().catch((e) => { console.error('FATAL:', e); process.exit(1); });
