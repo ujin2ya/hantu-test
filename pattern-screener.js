@@ -845,6 +845,12 @@ async function analyzeAll({ logProgress = false } = {}) {
       try { vvi = calculateVolumeValueIgnition(rows, flowRows, meta); } catch (_) {}
     }
 
+    // VVI 과거 신호 스캔 (최근 1~5 거래일)
+    let recentVviSignal = null;
+    if (rows.length >= 65 && (flowRows?.length || 0) >= 10) {
+      try { recentVviSignal = scanRecentVviSignals(rows, flowRows, meta, 5); } catch (_) {}
+    }
+
     // CSB — 매 종목 lastIdx 시점 기준 (수급은 보조 가점만)
     let csb = null;
     try { csb = calculateCompressionSupportBreakoutScore(rows, flowRows, meta, lastIdx); } catch (_) {}
@@ -985,6 +991,7 @@ async function analyzeAll({ logProgress = false } = {}) {
         capBucket: smallCsb.capBucket,
         buyGuidance: smallCsb.buyGuidance,
       } : null,
+      recentVviSignal: recentVviSignal || null,
       tags,
       primaryTag,
     };
@@ -999,6 +1006,66 @@ async function analyzeAll({ logProgress = false } = {}) {
     if (vvi?.passed) vviCandidates.push(tagged);
     if (overheatHit) overheatWarnings.push(tagged);
   }
+
+  // ─── latestMarketDate (전체 종목 lastDate 최빈값) ───
+  const dateFreq = {};
+  taggedAll.forEach(t => { if (t.lastDate) dateFreq[t.lastDate] = (dateFreq[t.lastDate] || 0) + 1; });
+  let latestMarketDate = null, maxFreq = 0;
+  for (const [d, c] of Object.entries(dateFreq)) { if (c > maxFreq) { maxFreq = c; latestMarketDate = d; } }
+
+  // ─── vviTodayCandidates: signalDate === latestMarketDate ───
+  const vviTodayCandidates = vviCandidates
+    .filter(t => t.lastDate === latestMarketDate)
+    .map(t => ({
+      ...t,
+      signalDate: t.lastDate,
+      signalHigh: t.vvi?.signals?.signalHigh || t.closePrice,
+      signalClose: t.vvi?.signals?.signalClose || t.closePrice,
+      vviStatus: 'WAITING_CONFIRM',
+    }));
+
+  // ─── vviRecentSignals: 최근 1~5 거래일 신호 추적 ───
+  const vviRecentSignals = [];
+
+  // A) stale vviCandidates (lastDate < latestMarketDate)
+  for (const t of vviCandidates) {
+    if (t.lastDate < latestMarketDate) {
+      vviRecentSignals.push({
+        code: t.code, name: t.name, market: t.market, marketCap: t.marketCap,
+        regime: t.regime, closePrice: t.closePrice, lastDate: t.lastDate,
+        signalDate: t.lastDate,
+        signalHigh: t.vvi?.signals?.signalHigh || t.closePrice,
+        signalClose: t.vvi?.signals?.signalClose || t.closePrice,
+        currentDate: latestMarketDate,
+        currentPrice: null,
+        daysAfterSignal: null,
+        vviStatus: 'STALE',
+        vvi: t.vvi,
+      });
+    }
+  }
+
+  // B) recentVviSignal이 있는 종목
+  for (const t of taggedAll) {
+    if (!t.recentVviSignal) continue;
+    const sig = t.recentVviSignal;
+    if (sig.signalDate === latestMarketDate) continue; // 오늘 신호는 vviTodayCandidates에서 처리
+    vviRecentSignals.push({
+      code: t.code, name: t.name, market: t.market, marketCap: t.marketCap,
+      regime: t.regime, closePrice: t.closePrice, lastDate: t.lastDate,
+      signalDate: sig.signalDate,
+      signalHigh: sig.signalHigh,
+      signalClose: sig.signalClose,
+      currentDate: t.lastDate,
+      currentPrice: sig.currentPrice,
+      daysAfterSignal: sig.daysAfterSignal,
+      vviStatus: sig.status,
+      confirmHigh: sig.confirmHigh,
+      vvi: sig.vvi,
+    });
+  }
+
+  vviRecentSignals.sort((a, b) => (a.daysAfterSignal || 99) - (b.daysAfterSignal || 99));
 
   // 기존 분류 (역호환 — 모델 검증 페이지 / API 호환용)
   const buyCandidates = stage2Pool.filter((it) => it.setupScore >= 75 && it.entryReady)
@@ -1100,6 +1167,9 @@ async function analyzeAll({ logProgress = false } = {}) {
     reboundCount: reboundCandidates.length,
     vviCandidates: vviCandidates.sort((a, b) => (b.vvi?.score || 0) - (a.vvi?.score || 0)),
     vviCount: vviCandidates.length,
+    vviTodayCandidates,
+    vviRecentSignals,
+    latestMarketDate,
     bullTrendWatch,
     bullTrendWatchCount: bullTrendWatch.length,
     overheatWarnings: overheatWarnings.sort((a, b) => (b.ret5d || 0) - (a.ret5d || 0)),
@@ -3166,8 +3236,54 @@ function calculateVolumeValueIgnition(chartRows, flowRows, meta = {}) {
     signals: { volumeRatio20: +(volumeRatio20.toFixed(2)), valueRatio20: +(valueRatio20.toFixed(2)), valueRatio60: +(valueRatio60.toFixed(2)),
       closeLocation: +(closeLocation.toFixed(2)), todayReturn: +(todayReturn * 100).toFixed(2), ret5d: +(ret5d * 100).toFixed(2),
       ret20d: +(ret20d * 100).toFixed(2), distance20: +(distance20 * 100).toFixed(2), atrPct: +(atrPct * 100).toFixed(2),
-      avg20Value, upperWickRatio: +(upperWickRatio.toFixed(2)) },
+      avg20Value, upperWickRatio: +(upperWickRatio.toFixed(2)), signalHigh: today.high, signalClose: today.close },
   };
+}
+
+// ─── VVI 신호 발생 후 사후 추적 상태 판정 ───
+function computeVviStatus(subsequentRows, signalHigh) {
+  if (!subsequentRows || subsequentRows.length === 0) {
+    return { status: 'WAITING_CONFIRM', daysAfterSignal: 0 };
+  }
+  const days = subsequentRows.length;
+  const currentRow = subsequentRows[days - 1];
+  const currentPrice = currentRow.close;
+  const maxHigh = Math.max(...subsequentRows.map(r => r.high));
+  const confirmed = maxHigh > signalHigh;
+
+  if (!confirmed) {
+    if (days >= 5) return { status: 'EXPIRED', daysAfterSignal: days, currentPrice };
+    return { status: 'FAILED_CONFIRM', daysAfterSignal: days, currentPrice };
+  }
+  // 돌파 확인 이후
+  if (currentPrice > signalHigh * 1.08) return { status: 'CHASE_RISK', daysAfterSignal: days, currentPrice, confirmHigh: maxHigh };
+  if (currentPrice < maxHigh * 0.93)    return { status: 'PULLBACK_AFTER_CONFIRM', daysAfterSignal: days, currentPrice, confirmHigh: maxHigh };
+  return { status: 'CONFIRMED', daysAfterSignal: days, currentPrice, confirmHigh: maxHigh };
+}
+
+// ─── 최근 N 거래일 VVI 신호 스캔 ───
+function scanRecentVviSignals(rows, flowRows, meta, lookback) {
+  lookback = lookback || 5;
+  if (!rows || rows.length < 65) return null;
+  const lastIdx = rows.length - 1;
+  // rows[-2] ~ rows[-(lookback+1)] 스캔
+  for (let back = 1; back <= lookback; back++) {
+    const signalIdx = lastIdx - back;
+    if (signalIdx < 60) break;
+    const slicedChart = rows.slice(0, signalIdx + 1);
+    const signalDate = rows[signalIdx].date;
+    const slicedFlow = (flowRows || []).filter(r => r.date <= signalDate);
+    if (slicedFlow.length < 10) continue;
+    let vvi = null;
+    try { vvi = calculateVolumeValueIgnition(slicedChart, slicedFlow, meta); } catch (_) { continue; }
+    if (!vvi?.passed) continue;
+    // 신호 발생! 이후 거래일 상태 판정
+    const subsequentRows = rows.slice(signalIdx + 1);
+    const { signalHigh, signalClose } = vvi.signals;
+    const statusResult = computeVviStatus(subsequentRows, signalHigh);
+    return { signalDate, signalHigh, signalClose, vvi, ...statusResult };
+  }
+  return null;
 }
 
 // 옛 PREMIUM/FRESH 점수 모델용 14-feature 추출기 — 모델 자체는 폐기됐지만

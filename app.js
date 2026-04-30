@@ -2705,6 +2705,11 @@ app.get("/pattern", (req, res) => {
     return (b.vvi?.score || 0) - (a.vvi?.score || 0);
   });
 
+  // ─── VVI 오늘 후보 + 최근 신호 추적 ───
+  const vviTodayCandidates = (result?.vviTodayCandidates || []).filter(matchSearch);
+  const vviRecentSignals = (result?.vviRecentSignals || []).filter(matchSearch);
+  const latestMarketDate = result?.latestMarketDate || null;
+
   const bullTrendWatch = (result?.bullTrendWatch || []).filter(matchSearch);
   const overheatWarnings = (result?.overheatWarnings || []).filter(matchSearch);
   const taggedAll = (result?.taggedAll || []).filter(matchSearch);
@@ -2744,6 +2749,9 @@ app.get("/pattern", (req, res) => {
     flowLeadCandidates: flowLeadCandidates || [],
     reboundCandidates: reboundCandidates || [],
     vviCandidates: vviCandidates || [],
+    vviTodayCandidates: vviTodayCandidates || [],
+    vviRecentSignals: vviRecentSignals || [],
+    latestMarketDate: latestMarketDate || null,
     bullTrendWatch: bullTrendWatch || [],
     overheatWarnings: overheatWarnings || [],
     taggedAll: taggedAll || [],

@@ -112,6 +112,9 @@
 <%
   // Safe variables — 정의되지 않으면 빈 배열로 fallback
   const safeVviCandidates = typeof vviCandidates !== 'undefined' ? vviCandidates : [];
+  const safeVviTodayCandidates = typeof vviTodayCandidates !== 'undefined' ? vviTodayCandidates : [];
+  const safeVviRecentSignals = typeof vviRecentSignals !== 'undefined' ? vviRecentSignals : [];
+  const safeLatestMarketDate = typeof latestMarketDate !== 'undefined' ? latestMarketDate : null;
   const safeCsbMainCandidates = typeof csbMainCandidates !== 'undefined' ? csbMainCandidates : [];
   const safeCsbSubCandidates = typeof csbSubCandidates !== 'undefined' ? csbSubCandidates : [];
   const safeFlowLeadCandidates = typeof flowLeadCandidates !== 'undefined' ? flowLeadCandidates : [];
@@ -230,7 +233,7 @@ var csbStageLabel = {
 
       <!-- 1. 거래대금 초동 후보 (VVI Breakout Confirm) — 가장 먼저 표시 -->
       <div class="glass">
-        <h2><i class="bi bi-graph-up me-1"></i>거래대금 초동 후보 <span class="count">(<%= safeVviCandidates.length %>건)</span></h2>
+        <h2><i class="bi bi-graph-up me-1"></i>거래대금 초동 후보 <span class="count">(<%= safeVviTodayCandidates.length %>건)</span><% if (safeLatestMarketDate) { %> <small style="color:#94a3b8; font-weight:400; font-size:0.72rem; margin-left:8px;">기준일 <%= safeLatestMarketDate %></small><% } %></h2>
         <div class="cat-banner vvi" style="background:linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%); color:#78350f; border-left:4px solid #d97706;">
           <strong>VVI Breakout Confirm</strong> — 오늘 거래량과 거래대금이 평소보다 증가하고, 종가가 당일 범위 상단에서 마감한 종목입니다. 다음 거래일에 전일 고가를 돌파하는지 확인하는 방식이 백테스트상 가장 양호했습니다.
           <br/><small style="margin-top:8px; display:block; color:#92400e;"><strong>d5 기준</strong> 평균 +1.77%, 승률 50%, PF 1.68 · 강세장에서는 평균 +4.63%, PF 3.46</small>
@@ -247,10 +250,10 @@ var csbStageLabel = {
         <div class="alert alert-info small mb-3" style="border-left:4px solid #3b82f6; background:#eff6ff; color:#1e40af;">
           <i class="bi bi-info-circle me-2"></i><strong>관찰용 신호입니다</strong> · 이 항목은 매수 추천이 아니라 거래대금 초동 관찰 신호입니다. 다음 거래일 전일 고가 돌파 여부를 확인하는 방식으로 해석합니다.
         </div>
-        <% if (!safeVviCandidates || !safeVviCandidates.length) { %>
-          <div class="empty-state">현재 시점 통과 종목 없음</div>
+        <% if (!safeVviTodayCandidates || !safeVviTodayCandidates.length) { %>
+          <div class="empty-state">오늘 VVI 신호 없음</div>
         <% } else { %>
-          <% safeVviCandidates.forEach(function(c) { var s = c.vvi?.signals || {}; var vr = s.valueRatio20 || 0; var cl = s.closeLocation || 0; %>
+          <% safeVviTodayCandidates.forEach(function(c) { var s = c.vvi?.signals || {}; var vr = s.valueRatio20 || 0; var cl = s.closeLocation || 0; %>
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
@@ -264,17 +267,17 @@ var csbStageLabel = {
               </div>
 
               <div class="row2">
-                <span>현재가 <strong><%= won(c.closePrice) %></strong></span>
-                <span>오늘 등락 <strong class="<%= (c.todayReturn || 0) >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((c.todayReturn || 0) / 100).toFixed(1) %>%</strong></span>
+                <span>신호일 <strong><%= c.signalDate %></strong></span>
+                <span>신호 종가 <strong><%= won(c.signalClose) %></strong></span>
                 <span>거래량배 <strong><%= (s.volumeRatio20 || 0).toFixed(1) %>배</strong></span>
                 <span>거래대금배 <strong><%= (s.valueRatio20 || 0).toFixed(1) %>배</strong></span>
               </div>
 
               <div class="row2">
                 <span>종가위치 <strong><%= ((cl || 0) * 100).toFixed(0) %>%</strong></span>
-                <span>신호고가 <strong><%= won(s.signalHigh || c.closePrice) %></strong></span>
-                <span>확인가 <strong style="color:#dc2626;">전일 고가 돌파</strong></span>
-                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+                <span>신호고가 <strong style="color:#dc2626;"><%= won(c.signalHigh) %></strong></span>
+                <span>확인조건 <strong>전일 고가 돌파</strong></span>
+                <span class="tag-badge" style="background:#fef3c7; color:#92400e;">대기중</span>
               </div>
 
               <div class="row3" style="flex-wrap:wrap; gap:6px;">
@@ -309,7 +312,78 @@ var csbStageLabel = {
         <% } %>
       </div>
 
-      <!-- 2. 상승 전 압축 후보 (CSB 4태그) — 메인 모델 -->
+      <!-- 2. 최근 VVI 신호 추적 (1~5 거래일 사후 상태) -->
+      <div class="glass">
+        <h2><i class="bi bi-clock-history me-1"></i>최근 VVI 신호 추적 <span class="count">(<%= safeVviRecentSignals.length %>건)</span></h2>
+        <div class="cat-banner vvi" style="background:#fef9c3; border-left:4px solid #eab308; color:#713f12;">
+          신호 발생 후 1~5 거래일 이내 종목의 추적 현황입니다. 상태별로 대응 방향이 다릅니다.
+        </div>
+        <% if (!safeVviRecentSignals || !safeVviRecentSignals.length) { %>
+          <div class="empty-state">최근 5 거래일 내 추적 중인 신호 없음</div>
+        <% } else { %>
+          <% safeVviRecentSignals.forEach(function(c) {
+             var s = c.vvi?.signals || {};
+             var status = c.vviStatus || '';
+             var statusConfig = {
+               CONFIRMED:              { label: '돌파 확인', bg: '#d1fae5', color: '#065f46' },
+               CHASE_RISK:             { label: '추격 위험', bg: '#fca5a5', color: '#7f1d1d' },
+               PULLBACK_AFTER_CONFIRM: { label: '확인 후 되돌림', bg: '#fef3c7', color: '#854d0e' },
+               FAILED_CONFIRM:         { label: '돌파 실패', bg: '#fee2e2', color: '#991b1b' },
+               EXPIRED:                { label: '신호 만료', bg: '#f1f5f9', color: '#94a3b8' },
+               STALE:                  { label: '데이터 오래됨', bg: '#e2e8f0', color: '#475569' }
+             };
+             var sc = statusConfig[status] || { label: status, bg: '#e2e8f0', color: '#475569' };
+          %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
+                  <span class="mkt"><%= c.market %></span>
+                </div>
+                <span class="tag-badge" style="background:<%= sc.bg %>; color:<%= sc.color %>;"><%= sc.label %></span>
+              </div>
+
+              <div class="row2">
+                <span>신호일 <strong><%= c.signalDate %></strong></span>
+                <span>신호고가 <strong><%= won(c.signalHigh) %></strong></span>
+                <span>현재가 <strong><%= won(c.currentPrice || c.closePrice) %></strong></span>
+                <% if (c.signalHigh && (c.currentPrice || c.closePrice)) {
+                     var retPct = (((c.currentPrice || c.closePrice) / c.signalHigh - 1) * 100).toFixed(1);
+                     var retPos = parseFloat(retPct) >= 0;
+                %>
+                  <span>수익률(신호고가比) <strong class="<%= retPos ? 'ret-pos' : 'ret-neg' %>"><%= retPct %>%</strong></span>
+                <% } %>
+                <span style="margin-left:auto; color:#64748b;">D+<%= c.daysAfterSignal ?? '-' %></span>
+              </div>
+
+              <% if (c.confirmHigh && c.signalHigh) { %>
+                <div class="row2">
+                  <span>신호 후 최고가 <strong><%= won(c.confirmHigh) %></strong></span>
+                  <% var peakRetPct = ((c.confirmHigh / c.signalHigh - 1) * 100).toFixed(1); %>
+                  <span>최고 수익률 <strong class="ret-pos">+<%= peakRetPct %>%</strong></span>
+                </div>
+              <% } %>
+
+              <div class="row3" style="flex-wrap:wrap; gap:6px;">
+                <% if ((s.valueRatio20 || 0) >= 3.0) { %>
+                  <span class="tag-badge" style="background:#a3e635; color:#365314;">거대금 3배+</span>
+                <% } %>
+                <% if (c.vvi?.category === 'STRONG_IGNITION') { %>
+                  <span class="tag-badge tag-VVI_STRONG">강한신호</span>
+                <% } %>
+                <% if (c.regime === 'bull') { %>
+                  <span class="tag-badge" style="background:#fbbf24; color:#78350f;">강세장</span>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+      <!-- 3. 상승 전 압축 후보 (CSB 4태그) — 메인 모델 -->
       <div class="glass">
         <h2><i class="bi bi-bullseye me-1"></i>상승 전 압축 후보 <span class="count">(<%= safeCsbMainCandidates.length %>건)</span></h2>
         <div class="cat-banner" style="background:#ecfdf5; border-left:4px solid #047857;">
