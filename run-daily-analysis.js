@@ -42,11 +42,11 @@ function runCommand(cmd, description) {
    */
   try {
     log(`시작: ${description}`);
-    // timeout: 600초 (10분) — pykrx/Naver 조회용
+    // timeout: 1800초 (30분) — pykrx/Naver 조회용 (Naver: 700ms × 4260 = ~50분)
     execSync(cmd, {
       stdio: 'pipe',
       cwd: ROOT,
-      timeout: 600000,
+      timeout: 1800000,
       encoding: 'utf-8'
     });
     log(`완료: ${description}`);
@@ -54,7 +54,7 @@ function runCommand(cmd, description) {
   } catch (e) {
     log(`실패: ${description}`, 'ERROR');
     if (e.code === 'ETIMEDOUT') {
-      log(`원인: 명령 실행 시간 초과 (10분)`, 'ERROR');
+      log(`원인: 명령 실행 시간 초과 (30분)`, 'ERROR');
     } else {
       log(`상세: ${e.message}`, 'ERROR');
     }
