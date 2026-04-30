@@ -234,7 +234,7 @@ def update_daily():
         codes = codes[:limit]
         print(f"[테스트 모드] {limit}개 종목만 처리")
 
-    print(f"\n[시작] KIS API 차트 데이터 갱신 (병렬처리, 8개 스레드)")
+    print(f"\n[시작] KIS API 차트 데이터 갱신 (병렬처리, 32개 워커)")
     print(f"대상: {len(codes)}개 종목\n")
 
     # 토큰 획득

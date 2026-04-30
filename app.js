@@ -2753,6 +2753,7 @@ app.get("/pattern", (req, res) => {
     cQuery, holdingsRaw,
     // ─── 날짜 및 데이터 상태 ───
     expectedMarketDate, availableModeDate, availableModeDateCount,
+    latestMarketDate: result?.latestMarketDate || null,
     totalStocks, expectedDateCount, coverageRatio, dataStatus, dataWarning,
     // CSB 메인
     csbMainCandidates: csbMainCandidates || [],

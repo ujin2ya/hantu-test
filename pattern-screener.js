@@ -1062,15 +1062,16 @@ async function analyzeAll({ logProgress = false } = {}) {
     if (overheatHit) overheatWarnings.push(tagged);
   }
 
-  // ─── availableModeDate (참고용: 전체 종목 lastDate 최빈값) ───
+  // ─── latestMarketDate: 전체 종목 lastDate 최빈값 ───
   const dateFreq = {};
   taggedAll.forEach(t => { if (t.lastDate) dateFreq[t.lastDate] = (dateFreq[t.lastDate] || 0) + 1; });
-  let availableModeDate = null, availableModeDateCount = 0, maxFreq = 0;
-  for (const [d, c] of Object.entries(dateFreq)) { if (c > maxFreq) { maxFreq = c; availableModeDate = d; availableModeDateCount = c; } }
+  let latestMarketDate = null, availableModeDateCount = 0, maxFreq = 0;
+  for (const [d, c] of Object.entries(dateFreq)) { if (c > maxFreq) { maxFreq = c; latestMarketDate = d; availableModeDateCount = c; } }
+  const availableModeDate = latestMarketDate;  // 역호환
 
   // ─── 데이터 커버리지 계산 ───
   const totalStocks = taggedAll.length;
-  const expectedDateCount = taggedAll.filter(t => t.lastDate === expectedMarketDate).length;
+  const expectedDateCount = taggedAll.filter(t => t.lastDate === latestMarketDate).length;
   const coverageRatio = totalStocks > 0 ? expectedDateCount / totalStocks : 0;
   let dataStatus = 'OK';
   let dataWarning = null;
@@ -1079,30 +1080,30 @@ async function analyzeAll({ logProgress = false } = {}) {
     dataWarning = '최신 거래일 데이터가 부족합니다. 차트 데이터를 갱신한 후 다시 분석하세요.';
   }
 
-  // ─── vviTodayCandidates: lastDate === expectedMarketDate && signalDate === expectedMarketDate ───
-  const vviTodayCandidates = dataStatus === 'OK' ? vviCandidates
-    .filter(t => t.lastDate === expectedMarketDate && t.lastDate === expectedMarketDate)
+  // ─── vviTodayCandidates: lastDate === latestMarketDate && signalDate === latestMarketDate ───
+  const vviTodayCandidates = vviCandidates
+    .filter(t => t.lastDate === latestMarketDate)
     .map(t => ({
       ...t,
       signalDate: t.lastDate,
       signalHigh: t.vvi?.signals?.signalHigh || t.closePrice,
       signalClose: t.vvi?.signals?.signalClose || t.closePrice,
       vviStatus: 'WAITING_CONFIRM',
-    })) : [];
+    }));
 
-  // ─── vviRecentSignals: 최근 1~5 거래일 신호 추적 (expectedMarketDate 기준) ───
+  // ─── vviRecentSignals: 최근 1~5 거래일 신호 추적 (latestMarketDate 기준) ───
   const vviRecentSignals = [];
 
-  // A) stale vviCandidates (lastDate < expectedMarketDate)
+  // A) stale vviCandidates (lastDate < latestMarketDate)
   for (const t of vviCandidates) {
-    if (t.lastDate < expectedMarketDate) {
+    if (t.lastDate < latestMarketDate) {
       vviRecentSignals.push({
         code: t.code, name: t.name, market: t.market, marketCap: t.marketCap,
         regime: t.regime, closePrice: t.closePrice, lastDate: t.lastDate,
         signalDate: t.lastDate,
         signalHigh: t.vvi?.signals?.signalHigh || t.closePrice,
         signalClose: t.vvi?.signals?.signalClose || t.closePrice,
-        currentDate: expectedMarketDate,
+        currentDate: latestMarketDate,
         currentPrice: null,
         daysAfterSignal: null,
         vviStatus: 'STALE',
@@ -1115,7 +1116,7 @@ async function analyzeAll({ logProgress = false } = {}) {
   for (const t of taggedAll) {
     if (!t.recentVviSignal) continue;
     const sig = t.recentVviSignal;
-    if (sig.signalDate === expectedMarketDate) continue; // 오늘 신호는 vviTodayCandidates에서 처리
+    if (sig.signalDate === latestMarketDate) continue; // 오늘 신호는 vviTodayCandidates에서 처리
     vviRecentSignals.push({
       code: t.code, name: t.name, market: t.market, marketCap: t.marketCap,
       regime: t.regime, closePrice: t.closePrice, lastDate: t.lastDate,
@@ -1235,6 +1236,7 @@ async function analyzeAll({ logProgress = false } = {}) {
     vviCount: vviCandidates.length,
     vviTodayCandidates,
     vviRecentSignals,
+    latestMarketDate,
     // ─── 날짜 및 데이터 상태 ───
     expectedMarketDate,
     availableModeDate,
