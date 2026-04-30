@@ -184,6 +184,7 @@
               <div class="value">
                 <% if (patternState.dailyUpdating) { %>
                   <span class="badge-soft run">분석중</span>
+                  <span class="text-secondary small ms-2">약 20~30분 소요 (차트 + 수급 + 분석)</span>
                 <% } else if (patternState.dailyUpdateFinishedAt) { %>
                   <span class="badge-soft on">분석끝</span>
                   <span class="text-secondary small ms-2"><%= new Date(patternState.dailyUpdateFinishedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %></span>
@@ -277,7 +278,7 @@
 
   <script>
     async function runDailyUpdate() {
-      const msg = '일일 업데이트를 실행할까요? (차트 + 수급 + 분석, ~5-10분 소요)';
+      const msg = '일일 업데이트를 실행할까요? (차트 + 수급 + 분석, 약 20~30분 소요)';
       if (!confirm(msg)) return;
 
       try {
