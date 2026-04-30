@@ -735,10 +735,7 @@ async function analyzeAll({ logProgress = false } = {}) {
   const flowLeadCandidates = [];
   const reboundCandidates = [];
   const vviCandidates = [];
-  const qvaCandidates = [];
-  const qvaQuiet = [];
-  const qvaMaterial = [];
-  const qvaRisk = [];
+  const qvaCandidates = [];  // 단일 QVA 후보 (passed === true만)
   const overheatWarnings = [];
   const csbMainCandidates = [];   // CSB 4개 stage tag 모두 통과 — "상승 전 압축 후보"
   const csbSubCandidates = [];    // CSB 3개 stage (지지+거래대금+(압축 OR 돌파)) — "예비 압축 후보"
@@ -1072,9 +1069,6 @@ async function analyzeAll({ logProgress = false } = {}) {
     if (vvi?.passed) vviCandidates.push(tagged);
     if (qva?.passed) {
       qvaCandidates.push(tagged);
-      if (qva.category === 'QVA_QUIET') qvaQuiet.push(tagged);
-      else if (qva.category === 'QVA_MATERIAL') qvaMaterial.push(tagged);
-      else qvaRisk.push(tagged);
     }
     if (overheatHit) overheatWarnings.push(tagged);
   }
@@ -1255,14 +1249,9 @@ async function analyzeAll({ logProgress = false } = {}) {
     vviRecentSignals,
     latestMarketDate,
 
-    // ─── QVA (거래량 이상징후 선행 감지) ───
+    // ─── QVA (거래량 이상징후 선행 감지 — 단일 모델) ───
     qvaCandidates: qvaCandidates.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
-    qvaQuiet:   qvaQuiet.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
-    qvaMaterial: qvaMaterial.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
-    qvaRisk:    qvaRisk.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
-    qvaQuietCount: qvaQuiet.length,
-    qvaMaterialCount: qvaMaterial.length,
-    qvaRiskCount:  qvaRisk.length,
+    qvaCount: qvaCandidates.length,
 
     // ─── 날짜 및 데이터 상태 ───
     expectedMarketDate,
@@ -3389,123 +3378,158 @@ function scanRecentVviSignals(rows, flowRows, meta, lookback) {
   return null;
 }
 
-// ─── QVA (QuietVolumeAnomaly) — 거래량 이상징후 선행 감지 모델 ───
-// VVI(확인형)와 달리 대상승 직전 조용했던 구간에서 거래량/거래대금 선행 증가 포착
+// ─── QVA (QuietVolumeAnomaly) — 순수 거래량 이상징후 선행 감지 모델 ───
+// 단일 후보 모델: 조건에 맞으면 QVA, 아니면 제외 (억지로 분류하지 않음)
+// 조용한 구간에서 거래량/거래대금 선행 증가 포착 — 재료 반응형 제외
 function calculateQuietVolumeAnomaly(chartRows, flowRows, meta = {}) {
   if (!chartRows || chartRows.length < 60) return null;
   const reject = (reason) => ({ passed: false, reason });
 
-  // ─── Hard Filter ───
+  // ─── 필터 1: 기본 조건 ───
   if (meta.isSpecial || meta.isEtf) return reject('special/etf');
   const marketValue = meta.marketValue || 0;
-  if (marketValue > 0 && marketValue < 50_000_000_000) return reject('small_cap');
+  if (marketValue > 0 && marketValue < 50_000_000_000) return reject('marketcap<500B');
 
   const idx = chartRows.length - 1;
   const today = chartRows[idx];
   const close = today?.close;
   if (!close || close <= 0) return null;
 
-  // ATR% 필터 (변동성 30% 이상 제외)
-  const { atr } = computeATR(chartRows, idx, 14);
-  const atrPct = atr / close;
-  if (atrPct >= 0.30) return reject('high_volatility');
-
-  // 오늘 등락 필터 (-2% 하락 ~ +7% 상승)
-  const todayReturn = today.open > 0 ? (close / today.open - 1) : 0;
-  if (todayReturn < -0.02) return reject('big_drop');
-  if (todayReturn > 0.07)  return reject('big_rally');
-
-  // 단기 과열 필터 (5일 +15% / 20일 +30% 초과 제외)
-  const ret5d  = idx >= 5  ? (close / chartRows[idx - 5].close  - 1) : 0;
-  const ret20d = idx >= 20 ? (close / chartRows[idx - 20].close - 1) : 0;
-  if (ret5d  > 0.15) return reject('overheated_5d');
-  if (ret20d > 0.30) return reject('overheated_20d');
-
-  // 거래대금 기본 유동성 (20일 평균 10억 이상)
+  // ─── 필터 2: 유동성 조건 ───
   const avg20Value = chartRows.slice(-20).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
-  if (avg20Value < 1_000_000_000) return reject('illiquid');
+  if (avg20Value < 1_000_000_000) return reject('value<1B');
 
-  // ─── 핵심 지표 계산 ───
+  // ─── 필터 3: 거래량/거래대금 이상징후 ───
   const avg20Vol  = chartRows.slice(-20).reduce((s, r) => s + (r.volume || 0), 0) / 20;
   const avg60Value = chartRows.slice(-60).reduce((s, r) => s + (r.valueApprox || 0), 0) / 60;
-
-  const volumeRatio20 = today.volume / (avg20Vol || 1);
   const todayValue = today.valueApprox || (today.close * today.volume);
+  const volumeRatio20 = today.volume / (avg20Vol || 1);
   const valueRatio20  = todayValue / (avg20Value || 1);
-  const valueRatio60  = todayValue / (avg60Value || 1);
-  const valueDryness  = avg20Value / (avg60Value || 1);  // <= 1.2 → 조용한 구간
+  const valueDryness  = avg20Value / (avg60Value || 1);
 
-  // MA 거리
+  if (volumeRatio20 < 1.7) return reject('volRatio20<1.7');
+  if (valueRatio20 < 1.7) return reject('valRatio20<1.7');
+
+  // ─── 필터 4: 조용한 구간 확인 (거래대금 건조도) ───
+  if (valueDryness > 1.1) return reject('dryness>1.1');
+
+  // ─── 필터 5: 가격 안정성 (재료 반응형 제외) ───
+  const todayReturn = today.open > 0 ? (close / today.open - 1) : 0;
+  if (todayReturn < -0.015) return reject('todayReturn<-1.5%');
+  if (todayReturn > 0.035) return reject('todayReturn>3.5%');
+
+  const ret5d  = idx >= 5  ? (close / chartRows[idx - 5].close  - 1) : 0;
+  const ret20d = idx >= 20 ? (close / chartRows[idx - 20].close - 1) : 0;
+  if (ret5d > 0.05) return reject('ret5d>5%');
+  if (ret20d > 0.10) return reject('ret20d>10%');
+
+  // ─── 필터 6: 윗꼬리 (폭등/낙심 신호 제외) ───
+  const upperWick = today.high > today.close ? today.high - today.close : 0;
+  const bodyRange = Math.abs(today.close - today.open) || 1;
+  const upperWickRatio = upperWick / bodyRange;
+  if (upperWickRatio > 0.40) return reject('upperWick>0.4');
+
+  // ─── 필터 7: 변동성 ───
+  const { atr } = computeATR(chartRows, idx, 14);
+  const atrPct = atr / close;
+  if (atrPct > 0.25) return reject('atr%>25%');
+
+  // ─── 필터 8: 구조 유지 ───
   const ma20 = sma(chartRows.slice(-20).map(r => r.close), 20);
   const ma60 = chartRows.length >= 60 ? sma(chartRows.slice(-60).map(r => r.close), 60) : null;
-  const distance20 = ma20 ? close / ma20 - 1 : 0;
-  const distance60 = ma60 ? close / ma60 - 1 : 0;
+  const hasStructure = (ma20 != null && close >= ma20 * 0.93)
+                    || (ma60 != null && close >= ma60 * 0.90);
+  if (!hasStructure) return reject('structure_broken');
 
-  // 20일 고점 대비 거리
-  const high20 = Math.max(...chartRows.slice(-20).map(r => r.high));
-  const distanceToHigh20 = close / high20 - 1;
+  // ─── 모든 조건 통과 ───
+  return {
+    passed: true,
+    signals: {
+      volumeRatio20: +(volumeRatio20.toFixed(2)),
+      valueRatio20: +(valueRatio20.toFixed(2)),
+      valueDryness: +(valueDryness.toFixed(2)),
+      todayReturn: +(todayReturn * 100).toFixed(2),
+      ret5d: +(ret5d * 100).toFixed(2),
+      ret20d: +(ret20d * 100).toFixed(2),
+      upperWickRatio: +(upperWickRatio.toFixed(2)),
+      atrPct: +(atrPct * 100).toFixed(2),
+      avg20Value,
+    },
+  };
+}
 
-  // 종가 위치 (0 = 저가, 1 = 고가)
-  const rangeToday = (today.high - today.low) || 1;
-  const closeLocation = (close - today.low) / rangeToday;
+// ─── QVA_STRICT — 더 엄격한 실험 버전 ───
+// 기본 QVA보다 훨씬 까다로운 조건으로 더 순수한 신호만 포착
+function calculateQuietVolumeAnomalyStrict(chartRows, flowRows, meta = {}) {
+  if (!chartRows || chartRows.length < 60) return null;
+  const reject = (reason) => ({ passed: false, reason });
 
-  // 윗꼬리 비율
+  if (meta.isSpecial || meta.isEtf) return reject('special/etf');
+  const marketValue = meta.marketValue || 0;
+  if (marketValue > 0 && marketValue < 50_000_000_000) return reject('marketcap<500B');
+
+  const idx = chartRows.length - 1;
+  const today = chartRows[idx];
+  const close = today?.close;
+  if (!close || close <= 0) return null;
+
+  const avg20Value = chartRows.slice(-20).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+  if (avg20Value < 1_000_000_000) return reject('value<1B');
+
+  const avg20Vol  = chartRows.slice(-20).reduce((s, r) => s + (r.volume || 0), 0) / 20;
+  const avg60Value = chartRows.slice(-60).reduce((s, r) => s + (r.valueApprox || 0), 0) / 60;
+  const todayValue = today.valueApprox || (today.close * today.volume);
+  const volumeRatio20 = today.volume / (avg20Vol || 1);
+  const valueRatio20  = todayValue / (avg20Value || 1);
+  const valueDryness  = avg20Value / (avg60Value || 1);
+
+  // STRICT: 거래량/거래대금 비율 더 높게
+  if (volumeRatio20 < 1.8) return reject('volRatio20<1.8');
+  if (valueRatio20 < 1.8) return reject('valRatio20<1.8');
+
+  // STRICT: 건조도 더 엄격
+  if (valueDryness > 1.0) return reject('dryness>1.0');
+
+  const todayReturn = today.open > 0 ? (close / today.open - 1) : 0;
+  if (todayReturn < -0.01) return reject('todayReturn<-1%');
+  if (todayReturn > 0.03) return reject('todayReturn>3%');
+
+  const ret5d  = idx >= 5  ? (close / chartRows[idx - 5].close  - 1) : 0;
+  const ret20d = idx >= 20 ? (close / chartRows[idx - 20].close - 1) : 0;
+
+  // STRICT: 5일/20일 상승률 더 낮게
+  if (ret5d > 0.04) return reject('ret5d>4%');
+  if (ret20d > 0.08) return reject('ret20d>8%');
+
   const upperWick = today.high > today.close ? today.high - today.close : 0;
   const bodyRange = Math.abs(today.close - today.open) || 1;
   const upperWickRatio = upperWick / bodyRange;
 
-  // ─── Hard Filter: 윗꼬리 과다 ───
-  if (upperWickRatio > 0.55) return reject('upper_wick');
+  // STRICT: 윗꼬리 더 엄격
+  if (upperWickRatio > 0.35) return reject('upperWick>0.35');
 
-  // ─── 조건 판정 ───
-  const isQuiet        = valueDryness <= 1.2;
-  const strongAnomaly  = volumeRatio20 >= 2.0 && valueRatio20 >= 2.0;
-  const weakAnomaly    = volumeRatio20 >= 1.5 && valueRatio20 >= 1.5;
-  const hasStructure   = (ma20 != null && close >= ma20 * 0.93)
-                      || (ma60 != null && close >= ma60 * 0.90);
+  const { atr } = computeATR(chartRows, idx, 14);
+  const atrPct = atr / close;
+  if (atrPct > 0.25) return reject('atr%>25%');
 
-  // 기본 이상징후 없으면 탈락
-  if (!weakAnomaly) return reject('no_anomaly');
-
-  // ─── 카테고리 분류 (3가지) ───
-  let category;
-  const isRisk = upperWickRatio > 0.55 || ret5d > 0.08 || ret20d > 0.30 || todayReturn > 0.07;
-  const isMaterial = ret20d > 0.15 || todayReturn > 0.05;  // 재료성 있음 또는 당일 5% 초과
-
-  if (isQuiet && !isMaterial && todayReturn >= -0.02 && todayReturn <= 0.05 && ret5d <= 0.08 && ret20d <= 0.15 && hasStructure && !isRisk) {
-    category = 'QVA_QUIET';       // 순수한 선행 이상징후 (조용한 구간, 가격 안정)
-  } else if (weakAnomaly && hasStructure && !isRisk) {
-    category = 'QVA_MATERIAL';    // 거래량 증가 + 재료 반응형 (세아베스틸 같은)
-  } else if (isRisk) {
-    category = 'QVA_RISK';        // 이미 많이 오르거나 위험 신호
-  } else {
-    category = 'QVA_MATERIAL';    // 기타 이상징후 (MATERIAL로 분류)
-  }
-
-  // ─── 스코어 계산 ───
-  const volumeScore = Math.min(40,
-    volumeRatio20 >= 4 ? 40 : volumeRatio20 >= 3 ? 30 : volumeRatio20 >= 2 ? 20 : 10);
-  const valueScore = Math.min(40,
-    valueRatio20 >= 4 ? 40 : valueRatio20 >= 3 ? 30 : valueRatio20 >= 2 ? 20 : 10);
-  const quietBonus = isQuiet ? 15 : 0;
-  const locationScore = closeLocation >= 0.6 ? 10 : closeLocation >= 0.4 ? 5 : 0;
-  const structureScore = hasStructure ? 10 : 0;
-  const riskPenalty = (atrPct > 0.15 ? -10 : 0) + (upperWickRatio > 0.35 ? -5 : 0);
-
-  const score = volumeScore + valueScore + quietBonus + locationScore + structureScore + riskPenalty;
+  const ma20 = sma(chartRows.slice(-20).map(r => r.close), 20);
+  const ma60 = chartRows.length >= 60 ? sma(chartRows.slice(-60).map(r => r.close), 60) : null;
+  const hasStructure = (ma20 != null && close >= ma20 * 0.93)
+                    || (ma60 != null && close >= ma60 * 0.90);
+  if (!hasStructure) return reject('structure_broken');
 
   return {
     passed: true,
-    category,
-    score: Math.max(0, score),
-    breakdown: { volumeScore, valueScore, quietBonus, locationScore, structureScore, riskPenalty },
     signals: {
-      volumeRatio20: +(volumeRatio20.toFixed(2)), valueRatio20: +(valueRatio20.toFixed(2)), valueRatio60: +(valueRatio60.toFixed(2)),
-      valueDryness: +(valueDryness.toFixed(2)), closeLocation: +(closeLocation.toFixed(2)),
-      todayReturn: +(todayReturn * 100).toFixed(2), ret5d: +(ret5d * 100).toFixed(2), ret20d: +(ret20d * 100).toFixed(2),
-      distance20: +(distance20 * 100).toFixed(2), distance60: +(distance60 * 100).toFixed(2),
-      distanceToHigh20: +(distanceToHigh20 * 100).toFixed(2),
-      atrPct: +(atrPct * 100).toFixed(2), upperWickRatio: +(upperWickRatio.toFixed(2)), avg20Value,
+      volumeRatio20: +(volumeRatio20.toFixed(2)),
+      valueRatio20: +(valueRatio20.toFixed(2)),
+      valueDryness: +(valueDryness.toFixed(2)),
+      todayReturn: +(todayReturn * 100).toFixed(2),
+      ret5d: +(ret5d * 100).toFixed(2),
+      ret20d: +(ret20d * 100).toFixed(2),
+      upperWickRatio: +(upperWickRatio.toFixed(2)),
+      atrPct: +(atrPct * 100).toFixed(2),
+      avg20Value,
     },
   };
 }
@@ -3645,5 +3669,6 @@ module.exports = {
   calculateReboundScore,
   calculateVolumeValueIgnition,
   calculateQuietVolumeAnomaly,
+  calculateQuietVolumeAnomalyStrict,
   extractPreIgnitionFeatures,
 };

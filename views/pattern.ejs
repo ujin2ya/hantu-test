@@ -115,9 +115,7 @@
   const safeVviTodayCandidates = typeof vviTodayCandidates !== 'undefined' ? vviTodayCandidates : [];
   const safeVviRecentSignals = typeof vviRecentSignals !== 'undefined' ? vviRecentSignals : [];
   const safeLatestMarketDate = typeof latestMarketDate !== 'undefined' ? latestMarketDate : null;
-  const safeQvaQuiet = typeof qvaQuiet !== 'undefined' ? qvaQuiet : [];
-  const safeQvaMaterial = typeof qvaMaterial !== 'undefined' ? qvaMaterial : [];
-  const safeQvaRisk  = typeof qvaRisk  !== 'undefined' ? qvaRisk  : [];
+  const safeQvaCandidates = typeof qvaCandidates !== 'undefined' ? qvaCandidates : [];
   const safeCsbMainCandidates = typeof csbMainCandidates !== 'undefined' ? csbMainCandidates : [];
   const safeCsbSubCandidates = typeof csbSubCandidates !== 'undefined' ? csbSubCandidates : [];
   const safeFlowLeadCandidates = typeof flowLeadCandidates !== 'undefined' ? flowLeadCandidates : [];
@@ -252,102 +250,39 @@ var csbStageLabel = {
 
       <!-- 0. 거래량 이상징후 후보 (QVA — QuietVolumeAnomaly) — 대상승 전 선행 감지 -->
       <div class="glass">
-        <h2><i class="bi bi-lightning me-1"></i>거래량 이상징후 후보 <span class="count">(조용함: <%= safeQvaQuiet.length %> | 재료: <%= safeQvaMaterial.length %> | 위험: <%= safeQvaRisk.length %>)</span></h2>
+        <h2><i class="bi bi-lightning me-1"></i>거래량 이상징후 후보 <span class="count">(<%= safeQvaCandidates.length %>건)</span></h2>
         <div class="cat-banner" style="background:#f0f9ff; border-left:4px solid #0284c7; color:#0c4a6e;">
-          <strong>QVA (거래량 이상징후)</strong> — 거래량/거래대금이 평소보다 먼저 증가하는 선행 신호입니다. 조용한 구간 매집형(QUIET) vs 재료 반응형(MATERIAL)을 구분합니다.
+          <strong>QVA (Quiet Volume Anomaly)</strong> — 조용한 거래대금 구간에서 거래량/거래대금이 평소의 1.7배 이상 증가하면서, 가격은 안정적인(일중 ±3.5%, 5일 +5% 이하) 선행 신호입니다. 순수한 매집형 신호만 포착합니다.
         </div>
 
-        <% if (safeQvaQuiet.length === 0 && safeQvaMaterial.length === 0 && safeQvaRisk.length === 0) { %>
-          <div class="empty-state">현재 거래량 이상징후 종목 없음</div>
+        <% if (safeQvaCandidates.length === 0) { %>
+          <div class="empty-state">오늘 QVA 후보 없음</div>
         <% } else { %>
-
-          <% if (safeQvaQuiet.length > 0) { %>
-          <div style="margin-bottom: 20px;">
-            <h3 style="font-size:0.95rem; color:#059669; margin-bottom:10px;">
-              <span style="display:inline-block; background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:6px;">조용함</span>
-              순수한 선행 이상징후 (조용한 구간, 안정적 수익률)
-            </h3>
-            <% safeQvaQuiet.forEach(function(c) { var s = c.qva?.signals || {}; %>
-              <div class="item-card">
-                <div class="row1">
-                  <div class="name-block">
-                    <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
-                      <span class="nm"><%= c.name %></span><span class="cd"><%= c.code %></span>
-                    </a>
-                    <span class="mkt"><%= c.market %></span>
-                  </div>
-                  <span class="score-pill" style="background:#d1fae5; color:#065f46;">조용함 · <%= c.qva?.score || 0 %>점</span>
+          <% safeQvaCandidates.forEach(function(c) { var s = c.qva?.signals || {}; %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span><span class="cd"><%= c.code %></span>
+                  </a>
+                  <span class="mkt"><%= c.market %></span>
                 </div>
-                <div class="row2">
-                  <span>거래량비 <strong><%= (s.volumeRatio20 || 0).toFixed(1) %>x</strong></span>
-                  <span>거래대금비 <strong><%= (s.valueRatio20 || 0).toFixed(1) %>x</strong></span>
-                  <span>오늘 <strong class="<%= s.todayReturn >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (s.todayReturn || 0) %>%</strong></span>
-                  <span>D5 <strong><%= (s.ret5d || 0).toFixed(2) %>%</strong></span>
-                  <span>D20 <strong><%= (s.ret20d || 0).toFixed(2) %>%</strong></span>
-                  <span>건조도 <strong><%= (s.valueDryness || 0).toFixed(2) %></strong></span>
-                </div>
+                <span class="score-pill" style="background:#d1fae5; color:#065f46;">QVA 신호</span>
               </div>
-            <% }) %>
-          </div>
-          <% } %>
-
-          <% if (safeQvaMaterial.length > 0) { %>
-          <div style="margin-bottom: 20px;">
-            <h3 style="font-size:0.95rem; color:#d97706; margin-bottom:10px;">
-              <span style="display:inline-block; background:#fed7aa; color:#92400e; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:6px;">재료</span>
-              실적/공시 반응형 (거래량 증가 + 뉴스/공시)
-            </h3>
-            <% safeQvaMaterial.forEach(function(c) { var s = c.qva?.signals || {}; %>
-              <div class="item-card">
-                <div class="row1">
-                  <div class="name-block">
-                    <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
-                      <span class="nm"><%= c.name %></span><span class="cd"><%= c.code %></span>
-                    </a>
-                    <span class="mkt"><%= c.market %></span>
-                  </div>
-                  <span class="score-pill" style="background:#fed7aa; color:#92400e;">재료 · <%= c.qva?.score || 0 %>점</span>
-                </div>
-                <div class="row2">
-                  <span>거래량비 <strong><%= (s.volumeRatio20 || 0).toFixed(1) %>x</strong></span>
-                  <span>거래대금비 <strong><%= (s.valueRatio20 || 0).toFixed(1) %>x</strong></span>
-                  <span>오늘 <strong class="<%= s.todayReturn >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (s.todayReturn || 0) %>%</strong></span>
-                  <span>D5 <strong><%= (s.ret5d || 0).toFixed(2) %>%</strong></span>
-                  <span>D20 <strong><%= (s.ret20d || 0).toFixed(2) %>%</strong></span>
-                </div>
+              <div class="row2">
+                <span>거래량비 <strong><%= (s.volumeRatio20 || 0).toFixed(2) %>x</strong></span>
+                <span>거래대금비 <strong><%= (s.valueRatio20 || 0).toFixed(2) %>x</strong></span>
+                <span>건조도 <strong><%= (s.valueDryness || 0).toFixed(2) %></strong></span>
+                <span>오늘 <strong class="<%= s.todayReturn >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (s.todayReturn || 0).toFixed(2) %>%</strong></span>
               </div>
-            <% }) %>
-          </div>
-          <% } %>
-
-          <% if (safeQvaRisk.length > 0) { %>
-          <div>
-            <h3 style="font-size:0.95rem; color:#991b1b; margin-bottom:10px;">
-              <span style="display:inline-block; background:#fef2f2; color:#991b1b; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:6px;">위험</span>
-              이상징후 있으나 위험 신호
-            </h3>
-            <div class="small text-secondary" style="margin-bottom: 8px;">윗꼬리 과다, 과열, 또는 조용한 구간이 아님</div>
-            <% safeQvaRisk.forEach(function(c) { var s = c.qva?.signals || {}; %>
-              <div class="item-card">
-                <div class="row1">
-                  <div class="name-block">
-                    <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
-                      <span class="nm"><%= c.name %></span><span class="cd"><%= c.code %></span>
-                    </a>
-                    <span class="mkt"><%= c.market %></span>
-                  </div>
-                  <span class="score-pill" style="background:#fef2f2; color:#991b1b;">위험 · <%= c.qva?.score || 0 %>점</span>
-                </div>
-                <div class="row2">
-                  <span>거래량비 <strong><%= (s.volumeRatio20 || 0).toFixed(1) %>x</strong></span>
-                  <span>거래대금비 <strong><%= (s.valueRatio20 || 0).toFixed(1) %>x</strong></span>
-                  <span>윗꼬리비 <strong><%= (s.upperWickRatio || 0).toFixed(2) %></strong></span>
-                </div>
+              <div class="row2">
+                <span>D5 <strong><%= (s.ret5d || 0).toFixed(2) %>%</strong></span>
+                <span>D20 <strong><%= (s.ret20d || 0).toFixed(2) %>%</strong></span>
+                <span>윗꼬리 <strong><%= (s.upperWickRatio || 0).toFixed(2) %></strong></span>
+                <span>변동성 <strong><%= (s.atrPct || 0).toFixed(1) %>%</strong></span>
               </div>
-            <% }) %>
-          </div>
-          <% } %>
-
+            </div>
+          <% }) %>
         <% } %>
       </div>
 
