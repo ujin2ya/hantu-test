@@ -2867,32 +2867,57 @@ app.post("/admin/run-daily-update", requireAdmin, (req, res) => {
     startedAt: patternState.dailyUpdateStartedAt,
   });
 
-  // 백그라운드에서 실행 (블로킹 안 함)
+  // 백그라운드에서 비동기 실행 (서버 블로킹 안 함)
   (async () => {
     try {
-      const { execSync } = require("child_process");
+      const { spawn } = require("child_process");
       const scriptPath = require("path").join(__dirname, "run-daily-analysis.js");
 
       console.log("[Daily Update] 시작:", new Date().toISOString());
       console.log("[Daily Update] 스크립트 경로:", scriptPath);
-      try {
-        execSync(`node ${scriptPath}`, { stdio: "inherit", cwd: __dirname });
-        console.log("[Daily Update] 완료:", new Date().toISOString());
-      } catch (execErr) {
-        console.error("[Daily Update] execSync 오류 (exit code:", execErr.status, ")");
-        console.error("[Daily Update] 오류 메시지:", execErr.message);
-        console.error("[Daily Update] stdout:", execErr.stdout?.toString());
-        console.error("[Daily Update] stderr:", execErr.stderr?.toString());
-        throw execErr;
-      }
+
+      // spawn으로 비동기 실행 (서버 블로킹 없음)
+      const proc = spawn("node", [scriptPath], { cwd: __dirname });
+      let stdout = "";
+      let stderr = "";
+
+      proc.stdout.on("data", (data) => {
+        const msg = data.toString();
+        console.log("[Daily Update stdout]", msg.trim());
+        stdout += msg;
+      });
+
+      proc.stderr.on("data", (data) => {
+        const msg = data.toString();
+        console.error("[Daily Update stderr]", msg.trim());
+        stderr += msg;
+      });
+
+      proc.on("close", (code) => {
+        console.log("[Daily Update] 종료 코드:", code);
+        if (code === 0) {
+          console.log("[Daily Update] 완료:", new Date().toISOString());
+        } else {
+          console.error("[Daily Update] 오류 (exit code:", code, ")");
+          patternState.dailyUpdateError = `Exit code ${code}`;
+        }
+      });
+
+      proc.on("error", (err) => {
+        console.error("[Daily Update] spawn 오류:", err.message);
+        patternState.dailyUpdateError = err.message;
+      });
     } catch (e) {
       console.error("[Daily Update] 최종 오류:", e.message);
       patternState.dailyUpdateError = e.message;
     } finally {
-      patternState.dailyUpdating = false;
-      patternState.dailyUpdateFinishedAt = new Date().toISOString();
+      // spawn은 비동기이므로 여기서 완료되지 않음
+      // 상태는 proc.on('close')에서 업데이트됨
     }
   })();
+
+  // 즉시 종료 (백그라운드 작업 계속 실행)
+  patternState.dailyUpdating = true;
 });
 
 loadStocks();
