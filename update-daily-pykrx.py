@@ -26,6 +26,8 @@ import sys
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Any
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 
 import pandas as pd
 from pykrx import stock
@@ -163,33 +165,13 @@ def save_chart_data(code: str, data: Dict[str, Any]) -> bool:
         return False
 
 
-def update_daily():
-    """메인 업데이트 루프"""
-    codes = load_stocks_list()
-
-    # --limit 옵션 처리 (테스트용)
-    limit = int(sys.argv[1]) if len(sys.argv) > 1 else None
-    if limit:
-        codes = codes[:limit]
-        print(f"[테스트 모드] {limit}개 종목만 처리")
-
-    success = 0
-    failed = 0
-    skipped = 0
-
-    print(f"\n[시작] pykrx 최근 5거래일 갱신")
-    print(f"대상: {len(codes)}개 종목\n")
-
-    for i, code in enumerate(codes, 1):
-        # 진행률 표시
-        if i % 50 == 0 or i == 1:
-            print(f"[진행] {i}/{len(codes)} ({i*100//len(codes)}%)")
-
+def process_stock(code):
+    """종목별 갱신 처리 (병렬 실행용)"""
+    try:
         # pykrx 조회
         new_df = fetch_pykrx_data(code)
         if new_df is None or new_df.empty:
-            skipped += 1
-            continue
+            return ("skip", code)
 
         # 기존 캐시 로드
         cached = load_cached_chart(code)
@@ -199,9 +181,50 @@ def update_daily():
 
         # 저장
         if save_chart_data(code, updated):
-            success += 1
+            return ("success", code)
         else:
-            failed += 1
+            return ("fail", code)
+    except Exception:
+        return ("fail", code)
+
+
+def update_daily():
+    """메인 업데이트 루프 (병렬 처리)"""
+    codes = load_stocks_list()
+
+    # --limit 옵션 처리 (테스트용)
+    limit = int(sys.argv[1]) if len(sys.argv) > 1 else None
+    if limit:
+        codes = codes[:limit]
+        print(f"[테스트 모드] {limit}개 종목만 처리")
+
+    print(f"\n[시작] pykrx 최근 5거래일 갱신 (병렬처리, 8개 스레드)")
+    print(f"대상: {len(codes)}개 종목\n")
+
+    success = 0
+    failed = 0
+    skipped = 0
+    completed = 0
+
+    # 병렬 처리 (8개 스레드)
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        futures = {executor.submit(process_stock, code): code for code in codes}
+
+        for future in as_completed(futures):
+            completed += 1
+            status, code = future.result()
+
+            if status == "success":
+                success += 1
+            elif status == "fail":
+                failed += 1
+            elif status == "skip":
+                skipped += 1
+
+            # 진행률 표시
+            if completed % 50 == 0 or completed == 1:
+                pct = (completed * 100) // len(codes)
+                print(f"[진행] {completed}/{len(codes)} ({pct}%)")
 
     # 완료 보고
     print(f"\n[완료]")
