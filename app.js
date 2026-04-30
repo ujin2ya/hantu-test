@@ -2710,8 +2710,8 @@ app.get("/pattern", (req, res) => {
   const vviRecentSignals = (result?.vviRecentSignals || []).filter(matchSearch);
 
   // ─── QVA (거래량 이상징후 선행 감지) ───
-  const qvaReady = (result?.qvaReady || []).filter(matchSearch);
-  const qvaWatch = (result?.qvaWatch || []).filter(matchSearch);
+  const qvaQuiet = (result?.qvaQuiet || []).filter(matchSearch);
+  const qvaMaterial = (result?.qvaMaterial || []).filter(matchSearch);
   const qvaRisk  = (result?.qvaRisk  || []).filter(matchSearch);
 
   // ─── 날짜 및 데이터 상태 ───
@@ -2769,8 +2769,8 @@ app.get("/pattern", (req, res) => {
     vviCandidates: vviCandidates || [],
     vviTodayCandidates: vviTodayCandidates || [],
     vviRecentSignals: vviRecentSignals || [],
-    qvaReady: qvaReady || [],
-    qvaWatch: qvaWatch || [],
+    qvaQuiet: qvaQuiet || [],
+    qvaMaterial: qvaMaterial || [],
     qvaRisk:  qvaRisk  || [],
     bullTrendWatch: bullTrendWatch || [],
     overheatWarnings: overheatWarnings || [],

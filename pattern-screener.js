@@ -736,8 +736,8 @@ async function analyzeAll({ logProgress = false } = {}) {
   const reboundCandidates = [];
   const vviCandidates = [];
   const qvaCandidates = [];
-  const qvaReady = [];
-  const qvaWatch = [];
+  const qvaQuiet = [];
+  const qvaMaterial = [];
   const qvaRisk = [];
   const overheatWarnings = [];
   const csbMainCandidates = [];   // CSB 4개 stage tag 모두 통과 — "상승 전 압축 후보"
@@ -1072,8 +1072,8 @@ async function analyzeAll({ logProgress = false } = {}) {
     if (vvi?.passed) vviCandidates.push(tagged);
     if (qva?.passed) {
       qvaCandidates.push(tagged);
-      if (qva.category === 'QVA_READY') qvaReady.push(tagged);
-      else if (qva.category === 'QVA_WATCH') qvaWatch.push(tagged);
+      if (qva.category === 'QVA_QUIET') qvaQuiet.push(tagged);
+      else if (qva.category === 'QVA_MATERIAL') qvaMaterial.push(tagged);
       else qvaRisk.push(tagged);
     }
     if (overheatHit) overheatWarnings.push(tagged);
@@ -1257,11 +1257,11 @@ async function analyzeAll({ logProgress = false } = {}) {
 
     // ─── QVA (거래량 이상징후 선행 감지) ───
     qvaCandidates: qvaCandidates.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
-    qvaReady:  qvaReady.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
-    qvaWatch:  qvaWatch.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
-    qvaRisk:   qvaRisk.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
-    qvaReadyCount: qvaReady.length,
-    qvaWatchCount: qvaWatch.length,
+    qvaQuiet:   qvaQuiet.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
+    qvaMaterial: qvaMaterial.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
+    qvaRisk:    qvaRisk.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
+    qvaQuietCount: qvaQuiet.length,
+    qvaMaterialCount: qvaMaterial.length,
     qvaRiskCount:  qvaRisk.length,
 
     // ─── 날짜 및 데이터 상태 ───
@@ -3461,21 +3461,25 @@ function calculateQuietVolumeAnomaly(chartRows, flowRows, meta = {}) {
   const isQuiet        = valueDryness <= 1.2;
   const strongAnomaly  = volumeRatio20 >= 2.0 && valueRatio20 >= 2.0;
   const weakAnomaly    = volumeRatio20 >= 1.5 && valueRatio20 >= 1.5;
-  const goodReturn     = todayReturn >= 0 && todayReturn <= 0.07;
   const hasStructure   = (ma20 != null && close >= ma20 * 0.93)
                       || (ma60 != null && close >= ma60 * 0.90);
 
   // 기본 이상징후 없으면 탈락
   if (!weakAnomaly) return reject('no_anomaly');
 
-  // ─── 카테고리 분류 ───
+  // ─── 카테고리 분류 (3가지) ───
   let category;
-  if (strongAnomaly && isQuiet && goodReturn && hasStructure) {
-    category = 'QVA_READY';       // 강한 신호 + 조용한 구간 + 좋은 성과 + 구조 유지
-  } else if (weakAnomaly && hasStructure && goodReturn) {
-    category = 'QVA_WATCH';       // 이상징후 + 구조 + 좋은 성과
+  const isRisk = upperWickRatio > 0.55 || ret5d > 0.08 || ret20d > 0.30 || todayReturn > 0.07;
+  const isMaterial = ret20d > 0.15 || todayReturn > 0.05;  // 재료성 있음 또는 당일 5% 초과
+
+  if (isQuiet && !isMaterial && todayReturn >= -0.02 && todayReturn <= 0.05 && ret5d <= 0.08 && ret20d <= 0.15 && hasStructure && !isRisk) {
+    category = 'QVA_QUIET';       // 순수한 선행 이상징후 (조용한 구간, 가격 안정)
+  } else if (weakAnomaly && hasStructure && !isRisk) {
+    category = 'QVA_MATERIAL';    // 거래량 증가 + 재료 반응형 (세아베스틸 같은)
+  } else if (isRisk) {
+    category = 'QVA_RISK';        // 이미 많이 오르거나 위험 신호
   } else {
-    category = 'QVA_RISK';        // 이상징후 있으나 위험 신호
+    category = 'QVA_MATERIAL';    // 기타 이상징후 (MATERIAL로 분류)
   }
 
   // ─── 스코어 계산 ───
@@ -3640,5 +3644,6 @@ module.exports = {
   buildCsbTradePlan,
   calculateReboundScore,
   calculateVolumeValueIgnition,
+  calculateQuietVolumeAnomaly,
   extractPreIgnitionFeatures,
 };

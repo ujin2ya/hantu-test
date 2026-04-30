@@ -115,8 +115,8 @@
   const safeVviTodayCandidates = typeof vviTodayCandidates !== 'undefined' ? vviTodayCandidates : [];
   const safeVviRecentSignals = typeof vviRecentSignals !== 'undefined' ? vviRecentSignals : [];
   const safeLatestMarketDate = typeof latestMarketDate !== 'undefined' ? latestMarketDate : null;
-  const safeQvaReady = typeof qvaReady !== 'undefined' ? qvaReady : [];
-  const safeQvaWatch = typeof qvaWatch !== 'undefined' ? qvaWatch : [];
+  const safeQvaQuiet = typeof qvaQuiet !== 'undefined' ? qvaQuiet : [];
+  const safeQvaMaterial = typeof qvaMaterial !== 'undefined' ? qvaMaterial : [];
   const safeQvaRisk  = typeof qvaRisk  !== 'undefined' ? qvaRisk  : [];
   const safeCsbMainCandidates = typeof csbMainCandidates !== 'undefined' ? csbMainCandidates : [];
   const safeCsbSubCandidates = typeof csbSubCandidates !== 'undefined' ? csbSubCandidates : [];
@@ -252,22 +252,22 @@ var csbStageLabel = {
 
       <!-- 0. 거래량 이상징후 후보 (QVA — QuietVolumeAnomaly) — 대상승 전 선행 감지 -->
       <div class="glass">
-        <h2><i class="bi bi-lightning me-1"></i>거래량 이상징후 후보 <span class="count">(준비: <%= safeQvaReady.length %> | 관찰: <%= safeQvaWatch.length %> | 위험: <%= safeQvaRisk.length %>)</span></h2>
+        <h2><i class="bi bi-lightning me-1"></i>거래량 이상징후 후보 <span class="count">(조용함: <%= safeQvaQuiet.length %> | 재료: <%= safeQvaMaterial.length %> | 위험: <%= safeQvaRisk.length %>)</span></h2>
         <div class="cat-banner" style="background:#f0f9ff; border-left:4px solid #0284c7; color:#0c4a6e;">
-          <strong>QVA (거래량 이상징후)</strong> — 가격은 아직 크게 오르지 않았으나 거래량/거래대금이 평소보다 먼저 증가하는 선행 신호입니다. 조용했던 구간에서 이상징후가 나타나는 대상승 전 준비 단계를 포착합니다.
+          <strong>QVA (거래량 이상징후)</strong> — 거래량/거래대금이 평소보다 먼저 증가하는 선행 신호입니다. 조용한 구간 매집형(QUIET) vs 재료 반응형(MATERIAL)을 구분합니다.
         </div>
 
-        <% if (safeQvaReady.length === 0 && safeQvaWatch.length === 0 && safeQvaRisk.length === 0) { %>
+        <% if (safeQvaQuiet.length === 0 && safeQvaMaterial.length === 0 && safeQvaRisk.length === 0) { %>
           <div class="empty-state">현재 거래량 이상징후 종목 없음</div>
         <% } else { %>
 
-          <% if (safeQvaReady.length > 0) { %>
+          <% if (safeQvaQuiet.length > 0) { %>
           <div style="margin-bottom: 20px;">
-            <h3 style="font-size:0.95rem; color:#1e40af; margin-bottom:10px;">
-              <span style="display:inline-block; background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:6px;">준비</span>
-              강한 이상징후 + 조용한 구간
+            <h3 style="font-size:0.95rem; color:#059669; margin-bottom:10px;">
+              <span style="display:inline-block; background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:6px;">조용함</span>
+              순수한 선행 이상징후 (조용한 구간, 안정적 수익률)
             </h3>
-            <% safeQvaReady.forEach(function(c) { var s = c.qva?.signals || {}; %>
+            <% safeQvaQuiet.forEach(function(c) { var s = c.qva?.signals || {}; %>
               <div class="item-card">
                 <div class="row1">
                   <div class="name-block">
@@ -276,13 +276,14 @@ var csbStageLabel = {
                     </a>
                     <span class="mkt"><%= c.market %></span>
                   </div>
-                  <span class="score-pill" style="background:#dbeafe; color:#1e40af;">준비 · <%= c.qva?.score || 0 %>점</span>
+                  <span class="score-pill" style="background:#d1fae5; color:#065f46;">조용함 · <%= c.qva?.score || 0 %>점</span>
                 </div>
                 <div class="row2">
                   <span>거래량비 <strong><%= (s.volumeRatio20 || 0).toFixed(1) %>x</strong></span>
                   <span>거래대금비 <strong><%= (s.valueRatio20 || 0).toFixed(1) %>x</strong></span>
                   <span>오늘 <strong class="<%= s.todayReturn >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (s.todayReturn || 0) %>%</strong></span>
-                  <span>종가위치 <strong><%= (s.closeLocation * 100 || 0).toFixed(0) %>%</strong></span>
+                  <span>D5 <strong><%= (s.ret5d || 0).toFixed(2) %>%</strong></span>
+                  <span>D20 <strong><%= (s.ret20d || 0).toFixed(2) %>%</strong></span>
                   <span>건조도 <strong><%= (s.valueDryness || 0).toFixed(2) %></strong></span>
                 </div>
               </div>
@@ -290,13 +291,13 @@ var csbStageLabel = {
           </div>
           <% } %>
 
-          <% if (safeQvaWatch.length > 0) { %>
+          <% if (safeQvaMaterial.length > 0) { %>
           <div style="margin-bottom: 20px;">
-            <h3 style="font-size:0.95rem; color:#475569; margin-bottom:10px;">
-              <span style="display:inline-block; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:6px;">관찰</span>
-              이상징후 + 구조 유지
+            <h3 style="font-size:0.95rem; color:#d97706; margin-bottom:10px;">
+              <span style="display:inline-block; background:#fed7aa; color:#92400e; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:6px;">재료</span>
+              실적/공시 반응형 (거래량 증가 + 뉴스/공시)
             </h3>
-            <% safeQvaWatch.forEach(function(c) { var s = c.qva?.signals || {}; %>
+            <% safeQvaMaterial.forEach(function(c) { var s = c.qva?.signals || {}; %>
               <div class="item-card">
                 <div class="row1">
                   <div class="name-block">
@@ -305,12 +306,14 @@ var csbStageLabel = {
                     </a>
                     <span class="mkt"><%= c.market %></span>
                   </div>
-                  <span class="score-pill" style="background:#f1f5f9; color:#475569;">관찰 · <%= c.qva?.score || 0 %>점</span>
+                  <span class="score-pill" style="background:#fed7aa; color:#92400e;">재료 · <%= c.qva?.score || 0 %>점</span>
                 </div>
                 <div class="row2">
                   <span>거래량비 <strong><%= (s.volumeRatio20 || 0).toFixed(1) %>x</strong></span>
                   <span>거래대금비 <strong><%= (s.valueRatio20 || 0).toFixed(1) %>x</strong></span>
                   <span>오늘 <strong class="<%= s.todayReturn >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (s.todayReturn || 0) %>%</strong></span>
+                  <span>D5 <strong><%= (s.ret5d || 0).toFixed(2) %>%</strong></span>
+                  <span>D20 <strong><%= (s.ret20d || 0).toFixed(2) %>%</strong></span>
                 </div>
               </div>
             <% }) %>
