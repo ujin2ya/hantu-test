@@ -381,7 +381,79 @@ function won(v) {
         <% } %>
       </div>
 
-      <!-- 3. 강세장 추세 관찰 (BullTrendWatch) -->
+      <!-- 3. 거래대금 초동 후보 (VVI Breakout Confirm) -->
+      <div class="glass">
+        <h2><i class="bi bi-graph-up me-1"></i>거래대금 초동 후보 <span class="count">(<%= (vviCandidates || []).length %>건)</span></h2>
+        <div class="cat-banner vvi" style="background:linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%); color:#78350f; border-left:4px solid #d97706;">
+          <strong>VVI Breakout Confirm</strong> — 오늘 거래량과 거래대금이 평소보다 증가하고, 종가가 당일 범위 상단에서 마감한 종목입니다. 다음 거래일에 전일 고가를 돌파하는지 확인하는 방식이 백테스트상 가장 양호했습니다.
+          <br/><small style="margin-top:8px; display:block; color:#92400e;"><strong>d5 기준</strong> 평균 +1.77%, 승률 50%, PF 1.68 · 강세장에서는 평균 +4.63%, PF 3.46</small>
+        </div>
+        <div class="alert alert-info small mb-3" style="border-left:4px solid #3b82f6; background:#eff6ff; color:#1e40af;">
+          <i class="bi bi-info-circle me-2"></i><strong>관찰용 신호입니다</strong> · 이 항목은 매수 추천이 아니라 거래대금 초동 관찰 신호입니다. 다음 거래일 전일 고가 돌파 여부를 확인하는 방식으로 해석합니다.
+        </div>
+        <% if (!(vviCandidates && vviCandidates.length)) { %>
+          <div class="empty-state">현재 시점 통과 종목 없음</div>
+        <% } else { %>
+          <% (vviCandidates || []).forEach(function(c) { var s = c.vvi?.signals || {}; var vr = s.valueRatio20 || 0; var cl = s.closeLocation || 0; %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
+                  <span class="mkt"><%= c.market %></span>
+                </div>
+                <span class="score-pill vvi" style="background:#d97706; border-color:#d97706;">VVI 점수 <%= c.vvi.score %></span>
+              </div>
+
+              <div class="row2">
+                <span>현재가 <strong><%= won(c.closePrice) %></strong></span>
+                <span>오늘 등락 <strong class="<%= (c.todayReturn || 0) >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((c.todayReturn || 0) / 100).toFixed(1) %>%</strong></span>
+                <span>거래량배 <strong><%= (s.volumeRatio20 || 0).toFixed(1) %>배</strong></span>
+                <span>거래대금배 <strong><%= (s.valueRatio20 || 0).toFixed(1) %>배</strong></span>
+              </div>
+
+              <div class="row2">
+                <span>종가위치 <strong><%= ((cl || 0) * 100).toFixed(0) %>%</strong></span>
+                <span>신호고가 <strong><%= won(c.todayHigh) %></strong></span>
+                <span>확인가 <strong style="color:#dc2626;">돌파시 진입</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+              </div>
+
+              <div class="row3" style="flex-wrap:wrap; gap:6px;">
+                <% if (vr >= 5.0) { %>
+                  <span class="tag-badge" style="background:#fca5a5; color:#7f1d1d;">⚠️ 5배+ 주의</span>
+                <% } else if (vr >= 3.0) { %>
+                  <span class="tag-badge" style="background:#a3e635; color:#365314;">3~5배 확장</span>
+                <% } else if (vr >= 2.0) { %>
+                  <span class="tag-badge" style="background:#93c5fd; color:#1e3a8a;">2~3배 초동</span>
+                <% } %>
+
+                <% if (cl >= 0.8) { %>
+                  <span class="tag-badge" style="background:#86efac; color:#166534;">종가 강함</span>
+                <% } %>
+
+                <% if ((c.marketCap || 0) >= 1_000_000_000_000) { %>
+                  <span class="tag-badge" style="background:#c084fc; color:#4c1d95;">대형주 우위</span>
+                <% } %>
+
+                <% if (c.regime === 'bull') { %>
+                  <span class="tag-badge" style="background:#fbbf24; color:#78350f;">강세장 우위</span>
+                <% } %>
+
+                <% if (c.vvi?.category === 'STRONG_IGNITION') { %>
+                  <span class="tag-badge tag-VVI_STRONG">강한신호</span>
+                <% } else { %>
+                  <span class="tag-badge" style="background:#d1d5db; color:#374151;">신호</span>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+      <!-- 4. 강세장 추세 관찰 (BullTrendWatch) -->
       <div class="glass">
         <h2><i class="bi bi-eye me-1"></i>강세장 추세 관찰 <span class="count">(<%= bullTrendWatch.length %>건)</span></h2>
         <div class="cat-banner bull">

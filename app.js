@@ -2522,7 +2522,37 @@ app.get("/pattern", (req, res) => {
   // ─── Phase 8 새 카테고리 ───
   const flowLeadCandidates = (result?.flowLeadCandidates || []).filter(matchSearch);
   const reboundCandidates = (result?.reboundCandidates || []).filter(matchSearch);
-  const vviCandidates = (result?.vviCandidates || []).filter(matchSearch);
+
+  // VVI Breakout Confirm — 정렬: closeLocation 높은 순 > valueRatio 2~5배 우선 > 1조+ > todayReturn 2~15%
+  const vviCandidates = (result?.vviCandidates || []).filter(matchSearch).sort((a, b) => {
+    const sA = a.vvi?.signals || {}, sB = b.vvi?.signals || {};
+    const clA = sA.closeLocation || 0, clB = sB.closeLocation || 0;
+    const vrA = sA.valueRatio20 || 0, vrB = sB.valueRatio20 || 0;
+    const mcA = a.marketCap || 0, mcB = b.marketCap || 0;
+    const trA = a.todayReturn || 0, trB = b.todayReturn || 0;
+
+    // 1. closeLocation 높은 순
+    if (clB !== clA) return clB - clA;
+
+    // 2. valueRatio 2~5배가 우선 (0점 < 2배 > 5배+ 이상한건 아님, 그냥 2~5배만 점수)
+    const vrScoreA = vrA >= 2.0 && vrA <= 5.0 ? 1 : 0;
+    const vrScoreB = vrB >= 2.0 && vrB <= 5.0 ? 1 : 0;
+    if (vrScoreB !== vrScoreA) return vrScoreB - vrScoreA;
+
+    // 3. 1조 이상 우선
+    const mc1tA = mcA >= 1_000_000_000_000 ? 1 : 0;
+    const mc1tB = mcB >= 1_000_000_000_000 ? 1 : 0;
+    if (mc1tB !== mc1tA) return mc1tB - mc1tA;
+
+    // 4. todayReturn 2~15% 구간 우선
+    const trScoreA = trA >= 0.02 && trA <= 0.15 ? 1 : 0;
+    const trScoreB = trB >= 0.02 && trB <= 0.15 ? 1 : 0;
+    if (trScoreB !== trScoreA) return trScoreB - trScoreA;
+
+    // 최종: 점수 높은 순
+    return (b.vvi?.score || 0) - (a.vvi?.score || 0);
+  });
+
   const bullTrendWatch = (result?.bullTrendWatch || []).filter(matchSearch);
   const overheatWarnings = (result?.overheatWarnings || []).filter(matchSearch);
   const taggedAll = (result?.taggedAll || []).filter(matchSearch);
