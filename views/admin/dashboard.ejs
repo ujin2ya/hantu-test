@@ -283,10 +283,10 @@
       try {
         const resp = await fetch('/admin/run-daily-update', { method: 'POST' });
         if (resp.ok) {
-          // 서버 상태 업데이트 대기 후 리다이렉트 (500ms)
+          // 서버 상태 업데이트 대기 후 페이지 새로고침 (300ms)
           setTimeout(() => {
-            location.href = '/admin';
-          }, 500);
+            location.reload();
+          }, 300);
         } else {
           alert('요청 실패: ' + resp.status);
         }
