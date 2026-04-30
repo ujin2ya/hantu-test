@@ -842,7 +842,11 @@ async function analyzeAll({ logProgress = false } = {}) {
     if (flowRows?.length >= 10) {
       try { flowLead = calculateFlowLeadScore(rows, flowRows, meta); } catch (_) {}
       try { rebound = calculateReboundScore(rows, flowRows, meta); } catch (_) {}
-      try { vvi = calculateVolumeValueIgnition(rows, flowRows, meta); } catch (_) {}
+      // VVI: 전일 고가보다 낮으면 pullback/consolidation → 신호로 보지 않음 (중복 신호 방지)
+      const skipVvi = lastIdx > 0 && today.close < rows[lastIdx - 1].high;
+      if (!skipVvi) {
+        try { vvi = calculateVolumeValueIgnition(rows, flowRows, meta); } catch (_) {}
+      }
     }
 
     // VVI 과거 신호 스캔 (최근 1~5 거래일)
