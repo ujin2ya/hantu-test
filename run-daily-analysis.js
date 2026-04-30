@@ -45,10 +45,9 @@ function runCommand(cmd, description) {
     log(`시작: ${description}`);
     // timeout: 1800초 (30분) — pykrx/Naver 조회용 (Naver: 700ms × 4260 = ~50분)
     execSync(cmd, {
-      stdio: 'pipe',
+      stdio: 'inherit',
       cwd: ROOT,
-      timeout: 1800000,
-      encoding: 'utf-8'
+      timeout: 1800000
     });
     log(`완료: ${description}`);
     return true;
