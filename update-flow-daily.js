@@ -14,13 +14,14 @@
  *   node update-flow-daily.js
  */
 
-require('dotenv').config();
-const fs = require('fs');
 const path = require('path');
+const ROOT = __dirname;
+
+require('dotenv').config({ path: path.join(ROOT, '.env') });
+const fs = require('fs');
 const axios = require('axios');
 
 // ─── Config ───
-const ROOT = __dirname;
 const STOCKS_LIST_PATH = path.join(ROOT, 'cache', 'naver-stocks-list.json');
 const FLOW_DIR = path.join(ROOT, 'cache', 'flow-history');
 const MIN_ROWS = 120;

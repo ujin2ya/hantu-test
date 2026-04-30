@@ -32,10 +32,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 from dotenv import load_dotenv
 
-load_dotenv()
-
 # ─── Config ───
 ROOT = Path(__file__).parent
+load_dotenv(ROOT / '.env')  # 명시적 경로 지정
 STOCKS_LIST_PATH = ROOT / "cache" / "naver-stocks-list.json"
 CHART_LONG_DIR = ROOT / "cache" / "stock-charts-long"
 MIN_ROWS = 120
