@@ -24,6 +24,7 @@ const ROOT = __dirname;
 const PATTERN_RESULT_CACHE = path.join(ROOT, 'cache', 'pattern-result.json');
 const UPDATE_CHART_SCRIPT = path.join(ROOT, 'update-daily-pykrx.py');
 const UPDATE_FLOW_SCRIPT = path.join(ROOT, 'update-flow-daily.js');
+const PYTHON_CMD = process.platform === 'win32' ? 'python' : 'python3';
 
 // ─── Helpers ───
 function formatTime() {
@@ -172,7 +173,7 @@ async function main() {
   // 1. 차트 데이터 갱신
   let t1 = Date.now();
   const chartOk = runCommand(
-    `python "${UPDATE_CHART_SCRIPT}"`,
+    `${PYTHON_CMD} "${UPDATE_CHART_SCRIPT}"`,
     '차트 데이터 갱신 (pykrx)',
   );
   timings.chartTime = Math.ceil((Date.now() - t1) / 1000);
