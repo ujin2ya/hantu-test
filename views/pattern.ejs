@@ -110,18 +110,40 @@
 <div class="wrap">
 
 <%
+  // Safe variables — 정의되지 않으면 빈 배열로 fallback
+  const safeVviCandidates = typeof vviCandidates !== 'undefined' ? vviCandidates : [];
+  const safeCsbMainCandidates = typeof safeCsbMainCandidates !== 'undefined' ? safeCsbMainCandidates : [];
+  const safeCsbSubCandidates = typeof safeCsbSubCandidates !== 'undefined' ? safeCsbSubCandidates : [];
+  const safeFlowLeadCandidates = typeof safeFlowLeadCandidates !== 'undefined' ? safeFlowLeadCandidates : [];
+  const safeReboundCandidates = typeof safeReboundCandidates !== 'undefined' ? safeReboundCandidates : [];
+  const safeBullTrendWatch = typeof safeBullTrendWatch !== 'undefined' ? safeBullTrendWatch : [];
+  const safeOverheatWarnings = typeof overheatWarnings !== 'undefined' ? overheatWarnings : [];
+  const safeSmallCsbReadyCandidates = typeof safeSmallCsbReadyCandidates !== 'undefined' ? safeSmallCsbReadyCandidates : [];
+  const safeSmallCsbWatchCandidates = typeof safeSmallCsbWatchCandidates !== 'undefined' ? safeSmallCsbWatchCandidates : [];
+  const safeBuyCandidates = typeof safeBuyCandidates !== 'undefined' ? safeBuyCandidates : [];
+  const safeWatchlist = typeof safeWatchlist !== 'undefined' ? safeWatchlist : [];
+  const safeObservationList = typeof safeObservationList !== 'undefined' ? safeObservationList : [];
+  const safeStage1to2Transitions = typeof safeStage1to2Transitions !== 'undefined' ? safeStage1to2Transitions : [];
+  const safeTodaysBreakouts = typeof safeTodaysBreakouts !== 'undefined' ? safeTodaysBreakouts : [];
+  const safeVcpForming = typeof safeVcpForming !== 'undefined' ? safeVcpForming : [];
+  const safeStage2Pool = typeof safeStage2Pool !== 'undefined' ? safeStage2Pool : [];
+  const safeHoldingsCards = typeof safeHoldingsCards !== 'undefined' ? safeHoldingsCards : [];
+  const safeTaggedAll = typeof safeTaggedAll !== 'undefined' ? safeTaggedAll : [];
+%>
+
+<%
 // Defensive defaults — 옛 app.js 가 새 변수를 res.render 에 넘기지 않아도 result 에서 자동 fallback.
 // PM2 reload 누락 / 부분 deploy / 캐시 미존재 어느 상황에서도 EJS 가 깨지지 않게.
-var csbMainCandidates  = (typeof csbMainCandidates  !== 'undefined' && csbMainCandidates)  ? csbMainCandidates  : ((result && result.csbMainCandidates)  || []);
-var csbSubCandidates   = (typeof csbSubCandidates   !== 'undefined' && csbSubCandidates)   ? csbSubCandidates   : ((result && result.csbSubCandidates)   || []);
-var smallCsbReadyCandidates = (typeof smallCsbReadyCandidates !== 'undefined' && smallCsbReadyCandidates) ? smallCsbReadyCandidates : ((result && result.smallCsbReady) || []);
-var smallCsbWatchCandidates = (typeof smallCsbWatchCandidates !== 'undefined' && smallCsbWatchCandidates) ? smallCsbWatchCandidates : ((result && result.smallCsbWatch) || []);
-var flowLeadCandidates = (typeof flowLeadCandidates !== 'undefined' && flowLeadCandidates) ? flowLeadCandidates : ((result && result.flowLeadCandidates) || []);
-var reboundCandidates  = (typeof reboundCandidates  !== 'undefined' && reboundCandidates)  ? reboundCandidates  : ((result && result.reboundCandidates)  || []);
-var bullTrendWatch     = (typeof bullTrendWatch     !== 'undefined' && bullTrendWatch)     ? bullTrendWatch     : ((result && result.bullTrendWatch)     || []);
+var safeCsbMainCandidates  = (typeof safeCsbMainCandidates  !== 'undefined' && safeCsbMainCandidates)  ? safeCsbMainCandidates  : ((result && result.safeCsbMainCandidates)  || []);
+var safeCsbSubCandidates   = (typeof safeCsbSubCandidates   !== 'undefined' && safeCsbSubCandidates)   ? safeCsbSubCandidates   : ((result && result.safeCsbSubCandidates)   || []);
+var safeSmallCsbReadyCandidates = (typeof safeSmallCsbReadyCandidates !== 'undefined' && safeSmallCsbReadyCandidates) ? safeSmallCsbReadyCandidates : ((result && result.smallCsbReady) || []);
+var safeSmallCsbWatchCandidates = (typeof safeSmallCsbWatchCandidates !== 'undefined' && safeSmallCsbWatchCandidates) ? safeSmallCsbWatchCandidates : ((result && result.smallCsbWatch) || []);
+var safeFlowLeadCandidates = (typeof safeFlowLeadCandidates !== 'undefined' && safeFlowLeadCandidates) ? safeFlowLeadCandidates : ((result && result.safeFlowLeadCandidates) || []);
+var safeReboundCandidates  = (typeof safeReboundCandidates  !== 'undefined' && safeReboundCandidates)  ? safeReboundCandidates  : ((result && result.safeReboundCandidates)  || []);
+var safeBullTrendWatch     = (typeof safeBullTrendWatch     !== 'undefined' && safeBullTrendWatch)     ? safeBullTrendWatch     : ((result && result.safeBullTrendWatch)     || []);
 var overheatWarnings   = (typeof overheatWarnings   !== 'undefined' && overheatWarnings)   ? overheatWarnings   : ((result && result.overheatWarnings)   || []);
-var taggedAll          = (typeof taggedAll          !== 'undefined' && taggedAll)          ? taggedAll          : ((result && result.taggedAll)          || []);
-var holdingsCards      = (typeof holdingsCards      !== 'undefined' && holdingsCards)      ? holdingsCards      : [];
+var safeTaggedAll          = (typeof safeTaggedAll          !== 'undefined' && safeTaggedAll)          ? safeTaggedAll          : ((result && result.safeTaggedAll)          || []);
+var safeHoldingsCards      = (typeof safeHoldingsCards      !== 'undefined' && safeHoldingsCards)      ? safeHoldingsCards      : [];
 var holdingsRaw        = (typeof holdingsRaw        !== 'undefined') ? holdingsRaw        : '';
 var cQuery             = (typeof cQuery             !== 'undefined') ? cQuery             : '';
 var seededCount        = (typeof seededCount        !== 'undefined') ? seededCount        : ((result && result.seeded) || 0);
@@ -224,7 +246,7 @@ function won(v) {
 
       <!-- 1. 거래대금 초동 후보 (VVI Breakout Confirm) — 가장 먼저 표시 -->
       <div class="glass">
-        <h2><i class="bi bi-graph-up me-1"></i>거래대금 초동 후보 <span class="count">(<%= (vviCandidates || []).length %>건)</span></h2>
+        <h2><i class="bi bi-graph-up me-1"></i>거래대금 초동 후보 <span class="count">(<%= safeVviCandidates.length %>건)</span></h2>
         <div class="cat-banner vvi" style="background:linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%); color:#78350f; border-left:4px solid #d97706;">
           <strong>VVI Breakout Confirm</strong> — 오늘 거래량과 거래대금이 평소보다 증가하고, 종가가 당일 범위 상단에서 마감한 종목입니다. 다음 거래일에 전일 고가를 돌파하는지 확인하는 방식이 백테스트상 가장 양호했습니다.
           <br/><small style="margin-top:8px; display:block; color:#92400e;"><strong>d5 기준</strong> 평균 +1.77%, 승률 50%, PF 1.68 · 강세장에서는 평균 +4.63%, PF 3.46</small>
@@ -232,10 +254,10 @@ function won(v) {
         <div class="alert alert-info small mb-3" style="border-left:4px solid #3b82f6; background:#eff6ff; color:#1e40af;">
           <i class="bi bi-info-circle me-2"></i><strong>관찰용 신호입니다</strong> · 이 항목은 매수 추천이 아니라 거래대금 초동 관찰 신호입니다. 다음 거래일 전일 고가 돌파 여부를 확인하는 방식으로 해석합니다.
         </div>
-        <% if (!(vviCandidates && vviCandidates.length)) { %>
+        <% if (!safeVviCandidates || !safeVviCandidates.length) { %>
           <div class="empty-state">현재 시점 통과 종목 없음</div>
         <% } else { %>
-          <% (vviCandidates || []).forEach(function(c) { var s = c.vvi?.signals || {}; var vr = s.valueRatio20 || 0; var cl = s.closeLocation || 0; %>
+          <% safeVviCandidates.forEach(function(c) { var s = c.vvi?.signals || {}; var vr = s.valueRatio20 || 0; var cl = s.closeLocation || 0; %>
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
@@ -296,7 +318,7 @@ function won(v) {
 
       <!-- 2. 상승 전 압축 후보 (CSB 4태그) — 메인 모델 -->
       <div class="glass">
-        <h2><i class="bi bi-bullseye me-1"></i>상승 전 압축 후보 <span class="count">(<%= csbMainCandidates.length %>건)</span></h2>
+        <h2><i class="bi bi-bullseye me-1"></i>상승 전 압축 후보 <span class="count">(<%= safeCsbMainCandidates.length %>건)</span></h2>
         <div class="cat-banner" style="background:#ecfdf5; border-left:4px solid #047857;">
           <strong>가격 압축, 지지 유지, 돌파 대기 위치, 거래대금 재활성</strong>이 동시에 나타난 종목입니다.
           큰 폭 상승 전 매수 시점 후보 (검증 기준 d20 +4.5%·승률 55%·PF 2.3, 매수 추천 아님).
@@ -304,10 +326,10 @@ function won(v) {
             손절 가이드 — <strong>clamp(ATR%×2.5, 8%, 12%)</strong> 종가 기준. 진입가 대비 N% 하락 종가 시 청산.
           </div>
         </div>
-        <% if (!csbMainCandidates.length) { %>
+        <% if (!safeCsbMainCandidates.length) { %>
           <div class="empty-state">현재 시점 통과 종목 없음 (4태그 모두 통과 까다로움)</div>
         <% } else { %>
-          <% csbMainCandidates.forEach(function(c) { var m = c.csb?.metrics || {}; var sg = c.csb?.stopGuide; var st = c.csb?.stages || {}; var tp = c.csb?.tradePlan; %>
+          <% safeCsbMainCandidates.forEach(function(c) { var m = c.csb?.metrics || {}; var sg = c.csb?.stopGuide; var st = c.csb?.stages || {}; var tp = c.csb?.tradePlan; %>
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
@@ -355,15 +377,15 @@ function won(v) {
 
       <!-- 2b. 예비 압축 후보 (CSB 3태그) — 보조 -->
       <div class="glass">
-        <h2><i class="bi bi-hourglass-split me-1"></i>예비 압축 후보 <span class="count">(<%= csbSubCandidates.length %>건)</span></h2>
+        <h2><i class="bi bi-hourglass-split me-1"></i>예비 압축 후보 <span class="count">(<%= safeCsbSubCandidates.length %>건)</span></h2>
         <div class="cat-banner" style="background:#f0fdfa; border-left:4px solid #0d9488;">
           지지 확인 + 거래대금 재활성에 더해 압축 또는 돌파 중 한 가지를 만족하는 종목입니다.
           4태그 통과로 발전할 가능성을 관찰하는 보조 후보입니다.
         </div>
-        <% if (!csbSubCandidates.length) { %>
+        <% if (!safeCsbSubCandidates.length) { %>
           <div class="empty-state">현재 시점 통과 종목 없음</div>
         <% } else { %>
-          <% csbSubCandidates.slice(0, 30).forEach(function(c) { var m = c.csb?.metrics || {}; var st = c.csb?.stages || {}; var tp = c.csb?.tradePlan; %>
+          <% safeCsbSubCandidates.slice(0, 30).forEach(function(c) { var m = c.csb?.metrics || {}; var st = c.csb?.stages || {}; var tp = c.csb?.tradePlan; %>
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
@@ -404,8 +426,8 @@ function won(v) {
               </div>
             </div>
           <% }) %>
-          <% if (csbSubCandidates.length > 30) { %>
-            <div class="small text-secondary mt-2">상위 30개 표시 — 총 <%= csbSubCandidates.length %>건</div>
+          <% if (safeCsbSubCandidates.length > 30) { %>
+            <div class="small text-secondary mt-2">상위 30개 표시 — 총 <%= safeCsbSubCandidates.length %>건</div>
           <% } %>
         <% } %>
       </div>
@@ -413,15 +435,15 @@ function won(v) {
 
       <!-- 3. 과매도 반등 후보 (Rebound) -->
       <div class="glass">
-        <h2><i class="bi bi-arrow-counterclockwise me-1"></i>과매도 반등 후보 <span class="count">(<%= reboundCandidates.length %>건)</span></h2>
+        <h2><i class="bi bi-arrow-counterclockwise me-1"></i>과매도 반등 후보 <span class="count">(<%= safeReboundCandidates.length %>건)</span></h2>
         <div class="cat-banner rebound">
           최근 단기 과매도 상태이지만, 장기 구조가 완전히 무너지지 않은 종목입니다.
           d1~d5 단기 반등 관찰용 후보입니다 (매수 추천 아님).
         </div>
-        <% if (!reboundCandidates.length) { %>
+        <% if (!safeReboundCandidates.length) { %>
           <div class="empty-state">현재 시점 통과 종목 없음</div>
         <% } else { %>
-          <% reboundCandidates.forEach(function(c) { var s = c.rebound?.signals || {}; %>
+          <% safeReboundCandidates.forEach(function(c) { var s = c.rebound?.signals || {}; %>
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
@@ -455,15 +477,15 @@ function won(v) {
 
       <!-- 4. 강세장 추세 관찰 (BullTrendWatch) -->
       <div class="glass">
-        <h2><i class="bi bi-eye me-1"></i>강세장 추세 관찰 <span class="count">(<%= bullTrendWatch.length %>건)</span></h2>
+        <h2><i class="bi bi-eye me-1"></i>강세장 추세 관찰 <span class="count">(<%= safeBullTrendWatch.length %>건)</span></h2>
         <div class="cat-banner bull">
           이 카테고리는 단기 매수 신호가 아니라 강세장 20일 추세 관찰용입니다.
           기존 모델은 d5 매수 모델로 실패했고, 75-84점 + bull regime 조합만 d20 추세 관찰로 사용합니다.
         </div>
-        <% if (!bullTrendWatch.length) { %>
+        <% if (!safeBullTrendWatch.length) { %>
           <div class="empty-state">현재 bull regime + 75-84점 + entry-ready 조건 통과 종목 없음</div>
         <% } else { %>
-          <% bullTrendWatch.forEach(function(c) { %>
+          <% safeBullTrendWatch.forEach(function(c) { %>
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
@@ -500,7 +522,7 @@ function won(v) {
     <div class="tab-pane fade" id="tab-smallcap" role="tabpanel">
 
       <div class="glass">
-        <h2><i class="bi bi-lightning-fill me-1"></i>중소형 상승 전 압축 후보 <span class="count" style="color:#dc2626;">(<%= (smallCsbReadyCandidates || []).length %>건)</span></h2>
+        <h2><i class="bi bi-lightning-fill me-1"></i>중소형 상승 전 압축 후보 <span class="count" style="color:#dc2626;">(<%= (safeSmallCsbReadyCandidates || []).length %>건)</span></h2>
         <div class="alert alert-warning small mb-3" style="border-left:4px solid #dc2626; background:#fff7ed; color:#7c2d12;">
           <i class="bi bi-exclamation-triangle me-2"></i><strong>중소형 주의</strong> · 중소형 후보는 시총 500억~3,000억 구간의 관찰 후보입니다.
           대형주보다 변동성, 체결 리스크, 급등락 가능성이 클 수 있습니다.
@@ -531,10 +553,10 @@ function won(v) {
         </div>
 
         <!-- 후보 표시 -->
-        <% if (!(smallCsbReadyCandidates && smallCsbReadyCandidates.length)) { %>
+        <% if (!(safeSmallCsbReadyCandidates && safeSmallCsbReadyCandidates.length)) { %>
           <div class="empty-state">현재 시점 통과 종목 없음</div>
         <% } else { %>
-          <% smallCsbReadyCandidates.forEach(function(c) { var scb = c.smallCsb || c.csb || {}; var m = scb.metrics || {}; var st = scb.stages || {}; var capBucket = scb.capBucket || c.capBucket || 'unknown'; var price = c.closePrice || 0; var marketCap = c.marketCap || 0; %>
+          <% safeSmallCsbReadyCandidates.forEach(function(c) { var scb = c.smallCsb || c.csb || {}; var m = scb.metrics || {}; var st = scb.stages || {}; var capBucket = scb.capBucket || c.capBucket || 'unknown'; var price = c.closePrice || 0; var marketCap = c.marketCap || 0; %>
             <div class="item-card smallcap-item" data-cap="<%= capBucket %>" data-price="<%= price %>" style="display:block;">
               <div class="row1">
                 <div class="name-block">
@@ -594,7 +616,7 @@ function won(v) {
       </div>
 
       <div class="glass">
-        <h2><i class="bi bi-hourglass-split me-1"></i>중소형 예비 압축 후보 <span class="count" style="color:#dc2626;">(<%= (smallCsbWatchCandidates || []).length %>건)</span></h2>
+        <h2><i class="bi bi-hourglass-split me-1"></i>중소형 예비 압축 후보 <span class="count" style="color:#dc2626;">(<%= (safeSmallCsbWatchCandidates || []).length %>건)</span></h2>
         <div style="background:#f8fafc; border-radius:10px; padding:14px; margin-bottom:16px;">
           <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start;">
             <div>
@@ -618,10 +640,10 @@ function won(v) {
           </div>
         </div>
 
-        <% if (!(smallCsbWatchCandidates && smallCsbWatchCandidates.length)) { %>
+        <% if (!(safeSmallCsbWatchCandidates && safeSmallCsbWatchCandidates.length)) { %>
           <div class="empty-state">현재 시점 통과 종목 없음</div>
         <% } else { %>
-          <% smallCsbWatchCandidates.forEach(function(c) { var scb = c.smallCsb || c.csb || {}; var m = scb.metrics || {}; var st = scb.stages || {}; var capBucket = scb.capBucket || c.capBucket || 'unknown'; var price = c.closePrice || 0; var marketCap = c.marketCap || 0; %>
+          <% safeSmallCsbWatchCandidates.forEach(function(c) { var scb = c.smallCsb || c.csb || {}; var m = scb.metrics || {}; var st = scb.stages || {}; var capBucket = scb.capBucket || c.capBucket || 'unknown'; var price = c.closePrice || 0; var marketCap = c.marketCap || 0; %>
             <div class="item-card smallcap-item-watch" data-cap="<%= capBucket %>" data-price="<%= price %>" style="display:block;">
               <div class="row1">
                 <div class="name-block">
@@ -727,9 +749,9 @@ function won(v) {
         <% } %>
       </div>
 
-      <!-- 5. 고변동성 / 구조 붕괴 (taggedAll 에서 필터) -->
-      <% var highVol = (taggedAll || []).filter(function(t) { return t.primaryTag === 'HIGH_VOLATILITY'; }).slice(0, 30); %>
-      <% var broken = (taggedAll || []).filter(function(t) { return t.primaryTag === 'STRUCTURE_BROKEN'; }).slice(0, 30); %>
+      <!-- 5. 고변동성 / 구조 붕괴 (safeTaggedAll 에서 필터) -->
+      <% var highVol = (safeTaggedAll || []).filter(function(t) { return t.primaryTag === 'HIGH_VOLATILITY'; }).slice(0, 30); %>
+      <% var broken = (safeTaggedAll || []).filter(function(t) { return t.primaryTag === 'STRUCTURE_BROKEN'; }).slice(0, 30); %>
 
       <div class="glass">
         <h2><i class="bi bi-exclamation-triangle me-1"></i>고변동성 종목 <span class="count">(상위 30, ATR ≥15% 우선)</span></h2>
@@ -830,10 +852,10 @@ function won(v) {
         </div>
 
         <div id="holdings-results">
-        <% if (!holdingsCards.length) { %>
+        <% if (!safeHoldingsCards.length) { %>
           <div class="empty-state">점검할 종목을 입력하세요.</div>
         <% } else { %>
-          <% holdingsCards.forEach(function(c) { %>
+          <% safeHoldingsCards.forEach(function(c) { %>
             <% if (!c.found) { %>
               <div class="item-card" style="background:#fef3c7;">
                 <div class="row1">

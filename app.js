@@ -2669,14 +2669,27 @@ app.get("/pattern", (req, res) => {
     result, seededCount, patternState,
     cQuery, holdingsRaw,
     // CSB 메인
-    csbMainCandidates, csbSubCandidates,
+    csbMainCandidates: csbMainCandidates || [],
+    csbSubCandidates: csbSubCandidates || [],
     // 새 카테고리
-    flowLeadCandidates, reboundCandidates, vviCandidates, bullTrendWatch, overheatWarnings, taggedAll, holdingsCards,
+    flowLeadCandidates: flowLeadCandidates || [],
+    reboundCandidates: reboundCandidates || [],
+    vviCandidates: vviCandidates || [],
+    bullTrendWatch: bullTrendWatch || [],
+    overheatWarnings: overheatWarnings || [],
+    taggedAll: taggedAll || [],
+    holdingsCards: holdingsCards || [],
     // CSB-Lite 중소형 분류
-    smallCsbReadyCandidates, smallCsbWatchCandidates,
+    smallCsbReadyCandidates: smallCsbReadyCandidates || [],
+    smallCsbWatchCandidates: smallCsbWatchCandidates || [],
     // 기존 — 모델 검증 / 역호환
-    buyCandidates, watchlist, observationList,
-    stage1to2Transitions, todaysBreakouts, vcpForming, stage2Pool,
+    buyCandidates: buyCandidates || [],
+    watchlist: watchlist || [],
+    observationList: observationList || [],
+    stage1to2Transitions: stage1to2Transitions || [],
+    todaysBreakouts: todaysBreakouts || [],
+    vcpForming: vcpForming || [],
+    stage2Pool: stage2Pool || [],
   });
 });
 
