@@ -2259,6 +2259,38 @@ const handleSearch = async (req, res) => {
       csbSignalHistory = computeCsbSignalHistory(rows, flowRowsArr, stockMeta);
     } catch (_) {}
 
+    // 3e) QVA 재계산 (거래량 이상징후 선행 감지)
+    let qvaDetail = null;
+    try {
+      const qvaRes = patternScreener.calculateQuietVolumeAnomaly(rows, flowRowsArr, { ...stockMeta, marketValue: stockMeta.marketCap });
+      if (qvaRes?.passed) {
+        // 차트 데이터용 60일 수량 데이터
+        const last60 = rows.slice(-60);
+        const avg20Vol = last60.slice(-20).reduce((s, r) => s + (r.volume || 0), 0) / 20;
+        const avg20Value = last60.slice(-20).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+        const avg60Value = last60.reduce((s, r) => s + (r.valueApprox || 0), 0) / 60;
+
+        qvaDetail = {
+          passed: true,
+          category: qvaRes.category,
+          score: qvaRes.score,
+          signals: qvaRes.signals,
+          breakdown: qvaRes.breakdown,
+          chartData: {
+            volumes: last60.map(r => r.volume),
+            values: last60.map(r => r.valueApprox || 0),
+            dates: last60.map(r => r.date),
+            avg20Vol,
+            avg20Value,
+            avg60Value,
+            today: { volume: lastRow.volume, value: lastRow.valueApprox || 0 },
+          },
+        };
+      } else if (qvaRes) {
+        qvaDetail = { passed: false, rejectReason: qvaRes.reason };
+      }
+    } catch (_) {}
+
     // 4) flow-history (외국인/기관 일별 순매수) 로드 + 1d/5d/20d 합계
     let flowSummary = null;
     let flowRecent = null;
@@ -2357,6 +2389,7 @@ const handleSearch = async (req, res) => {
       csbDetail,
       smallCsbDetail,
       csbSignalHistory,
+      qvaDetail,
       flowSummary,
       flowRecent,
       materialAnalysis,

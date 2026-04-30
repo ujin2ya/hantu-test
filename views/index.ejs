@@ -303,6 +303,20 @@
           </div>
           <div class="chart-box"><canvas id="priceChart"></canvas></div>
           <div class="chart-box volume"><canvas id="volumeChart"></canvas></div>
+
+          <!-- QVA 거래량 이상징후 차트 -->
+          <% if (qvaDetail && qvaDetail.passed && qvaDetail.chartData) { %>
+            <div style="margin-top: 24px; padding: 12px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+              <h3 style="font-size: 0.95rem; color: #1e293b; margin: 0 0 12px 0;">
+                📊 거래량/거래대금 이상징후 분석
+                <span style="font-size: 0.8rem; color: #64748b; font-weight: 400; margin-left: 8px;">
+                  <%= qvaDetail.category %> · 점수 <%= qvaDetail.score %>점
+                </span>
+              </h3>
+              <div class="chart-box volume"><canvas id="qvaChart"></canvas></div>
+            </div>
+          <% } %>
+
           <!-- 선택일 정보 카드 -->
           <div id="selectedDayCard" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:12px 14px; margin: 12px 0; display:none; font-size:0.85rem;">
             <div style="color:#64748b; margin-bottom:8px;">
@@ -806,6 +820,154 @@
         });
       }
       buildPriceVolume(60);  // 기본 3M
+
+      // ─── QVA 거래량/거래대금 이상징후 차트 ───
+      <% if (qvaDetail && qvaDetail.passed && qvaDetail.chartData) { %>
+      (function() {
+        const qvaData = <%- JSON.stringify(qvaDetail.chartData) %>;
+        const qvaSignals = <%- JSON.stringify(qvaDetail.signals) %>;
+        const volumes = qvaData.volumes;
+        const values = qvaData.values;
+        const dates = qvaData.dates;
+        const avg20Vol = qvaData.avg20Vol;
+        const avg20Value = qvaData.avg20Value;
+        const avg60Value = qvaData.avg60Value;
+
+        const qvaLabels = dates.map(d => d.slice(4,6)+'/'+d.slice(6,8));
+        const volColors = volumes.map((v, i) => {
+          const isUp = (i === volumes.length - 1) ? qvaData.today.volume > avg20Vol : v > avg20Vol;
+          return isUp ? 'rgba(220, 38, 38, 0.5)' : 'rgba(37, 99, 235, 0.5)';
+        });
+        const valColors = values.map((v, i) => {
+          const isUp = (i === values.length - 1) ? qvaData.today.value > avg20Value : v > avg20Value;
+          return isUp ? 'rgba(220, 38, 38, 0.3)' : 'rgba(37, 99, 235, 0.3)';
+        });
+
+        // 거래량 이동 평균
+        const avg20VolData = volumes.map((v, i) => {
+          const start = Math.max(0, i - 19);
+          return volumes.slice(start, i + 1).reduce((a, b) => a + b, 0) / (i - start + 1);
+        });
+
+        // 거래대금 이동 평균
+        const avg20ValueData = values.map((v, i) => {
+          const start = Math.max(0, i - 19);
+          return values.slice(start, i + 1).reduce((a, b) => a + b, 0) / (i - start + 1);
+        });
+
+        let qvaChart = new Chart(document.getElementById('qvaChart'), {
+          type: 'bar',
+          data: {
+            labels: qvaLabels,
+            datasets: [
+              {
+                type: 'bar',
+                label: '거래대금',
+                data: values,
+                backgroundColor: valColors,
+                borderWidth: 0,
+                barPercentage: 0.7,
+                categoryPercentage: 0.95,
+                yAxisID: 'y',
+                order: 3,
+              },
+              {
+                type: 'bar',
+                label: '거래량',
+                data: volumes,
+                backgroundColor: volColors,
+                borderWidth: 0,
+                barPercentage: 0.7,
+                categoryPercentage: 0.95,
+                yAxisID: 'y1',
+                order: 3,
+              },
+              {
+                type: 'line',
+                label: '20일 평균 거래대금',
+                data: avg20ValueData,
+                borderColor: '#f59e0b',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0,
+                yAxisID: 'y',
+                order: 1,
+              },
+              {
+                type: 'line',
+                label: '20일 평균 거래량',
+                data: avg20VolData,
+                borderColor: '#3b82f6',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0,
+                yAxisID: 'y1',
+                order: 1,
+              },
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+              x: { grid: { display: false }, ticks: { maxTicksLimit: 12, font: { size: 9 } } },
+              y: {
+                type: 'linear',
+                position: 'left',
+                title: { display: true, text: '거래대금' },
+                ticks: { font: { size: 9 }, callback: (v) => v >= 1e9 ? (v/1e9).toFixed(0)+'B' : (v >= 1e6 ? (v/1e6).toFixed(0)+'M' : v) },
+                grid: { color: '#f1f5f9' },
+              },
+              y1: {
+                type: 'linear',
+                position: 'right',
+                title: { display: true, text: '거래량' },
+                ticks: { font: { size: 9 }, callback: (v) => v >= 1e6 ? (v/1e6).toFixed(0)+'M' : (v/1e3).toFixed(0)+'K' },
+                grid: { display: false },
+              },
+            },
+            plugins: {
+              legend: { position: 'top', labels: { font: { size: 10 }, boxWidth: 10 } },
+              tooltip: {
+                callbacks: {
+                  title: (items) => qvaLabels[items[0].dataIndex],
+                  label: (item) => {
+                    if (item.datasetIndex === 0) {
+                      return `거래대금: ${(item.raw/1e9).toFixed(2)}B`;
+                    } else if (item.datasetIndex === 1) {
+                      return `거래량: ${(item.raw/1e6).toFixed(1)}M`;
+                    } else if (item.datasetIndex === 2) {
+                      return `20일 평균 거래대금: ${(item.raw/1e9).toFixed(2)}B`;
+                    } else {
+                      return `20일 평균 거래량: ${(item.raw/1e6).toFixed(1)}M`;
+                    }
+                  },
+                },
+              },
+              annotation: {
+                annotations: {
+                  'valueRatio': {
+                    type: 'label',
+                    xValue: dates.length - 1,
+                    yValue: Math.max(...values),
+                    content: [`값비율: ${(qvaSignals.valueRatio20 || 0).toFixed(2)}x`],
+                    font: { size: 12 },
+                  },
+                  'volRatio': {
+                    type: 'label',
+                    xValue: dates.length - 1,
+                    yValue: Math.max(...volumes),
+                    content: [`거래량비: ${(qvaSignals.volumeRatio20 || 0).toFixed(2)}x`],
+                    font: { size: 12 },
+                  },
+                },
+              },
+            },
+          },
+        });
+      })();
+      <% } %>
 
       // 기간 버튼
       document.querySelectorAll('.period-btn').forEach(btn => {
