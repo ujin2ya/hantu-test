@@ -222,166 +222,7 @@ function won(v) {
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <div class="tab-pane fade show active" id="tab-today" role="tabpanel">
 
-      <!-- 1. 상승 전 압축 후보 (CSB 4태그) — 메인 모델 -->
-      <div class="glass">
-        <h2><i class="bi bi-bullseye me-1"></i>상승 전 압축 후보 <span class="count">(<%= csbMainCandidates.length %>건)</span></h2>
-        <div class="cat-banner" style="background:#ecfdf5; border-left:4px solid #047857;">
-          <strong>가격 압축, 지지 유지, 돌파 대기 위치, 거래대금 재활성</strong>이 동시에 나타난 종목입니다.
-          큰 폭 상승 전 매수 시점 후보 (검증 기준 d20 +4.5%·승률 55%·PF 2.3, 매수 추천 아님).
-          <div class="small text-secondary mt-1">
-            손절 가이드 — <strong>clamp(ATR%×2.5, 8%, 12%)</strong> 종가 기준. 진입가 대비 N% 하락 종가 시 청산.
-          </div>
-        </div>
-        <% if (!csbMainCandidates.length) { %>
-          <div class="empty-state">현재 시점 통과 종목 없음 (4태그 모두 통과 까다로움)</div>
-        <% } else { %>
-          <% csbMainCandidates.forEach(function(c) { var m = c.csb?.metrics || {}; var sg = c.csb?.stopGuide; var st = c.csb?.stages || {}; var tp = c.csb?.tradePlan; %>
-            <div class="item-card">
-              <div class="row1">
-                <div class="name-block">
-                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
-                    <span class="nm"><%= c.name %></span>
-                    <span class="cd"><%= c.code %></span>
-                  </a>
-                  <span class="mkt"><%= c.market %></span>
-                </div>
-                <span class="score-pill" style="background:#d1fae5; color:#065f46;">
-                  <%= c.csb.displayGrade %> · 4태그
-                </span>
-              </div>
-              <div class="row2">
-                <span>관찰가 <strong><%= won(c.closePrice) %></strong></span>
-                <span>압축 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
-                <span>거래대금 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
-                <span>20일 고점거리 <strong><%= ((m.distFromHigh20 || 0) * 100).toFixed(1) %>%</strong></span>
-                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
-              </div>
-              <% if (tp) { %>
-                <div class="trade-plan" style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:10px 12px; margin:8px 0; font-size:0.85rem;">
-                  <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">
-                    <span><strong style="color:#065f46;">확인 진입</strong> <%= won(tp.triggerPrice) %> <span class="text-secondary small">(<%= tp.triggerSource %>)</span></span>
-                    <span><strong style="color:#991b1b;">종가 손절</strong> <%= won(tp.stopPrice) %> (-<%= tp.stopPct %>%)</span>
-                    <span><strong style="color:#1e40af;">1차 목표</strong> <%= won(tp.target1) %> <% if (tp.rr1) { %><span class="text-secondary small">손익비 <%= tp.rr1 %></span><% } %></span>
-                    <span><strong style="color:#7c3aed;">2차 목표</strong> <%= won(tp.target2) %> <% if (tp.rr2) { %><span class="text-secondary small">손익비 <%= tp.rr2 %></span><% } %></span>
-                    <span class="text-secondary small" style="margin-left:auto;"><%= tp.horizon %></span>
-                  </div>
-                </div>
-              <% } %>
-              <div class="row3">
-                <% if (st.compressionFormed) { %><span class="tag-badge" style="background:#d1fae5; color:#065f46;">압축 형성</span><% } %>
-                <% if (st.supportConfirmed) { %><span class="tag-badge" style="background:#dbeafe; color:#1e40af;">지지 확인</span><% } %>
-                <% if (st.breakoutReady) { %><span class="tag-badge" style="background:#fef3c7; color:#854d0e;">돌파 대기</span><% } %>
-                <% if (st.volumeReturning) { %><span class="tag-badge" style="background:#fce7f3; color:#9d174d;">거래대금 재활성</span><% } %>
-                <% if (c.csb?.warnings && c.csb.warnings.length) { c.csb.warnings.forEach(function(w) { %>
-                  <span class="tag-badge" style="background:#fef2f2; color:#991b1b;"><i class="bi bi-exclamation-triangle me-1"></i><%= w %></span>
-                <% }) } %>
-              </div>
-            </div>
-          <% }) %>
-        <% } %>
-      </div>
-
-      <!-- 1b. 예비 압축 후보 (CSB 3태그) — 보조 -->
-      <div class="glass">
-        <h2><i class="bi bi-hourglass-split me-1"></i>예비 압축 후보 <span class="count">(<%= csbSubCandidates.length %>건)</span></h2>
-        <div class="cat-banner" style="background:#f0fdfa; border-left:4px solid #0d9488;">
-          지지 확인 + 거래대금 재활성에 더해 압축 또는 돌파 중 한 가지를 만족하는 종목입니다.
-          4태그 통과로 발전할 가능성을 관찰하는 보조 후보입니다.
-        </div>
-        <% if (!csbSubCandidates.length) { %>
-          <div class="empty-state">현재 시점 통과 종목 없음</div>
-        <% } else { %>
-          <% csbSubCandidates.slice(0, 30).forEach(function(c) { var m = c.csb?.metrics || {}; var st = c.csb?.stages || {}; var tp = c.csb?.tradePlan; %>
-            <div class="item-card">
-              <div class="row1">
-                <div class="name-block">
-                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
-                    <span class="nm"><%= c.name %></span>
-                    <span class="cd"><%= c.code %></span>
-                  </a>
-                  <span class="mkt"><%= c.market %></span>
-                </div>
-                <span class="score-pill" style="background:#ccfbf1; color:#0f766e;">3태그</span>
-              </div>
-              <div class="row2">
-                <span>관찰가 <strong><%= won(c.closePrice) %></strong></span>
-                <span>압축 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
-                <span>거래대금 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
-                <span>고점거리 <strong><%= (m.distFromHigh20 || 0).toFixed(1) %>%</strong></span>
-                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
-              </div>
-              <% if (tp) { %>
-                <div class="trade-plan" style="background:#f0fdfa; border:1px solid #5eead4; border-radius:8px; padding:10px 12px; margin:8px 0; font-size:0.85rem;">
-                  <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">
-                    <span><strong style="color:#0f766e;">확인 진입</strong> <%= won(tp.triggerPrice) %></span>
-                    <span><strong style="color:#991b1b;">종가 손절</strong> <%= won(tp.stopPrice) %> (-<%= tp.stopPct %>%)</span>
-                    <span><strong style="color:#1e40af;">1차 목표</strong> <%= won(tp.target1) %></span>
-                    <span><strong style="color:#7c3aed;">2차 목표</strong> <%= won(tp.target2) %></span>
-                    <% if (tp.rr1) { %><span class="text-secondary small">손익비 <%= tp.rr1 %>/<%= tp.rr2 %></span><% } %>
-                  </div>
-                </div>
-              <% } %>
-              <div class="row3">
-                <% if (st.compressionFormed) { %><span class="tag-badge" style="background:#d1fae5; color:#065f46;">압축 형성</span><% } %>
-                <% if (st.supportConfirmed) { %><span class="tag-badge" style="background:#dbeafe; color:#1e40af;">지지 확인</span><% } %>
-                <% if (st.breakoutReady) { %><span class="tag-badge" style="background:#fef3c7; color:#854d0e;">돌파 대기</span><% } %>
-                <% if (st.volumeReturning) { %><span class="tag-badge" style="background:#fce7f3; color:#9d174d;">거래대금 재활성</span><% } %>
-                <% if (c.csb?.warnings && c.csb.warnings.length) { c.csb.warnings.forEach(function(w) { %>
-                  <span class="tag-badge" style="background:#fef2f2; color:#991b1b;"><i class="bi bi-exclamation-triangle me-1"></i><%= w %></span>
-                <% }) } %>
-              </div>
-            </div>
-          <% }) %>
-          <% if (csbSubCandidates.length > 30) { %>
-            <div class="small text-secondary mt-2">상위 30개 표시 — 총 <%= csbSubCandidates.length %>건</div>
-          <% } %>
-        <% } %>
-      </div>
-
-
-      <!-- 2. 과매도 반등 후보 (Rebound) -->
-      <div class="glass">
-        <h2><i class="bi bi-arrow-counterclockwise me-1"></i>과매도 반등 후보 <span class="count">(<%= reboundCandidates.length %>건)</span></h2>
-        <div class="cat-banner rebound">
-          최근 단기 과매도 상태이지만, 장기 구조가 완전히 무너지지 않은 종목입니다.
-          d1~d5 단기 반등 관찰용 후보입니다 (매수 추천 아님).
-        </div>
-        <% if (!reboundCandidates.length) { %>
-          <div class="empty-state">현재 시점 통과 종목 없음</div>
-        <% } else { %>
-          <% reboundCandidates.forEach(function(c) { var s = c.rebound?.signals || {}; %>
-            <div class="item-card">
-              <div class="row1">
-                <div class="name-block">
-                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
-                    <span class="nm"><%= c.name %></span>
-                    <span class="cd"><%= c.code %></span>
-                  </a>
-                  <span class="mkt"><%= c.market %></span>
-                </div>
-                <span class="score-pill rebound">반등 점수 <%= c.rebound.score %></span>
-              </div>
-              <div class="row2">
-                <span>현재가 <strong><%= won(c.closePrice || s.close) %></strong></span>
-                <span>5일 수익률 <strong class="ret-neg"><%= ((s.ret5d || 0) * 100).toFixed(1) %>%</strong></span>
-                <span>10일 <strong class="<%= s.ret10d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret10d || 0) * 100).toFixed(1) %>%</strong></span>
-                <span>20일 <strong class="<%= s.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret20d || 0) * 100).toFixed(1) %>%</strong></span>
-              </div>
-              <div class="row2">
-                <span>변동성(ATR) <strong><%= ((s.atrPct || 0) * 100).toFixed(1) %>%</strong></span>
-                <% if (s.ma120) { %><span>120일선 거리 <strong><%= ((s.close / s.ma120 - 1) * 100).toFixed(1) %>%</strong></span><% } %>
-                <span>3일 외+기 순매수 <strong><%= ((s.sum3 || 0) / 1e8).toFixed(0) %>억</strong></span>
-                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
-              </div>
-              <div class="row3">
-                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= tagText(t) %></span><% }) %>
-              </div>
-            </div>
-          <% }) %>
-        <% } %>
-      </div>
-
-      <!-- 3. 거래대금 초동 후보 (VVI Breakout Confirm) -->
+      <!-- 1. 거래대금 초동 후보 (VVI Breakout Confirm) — 가장 먼저 표시 -->
       <div class="glass">
         <h2><i class="bi bi-graph-up me-1"></i>거래대금 초동 후보 <span class="count">(<%= (vviCandidates || []).length %>건)</span></h2>
         <div class="cat-banner vvi" style="background:linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%); color:#78350f; border-left:4px solid #d97706;">
@@ -447,6 +288,165 @@ function won(v) {
                 <% } else { %>
                   <span class="tag-badge" style="background:#d1d5db; color:#374151;">신호</span>
                 <% } %>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+      <!-- 2. 상승 전 압축 후보 (CSB 4태그) — 메인 모델 -->
+      <div class="glass">
+        <h2><i class="bi bi-bullseye me-1"></i>상승 전 압축 후보 <span class="count">(<%= csbMainCandidates.length %>건)</span></h2>
+        <div class="cat-banner" style="background:#ecfdf5; border-left:4px solid #047857;">
+          <strong>가격 압축, 지지 유지, 돌파 대기 위치, 거래대금 재활성</strong>이 동시에 나타난 종목입니다.
+          큰 폭 상승 전 매수 시점 후보 (검증 기준 d20 +4.5%·승률 55%·PF 2.3, 매수 추천 아님).
+          <div class="small text-secondary mt-1">
+            손절 가이드 — <strong>clamp(ATR%×2.5, 8%, 12%)</strong> 종가 기준. 진입가 대비 N% 하락 종가 시 청산.
+          </div>
+        </div>
+        <% if (!csbMainCandidates.length) { %>
+          <div class="empty-state">현재 시점 통과 종목 없음 (4태그 모두 통과 까다로움)</div>
+        <% } else { %>
+          <% csbMainCandidates.forEach(function(c) { var m = c.csb?.metrics || {}; var sg = c.csb?.stopGuide; var st = c.csb?.stages || {}; var tp = c.csb?.tradePlan; %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
+                  <span class="mkt"><%= c.market %></span>
+                </div>
+                <span class="score-pill" style="background:#d1fae5; color:#065f46;">
+                  <%= c.csb.displayGrade %> · 4태그
+                </span>
+              </div>
+              <div class="row2">
+                <span>관찰가 <strong><%= won(c.closePrice) %></strong></span>
+                <span>압축 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
+                <span>거래대금 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
+                <span>20일 고점거리 <strong><%= ((m.distFromHigh20 || 0) * 100).toFixed(1) %>%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+              </div>
+              <% if (tp) { %>
+                <div class="trade-plan" style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:10px 12px; margin:8px 0; font-size:0.85rem;">
+                  <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">
+                    <span><strong style="color:#065f46;">확인 진입</strong> <%= won(tp.triggerPrice) %> <span class="text-secondary small">(<%= tp.triggerSource %>)</span></span>
+                    <span><strong style="color:#991b1b;">종가 손절</strong> <%= won(tp.stopPrice) %> (-<%= tp.stopPct %>%)</span>
+                    <span><strong style="color:#1e40af;">1차 목표</strong> <%= won(tp.target1) %> <% if (tp.rr1) { %><span class="text-secondary small">손익비 <%= tp.rr1 %></span><% } %></span>
+                    <span><strong style="color:#7c3aed;">2차 목표</strong> <%= won(tp.target2) %> <% if (tp.rr2) { %><span class="text-secondary small">손익비 <%= tp.rr2 %></span><% } %></span>
+                    <span class="text-secondary small" style="margin-left:auto;"><%= tp.horizon %></span>
+                  </div>
+                </div>
+              <% } %>
+              <div class="row3">
+                <% if (st.compressionFormed) { %><span class="tag-badge" style="background:#d1fae5; color:#065f46;">압축 형성</span><% } %>
+                <% if (st.supportConfirmed) { %><span class="tag-badge" style="background:#dbeafe; color:#1e40af;">지지 확인</span><% } %>
+                <% if (st.breakoutReady) { %><span class="tag-badge" style="background:#fef3c7; color:#854d0e;">돌파 대기</span><% } %>
+                <% if (st.volumeReturning) { %><span class="tag-badge" style="background:#fce7f3; color:#9d174d;">거래대금 재활성</span><% } %>
+                <% if (c.csb?.warnings && c.csb.warnings.length) { c.csb.warnings.forEach(function(w) { %>
+                  <span class="tag-badge" style="background:#fef2f2; color:#991b1b;"><i class="bi bi-exclamation-triangle me-1"></i><%= w %></span>
+                <% }) } %>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+      <!-- 2b. 예비 압축 후보 (CSB 3태그) — 보조 -->
+      <div class="glass">
+        <h2><i class="bi bi-hourglass-split me-1"></i>예비 압축 후보 <span class="count">(<%= csbSubCandidates.length %>건)</span></h2>
+        <div class="cat-banner" style="background:#f0fdfa; border-left:4px solid #0d9488;">
+          지지 확인 + 거래대금 재활성에 더해 압축 또는 돌파 중 한 가지를 만족하는 종목입니다.
+          4태그 통과로 발전할 가능성을 관찰하는 보조 후보입니다.
+        </div>
+        <% if (!csbSubCandidates.length) { %>
+          <div class="empty-state">현재 시점 통과 종목 없음</div>
+        <% } else { %>
+          <% csbSubCandidates.slice(0, 30).forEach(function(c) { var m = c.csb?.metrics || {}; var st = c.csb?.stages || {}; var tp = c.csb?.tradePlan; %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
+                  <span class="mkt"><%= c.market %></span>
+                </div>
+                <span class="score-pill" style="background:#ccfbf1; color:#0f766e;">3태그</span>
+              </div>
+              <div class="row2">
+                <span>관찰가 <strong><%= won(c.closePrice) %></strong></span>
+                <span>압축 <strong><%= ((m.compressionRatio || 0) * 100).toFixed(0) %>%</strong></span>
+                <span>거래대금 <strong><%= (m.valueRatio5d20d || 0).toFixed(2) %>x</strong></span>
+                <span>고점거리 <strong><%= (m.distFromHigh20 || 0).toFixed(1) %>%</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+              </div>
+              <% if (tp) { %>
+                <div class="trade-plan" style="background:#f0fdfa; border:1px solid #5eead4; border-radius:8px; padding:10px 12px; margin:8px 0; font-size:0.85rem;">
+                  <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">
+                    <span><strong style="color:#0f766e;">확인 진입</strong> <%= won(tp.triggerPrice) %></span>
+                    <span><strong style="color:#991b1b;">종가 손절</strong> <%= won(tp.stopPrice) %> (-<%= tp.stopPct %>%)</span>
+                    <span><strong style="color:#1e40af;">1차 목표</strong> <%= won(tp.target1) %></span>
+                    <span><strong style="color:#7c3aed;">2차 목표</strong> <%= won(tp.target2) %></span>
+                    <% if (tp.rr1) { %><span class="text-secondary small">손익비 <%= tp.rr1 %>/<%= tp.rr2 %></span><% } %>
+                  </div>
+                </div>
+              <% } %>
+              <div class="row3">
+                <% if (st.compressionFormed) { %><span class="tag-badge" style="background:#d1fae5; color:#065f46;">압축 형성</span><% } %>
+                <% if (st.supportConfirmed) { %><span class="tag-badge" style="background:#dbeafe; color:#1e40af;">지지 확인</span><% } %>
+                <% if (st.breakoutReady) { %><span class="tag-badge" style="background:#fef3c7; color:#854d0e;">돌파 대기</span><% } %>
+                <% if (st.volumeReturning) { %><span class="tag-badge" style="background:#fce7f3; color:#9d174d;">거래대금 재활성</span><% } %>
+                <% if (c.csb?.warnings && c.csb.warnings.length) { c.csb.warnings.forEach(function(w) { %>
+                  <span class="tag-badge" style="background:#fef2f2; color:#991b1b;"><i class="bi bi-exclamation-triangle me-1"></i><%= w %></span>
+                <% }) } %>
+              </div>
+            </div>
+          <% }) %>
+          <% if (csbSubCandidates.length > 30) { %>
+            <div class="small text-secondary mt-2">상위 30개 표시 — 총 <%= csbSubCandidates.length %>건</div>
+          <% } %>
+        <% } %>
+      </div>
+
+
+      <!-- 3. 과매도 반등 후보 (Rebound) -->
+      <div class="glass">
+        <h2><i class="bi bi-arrow-counterclockwise me-1"></i>과매도 반등 후보 <span class="count">(<%= reboundCandidates.length %>건)</span></h2>
+        <div class="cat-banner rebound">
+          최근 단기 과매도 상태이지만, 장기 구조가 완전히 무너지지 않은 종목입니다.
+          d1~d5 단기 반등 관찰용 후보입니다 (매수 추천 아님).
+        </div>
+        <% if (!reboundCandidates.length) { %>
+          <div class="empty-state">현재 시점 통과 종목 없음</div>
+        <% } else { %>
+          <% reboundCandidates.forEach(function(c) { var s = c.rebound?.signals || {}; %>
+            <div class="item-card">
+              <div class="row1">
+                <div class="name-block">
+                  <a href="/?query=<%= c.code %>" class="deep-link" title="상세 보기">
+                    <span class="nm"><%= c.name %></span>
+                    <span class="cd"><%= c.code %></span>
+                  </a>
+                  <span class="mkt"><%= c.market %></span>
+                </div>
+                <span class="score-pill rebound">반등 점수 <%= c.rebound.score %></span>
+              </div>
+              <div class="row2">
+                <span>현재가 <strong><%= won(c.closePrice || s.close) %></strong></span>
+                <span>5일 수익률 <strong class="ret-neg"><%= ((s.ret5d || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>10일 <strong class="<%= s.ret10d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret10d || 0) * 100).toFixed(1) %>%</strong></span>
+                <span>20일 <strong class="<%= s.ret20d >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= ((s.ret20d || 0) * 100).toFixed(1) %>%</strong></span>
+              </div>
+              <div class="row2">
+                <span>변동성(ATR) <strong><%= ((s.atrPct || 0) * 100).toFixed(1) %>%</strong></span>
+                <% if (s.ma120) { %><span>120일선 거리 <strong><%= ((s.close / s.ma120 - 1) * 100).toFixed(1) %>%</strong></span><% } %>
+                <span>3일 외+기 순매수 <strong><%= ((s.sum3 || 0) / 1e8).toFixed(0) %>억</strong></span>
+                <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
+              </div>
+              <div class="row3">
+                <% c.tags.forEach(function(t) { %><span class="tag-badge tag-<%= t %>"><%= tagText(t) %></span><% }) %>
               </div>
             </div>
           <% }) %>
