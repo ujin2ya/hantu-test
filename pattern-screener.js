@@ -1124,6 +1124,7 @@ async function analyzeAll({ logProgress = false } = {}) {
   };
 
   fs.writeFileSync(PATTERN_RESULT_CACHE, JSON.stringify(result, null, 0));
+  console.log(`[analyzeAll] 완료 — vviCandidates: ${result.vviCandidates?.length || 0}개, CSB: ${result.csbMainCandidates?.length || 0}개, Rebound: ${result.reboundCandidates?.length || 0}개, FlowLead: ${result.flowLeadCandidates?.length || 0}개`);
   return result;
 }
 

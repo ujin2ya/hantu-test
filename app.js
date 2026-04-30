@@ -2592,8 +2592,11 @@ app.get("/pattern", (req, res) => {
     const fs = require("fs");
     const p = path.join(__dirname, "cache", "pattern-result.json");
     if (fs.existsSync(p)) result = JSON.parse(fs.readFileSync(p, "utf-8"));
-  } catch (_) {}
+  } catch (e) {
+    console.error("[/pattern] JSON 파싱 에러:", e.message);
+  }
   const seededCount = patternScreener.listSeededStocks().length;
+  console.log("[/pattern] vviCandidates loaded:", result?.vviCandidates?.length || 0, "items");
 
   const cQuery = String(req.query.cq || "").trim();
   const matchSearch = (item) => !cQuery || (item.name || "").toLowerCase().includes(cQuery.toLowerCase()) || (item.code || "").toLowerCase().includes(cQuery.toLowerCase());
@@ -2721,6 +2724,12 @@ app.post("/admin/pattern/analyze", requireAdmin, (req, res) => {
   patternState.analyzeError = null;
   res.redirect("/admin?flash=pattern_analyze_started");
   patternScreener.analyzeAll({ logProgress: true })
+    .then((result) => {
+      // 분석 결과를 pattern-result.json에 저장
+      const resultPath = path.join(__dirname, 'cache', 'pattern-result.json');
+      fs.writeFileSync(resultPath, JSON.stringify(result, null, 2), 'utf-8');
+      console.log(`[분석] 완료 및 저장: vviCandidates=${result.vviCandidates?.length || 0}, CSB=${result.csbMainCandidates?.length || 0}`);
+    })
     .catch((e) => { patternState.analyzeError = e.message; })
     .finally(() => {
       patternState.analyzing = false;
