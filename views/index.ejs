@@ -600,20 +600,40 @@
 
         </div>
 
-        <!-- AI 관찰 포인트 (Gemini) -->
-        <% if (typeof aiComment !== 'undefined' && aiComment && aiComment.text) { %>
-          <div class="glass" style="border-left: 4px solid #a855f7; margin-top: 16px;">
-            <h2 style="color:#7c3aed;"><i class="bi bi-robot me-1"></i>AI 관찰 포인트</h2>
-            <div style="font-size: 0.92rem; line-height: 1.75; color: #334155; white-space: pre-wrap;"><%= aiComment.text %></div>
-            <div class="small text-secondary mt-3" style="font-size:0.7rem; padding-top:8px; border-top:1px dashed #e2e8f0;">
-              ※ 본 코멘트는 분석 도구의 보조 설명이며 매수/매도 추천이 아닙니다.
-              <% if (aiComment.cached) { %>· 캐시 적중<% } else if (aiComment.model) { %>· <%= aiComment.model %><% } %>
+        <!-- 뉴스·공시 기반 재료 분석 (Gemini Google Search Grounding) -->
+        <% if (typeof materialAnalysis !== 'undefined' && materialAnalysis && !materialAnalysis.error) { %>
+          <div class="glass" style="border-left: 4px solid #2563eb; margin-top: 16px;">
+            <h2 style="color:#1e40af;"><i class="bi bi-newspaper me-1"></i>뉴스·공시 기반 재료 분석</h2>
+            <p class="text-secondary small">이 분석은 뉴스·공시·가격 데이터를 요약한 참고 정보이며 매수 추천이 아닙니다.</p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+              <span class="badge bg-primary"><%= materialAnalysis.materialType %></span>
+              <span class="badge bg-secondary">강도: <%= materialAnalysis.materialStrength %></span>
+              <span class="badge bg-info text-dark">신선도: <%= materialAnalysis.freshness %></span>
+            </div>
+            <p><strong>핵심 재료:</strong> <%= materialAnalysis.keyMaterial %></p>
+            <p><strong>뉴스 요약:</strong> <%= materialAnalysis.newsSummary %></p>
+            <% if (materialAnalysis.disclosureSummary && materialAnalysis.disclosureSummary !== '해당 없음') { %>
+              <p><strong>공시 요약:</strong> <%= materialAnalysis.disclosureSummary %></p>
+            <% } %>
+            <p><strong>가격 반응:</strong> <%= materialAnalysis.priceReaction %></p>
+            <% if (materialAnalysis.risks && materialAnalysis.risks.length > 0) { %>
+              <p><strong>리스크:</strong> <%= materialAnalysis.risks.join(' / ') %></p>
+            <% } %>
+            <div style="background:#f0f9ff; border-radius:8px; padding:10px 14px; margin-top:12px; font-weight:600; color:#1e40af;">
+              💡 <%= materialAnalysis.oneLineConclusion %>
+            </div>
+            <% if (materialAnalysis.sources && materialAnalysis.sources.length > 0) { %>
+              <div class="small text-secondary mt-2">출처: <%= materialAnalysis.sources.join(' · ') %></div>
+            <% } %>
+            <div class="small text-secondary mt-2" style="font-size:0.7rem; padding-top:8px; border-top:1px dashed #e2e8f0;">
+              생성: <%= new Date(materialAnalysis.generatedAt).toLocaleString('ko-KR') %>
+              <%= materialAnalysis.cached ? ' (캐시)' : '' %>
             </div>
           </div>
-        <% } else if (typeof aiComment !== 'undefined' && aiComment && aiComment.error) { %>
+        <% } else if (typeof materialAnalysis !== 'undefined' && materialAnalysis && materialAnalysis.error) { %>
           <div class="glass" style="border-left: 4px solid #cbd5e1; margin-top: 16px;">
-            <h2 style="color:#94a3b8;"><i class="bi bi-robot me-1"></i>AI 관찰 포인트</h2>
-            <div class="small text-secondary">코멘트 생성 실패 — 잠시 후 다시 시도해주세요.</div>
+            <h2 style="color:#94a3b8;"><i class="bi bi-newspaper me-1"></i>뉴스·공시 기반 재료 분석</h2>
+            <div class="small text-secondary">분석 생성 실패 — 잠시 후 다시 시도해주세요.</div>
           </div>
         <% } %>
 

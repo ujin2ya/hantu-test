@@ -1749,6 +1749,88 @@ async function getPatternAiComment(detail) {
   }
 }
 
+// ─── 뉴스·공시 기반 재료 분석 (Gemini Google Search Grounding) ───
+const MATERIAL_ANALYSIS_DIR = path.join(__dirname, "cache", "material-analysis");
+if (!fs.existsSync(MATERIAL_ANALYSIS_DIR)) fs.mkdirSync(MATERIAL_ANALYSIS_DIR, { recursive: true });
+
+function loadMaterialCache(code) {
+  const p = path.join(MATERIAL_ANALYSIS_DIR, `${code}.json`);
+  try {
+    const saved = JSON.parse(fs.readFileSync(p, "utf-8"));
+    const today = new Date().toDateString();
+    if (new Date(saved.generatedAt).toDateString() === today) return saved;
+  } catch (_) {}
+  return null;
+}
+
+function saveMaterialCache(code, payload) {
+  const p = path.join(MATERIAL_ANALYSIS_DIR, `${code}.json`);
+  fs.writeFileSync(p, JSON.stringify(payload, null, 2), "utf-8");
+}
+
+function buildMaterialPrompt(name, code, priceData, disclosures) {
+  const discText = disclosures?.items?.length
+    ? disclosures.items.slice(0, 5).map(d => `- [${d.date}] ${d.title} (${d.submitter})`).join("\n")
+    : "공시 없음";
+  return `
+당신은 한국 주식 재료 분석 전문가입니다.
+Google 검색으로 "${name}(${code})" 관련 최신 뉴스와 공시를 확인한 뒤,
+아래 가격 지표와 함께 재료를 분석하여 JSON만 출력하세요.
+설명 문장, 마크다운, 코드블록 없이 순수 JSON만 출력하세요.
+
+[종목 기본 정보]
+종목명: ${name} / 코드: ${code}
+
+[서버 계산 가격 지표]
+${JSON.stringify(priceData, null, 2)}
+
+[DART 최근 공시 (최대 5건)]
+${discText}
+
+[출력 JSON 스키마 — 이 형식 그대로 출력]
+{
+  "materialType": "실적|수주|정책|테마|공시|인수합병|업황|수급|재료 없음",
+  "materialStrength": "강함|보통|약함",
+  "freshness": "오늘|최근 3일|최근 1주|오래된 재료",
+  "keyMaterial": "핵심 재료 한 줄 요약",
+  "newsSummary": "최신 뉴스 요약 (2~3문장)",
+  "disclosureSummary": "공시 요약 (없으면 '해당 없음')",
+  "priceReaction": "가격이 재료에 어떻게 반응했는지 해석",
+  "risks": ["리스크 1", "리스크 2"],
+  "oneLineConclusion": "한 줄 결론",
+  "sources": ["출처 URL 또는 제목"]
+}
+
+주의: 매수/매도 권유 금지. 데이터 기반 서술만.
+`.trim();
+}
+
+async function getMaterialAnalysis(code, name, priceData, disclosures) {
+  const cached = loadMaterialCache(code);
+  if (cached) return { ...cached, cached: true };
+  if (!process.env.GEMINI_API_KEY) return null;
+  try {
+    const client = getGemini();
+    const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+    const model = client.getGenerativeModel({
+      model: modelName,
+      tools: [{ googleSearch: {} }],
+    });
+    const prompt = buildMaterialPrompt(name, code, priceData, disclosures);
+    const result = await model.generateContent(prompt);
+    const raw = (result.response.text() || "").trim();
+    // JSON 추출 (코드블록 제거)
+    const jsonStr = raw.replace(/^```json?\s*/i, "").replace(/```\s*$/, "").trim();
+    const parsed = JSON.parse(jsonStr);
+    const payload = { ...parsed, generatedAt: new Date().toISOString(), model: modelName, cached: false };
+    saveMaterialCache(code, payload);
+    return payload;
+  } catch (e) {
+    console.error("[재료분석]", e.message);
+    return { error: e.message };
+  }
+}
+
 const DART_CORP_CODE_PATH = path.join(__dirname, ".dart-corp-code.json");
 let dartCorpMap = null;
 let dartCorpLoadInflight = null;
@@ -1975,7 +2057,7 @@ function renderIndex(res, overrides = {}) {
     csbDetail: null,
     flowSummary: null,
     flowRecent: null,
-    aiComment: null,
+    materialAnalysis: null,
     high60: null,
     low60: null,
     lastDate: null,
@@ -2245,42 +2327,26 @@ const handleSearch = async (req, res) => {
       };
     });
 
-    // 7) AI 관찰 포인트 (Gemini) — pattern 데이터 있을 때만, dataHash 기반 캐시
-    let aiComment = null;
-    if (patternData) {
-      const detail = {
-        name: stockMeta.name,
-        code: stockMeta.code,
-        market: stockMeta.market,
-        updatedAt: lastRow.date,
-        category: patternData.primaryTag,
-        scores: {
-          flowLead: patternData.flowLead?.score ?? null,
-          rebound: patternData.rebound?.score ?? null,
-          bullTrend: patternData.setupScore ?? null,
-        },
-        returns: {
-          d5: patternData.ret5d, d10: patternData.rebound?.signals?.ret10d != null ? +(patternData.rebound.signals.ret10d * 100).toFixed(2) : null,
-          d20: patternData.ret20d, d60: patternData.ret60d,
-        },
-        flow: flowSummary ? {
-          total1d: flowSummary.f1 + flowSummary.i1,
-          total5d: flowSummary.f5 + flowSummary.i5,
-          total20d: flowSummary.f20 + flowSummary.i20,
-          foreign5d: flowSummary.f5,
-          inst5d: flowSummary.i5,
-          flowRatio5d: patternData.flowLead?.signals?.flowRatio5d ?? null,
-        } : null,
-        risk: {
-          atrPct: patternData.atrPct,
-          dist20pct: patternData.dist20pct,
-        },
-        regime: patternData.regime,
-        warnings: (patternData.tags || []).filter((t) => ["OVERHEAT_WARNING", "HIGH_VOLATILITY", "STRUCTURE_BROKEN"].includes(t)),
-        tags: patternData.tags || [],
+    // 7) 뉴스·공시 기반 재료 분석 (Gemini Google Search Grounding) — 패턴 데이터 있을 때만
+    let materialAnalysis = null;
+    try {
+      const priceData = {
+        closePrice: lastRow?.close,
+        changeRate: stockMeta?.changeRate,
+        ret5d: patternData?.ret5d,
+        ret20d: patternData?.ret20d,
+        dist20pct: patternData?.dist20pct,
+        atrPct: patternData?.atrPct,
+        valueExpansion: patternData?.valueExpansion,
+        regime: patternData?.regime,
+        primaryTag: patternData?.primaryTag,
       };
-      try { aiComment = await getPatternAiComment(detail); } catch (_) { aiComment = null; }
-    }
+      const disclosures = process.env.DART_API_KEY
+        ? await fetchDartDisclosures(stockMeta.code).catch(() => null)
+        : null;
+      materialAnalysis = await getMaterialAnalysis(stockMeta.code, stockMeta.name, priceData, disclosures);
+    } catch (_) {}
+
 
     return renderIndex(res, {
       query,
@@ -2293,7 +2359,7 @@ const handleSearch = async (req, res) => {
       csbSignalHistory,
       flowSummary,
       flowRecent,
-      aiComment,
+      materialAnalysis,
       high60,
       low60,
       lastDate: lastRow.date,
