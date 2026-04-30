@@ -117,17 +117,17 @@ function printDataStatus(result) {
   console.log('='.repeat(70) + '\n');
 }
 
-function printSummary(chartOk, flowOk, analysisResult) {
+function printSummary(chartOk, flowOk, analysisResult, timings) {
   /**
-   * 최종 요약
+   * 최종 요약 (소요 시간 포함)
    */
   console.log('\n' + '='.repeat(70));
   console.log('📋 Daily Update 완료 요약');
   console.log('='.repeat(70));
 
-  console.log(`차트 데이터 갱신:   ${chartOk ? '✅' : '❌'}`);
-  console.log(`수급 데이터 갱신:   ${flowOk ? '✅' : '❌'}`);
-  console.log(`패턴 분석 재실행:   ${analysisResult ? '✅' : '❌'}`);
+  console.log(`차트 데이터 갱신:   ${chartOk ? '✅' : '❌'} (${timings?.chartTime || '?'}s)`);
+  console.log(`수급 데이터 갱신:   ${flowOk ? '✅' : '❌'} (${timings?.flowTime || '?'}s)`);
+  console.log(`패턴 분석 재실행:   ${analysisResult ? '✅' : '❌'} (${timings?.analysisTime || '?'}s)`);
 
   if (analysisResult) {
     console.log(
@@ -139,42 +139,56 @@ function printSummary(chartOk, flowOk, analysisResult) {
     );
   }
 
+  if (timings?.totalTime) {
+    console.log(`\n총 소요 시간: ${timings.totalTime}s (${Math.ceil(timings.totalTime / 60)}분)`);
+  }
+
   console.log(`\n다음 실행: 내일 16:20`);
   console.log('='.repeat(70) + '\n');
 }
 
 async function main() {
   /**
-   * 메인 플로우
+   * 메인 플로우 (시간 측정 포함)
    */
+  const startTime = Date.now();
+  const timings = {};
+
   log('━'.repeat(70));
   log('Daily Update & Analysis 시작');
   log('━'.repeat(70));
 
   // 1. 차트 데이터 갱신
+  let t1 = Date.now();
   const chartOk = runCommand(
     `python ${UPDATE_CHART_SCRIPT}`,
     '차트 데이터 갱신 (pykrx)',
   );
+  timings.chartTime = Math.ceil((Date.now() - t1) / 1000);
 
   console.log('');
 
   // 2. 수급 데이터 갱신
+  let t2 = Date.now();
   const flowOk = runCommand(
     `node ${UPDATE_FLOW_SCRIPT}`,
     '수급 데이터 갱신 (Naver)',
   );
+  timings.flowTime = Math.ceil((Date.now() - t2) / 1000);
 
   console.log('');
 
   // 3. 패턴 분석
+  let t3 = Date.now();
   const analysisResult = await runAnalysis();
+  timings.analysisTime = Math.ceil((Date.now() - t3) / 1000);
 
   // 4. 데이터 상태 리포트
   printDataStatus(analysisResult);
 
   // 5. 최종 요약
-  printSummary(chartOk, flowOk, analysisResult);
+  timings.totalTime = Math.ceil((Date.now() - startTime) / 1000);
+  printSummary(chartOk, flowOk, analysisResult, timings);
 
   // 6. 종료 코드
   const allOk = chartOk && flowOk && analysisResult;
