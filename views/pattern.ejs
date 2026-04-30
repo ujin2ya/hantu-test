@@ -129,11 +129,9 @@
   const safeStage2Pool = typeof stage2Pool !== 'undefined' ? stage2Pool : [];
   const safeHoldingsCards = typeof holdingsCards !== 'undefined' ? holdingsCards : [];
   const safeTaggedAll = typeof taggedAll !== 'undefined' ? taggedAll : [];
-%>
 
-
-// 태그 한글 매핑 (CSS class 는 영어 식별자 유지, 화면 표시만 한글)
-var tagLabels = {
+  // 헬퍼 함수들
+  const tagLabels = {
   CSB_BREAKOUT: '상승 전 압축',
   CSB_COMPRESSION: '예비 압축',
   FLOW_LEAD: '자금 선행',
@@ -150,18 +148,20 @@ var csbStageLabel = {
   supportConfirmed: '지지 확인',
   breakoutReady: '돌파 대기',
   volumeReturning: '거래대금 재활성',
-};
-function tagText(t) { return tagLabels[t] || t.replace(/_/g, ' '); }
-function regimeText(r) {
-  if (r === 'bull') return '강세장';
-  if (r === 'bear') return '약세장';
-  if (r === 'sideways') return '횡보장';
-  return r || '-';
-}
-function won(v) {
-  if (!v && v !== 0) return '-';
-  return Number(v).toLocaleString('ko-KR') + '원';
-}
+  };
+
+  // 헬퍼 함수
+  const tagText = function(t) { return tagLabels[t] || t.replace(/_/g, ' '); };
+  const regimeText = function(r) {
+    if (r === 'bull') return '강세장';
+    if (r === 'bear') return '약세장';
+    if (r === 'sideways') return '횡보장';
+    return r || '-';
+  };
+  const won = function(v) {
+    if (!v && v !== 0) return '-';
+    return Number(v).toLocaleString('ko-KR') + '원';
+  };
 %>
 
   <!-- ─── 헤더 ─── -->
