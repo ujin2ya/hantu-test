@@ -133,8 +133,9 @@
       <h2><i class="bi bi-graph-up-arrow me-1"></i>종목 분석 파이프라인</h2>
       <div class="small text-secondary mb-3">
         <strong>① 시드</strong>: KRX 일봉 차트 데이터 다운로드 (cache 갱신, 모델 무관) ·
-        <strong>② 분석</strong>: <code>analyzeAll()</code> 호출 = 현재 코드의 CSB 모델 기준 재분석 (cache/pattern-result.json 업데이트).
-        <br>새 코드 배포 후엔 반드시 <strong>분석</strong>을 다시 실행해야 /pattern 페이지에 반영됩니다.
+        <strong>② 분석</strong>: <code>analyzeAll()</code> 호출 = 현재 코드의 CSB 모델 기준 재분석 (cache/pattern-result.json 업데이트) ·
+        <strong>⚡ 일일 업데이트</strong>: pykrx + Naver 최근 5거래일 차트/수급 갱신 + 재분석 (일반적으로 매일 16:20 자동 실행)
+        <br>새 코드 배포 후엔 반드시 <strong>② 분석</strong>을 다시 실행해야 /pattern 페이지에 반영됩니다.
       </div>
       <% if (typeof patternState !== 'undefined' && patternState) { %>
         <div class="row g-2 mb-3">
@@ -188,6 +189,11 @@
         <form method="post" action="/admin/pattern/analyze" class="m-0" onsubmit="return confirm('② 분석을 다시 실행할까요? CSB 모델 기준 재분석 후 /pattern 페이지 반영 (~1분).');">
           <button type="submit" class="btn btn-success btn-sm" <%= (typeof patternState !== 'undefined' && patternState?.analyzing) ? 'disabled' : '' %>>
             <i class="bi bi-cpu me-1"></i>② 분석 실행 (CSB 모델)
+          </button>
+        </form>
+        <form method="post" action="/admin/run-daily-update" class="m-0" onsubmit="return confirm('일일 업데이트를 실행할까요? (차트 + 수급 + 분석, ~5-10분 소요)');">
+          <button type="submit" class="btn btn-outline-info btn-sm" <%= (typeof patternState !== 'undefined' && patternState?.analyzing) ? 'disabled' : '' %>>
+            <i class="bi bi-arrow-clockwise me-1"></i>⚡ 일일 업데이트
           </button>
         </form>
         <form method="post" action="/admin/send-pattern-mail" class="m-0" onsubmit="return confirm('VVI 신호 메일을 지금 발송할까요?');">
