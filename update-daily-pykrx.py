@@ -101,15 +101,16 @@ def merge_chart_data(cached: Dict[str, Any], new_df: pd.DataFrame) -> Dict[str, 
     existing_dates = {r["date"]: r for r in existing_rows}
 
     # 새 데이터 추가/업데이트
+    # pykrx 컬럼: '시가', '고가', '저가', '종가', '거래량', '등락률'
     for idx, row in new_df.iterrows():
         date_str = idx.strftime("%Y%m%d")
         new_row = {
             "date": date_str,
-            "open": int(row["Open"]),
-            "high": int(row["High"]),
-            "low": int(row["Low"]),
-            "close": int(row["Close"]),
-            "volume": int(row["Volume"]),
+            "open": int(row.get("시가") or row.get("Open", 0)),
+            "high": int(row.get("고가") or row.get("High", 0)),
+            "low": int(row.get("저가") or row.get("Low", 0)),
+            "close": int(row.get("종가") or row.get("Close", 0)),
+            "volume": int(row.get("거래량") or row.get("Volume", 0)),
             # valueApprox는 별도 계산 필요 (Naver에서 제공하는 거래대금)
             # 일단은 volume * close로 근사값 계산
         }
@@ -165,6 +166,12 @@ def save_chart_data(code: str, data: Dict[str, Any]) -> bool:
 def update_daily():
     """메인 업데이트 루프"""
     codes = load_stocks_list()
+
+    # --limit 옵션 처리 (테스트용)
+    limit = int(sys.argv[1]) if len(sys.argv) > 1 else None
+    if limit:
+        codes = codes[:limit]
+        print(f"[테스트 모드] {limit}개 종목만 처리")
 
     success = 0
     failed = 0

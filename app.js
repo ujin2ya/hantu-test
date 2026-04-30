@@ -2917,6 +2917,40 @@ cron.schedule('10 16 * * *', async () => {
 });
 console.log('[스케줄] 매일 16:10 종가 기준 자동 분석 활성화 (한국 시간)');
 
+// ─── 자동 Daily Update 스케줄 (매일 16:20 — 차트 + 수급 + 재분석) ───
+cron.schedule('20 16 * * 1-5', async () => {
+  // 평일(월-금)만 실행
+  if (patternState.analyzing) {
+    console.log('[일일업데이트] 16:20 — 이미 분석/업데이트 중이므로 스킵');
+    return;
+  }
+
+  console.log('[일일업데이트] 16:20 시작 — pykrx + Naver 수급 데이터 갱신 + 재분석');
+  patternState.analyzing = true;
+  patternState.analyzeStartedAt = new Date().toISOString();
+  patternState.analyzeError = null;
+
+  try {
+    const { execSync } = require('child_process');
+    const scriptPath = path.join(__dirname, 'run-daily-analysis.js');
+
+    // run-daily-analysis.js 실행 (chart + flow + analyzeAll)
+    execSync(`node ${scriptPath}`, { stdio: 'pipe' });
+
+    patternState.analyzeFinishedAt = new Date().toISOString();
+    console.log(`[일일업데이트] 완료: ${patternState.analyzeFinishedAt}`);
+  } catch (e) {
+    patternState.analyzeError = e.message;
+    console.error('[일일업데이트] 에러:', e.message);
+  } finally {
+    patternState.analyzing = false;
+  }
+}, {
+  scheduled: true,
+  timezone: 'Asia/Seoul',
+});
+console.log('[스케줄] 매일 평일 16:20 일일 데이터 업데이트 + 재분석 활성화 (한국 시간)');
+
 // ─── 자동 메일 발송 스케줄 (매일 18:00, MAIL_CRON_ENABLED=1 시) ───
 if (process.env.MAIL_CRON_ENABLED === '1') {
   cron.schedule('0 18 * * *', async () => {
