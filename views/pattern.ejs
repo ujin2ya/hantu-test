@@ -235,6 +235,15 @@ var csbStageLabel = {
           <strong>VVI Breakout Confirm</strong> — 오늘 거래량과 거래대금이 평소보다 증가하고, 종가가 당일 범위 상단에서 마감한 종목입니다. 다음 거래일에 전일 고가를 돌파하는지 확인하는 방식이 백테스트상 가장 양호했습니다.
           <br/><small style="margin-top:8px; display:block; color:#92400e;"><strong>d5 기준</strong> 평균 +1.77%, 승률 50%, PF 1.68 · 강세장에서는 평균 +4.63%, PF 3.46</small>
         </div>
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:16px; font-size:0.85rem; color:#475569;">
+          <strong style="color:#0f172a;">태그 범례:</strong>
+          <span style="display:inline-block; margin:6px 12px 0 0; background:#93c5fd; color:#1e3a8a; padding:2px 8px; border-radius:4px;">2~3배 초동</span>
+          <span style="display:inline-block; margin:6px 12px 0 0; background:#a3e635; color:#365314; padding:2px 8px; border-radius:4px;">3~5배 확장</span>
+          <span style="display:inline-block; margin:6px 12px 0 0; background:#fca5a5; color:#7f1d1d; padding:2px 8px; border-radius:4px;">⚠️ 5배+ 주의</span>
+          <span style="display:inline-block; margin:6px 12px 0 0; background:#86efac; color:#166534; padding:2px 8px; border-radius:4px;">종가 강함</span>
+          <span style="display:inline-block; margin:6px 12px 0 0; background:#c084fc; color:#4c1d95; padding:2px 8px; border-radius:4px;">대형주 우위</span>
+          <span style="display:inline-block; margin:6px 12px 0 0; background:#fbbf24; color:#78350f; padding:2px 8px; border-radius:4px;">강세장 우위</span>
+        </div>
         <div class="alert alert-info small mb-3" style="border-left:4px solid #3b82f6; background:#eff6ff; color:#1e40af;">
           <i class="bi bi-info-circle me-2"></i><strong>관찰용 신호입니다</strong> · 이 항목은 매수 추천이 아니라 거래대금 초동 관찰 신호입니다. 다음 거래일 전일 고가 돌파 여부를 확인하는 방식으로 해석합니다.
         </div>
@@ -263,8 +272,8 @@ var csbStageLabel = {
 
               <div class="row2">
                 <span>종가위치 <strong><%= ((cl || 0) * 100).toFixed(0) %>%</strong></span>
-                <span>신호고가 <strong><%= won(c.todayHigh) %></strong></span>
-                <span>확인가 <strong style="color:#dc2626;">돌파시 진입</strong></span>
+                <span>신호고가 <strong><%= won(s.signalHigh || c.closePrice) %></strong></span>
+                <span>확인가 <strong style="color:#dc2626;">전일 고가 돌파</strong></span>
                 <span style="margin-left:auto; color:#64748b;">시총 <strong><%= ((c.marketCap || 0) / 1e8).toFixed(0) %>억</strong></span>
               </div>
 
