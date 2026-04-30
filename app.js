@@ -2852,19 +2852,19 @@ app.post("/admin/refresh-pattern-cache", requireAdmin, (req, res) => {
 
 // Daily update — 차트 + 수급 + 분석 일괄 실행
 app.post("/admin/run-daily-update", requireAdmin, (req, res) => {
-  if (patternState.analyzing) {
-    return res.json({ success: false, message: "이미 분석 중입니다" });
+  if (patternState.dailyUpdating) {
+    return res.json({ success: false, message: "이미 일일 업데이트 중입니다" });
   }
 
-  patternState.analyzing = true;
-  patternState.analyzeStartedAt = new Date().toISOString();
-  patternState.analyzeFinishedAt = null;
-  patternState.analyzeError = null;
+  patternState.dailyUpdating = true;
+  patternState.dailyUpdateStartedAt = new Date().toISOString();
+  patternState.dailyUpdateFinishedAt = null;
+  patternState.dailyUpdateError = null;
 
   res.json({
     success: true,
     message: "일일 업데이트 시작 (차트 + 수급 + 분석)",
-    startedAt: patternState.analyzeStartedAt,
+    startedAt: patternState.dailyUpdateStartedAt,
   });
 
   // 백그라운드에서 실행 (블로킹 안 함)
@@ -2878,10 +2878,10 @@ app.post("/admin/run-daily-update", requireAdmin, (req, res) => {
       console.log("[Daily Update] 완료:", new Date().toISOString());
     } catch (e) {
       console.error("[Daily Update] 오류:", e.message);
-      patternState.analyzeError = e.message;
+      patternState.dailyUpdateError = e.message;
     } finally {
-      patternState.analyzing = false;
-      patternState.analyzeFinishedAt = new Date().toISOString();
+      patternState.dailyUpdating = false;
+      patternState.dailyUpdateFinishedAt = new Date().toISOString();
     }
   })();
 });
