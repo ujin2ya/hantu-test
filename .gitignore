@@ -35,6 +35,8 @@ build/
 .cache/
 cache/*
 !cache/pattern-result.json
+!cache/stock-charts-long/
+!cache/stock-charts-long/*.json
 !cache/flow-history/
 !cache/flow-history/*.json
 
