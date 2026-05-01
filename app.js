@@ -3331,19 +3331,18 @@ app.get('/simple-report', (req, res) => {
         th { background: #f0f4ff; padding: 10px; text-align: left; font-weight: 600; color: #667eea; border-bottom: 2px solid #667eea; font-size: 13px; white-space: nowrap; }
         td { padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 13px; }
         @media (max-width: 480px) {
-          .table-wrapper { background: transparent; box-shadow: none; margin-bottom: 10px; }
-          table { display: grid; grid-template-columns: 1fr; gap: 4px; min-width: unset; border: none; }
-          thead { display: none; }
-          tbody { display: contents; }
-          tr { display: grid; grid-template-columns: auto 1fr auto auto; gap: 8px; background: white; padding: 8px 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 3px; border: none; align-items: center; }
-          td { border: none; padding: 0; font-size: 12px; }
-          td:nth-child(1) { font-weight: 700; color: #667eea; font-size: 11px; }
-          td:nth-child(2) { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
-          td:nth-child(3) { color: #10b981; font-weight: 700; font-size: 13px; }
-          td:nth-child(4) { font-size: 11px; color: #666; }
-          td:nth-child(5) { color: #10b981; font-weight: 600; font-size: 11px; }
-          td:nth-child(n+6) { display: none; }
-          td:before { display: none; }
+          body { padding: 8px; }
+          .container { max-width: 100%; }
+          .table-wrapper { overflow-x: auto; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; border-radius: 8px; }
+          table { min-width: 550px; font-size: 11px; }
+          th { padding: 8px; font-size: 10px; }
+          td { padding: 6px 8px; font-size: 10px; }
+          h1 { font-size: 18px; margin-bottom: 6px; }
+          .subtitle { font-size: 12px; }
+          .summary-row { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px; }
+          .summary-card { padding: 10px; }
+          .summary-card .label { font-size: 10px; }
+          .summary-card .value { font-size: 16px; }
         }
         tr:hover { background: #f9f9f9; }
         .positive { color: #10b981; font-weight: 600; }
