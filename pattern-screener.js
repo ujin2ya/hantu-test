@@ -1129,6 +1129,9 @@ async function analyzeAll({ logProgress = false } = {}) {
     // 최종 우선순위: STRONG (HL+EV) > HIGHER_LOW (HL단독) > EVOLUTION (품질필터, 메인아님)
     if (qvaHigherLow?.passed) {
       const evolutionAlso = qvaEvolution?.passed;
+      // 임시 플래그: 데이터 갱신 필요 여부 (나중에 확인)
+      tagged.qvaDataStale = false;
+      tagged.qvaDataStaleDays = 0;
       if (evolutionAlso) {
         // QVA_STRONG: HIGHER_LOW + EVOLUTION 동시 통과
         tagged.qvaType = 'STRONG';
@@ -1165,6 +1168,30 @@ async function analyzeAll({ logProgress = false } = {}) {
   let latestMarketDate = null, availableModeDateCount = 0, maxFreq = 0;
   for (const [d, c] of Object.entries(dateFreq)) { if (c > maxFreq) { maxFreq = c; latestMarketDate = d; availableModeDateCount = c; } }
   const availableModeDate = latestMarketDate;  // 역호환
+
+  // ─── QVA 후보 최근성 필터링 ───
+  // QVA는 최근 거래일(또는 그 전날)의 신호만 유효
+  const parseDate = (d) => d ? new Date(d) : null;
+  const latestDate = parseDate(latestMarketDate);
+  const oneDayMs = 24 * 60 * 60 * 1000;
+
+  const filterQvaRecency = (candidates) => {
+    return candidates.filter(c => {
+      if (!c.lastDate || !latestMarketDate) return true;
+      const dayDiff = Math.floor((latestDate - parseDate(c.lastDate)) / oneDayMs);
+      c.qvaDataStaleDays = dayDiff;
+
+      // 데이터가 최근 거래일로부터 3일 이상 차이나면 제외
+      if (dayDiff > 2) {
+        c.qvaDataStale = true;
+        return false;
+      }
+      return true;
+    });
+  };
+
+  qvaStrongCandidates.splice(0, qvaStrongCandidates.length, ...filterQvaRecency(qvaStrongCandidates));
+  qvaHigherLowOnlyCandidates.splice(0, qvaHigherLowOnlyCandidates.length, ...filterQvaRecency(qvaHigherLowOnlyCandidates));
 
   // ─── 데이터 커버리지 계산 ───
   const totalStocks = taggedAll.length;
@@ -4144,6 +4171,16 @@ function calculateQuietVolumeHigherLow(chartRows, flowRows, meta = {}) {
   const medianVal20 = median(last20.map(r => r.valueApprox || 0));
   const valueMedianRatio = medianVal20 > 0 ? todayValue / medianVal20 : 0;
   if (valueMedianRatio < 1.8) return reject('valueMedianRatio<1.8');
+
+  // ─── 최근성 조건: 최근 3거래일 안에 거래대금 돌출 필요 ───
+  const last3 = chartRows.slice(-3);
+  const hasRecentValueSpike = last3.some(r => {
+    const v = r.valueApprox || (r.close * r.volume);
+    const vRatio = v / (avg20Value || 1);
+    const medRatio = medianVal20 > 0 ? (v / medianVal20) : 0;
+    return vRatio >= 1.5 || medRatio >= 2.0;
+  });
+  if (!hasRecentValueSpike) return reject('no_recent_value_spike');
 
   // ─── 범위 확장 필터 ───
   const last10hl = chartRows.slice(-10);
