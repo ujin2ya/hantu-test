@@ -736,6 +736,8 @@ async function analyzeAll({ logProgress = false } = {}) {
   const reboundCandidates = [];
   const vviCandidates = [];
   const qvaCandidates = [];  // 단일 QVA 후보 (passed === true만)
+  const qvaHoldCandidates = [];  // QVA-HOLD: 거래대금 이상징후 다음날도 견디기
+  const qvaHigherLowCandidates = [];  // QVA-HL: 저점 상승 + 거래대금 증가
   const overheatWarnings = [];
   const csbMainCandidates = [];   // CSB 4개 stage tag 모두 통과 — "상승 전 압축 후보"
   const csbSubCandidates = [];    // CSB 3개 stage (지지+거래대금+(압축 OR 돌파)) — "예비 압축 후보"
@@ -907,6 +909,18 @@ async function analyzeAll({ logProgress = false } = {}) {
       try { qva = calculateQuietVolumeAnomaly(rows, flowRows, meta); } catch (_) {}
     }
 
+    // QVA-HOLD (거래대금 이상징후 다음날도 견디기)
+    let qvaHold = null;
+    if (rows.length >= 60) {
+      try { qvaHold = calculateQuietVolumeHold(rows, flowRows, meta); } catch (_) {}
+    }
+
+    // QVA-HL (저점 상승 + 거래대금 증가)
+    let qvaHigherLow = null;
+    if (rows.length >= 60) {
+      try { qvaHigherLow = calculateQuietVolumeHigherLow(rows, flowRows, meta); } catch (_) {}
+    }
+
     // VVI 과거 신호 스캔 (최근 1~5 거래일)
     let recentVviSignal = null;
     if (rows.length >= 65 && (flowRows?.length || 0) >= 10) {
@@ -1033,6 +1047,8 @@ async function analyzeAll({ logProgress = false } = {}) {
       rebound: rebound?.passed ? { score: rebound.score, breakdown: rebound.breakdown, signals: rebound.signals } : null,
       vvi: vvi?.passed ? { score: vvi.score, category: vvi.category, breakdown: vvi.breakdown, signals: vvi.signals } : null,
       qva: qva?.passed ? { score: qva.score, category: qva.category, breakdown: qva.breakdown, signals: qva.signals } : null,
+      qvaHold: qvaHold?.passed ? { score: qvaHold.score, breakdown: qvaHold.breakdown, signals: qvaHold.signals } : null,
+      qvaHigherLow: qvaHigherLow?.passed ? { score: qvaHigherLow.score, breakdown: qvaHigherLow.breakdown, signals: qvaHigherLow.signals } : null,
       csb: csb?.passed ? {
         // 점수는 백테스트에서 변별력 실패했으므로 UI 메인 표시 X — 디버깅용 보조
         score: csb.score,
@@ -1069,6 +1085,12 @@ async function analyzeAll({ logProgress = false } = {}) {
     if (vvi?.passed) vviCandidates.push(tagged);
     if (qva?.passed) {
       qvaCandidates.push(tagged);
+    }
+    if (qvaHold?.passed) {
+      qvaHoldCandidates.push(tagged);
+    }
+    if (qvaHigherLow?.passed) {
+      qvaHigherLowCandidates.push(tagged);
     }
     if (overheatHit) overheatWarnings.push(tagged);
   }
@@ -1249,9 +1271,13 @@ async function analyzeAll({ logProgress = false } = {}) {
     vviRecentSignals,
     latestMarketDate,
 
-    // ─── QVA (거래량 이상징후 선행 감지 — 단일 모델) ───
+    // ─── QVA (거래량 이상징후 선행 감지) ───
     qvaCandidates: qvaCandidates.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
     qvaCount: qvaCandidates.length,
+    qvaHoldCandidates: qvaHoldCandidates.sort((a, b) => (b.qvaHold?.score || 0) - (a.qvaHold?.score || 0)),
+    qvaHoldCount: qvaHoldCandidates.length,
+    qvaHigherLowCandidates: qvaHigherLowCandidates.sort((a, b) => (b.qvaHigherLow?.score || 0) - (a.qvaHigherLow?.score || 0)),
+    qvaHigherLowCount: qvaHigherLowCandidates.length,
 
     // ─── 날짜 및 데이터 상태 ───
     expectedMarketDate,

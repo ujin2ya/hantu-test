@@ -2742,8 +2742,10 @@ app.get("/pattern", (req, res) => {
   const vviTodayCandidates = (result?.vviTodayCandidates || []).filter(matchSearch);
   const vviRecentSignals = (result?.vviRecentSignals || []).filter(matchSearch);
 
-  // ─── QVA (거래량 이상징후 선행 감지 — 단일 모델) ───
+  // ─── QVA (거래량 이상징후 선행 감지) ───
   const qvaCandidates = (result?.qvaCandidates || []).filter(matchSearch);
+  const qvaHoldCandidates = (result?.qvaHoldCandidates || []).filter(matchSearch);
+  const qvaHigherLowCandidates = (result?.qvaHigherLowCandidates || []).filter(matchSearch);
 
   // ─── 날짜 및 데이터 상태 ───
   const expectedMarketDate = result?.expectedMarketDate || null;
@@ -2801,6 +2803,8 @@ app.get("/pattern", (req, res) => {
     vviTodayCandidates: vviTodayCandidates || [],
     vviRecentSignals: vviRecentSignals || [],
     qvaCandidates: qvaCandidates || [],
+    qvaHoldCandidates: qvaHoldCandidates || [],
+    qvaHigherLowCandidates: qvaHigherLowCandidates || [],
     bullTrendWatch: bullTrendWatch || [],
     overheatWarnings: overheatWarnings || [],
     taggedAll: taggedAll || [],
