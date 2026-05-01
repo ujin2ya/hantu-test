@@ -3330,6 +3330,16 @@ app.get('/simple-report', (req, res) => {
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { background: #f0f4ff; padding: 10px; text-align: left; font-weight: 600; color: #667eea; border-bottom: 2px solid #667eea; font-size: 13px; white-space: nowrap; }
         td { padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 13px; }
+        @media (max-width: 480px) {
+          .table-wrapper { background: transparent; box-shadow: none; margin-bottom: 15px; }
+          table { display: grid; grid-template-columns: 1fr; gap: 10px; min-width: unset; border: none; }
+          thead { display: none; }
+          tbody { display: contents; }
+          tr { display: grid; grid-template-columns: 1fr; gap: 0; background: white; padding: 12px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 8px; border: none; }
+          td { display: grid; grid-template-columns: 80px 1fr; padding: 6px 0; border: none; font-size: 12px; align-items: center; }
+          td:first-child { grid-column: 1 / -1; padding: 4px 0; font-weight: 700; color: #667eea; }
+          td:before { content: attr(data-label); font-weight: 600; color: #667eea; font-size: 11px; }
+        }
         tr:hover { background: #f9f9f9; }
         .positive { color: #10b981; font-weight: 600; }
         .negative { color: #ef4444; font-weight: 600; }
@@ -3409,14 +3419,14 @@ app.get('/simple-report', (req, res) => {
               <tbody>
                 ${(stat.stocks || []).sort((a, b) => b.maxReturn - a.maxReturn).map((s, i) => `
                   <tr style="border-bottom: 1px solid #eee; ${s.maxReturn >= 30 ? 'background: #fef2f2;' : s.maxReturn >= 15 ? 'background: #fffbeb;' : ''}">
-                    <td style="padding: 10px;">${i + 1}</td>
-                    <td style="padding: 10px;"><strong>${s.name}</strong></td>
-                    <td style="padding: 10px; color: #999; font-size: 12px;">${s.code}</td>
-                    <td style="padding: 10px;">${s.signalPrice}</td>
-                    <td style="padding: 10px; color: #10b981; font-weight: 600;">+${s.maxReturn}%</td>
-                    <td style="padding: 10px;">D+${s.daysToMax}</td>
-                    <td style="padding: 10px; ${s.d20Return >= 0 ? 'color: #10b981;' : 'color: #ef4444;'} font-weight: 600;">${s.d20Return >= 0 ? '+' : ''}${s.d20Return}%</td>
-                    <td style="padding: 10px;">${s.hit10 ? '✓10' : ''}${s.hit15 ? ' ✓15' : ''}</td>
+                    <td style="padding: 10px;" data-label="순위">${i + 1}</td>
+                    <td style="padding: 10px;" data-label="종목명"><strong>${s.name}</strong></td>
+                    <td style="padding: 10px; color: #999; font-size: 12px;" data-label="코드">${s.code}</td>
+                    <td style="padding: 10px;" data-label="신호가">${s.signalPrice}</td>
+                    <td style="padding: 10px; color: #10b981; font-weight: 600;" data-label="최고점">+${s.maxReturn}%</td>
+                    <td style="padding: 10px;" data-label="도달일">D+${s.daysToMax}</td>
+                    <td style="padding: 10px; ${s.d20Return >= 0 ? 'color: #10b981;' : 'color: #ef4444;'} font-weight: 600;" data-label="D+20">${s.d20Return >= 0 ? '+' : ''}${s.d20Return}%</td>
+                    <td style="padding: 10px;" data-label="hit">${s.hit10 ? '✓10' : ''}${s.hit15 ? ' ✓15' : ''}</td>
                   </tr>
                 `).join('')}
               </tbody>
