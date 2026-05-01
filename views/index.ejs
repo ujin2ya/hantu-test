@@ -289,16 +289,102 @@
       </div>
       <% } %>
 
+      <% if (qvaDetail) { %>
+        <div class="glass" style="padding: 14px; margin-bottom: 12px;">
+          <div style="font-size:0.78rem; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:8px;">QVA 판정</div>
+          <!-- 상태 배지 -->
+          <div style="margin-bottom:10px;">
+            <%
+              let badgeText = '후보 아님';
+              let badgeBg = '#cbd5e1';
+              let badgeColor = '#475569';
+              if (qvaDetail.passed !== false) {
+                badgeText = '후보';
+                badgeBg = '#dcfce7';
+                badgeColor = '#15803d';
+              } else if (qvaDetail.category !== undefined) {
+                badgeText = '보류';
+                badgeBg = '#fef3c7';
+                badgeColor = '#b45309';
+              }
+            %>
+            <span style="display:inline-block; background:<%= badgeBg %>; color:<%= badgeColor %>; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:700;">
+              <%= badgeText %>
+            </span>
+          </div>
+          <!-- 2열 그리드 -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
+            <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+              <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">중앙값 대비</div>
+              <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail.signals && qvaDetail.signals.valueMedianRatio20 ? qvaDetail.signals.valueMedianRatio20.toFixed(1) : '-' %>배</div>
+            </div>
+            <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+              <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">거래량 대비</div>
+              <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail.signals && qvaDetail.signals.volumeRatio20 ? qvaDetail.signals.volumeRatio20.toFixed(1) : '-' %>배</div>
+            </div>
+            <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+              <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">저점 상승</div>
+              <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail.signals && qvaDetail.signals.higherLow5 ? '✓' : '✗' %></div>
+            </div>
+            <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+              <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">20일선</div>
+              <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail.signals && qvaDetail.signals.closeAboveMa20 ? '위' : '아래' %></div>
+            </div>
+          </div>
+        </div>
+      <% } %>
+
       <% if (chartRows && chartRows.length) { %>
         <div class="glass">
           <h2><i class="bi bi-graph-up me-1"></i>일봉 + 거래량</h2>
           <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:0.8rem; color:#1e40af;">
             <i class="bi bi-info-circle me-2"></i>이 차트는 매수 추천이 아니라, 후보 신호가 언제 어떤 조건으로 발생했는지 보여주는 설명용 차트입니다.
           </div>
-          <!-- 기간 선택: 1Y만 고정 -->
-          <button type="button" class="period-btn active" data-days="250" style="display:none;">1Y</button>
+          <!-- 기간 선택: 20일/60일 -->
+          <div class="period-btn-group">
+            <button type="button" class="period-btn" data-days="20">20일</button>
+            <button type="button" class="period-btn active" data-days="60">60일</button>
+          </div>
           <div class="chart-box"><canvas id="priceChart"></canvas></div>
           <div class="chart-box volume"><canvas id="volumeChart"></canvas></div>
+
+          <!-- 거래대금 절대값 숫자 카드 -->
+          <div id="valueCard" style="font-size:0.8rem; color:#475569; padding:8px 4px; display:flex; gap:16px; flex-wrap:wrap; margin:12px 0;"></div>
+
+          <!-- 상세 지표 접기/펼치기 -->
+          <details style="margin-top:12px; font-size:0.78rem;">
+            <summary style="cursor:pointer; color:#64748b; padding:6px 0; font-weight:600;">상세 지표 보기</summary>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
+              <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">5일 수익률</div>
+                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.ret5d ? (qvaDetail.signals.ret5d * 100).toFixed(1) + '%' : '-' %></div>
+              </div>
+              <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">20일 수익률</div>
+                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.ret20d ? (qvaDetail.signals.ret20d * 100).toFixed(1) + '%' : '-' %></div>
+              </div>
+              <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">범위확장10</div>
+                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.rangeExpansion10 ? (qvaDetail.signals.rangeExpansion10 * 100).toFixed(1) + '%' : '-' %></div>
+              </div>
+              <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">윗꼬리비율</div>
+                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.upperWickRatio ? qvaDetail.signals.upperWickRatio.toFixed(2) : '-' %></div>
+              </div>
+              <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">QVA 점수</div>
+                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.score ? qvaDetail.score + '점' : '-' %></div>
+              </div>
+              <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">거래대금비</div>
+                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.valueRatio20 ? qvaDetail.signals.valueRatio20.toFixed(1) + 'x' : '-' %></div>
+              </div>
+              <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">거래량비</div>
+                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.volumeRatio20 ? qvaDetail.signals.volumeRatio20.toFixed(1) + 'x' : '-' %></div>
+              </div>
+            </div>
+          </details>
 
           <!-- QVA 거래량 이상징후 차트 -->
           <% if (qvaDetail && qvaDetail.passed && qvaDetail.chartData) { %>
@@ -706,24 +792,38 @@
         return { annotations };
       }
 
-      function buildPriceVolume(days) {
-        const rows = allRows.slice(-days);
+      function buildQvaChart(days = 60) {
+        let rows = allRows;
+        if (days > 0) rows = rows.slice(-days);
         const labels = rows.map(r => r.date.slice(4,6)+'/'+r.date.slice(6,8));
-        const wickData = rows.map(r => [r.low, r.high]);
-        const bodyData = rows.map(r => [Math.min(r.open, r.close), Math.max(r.open, r.close)]);
-        const bodyColors = rows.map(r => r.close >= r.open ? 'rgba(220, 38, 38, 0.85)' : 'rgba(37, 99, 235, 0.85)');
 
+        // ─── 거래대금 관련 계산 ───
+        const valueData = rows.map(r => r.valueApprox || 0);
+        const calcMedian = (arr) => {
+          const sorted = [...arr].sort((a,b) => a - b);
+          return sorted[Math.floor(sorted.length/2)];
+        };
+        const avg20Value = rows.map((r, i) => {
+          const window = valueData.slice(Math.max(0, i-19), i+1);
+          return window.reduce((a,b)=>a+b,0) / window.length;
+        });
+        const median20Value = rows.map((r, i) => {
+          const window = valueData.slice(Math.max(0, i-19), i+1);
+          return calcMedian(window);
+        });
+        const valueRatio20 = valueData.map((v, i) => avg20Value[i] > 0 ? v / avg20Value[i] : 1);
+        const valueMedianRatio20 = valueData.map((v, i) => median20Value[i] > 0 ? v / median20Value[i] : 1);
+
+        // ─── 상단 차트: 종가 선 + 20일MA + QVA 신호 마커 ───
         if (priceChart) priceChart.destroy();
+        const signalMarkers = rows.map(r => valueRatio20[rows.indexOf(r)] >= 1.5 ? r.close : null);
         priceChart = new Chart(document.getElementById('priceChart'), {
           data: {
             labels,
             datasets: [
-              { type: 'bar', data: wickData, backgroundColor: 'rgba(100,116,139,0.6)', borderWidth: 0, barPercentage: 0.15, categoryPercentage: 0.95, order: 3 },
-              { type: 'bar', data: bodyData, backgroundColor: bodyColors, borderWidth: 0, barPercentage: 0.7, categoryPercentage: 0.95, order: 2 },
-              { type: 'line', label: '5일선',  data: rows.map(r => r.ma5),  borderColor: '#dc2626', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
-              { type: 'line', label: '20일선', data: rows.map(r => r.ma20), borderColor: '#7c3aed', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
-              { type: 'line', label: '60일선', data: rows.map(r => r.ma60), borderColor: '#16a34a', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
-              { type: 'line', label: '120일선', data: rows.map(r => r.ma120), borderColor: '#0891b2', borderWidth: 1.2, pointRadius: 0, tension: 0, order: 1 },
+              { type: 'line', label: '종가', data: rows.map(r => r.close), borderColor: '#0f172a', borderWidth: 1.5, pointRadius: 0, tension: 0 },
+              { type: 'line', label: '20일선', data: rows.map(r => r.ma20), borderColor: '#8b5cf6', borderWidth: 1, pointRadius: 0, tension: 0, borderDash: [3,2] },
+              { type: 'line', label: 'QVA 신호', data: signalMarkers, borderColor: 'transparent', pointRadius: 5, pointBackgroundColor: '#f59e0b', spanGaps: false, pointBorderWidth: 0 },
             ],
           },
           options: {
@@ -734,20 +834,6 @@
               x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 10 } } },
               y: { position: 'right', ticks: { font: { size: 10 } }, grid: { color: '#f1f5f9' } },
             },
-            onClick: (event, elements) => {
-              if (elements.length > 0) {
-                const idx = elements[0].index;
-                const r = rows[idx];
-                document.getElementById('selectedDate').textContent = r.date.slice(0,4)+'-'+r.date.slice(4,6)+'-'+r.date.slice(6,8);
-                document.getElementById('selectedOpen').textContent = r.open.toLocaleString()+'원';
-                document.getElementById('selectedHigh').textContent = r.high.toLocaleString()+'원';
-                document.getElementById('selectedLow').textContent = r.low.toLocaleString()+'원';
-                document.getElementById('selectedClose').textContent = r.close.toLocaleString()+'원';
-                document.getElementById('selectedValue').textContent = (r.valueApprox/1e8).toFixed(1)+'억';
-                document.getElementById('selectedVolume').textContent = (r.volume/1e6).toFixed(1)+'M';
-                document.getElementById('selectedDayCard').style.display = 'block';
-              }
-            },
             plugins: {
               legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12, filter: (l) => l.text && !l.text.startsWith('Dataset') } },
               tooltip: {
@@ -755,41 +841,41 @@
                   title: (items) => labels[items[0].dataIndex],
                   label: (item) => {
                     const r = rows[item.dataIndex];
-                    if (item.datasetIndex === 0 || item.datasetIndex === 1) {
-                      return [`시 ${r.open.toLocaleString()}`, `고 ${r.high.toLocaleString()}`, `저 ${r.low.toLocaleString()}`, `종 ${r.close.toLocaleString()}`];
-                    }
-                    return `${item.dataset.label}: ${item.raw != null ? Math.round(item.raw).toLocaleString() : '-'}`;
+                    if (item.datasetIndex === 0) return `종가: ${r.close.toLocaleString()}원`;
+                    if (item.datasetIndex === 1) return `20일선: ${item.raw != null ? Math.round(item.raw).toLocaleString() : '-'}원`;
+                    return '';
                   },
+                  afterBody: (items) => {
+                    const i = items[0].dataIndex;
+                    const r = rows[i];
+                    return [
+                      `거래대금: ${(r.valueApprox/1e8).toFixed(2)}억`,
+                      `20일평균: ${(avg20Value[i]/1e8).toFixed(2)}억`,
+                      `20일중앙값: ${(median20Value[i]/1e8).toFixed(2)}억`,
+                      `평균비: ${valueRatio20[i].toFixed(2)}x`,
+                      `중앙값비: ${valueMedianRatio20[i].toFixed(2)}x`,
+                      valueRatio20[i] >= 1.5 ? '⚡ QVA 신호' : '',
+                    ].filter(Boolean);
+                  }
                 },
               },
-              annotation: buildAnnotations(tradePlan),
             },
           },
         });
 
+        // ─── 하단 차트: 거래대금 배율(중앙값 기준) 막대 + 임계값 라인 ───
         if (volumeChart) volumeChart.destroy();
-        // 거래대금 + 5일/20일 평균
-        const valueData = rows.map(r => r.valueApprox || 0);
-        const avg5Value = rows.map((r, i) => {
-          const start = Math.max(0, i - 4);
-          const slice = valueData.slice(start, i + 1);
-          return slice.reduce((a, b) => a + b, 0) / slice.length;
+        const barColors = valueMedianRatio20.map(ratio => {
+          if (ratio >= 2.0) return 'rgba(220, 38, 38, 0.85)';
+          if (ratio >= 1.5) return 'rgba(249, 115, 22, 0.75)';
+          return 'rgba(148, 163, 184, 0.5)';
         });
-        const avg20Value = rows.map((r, i) => {
-          const start = Math.max(0, i - 19);
-          const slice = valueData.slice(start, i + 1);
-          return slice.reduce((a, b) => a + b, 0) / slice.length;
-        });
-        const volColors = rows.map(r => r.close >= r.open ? 'rgba(220, 38, 38, 0.7)' : 'rgba(37, 99, 235, 0.7)');
-
         volumeChart = new Chart(document.getElementById('volumeChart'), {
           type: 'bar',
           data: {
             labels,
             datasets: [
-              { type: 'bar', data: valueData, backgroundColor: volColors, borderWidth: 0, barPercentage: 0.85, categoryPercentage: 0.95, order: 2 },
-              { type: 'line', label: '5일 평균', data: avg5Value, borderColor: '#f97316', borderWidth: 1.5, pointRadius: 0, tension: 0, order: 1 },
-              { type: 'line', label: '20일 평균', data: avg20Value, borderColor: '#8b5cf6', borderWidth: 1.5, pointRadius: 0, tension: 0, order: 1 },
+              { type: 'bar', label: '거래대금 배율', data: valueMedianRatio20, backgroundColor: barColors, borderWidth: 0, barPercentage: 0.85, categoryPercentage: 0.95, order: 2 },
             ]
           },
           options: {
@@ -798,24 +884,55 @@
             interaction: { mode: 'index', intersect: false },
             scales: {
               x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 9 } } },
-              y: { position: 'right', ticks: { font: { size: 9 }, callback: (v) => v >= 1e8 ? (v/1e8).toFixed(0)+'억' : (v/1e6).toFixed(0)+'M' }, grid: { color: '#f1f5f9' } },
+              y: { position: 'right', ticks: { font: { size: 9 }, callback: (v) => v.toFixed(1)+'x' }, grid: { color: '#f1f5f9' }, min: 0 },
             },
             plugins: {
               legend: { position: 'top', labels: { font: { size: 10 }, boxWidth: 10 } },
+              annotation: {
+                annotations: {
+                  line15: {
+                    type: 'line',
+                    yMin: 1.5,
+                    yMax: 1.5,
+                    borderColor: '#f97316',
+                    borderWidth: 1,
+                    borderDash: [4, 2],
+                  },
+                  line20: {
+                    type: 'line',
+                    yMin: 2.0,
+                    yMax: 2.0,
+                    borderColor: '#dc2626',
+                    borderWidth: 1,
+                    borderDash: [4, 2],
+                  },
+                }
+              },
               tooltip: {
                 callbacks: {
                   title: (items) => labels[items[0].dataIndex],
                   label: (item) => {
-                    if (item.datasetIndex === 0) return `거래대금: ${(item.raw/1e8).toFixed(1)}억`;
-                    return `${item.dataset.label}: ${(item.raw/1e8).toFixed(1)}억`;
+                    const i = item.dataIndex;
+                    return `거래대금 배율: ${item.raw.toFixed(2)}x (${(valueData[i]/1e8).toFixed(2)}억)`;
                   },
                 },
               },
             },
           },
         });
+
+        // ─── 거래대금 절대값 숫자 카드 ───
+        const lastIdx = rows.length - 1;
+        const lastRow = rows[lastIdx];
+        if (lastRow && document.getElementById('valueCard')) {
+          const dateStr = lastRow.date.slice(4,6) + '/' + lastRow.date.slice(6,8);
+          const valueStr = (lastRow.valueApprox/1e8).toFixed(2) + '억';
+          const avgRatioStr = valueRatio20[lastIdx].toFixed(1) + 'x';
+          const medRatioStr = valueMedianRatio20[lastIdx].toFixed(1) + 'x';
+          document.getElementById('valueCard').innerHTML = `${dateStr} 거래대금 ${valueStr} · 평균비 ${avgRatioStr} · 중앙값비 ${medRatioStr}`;
+        }
       }
-      buildPriceVolume(60);  // 기본 3M
+      buildQvaChart();  // QVA 전용 차트 렌더링
 
       // ─── QVA 거래량/거래대금 이상징후 차트 ───
       <% if (qvaDetail && qvaDetail.passed && qvaDetail.chartData) { %>
@@ -970,7 +1087,7 @@
         btn.addEventListener('click', () => {
           document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          buildPriceVolume(parseInt(btn.dataset.days, 10));
+          buildQvaChart(parseInt(btn.dataset.days, 10));
         });
       });
 

@@ -137,6 +137,8 @@ function loadStocks() {
   } catch (_) {
     stocksMasterMtime = null;
   }
+
+  return stocksData;
 }
 
 // 종목 마스터 (stocks.json) 의 신선도 정보. UI 푸터에 "N일 전 갱신" 표시용.
