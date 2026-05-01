@@ -292,38 +292,46 @@
       <% if (qvaDetail) { %>
         <div class="glass" style="padding: 14px; margin-bottom: 12px;">
           <div style="font-size:0.78rem; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:8px;">QVA 판정</div>
-          <!-- 상태 배지 -->
-          <div style="margin-bottom:10px;">
-            <%
-              let badgeText = '후보 아님';
-              let badgeBg = '#cbd5e1';
-              let badgeColor = '#475569';
-              let badge2Text = '';
-              let badge2Bg = '';
-              let badge2Color = '';
+          <!-- 상태 배지 + 점수 -->
+          <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div>
+              <%
+                let badgeText = '후보 아님';
+                let badgeBg = '#cbd5e1';
+                let badgeColor = '#475569';
+                let badge2Text = '';
+                let badge2Bg = '';
+                let badge2Color = '';
 
-              if (qvaDetail.category === 'HIGHER_LOW_RECOVERY') {
-                badgeText = '재유입 대기';
-                badgeBg = '#fef3c7';
-                badgeColor = '#b45309';
-              } else if (qvaDetail.passed !== false) {
-                badgeText = '후보';
-                badgeBg = '#dcfce7';
-                badgeColor = '#15803d';
-                if (qvaDetail.isStrongQva) {
-                  badge2Text = '강함';
-                  badge2Bg = '#dbeafe';
-                  badge2Color = '#0369a1';
+                if (qvaDetail.category === 'HIGHER_LOW_RECOVERY') {
+                  badgeText = '재유입 대기';
+                  badgeBg = '#fef3c7';
+                  badgeColor = '#b45309';
+                } else if (qvaDetail.passed !== false) {
+                  badgeText = '후보';
+                  badgeBg = '#dcfce7';
+                  badgeColor = '#15803d';
+                  if (qvaDetail.isStrongQva) {
+                    badge2Text = '강함';
+                    badge2Bg = '#dbeafe';
+                    badge2Color = '#0369a1';
+                  }
                 }
-              }
-            %>
-            <span style="display:inline-block; background:<%= badgeBg %>; color:<%= badgeColor %>; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:700;">
-              <%= badgeText %>
-            </span>
-            <% if (badge2Text) { %>
-              <span style="display:inline-block; background:<%= badge2Bg %>; color:<%= badge2Color %>; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; margin-left:4px;">
-                <%= badge2Text %>
+              %>
+              <span style="display:inline-block; background:<%= badgeBg %>; color:<%= badgeColor %>; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:700;">
+                <%= badgeText %>
               </span>
+              <% if (badge2Text) { %>
+                <span style="display:inline-block; background:<%= badge2Bg %>; color:<%= badge2Color %>; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; margin-left:4px;">
+                  <%= badge2Text %>
+                </span>
+              <% } %>
+            </div>
+            <% if (qvaDetail.score != null) { %>
+              <div style="text-align:right;">
+                <div style="font-size:0.7rem; color:#64748b;">QVA 점수</div>
+                <div style="font-size:1.3rem; font-weight:700; color:#2563eb;"><%= qvaDetail.score %>점</div>
+              </div>
             <% } %>
           </div>
           <!-- 2열 그리드 -->
@@ -345,6 +353,48 @@
               <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail.signals && qvaDetail.signals.closeAboveMa20 ? '위' : '아래' %></div>
             </div>
           </div>
+          <!-- 상세 지표 접기 -->
+          <details style="font-size:0.78rem; cursor:pointer;">
+            <summary style="color:#64748b; padding:6px 0; user-select:none;">▸ 상세 지표 보기</summary>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
+              <% if (qvaDetail.signals && qvaDetail.signals.ret5d != null) { %>
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                  <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">5일 수익률</div>
+                  <div style="font-size:0.9rem; font-weight:700; color:<%= qvaDetail.signals.ret5d >= 0 ? '#16a34a' : '#dc2626' %>;"><%= (qvaDetail.signals.ret5d * 100).toFixed(1) %>%</div>
+                </div>
+              <% } %>
+              <% if (qvaDetail.signals && qvaDetail.signals.ret20d != null) { %>
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                  <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">20일 수익률</div>
+                  <div style="font-size:0.9rem; font-weight:700; color:<%= qvaDetail.signals.ret20d >= 0 ? '#16a34a' : '#dc2626' %>;"><%= (qvaDetail.signals.ret20d * 100).toFixed(1) %>%</div>
+                </div>
+              <% } %>
+              <% if (qvaDetail.signals && qvaDetail.signals.rangeExpansion10 != null) { %>
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                  <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">범위확장10</div>
+                  <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail.signals.rangeExpansion10.toFixed(2) %>%</div>
+                </div>
+              <% } %>
+              <% if (qvaDetail.signals && qvaDetail.signals.upperWickRatio != null) { %>
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                  <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">윗꼬리비율</div>
+                  <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail.signals.upperWickRatio.toFixed(3) %></div>
+                </div>
+              <% } %>
+              <% if (qvaDetail.signals && qvaDetail.signals.valueRatio20 != null) { %>
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                  <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">거래대금비</div>
+                  <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail.signals.valueRatio20.toFixed(2) %>x</div>
+                </div>
+              <% } %>
+              <% if (qvaDetail.signals && qvaDetail.signals.volumeRatio20 != null) { %>
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                  <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">거래량비</div>
+                  <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail.signals.volumeRatio20.toFixed(2) %>x</div>
+                </div>
+              <% } %>
+            </div>
+          </details>
         </div>
       <% } %>
 
@@ -364,41 +414,6 @@
 
           <!-- 거래대금 절대값 숫자 카드 -->
           <div id="valueCard" style="font-size:0.8rem; color:#475569; padding:8px 4px; display:flex; gap:16px; flex-wrap:wrap; margin:12px 0;"></div>
-
-          <!-- 상세 지표 접기/펼치기 -->
-          <details style="margin-top:12px; font-size:0.78rem;">
-            <summary style="cursor:pointer; color:#64748b; padding:6px 0; font-weight:600;">상세 지표 보기</summary>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
-              <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
-                <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">5일 수익률</div>
-                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.ret5d ? qvaDetail.signals.ret5d.toFixed(1) + '%' : '-' %></div>
-              </div>
-              <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
-                <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">20일 수익률</div>
-                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.ret20d ? qvaDetail.signals.ret20d.toFixed(1) + '%' : '-' %></div>
-              </div>
-              <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
-                <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">범위확장10</div>
-                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.rangeExpansion10 ? qvaDetail.signals.rangeExpansion10.toFixed(1) + '%' : '-' %></div>
-              </div>
-              <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
-                <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">윗꼬리비율</div>
-                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.upperWickRatio ? qvaDetail.signals.upperWickRatio.toFixed(2) : '-' %></div>
-              </div>
-              <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
-                <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">QVA 점수</div>
-                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.score ? qvaDetail.score + '점' : '-' %></div>
-              </div>
-              <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
-                <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">거래대금비</div>
-                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.valueRatio20 ? qvaDetail.signals.valueRatio20.toFixed(1) + 'x' : '-' %></div>
-              </div>
-              <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
-                <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">거래량비</div>
-                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.volumeRatio20 ? qvaDetail.signals.volumeRatio20.toFixed(1) + 'x' : '-' %></div>
-              </div>
-            </div>
-          </details>
 
           <!-- QVA 거래량 이상징후 차트 -->
           <% if (qvaDetail && qvaDetail.passed && qvaDetail.chartData) { %>

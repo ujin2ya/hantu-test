@@ -3635,7 +3635,6 @@ function calculateQuietVolumeAnomaly(chartRows, flowRows, meta = {}) {
 
   // ─── 필터 9: 상방 압력 필수 ───
   const last5 = chartRows.slice(-5);
-  const last10 = chartRows.slice(-10);
   const lows5 = last5.map(r => r.low);
   const lows20to25 = chartRows.slice(-25, -5).map(r => r.low);
   const min5 = Math.min(...lows5);
@@ -3667,6 +3666,12 @@ function calculateQuietVolumeAnomaly(chartRows, flowRows, meta = {}) {
 
   if (!hasUpsidePressure) return reject('no_upside_pressure');
 
+  // ─── 범위 확장 계산 ───
+  const last10 = chartRows.slice(-10);
+  const high10 = Math.max(...last10.map(r => r.high));
+  const low10 = Math.min(...last10.map(r => r.low));
+  const rangeExpansion10 = low10 > 0 ? (high10 / low10 - 1) : 0;
+
   // ─── 모든 조건 통과 ───
   return {
     passed: true,
@@ -3677,6 +3682,7 @@ function calculateQuietVolumeAnomaly(chartRows, flowRows, meta = {}) {
       todayReturn: +(todayReturn * 100).toFixed(2),
       ret5d: +(ret5d * 100).toFixed(2),
       ret20d: +(ret20d * 100).toFixed(2),
+      rangeExpansion10: +(rangeExpansion10 * 100).toFixed(2),
       upperWickRatio: +(upperWickRatio.toFixed(2)),
       atrPct: +(atrPct * 100).toFixed(2),
       avg20Value,
@@ -3744,6 +3750,12 @@ function calculateQuietVolumeAnomalyStrict(chartRows, flowRows, meta = {}) {
                     || (ma60 != null && close >= ma60 * 0.90);
   if (!hasStructure) return reject('structure_broken');
 
+  // ─── 범위 확장 계산 ───
+  const last10 = chartRows.slice(-10);
+  const high10 = Math.max(...last10.map(r => r.high));
+  const low10 = Math.min(...last10.map(r => r.low));
+  const rangeExpansion10 = low10 > 0 ? (high10 / low10 - 1) : 0;
+
   return {
     passed: true,
     signals: {
@@ -3753,6 +3765,7 @@ function calculateQuietVolumeAnomalyStrict(chartRows, flowRows, meta = {}) {
       todayReturn: +(todayReturn * 100).toFixed(2),
       ret5d: +(ret5d * 100).toFixed(2),
       ret20d: +(ret20d * 100).toFixed(2),
+      rangeExpansion10: +(rangeExpansion10 * 100).toFixed(2),
       upperWickRatio: +(upperWickRatio.toFixed(2)),
       atrPct: +(atrPct * 100).toFixed(2),
       avg20Value,
@@ -3812,6 +3825,12 @@ function calculateQuietVolumeAnomalyLoose(chartRows, flowRows, meta = {}) {
   const atrPct = atr / close;
   if (atrPct > 0.30) return reject('atr%>30%');
 
+  // ─── 범위 확장 계산 ───
+  const last10 = chartRows.slice(-10);
+  const high10 = Math.max(...last10.map(r => r.high));
+  const low10 = Math.min(...last10.map(r => r.low));
+  const rangeExpansion10 = low10 > 0 ? (high10 / low10 - 1) : 0;
+
   return {
     passed: true,
     signals: {
@@ -3821,6 +3840,7 @@ function calculateQuietVolumeAnomalyLoose(chartRows, flowRows, meta = {}) {
       todayReturn: +(todayReturn * 100).toFixed(2),
       ret5d: +(ret5d * 100).toFixed(2),
       ret20d: +(ret20d * 100).toFixed(2),
+      rangeExpansion10: +(rangeExpansion10 * 100).toFixed(2),
       upperWickRatio: +(upperWickRatio.toFixed(2)),
       atrPct: +(atrPct * 100).toFixed(2),
       avg20Value,

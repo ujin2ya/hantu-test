@@ -2191,8 +2191,8 @@ const handleSearch = async (req, res) => {
     // 3b) CSB 재계산 — patternData 의 csb 필드는 cache 의 분석 시점 기준이라 옛 분석이면 누락됨.
     //     상세 페이지는 항상 최신 chart 기준으로 재계산해서 전달.
     let csbDetail = null;
+    let flowRowsArr = [];  // QVA 블록에서도 사용하므로 미리 선언
     try {
-      let flowRowsArr = [];
       const flowPath = path.join(__dirname, "cache", "flow-history", `${code}.json`);
       if (fs.existsSync(flowPath)) {
         flowRowsArr = JSON.parse(fs.readFileSync(flowPath, "utf-8")).rows || [];
@@ -2283,6 +2283,7 @@ const handleSearch = async (req, res) => {
         score = qvaEvolutionRes.score || 0;
         signals = { ...qvaEvolutionRes.signals, ...(qvaHlRes?.signals || {}) };
         breakdown = qvaEvolutionRes.breakdown || {};
+        if (code === '082800') console.log('[082800] EV passed, signals keys:', Object.keys(signals));
       } else if (qvaHoldRes?.passed && qvaHlRes?.passed) {
         category = 'HIGHER_LOW';
         score = Math.max((qvaHoldRes?.score || 0), (qvaHlRes?.score || 0)) + 10;
@@ -2346,7 +2347,18 @@ const handleSearch = async (req, res) => {
       } else if (qvaRes) {
         qvaDetail = { passed: false, rejectReason: qvaRes.reason };
       }
-    } catch (_) {}
+    } catch (e) {
+      console.error(`[QVA ERROR] ${code}:`, e.message);
+    }
+
+    // qvaDetail이 생성되지 않으면 최소한의 구조 제공
+    if (!qvaDetail) {
+      qvaDetail = {
+        passed: false,
+        signals: {},
+        chartData: null
+      };
+    }
 
     // 4) flow-history (외국인/기관 일별 순매수) 로드 + 1d/5d/20d 합계
     let flowSummary = null;
