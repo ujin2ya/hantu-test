@@ -742,7 +742,9 @@ async function analyzeAll({ logProgress = false } = {}) {
   const reboundCandidates = [];
   const vviCandidates = [];
   const qvaCandidates = [];  // 단일 QVA 후보 (passed === true만)
-  const qvaEvolutionCandidates = [];  // QVA_EVOLUTION: 점수 기반 진화 가능성 모델 (score >= 70)
+  const qvaStrongCandidates = [];     // QVA_STRONG: HIGHER_LOW + EVOLUTION 동시 통과
+  const qvaHigherLowOnlyCandidates = [];  // QVA_HL: HIGHER_LOW 단독
+  const qvaEvolutionCandidates = [];  // QVA_EVOLUTION: 품질 필터 (메인 후보 아님)
   const qvaHoldCandidates = [];  // QVA-HOLD: 거래대금 이상징후 다음날도 견디기
   const qvaHigherLowCandidates = [];  // QVA-HL: 저점 상승 + 거래대금 증가
   const overheatWarnings = [];
@@ -1123,25 +1125,36 @@ async function analyzeAll({ logProgress = false } = {}) {
     // 기본 QVA는 후보로 표시하지 않음 (내부 탐지 지표만으로 사용)
     // if (qva?.passed) qvaCandidates.push(tagged);
 
-    // QVA 후보: EVOLUTION > BOTH > HIGHER_LOW (기본 QVA, HOLD 단독은 제외)
-    if (qvaEvolution?.passed) {
+    // QVA_HIGHER_LOW를 메인 모델로, QVA_EVOLUTION을 품질 필터로 재구조화
+    // 최종 우선순위: STRONG (HL+EV) > HIGHER_LOW (HL단독) > EVOLUTION (품질필터, 메인아님)
+    if (qvaHigherLow?.passed) {
+      const evolutionAlso = qvaEvolution?.passed;
+      if (evolutionAlso) {
+        // QVA_STRONG: HIGHER_LOW + EVOLUTION 동시 통과
+        tagged.qvaType = 'STRONG';
+        tagged.qvaScore = Math.max(qvaHigherLow.score ?? 0, qvaEvolution.score ?? 0);
+        tagged.qvaHlScore = qvaHigherLow.score;
+        tagged.qvaEvScore = qvaEvolution.score;
+        tagged.qvaMedianRatio = qvaHigherLow.signals?.valueMedianRatio20 || 0;
+        qvaStrongCandidates.push(tagged);
+        if (code === '030000') console.log(`  → qvaStrongCandidates에 추가됨`);
+      } else {
+        // QVA_HL: HIGHER_LOW 단독
+        tagged.qvaType = 'HIGHER_LOW';
+        tagged.qvaScore = qvaHigherLow.score ?? 0;
+        tagged.qvaMedianRatio = qvaHigherLow.signals?.valueMedianRatio20 || 0;
+        qvaHigherLowOnlyCandidates.push(tagged);
+        if (code === '030000') console.log(`  → qvaHigherLowOnlyCandidates에 추가됨`);
+      }
+      qvaHigherLowCandidates.push(tagged);  // 역호환용 포함
+    } else if (qvaEvolution?.passed) {
+      // QVA_EVOLUTION: 메인 후보 아님 (품질 필터/배지용)
       tagged.qvaType = 'EVOLUTION';
       tagged.qvaScore = qvaEvolution.score;
       qvaEvolutionCandidates.push(tagged);
-      if (code === '030000') console.log(`  → qvaEvolutionCandidates에 추가됨 (score=${qvaEvolution.score})`);
-    } else if (qvaBoth?.passed) {
-      // BOTH 필드 추가해서 마킹
-      tagged.qvaType = 'BOTH';
-      tagged.qvaScore = qvaBoth.score;
-      qvaHoldCandidates.push(tagged);  // 편의상 qvaHoldCandidates에 포함
-      if (code === '030000') console.log(`  → qvaHoldCandidates에 추가됨 (qvaBoth, type=BOTH, score=${qvaBoth.score})`);
-    } else if (qvaHigherLow?.passed && (qvaHigherLow.score ?? 0) >= 60) {
-      tagged.qvaType = 'HIGHER_LOW';
-      tagged.qvaScore = qvaHigherLow.score;
-      qvaHigherLowCandidates.push(tagged);
-      if (code === '030000') console.log(`  → qvaHigherLowCandidates에 추가됨 (type=HIGHER_LOW, score=${qvaHigherLow.score})`);
+      if (code === '030000') console.log(`  → qvaEvolutionCandidates에 추가됨 (메인후보아님)`);
     } else if (code === '030000') {
-      console.log(`  → QVA 후보로 추가 안 됨 (evol=${qvaEvolution?.passed}, both=${qvaBoth?.passed}, hl=${qvaHigherLow?.passed}/${qvaHigherLow?.score})`);
+      console.log(`  → QVA 후보 모두 탈락 (hl=${qvaHigherLow?.passed}, ev=${qvaEvolution?.passed})`);
     }
     if (overheatHit) overheatWarnings.push(tagged);
   }
@@ -1322,15 +1335,33 @@ async function analyzeAll({ logProgress = false } = {}) {
     vviRecentSignals,
     latestMarketDate,
 
-    // ─── QVA (거래량 이상징후 선행 감지) ───
+    // ─── QVA (거래량 이상징후 선행 감지) — HIGHER_LOW 메인 모델 ───
     qvaCandidates: qvaCandidates.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
     qvaCount: qvaCandidates.length,
+
+    // QVA_STRONG: HIGHER_LOW + EVOLUTION 동시 통과 (최우선)
+    qvaStrongCandidates: qvaStrongCandidates.sort((a, b) => {
+      const scoreCompare = (b.qvaScore || 0) - (a.qvaScore || 0);
+      if (scoreCompare !== 0) return scoreCompare;
+      return (b.qvaMedianRatio || 0) - (a.qvaMedianRatio || 0);
+    }),
+    qvaStrongCount: qvaStrongCandidates.length,
+
+    // QVA_HL: HIGHER_LOW 단독 (메인 후보)
+    qvaHigherLowCandidates: qvaHigherLowOnlyCandidates.sort((a, b) => {
+      const medianCompare = (b.qvaMedianRatio || 0) - (a.qvaMedianRatio || 0);
+      if (medianCompare !== 0) return medianCompare;
+      return (b.qvaScore || 0) - (a.qvaScore || 0);
+    }),
+    qvaHigherLowCount: qvaHigherLowOnlyCandidates.length,
+
+    // QVA_EVOLUTION: 품질 필터 (메인 후보 아님, 상세페이지 또는 배지용)
     qvaEvolutionCandidates: qvaEvolutionCandidates.sort((a, b) => (b.qvaScore || 0) - (a.qvaScore || 0)),
     qvaEvolutionCount: qvaEvolutionCandidates.length,
+
+    // QVA_HOLD: 제외 (향후 약세장 방어형으로만 유지)
     qvaHoldCandidates: qvaHoldCandidates.sort((a, b) => (b.qvaScore || 0) - (a.qvaScore || 0)),
     qvaHoldCount: qvaHoldCandidates.length,
-    qvaHigherLowCandidates: qvaHigherLowCandidates.sort((a, b) => (b.qvaScore || 0) - (a.qvaScore || 0)),
-    qvaHigherLowCount: qvaHigherLowCandidates.length,
 
     // ─── 날짜 및 데이터 상태 ───
     expectedMarketDate,
