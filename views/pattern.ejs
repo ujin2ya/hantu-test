@@ -281,10 +281,10 @@ var csbStageLabel = {
                 <span>구조 진화 <strong><%= (evSig.structureCount || 0) %>/6</strong></span>
               </div>
               <div class="row2">
+                <span>현재가 <strong data-stock-code="<%= c.code %>"><%= (c.closePrice || 0).toLocaleString() %>원</strong></span>
                 <span>거래량비 <strong><%= (hlSig.volumeRatio20 || 0).toFixed(2) %>x</strong></span>
                 <span>저점 상승 <strong><%= hlSig.higherLow5 ? '✓' : '✗' %></strong></span>
                 <span>가격 거리 <strong><%= (evSig.distToHigh20Pct || 0).toFixed(1) %>%</strong></span>
-                <span>今日 <strong class="<%= hlSig.todayReturn >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (hlSig.todayReturn || 0).toFixed(2) %>%</strong></span>
               </div>
             </div>
           <% }) %>
@@ -322,10 +322,10 @@ var csbStageLabel = {
                 <span>거래대금비(중앙값) <strong><%= (s.valueMedianRatio20 || 0).toFixed(2) %>x</strong></span>
               </div>
               <div class="row2">
+                <span>현재가 <strong data-stock-code="<%= c.code %>"><%= (c.closePrice || 0).toLocaleString() %>원</strong></span>
                 <span>低点 상승 <strong><%= s.higherLow5 ? '✓' : '✗' %></strong></span>
                 <span>가격거리 <strong><%= (s.distToHigh20Pct || 0).toFixed(1) %>%</strong></span>
                 <span>今日 <strong class="<%= s.todayReturn >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (s.todayReturn || 0).toFixed(2) %>%</strong></span>
-                <span>현재가 위치 <strong><%= (s.closeLocation || 0).toFixed(1) %></strong></span>
               </div>
             </div>
           <% }) %>
@@ -1119,6 +1119,28 @@ function submitHoldingsCheck() {
     .catch(error => console.error('점검 실패:', error));
 }
 
+// 실시간 현재가 갱신
+function updateCurrentPrices() {
+  const priceElements = document.querySelectorAll('[data-stock-code]');
+  if (!priceElements.length) return;
+
+  const codes = Array.from(priceElements).map(el => el.dataset.stockCode).filter(c => c);
+  if (!codes.length) return;
+
+  fetch('/api/current-prices?codes=' + codes.join(','))
+    .then(r => r.json())
+    .then(prices => {
+      priceElements.forEach(el => {
+        const code = el.dataset.stockCode;
+        if (prices[code]) {
+          el.textContent = prices[code].toLocaleString() + '원';
+          el.dataset.currentPrice = prices[code];
+        }
+      });
+    })
+    .catch(e => console.error('현재가 갱신 실패:', e));
+}
+
 // 초기 버튼 스타일
 document.addEventListener('DOMContentLoaded', function() {
   // 필터 버튼 스타일
@@ -1139,6 +1161,10 @@ document.addEventListener('DOMContentLoaded', function() {
       tab.show();
     }
   }
+
+  // 현재가 초기 갱신 및 주기적 갱신 (30초)
+  updateCurrentPrices();
+  setInterval(updateCurrentPrices, 30000);
 });
 </script>
 </body>

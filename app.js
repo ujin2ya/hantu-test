@@ -2904,6 +2904,36 @@ app.post("/admin/backtest/qva", requireAdmin, (req, res) => {
     });
 });
 
+// ─────────── 실시간 현재가 조회 API ───────────
+app.get("/api/current-prices", async (req, res) => {
+  const codes = String(req.query.codes || "").split(",").filter(c => c.trim());
+  if (!codes.length) return res.json({});
+
+  const stocksData = loadStocks();
+  const stockMap = {};
+  (stocksData.stocks || []).forEach(s => { stockMap[s.code] = s; });
+
+  const prices = {};
+  try {
+    const token = await getAccessToken();
+    for (const code of codes.slice(0, 50)) {  // 최대 50개까지
+      const stock = stockMap[code];
+      if (!stock) continue;
+      try {
+        const priceData = await getCurrentPrice(token, code);
+        if (priceData?.stck_prpr) {
+          prices[code] = Number(priceData.stck_prpr);
+        }
+      } catch (_) {}
+      await new Promise(r => setTimeout(r, 100));  // API 제한 회피
+    }
+  } catch (e) {
+    console.error("[/api/current-prices]", e.message);
+  }
+
+  res.json(prices);
+});
+
 // 캐시 강제 삭제 + 재계산 (원격 서버에서 과매도 반등 등 신호가 안 나올 때)
 app.post("/admin/refresh-pattern-cache", requireAdmin, (req, res) => {
   const cachePath = path.join(__dirname, "cache", "pattern-result.json");
