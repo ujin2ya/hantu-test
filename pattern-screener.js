@@ -3602,6 +3602,221 @@ function calculateQuietVolumeAnomalyLoose(chartRows, flowRows, meta = {}) {
   };
 }
 
+// ─── QVA 새로운 설계: 5가지 세부 가설 ───
+
+function calculateQuietVolumeFirst(chartRows, flowRows, meta = {}) {
+  if (!chartRows || chartRows.length < 60) return null;
+  const reject = (reason) => ({ passed: false, reason });
+
+  if (meta.isSpecial || meta.isEtf) return reject('special/etf');
+  if ((meta.marketValue || 0) > 0 && meta.marketValue < 50_000_000_000) return reject('cap<500B');
+
+  const idx = chartRows.length - 1;
+  const today = chartRows[idx];
+  const close = today?.close;
+  if (!close || close <= 0) return null;
+
+  const avg20Value = chartRows.slice(-20).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+  if (avg20Value < 1_000_000_000) return reject('value<1B');
+
+  const { atr } = computeATR(chartRows, idx, 14);
+  const atrPct = atr / close;
+  if (atrPct > 0.30) return reject('atr>30%');
+
+  const todayValue = today.valueApprox || (today.close * today.volume);
+  const valueRatio20 = todayValue / (avg20Value || 1);
+  if (valueRatio20 < 1.5) return reject('valRatio20<1.5');
+
+  // FIRST: 20/60일 중 순위 기반 (처음으로 튈 때)
+  const values20 = chartRows.slice(-20).map(r => r.valueApprox || 0).sort((a, b) => b - a);
+  const values60 = chartRows.slice(-60).map(r => r.valueApprox || 0).sort((a, b) => b - a);
+  const rank20 = values20.findIndex(v => v <= todayValue) + 1;
+  const rank60 = values60.findIndex(v => v <= todayValue) + 1;
+  const rankPct20 = (1 - rank20 / 20) * 100;
+  const rankPct60 = (1 - rank60 / 60) * 100;
+
+  if (rankPct20 < 90 || rankPct60 < 80) return reject('rank_too_low');
+
+  const todayReturn = today.open > 0 ? (close / today.open - 1) : 0;
+  if (todayReturn < -0.01 || todayReturn > 0.05) return reject('todayReturn_range');
+
+  const ret5d = idx >= 5 ? (close / chartRows[idx - 5].close - 1) : 0;
+  const ret20d = idx >= 20 ? (close / chartRows[idx - 20].close - 1) : 0;
+  if (ret5d > 0.08 || ret20d > 0.15) return reject('ret_range');
+
+  const upperWick = today.high > today.close ? today.high - today.close : 0;
+  const bodyRange = Math.abs(today.close - today.open) || 1;
+  const upperWickRatio = upperWick / bodyRange;
+  if (upperWickRatio > 0.45) return reject('upperWick>0.45');
+
+  return { passed: true, model: 'FIRST', signals: { valueRatio20: +valueRatio20.toFixed(2), rankPct20: +rankPct20.toFixed(1), rankPct60: +rankPct60.toFixed(1) } };
+}
+
+function calculateQuietVolume2Day(chartRows, flowRows, meta = {}) {
+  if (!chartRows || chartRows.length < 60) return null;
+  const reject = (reason) => ({ passed: false, reason });
+
+  if (meta.isSpecial || meta.isEtf) return reject('special/etf');
+  if ((meta.marketValue || 0) > 0 && meta.marketValue < 50_000_000_000) return reject('cap<500B');
+
+  const idx = chartRows.length - 1;
+  const today = chartRows[idx];
+  const yesterday = idx > 0 ? chartRows[idx - 1] : null;
+  const close = today?.close;
+  if (!close || !yesterday) return null;
+
+  const avg20Value = chartRows.slice(-20).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+  const avg20Vol = chartRows.slice(-20).reduce((s, r) => s + (r.volume || 0), 0) / 20;
+  if (avg20Value < 1_000_000_000) return reject('value<1B');
+
+  const todayValue = today.valueApprox || 0;
+  const yesterdayValue = yesterday.valueApprox || 0;
+  const value2d = todayValue + yesterdayValue;
+  const vol2d = (today.volume || 0) + (yesterday.volume || 0);
+
+  const value2dRatio20 = value2d / (avg20Value * 2);
+  const volume2dRatio20 = vol2d / (avg20Vol * 2);
+
+  if (value2dRatio20 < 1.8 || volume2dRatio20 < 1.8) return reject('2d_ratio_low');
+
+  const ret2d = close / chartRows[Math.max(0, idx - 2)].close - 1;
+  if (ret2d < -0.01 || ret2d > 0.08) return reject('ret2d_range');
+
+  const ret5d = idx >= 5 ? (close / chartRows[idx - 5].close - 1) : 0;
+  const ret20d = idx >= 20 ? (close / chartRows[idx - 20].close - 1) : 0;
+  if (ret5d > 0.10 || ret20d > 0.18) return reject('ret_range');
+
+  // 2일 중 최소 하나 양봉
+  const todayReturn = today.open > 0 ? (close / today.open - 1) : 0;
+  const yesterdayReturn = yesterday.open > 0 ? (yesterday.close / yesterday.open - 1) : 0;
+  if (todayReturn <= 0 && yesterdayReturn <= 0) return reject('no_bullish_day');
+
+  return { passed: true, model: '2DAY', signals: { value2dRatio20: +value2dRatio20.toFixed(2), volume2dRatio20: +volume2dRatio20.toFixed(2) } };
+}
+
+function calculateQuietVolumeAbsorb(chartRows, flowRows, meta = {}) {
+  if (!chartRows || chartRows.length < 60) return null;
+  const reject = (reason) => ({ passed: false, reason });
+
+  if (meta.isSpecial || meta.isEtf) return reject('special/etf');
+  if ((meta.marketValue || 0) > 0 && meta.marketValue < 50_000_000_000) return reject('cap<500B');
+
+  const idx = chartRows.length - 1;
+  const today = chartRows[idx];
+  const close = today?.close;
+  if (!close || close <= 0) return null;
+
+  const avg20Value = chartRows.slice(-20).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+  const avg20Vol = chartRows.slice(-20).reduce((s, r) => s + (r.volume || 0), 0) / 20;
+  if (avg20Value < 1_000_000_000) return reject('value<1B');
+
+  const todayValue = today.valueApprox || (today.close * today.volume);
+  const valueRatio20 = todayValue / (avg20Value || 1);
+  const volumeRatio20 = today.volume / (avg20Vol || 1);
+
+  if (valueRatio20 < 1.7 || volumeRatio20 < 1.5) return reject('ratio_low');
+
+  const todayReturn = today.open > 0 ? (close / today.open - 1) : 0;
+  if (todayReturn < -0.01 || todayReturn > 0.04) return reject('todayReturn_range');
+
+  // ABSORB 스코어: 거래대금은 많은데 가격은 약함
+  const absorptionScore = valueRatio20 / (Math.abs(todayReturn) + 1);
+  if (absorptionScore < 0.8) return reject('absorption_low');
+
+  const ret5d = idx >= 5 ? (close / chartRows[idx - 5].close - 1) : 0;
+  const ret20d = idx >= 20 ? (close / chartRows[idx - 20].close - 1) : 0;
+  if (ret5d > 0.07 || ret20d > 0.12) return reject('ret_range');
+
+  const upperWick = today.high > today.close ? today.high - today.close : 0;
+  const bodyRange = Math.abs(today.close - today.open) || 1;
+  const upperWickRatio = upperWick / bodyRange;
+  if (upperWickRatio > 0.50) return reject('upperWick>0.50');
+
+  return { passed: true, model: 'ABSORB', signals: { valueRatio20: +valueRatio20.toFixed(2), absorptionScore: +absorptionScore.toFixed(2) } };
+}
+
+function calculateQuietVolumeHigherLow(chartRows, flowRows, meta = {}) {
+  if (!chartRows || chartRows.length < 60) return null;
+  const reject = (reason) => ({ passed: false, reason });
+
+  if (meta.isSpecial || meta.isEtf) return reject('special/etf');
+  if ((meta.marketValue || 0) > 0 && meta.marketValue < 50_000_000_000) return reject('cap<500B');
+
+  const idx = chartRows.length - 1;
+  const today = chartRows[idx];
+  const close = today?.close;
+  if (!close || close <= 0) return null;
+
+  const avg20Value = chartRows.slice(-20).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+  const avg20Vol = chartRows.slice(-20).reduce((s, r) => s + (r.volume || 0), 0) / 20;
+  if (avg20Value < 1_000_000_000) return reject('value<1B');
+
+  const todayValue = today.valueApprox || (today.close * today.volume);
+  const valueRatio20 = todayValue / (avg20Value || 1);
+  const volumeRatio20 = today.volume / (avg20Vol || 1);
+
+  if (valueRatio20 < 1.5 || volumeRatio20 < 1.5) return reject('ratio_low');
+
+  // HIGHER_LOW: 최근 5일 저점 > 직전 20일 저점
+  const lows5 = chartRows.slice(-5).map(r => r.low);
+  const lows20to25 = chartRows.slice(-25, -5).map(r => r.low);
+  const min5 = Math.min(...lows5);
+  const min20 = lows20to25.length > 0 ? Math.min(...lows20to25) : Infinity;
+
+  if (min5 <= min20) return reject('low_not_higher');
+
+  const ma20 = sma(chartRows.slice(-20).map(r => r.close), 20);
+  if (ma20 && close < ma20 * 0.95) return reject('below_ma20');
+
+  const todayReturn = today.open > 0 ? (close / today.open - 1) : 0;
+  if (todayReturn > 0.05) return reject('todayReturn>5%');
+
+  const ret20d = idx >= 20 ? (close / chartRows[idx - 20].close - 1) : 0;
+  if (ret20d > 0.15) return reject('ret20d>15%');
+
+  return { passed: true, model: 'HIGHER_LOW', signals: { valueRatio20: +valueRatio20.toFixed(2), volumeRatio20: +volumeRatio20.toFixed(2) } };
+}
+
+function calculateQuietVolumeHold(chartRows, flowRows, meta = {}) {
+  if (!chartRows || chartRows.length < 60) return null;
+  const reject = (reason) => ({ passed: false, reason });
+
+  if (meta.isSpecial || meta.isEtf) return reject('special/etf');
+  if ((meta.marketValue || 0) > 0 && meta.marketValue < 50_000_000_000) return reject('cap<500B');
+
+  const idx = chartRows.length - 1;
+  const today = chartRows[idx];
+  const yesterday = idx > 0 ? chartRows[idx - 1] : null;
+  const close = today?.close;
+
+  if (!close || !yesterday) return null;
+
+  const avg20Value = chartRows.slice(-20).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+  const avg20Vol = chartRows.slice(-20).reduce((s, r) => s + (r.volume || 0), 0) / 20;
+  if (avg20Value < 1_000_000_000) return reject('value<1B');
+
+  // HOLD: 전일 기준 (어제 큰 거래대금)
+  const yesterdayValue = yesterday.valueApprox || 0;
+  const yesterdayVol = yesterday.volume || 0;
+  const valueRatioYest = yesterdayValue / (avg20Value || 1);
+  const volumeRatioYest = yesterdayVol / (avg20Vol || 1);
+
+  if (valueRatioYest < 1.7 || volumeRatioYest < 1.7) return reject('yesterday_ratio_low');
+
+  const yesterdayReturn = yesterday.open > 0 ? (yesterday.close / yesterday.open - 1) : 0;
+  if (yesterdayReturn < -0.01 || yesterdayReturn > 0.05) return reject('yesterday_return_range');
+
+  // 오늘: 전일 대비 97% 이상 유지 + 평균 이상 거래대금
+  const todayValue = today.valueApprox || 0;
+  if (close < yesterday.close * 0.97) return reject('price_dropped');
+  if (todayValue < avg20Value) return reject('today_value_low');
+
+  const ret5d = idx >= 5 ? (close / chartRows[idx - 5].close - 1) : 0;
+  if (ret5d > 0.10) return reject('ret5d>10%');
+
+  return { passed: true, model: 'HOLD', signals: { valueRatioYest: +valueRatioYest.toFixed(2), volumeRatioYest: +volumeRatioYest.toFixed(2) } };
+}
+
 function calculateQuietVolumeAnomalyV2(chartRows, flowRows, meta = {}) {
   if (!chartRows || chartRows.length < 60) return null;
   const reject = (reason) => ({ passed: false, reason });
@@ -3883,5 +4098,10 @@ module.exports = {
   calculateQuietVolumeAnomalyStrict,
   calculateQuietVolumeAnomalyLoose,
   calculateQuietVolumeAnomalyV2,
+  calculateQuietVolumeFirst,
+  calculateQuietVolume2Day,
+  calculateQuietVolumeAbsorb,
+  calculateQuietVolumeHigherLow,
+  calculateQuietVolumeHold,
   extractPreIgnitionFeatures,
 };
