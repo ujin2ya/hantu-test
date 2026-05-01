@@ -3534,6 +3534,150 @@ function calculateQuietVolumeAnomalyStrict(chartRows, flowRows, meta = {}) {
   };
 }
 
+function calculateQuietVolumeAnomalyLoose(chartRows, flowRows, meta = {}) {
+  if (!chartRows || chartRows.length < 60) return null;
+  const reject = (reason) => ({ passed: false, reason });
+
+  if (meta.isSpecial || meta.isEtf) return reject('special/etf');
+  const marketValue = meta.marketValue || 0;
+  if (marketValue > 0 && marketValue < 50_000_000_000) return reject('marketcap<500B');
+
+  const idx = chartRows.length - 1;
+  const today = chartRows[idx];
+  const close = today?.close;
+  if (!close || close <= 0) return null;
+
+  const avg20Value = chartRows.slice(-20).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+  if (avg20Value < 1_000_000_000) return reject('value<1B');
+
+  const avg20Vol  = chartRows.slice(-20).reduce((s, r) => s + (r.volume || 0), 0) / 20;
+  const avg60Value = chartRows.slice(-60).reduce((s, r) => s + (r.valueApprox || 0), 0) / 60;
+  const todayValue = today.valueApprox || (today.close * today.volume);
+  const volumeRatio20 = today.volume / (avg20Vol || 1);
+  const valueRatio20  = todayValue / (avg20Value || 1);
+  const valueDryness  = avg20Value / (avg60Value || 1);
+
+  // LOOSE: 거래량/거래대금 비율 더 낮게
+  if (volumeRatio20 < 1.5) return reject('volRatio20<1.5');
+  if (valueRatio20 < 1.5) return reject('valRatio20<1.5');
+
+  // LOOSE: 건조도 더 완화
+  if (valueDryness > 1.2) return reject('dryness>1.2');
+
+  const todayReturn = today.open > 0 ? (close / today.open - 1) : 0;
+  if (todayReturn < -0.02) return reject('todayReturn<-2%');
+  if (todayReturn > 0.05) return reject('todayReturn>5%');
+
+  const ret5d  = idx >= 5  ? (close / chartRows[idx - 5].close  - 1) : 0;
+  const ret20d = idx >= 20 ? (close / chartRows[idx - 20].close - 1) : 0;
+
+  // LOOSE: 5일/20일 상승률 더 높게 허용
+  if (ret5d > 0.08) return reject('ret5d>8%');
+  if (ret20d > 0.15) return reject('ret20d>15%');
+
+  const upperWick = today.high > today.close ? today.high - today.close : 0;
+  const bodyRange = Math.abs(today.close - today.open) || 1;
+  const upperWickRatio = upperWick / bodyRange;
+
+  // LOOSE: 윗꼬리 덜 엄격
+  if (upperWickRatio > 0.45) return reject('upperWick>0.45');
+
+  const { atr } = computeATR(chartRows, idx, 14);
+  const atrPct = atr / close;
+  if (atrPct > 0.30) return reject('atr%>30%');
+
+  return {
+    passed: true,
+    signals: {
+      volumeRatio20: +(volumeRatio20.toFixed(2)),
+      valueRatio20: +(valueRatio20.toFixed(2)),
+      valueDryness: +(valueDryness.toFixed(2)),
+      todayReturn: +(todayReturn * 100).toFixed(2),
+      ret5d: +(ret5d * 100).toFixed(2),
+      ret20d: +(ret20d * 100).toFixed(2),
+      upperWickRatio: +(upperWickRatio.toFixed(2)),
+      atrPct: +(atrPct * 100).toFixed(2),
+      avg20Value,
+    },
+  };
+}
+
+function calculateQuietVolumeAnomalyV2(chartRows, flowRows, meta = {}) {
+  if (!chartRows || chartRows.length < 60) return null;
+  const reject = (reason) => ({ passed: false, reason });
+
+  if (meta.isSpecial || meta.isEtf) return reject('special/etf');
+  const marketValue = meta.marketValue || 0;
+  if (marketValue > 0 && marketValue < 50_000_000_000) return reject('marketcap<500B');
+
+  const idx = chartRows.length - 1;
+  const today = chartRows[idx];
+  const close = today?.close;
+  if (!close || close <= 0) return null;
+
+  const avg20Value = chartRows.slice(-20).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+  if (avg20Value < 1_000_000_000) return reject('value<1B');
+
+  const avg20Vol  = chartRows.slice(-20).reduce((s, r) => s + (r.volume || 0), 0) / 20;
+  const avg60Value = chartRows.slice(-60).reduce((s, r) => s + (r.valueApprox || 0), 0) / 60;
+  const todayValue = today.valueApprox || (today.close * today.volume);
+  const volumeRatio20 = today.volume / (avg20Vol || 1);
+  const valueRatio20  = todayValue / (avg20Value || 1);
+  const valueDryness  = avg20Value / (avg60Value || 1);
+
+  // v2: 거래량/거래대금 기본
+  if (volumeRatio20 < 1.5) return reject('volRatio20<1.5');
+  if (valueRatio20 < 1.5) return reject('valRatio20<1.5');
+  if (valueDryness > 1.2) return reject('dryness>1.2');
+
+  const todayReturn = today.open > 0 ? (close / today.open - 1) : 0;
+  if (todayReturn < 0) return reject('todayReturn<0');  // v2: 양봉만
+  if (todayReturn > 0.05) return reject('todayReturn>5%');
+
+  const ret5d  = idx >= 5  ? (close / chartRows[idx - 5].close  - 1) : 0;
+  const ret20d = idx >= 20 ? (close / chartRows[idx - 20].close - 1) : 0;
+  if (ret5d > 0.08) return reject('ret5d>8%');
+  if (ret20d > 0.15) return reject('ret20d>15%');
+
+  const rangeToday = today.high - today.low || 1;
+  const closeLocation = (close - today.low) / rangeToday;
+  if (closeLocation < 0.55) return reject('closeLocation<0.55');  // v2: 종가 위치 >= 55%
+
+  const upperWick = today.high > today.close ? today.high - today.close : 0;
+  const bodyRange = Math.abs(today.close - today.open) || 1;
+  const upperWickRatio = upperWick / bodyRange;
+  if (upperWickRatio > 0.45) return reject('upperWick>0.45');
+
+  const { atr } = computeATR(chartRows, idx, 14);
+  const atrPct = atr / close;
+  if (atrPct > 0.30) return reject('atr%>30%');
+
+  // v2: 구조 확인 강화 (종가 > 전일 종가 required)
+  const prevClose = idx > 0 ? chartRows[idx - 1]?.close : close;
+  if (close < prevClose) return reject('close<prevClose');
+
+  const ma20 = sma(chartRows.slice(-20).map(r => r.close), 20);
+  const ma60 = chartRows.length >= 60 ? sma(chartRows.slice(-60).map(r => r.close), 60) : null;
+  const hasStructure = (ma20 != null && close >= ma20 * 0.95) || (ma60 != null && close >= ma60 * 0.92);
+  if (!hasStructure) return reject('structure_broken');
+
+  return {
+    passed: true,
+    signals: {
+      volumeRatio20: +(volumeRatio20.toFixed(2)),
+      valueRatio20: +(valueRatio20.toFixed(2)),
+      valueDryness: +(valueDryness.toFixed(2)),
+      todayReturn: +(todayReturn * 100).toFixed(2),
+      ret5d: +(ret5d * 100).toFixed(2),
+      ret20d: +(ret20d * 100).toFixed(2),
+      closeLocation: +(closeLocation.toFixed(2)),
+      upperWickRatio: +(upperWickRatio.toFixed(2)),
+      atrPct: +(atrPct * 100).toFixed(2),
+      avg20Value,
+    },
+  };
+}
+
 // 옛 PREMIUM/FRESH 점수 모델용 14-feature 추출기 — 모델 자체는 폐기됐지만
 // app.js 의 handleSearch (상세 페이지) 가 아직 참조해서 stub 으로 빈 객체 반환.
 // EJS 의 <%= features.x %> 는 모두 빈 문자열 출력 → 페이지 안 깨짐.
@@ -3541,95 +3685,162 @@ function extractPreIgnitionFeatures(_rows, _idx, _marketCap, _sharesOut) {
   return {};
 }
 
-// ─── backtestQVA — QVA 신호 백테스트 ───
-// 최근 100 거래일 동안 QVA 신호가 얼마나 수익을 냈는지 통계
+// ─── backtestQVA — QVA 모델 포괄적 백테스트 ───
 async function backtestQVA(options = {}) {
-  const { daysBack = 100, minScore = 0 } = options;
+  const { daysBack = 100 } = options;
+
+  // 헬퍼: 지표 계산
+  const calcStats = (returns) => {
+    if (!returns.length) {
+      return { n: 0, d5: 0, d10: 0, d20: 0, d40: 0, MFE10: 0, MFE20: 0, MFE40: 0,
+               MAE10: 0, MAE20: 0, hit5: 0, hit10: 0, hit20: 0, winRate: 0, PF: 0, worst: 0 };
+    }
+
+    const d5s = returns.map(r => r.d5), d10s = returns.map(r => r.d10), d20s = returns.map(r => r.d20), d40s = returns.map(r => r.d40);
+    const MFE10s = returns.map(r => r.MFE10), MFE20s = returns.map(r => r.MFE20), MFE40s = returns.map(r => r.MFE40);
+    const MAE10s = returns.map(r => r.MAE10), MAE20s = returns.map(r => r.MAE20);
+    const hit5s = returns.map(r => r.hit5), hit10s = returns.map(r => r.hit10), hit20s = returns.map(r => r.hit20);
+
+    const wins = returns.filter(r => r.d20 > 0), losses = returns.filter(r => r.d20 <= 0);
+    const avgWin = wins.length ? wins.reduce((s, r) => s + r.d20, 0) / wins.length : 0;
+    const avgLoss = losses.length ? Math.abs(losses.reduce((s, r) => s + r.d20, 0) / losses.length) : 0;
+
+    return {
+      n: returns.length,
+      d5: +(d5s.reduce((a,b)=>a+b,0)/d5s.length*100).toFixed(2),
+      d10: +(d10s.reduce((a,b)=>a+b,0)/d10s.length*100).toFixed(2),
+      d20: +(d20s.reduce((a,b)=>a+b,0)/d20s.length*100).toFixed(2),
+      d40: +(d40s.reduce((a,b)=>a+b,0)/d40s.length*100).toFixed(2),
+      MFE10: +(MFE10s.reduce((a,b)=>a+b,0)/MFE10s.length*100).toFixed(2),
+      MFE20: +(MFE20s.reduce((a,b)=>a+b,0)/MFE20s.length*100).toFixed(2),
+      MFE40: +(MFE40s.reduce((a,b)=>a+b,0)/MFE40s.length*100).toFixed(2),
+      MAE10: +(MAE10s.reduce((a,b)=>a+b,0)/MAE10s.length*100).toFixed(2),
+      MAE20: +(MAE20s.reduce((a,b)=>a+b,0)/MAE20s.length*100).toFixed(2),
+      hit5: +(hit5s.filter(h=>h>0).length/hit5s.length*100).toFixed(1),
+      hit10: +(hit10s.filter(h=>h>0).length/hit10s.length*100).toFixed(1),
+      hit20: +(hit20s.filter(h=>h>0).length/hit20s.length*100).toFixed(1),
+      winRate: +(wins.length/returns.length*100).toFixed(1),
+      PF: avgLoss > 0 ? +(avgWin/avgLoss).toFixed(2) : 0,
+      worst: +(Math.min(...d40s)*100).toFixed(2),
+    };
+  };
 
   const results = {
-    baseline: { n: 0, mean: 0, median: 0, winRate: 0, d10: 0, d20: 0 },
-    qvaAll:   { n: 0, mean: 0, median: 0, winRate: 0, PF: 0, d10: 0, d20: 0 },
-    qvaReady: { n: 0, mean: 0, median: 0, winRate: 0, PF: 0, d10: 0, d20: 0 },
-    qvaWatch: { n: 0, mean: 0, median: 0, winRate: 0, PF: 0, d10: 0, d20: 0 },
-    qvaRisk:  { n: 0, mean: 0, median: 0, winRate: 0, PF: 0, d10: 0, d20: 0 },
-    byMarket: { KOSPI: {}, KOSDAQ: {} },
-    processed: 0,
+    baseline: calcStats([]),
+    qvaStrict: calcStats([]),
+    qvaBase: calcStats([]),
+    qvaLoose: calcStats([]),
+    qvaV2: calcStats([]),
+    byMarket: { KOSPI: { qvaBase: calcStats([]), qvaV2: calcStats([]) }, KOSDAQ: { qvaBase: calcStats([]), qvaV2: calcStats([]) } },
+    processed: 0, signals: { strict: 0, base: 0, loose: 0, v2: 0 },
   };
 
   try {
-    const stocksFilePath = path.join(STOCKS_CACHE_DIR, 'naver-stocks-list.json');
-    const stocksData = JSON.parse(fs.readFileSync(stocksFilePath, 'utf-8'));
-    const allStocks = stocksData.stocks || [];
+    const rootDir = __dirname;
+    const LONG_STOCKS = path.join(rootDir, 'cache', 'stock-charts-long');
+    const stocksFile = path.join(rootDir, 'cache', 'naver-stocks-list.json');
 
-    let baselineReturns = [], qvaAllReturns = [], qvaReadyReturns = [], qvaWatchReturns = [], qvaRiskReturns = [];
+    if (!fs.existsSync(LONG_STOCKS)) throw new Error(`LONG_STOCKS not found: ${LONG_STOCKS}`);
+    if (!fs.existsSync(stocksFile)) throw new Error(`stocksFile not found: ${stocksFile}`);
 
-    // 각 종목에 대해 과거 backtest
-    for (const stock of allStocks.slice(0, 500)) {  // 첫 500개만 (속도상)
-      const chartPath = path.join(CHART_CACHE_DIR, `${stock.code}.json`);
+    const stocksData = JSON.parse(fs.readFileSync(stocksFile, 'utf-8'));
+    const stockMap = {};
+    (stocksData.stocks || []).forEach(s => { stockMap[s.code] = s; });
+
+    let baselineReturns = [], strictReturns = [], baseReturns = [], looseReturns = [], v2Returns = [];
+    let kospiBase = [], kosdaqBase = [], kospiV2 = [], kosdaqV2 = [];
+
+    // 장기 데이터 (120일+) 종목에서만 테스트
+    const files = fs.readdirSync(LONG_STOCKS).filter(f => f.endsWith('.json'));
+    console.error(`[backtestQVA] Files found: ${files.length}, stockMap size: ${Object.keys(stockMap).length}`);
+
+    for (const file of files) {
+      const code = file.replace('.json', '');
+      const stock = stockMap[code];
+      if (!stock) continue;
+
       let chart;
       try {
-        chart = JSON.parse(fs.readFileSync(chartPath, 'utf-8'));
+        chart = JSON.parse(fs.readFileSync(path.join(LONG_STOCKS, file), 'utf-8'));
       } catch (_) { continue; }
 
       const rows = chart.rows || [];
-      if (rows.length < daysBack + 30) continue;
+      if (rows.length < 60 + 40) continue;  // 최소 100일: 60일 데이터 + 40일 미래
 
-      // 최근 daysBack 거래일에서 신호 스캔
-      const startIdx = Math.max(0, rows.length - daysBack);
-      for (let i = startIdx; i < rows.length - 21; i++) {
+      // 최근 최대 100일에서 신호 스캔 (장기 데이터는 최대 120일)
+      const daysToScan = Math.min(daysBack, rows.length - 40);
+      const startIdx = Math.max(0, rows.length - daysToScan);
+      for (let i = startIdx; i < rows.length - 40; i++) {
         const signalRow = rows[i];
-
-        // 과거 시점의 rows 슬라이스로 QVA 재계산 (미래 누출 방지)
         const histRows = rows.slice(0, i + 1);
-        let qva = null;
+
+        // 4가지 모델 계산
+        let qvaStrict = null, qvaBase = null, qvaLoose = null, qvaV2 = null;
         try {
-          qva = calculateQuietVolumeAnomaly(histRows, [], { code: stock.code, marketValue: stock.marketValue });
+          qvaStrict = calculateQuietVolumeAnomalyStrict(histRows, [], { code, marketValue: stock.marketValue, isEtf: stock.isEtf });
+          qvaBase = calculateQuietVolumeAnomaly(histRows, [], { code, marketValue: stock.marketValue, isEtf: stock.isEtf });
+          qvaLoose = calculateQuietVolumeAnomalyLoose(histRows, [], { code, marketValue: stock.marketValue, isEtf: stock.isEtf });
+          qvaV2 = calculateQuietVolumeAnomalyV2(histRows, [], { code, marketValue: stock.marketValue, isEtf: stock.isEtf });
         } catch (_) {}
 
-        // baseline 계산 (모든 거래일)
-        const baselineD10 = rows[Math.min(i + 10, rows.length - 1)]?.close || signalRow.close;
-        const baselineD20 = rows[Math.min(i + 20, rows.length - 1)]?.close || signalRow.close;
-        const baselineRet10 = baselineD10 / signalRow.close - 1;
-        const baselineRet20 = baselineD20 / signalRow.close - 1;
-        baselineReturns.push({ ret10: baselineRet10, ret20: baselineRet20 });
+        // d5, d10, d20, d40 계산
+        const getReturn = (days) => {
+          const futureIdx = Math.min(i + days, rows.length - 1);
+          if (futureIdx <= i) return 0;
+          const futureClose = rows[futureIdx]?.close || signalRow.close;
+          return futureClose / signalRow.close - 1;
+        };
 
-        // QVA 신호 있으면
-        if (qva?.passed) {
-          const d10 = rows[Math.min(i + 10, rows.length - 1)]?.close || signalRow.close;
-          const d20 = rows[Math.min(i + 20, rows.length - 1)]?.close || signalRow.close;
-          const ret10 = d10 / signalRow.close - 1;
-          const ret20 = d20 / signalRow.close - 1;
+        const getMFE = (days) => {
+          let mfe = 0;
+          for (let j = i + 1; j <= Math.min(i + days, rows.length - 1); j++) {
+            const high = rows[j]?.high || rows[j]?.close;
+            mfe = Math.max(mfe, (high - signalRow.close) / signalRow.close);
+          }
+          return mfe;
+        };
 
-          qvaAllReturns.push({ ret10, ret20 });
+        const getMAE = (days) => {
+          let mae = 0;
+          for (let j = i + 1; j <= Math.min(i + days, rows.length - 1); j++) {
+            const low = rows[j]?.low || rows[j]?.close;
+            mae = Math.min(mae, (low - signalRow.close) / signalRow.close);
+          }
+          return mae;
+        };
 
-          if (qva.category === 'QVA_READY') qvaReadyReturns.push({ ret10, ret20 });
-          else if (qva.category === 'QVA_WATCH') qvaWatchReturns.push({ ret10, ret20 });
-          else qvaRiskReturns.push({ ret10, ret20 });
+        const ret = { d5: getReturn(5), d10: getReturn(10), d20: getReturn(20), d40: getReturn(40),
+                     MFE10: getMFE(10), MFE20: getMFE(20), MFE40: getMFE(40),
+                     MAE10: getMAE(10), MAE20: getMAE(20),
+                     hit5: getReturn(5) > 0 ? 1 : 0, hit10: getReturn(10) > 0 ? 1 : 0, hit20: getReturn(20) > 0 ? 1 : 0 };
+
+        baselineReturns.push(ret);
+        if (qvaStrict?.passed) { strictReturns.push(ret); results.signals.strict++; }
+        if (qvaBase?.passed) {
+          baseReturns.push(ret); results.signals.base++;
+          if (stock.market === 'KOSPI') kospiBase.push(ret);
+          else if (stock.market === 'KOSDAQ') kosdaqBase.push(ret);
+        }
+        if (qvaLoose?.passed) { looseReturns.push(ret); results.signals.loose++; }
+        if (qvaV2?.passed) {
+          v2Returns.push(ret); results.signals.v2++;
+          if (stock.market === 'KOSPI') kospiV2.push(ret);
+          else if (stock.market === 'KOSDAQ') kosdaqV2.push(ret);
         }
       }
+
       results.processed++;
     }
 
-    // 통계 계산 헬퍼
-    const calcStats = (returns) => {
-      if (!returns.length) return { n: 0, mean: 0, median: 0, winRate: 0, d10: 0, d20: 0 };
-      const rets10 = returns.map(r => r.ret10);
-      const rets20 = returns.map(r => r.ret20);
-      return {
-        n: returns.length,
-        mean: (rets20.reduce((a, b) => a + b, 0) / rets20.length * 100).toFixed(2),
-        median: (rets20.sort((a, b) => a - b)[Math.floor(rets20.length / 2)] * 100).toFixed(2),
-        winRate: (rets20.filter(r => r > 0).length / rets20.length * 100).toFixed(1),
-        d10: (rets10.reduce((a, b) => a + b, 0) / rets10.length * 100).toFixed(2),
-        d20: (rets20.reduce((a, b) => a + b, 0) / rets20.length * 100).toFixed(2),
-      };
-    };
-
     results.baseline = calcStats(baselineReturns);
-    results.qvaAll = calcStats(qvaAllReturns);
-    results.qvaReady = calcStats(qvaReadyReturns);
-    results.qvaWatch = calcStats(qvaWatchReturns);
-    results.qvaRisk = calcStats(qvaRiskReturns);
+    results.qvaStrict = calcStats(strictReturns);
+    results.qvaBase = calcStats(baseReturns);
+    results.qvaLoose = calcStats(looseReturns);
+    results.qvaV2 = calcStats(v2Returns);
+    results.byMarket.KOSPI.qvaBase = calcStats(kospiBase);
+    results.byMarket.KOSDAQ.qvaBase = calcStats(kosdaqBase);
+    results.byMarket.KOSPI.qvaV2 = calcStats(kospiV2);
+    results.byMarket.KOSDAQ.qvaV2 = calcStats(kosdaqV2);
 
   } catch (e) {
     console.error('[backtestQVA]', e.message);
@@ -3670,5 +3881,7 @@ module.exports = {
   calculateVolumeValueIgnition,
   calculateQuietVolumeAnomaly,
   calculateQuietVolumeAnomalyStrict,
+  calculateQuietVolumeAnomalyLoose,
+  calculateQuietVolumeAnomalyV2,
   extractPreIgnitionFeatures,
 };
