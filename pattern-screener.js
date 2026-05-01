@@ -4380,13 +4380,17 @@ async function backtestQVA(options = {}) {
   const calcStats = (returns) => {
     if (!returns.length) {
       return { n: 0, d5: 0, d10: 0, d20: 0, d40: 0, MFE10: 0, MFE20: 0, MFE40: 0,
-               MAE10: 0, MAE20: 0, hit5: 0, hit10: 0, hit20: 0, winRate: 0, PF: 0, worst: 0 };
+               MAE10: 0, MAE20: 0, hit10: 0, hit20: 0, hit3pct10: 0, hit3pct20: 0, winRate: 0, PF: 0, worst: 0,
+               csbConv5d: 0, csbConv10d: 0, csbConv20d: 0, vviConv20d: 0 };
     }
 
     const d5s = returns.map(r => r.d5), d10s = returns.map(r => r.d10), d20s = returns.map(r => r.d20), d40s = returns.map(r => r.d40);
     const MFE10s = returns.map(r => r.MFE10), MFE20s = returns.map(r => r.MFE20), MFE40s = returns.map(r => r.MFE40);
     const MAE10s = returns.map(r => r.MAE10), MAE20s = returns.map(r => r.MAE20);
-    const hit5s = returns.map(r => r.hit5), hit10s = returns.map(r => r.hit10), hit20s = returns.map(r => r.hit20);
+    const hit10s = returns.map(r => r.hit10), hit20s = returns.map(r => r.hit20);
+    const hit3pct10s = returns.map(r => r.hit3pct10), hit3pct20s = returns.map(r => r.hit3pct20);
+    const csbConv5ds = returns.map(r => r.csbConv5d), csbConv10ds = returns.map(r => r.csbConv10d), csbConv20ds = returns.map(r => r.csbConv20d);
+    const vviConv20ds = returns.map(r => r.vviConv20d);
 
     const wins = returns.filter(r => r.d20 > 0), losses = returns.filter(r => r.d20 <= 0);
     const avgWin = wins.length ? wins.reduce((s, r) => s + r.d20, 0) / wins.length : 0;
@@ -4403,9 +4407,14 @@ async function backtestQVA(options = {}) {
       MFE40: +(MFE40s.reduce((a,b)=>a+b,0)/MFE40s.length*100).toFixed(2),
       MAE10: +(MAE10s.reduce((a,b)=>a+b,0)/MAE10s.length*100).toFixed(2),
       MAE20: +(MAE20s.reduce((a,b)=>a+b,0)/MAE20s.length*100).toFixed(2),
-      hit5: +(hit5s.filter(h=>h>0).length/hit5s.length*100).toFixed(1),
-      hit10: +(hit10s.filter(h=>h>0).length/hit10s.length*100).toFixed(1),
-      hit20: +(hit20s.filter(h=>h>0).length/hit20s.length*100).toFixed(1),
+      hit10: +(hit10s.filter(h=>h).length/hit10s.length*100).toFixed(1),
+      hit20: +(hit20s.filter(h=>h).length/hit20s.length*100).toFixed(1),
+      hit3pct10: +(hit3pct10s.filter(h=>h).length/hit3pct10s.length*100).toFixed(1),
+      hit3pct20: +(hit3pct20s.filter(h=>h).length/hit3pct20s.length*100).toFixed(1),
+      csbConv5d: +(csbConv5ds.filter(c=>c).length/csbConv5ds.length*100).toFixed(1),
+      csbConv10d: +(csbConv10ds.filter(c=>c).length/csbConv10ds.length*100).toFixed(1),
+      csbConv20d: +(csbConv20ds.filter(c=>c).length/csbConv20ds.length*100).toFixed(1),
+      vviConv20d: +(vviConv20ds.filter(c=>c).length/vviConv20ds.length*100).toFixed(1),
       winRate: +(wins.length/returns.length*100).toFixed(1),
       PF: avgLoss > 0 ? +(avgWin/avgLoss).toFixed(2) : 0,
       worst: +(Math.min(...d40s)*100).toFixed(2),
@@ -4418,8 +4427,11 @@ async function backtestQVA(options = {}) {
     qvaBase: calcStats([]),
     qvaLoose: calcStats([]),
     qvaV2: calcStats([]),
-    byMarket: { KOSPI: { qvaBase: calcStats([]), qvaV2: calcStats([]) }, KOSDAQ: { qvaBase: calcStats([]), qvaV2: calcStats([]) } },
-    processed: 0, signals: { strict: 0, base: 0, loose: 0, v2: 0 },
+    qvaEvolution: calcStats([]),
+    qvaHold: calcStats([]),
+    qvaHigherLow: calcStats([]),
+    byMarket: { KOSPI: { qvaBase: calcStats([]), qvaV2: calcStats([]), qvaEvolution: calcStats([]) }, KOSDAQ: { qvaBase: calcStats([]), qvaV2: calcStats([]), qvaEvolution: calcStats([]) } },
+    processed: 0, signals: { strict: 0, base: 0, loose: 0, v2: 0, evolution: 0, hold: 0, higherLow: 0 },
   };
 
   try {
@@ -4435,7 +4447,8 @@ async function backtestQVA(options = {}) {
     (stocksData.stocks || []).forEach(s => { stockMap[s.code] = s; });
 
     let baselineReturns = [], strictReturns = [], baseReturns = [], looseReturns = [], v2Returns = [];
-    let kospiBase = [], kosdaqBase = [], kospiV2 = [], kosdaqV2 = [];
+    let evolutionReturns = [], holdReturns = [], higherLowReturns = [];
+    let kospiBase = [], kosdaqBase = [], kospiV2 = [], kosdaqV2 = [], kospiEvolution = [], kosdaqEvolution = [];
 
     // 장기 데이터 (120일+) 종목에서만 테스트
     const files = fs.readdirSync(LONG_STOCKS).filter(f => f.endsWith('.json'));
@@ -4461,13 +4474,16 @@ async function backtestQVA(options = {}) {
         const signalRow = rows[i];
         const histRows = rows.slice(0, i + 1);
 
-        // 4가지 모델 계산
-        let qvaStrict = null, qvaBase = null, qvaLoose = null, qvaV2 = null;
+        // 7가지 모델 계산
+        let qvaStrict = null, qvaBase = null, qvaLoose = null, qvaV2 = null, qvaEvolution = null, qvaHold = null, qvaHigherLow = null;
         try {
           qvaStrict = calculateQuietVolumeAnomalyStrict(histRows, [], { code, marketValue: stock.marketValue, isEtf: stock.isEtf });
           qvaBase = calculateQuietVolumeAnomaly(histRows, [], { code, marketValue: stock.marketValue, isEtf: stock.isEtf });
           qvaLoose = calculateQuietVolumeAnomalyLoose(histRows, [], { code, marketValue: stock.marketValue, isEtf: stock.isEtf });
           qvaV2 = calculateQuietVolumeAnomalyV2(histRows, [], { code, marketValue: stock.marketValue, isEtf: stock.isEtf });
+          qvaEvolution = calculateQvaEvolution(histRows, [], { code, marketValue: stock.marketValue, isEtf: stock.isEtf });
+          qvaHold = calculateQuietVolumeHold(histRows, [], { code, marketValue: stock.marketValue, isEtf: stock.isEtf });
+          qvaHigherLow = calculateQuietVolumeHigherLow(histRows, [], { code, marketValue: stock.marketValue, isEtf: stock.isEtf });
         } catch (_) {}
 
         // d5, d10, d20, d40 계산
@@ -4496,10 +4512,40 @@ async function backtestQVA(options = {}) {
           return mae;
         };
 
-        const ret = { d5: getReturn(5), d10: getReturn(10), d20: getReturn(20), d40: getReturn(40),
-                     MFE10: getMFE(10), MFE20: getMFE(20), MFE40: getMFE(40),
-                     MAE10: getMAE(10), MAE20: getMAE(20),
-                     hit5: getReturn(5) > 0 ? 1 : 0, hit10: getReturn(10) > 0 ? 1 : 0, hit20: getReturn(20) > 0 ? 1 : 0 };
+        // 전환 지표 계산 (3% 이상 도달, 고가 기반)
+        const getHit3pct = (days) => {
+          let maxHigh = signalRow.close;
+          for (let j = i + 1; j <= Math.min(i + days, rows.length - 1); j++) {
+            maxHigh = Math.max(maxHigh, rows[j]?.high || rows[j]?.close);
+          }
+          return (maxHigh / signalRow.close - 1) >= 0.03;
+        };
+
+        // CSB 전환 지표 (MFE20 >= 5% 도달)
+        const getCsbConversion = (days) => {
+          const mfe = getMFE(days);
+          return mfe >= 0.05;
+        };
+
+        // VVI 전환 지표 (고변동성 + 거래량 폭발 신호)
+        const getVviConversion = (days) => {
+          const futureRows = rows.slice(Math.max(0, i + 1), Math.min(i + 1 + days, rows.length));
+          if (futureRows.length < 3) return false;
+          const volatility = (Math.max(...futureRows.map(r => r.high)) - Math.min(...futureRows.map(r => r.low))) / signalRow.close;
+          const avgVol = futureRows.reduce((s, r) => s + (r.volume || 0), 0) / futureRows.length;
+          const baselineVol = Math.max(...histRows.slice(-20).map(r => r.volume || 0));
+          return volatility > 0.08 && avgVol > baselineVol * 1.5;
+        };
+
+        const ret = {
+          d5: getReturn(5), d10: getReturn(10), d20: getReturn(20), d40: getReturn(40),
+          MFE10: getMFE(10), MFE20: getMFE(20), MFE40: getMFE(40),
+          MAE10: getMAE(10), MAE20: getMAE(20),
+          hit10: getReturn(10) > 0 ? 1 : 0, hit20: getReturn(20) > 0 ? 1 : 0,
+          hit3pct10: getHit3pct(10) ? 1 : 0, hit3pct20: getHit3pct(20) ? 1 : 0,
+          csbConv5d: getCsbConversion(5) ? 1 : 0, csbConv10d: getCsbConversion(10) ? 1 : 0, csbConv20d: getCsbConversion(20) ? 1 : 0,
+          vviConv20d: getVviConversion(20) ? 1 : 0,
+        };
 
         baselineReturns.push(ret);
         if (qvaStrict?.passed) { strictReturns.push(ret); results.signals.strict++; }
@@ -4514,6 +4560,13 @@ async function backtestQVA(options = {}) {
           if (stock.market === 'KOSPI') kospiV2.push(ret);
           else if (stock.market === 'KOSDAQ') kosdaqV2.push(ret);
         }
+        if (qvaEvolution?.passed) {
+          evolutionReturns.push(ret); results.signals.evolution++;
+          if (stock.market === 'KOSPI') kospiEvolution.push(ret);
+          else if (stock.market === 'KOSDAQ') kosdaqEvolution.push(ret);
+        }
+        if (qvaHold?.passed) { holdReturns.push(ret); results.signals.hold++; }
+        if (qvaHigherLow?.passed) { higherLowReturns.push(ret); results.signals.higherLow++; }
       }
 
       results.processed++;
@@ -4524,10 +4577,15 @@ async function backtestQVA(options = {}) {
     results.qvaBase = calcStats(baseReturns);
     results.qvaLoose = calcStats(looseReturns);
     results.qvaV2 = calcStats(v2Returns);
+    results.qvaEvolution = calcStats(evolutionReturns);
+    results.qvaHold = calcStats(holdReturns);
+    results.qvaHigherLow = calcStats(higherLowReturns);
     results.byMarket.KOSPI.qvaBase = calcStats(kospiBase);
     results.byMarket.KOSDAQ.qvaBase = calcStats(kosdaqBase);
     results.byMarket.KOSPI.qvaV2 = calcStats(kospiV2);
     results.byMarket.KOSDAQ.qvaV2 = calcStats(kosdaqV2);
+    results.byMarket.KOSPI.qvaEvolution = calcStats(kospiEvolution);
+    results.byMarket.KOSDAQ.qvaEvolution = calcStats(kosdaqEvolution);
 
   } catch (e) {
     console.error('[backtestQVA]', e.message);
