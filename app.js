@@ -3331,14 +3331,19 @@ app.get('/simple-report', (req, res) => {
         th { background: #f0f4ff; padding: 10px; text-align: left; font-weight: 600; color: #667eea; border-bottom: 2px solid #667eea; font-size: 13px; white-space: nowrap; }
         td { padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 13px; }
         @media (max-width: 480px) {
-          .table-wrapper { background: transparent; box-shadow: none; margin-bottom: 15px; }
-          table { display: grid; grid-template-columns: 1fr; gap: 10px; min-width: unset; border: none; }
+          .table-wrapper { background: transparent; box-shadow: none; margin-bottom: 10px; }
+          table { display: grid; grid-template-columns: 1fr; gap: 4px; min-width: unset; border: none; }
           thead { display: none; }
           tbody { display: contents; }
-          tr { display: grid; grid-template-columns: 1fr; gap: 0; background: white; padding: 12px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 8px; border: none; }
-          td { display: grid; grid-template-columns: 80px 1fr; padding: 6px 0; border: none; font-size: 12px; align-items: center; }
-          td:first-child { grid-column: 1 / -1; padding: 4px 0; font-weight: 700; color: #667eea; }
-          td:before { content: attr(data-label); font-weight: 600; color: #667eea; font-size: 11px; }
+          tr { display: grid; grid-template-columns: auto 1fr auto auto; gap: 8px; background: white; padding: 8px 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 3px; border: none; align-items: center; }
+          td { border: none; padding: 0; font-size: 12px; }
+          td:nth-child(1) { font-weight: 700; color: #667eea; font-size: 11px; }
+          td:nth-child(2) { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+          td:nth-child(3) { color: #10b981; font-weight: 700; font-size: 13px; }
+          td:nth-child(4) { font-size: 11px; color: #666; }
+          td:nth-child(5) { color: #10b981; font-weight: 600; font-size: 11px; }
+          td:nth-child(n+6) { display: none; }
+          td:before { display: none; }
         }
         tr:hover { background: #f9f9f9; }
         .positive { color: #10b981; font-weight: 600; }
