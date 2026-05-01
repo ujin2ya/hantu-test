@@ -1,0 +1,38 @@
+{
+  "summary": {
+    "totalSignals": 67,
+    "avgMaxReturnAll": 32.23,
+    "avgD20ReturnAll": 18.37,
+    "totalHit10": 59,
+    "totalHit15": 50,
+    "hit10Rate": "88",
+    "hit15Rate": "75",
+    "avgMaeAll": -5.07
+  },
+  "signalDates": [
+    {
+      "date": "20260401",
+      "dateNum": null,
+      "totalSignals": 10,
+      "avgMaxReturn": 16.28,
+      "avgD20Return": 7.01,
+      "hit10Count": 7,
+      "hit15Count": 6,
+      "hit10Rate": "70",
+      "hit15Rate": "60",
+      "avgMae": -7.19
+    },
+    {
+      "date": "20260402",
+      "dateNum": null,
+      "totalSignals": 57,
+      "avgMaxReturn": 35.03,
+      "avgD20Return": 20.36,
+      "hit10Count": 52,
+      "hit15Count": 44,
+      "hit10Rate": "91",
+      "hit15Rate": "77",
+      "avgMae": -4.7
+    }
+  ]
+}
