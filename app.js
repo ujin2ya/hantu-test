@@ -2267,7 +2267,7 @@ const handleSearch = async (req, res) => {
       const qvaHoldRes = patternScreener.calculateQuietVolumeHold(rows, flowRowsArr, { ...stockMeta, marketValue: stockMeta.marketCap });
       const qvaHlRes = patternScreener.calculateQuietVolumeHigherLow(rows, flowRowsArr, { ...stockMeta, marketValue: stockMeta.marketCap });
 
-      // category 우선순위: BOTH > HIGHER_LOW > HOLD > QVA
+      // category 우선순위: BOTH > HIGHER_LOW > QVA_TURN > QVA
       let category = 'QVA';
       let score = qvaRes?.score || 0;
       let signals = qvaRes?.signals || {};
@@ -2284,7 +2284,7 @@ const handleSearch = async (req, res) => {
         signals = qvaHlRes.signals || {};
         breakdown = qvaHlRes.breakdown || {};
       } else if (qvaHoldRes?.passed) {
-        category = 'HOLD';
+        category = qvaHoldRes.model || 'QVA_TURN';  // QVA_TURN (또는 다른 모델명)
         score = qvaHoldRes.score || 0;
         signals = qvaHoldRes.signals || {};
         breakdown = qvaHoldRes.breakdown || {};
