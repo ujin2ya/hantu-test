@@ -3915,9 +3915,7 @@ function calculateQuietVolumeHold(chartRows, flowRows, meta = {}) {
   const min20 = lows20to25.length > 0 ? Math.min(...lows20to25) : Infinity;
   const higherLow5 = min5 > min20;
 
-  // ma5Slope: 5일선 기울기
-  const last5 = chartRows.slice(-5);
-  const last20 = chartRows.slice(-20);
+  // ma5Slope: 5일선 기울기 (last5, last20은 이미 선언됨)
   const ma5 = last5.length >= 5 ? sma(last5.map(r => r.close), 5) : null;
   const ma5Prev = chartRows.length >= 9 ? sma(chartRows.slice(-9, -4).map(r => r.close), 5) : null;
   const ma5Slope = ma5 && ma5Prev ? (ma5 > ma5Prev ? 1 : 0) : 0;
