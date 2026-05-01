@@ -2262,18 +2262,24 @@ const handleSearch = async (req, res) => {
     // 3e) QVA 재계산 (거래량 이상징후 선행 감지)
     let qvaDetail = null;
     try {
-      // 세 가지 QVA 지표 모두 계산
+      // 네 가지 QVA 지표 모두 계산
       const qvaRes = patternScreener.calculateQuietVolumeAnomaly(rows, flowRowsArr, { ...stockMeta, marketValue: stockMeta.marketCap });
+      const qvaEvolutionRes = patternScreener.calculateQvaEvolution(rows, flowRowsArr, { ...stockMeta, marketValue: stockMeta.marketCap });
       const qvaHoldRes = patternScreener.calculateQuietVolumeHold(rows, flowRowsArr, { ...stockMeta, marketValue: stockMeta.marketCap });
       const qvaHlRes = patternScreener.calculateQuietVolumeHigherLow(rows, flowRowsArr, { ...stockMeta, marketValue: stockMeta.marketCap });
 
-      // category 우선순위: BOTH > HIGHER_LOW > QVA_TURN > QVA
+      // category 우선순위: EVOLUTION > BOTH > HIGHER_LOW > QVA_TURN > QVA
       let category = 'QVA';
       let score = qvaRes?.score || 0;
       let signals = qvaRes?.signals || {};
       let breakdown = qvaRes?.breakdown || {};
 
-      if (qvaHoldRes?.passed && qvaHlRes?.passed) {
+      if (qvaEvolutionRes?.passed) {
+        category = 'QVA_EVOLUTION';
+        score = qvaEvolutionRes.score || 0;
+        signals = qvaEvolutionRes.signals || {};
+        breakdown = qvaEvolutionRes.breakdown || {};
+      } else if (qvaHoldRes?.passed && qvaHlRes?.passed) {
         category = 'BOTH';
         score = Math.max((qvaHoldRes?.score || 0), (qvaHlRes?.score || 0)) + 10;
         signals = { ...qvaHoldRes.signals, ...qvaHlRes.signals };
@@ -2290,7 +2296,7 @@ const handleSearch = async (req, res) => {
         breakdown = qvaHoldRes.breakdown || {};
       }
 
-      if (qvaRes?.passed || qvaHoldRes?.passed || qvaHlRes?.passed) {
+      if (qvaRes?.passed || qvaEvolutionRes?.passed || qvaHoldRes?.passed || qvaHlRes?.passed) {
         // 차트 데이터용 60일 수량 데이터
         const last60 = rows.slice(-60);
         const last20 = last60.slice(-20);
