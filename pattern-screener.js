@@ -742,6 +742,7 @@ async function analyzeAll({ logProgress = false } = {}) {
   const reboundCandidates = [];
   const vviCandidates = [];
   const qvaCandidates = [];  // 단일 QVA 후보 (passed === true만)
+  const qvaEvolutionCandidates = [];  // QVA_EVOLUTION: 점수 기반 진화 가능성 모델 (score >= 70)
   const qvaHoldCandidates = [];  // QVA-HOLD: 거래대금 이상징후 다음날도 견디기
   const qvaHigherLowCandidates = [];  // QVA-HL: 저점 상승 + 거래대금 증가
   const overheatWarnings = [];
@@ -1081,6 +1082,7 @@ async function analyzeAll({ logProgress = false } = {}) {
       rebound: rebound?.passed ? { score: rebound.score, breakdown: rebound.breakdown, signals: rebound.signals } : null,
       vvi: vvi?.passed ? { score: vvi.score, category: vvi.category, breakdown: vvi.breakdown, signals: vvi.signals } : null,
       qva: qva?.passed ? { score: qva.score, category: qva.category, breakdown: qva.breakdown, signals: qva.signals } : null,
+      qvaEvolution: qvaEvolution?.passed ? { score: qvaEvolution.score, breakdown: qvaEvolution.breakdown, signals: qvaEvolution.signals } : null,
       qvaHold: qvaHold?.passed ? { score: qvaHold.score, breakdown: qvaHold.breakdown, signals: qvaHold.signals } : null,
       qvaHigherLow: qvaHigherLow?.passed ? { score: qvaHigherLow.score, breakdown: qvaHigherLow.breakdown, signals: qvaHigherLow.signals } : null,
       qvaBoth: qvaBoth?.passed ? { score: qvaBoth.score, signals: qvaBoth.signals } : null,
@@ -1121,8 +1123,13 @@ async function analyzeAll({ logProgress = false } = {}) {
     // 기본 QVA는 후보로 표시하지 않음 (내부 탐지 지표만으로 사용)
     // if (qva?.passed) qvaCandidates.push(tagged);
 
-    // QVA 후보: BOTH > HIGHER_LOW (기본 QVA, HOLD 단독은 제외)
-    if (qvaBoth?.passed) {
+    // QVA 후보: EVOLUTION > BOTH > HIGHER_LOW (기본 QVA, HOLD 단독은 제외)
+    if (qvaEvolution?.passed) {
+      tagged.qvaType = 'EVOLUTION';
+      tagged.qvaScore = qvaEvolution.score;
+      qvaEvolutionCandidates.push(tagged);
+      if (code === '030000') console.log(`  → qvaEvolutionCandidates에 추가됨 (score=${qvaEvolution.score})`);
+    } else if (qvaBoth?.passed) {
       // BOTH 필드 추가해서 마킹
       tagged.qvaType = 'BOTH';
       tagged.qvaScore = qvaBoth.score;
@@ -1134,7 +1141,7 @@ async function analyzeAll({ logProgress = false } = {}) {
       qvaHigherLowCandidates.push(tagged);
       if (code === '030000') console.log(`  → qvaHigherLowCandidates에 추가됨 (type=HIGHER_LOW, score=${qvaHigherLow.score})`);
     } else if (code === '030000') {
-      console.log(`  → QVA 후보로 추가 안 됨 (qvaBoth=${qvaBoth?.passed}, qvaHL=${qvaHigherLow?.passed}/${qvaHigherLow?.score})`);
+      console.log(`  → QVA 후보로 추가 안 됨 (evol=${qvaEvolution?.passed}, both=${qvaBoth?.passed}, hl=${qvaHigherLow?.passed}/${qvaHigherLow?.score})`);
     }
     if (overheatHit) overheatWarnings.push(tagged);
   }
@@ -1318,6 +1325,8 @@ async function analyzeAll({ logProgress = false } = {}) {
     // ─── QVA (거래량 이상징후 선행 감지) ───
     qvaCandidates: qvaCandidates.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
     qvaCount: qvaCandidates.length,
+    qvaEvolutionCandidates: qvaEvolutionCandidates.sort((a, b) => (b.qvaScore || 0) - (a.qvaScore || 0)),
+    qvaEvolutionCount: qvaEvolutionCandidates.length,
     qvaHoldCandidates: qvaHoldCandidates.sort((a, b) => (b.qvaScore || 0) - (a.qvaScore || 0)),
     qvaHoldCount: qvaHoldCandidates.length,
     qvaHigherLowCandidates: qvaHigherLowCandidates.sort((a, b) => (b.qvaScore || 0) - (a.qvaScore || 0)),
