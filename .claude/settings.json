@@ -10,7 +10,12 @@
       "PowerShell(git add app.js)",
       "PowerShell(git push)",
       "PowerShell(git add views/pattern.ejs)",
-      "PowerShell(git commit -m \"���� ��Ͽ� ���� ǥ�� �߰� - QVA/VVI ����\")"
+      "PowerShell(git commit -m \"���� ��Ͽ� ���� ǥ�� �߰� - QVA/VVI ����\")",
+      "PowerShell(cd 'c:\\\\Users\\\\Eugene\\\\workspace\\\\hantu-test' ; [System.Text.Encoding]::UTF8.GetString\\([System.IO.File]::ReadAllBytes\\(\"QVA-20DAY-TRACKING-DETAILED-REPORT.md\"\\)\\) | Select-String \"^#####\" -ErrorAction SilentlyContinue | Select-Object -First 5)",
+      "PowerShell(cd c:\\\\Users\\\\Eugene\\\\workspace\\\\hantu-test ; $proc = Start-Process node -ArgumentList \"app.js\" -PassThru -NoNewWindow ; Start-Sleep -Seconds 4 ; $response = Invoke-WebRequest -Uri \"http://localhost:3012/simple-report\" -UseBasicParsing -TimeoutSec 10 ; $response.Content | Select-String -Pattern \"4월|신호|평균|hit\" | Select-Object -First 15)",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3012/simple-report\" -UseBasicParsing ; if\\($r.StatusCode -eq 200\\) { Write-Host \"✅ 상태: 200 OK\" ; $lines = $r.Content.Split\\(\"`n\"\\) | Select-String \"4월|종목|신호|평균|hit\" ; if\\($lines.Count -gt 0\\) { Write-Host \"$\\($lines.Count\\)개 라인 발견:\" ; $lines | Select-Object -First 10 } else { Write-Host \"검색 패턴 없음. HTML 샘플:\" ; $r.Content.Substring\\(0, 500\\) } })",
+      "PowerShell(cd c:\\\\Users\\\\Eugene\\\\workspace\\\\hantu-test ; $password = $env:SITE_PASSWORD ; if\\($password\\) { Write-Host \"비밀번호: $password\" } else { Write-Host \"환경변수에 SITE_PASSWORD 없음\" })",
+      "PowerShell($password = \"내사랑단타\" ; $cookie = New-Object System.Net.Cookie ; $cookie.Name = \"site_session\" ; $cookie.Value = [System.Web.HttpUtility]::UrlEncode\\($password\\) ; $uri = [System.Uri]\"http://localhost:3012\" ; $cookie.Domain = $uri.Host ; $cookieContainer = New-Object System.Net.CookieContainer ; $cookieContainer.Add\\($cookie\\) ; $session = @{} ; $session.CookieContainer = $cookieContainer ; $r = Invoke-WebRequest -Uri \"http://localhost:3012/simple-report\" -UseBasicParsing -WebSession $session ; $r.Content.Substring\\(0, 1000\\))"
     ],
     "defaultMode": "bypassPermissions"
   }
