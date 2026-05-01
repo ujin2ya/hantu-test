@@ -1129,11 +1129,21 @@ async function analyzeAll({ logProgress = false } = {}) {
     // 최종 우선순위: STRONG (HL+EV) > HIGHER_LOW (HL단독) > EVOLUTION (품질필터, 메인아님)
     if (qvaHigherLow?.passed) {
       const evolutionAlso = qvaEvolution?.passed;
+      const hasPastExplosion = qvaHigherLow.signals?.hasPastExplosion || false;
       // 임시 플래그: 데이터 갱신 필요 여부 (나중에 확인)
       tagged.qvaDataStale = false;
       tagged.qvaDataStaleDays = 0;
-      if (evolutionAlso) {
-        // QVA_STRONG: HIGHER_LOW + EVOLUTION 동시 통과
+
+      // 과거 거래량 폭발이 있으면 recovery 상태: 주의 필요 (메인 후보 제외)
+      if (hasPastExplosion && !evolutionAlso) {
+        // HIGHER_LOW_RECOVERY: 과거 폭발 후 재유입만 있는 상태
+        tagged.qvaType = 'HIGHER_LOW_RECOVERY';
+        tagged.qvaScore = qvaHigherLow.score ?? 0;
+        tagged.qvaMedianRatio = qvaHigherLow.signals?.valueMedianRatio20 || 0;
+        qvaHigherLowOnlyCandidates.push(tagged);
+        if (code === '030000') console.log(`  → HIGHER_LOW_RECOVERY (메인 후보 제외)`);
+      } else if (evolutionAlso && !hasPastExplosion) {
+        // QVA_STRONG: HIGHER_LOW + EVOLUTION 동시 통과 (과거 폭발 무관)
         tagged.qvaType = 'STRONG';
         tagged.qvaScore = Math.max(qvaHigherLow.score ?? 0, qvaEvolution.score ?? 0);
         tagged.qvaHlScore = qvaHigherLow.score;
@@ -1141,13 +1151,22 @@ async function analyzeAll({ logProgress = false } = {}) {
         tagged.qvaMedianRatio = qvaHigherLow.signals?.valueMedianRatio20 || 0;
         qvaStrongCandidates.push(tagged);
         if (code === '030000') console.log(`  → qvaStrongCandidates에 추가됨`);
-      } else {
-        // QVA_HL: HIGHER_LOW 단독
+      } else if (!evolutionAlso && !hasPastExplosion) {
+        // QVA_HL: HIGHER_LOW 단독 (과거 폭발 없음)
         tagged.qvaType = 'HIGHER_LOW';
         tagged.qvaScore = qvaHigherLow.score ?? 0;
         tagged.qvaMedianRatio = qvaHigherLow.signals?.valueMedianRatio20 || 0;
         qvaHigherLowOnlyCandidates.push(tagged);
         if (code === '030000') console.log(`  → qvaHigherLowOnlyCandidates에 추가됨`);
+      } else if (evolutionAlso && hasPastExplosion) {
+        // EVOLUTION + RECOVERY: 강한 재유입 (배지용만)
+        tagged.qvaType = 'EVOLUTION_RECOVERY';
+        tagged.qvaScore = Math.max(qvaHigherLow.score ?? 0, qvaEvolution.score ?? 0);
+        tagged.qvaHlScore = qvaHigherLow.score;
+        tagged.qvaEvScore = qvaEvolution.score;
+        tagged.qvaMedianRatio = qvaHigherLow.signals?.valueMedianRatio20 || 0;
+        qvaEvolutionCandidates.push(tagged);
+        if (code === '030000') console.log(`  → EVOLUTION_RECOVERY (배지용)`);
       }
       qvaHigherLowCandidates.push(tagged);  // 역호환용 포함
     } else if (qvaEvolution?.passed) {
