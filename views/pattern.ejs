@@ -485,6 +485,9 @@ var csbStageLabel = {
                     <span class="cd"><%= c.code %></span>
                   </a>
                   <span class="mkt"><%= c.market %></span>
+                  <% if (c.marketCap) { %>
+                    <span style="font-size:0.8rem; color:#64748b; margin-left:8px;">시총 <strong><%= (c.marketCap / 1e8).toFixed(0) %>억</strong></span>
+                  <% } %>
                 </div>
                 <span class="tag-badge" style="background:<%= sc.bg %>; color:<%= sc.color %>;"><%= sc.label %></span>
               </div>
