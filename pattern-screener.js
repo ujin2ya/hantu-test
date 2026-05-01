@@ -912,19 +912,19 @@ async function analyzeAll({ logProgress = false } = {}) {
     // QVA (거래량 이상징후 선행 감지)
     let qva = null;
     if (rows.length >= 60) {
-      try { qva = calculateQuietVolumeAnomaly(rows, flowRows, meta); } catch (_) {}
+      try { qva = calculateQuietVolumeAnomaly(rows, flowRows, { ...meta, code }); } catch (_) {}
     }
 
     // QVA-HOLD (거래대금 이상징후 다음날도 견디기)
     let qvaHold = null;
     if (rows.length >= 60) {
-      try { qvaHold = calculateQuietVolumeHold(rows, flowRows, meta); } catch (_) {}
+      try { qvaHold = calculateQuietVolumeHold(rows, flowRows, { ...meta, code }); } catch (_) {}
     }
 
     // QVA-HL (저점 상승 + 거래대금 증가)
     let qvaHigherLow = null;
     if (rows.length >= 60) {
-      try { qvaHigherLow = calculateQuietVolumeHigherLow(rows, flowRows, meta); } catch (_) {}
+      try { qvaHigherLow = calculateQuietVolumeHigherLow(rows, flowRows, { ...meta, code }); } catch (_) {}
     }
 
     // QVA-BOTH (HOLD + HIGHER_LOW 동시 충족 — 가장 강한 신호)
@@ -1110,11 +1110,10 @@ async function analyzeAll({ logProgress = false } = {}) {
     if (flowLead?.passed) flowLeadCandidates.push(tagged);
     if (rebound?.passed) reboundCandidates.push(tagged);
     if (vvi?.passed) vviCandidates.push(tagged);
-    if (qva?.passed) {
-      qvaCandidates.push(tagged);
-      if (code === '030000') console.log(`  → qvaCandidates에 추가됨 (qva.passed=true)`);
-    }
-    // QVA 우선순위: BOTH > HIGHER_LOW (HOLD 단독은 후보로 표시하지 않음)
+    // 기본 QVA는 후보로 표시하지 않음 (내부 탐지 지표만으로 사용)
+    // if (qva?.passed) qvaCandidates.push(tagged);
+
+    // QVA 후보: BOTH > HIGHER_LOW (기본 QVA, HOLD 단독은 제외)
     if (qvaBoth?.passed) {
       // BOTH 필드 추가해서 마킹
       tagged.qvaType = 'BOTH';
@@ -3503,6 +3502,40 @@ function calculateQuietVolumeAnomaly(chartRows, flowRows, meta = {}) {
   const hasStructure = (ma20 != null && close >= ma20 * 0.93)
                     || (ma60 != null && close >= ma60 * 0.90);
   if (!hasStructure) return reject('structure_broken');
+
+  // ─── 필터 9: 상방 압력 필수 ───
+  const last5 = chartRows.slice(-5);
+  const last10 = chartRows.slice(-10);
+  const lows5 = last5.map(r => r.low);
+  const lows20to25 = chartRows.slice(-25, -5).map(r => r.low);
+  const min5 = Math.min(...lows5);
+  const min20 = lows20to25.length > 0 ? Math.min(...lows20to25) : Infinity;
+  const higherLow5 = min5 > min20;
+
+  const closeHigh5 = Math.max(...last5.map(r => r.close));
+  const closeHigh20to25 = Math.max(...chartRows.slice(-25, -5).map(r => r.close));
+  const high5 = Math.max(...last5.map(r => r.high));
+  const high20to25 = Math.max(...chartRows.slice(-25, -5).map(r => r.high));
+  const recentCloseHighBreak = closeHigh5 > closeHigh20to25;
+  const recentHighNearBreak = high5 >= high20to25 * 0.97;
+
+  const ma5 = sma(last5.map(r => r.close), 5);
+  const ma5Slope = chartRows.length >= 9 ? sma(chartRows.slice(-9, -4).map(r => r.close), 5) : null;
+  const ma5IsUp = ma5 && ma5Slope ? (ma5 > ma5Slope) : false;
+
+  // 상방 압력 필수: 고점 돌파 OR 고가 근처 OR (저점상승 AND 20선위 AND 5선상향)
+  const hasUpsidePressure = recentCloseHighBreak || recentHighNearBreak || (higherLow5 && close >= ma20 && ma5IsUp);
+
+  // DEBUG: 제일기획 상방 압력 조건 상세 로그
+  if (meta?.code === '030000') {
+    console.log(`    상방압력 체크:`);
+    console.log(`      recentCloseHighBreak=${recentCloseHighBreak} (closeHigh5=${closeHigh5.toFixed(0)} vs 20to25=${closeHigh20to25.toFixed(0)})`);
+    console.log(`      recentHighNearBreak=${recentHighNearBreak} (high5=${high5.toFixed(0)} vs 20to25*0.97=${(high20to25*0.97).toFixed(0)})`);
+    console.log(`      higherLow5=${higherLow5}, close>=ma20=${close >= ma20}, ma5IsUp=${ma5IsUp}`);
+    console.log(`      hasUpsidePressure=${hasUpsidePressure}`);
+  }
+
+  if (!hasUpsidePressure) return reject('no_upside_pressure');
 
   // ─── 모든 조건 통과 ───
   return {
