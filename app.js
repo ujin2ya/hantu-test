@@ -2270,24 +2270,31 @@ const handleSearch = async (req, res) => {
       const qvaHoldRes = patternScreener.calculateQuietVolumeHold(rows, flowRowsArr, { ...stockMeta, marketValue: stockMeta.marketCap });
       const qvaHlRes = patternScreener.calculateQuietVolumeHigherLow(rows, flowRowsArr, { ...stockMeta, marketValue: stockMeta.marketCap });
 
-      // category 우선순위: EVOLUTION > BOTH > HIGHER_LOW > QVA_TURN > QVA
+      // category 우선순위: STRONG_QVA > HIGHER_LOW > HIGHER_LOW_RECOVERY > QVA_TURN > QVA
       let category = 'QVA';
       let score = qvaRes?.score || 0;
       let signals = qvaRes?.signals || {};
       let breakdown = qvaRes?.breakdown || {};
+      let isStrongQva = false;
 
       if (qvaEvolutionRes?.passed) {
-        category = 'QVA_EVOLUTION';
+        category = 'HIGHER_LOW';
+        isStrongQva = true;  // EVOLUTION + HIGHER_LOW = 강한 QVA
         score = qvaEvolutionRes.score || 0;
-        signals = qvaEvolutionRes.signals || {};
+        signals = { ...qvaEvolutionRes.signals, ...(qvaHlRes?.signals || {}) };
         breakdown = qvaEvolutionRes.breakdown || {};
       } else if (qvaHoldRes?.passed && qvaHlRes?.passed) {
-        category = 'BOTH';
+        category = 'HIGHER_LOW';
         score = Math.max((qvaHoldRes?.score || 0), (qvaHlRes?.score || 0)) + 10;
         signals = { ...qvaHoldRes.signals, ...qvaHlRes.signals };
         breakdown = { ...qvaHoldRes.breakdown, ...qvaHlRes.breakdown };
       } else if (qvaHlRes?.passed) {
-        category = 'HIGHER_LOW';
+        // hasPastExplosion이 true면 "과거 폭발 후 재유입" 상태
+        if (qvaHlRes.signals?.hasPastExplosion) {
+          category = 'HIGHER_LOW_RECOVERY';
+        } else {
+          category = 'HIGHER_LOW';
+        }
         score = qvaHlRes.score || 0;
         signals = qvaHlRes.signals || {};
         breakdown = qvaHlRes.breakdown || {};
@@ -2321,6 +2328,7 @@ const handleSearch = async (req, res) => {
           passed: true,
           category,
           score,
+          isStrongQva,
           signals,
           breakdown,
           chartData: {

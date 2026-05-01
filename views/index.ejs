@@ -298,19 +298,33 @@
               let badgeText = '후보 아님';
               let badgeBg = '#cbd5e1';
               let badgeColor = '#475569';
-              if (qvaDetail.passed !== false) {
+              let badge2Text = '';
+              let badge2Bg = '';
+              let badge2Color = '';
+
+              if (qvaDetail.category === 'HIGHER_LOW_RECOVERY') {
+                badgeText = '재유입 대기';
+                badgeBg = '#fef3c7';
+                badgeColor = '#b45309';
+              } else if (qvaDetail.passed !== false) {
                 badgeText = '후보';
                 badgeBg = '#dcfce7';
                 badgeColor = '#15803d';
-              } else if (qvaDetail.category !== undefined) {
-                badgeText = '보류';
-                badgeBg = '#fef3c7';
-                badgeColor = '#b45309';
+                if (qvaDetail.isStrongQva) {
+                  badge2Text = '강함';
+                  badge2Bg = '#dbeafe';
+                  badge2Color = '#0369a1';
+                }
               }
             %>
             <span style="display:inline-block; background:<%= badgeBg %>; color:<%= badgeColor %>; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:700;">
               <%= badgeText %>
             </span>
+            <% if (badge2Text) { %>
+              <span style="display:inline-block; background:<%= badge2Bg %>; color:<%= badge2Color %>; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; margin-left:4px;">
+                <%= badge2Text %>
+              </span>
+            <% } %>
           </div>
           <!-- 2열 그리드 -->
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">

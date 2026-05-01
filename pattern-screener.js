@@ -4182,6 +4182,15 @@ function calculateQuietVolumeHigherLow(chartRows, flowRows, meta = {}) {
   });
   if (!hasRecentValueSpike) return reject('no_recent_value_spike');
 
+  // ─── 과거 폭발 후 재유입 검사 ───
+  // 지난 20~40일 전에 현재보다 2배 이상 큰 거래대금이 있었는지 확인
+  const past20to40 = chartRows.slice(-40, -20);
+  const maxPastValue = past20to40.length > 0 ? Math.max(...past20to40.map(r => r.valueApprox || 0)) : 0;
+  const isPastSpikeRecovery = maxPastValue > todayValue * 2;
+
+  // 따라서 hasPastExplosion 플래그를 signals에 추가
+  const hasPastExplosion = isPastSpikeRecovery;
+
   // ─── 범위 확장 필터 ───
   const last10hl = chartRows.slice(-10);
   const high10 = Math.max(...last10hl.map(r => r.high));
@@ -4212,12 +4221,17 @@ function calculateQuietVolumeHigherLow(chartRows, flowRows, meta = {}) {
   if (valueSpikeMedian20 >= 2.5) score += 10;
   else if (valueSpikeMedian20 >= 1.8) score += 5;
 
+  // 추가 신호 계산
+  const ret5d = last5.length >= 5 ? (close / last5[0].close - 1) : 0;
+  const upperWickRatio = rangeToday > 0 ? ((today.high - close) / rangeToday) : 0;
+
   return {
     passed: true,
     model: 'HIGHER_LOW',
     score: Math.min(score, 100),
     signals: {
       valueRatio20: +valueRatio20.toFixed(2),
+      valueMedianRatio20: +valueMedianRatio.toFixed(2),
       volumeRatio20: +volumeRatio20.toFixed(2),
       valueSpikeMedian20: +valueSpikeMedian20.toFixed(2),
       higherLowScore: +higherLowScore.toFixed(2),
@@ -4225,6 +4239,12 @@ function calculateQuietVolumeHigherLow(chartRows, flowRows, meta = {}) {
       closeLocation: +closeLocation.toFixed(2),
       todayReturn: +(todayReturn * 100).toFixed(2),
       ret20d: +(ret20d * 100).toFixed(2),
+      ret5d: +(ret5d * 100).toFixed(2),
+      rangeExpansion10: +(rangeExpansion10 * 100).toFixed(2),
+      upperWickRatio: +upperWickRatio.toFixed(2),
+      higherLow5: min5 > min20,
+      closeAboveMa20: close >= ma20,
+      hasPastExplosion,
     },
   };
 }
