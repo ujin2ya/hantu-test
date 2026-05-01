@@ -291,13 +291,18 @@ var csbStageLabel = {
       <div class="glass">
         <h2><i class="bi bi-hammer me-1"></i>QVA-HOLD <span class="count">(<%= safeQvaHoldCandidates.length %>건)</span></h2>
         <div class="cat-banner" style="background:#dbeafe; border-left:4px solid #0284c7; color:#0c4a6e;">
-          <strong>유입 후 가격 유지</strong> — 전일 거래대금이 20일 평균 대비 1.7배 이상 증가했을 때, 오늘도 종가가 전일 종가 대비 3% 이상 내리지 않은 경우입니다. 매집 후 안정화 구간으로 평가됩니다.
+          <strong>유입 후 가격 유지</strong> — 전일 거래대금이 20일 평균 대비 1.5배 이상 증가했을 때, 오늘도 종가가 전일 종가 대비 4% 이상 내리지 않은 경우입니다. 구조 개선과 유입 유지 지표를 함께 평가합니다.
         </div>
 
         <% if (safeQvaHoldCandidates.length === 0) { %>
           <div class="empty-state">QVA-HOLD 후보 없음</div>
         <% } else { %>
-          <% safeQvaHoldCandidates.forEach(function(c) { var s = c.qvaHold?.signals || {}; %>
+          <% safeQvaHoldCandidates.forEach(function(c) {
+            var s = (c.qvaHold || c.qvaBoth)?.signals || {};
+            var typeLabel = c.qvaType || (c.qvaHold ? 'HOLD' : (c.qvaBoth ? 'BOTH' : '?'));
+            var typeColor = typeLabel === 'BOTH' ? '#c7d2fe' : '#bfdbfe';
+            var typeBg = typeLabel === 'BOTH' ? '#818cf8' : '#1e40af';
+          %>
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
@@ -306,18 +311,19 @@ var csbStageLabel = {
                   </a>
                   <span class="mkt"><%= c.market %></span>
                 </div>
-                <span class="score-pill" style="background:#bfdbfe; color:#1e40af;">QVA-HOLD</span>
+                <span class="score-pill" style="background:<%= typeColor %>; color:<%= typeBg %>;">QVA <%= typeLabel %></span>
               </div>
               <div class="row2">
-                <span>거래대금비(前) <strong><%= (s.prevValueRatio20 || 0).toFixed(2) %>x</strong></span>
-                <span>거래량비(前) <strong><%= (s.prevVolumeRatio20 || 0).toFixed(2) %>x</strong></span>
-                <span>今日 종가 유지율 <strong><%= (s.closeRetainRate || 0).toFixed(2) %></strong></span>
-                <span>거래대금 유지 <strong><%= (s.valueRetain || 0).toFixed(2) %>x</strong></span>
+                <span>QVA 점수 <strong><%= (c.qvaScore || 0).toFixed(0) %>/100</strong></span>
+                <span>거래대금비(前) <strong><%= (s.valueRatioYest || 0).toFixed(2) %>x</strong></span>
+                <span>거래대금비(중앙값) <strong><%= (s.valueSpikeMedian20 || 0).toFixed(2) %>x</strong></span>
+                <span>거래량비(前) <strong><%= (s.volumeRatioYest || 0).toFixed(2) %>x</strong></span>
               </div>
               <div class="row2">
-                <span>前日 등락 <strong class="<%= s.prevReturn >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (s.prevReturn || 0).toFixed(2) %>%</strong></span>
-                <span>5일 리턴 <strong><%= (s.ret5d || 0).toFixed(2) %>%</strong></span>
-                <span>20일 리턴 <strong><%= (s.ret20d || 0).toFixed(2) %>%</strong></span>
+                <span>최근 저점 상승 <strong><%= s.higherLow5 ? '✓' : '✗' %></strong></span>
+                <span>20일선 <strong><%= s.closeAboveMa20 ? '위' : '아래' %></strong></span>
+                <span>60일 고점까지 <strong><%= (s.distToHigh60Pct || 0).toFixed(1) %>%</strong></span>
+                <span>유입 유지율 <strong><%= (s.confirmDayValueRatio || 0).toFixed(2) %></strong></span>
               </div>
             </div>
           <% }) %>
@@ -334,7 +340,12 @@ var csbStageLabel = {
         <% if (safeQvaHigherLowCandidates.length === 0) { %>
           <div class="empty-state">QVA-HL 후보 없음</div>
         <% } else { %>
-          <% safeQvaHigherLowCandidates.forEach(function(c) { var s = c.qvaHigherLow?.signals || {}; %>
+          <% safeQvaHigherLowCandidates.forEach(function(c) {
+            var s = (c.qvaHigherLow || c.qvaBoth)?.signals || {};
+            var typeLabel = c.qvaType || (c.qvaHigherLow ? 'HIGHER_LOW' : (c.qvaBoth ? 'BOTH' : '?'));
+            var typeColor = typeLabel === 'BOTH' ? '#c7d2fe' : '#bbf7d0';
+            var typeBg = typeLabel === 'BOTH' ? '#818cf8' : '#166534';
+          %>
             <div class="item-card">
               <div class="row1">
                 <div class="name-block">
@@ -343,18 +354,19 @@ var csbStageLabel = {
                   </a>
                   <span class="mkt"><%= c.market %></span>
                 </div>
-                <span class="score-pill" style="background:#bbf7d0; color:#166534;">QVA-HL</span>
+                <span class="score-pill" style="background:<%= typeColor %>; color:<%= typeBg %>;">QVA <%= typeLabel %></span>
               </div>
               <div class="row2">
+                <span>QVA 점수 <strong><%= (c.qvaScore || 0).toFixed(0) %>/100</strong></span>
                 <span>거래량비 <strong><%= (s.volumeRatio20 || 0).toFixed(2) %>x</strong></span>
                 <span>거래대금비 <strong><%= (s.valueRatio20 || 0).toFixed(2) %>x</strong></span>
-                <span>低点 상승 <strong><%= (s.higherLowScore || 0).toFixed(2) %></strong></span>
-                <span>종가 MA거리 <strong class="<%= s.distance20 >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (s.distance20 || 0).toFixed(2) %>%</strong></span>
+                <span>거래대금비(중앙값) <strong><%= (s.valueSpikeMedian20 || 0).toFixed(2) %>x</strong></span>
               </div>
               <div class="row2">
+                <span>低点 상승율 <strong><%= (s.higherLowScore || 0).toFixed(1) %>%</strong></span>
+                <span>종가 MA거리 <strong class="<%= s.distance20 >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (s.distance20 || 0).toFixed(2) %>%</strong></span>
                 <span>今日 등락 <strong class="<%= s.todayReturn >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (s.todayReturn || 0).toFixed(2) %>%</strong></span>
-                <span>20일 리턴 <strong><%= (s.ret20d || 0).toFixed(2) %>%</strong></span>
-                <span>현재가 위치 <strong><%= (s.closeLocation || 0).toFixed(2) %></strong></span>
+                <span>현재가 위치 <strong><%= (s.closeLocation || 0).toFixed(1) %></strong></span>
               </div>
             </div>
           <% }) %>

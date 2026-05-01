@@ -31,6 +31,12 @@ function sma(prices, period) {
   if (prices.length < period) return null;
   return avg(prices.slice(-period));
 }
+function median(arr) {
+  if (!arr.length) return 0;
+  const s = [...arr].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
 
 // expectedMarketDate 계산 — 분석 기준일
 // ANALYSIS_DATE 환경변수가 있으면 그걸 사용, 없으면 KST 현재시각으로 계산
@@ -921,6 +927,17 @@ async function analyzeAll({ logProgress = false } = {}) {
       try { qvaHigherLow = calculateQuietVolumeHigherLow(rows, flowRows, meta); } catch (_) {}
     }
 
+    // QVA-BOTH (HOLD + HIGHER_LOW 동시 충족 — 가장 강한 신호)
+    let qvaBoth = null;
+    if (qvaHold?.passed && qvaHigherLow?.passed) {
+      qvaBoth = {
+        passed: true,
+        model: 'BOTH',
+        score: Math.max((qvaHold?.score || 0), (qvaHigherLow?.score || 0)) + 10,
+        signals: { ...qvaHold.signals, ...qvaHigherLow.signals },
+      };
+    }
+
     // VVI 과거 신호 스캔 (최근 1~5 거래일)
     let recentVviSignal = null;
     if (rows.length >= 65 && (flowRows?.length || 0) >= 10) {
@@ -1049,6 +1066,7 @@ async function analyzeAll({ logProgress = false } = {}) {
       qva: qva?.passed ? { score: qva.score, category: qva.category, breakdown: qva.breakdown, signals: qva.signals } : null,
       qvaHold: qvaHold?.passed ? { score: qvaHold.score, breakdown: qvaHold.breakdown, signals: qvaHold.signals } : null,
       qvaHigherLow: qvaHigherLow?.passed ? { score: qvaHigherLow.score, breakdown: qvaHigherLow.breakdown, signals: qvaHigherLow.signals } : null,
+      qvaBoth: qvaBoth?.passed ? { score: qvaBoth.score, signals: qvaBoth.signals } : null,
       csb: csb?.passed ? {
         // 점수는 백테스트에서 변별력 실패했으므로 UI 메인 표시 X — 디버깅용 보조
         score: csb.score,
@@ -1086,11 +1104,20 @@ async function analyzeAll({ logProgress = false } = {}) {
     if (qva?.passed) {
       qvaCandidates.push(tagged);
     }
-    if (qvaHold?.passed) {
-      qvaHoldCandidates.push(tagged);
-    }
-    if (qvaHigherLow?.passed) {
+    // QVA 우선순위: BOTH > HIGHER_LOW > HOLD (score >= 70 주요 후보, 60~69 추적)
+    if (qvaBoth?.passed) {
+      // BOTH 필드 추가해서 마킹
+      tagged.qvaType = 'BOTH';
+      tagged.qvaScore = qvaBoth.score;
+      qvaHoldCandidates.push(tagged);  // 편의상 qvaHoldCandidates에 포함
+    } else if (qvaHigherLow?.passed && (qvaHigherLow.score ?? 0) >= 60) {
+      tagged.qvaType = 'HIGHER_LOW';
+      tagged.qvaScore = qvaHigherLow.score;
       qvaHigherLowCandidates.push(tagged);
+    } else if (qvaHold?.passed && (qvaHold.score ?? 0) >= 60) {
+      tagged.qvaType = 'HOLD';
+      tagged.qvaScore = qvaHold.score;
+      qvaHoldCandidates.push(tagged);
     }
     if (overheatHit) overheatWarnings.push(tagged);
   }
@@ -1274,9 +1301,9 @@ async function analyzeAll({ logProgress = false } = {}) {
     // ─── QVA (거래량 이상징후 선행 감지) ───
     qvaCandidates: qvaCandidates.sort((a, b) => (b.qva?.score || 0) - (a.qva?.score || 0)),
     qvaCount: qvaCandidates.length,
-    qvaHoldCandidates: qvaHoldCandidates.sort((a, b) => (b.qvaHold?.score || 0) - (a.qvaHold?.score || 0)),
+    qvaHoldCandidates: qvaHoldCandidates.sort((a, b) => (b.qvaScore || 0) - (a.qvaScore || 0)),
     qvaHoldCount: qvaHoldCandidates.length,
-    qvaHigherLowCandidates: qvaHigherLowCandidates.sort((a, b) => (b.qvaHigherLow?.score || 0) - (a.qvaHigherLow?.score || 0)),
+    qvaHigherLowCandidates: qvaHigherLowCandidates.sort((a, b) => (b.qvaScore || 0) - (a.qvaScore || 0)),
     qvaHigherLowCount: qvaHigherLowCandidates.length,
 
     // ─── 날짜 및 데이터 상태 ───
@@ -3773,8 +3800,10 @@ function calculateQuietVolumeHigherLow(chartRows, flowRows, meta = {}) {
   const close = today?.close;
   if (!close || close <= 0) return null;
 
-  const avg20Value = chartRows.slice(-20).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
-  const avg20Vol = chartRows.slice(-20).reduce((s, r) => s + (r.volume || 0), 0) / 20;
+  const last20 = chartRows.slice(-20);
+  const last5 = chartRows.slice(-5);
+  const avg20Value = last20.reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+  const avg20Vol = last20.reduce((s, r) => s + (r.volume || 0), 0) / 20;
   if (avg20Value < 1_000_000_000) return reject('value<1B');
 
   const todayValue = today.valueApprox || (today.close * today.volume);
@@ -3784,14 +3813,14 @@ function calculateQuietVolumeHigherLow(chartRows, flowRows, meta = {}) {
   if (valueRatio20 < 1.5 || volumeRatio20 < 1.5) return reject('ratio_low');
 
   // HIGHER_LOW: 최근 5일 저점 > 직전 20일 저점
-  const lows5 = chartRows.slice(-5).map(r => r.low);
+  const lows5 = last5.map(r => r.low);
   const lows20to25 = chartRows.slice(-25, -5).map(r => r.low);
   const min5 = Math.min(...lows5);
   const min20 = lows20to25.length > 0 ? Math.min(...lows20to25) : Infinity;
 
   if (min5 <= min20) return reject('low_not_higher');
 
-  const ma20 = sma(chartRows.slice(-20).map(r => r.close), 20);
+  const ma20 = sma(last20.map(r => r.close), 20);
   if (ma20 && close < ma20 * 0.95) return reject('below_ma20');
 
   const todayReturn = today.open > 0 ? (close / today.open - 1) : 0;
@@ -3800,7 +3829,44 @@ function calculateQuietVolumeHigherLow(chartRows, flowRows, meta = {}) {
   const ret20d = idx >= 20 ? (close / chartRows[idx - 20].close - 1) : 0;
   if (ret20d > 0.15) return reject('ret20d>15%');
 
-  return { passed: true, model: 'HIGHER_LOW', signals: { valueRatio20: +valueRatio20.toFixed(2), volumeRatio20: +volumeRatio20.toFixed(2) } };
+  // ─── 신호 & 점수 계산 ───
+  const rangeToday = today.high - today.low || 1;
+  const closeLocation = (close - today.low) / rangeToday;
+
+  // higherLowScore: 구조 개선도
+  const higherLowScore = ((min5 - min20) / min20) * 100;
+
+  // distance20: MA20까지 거리 (%)
+  const distance20 = ma20 ? ((close - ma20) / ma20) * 100 : 0;
+
+  // score: 기본 60 + 추가 조건
+  let score = 60;
+  if (higherLowScore >= 5) score += 10;
+  else if (higherLowScore >= 2) score += 5;
+  if (closeLocation >= 0.6) score += 5;
+  if (distance20 >= 0) score += 5;
+
+  // 중앙값 돌출
+  const median20Values = median(last20.map(r => r.valueApprox || 0));
+  const valueSpikeMedian20 = median20Values > 0 ? todayValue / median20Values : 0;
+  if (valueSpikeMedian20 >= 2.5) score += 10;
+  else if (valueSpikeMedian20 >= 1.8) score += 5;
+
+  return {
+    passed: true,
+    model: 'HIGHER_LOW',
+    score: Math.min(score, 100),
+    signals: {
+      valueRatio20: +valueRatio20.toFixed(2),
+      volumeRatio20: +volumeRatio20.toFixed(2),
+      valueSpikeMedian20: +valueSpikeMedian20.toFixed(2),
+      higherLowScore: +higherLowScore.toFixed(2),
+      distance20: +distance20.toFixed(2),
+      closeLocation: +closeLocation.toFixed(2),
+      todayReturn: +(todayReturn * 100).toFixed(2),
+      ret20d: +(ret20d * 100).toFixed(2),
+    },
+  };
 }
 
 function calculateQuietVolumeHold(chartRows, flowRows, meta = {}) {
@@ -3817,30 +3883,130 @@ function calculateQuietVolumeHold(chartRows, flowRows, meta = {}) {
 
   if (!close || !yesterday) return null;
 
-  const avg20Value = chartRows.slice(-20).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
-  const avg20Vol = chartRows.slice(-20).reduce((s, r) => s + (r.volume || 0), 0) / 20;
+  const last20 = chartRows.slice(-20);
+  const last5 = chartRows.slice(-5);
+  const avg20Value = last20.reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+  const avg20Vol = last20.reduce((s, r) => s + (r.volume || 0), 0) / 20;
   if (avg20Value < 1_000_000_000) return reject('value<1B');
 
-  // HOLD: 전일 기준 (어제 큰 거래대금)
+  // 기본 HOLD 조건: 전일 거래대금/거래량 이상징후
   const yesterdayValue = yesterday.valueApprox || 0;
   const yesterdayVol = yesterday.volume || 0;
   const valueRatioYest = yesterdayValue / (avg20Value || 1);
   const volumeRatioYest = yesterdayVol / (avg20Vol || 1);
 
-  if (valueRatioYest < 1.7 || volumeRatioYest < 1.7) return reject('yesterday_ratio_low');
+  if (valueRatioYest < 1.5 || volumeRatioYest < 1.5) return reject('yesterday_ratio_low');
 
   const yesterdayReturn = yesterday.open > 0 ? (yesterday.close / yesterday.open - 1) : 0;
-  if (yesterdayReturn < -0.01 || yesterdayReturn > 0.05) return reject('yesterday_return_range');
+  if (yesterdayReturn < -0.02 || yesterdayReturn > 0.06) return reject('yesterday_return_range');
 
-  // 오늘: 전일 대비 97% 이상 유지 + 평균 이상 거래대금
+  // 오늘: 전일 대비 가격 유지 + 거래대금
   const todayValue = today.valueApprox || 0;
-  if (close < yesterday.close * 0.97) return reject('price_dropped');
-  if (todayValue < avg20Value) return reject('today_value_low');
+  if (close < yesterday.close * 0.96) return reject('price_dropped');
 
   const ret5d = idx >= 5 ? (close / chartRows[idx - 5].close - 1) : 0;
-  if (ret5d > 0.10) return reject('ret5d>10%');
+  if (ret5d > 0.12) return reject('ret5d>12%');
 
-  return { passed: true, model: 'HOLD', signals: { valueRatioYest: +valueRatioYest.toFixed(2), volumeRatioYest: +volumeRatioYest.toFixed(2) } };
+  // ─── 점수 계산 ───
+  let score = 0;
+  const breakdown = {};
+
+  // 1. 거래대금 이상징후 점수 (30점)
+  let anomalyScore = 0;
+  if (valueRatioYest >= 2.5) anomalyScore = 30;
+  else if (valueRatioYest >= 2.0) anomalyScore = 25;
+  else if (valueRatioYest >= 1.7) anomalyScore = 20;
+  else anomalyScore = 15;
+  score += anomalyScore;
+  breakdown.anomalyScore = anomalyScore;
+
+  // 2. 거래량 이상징후 점수 (15점)
+  let volumeScore = 0;
+  if (volumeRatioYest >= 2.0) volumeScore = 15;
+  else if (volumeRatioYest >= 1.7) volumeScore = 10;
+  else volumeScore = 5;
+  score += volumeScore;
+  breakdown.volumeScore = volumeScore;
+
+  // 3. 가격 미과열 점수 (15점)
+  let coolScore = 0;
+  if (yesterdayReturn >= 0 && yesterdayReturn <= 0.015) coolScore = 15;
+  else if (yesterdayReturn <= 0.03) coolScore = 10;
+  else if (yesterdayReturn <= 0.05) coolScore = 5;
+  else coolScore = 0;
+  if (ret5d > 0.08) coolScore = Math.max(0, coolScore - 5);
+  score += coolScore;
+  breakdown.coolScore = coolScore;
+
+  // 4. 구조 개선 점수 (25점)
+  let structureScore = 0;
+  const ma20 = sma(last20.map(r => r.close), 20);
+  const closeAboveMa20 = ma20 != null && close >= ma20 * 0.97;
+  if (closeAboveMa20) structureScore += 10;
+
+  // higherLow5: 최근 5일 저점 > 직전 20일 저점
+  const lows5 = last5.map(r => r.low);
+  const lows20to25 = chartRows.slice(-25, -5).map(r => r.low);
+  const min5 = Math.min(...lows5);
+  const min20 = lows20to25.length > 0 ? Math.min(...lows20to25) : Infinity;
+  const higherLow5 = min5 > min20;
+  if (higherLow5) structureScore += 8;
+
+  // distToHigh60: 60일 고점까지 거리
+  const high60 = Math.max(...chartRows.slice(-60).map(r => r.high));
+  const distToHigh60Pct = high60 > 0 ? ((high60 - close) / high60) * 100 : 100;
+  if (distToHigh60Pct <= 20) structureScore += 7;
+
+  score += structureScore;
+  breakdown.structureScore = structureScore;
+
+  // 5. 유입 유지 점수 (15점)
+  let flowScore = 0;
+  const confirmDayValueRatio = todayValue / (avg20Value || 1);
+  if (confirmDayValueRatio >= 1.0) flowScore += 8;
+  else if (confirmDayValueRatio >= 0.8) flowScore += 5;
+
+  // ma5Slope: 5일선 기울기
+  const ma5 = last5.length >= 5 ? sma(last5.map(r => r.close), 5) : null;
+  const ma5Prev = chartRows.length >= 9 ? sma(chartRows.slice(-9, -4).map(r => r.close), 5) : null;
+  const ma5Slope = ma5 && ma5Prev ? (ma5 > ma5Prev ? 1 : 0) : 0;
+  if (ma5Slope > 0) flowScore += 7;
+
+  score += flowScore;
+  breakdown.flowScore = flowScore;
+
+  // 추가 가점
+  // 6. 중앙값 돌출
+  const median20Values = median(last20.map(r => r.valueApprox || 0));
+  const valueSpikeMedian20 = median20Values > 0 ? yesterdayValue / median20Values : 0;
+  if (valueSpikeMedian20 >= 2.5) score += 10;
+  else if (valueSpikeMedian20 >= 1.8) score += 5;
+
+  // 7. 가격 에너지
+  const high5 = Math.max(...last5.map(r => r.high));
+  const low5 = Math.min(...last5.map(r => r.low));
+  const rangeExpansion5 = low5 > 0 ? (high5 / low5 - 1) : 0;
+  if (rangeExpansion5 >= 0.03) score += 5;
+
+  return {
+    passed: true,
+    model: 'HOLD',
+    score: Math.min(score, 100),
+    breakdown,
+    signals: {
+      valueRatioYest: +valueRatioYest.toFixed(2),
+      volumeRatioYest: +volumeRatioYest.toFixed(2),
+      valueSpikeMedian20: +valueSpikeMedian20.toFixed(2),
+      confirmDayValueRatio: +confirmDayValueRatio.toFixed(2),
+      ma5Slope: ma5Slope,
+      higherLow5: higherLow5,
+      distToHigh60Pct: +distToHigh60Pct.toFixed(1),
+      rangeExpansion5: +(rangeExpansion5 * 100).toFixed(1),
+      closeAboveMa20: closeAboveMa20,
+      ret5d: +(ret5d * 100).toFixed(2),
+      ret20d: idx >= 20 ? +(((close / chartRows[idx - 20].close) - 1) * 100).toFixed(2) : 0,
+    },
+  };
 }
 
 function calculateQuietVolumeAnomalyV2(chartRows, flowRows, meta = {}) {

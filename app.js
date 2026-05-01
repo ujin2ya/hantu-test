@@ -2262,20 +2262,59 @@ const handleSearch = async (req, res) => {
     // 3e) QVA 재계산 (거래량 이상징후 선행 감지)
     let qvaDetail = null;
     try {
+      // 세 가지 QVA 지표 모두 계산
       const qvaRes = patternScreener.calculateQuietVolumeAnomaly(rows, flowRowsArr, { ...stockMeta, marketValue: stockMeta.marketCap });
-      if (qvaRes?.passed) {
+      const qvaHoldRes = patternScreener.calculateQuietVolumeHold(rows, flowRowsArr, { ...stockMeta, marketValue: stockMeta.marketCap });
+      const qvaHlRes = patternScreener.calculateQuietVolumeHigherLow(rows, flowRowsArr, { ...stockMeta, marketValue: stockMeta.marketCap });
+
+      // category 우선순위: BOTH > HIGHER_LOW > HOLD > QVA
+      let category = 'QVA';
+      let score = qvaRes?.score || 0;
+      let signals = qvaRes?.signals || {};
+      let breakdown = qvaRes?.breakdown || {};
+
+      if (qvaHoldRes?.passed && qvaHlRes?.passed) {
+        category = 'BOTH';
+        score = Math.max((qvaHoldRes?.score || 0), (qvaHlRes?.score || 0)) + 10;
+        signals = { ...qvaHoldRes.signals, ...qvaHlRes.signals };
+        breakdown = { ...qvaHoldRes.breakdown, ...qvaHlRes.breakdown };
+      } else if (qvaHlRes?.passed) {
+        category = 'HIGHER_LOW';
+        score = qvaHlRes.score || 0;
+        signals = qvaHlRes.signals || {};
+        breakdown = qvaHlRes.breakdown || {};
+      } else if (qvaHoldRes?.passed) {
+        category = 'HOLD';
+        score = qvaHoldRes.score || 0;
+        signals = qvaHoldRes.signals || {};
+        breakdown = qvaHoldRes.breakdown || {};
+      }
+
+      if (qvaRes?.passed || qvaHoldRes?.passed || qvaHlRes?.passed) {
         // 차트 데이터용 60일 수량 데이터
         const last60 = rows.slice(-60);
-        const avg20Vol = last60.slice(-20).reduce((s, r) => s + (r.volume || 0), 0) / 20;
-        const avg20Value = last60.slice(-20).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+        const last20 = last60.slice(-20);
+        const avg20Vol = last20.reduce((s, r) => s + (r.volume || 0), 0) / 20;
+        const avg20Value = last20.reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
         const avg60Value = last60.reduce((s, r) => s + (r.valueApprox || 0), 0) / 60;
+
+        // median 계산 헬퍼
+        const median = (arr) => {
+          if (!arr.length) return 0;
+          const s = [...arr].sort((a, b) => a - b);
+          const m = Math.floor(s.length / 2);
+          return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+        };
+
+        const median20Values = median(last20.map(r => r.valueApprox || 0));
+        const median20Volumes = median(last20.map(r => r.volume || 0));
 
         qvaDetail = {
           passed: true,
-          category: qvaRes.category,
-          score: qvaRes.score,
-          signals: qvaRes.signals,
-          breakdown: qvaRes.breakdown,
+          category,
+          score,
+          signals,
+          breakdown,
           chartData: {
             volumes: last60.map(r => r.volume),
             values: last60.map(r => r.valueApprox || 0),
@@ -2283,6 +2322,8 @@ const handleSearch = async (req, res) => {
             avg20Vol,
             avg20Value,
             avg60Value,
+            median20Values,
+            median20Volumes,
             today: { volume: lastRow.volume, value: lastRow.valueApprox || 0 },
           },
         };
