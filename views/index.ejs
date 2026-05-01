@@ -371,15 +371,15 @@
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
               <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
                 <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">5일 수익률</div>
-                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.ret5d ? (qvaDetail.signals.ret5d * 100).toFixed(1) + '%' : '-' %></div>
+                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.ret5d ? qvaDetail.signals.ret5d.toFixed(1) + '%' : '-' %></div>
               </div>
               <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
                 <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">20일 수익률</div>
-                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.ret20d ? (qvaDetail.signals.ret20d * 100).toFixed(1) + '%' : '-' %></div>
+                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.ret20d ? qvaDetail.signals.ret20d.toFixed(1) + '%' : '-' %></div>
               </div>
               <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
                 <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">범위확장10</div>
-                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.rangeExpansion10 ? (qvaDetail.signals.rangeExpansion10 * 100).toFixed(1) + '%' : '-' %></div>
+                <div style="font-size:0.9rem; font-weight:700; color:#1e293b;"><%= qvaDetail && qvaDetail.signals && qvaDetail.signals.rangeExpansion10 ? qvaDetail.signals.rangeExpansion10.toFixed(1) + '%' : '-' %></div>
               </div>
               <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
                 <div style="font-size:0.7rem; color:#64748b; margin-bottom:2px;">윗꼬리비율</div>
