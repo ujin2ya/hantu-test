@@ -276,13 +276,23 @@ var csbStageLabel = {
                   <span class="score-pill" style="background:#fbbf24; color:#78350f;">QVA-STRONG</span>
                   <% if (c.qvaBadges && c.qvaBadges.length > 0) { %>
                     <% c.qvaBadges.forEach(badge => {
+                      // 배지별 색상 정의 (위험도에 따라)
                       let bgColor = '#e5e7eb', textColor = '#374151';
-                      if (badge === '실적재료') { bgColor = '#dbeafe'; textColor = '#0369a1'; }
-                      else if (badge === '테마주의') { bgColor = '#fce7f3'; textColor = '#be185d'; }
+
+                      // 안정형 (초록)
+                      if (badge === '안정형') { bgColor = '#d1fae5'; textColor = '#065f46'; }
+
+                      // 재료 배지 (파랑)
+                      else if (badge === '실적재료') { bgColor = '#dbeafe'; textColor = '#0369a1'; }
+                      else if (badge === '테마주의') { bgColor = '#dbeafe'; textColor = '#0369a1'; }
+
+                      // 주의 배지 (주황)
                       else if (badge === 'VI주의') { bgColor = '#fed7aa'; textColor = '#92400e'; }
-                      else if (badge === '바이오이벤트') { bgColor = '#fed7aa'; textColor = '#92400e'; }
+                      else if (badge === '변동성주의') { bgColor = '#fed7aa'; textColor = '#92400e'; }
+
+                      // 위험 배지 (빨강)
+                      else if (badge === '바이오이벤트') { bgColor = '#fecaca'; textColor = '#7c2d12'; }
                       else if (badge === 'CB주의') { bgColor = '#fca5a5'; textColor = '#7c2d12'; }
-                      else if (badge === '변동성주의') { bgColor = '#fca5a5'; textColor = '#7c2d12'; }
                     %>
                       <span class="badge" style="background:<%= bgColor %>; color:<%= textColor %>; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:600; white-space:nowrap;">
                         <%= badge %>
@@ -296,6 +306,21 @@ var csbStageLabel = {
                 <span>EV점수 <strong><%= (c.qvaEvScore || 0).toFixed(0) %>/100</strong></span>
                 <span>거래대금비(중앙값) <strong><%= (c.qvaMedianRatio || 0).toFixed(2) %>x</strong></span>
                 <span>구조 진화 <strong><%= (evSig.structureCount || 0) %>/6</strong></span>
+                <% if (c.qvaBadges && c.qvaBadges.length > 0) { %>
+                  <div style="display:flex; gap:3px; flex-wrap:wrap; width:100%;">
+                    <% c.qvaBadges.forEach(badge => {
+                      let bgColor = '#e5e7eb', textColor = '#374151';
+                      if (badge === '안정형') { bgColor = '#d1fae5'; textColor = '#065f46'; }
+                      else if (badge === '실적재료' || badge === '테마주의') { bgColor = '#dbeafe'; textColor = '#0369a1'; }
+                      else if (badge === 'VI주의' || badge === '변동성주의') { bgColor = '#fed7aa'; textColor = '#92400e'; }
+                      else if (badge === '바이오이벤트' || badge === 'CB주의') { bgColor = '#fca5a5'; textColor = '#7c2d12'; }
+                    %>
+                      <span style="background:<%= bgColor %>; color:<%= textColor %>; padding:2px 5px; border-radius:3px; font-size:0.65rem; font-weight:600; white-space:nowrap;">
+                        <%= badge %>
+                      </span>
+                    <% }) %>
+                  </div>
+                <% } %>
               </div>
               <div class="row2">
                 <span>현재가 <strong data-stock-code="<%= c.code %>"><%= (c.closePrice || 0).toLocaleString() %>원</strong></span>

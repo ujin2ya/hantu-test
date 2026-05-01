@@ -1325,24 +1325,62 @@ async function analyzeAll({ logProgress = false } = {}) {
     }
   };
 
-  // ─── QVA-STRONG 배지 추가 ───
+  // ─── QVA-STRONG 배지 추가 & 정렬 우선순위 정의 ───
   const qvaBadgeMap = {
+    // 1순위: 배지 없음 (순수 QVA)
     '251370': [],                                                              // 와이엠티: 순수 QVA
     '214320': [],                                                              // 이노션: 순수 QVA
+
+    // 2순위: 안정형
+    // (추가 종목)
+
+    // 3순위: 테마주의
     '097870': ['테마주의'],                                                      // 효성오앤비: 테마 급유입
+
+    // 4순위: 실적재료
     '259960': ['실적재료'],                                                      // 크래프톤: 실적 반응형
-    '039440': ['바이오이벤트', 'CB주의', '변동성주의'],                          // 큐로셀: 바이오 + CB
+
+    // 5순위: 바이오이벤트
     '049120': ['바이오이벤트', '변동성주의'],                                    // 비보존제약: 바이오
+
+    // 6순위: CB주의 / 고위험
+    '039440': ['바이오이벤트', 'CB주의', '변동성주의'],                          // 큐로셀: 바이오 + CB
   };
 
-  const riskBadges = ['VI주의', 'CB주의', '바이오이벤트', '변동성주의'];
+  // 배지 우선순위 정의 (낮을수록 우선)
+  const badgePriority = {
+    // 위험 배지 (높은 숫자 = 낮은 우선순위)
+    'CB주의': 60,
+    '변동성주의': 50,
+    '바이오이벤트': 40,
+    'VI주의': 65,
+
+    // 재료 배지
+    '실적재료': 30,
+    '테마주의': 20,
+
+    // 안정형
+    '안정형': 10,
+  };
 
   qvaStrongCandidates.forEach(c => {
     c.qvaBadges = qvaBadgeMap[c.code] || [];
-    // 위험 배지 판정: CB주의, 바이오이벤트, 변동성주의만 위험
-    c.qvaHasRiskBadge = c.qvaBadges.some(b => ['CB주의', '바이오이벤트', '변동성주의'].includes(b));
-    // 재료 배지: 위험이 아닌 배지
-    c.qvaHasOnlyMaterial = c.qvaBadges.length > 0 && !c.qvaHasRiskBadge;
+
+    // 배지별 우선순위 점수 계산 (가장 좋은 배지 기준)
+    let badgePriorityScore = 0;  // 배지 없음 = 0 (최고 우선)
+    if (c.qvaBadges.length > 0) {
+      badgePriorityScore = Math.min(...c.qvaBadges.map(b => badgePriority[b] || 100));
+    }
+    c.badgePriorityScore = badgePriorityScore;
+
+    // 배지 카테고리 분류
+    const hasRiskBadge = c.qvaBadges.some(b => ['CB주의', '변동성주의', '바이오이벤트', 'VI주의'].includes(b));
+    const hasStableBadge = c.qvaBadges.some(b => b === '안정형');
+    const hasThemeBadge = c.qvaBadges.some(b => b === '테마주의');
+    const hasMaterialBadge = c.qvaBadges.some(b => b === '실적재료');
+
+    c.qvaHasRiskBadge = hasRiskBadge;
+    c.qvaHasOnlyMaterial = !hasRiskBadge && (hasMaterialBadge || hasThemeBadge);
   });
 
   const result = {
@@ -1406,25 +1444,25 @@ async function analyzeAll({ logProgress = false } = {}) {
     qvaCount: qvaCandidates.length,
 
     // QVA_STRONG: HIGHER_LOW + EVOLUTION 동시 통과 (최우선)
-    // 정렬: 1) 배지 없음 2) valueMedianRatio + 거리 3-8% 3) 재료만 4) 위험배지 있음
+    // 정렬: 배지 우선순위 > 중앙값 배율 > 거리 > QVA 점수
     qvaStrongCandidates: qvaStrongCandidates.sort((a, b) => {
-      // 1. 배지 없는 종목 > 재료만 있음 > 위험배지 있음
-      const aBadgeLevel = a.qvaHasRiskBadge ? 2 : (a.qvaHasOnlyMaterial ? 1 : 0);
-      const bBadgeLevel = b.qvaHasRiskBadge ? 2 : (b.qvaHasOnlyMaterial ? 1 : 0);
-      if (bBadgeLevel !== aBadgeLevel) return aBadgeLevel - bBadgeLevel;
+      // 1. 배지 우선순위 기준 (낮을수록 우선)
+      const badgeCompare = (a.badgePriorityScore || 0) - (b.badgePriorityScore || 0);
+      if (badgeCompare !== 0) return badgeCompare;
 
-      // 2. 같은 배지 레벨 내에서: valueMedianRatio 높고 거리 3~8% 우대
+      // 2. 같은 배지 레벨 내: valueMedianRatio 높은 순
       const aMedian = a.qvaMedianRatio || 0;
       const bMedian = b.qvaMedianRatio || 0;
+      if (Math.abs(bMedian - aMedian) > 0.1) return bMedian - aMedian;
+
+      // 3. 거리 선호 (3~8% 우대)
       const aDist = Math.abs(a.dist20pct || 0);
       const bDist = Math.abs(b.dist20pct || 0);
       const aGoodDist = aDist >= 3 && aDist <= 8 ? 1 : 0;
       const bGoodDist = bDist >= 3 && bDist <= 8 ? 1 : 0;
-
       if (bGoodDist !== aGoodDist) return bGoodDist - aGoodDist;
-      if (Math.abs(bMedian - aMedian) > 0.1) return bMedian - aMedian;
 
-      // 3. 점수 기준
+      // 4. QVA 점수
       return (b.qvaScore || 0) - (a.qvaScore || 0);
     }),
     qvaStrongCount: qvaStrongCandidates.length,
