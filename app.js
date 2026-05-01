@@ -2836,7 +2836,6 @@ app.get("/pattern", (req, res) => {
   const smallCsbReadyCandidates = (result?.smallCsbReady || []).filter(matchSearch);
   const smallCsbWatchCandidates = (result?.smallCsbWatch || []).filter(matchSearch);
 
-
   res.render("pattern", {
     result, seededCount, patternState,
     cQuery,

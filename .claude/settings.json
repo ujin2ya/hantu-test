@@ -6,7 +6,11 @@
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
       "Bash(git fetch *)",
-      "PowerShell(\"killed\")"
+      "PowerShell(\"killed\")",
+      "PowerShell(git add app.js)",
+      "PowerShell(git push)",
+      "PowerShell(git add views/pattern.ejs)",
+      "PowerShell(git commit -m \"���� ��Ͽ� ���� ǥ�� �߰� - QVA/VVI ����\")"
     ],
     "defaultMode": "bypassPermissions"
   }

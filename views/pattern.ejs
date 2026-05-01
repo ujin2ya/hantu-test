@@ -330,9 +330,9 @@ var csbStageLabel = {
       <!-- 저점 상승 (메인 QVA) -->
       <% const safeQvaHigherLowCandidates = qvaHigherLowCandidates || []; %>
       <div class="glass">
-        <h2><i class="bi bi-graph-up-arrow me-1"></i>QVA-HL <span class="count">(<%= safeQvaHigherLowCandidates.length %>건)</span></h2>
+        <h2><i class="bi bi-graph-up-arrow me-1"></i>QVA — 20거래일 추적 후보 <span class="count">(<%= safeQvaHigherLowCandidates.length %>건)</span></h2>
         <div class="cat-banner" style="background:#dcfce7; border-left:4px solid #16a34a; color:#15803d;">
-          <strong>저점 상승 + 거래대금 증가</strong> — 최근 5일 저점이 직전 20일 저점보다 높으면서, 거래량/거래대금이 평소 대비 1.5배 이상 증가한 경우입니다. 누군가 들어오기 시작한 흔적을 넓게 포착합니다.
+          거래량·거래대금 이상징후와 저점 상승이 감지된 종목입니다. 매수 추천이 아니라, 이후 20거래일 안에 큰 상승 구간이 나오는지 추적하기 위한 후보입니다.
         </div>
 
         <% if (safeQvaHigherLowCandidates.length === 0) { %>
