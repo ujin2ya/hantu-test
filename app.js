@@ -3347,6 +3347,12 @@ app.get('/simple-report', (req, res) => {
         tr:hover { background: #f9f9f9; }
         .positive { color: #10b981; font-weight: 600; }
         .negative { color: #ef4444; font-weight: 600; }
+        .signal-header { background: #667eea; color: white; padding: 12px; font-weight: 600; border-radius: 8px 8px 0 0; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+        .header-stats { font-size: 12px; margin-left: auto; }
+        @media (max-width: 480px) {
+          .signal-header { flex-direction: column; align-items: flex-start; gap: 6px; }
+          .header-stats { display: none; }
+        }
         @media (max-width: 480px) {
           body { padding: 10px; }
           h1 { font-size: 18px; margin-bottom: 6px; }
@@ -3402,9 +3408,9 @@ app.get('/simple-report', (req, res) => {
 
         ${signalDates.map(stat => `
           <div style="margin-bottom: 30px;">
-            <div style="background: #667eea; color: white; padding: 12px; font-weight: 600; border-radius: 8px 8px 0 0; font-size: 13px;">
+            <div class="signal-header">
               ${dateFormatter(stat.date)} 신호 (${stat.totalSignals}개 종목)
-              <span style="float: right; font-size: 12px;">평균 +${stat.avgMaxReturn}% | D+20 ${stat.avgD20Return >= 0 ? '+' : ''}${stat.avgD20Return}% | hit10 ${stat.hit10Rate}%</span>
+              <span class="header-stats">평균 +${stat.avgMaxReturn}% | D+20 ${stat.avgD20Return >= 0 ? '+' : ''}${stat.avgD20Return}% | hit10 ${stat.hit10Rate}%</span>
             </div>
             <div class="table-wrapper">
             <table style="width: 100%; border-collapse: collapse;">
