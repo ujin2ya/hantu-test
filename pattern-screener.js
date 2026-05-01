@@ -1114,7 +1114,7 @@ async function analyzeAll({ logProgress = false } = {}) {
       tagged.qvaType = 'HIGHER_LOW';
       tagged.qvaScore = qvaHigherLow.score;
       qvaHigherLowCandidates.push(tagged);
-    } else if (qvaHold?.passed && (qvaHold.score ?? 0) >= 60) {
+    } else if (qvaHold?.passed && (qvaHold.score ?? 0) >= 70) {
       tagged.qvaType = 'HOLD';
       tagged.qvaScore = qvaHold.score;
       qvaHoldCandidates.push(tagged);
