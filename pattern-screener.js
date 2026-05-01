@@ -938,6 +938,15 @@ async function analyzeAll({ logProgress = false } = {}) {
       };
     }
 
+    // 제일기획(030000) 디버그 로그
+    if (code === '030000') {
+      console.log(`\n[DEBUG 제일기획 030000]`);
+      console.log(`  qva.passed=${qva?.passed}, score=${qva?.score}, category=${qva?.category}`);
+      console.log(`  qvaHold.passed=${qvaHold?.passed}, score=${qvaHold?.score}, model=${qvaHold?.model}`);
+      console.log(`  qvaHigherLow.passed=${qvaHigherLow?.passed}, score=${qvaHigherLow?.score}`);
+      console.log(`  qvaBoth.passed=${qvaBoth?.passed}, score=${qvaBoth?.score}`);
+    }
+
     // VVI 과거 신호 스캔 (최근 1~5 거래일)
     let recentVviSignal = null;
     if (rows.length >= 65 && (flowRows?.length || 0) >= 10) {
@@ -1103,6 +1112,7 @@ async function analyzeAll({ logProgress = false } = {}) {
     if (vvi?.passed) vviCandidates.push(tagged);
     if (qva?.passed) {
       qvaCandidates.push(tagged);
+      if (code === '030000') console.log(`  → qvaCandidates에 추가됨 (qva.passed=true)`);
     }
     // QVA 우선순위: BOTH > HIGHER_LOW (HOLD 단독은 후보로 표시하지 않음)
     if (qvaBoth?.passed) {
@@ -1110,10 +1120,14 @@ async function analyzeAll({ logProgress = false } = {}) {
       tagged.qvaType = 'BOTH';
       tagged.qvaScore = qvaBoth.score;
       qvaHoldCandidates.push(tagged);  // 편의상 qvaHoldCandidates에 포함
+      if (code === '030000') console.log(`  → qvaHoldCandidates에 추가됨 (qvaBoth, type=BOTH, score=${qvaBoth.score})`);
     } else if (qvaHigherLow?.passed && (qvaHigherLow.score ?? 0) >= 60) {
       tagged.qvaType = 'HIGHER_LOW';
       tagged.qvaScore = qvaHigherLow.score;
       qvaHigherLowCandidates.push(tagged);
+      if (code === '030000') console.log(`  → qvaHigherLowCandidates에 추가됨 (type=HIGHER_LOW, score=${qvaHigherLow.score})`);
+    } else if (code === '030000') {
+      console.log(`  → QVA 후보로 추가 안 됨 (qvaBoth=${qvaBoth?.passed}, qvaHL=${qvaHigherLow?.passed}/${qvaHigherLow?.score})`);
     }
     if (overheatHit) overheatWarnings.push(tagged);
   }
@@ -3825,6 +3839,32 @@ function calculateQuietVolumeHigherLow(chartRows, flowRows, meta = {}) {
   const ret20d = idx >= 20 ? (close / chartRows[idx - 20].close - 1) : 0;
   if (ret20d > 0.15) return reject('ret20d>15%');
 
+  // ─── 상방 압력 필수 ───
+  const closeHigh5 = Math.max(...last5.map(r => r.close));
+  const closeHigh20to25 = Math.max(...chartRows.slice(-25, -5).map(r => r.close));
+  const high5 = Math.max(...last5.map(r => r.high));
+  const high20to25 = Math.max(...chartRows.slice(-25, -5).map(r => r.high));
+  const recentCloseHighBreak = closeHigh5 > closeHigh20to25;
+  const recentHighNearBreak = high5 >= high20to25 * 0.97;
+  const ma5 = sma(last5.map(r => r.close), 5);
+  const ma5Slope = chartRows.length >= 9 ? sma(chartRows.slice(-9, -4).map(r => r.close), 5) : null;
+  const ma5IsUp = ma5 && ma5Slope ? (ma5 > ma5Slope) : false;
+  // 상방 압력: 고점 돌파 OR 고가 근처 OR (저점상승 AND 20선위 AND 5선상향)
+  const hasUpsidePressure = recentCloseHighBreak || recentHighNearBreak || (min5 > min20 && close >= ma20 && ma5IsUp);
+  if (!hasUpsidePressure) return reject('no_upside_pressure');
+
+  // ─── 거래대금 이상징후 + 중앙값 필수 ───
+  const medianVal20 = median(last20.map(r => r.valueApprox || 0));
+  const valueMedianRatio = medianVal20 > 0 ? todayValue / medianVal20 : 0;
+  if (valueMedianRatio < 1.8) return reject('valueMedianRatio<1.8');
+
+  // ─── 범위 확장 필터 ───
+  const last10hl = chartRows.slice(-10);
+  const high10 = Math.max(...last10hl.map(r => r.high));
+  const low10 = Math.min(...last10hl.map(r => r.low));
+  const rangeExpansion10 = low10 > 0 ? (high10 / low10 - 1) : 0;
+  if (rangeExpansion10 < 0.03) return reject('range_expansion<3%');
+
   // ─── 신호 & 점수 계산 ───
   const rangeToday = today.high - today.low || 1;
   const closeLocation = (close - today.low) / rangeToday;
@@ -3955,6 +3995,11 @@ function calculateQuietVolumeHold(chartRows, flowRows, meta = {}) {
   ];
   const structureCount = structureConditions.filter(Boolean).length;
   if (structureCount < 2) return reject('structure_insufficient');
+
+  // ─── 상방 압력 필수 ───
+  // 상방 압력 = 최근 고점 돌파 OR 최근 고가 근처 OR (저점상승 AND 20선위 AND 5선상향)
+  const hasUpsidePressure = recentCloseHighBreak || recentHighNearBreak || (higherLow5 && closeAboveMa20 && ma5Slope > 0);
+  if (!hasUpsidePressure) return reject('no_upside_pressure');
 
   // ─── 밋밋함 필터 ───
   const high10 = Math.max(...last10.map(r => r.high));
