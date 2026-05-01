@@ -2765,30 +2765,10 @@ app.get("/pattern", (req, res) => {
   const smallCsbReadyCandidates = (result?.smallCsbReady || []).filter(matchSearch);
   const smallCsbWatchCandidates = (result?.smallCsbWatch || []).filter(matchSearch);
 
-  // ─── 보유/관심종목 점검 — 사용자 입력 코드 → 통합 카드 ───
-  const holdingsRaw = String(req.query.holdings || "").trim();
-  const holdingsCodes = holdingsRaw.split(/[\s,]+/).filter(Boolean);
-  const holdingsCards = holdingsCodes.length
-    ? holdingsCodes.map((q) => {
-        // 코드 또는 이름 매칭
-        const lower = q.toLowerCase();
-        const found = (result?.taggedAll || []).find((t) => t.code === q || (t.name || "").toLowerCase() === lower || (t.name || "").toLowerCase().includes(lower));
-        return found ? { query: q, found: true, ...found } : { query: q, found: false };
-      })
-    : [];
-
-  // ─── 기존 (역호환 — 모델 검증 페이지에서 사용) ───
-  const buyCandidates = (result?.buyCandidates || []).filter(matchSearch);
-  const watchlist = (result?.watchlist || []).filter(matchSearch);
-  const observationList = (result?.observationList || []).filter(matchSearch);
-  const stage1to2Transitions = (result?.stage1to2Transitions || []).filter(matchSearch);
-  const todaysBreakouts = (result?.todaysBreakouts || []).filter(matchSearch);
-  const vcpForming = (result?.vcpForming || []).filter(matchSearch);
-  const stage2Pool = (result?.stage2Pool || []).filter(matchSearch);
 
   res.render("pattern", {
     result, seededCount, patternState,
-    cQuery, holdingsRaw,
+    cQuery,
     // ─── 날짜 및 데이터 상태 ───
     expectedMarketDate, availableModeDate, availableModeDateCount,
     latestMarketDate: result?.latestMarketDate || null,
@@ -2808,18 +2788,9 @@ app.get("/pattern", (req, res) => {
     bullTrendWatch: bullTrendWatch || [],
     overheatWarnings: overheatWarnings || [],
     taggedAll: taggedAll || [],
-    holdingsCards: holdingsCards || [],
     // CSB-Lite 중소형 분류
     smallCsbReadyCandidates: smallCsbReadyCandidates || [],
     smallCsbWatchCandidates: smallCsbWatchCandidates || [],
-    // 기존 — 모델 검증 / 역호환
-    buyCandidates: buyCandidates || [],
-    watchlist: watchlist || [],
-    observationList: observationList || [],
-    stage1to2Transitions: stage1to2Transitions || [],
-    todaysBreakouts: todaysBreakouts || [],
-    vcpForming: vcpForming || [],
-    stage2Pool: stage2Pool || [],
   });
 });
 
