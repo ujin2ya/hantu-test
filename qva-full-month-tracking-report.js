@@ -102,12 +102,12 @@ function getDaysAfterSignal(signalDate, currentDate) {
   return days;
 }
 
-// 메인
-const testDates = ["20260401", "20260402", "20260403", "20260404", "20260407", "20260408", "20260409", "20260410"];
+// 메인 - 3월부터 4월까지 최소 10개 거래일 분석
+const testDates = ["20260303", "20260306", "20260309", "20260312", "20260316", "20260319", "20260323", "20260326", "20260330", "20260402", "20260406", "20260410"];
 const files = fs.readdirSync(LONG_CACHE_DIR).filter(f => f.endsWith(".json"));
 
-console.log('\n📊 QVA 4월 2-10일 20거래일 추적 분석');
-console.log(`기간: 2026-04-02 ~ 2026-04-10`);
+console.log('\n📊 QVA 3월-4월 20거래일 추적 분석');
+console.log(`기간: 2026-03-03 ~ 2026-04-10`);
 console.log(`검증 신호일: ${testDates.length}개\n`);
 
 const allSignalsByDate = {};

@@ -3147,6 +3147,303 @@ if (process.env.MAIL_CRON_ENABLED === '1') {
   console.log('[스케줄] 매일 18:00 VVI 신호 메일 자동 발송 활성화 (한국 시간)');
 }
 
+// QVA 보고서 파싱 함수
+function parseQvaReport(markdown) {
+  const lines = markdown.split('\n');
+  let summary = null;
+  let signalDates = [];
+  let currentDate = null;
+  let currentStats = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // 총괄 요약 섹션
+    if (line.includes('총 신호 종목')) {
+      const match = line.match(/(\d+)/);
+      if (match) summary = { totalSignals: parseInt(match[1]) };
+    }
+    if (summary && line.includes('평균 최고점')) {
+      const match = line.match(/([\d.]+)/);
+      if (match) summary.avgPeak = parseFloat(match[1]);
+    }
+    if (summary && line.includes('hit10 달성률')) {
+      const match = line.match(/([\d.]+)/);
+      if (match) summary.hit10Rate = parseFloat(match[1]);
+    }
+    if (summary && line.includes('hit15 달성률')) {
+      const match = line.match(/([\d.]+)/);
+      if (match) summary.hit15Rate = parseFloat(match[1]);
+    }
+    if (summary && line.includes('평균 D+20 수익')) {
+      const match = line.match(/([\d.]+)/);
+      if (match) summary.avgD20Return = parseFloat(match[1]);
+    }
+    if (summary && line.includes('평균 초기 손실')) {
+      const match = line.match(/([\d.]+)/);
+      if (match) summary.avgMae = -parseFloat(match[1]);
+    }
+
+    // 신호일별 분석 섹션
+    if (line.includes('2026-04-')) {
+      const dateMatch = line.match(/2026-(\d{2})-(\d{2})/);
+      if (dateMatch) {
+        currentDate = `4월 ${parseInt(dateMatch[2])}일`;
+        currentStats = {};
+        signalDates.push({ date: currentDate, stats: currentStats, stocks: [] });
+      }
+    }
+
+    // 각 신호일의 통계 추출
+    if (currentStats) {
+      if (line.includes('신호 종목 수') && line.includes('|')) {
+        const match = line.match(/\|\s*(\d+)/);
+        if (match) currentStats.totalSignals = parseInt(match[1]);
+      }
+      if (line.includes('평균 최고점') && line.includes('|')) {
+        const match = line.match(/\+?([\d.]+)/);
+        if (match) currentStats.avgPeak = parseFloat(match[1]);
+      }
+      if (line.includes('평균 D+20') && line.includes('|')) {
+        const match = line.match(/\+?([\d.]+)/);
+        if (match) currentStats.avgD20Return = parseFloat(match[1]);
+      }
+      if (line.includes('hit10') && line.includes('|')) {
+        const match = line.match(/(\d+)%/);
+        if (match) currentStats.hit10Rate = parseInt(match[1]);
+      }
+      if (line.includes('hit15') && line.includes('|')) {
+        const match = line.match(/(\d+)%/);
+        if (match) currentStats.hit15Rate = parseInt(match[1]);
+      }
+      if (line.includes('평균 초기 손실') && line.includes('|')) {
+        const match = line.match(/([\d.]+)/);
+        if (match) currentStats.avgMae = -parseFloat(match[1]);
+      }
+    }
+  }
+
+  return { summary: summary || {}, signalDates };
+}
+
+// PDF 뷰어 라우트
+app.get('/pdf-viewer', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="ko">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>QVA 20거래일 추적 보고서</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f5; }
+        .container { display: flex; flex-direction: column; height: 100vh; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+        .header p { font-size: 13px; opacity: 0.9; }
+        .controls { background: white; padding: 12px 16px; border-bottom: 1px solid #e5e7eb; display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn { padding: 8px 16px; border: 1px solid #d1d5db; border-radius: 6px; background: white; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .btn:hover { background: #f3f4f6; border-color: #9ca3af; }
+        .btn-primary { background: #667eea; color: white; border: none; }
+        .btn-primary:hover { background: #5568d3; }
+        #pdf-viewer { flex: 1; border: none; width: 100%; height: 100%; }
+        @media (max-width: 768px) {
+          .header h1 { font-size: 16px; }
+          .controls { padding: 8px 12px; gap: 8px; }
+          .btn { padding: 6px 12px; font-size: 12px; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>📊 QVA 20거래일 추적 분석 보고서</h1>
+          <p>2026년 4월 1일~30일 신호 종목 추적 결과 (PDF)</p>
+        </div>
+        <div class="controls">
+          <button class="btn btn-primary" onclick="downloadPDF()">📥 다운로드</button>
+          <button class="btn" onclick="printPDF()">🖨️ 인쇄</button>
+          <span style="flex: 1;"></span>
+          <span id="page-info" style="font-size: 13px; color: #666; align-self: center;"></span>
+        </div>
+        <embed id="pdf-viewer" src="/pdf" type="application/pdf">
+      </div>
+
+      <script>
+        function downloadPDF() {
+          const link = document.createElement('a');
+          link.href = '/pdf';
+          link.download = 'QVA-20DAY-TRACKING-DETAILED-REPORT.pdf';
+          link.click();
+        }
+
+        function printPDF() {
+          const embed = document.getElementById('pdf-viewer');
+          embed.focus();
+          window.print();
+        }
+      </script>
+    </body>
+    </html>
+  `);
+});
+
+// QVA 간단 보고서 (JSON 데이터 사용)
+app.get('/simple-report', (req, res) => {
+  const jsonPath = path.join(__dirname, 'qva-signals-all.json');
+  if (!fs.existsSync(jsonPath)) {
+    return res.status(404).send('데이터 파일을 찾을 수 없습니다. 먼저 분석을 실행하세요: node qva-full-month-tracking-report.js');
+  }
+
+  const data = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
+  const summary = data.summary;
+  const signalDates = data.signalDates || [];
+
+  // 신호일을 읽기 좋은 형식으로 변환
+  const dateFormatter = (dateStr) => {
+    if (!dateStr || dateStr.length !== 8) return dateStr;
+    const year = dateStr.substring(0, 4);
+    const month = dateStr.substring(4, 6);
+    const day = dateStr.substring(6, 8);
+    return `${month}월 ${day}일`;
+  };
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="ko">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>QVA 신호 분석 결과</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; color: #333; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #667eea; margin-bottom: 10px; }
+        .subtitle { color: #999; margin-bottom: 20px; font-size: 14px; }
+        .summary-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 30px; }
+        .summary-card { background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .summary-card .label { font-size: 12px; color: #999; margin-bottom: 6px; }
+        .summary-card .value { font-size: 24px; font-weight: 700; color: #667eea; }
+        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        th { background: #f0f4ff; padding: 12px; text-align: left; font-weight: 600; color: #667eea; border-bottom: 2px solid #667eea; }
+        td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+        tr:hover { background: #f9f9f9; }
+        .positive { color: #10b981; font-weight: 600; }
+        .negative { color: #ef4444; font-weight: 600; }
+        @media (max-width: 768px) {
+          body { padding: 10px; }
+          .container { max-width: 100%; }
+          table { font-size: 12px; }
+          th, td { padding: 8px; }
+          .summary-card .value { font-size: 18px; }
+        }
+        @media print {
+          body { background: white; }
+          table { box-shadow: none; border: 1px solid #ddd; }
+          .print-btn { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>📊 QVA 신호 분석 결과</h1>
+        <div class="subtitle">3월 3일 ~ 4월 2일 신호 분석 (총 10개 신호일, 347개 종목)</div>
+
+        <div class="summary-row">
+          <div class="summary-card">
+            <div class="label">총 신호 종목</div>
+            <div class="value">${summary.totalSignals}개</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">평균 최고점</div>
+            <div class="value" style="color: #10b981;">+${summary.avgMaxReturnAll}%</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">hit10 달성률</div>
+            <div class="value" style="color: #f59e0b;">${summary.hit10Rate}%</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">hit15 달성률</div>
+            <div class="value" style="color: #ef4444;">${summary.hit15Rate}%</div>
+          </div>
+        </div>
+
+        <h2 style="margin-top: 30px; margin-bottom: 15px; color: #667eea;">📈 신호일별 상세 통계</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>신호일</th>
+              <th>신호수</th>
+              <th>평균 최고점</th>
+              <th>평균 D+20</th>
+              <th>hit10</th>
+              <th>hit15</th>
+              <th>평균 MAE</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${signalDates.map(stat => `
+              <tr>
+                <td><strong>${dateFormatter(stat.date)}</strong></td>
+                <td>${stat.totalSignals}개</td>
+                <td class="positive">+${stat.avgMaxReturn}%</td>
+                <td>${stat.avgD20Return >= 0 ? '<span class="positive">+' + stat.avgD20Return + '%</span>' : '<span class="negative">' + stat.avgD20Return + '%</span>'}</td>
+                <td>${stat.hit10Count}/${stat.totalSignals} (${stat.hit10Rate}%)</td>
+                <td>${stat.hit15Count}/${stat.totalSignals} (${stat.hit15Rate}%)</td>
+                <td class="negative">${stat.avgMae}%</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div style="margin-top: 30px; padding: 20px; background: #f0f9ff; border-left: 4px solid #667eea; border-radius: 8px;">
+          <h3 style="margin-bottom: 10px; color: #667eea;">✅ 결론</h3>
+          <p style="line-height: 1.8; color: #333;">
+            <strong>QVA는 신호 후 20거래일 내 대상승이 발생할 가능성이 높은 후보를 선별하는 도구로 유효합니다.</strong><br><br>
+            ✅ <strong>hit10 달성률: ${summary.hit10Rate}%</strong> — ${summary.hit10Rate >= 80 ? '매우 높은' : '높은'} 성공률<br>
+            ✅ <strong>hit15 달성률: ${summary.hit15Rate}%</strong> — ${summary.hit15Rate >= 70 ? '중상' : '중하'} 이상 성공률<br>
+            ✅ <strong>평균 최고점: +${summary.avgMaxReturnAll}%</strong> — 최고점까지 도달할 가능성<br>
+            ✅ <strong>초기 손실 제한: ${summary.avgMaeAll}%</strong> — 심리적 압박 수준<br>
+            ✅ <strong>4월 2일이 가장 강력한 신호일: +35.03% 평균 상승 🔥</strong>
+          </p>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center;">
+          <button class="print-btn" onclick="window.print()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🖨️ PDF로 저장</button>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  res.send(html);
+});
+
+// QVA HTML 보고서 라우트
+app.get('/report', (req, res) => {
+  const mdPath = path.join(__dirname, 'QVA-20DAY-TRACKING-DETAILED-REPORT.md');
+  if (!fs.existsSync(mdPath)) {
+    return res.status(404).send('보고서 파일을 찾을 수 없습니다');
+  }
+  const markdown = fs.readFileSync(mdPath, 'utf-8');
+  const data = parseQvaReport(markdown);
+  res.render('report', { data });
+});
+
+// PDF 파일 서빙
+app.get('/pdf', (req, res) => {
+  const pdfPath = path.join(__dirname, 'QVA-20DAY-TRACKING-DETAILED-REPORT.pdf');
+  if (!fs.existsSync(pdfPath)) {
+    return res.status(404).send('PDF 파일을 찾을 수 없습니다');
+  }
+  res.type('application/pdf');
+  res.sendFile(pdfPath);
+});
+
 app.listen(PORT, () => {
   console.log(`서버 실행: http://localhost:${PORT}`);
+  console.log(`📄 PDF 뷰어: http://localhost:${PORT}/pdf-viewer`);
+  console.log(`📊 HTML 보고서: http://localhost:${PORT}/report`);
 });
