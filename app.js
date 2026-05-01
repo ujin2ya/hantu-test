@@ -3370,33 +3370,44 @@ app.get('/simple-report', (req, res) => {
           </div>
         </div>
 
-        <h2 style="margin-top: 30px; margin-bottom: 15px; color: #667eea;">📈 신호일별 상세 통계</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>신호일</th>
-              <th>신호수</th>
-              <th>평균 최고점</th>
-              <th>평균 D+20</th>
-              <th>hit10</th>
-              <th>hit15</th>
-              <th>평균 MAE</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${signalDates.map(stat => `
-              <tr>
-                <td><strong>${dateFormatter(stat.date)}</strong></td>
-                <td>${stat.totalSignals}개</td>
-                <td class="positive">+${stat.avgMaxReturn}%</td>
-                <td>${stat.avgD20Return >= 0 ? '<span class="positive">+' + stat.avgD20Return + '%</span>' : '<span class="negative">' + stat.avgD20Return + '%</span>'}</td>
-                <td>${stat.hit10Count}/${stat.totalSignals} (${stat.hit10Rate}%)</td>
-                <td>${stat.hit15Count}/${stat.totalSignals} (${stat.hit15Rate}%)</td>
-                <td class="negative">${stat.avgMae}%</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+        <h2 style="margin-top: 30px; margin-bottom: 15px; color: #667eea;">📈 신호일별 상세 통계 및 종목</h2>
+
+        ${signalDates.map(stat => `
+          <div style="margin-bottom: 40px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+            <div style="background: #667eea; color: white; padding: 15px; font-weight: 600;">
+              ${dateFormatter(stat.date)} 신호 (${stat.totalSignals}개 종목)
+              <span style="float: right; font-size: 13px;">평균 최고점 +${stat.avgMaxReturn}% | D+20 ${stat.avgD20Return >= 0 ? '+' + stat.avgD20Return : stat.avgD20Return}% | hit10 ${stat.hit10Rate}%</span>
+            </div>
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background: #f0f4ff;">
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea; font-weight: 600; color: #667eea;">순위</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea; font-weight: 600; color: #667eea;">종목명</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea; font-weight: 600; color: #667eea;">코드</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea; font-weight: 600; color: #667eea;">신호가</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea; font-weight: 600; color: #667eea;">최고점</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea; font-weight: 600; color: #667eea;">도달일</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea; font-weight: 600; color: #667eea;">D+20</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea; font-weight: 600; color: #667eea;">hit</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(stat.stocks || []).sort((a, b) => b.maxReturn - a.maxReturn).map((s, i) => `
+                  <tr style="border-bottom: 1px solid #eee; ${s.maxReturn >= 30 ? 'background: #fef2f2;' : s.maxReturn >= 15 ? 'background: #fffbeb;' : ''}">
+                    <td style="padding: 10px;">${i + 1}</td>
+                    <td style="padding: 10px;"><strong>${s.name}</strong></td>
+                    <td style="padding: 10px; color: #999; font-size: 12px;">${s.code}</td>
+                    <td style="padding: 10px;">${s.signalPrice}</td>
+                    <td style="padding: 10px; color: #10b981; font-weight: 600;">+${s.maxReturn}%</td>
+                    <td style="padding: 10px;">D+${s.daysToMax}</td>
+                    <td style="padding: 10px; ${s.d20Return >= 0 ? 'color: #10b981;' : 'color: #ef4444;'} font-weight: 600;">${s.d20Return >= 0 ? '+' : ''}${s.d20Return}%</td>
+                    <td style="padding: 10px;">${s.hit10 ? '✓10' : ''}${s.hit15 ? ' ✓15' : ''}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `).join('')}
 
         <div style="margin-top: 30px; padding: 20px; background: #f0f9ff; border-left: 4px solid #667eea; border-radius: 8px;">
           <h3 style="margin-bottom: 10px; color: #667eea;">✅ 결론</h3>

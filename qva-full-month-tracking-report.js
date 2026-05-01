@@ -302,18 +302,34 @@ const jsonData = {
     hit15Rate: (totalHit15 / totalTests * 100).toFixed(0),
     avgMaeAll: parseFloat(avgMaeAll.toFixed(2))
   },
-  signalDates: allStats.map((stat, idx) => ({
-    date: stat.date,
-    dateNum: parseInt(stat.date.split('-')[2]),
-    totalSignals: stat.totalSignals,
-    avgMaxReturn: parseFloat(stat.avgMaxReturn.toFixed(2)),
-    avgD20Return: parseFloat(stat.avgD20Return.toFixed(2)),
-    hit10Count: stat.hit10Count,
-    hit15Count: stat.hit15Count,
-    hit10Rate: stat.hit10Rate.toFixed(0),
-    hit15Rate: stat.hit15Rate.toFixed(0),
-    avgMae: parseFloat(stat.avgMae.toFixed(2))
-  }))
+  signalDates: allStats.map((stat, idx) => {
+    const dateKey = stat.date;
+    const stocks = allSignalsByDate[dateKey] || [];
+    return {
+      date: stat.date,
+      dateNum: parseInt(stat.date.split('-')[2]),
+      totalSignals: stat.totalSignals,
+      avgMaxReturn: parseFloat(stat.avgMaxReturn.toFixed(2)),
+      avgD20Return: parseFloat(stat.avgD20Return.toFixed(2)),
+      hit10Count: stat.hit10Count,
+      hit15Count: stat.hit15Count,
+      hit10Rate: stat.hit10Rate.toFixed(0),
+      hit15Rate: stat.hit15Rate.toFixed(0),
+      avgMae: parseFloat(stat.avgMae.toFixed(2)),
+      stocks: stocks.map(s => ({
+        code: s.code,
+        name: s.name,
+        signalPrice: s.signalPrice,
+        maxHigh: parseFloat(s.maxHigh.toFixed(0)),
+        maxReturn: parseFloat(s.maxReturn.toFixed(2)),
+        daysToMax: s.daysToMax,
+        d20Return: parseFloat(s.d20Return.toFixed(2)),
+        hit10: s.hit10,
+        hit15: s.hit15,
+        maeReturn: parseFloat(s.maeReturn.toFixed(2))
+      }))
+    };
+  })
 };
 
 fs.writeFileSync(
