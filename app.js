@@ -3318,20 +3318,34 @@ app.get('/simple-report', (req, res) => {
       <title>QVA 신호 분석 결과</title>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; color: #333; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 { color: #667eea; margin-bottom: 10px; }
-        .subtitle { color: #999; margin-bottom: 20px; font-size: 14px; }
-        .summary-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 30px; }
-        .summary-card { background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .summary-card .label { font-size: 12px; color: #999; margin-bottom: 6px; }
-        .summary-card .value { font-size: 24px; font-weight: 700; color: #667eea; }
-        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        th { background: #f0f4ff; padding: 12px; text-align: left; font-weight: 600; color: #667eea; border-bottom: 2px solid #667eea; }
-        td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; color: #333; padding: 15px; }
+        .container { max-width: 1200px; margin: 0 auto; width: 100%; }
+        h1 { color: #667eea; margin-bottom: 8px; font-size: 24px; }
+        .subtitle { color: #999; margin-bottom: 15px; font-size: 13px; }
+        .summary-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .summary-card { background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .summary-card .label { font-size: 11px; color: #999; margin-bottom: 4px; }
+        .summary-card .value { font-size: 20px; font-weight: 700; color: #667eea; }
+        .table-wrapper { overflow-x: auto; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: #f0f4ff; padding: 10px; text-align: left; font-weight: 600; color: #667eea; border-bottom: 2px solid #667eea; font-size: 13px; white-space: nowrap; }
+        td { padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 13px; }
         tr:hover { background: #f9f9f9; }
         .positive { color: #10b981; font-weight: 600; }
         .negative { color: #ef4444; font-weight: 600; }
+        @media (max-width: 480px) {
+          body { padding: 10px; }
+          h1 { font-size: 18px; margin-bottom: 6px; }
+          .subtitle { font-size: 12px; }
+          .summary-row { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px; }
+          .summary-card { padding: 10px; }
+          .summary-card .label { font-size: 10px; }
+          .summary-card .value { font-size: 16px; }
+          .table-wrapper { margin-bottom: 15px; }
+          table { min-width: 500px; }
+          th { padding: 8px; font-size: 11px; }
+          td { padding: 6px 8px; font-size: 11px; }
+        }
         @media (max-width: 768px) {
           body { padding: 10px; }
           .container { max-width: 100%; }
@@ -3373,11 +3387,12 @@ app.get('/simple-report', (req, res) => {
         <h2 style="margin-top: 30px; margin-bottom: 15px; color: #667eea;">📈 신호일별 상세 통계 및 종목</h2>
 
         ${signalDates.map(stat => `
-          <div style="margin-bottom: 40px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-            <div style="background: #667eea; color: white; padding: 15px; font-weight: 600;">
+          <div style="margin-bottom: 30px;">
+            <div style="background: #667eea; color: white; padding: 12px; font-weight: 600; border-radius: 8px 8px 0 0; font-size: 13px;">
               ${dateFormatter(stat.date)} 신호 (${stat.totalSignals}개 종목)
-              <span style="float: right; font-size: 13px;">평균 최고점 +${stat.avgMaxReturn}% | D+20 ${stat.avgD20Return >= 0 ? '+' + stat.avgD20Return : stat.avgD20Return}% | hit10 ${stat.hit10Rate}%</span>
+              <span style="float: right; font-size: 12px;">평균 +${stat.avgMaxReturn}% | D+20 ${stat.avgD20Return >= 0 ? '+' : ''}${stat.avgD20Return}% | hit10 ${stat.hit10Rate}%</span>
             </div>
+            <div class="table-wrapper">
             <table style="width: 100%; border-collapse: collapse;">
               <thead>
                 <tr style="background: #f0f4ff;">
@@ -3406,6 +3421,7 @@ app.get('/simple-report', (req, res) => {
                 `).join('')}
               </tbody>
             </table>
+            </div>
           </div>
         `).join('')}
 
