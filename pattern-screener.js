@@ -3907,6 +3907,24 @@ function calculateQuietVolumeHold(chartRows, flowRows, meta = {}) {
   const ret5d = idx >= 5 ? (close / chartRows[idx - 5].close - 1) : 0;
   if (ret5d > 0.12) return reject('ret5d>12%');
 
+  // ─── 구조 사전 검사 (최소 요구사항) ───
+  // higherLow5: 최근 5일 저점 > 직전 20일 저점
+  const lows5 = chartRows.slice(-5).map(r => r.low);
+  const lows20to25 = chartRows.slice(-25, -5).map(r => r.low);
+  const min5 = Math.min(...lows5);
+  const min20 = lows20to25.length > 0 ? Math.min(...lows20to25) : Infinity;
+  const higherLow5 = min5 > min20;
+
+  // ma5Slope: 5일선 기울기
+  const last5 = chartRows.slice(-5);
+  const last20 = chartRows.slice(-20);
+  const ma5 = last5.length >= 5 ? sma(last5.map(r => r.close), 5) : null;
+  const ma5Prev = chartRows.length >= 9 ? sma(chartRows.slice(-9, -4).map(r => r.close), 5) : null;
+  const ma5Slope = ma5 && ma5Prev ? (ma5 > ma5Prev ? 1 : 0) : 0;
+
+  // 최소 요구: higherLow5 또는 ma5Slope 중 하나는 필수 (구조 개선 신호)
+  if (!higherLow5 && ma5Slope === 0) return reject('no_structure_change');
+
   // ─── 점수 계산 ───
   let score = 0;
   const breakdown = {};
@@ -3944,12 +3962,7 @@ function calculateQuietVolumeHold(chartRows, flowRows, meta = {}) {
   const closeAboveMa20 = ma20 != null && close >= ma20 * 0.97;
   if (closeAboveMa20) structureScore += 10;
 
-  // higherLow5: 최근 5일 저점 > 직전 20일 저점
-  const lows5 = last5.map(r => r.low);
-  const lows20to25 = chartRows.slice(-25, -5).map(r => r.low);
-  const min5 = Math.min(...lows5);
-  const min20 = lows20to25.length > 0 ? Math.min(...lows20to25) : Infinity;
-  const higherLow5 = min5 > min20;
+  // higherLow5 (이미 계산됨)
   if (higherLow5) structureScore += 8;
 
   // distToHigh60: 60일 고점까지 거리
@@ -3966,10 +3979,7 @@ function calculateQuietVolumeHold(chartRows, flowRows, meta = {}) {
   if (confirmDayValueRatio >= 1.0) flowScore += 8;
   else if (confirmDayValueRatio >= 0.8) flowScore += 5;
 
-  // ma5Slope: 5일선 기울기
-  const ma5 = last5.length >= 5 ? sma(last5.map(r => r.close), 5) : null;
-  const ma5Prev = chartRows.length >= 9 ? sma(chartRows.slice(-9, -4).map(r => r.close), 5) : null;
-  const ma5Slope = ma5 && ma5Prev ? (ma5 > ma5Prev ? 1 : 0) : 0;
+  // ma5Slope (이미 계산됨)
   if (ma5Slope > 0) flowScore += 7;
 
   score += flowScore;
