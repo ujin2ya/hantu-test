@@ -272,7 +272,24 @@ var csbStageLabel = {
                   </a>
                   <span class="mkt"><%= c.market %></span>
                 </div>
-                <span class="score-pill" style="background:#fbbf24; color:#78350f;">QVA-STRONG</span>
+                <div style="display:flex; gap:4px; flex-wrap:wrap; align-items:center;">
+                  <span class="score-pill" style="background:#fbbf24; color:#78350f;">QVA-STRONG</span>
+                  <% if (c.qvaBadges && c.qvaBadges.length > 0) { %>
+                    <% c.qvaBadges.forEach(badge => {
+                      let bgColor = '#e5e7eb', textColor = '#374151';
+                      if (badge === '실적재료') { bgColor = '#dbeafe'; textColor = '#0369a1'; }
+                      else if (badge === '테마주의') { bgColor = '#fce7f3'; textColor = '#be185d'; }
+                      else if (badge === 'VI주의') { bgColor = '#fed7aa'; textColor = '#92400e'; }
+                      else if (badge === '바이오이벤트') { bgColor = '#fed7aa'; textColor = '#92400e'; }
+                      else if (badge === 'CB주의') { bgColor = '#fca5a5'; textColor = '#7c2d12'; }
+                      else if (badge === '변동성주의') { bgColor = '#fca5a5'; textColor = '#7c2d12'; }
+                    %>
+                      <span class="badge" style="background:<%= bgColor %>; color:<%= textColor %>; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:600; white-space:nowrap;">
+                        <%= badge %>
+                      </span>
+                    <% }) %>
+                  <% } %>
+                </div>
               </div>
               <div class="row2">
                 <span>HL점수 <strong><%= (c.qvaHlScore || 0).toFixed(0) %>/100</strong></span>

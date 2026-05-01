@@ -1325,6 +1325,26 @@ async function analyzeAll({ logProgress = false } = {}) {
     }
   };
 
+  // ─── QVA-STRONG 배지 추가 ───
+  const qvaBadgeMap = {
+    '251370': [],                                                              // 와이엠티: 순수 QVA
+    '214320': [],                                                              // 이노션: 순수 QVA
+    '097870': ['테마주의'],                                                      // 효성오앤비: 테마 급유입
+    '259960': ['실적재료'],                                                      // 크래프톤: 실적 반응형
+    '039440': ['바이오이벤트', 'CB주의', '변동성주의'],                          // 큐로셀: 바이오 + CB
+    '049120': ['바이오이벤트', '변동성주의'],                                    // 비보존제약: 바이오
+  };
+
+  const riskBadges = ['VI주의', 'CB주의', '바이오이벤트', '변동성주의'];
+
+  qvaStrongCandidates.forEach(c => {
+    c.qvaBadges = qvaBadgeMap[c.code] || [];
+    // 위험 배지 판정: CB주의, 바이오이벤트, 변동성주의만 위험
+    c.qvaHasRiskBadge = c.qvaBadges.some(b => ['CB주의', '바이오이벤트', '변동성주의'].includes(b));
+    // 재료 배지: 위험이 아닌 배지
+    c.qvaHasOnlyMaterial = c.qvaBadges.length > 0 && !c.qvaHasRiskBadge;
+  });
+
   const result = {
     analyzedAt: new Date().toISOString(),
     analyzeFinishedAt: new Date().toISOString(),
@@ -1386,10 +1406,26 @@ async function analyzeAll({ logProgress = false } = {}) {
     qvaCount: qvaCandidates.length,
 
     // QVA_STRONG: HIGHER_LOW + EVOLUTION 동시 통과 (최우선)
+    // 정렬: 1) 배지 없음 2) valueMedianRatio + 거리 3-8% 3) 재료만 4) 위험배지 있음
     qvaStrongCandidates: qvaStrongCandidates.sort((a, b) => {
-      const scoreCompare = (b.qvaScore || 0) - (a.qvaScore || 0);
-      if (scoreCompare !== 0) return scoreCompare;
-      return (b.qvaMedianRatio || 0) - (a.qvaMedianRatio || 0);
+      // 1. 배지 없는 종목 > 재료만 있음 > 위험배지 있음
+      const aBadgeLevel = a.qvaHasRiskBadge ? 2 : (a.qvaHasOnlyMaterial ? 1 : 0);
+      const bBadgeLevel = b.qvaHasRiskBadge ? 2 : (b.qvaHasOnlyMaterial ? 1 : 0);
+      if (bBadgeLevel !== aBadgeLevel) return aBadgeLevel - bBadgeLevel;
+
+      // 2. 같은 배지 레벨 내에서: valueMedianRatio 높고 거리 3~8% 우대
+      const aMedian = a.qvaMedianRatio || 0;
+      const bMedian = b.qvaMedianRatio || 0;
+      const aDist = Math.abs(a.dist20pct || 0);
+      const bDist = Math.abs(b.dist20pct || 0);
+      const aGoodDist = aDist >= 3 && aDist <= 8 ? 1 : 0;
+      const bGoodDist = bDist >= 3 && bDist <= 8 ? 1 : 0;
+
+      if (bGoodDist !== aGoodDist) return bGoodDist - aGoodDist;
+      if (Math.abs(bMedian - aMedian) > 0.1) return bMedian - aMedian;
+
+      // 3. 점수 기준
+      return (b.qvaScore || 0) - (a.qvaScore || 0);
     }),
     qvaStrongCount: qvaStrongCandidates.length,
 
