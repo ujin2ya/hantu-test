@@ -2277,13 +2277,14 @@ const handleSearch = async (req, res) => {
       let breakdown = qvaRes?.breakdown || {};
       let isStrongQva = false;
 
-      if (qvaEvolutionRes?.passed) {
+      // QVA-STRONG: HIGHER_LOW + EVOLUTION 동시 통과 (패턴 페이지와 일치)
+      if (qvaEvolutionRes?.passed && qvaHlRes?.passed && !qvaHlRes.signals?.hasPastExplosion) {
         category = 'HIGHER_LOW';
-        isStrongQva = true;  // EVOLUTION + HIGHER_LOW = 강한 QVA
-        score = qvaEvolutionRes.score || 0;
-        signals = { ...qvaEvolutionRes.signals, ...(qvaHlRes?.signals || {}) };
-        breakdown = qvaEvolutionRes.breakdown || {};
-        if (code === '082800') console.log('[082800] EV passed, signals keys:', Object.keys(signals));
+        isStrongQva = true;
+        score = Math.max((qvaHlRes?.score || 0), (qvaEvolutionRes?.score || 0));
+        signals = { ...qvaHlRes.signals, ...qvaEvolutionRes.signals };
+        breakdown = { ...qvaHlRes.breakdown, ...qvaEvolutionRes.breakdown };
+        if (code === '082800') console.log('[082800] QVA-STRONG passed (HL + EV)');
       } else if (qvaHoldRes?.passed && qvaHlRes?.passed) {
         category = 'HIGHER_LOW';
         score = Math.max((qvaHoldRes?.score || 0), (qvaHlRes?.score || 0)) + 10;
