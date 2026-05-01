@@ -271,6 +271,9 @@ var csbStageLabel = {
                     <span class="nm"><%= c.name %></span><span class="cd"><%= c.code %></span>
                   </a>
                   <span class="mkt"><%= c.market %></span>
+                  <% if (c.marketCap) { %>
+                    <span style="font-size:0.8rem; color:#64748b; margin-left:8px;">시총 <strong><%= (c.marketCap / 1e8).toFixed(0) %>억</strong></span>
+                  <% } %>
                 </div>
                 <div style="display:flex; gap:4px; flex-wrap:wrap; align-items:center;">
                   <span class="score-pill" style="background:#fbbf24; color:#78350f;">QVA-STRONG</span>
@@ -354,6 +357,9 @@ var csbStageLabel = {
                     <span class="nm"><%= c.name %></span><span class="cd"><%= c.code %></span>
                   </a>
                   <span class="mkt"><%= c.market %></span>
+                  <% if (c.marketCap) { %>
+                    <span style="font-size:0.8rem; color:#64748b; margin-left:8px;">시총 <strong><%= (c.marketCap / 1e8).toFixed(0) %>억</strong></span>
+                  <% } %>
                 </div>
                 <span class="score-pill" style="background:#bbf7d0; color:#166534;">QVA-HL</span>
               </div>
@@ -405,6 +411,9 @@ var csbStageLabel = {
                     <span class="cd"><%= c.code %></span>
                   </a>
                   <span class="mkt"><%= c.market %></span>
+                  <% if (c.marketCap) { %>
+                    <span style="font-size:0.8rem; color:#64748b; margin-left:8px;">시총 <strong><%= (c.marketCap / 1e8).toFixed(0) %>억</strong></span>
+                  <% } %>
                 </div>
                 <span class="score-pill vvi" style="background:#d97706; border-color:#d97706;">VVI 점수 <%= c.vvi.score %></span>
               </div>
