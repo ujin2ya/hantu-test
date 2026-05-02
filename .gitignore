@@ -40,6 +40,20 @@ cache/*
 !cache/flow-history/
 !cache/flow-history/*.json
 
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+pip-log.txt
+pip-delete-this-directory.txt
+
 # 에디터 / OS
 .vscode/
 .idea/
