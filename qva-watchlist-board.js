@@ -1088,8 +1088,12 @@ const htmlTemplate = `<!DOCTYPE html>
     <p id="trading-date-meta" style="font-family:monospace;font-size:12px;color:#94a3b8;"></p>
   </div>
 
-  <h2 style="font-size:14px;color:#cbd5e1;margin:0 0 8px 0;border:none;padding:0;">📑 백테스팅 보고서</h2>
-  <div style="background:#1e293b;border-radius:8px;padding:14px 16px;margin-bottom:16px;border-left:3px solid #94a3b8;">
+  <details id="backtest-reports-details" style="margin-bottom:16px;">
+    <summary style="cursor:pointer;padding:10px 14px;background:#1e293b;border-radius:8px;border-left:3px solid #94a3b8;color:#cbd5e1;font-size:13px;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px;">
+      <span>📑 백테스팅 보고서 보기/숨기기</span>
+      <span style="color:#94a3b8;font-size:11px;font-weight:400;margin-left:auto;">5개 보고서 (모델 검증/분석용)</span>
+    </summary>
+    <div style="background:#1e293b;border-radius:8px;padding:14px 16px;margin-top:8px;border-left:3px solid #94a3b8;">
     <p style="font-size:12px;color:#94a3b8;margin:0 0 10px 0;line-height:1.6;">
       QVA → VVI → 돌파 성공 funnel의 각 단계가 과거 데이터에서 어떤 흐름을 보였는지 검증한 1년치 백테스팅 보고서들입니다.
       매수 추천이 아니라 모델 검증/분석 목적입니다.
@@ -1133,7 +1137,8 @@ const htmlTemplate = `<!DOCTYPE html>
       </a>
 
     </div>
-  </div>
+    </div>
+  </details>
 
   <div class="info-box" style="border-left-color:#34d399;background:#064e3b33;margin-top:14px;">
     <p style="color:#a7f3d0;"><strong>🌱 초기 QVA(Early QVA) 추가됨</strong></p>
@@ -1212,6 +1217,17 @@ const htmlTemplate = `<!DOCTYPE html>
       </div>
 
     </div>
+  </div>
+
+  <div id="global-search-wrap" style="background:#1e293b;border:2px solid #3b82f6;border-radius:8px;padding:14px 16px;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="color:#93c5fd;font-size:14px;font-weight:600;">🔍 전체 종목 검색</span>
+      <input id="global-search" type="text" placeholder="관심 종목명 또는 6자리 코드 입력 (예: 이노션, 214320)"
+        style="flex:1;min-width:240px;padding:8px 12px;background:#0f172a;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:13px;" />
+      <span id="global-search-status" style="color:#94a3b8;font-size:12px;"></span>
+      <button id="global-search-clear" style="padding:6px 12px;background:#334155;color:#cbd5e1;border:none;border-radius:6px;cursor:pointer;font-size:12px;">✕ 지우기</button>
+    </div>
+    <p style="margin:8px 0 0 0;font-size:11px;color:#94a3b8;">관심 종목이 이 보드의 어느 섹션에 있는지 한 번에 찾을 수 있습니다. 입력하면 모든 섹션의 행이 자동으로 필터링됩니다.</p>
   </div>
 
   <h2 class="h-section">단계별 후보 수 <span class="pill" id="total-pill"></span></h2>
@@ -1380,9 +1396,8 @@ const stageContent = {};
 function buildStageSection(stage) {
   const items = DATA.stages[stage] || [];
   const cols = COLS_BY_STAGE[stage] || [];
-  // 기본 펼침: BREAKOUT_SUCCESS, VVI_FIRED, QVA_NEW
-  // 기본 접힘: QVA_TRACKING (감시 풀 — 너무 많아 시야 분산), FAILED, EARLY_QVA (사용자 spec)
-  const collapsed = stage === 'FAILED' || stage === 'QVA_TRACKING' || stage === 'EARLY_QVA';
+  // 모든 섹션 기본 펼침으로 통일 (사용자 요청: "나머지 목록들은 다 펼침으로 가고 싶다 일관되게")
+  const collapsed = false;
   const sec = document.createElement('div');
   sec.className = 'stage-section' + (collapsed ? ' collapsed' : '') + (stage === 'QVA_TRACKING' ? ' q-tracking' : '') + (stage === 'EARLY_QVA' ? ' early-qva' : '');
   sec.dataset.stage = stage;
@@ -1665,6 +1680,67 @@ if (helpBtn && helpContent) {
       ? '📖 QVA / VVI / H그룹 설명 보기'
       : '📖 QVA / VVI / H그룹 설명 닫기';
   });
+}
+
+// ─── 전체 종목 검색 — 모든 stage-section 테이블 행 필터링 ───
+const globalSearch = document.getElementById('global-search');
+const globalSearchStatus = document.getElementById('global-search-status');
+const globalSearchClear = document.getElementById('global-search-clear');
+if (globalSearch) {
+  function applyGlobalSearch() {
+    const q = (globalSearch.value || '').trim().toLowerCase();
+    let totalRows = 0, matchRows = 0;
+    const matchByStage = {};
+    document.querySelectorAll('.stage-section').forEach(sec => {
+      const stage = sec.dataset.stage;
+      let secTotal = 0, secMatch = 0;
+      sec.querySelectorAll('table tbody tr').forEach(tr => {
+        secTotal++;
+        if (q.length === 0) {
+          tr.style.display = '';
+          secMatch++;
+          return;
+        }
+        const name = (tr.dataset.name || '').toLowerCase();
+        const code = (tr.dataset.code || '').toLowerCase();
+        // 데이터 attr 없는 경우 textContent로 fallback
+        const text = (name || code) ? '' : (tr.textContent || '').toLowerCase();
+        const match = name.includes(q) || code.includes(q) || text.includes(q);
+        tr.style.display = match ? '' : 'none';
+        if (match) secMatch++;
+      });
+      totalRows += secTotal;
+      matchRows += secMatch;
+      matchByStage[stage] = { total: secTotal, match: secMatch };
+      // 섹션 타이틀에 매칭 카운트 갱신 (일시적)
+      const matchPill = sec.querySelector('.search-match-pill');
+      if (matchPill) matchPill.remove();
+      if (q.length > 0 && secTotal > 0) {
+        const title = sec.querySelector('.h-section');
+        if (title) {
+          const pill = document.createElement('span');
+          pill.className = 'pill search-match-pill';
+          pill.style.cssText = 'background:' + (secMatch > 0 ? '#1e3a8a' : '#334155') + ';color:#fff;font-weight:600;';
+          pill.textContent = '🔍 ' + secMatch + '/' + secTotal;
+          title.appendChild(pill);
+        }
+      }
+    });
+    if (q.length === 0) {
+      globalSearchStatus.textContent = '';
+    } else {
+      globalSearchStatus.innerHTML = '전체 <strong style="color:#f1f5f9;">' + totalRows +
+        '</strong>건 중 <strong style="color:#6ee7b7;">' + matchRows + '</strong>건 매칭';
+    }
+  }
+  globalSearch.addEventListener('input', applyGlobalSearch);
+  if (globalSearchClear) {
+    globalSearchClear.addEventListener('click', () => {
+      globalSearch.value = '';
+      applyGlobalSearch();
+      globalSearch.focus();
+    });
+  }
 }
 
 // 단계 카드 클릭 — 해당 섹션으로 스크롤
