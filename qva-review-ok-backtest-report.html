@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REVIEW_OK 백테스트 — 검토가능 진입 승률</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif; margin: 0; padding: 24px; background: #0f172a; color: #e2e8f0; }
+  h1 { color: #f1f5f9; margin: 0 0 4px 0; font-size: 24px; }
+  h1 .sub { color: #94a3b8; font-size: 14px; font-weight: 400; margin-left: 6px; }
+  h2 { color: #f1f5f9; margin: 24px 0 8px 0; font-size: 17px; padding: 8px 0; border-bottom: 1px solid #334155; }
+  .subtitle { color: #94a3b8; font-size: 13px; margin-bottom: 12px; }
+
+  .nav { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .nav a { color: #93c5fd; text-decoration: none; font-size: 12px; padding: 6px 10px; background: #1e293b; border-radius: 6px; }
+  .nav a.active { background: #1e3a8a; color: #fff; }
+
+  .info-box { background: #1e293b; padding: 12px 16px; border-radius: 8px; margin-bottom: 14px; border-left: 3px solid #60a5fa; }
+  .info-box p { margin: 0 0 6px 0; font-size: 13px; line-height: 1.6; color: #cbd5e1; }
+  .info-box p:last-child { margin-bottom: 0; }
+  .info-box strong { color: #f1f5f9; }
+  .info-box .warn { color: #fbbf24; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 14px; }
+  .stat { background: #1e293b; padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; }
+  .stat .lbl { color: #94a3b8; font-size: 11px; }
+  .stat .val { color: #f1f5f9; font-size: 20px; font-weight: 700; margin-top: 2px; }
+  .stat.hi { border-left: 3px solid #10b981; }
+  .stat.lo { border-left: 3px solid #f87171; }
+  .stat.mid { border-left: 3px solid #fbbf24; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; background: #1e293b; border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
+  th { background: #334155; color: #f1f5f9; padding: 8px 10px; text-align: right; font-weight: 600; font-size: 12px; }
+  th.txt { text-align: left; }
+  td { padding: 7px 10px; border-bottom: 1px solid #0f172a; text-align: right; color: #cbd5e1; }
+  td.txt { text-align: left; }
+  tr:hover td { background: #263449; }
+  .pos { color: #6ee7b7; }
+  .neg { color: #f87171; }
+  .muted { color: #64748b; }
+  .hi-row { background: #14532d22; }
+  .market-K { color: #93c5fd; }
+  .market-Q { color: #fbbf24; }
+
+  .rule { background: #0f172a; padding: 10px 14px; border-radius: 6px; border: 1px solid #334155; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12px; line-height: 1.7; color: #cbd5e1; }
+  .rule code { color: #fbbf24; }
+</style>
+</head>
+<body>
+  <h1>REVIEW_OK 백테스트 <span class="sub">검토가능 진입 시점 승률 검증</span></h1>
+  <div class="subtitle" id="subtitle"></div>
+
+  <div class="nav">
+    <a href="/qva-watchlist">← QVA Watchlist</a>
+    <a href="/qva-vvi-breakout-entry-report">진입 검증 보고서</a>
+    <a href="/qva-vvi-breakout-exit-report">익절/청산 보고서</a>
+    <a href="/qva-review-ok-backtest-report" class="active">REVIEW_OK 백테스트</a>
+  </div>
+
+  <div class="info-box">
+    <p><strong>이 보고서가 답하는 질문:</strong> Watchlist 보드의 '돌파 성공 확인 종목' 중 진입 판단 상태가 <strong>검토가능(REVIEW_OK)</strong>인 시점에 매수했을 때, 단순 보유 기준 D+1~D+20 승률은 얼마인가?</p>
+    <p><strong>표본:</strong> H그룹(=돌파 성공 확인 종목) 이벤트를 (code, vviDate) 단위로 dedup. 각 이벤트마다 돌파일 D+0~D+2를 walk-forward해서 라이브 규칙 그대로 진입 판단 상태를 재계산하고, 최초 REVIEW_OK 일자 종가에 매수했다고 가정.</p>
+    <p class="warn">⚠️ 본 보고서는 매수 추천이 아닙니다. 단일 시장 사이클 데이터 기반이며, 손절·자금관리·시장 국면을 고려하지 않은 단순 보유 시뮬레이션입니다. 다른 국면에서도 동일하게 작동하는지는 추가 검증이 필요합니다.</p>
+  </div>
+
+  <h2>판정 규칙 (라이브 워치리스트와 동일)</h2>
+  <div class="rule">
+    <code>entryPrice = vviHigh × 1.01</code><br>
+    if <code>close &lt; entryPrice OR close &lt; vviHigh</code> → <strong>BREAKDOWN_WEAK (돌파약화)</strong><br>
+    elif <code>close ≥ entryPrice × 1.15</code> → <strong>MANAGEMENT (관리구간)</strong><br>
+    elif <code>close &gt; entryPrice × 1.07 OR daysFromBreakout ≥ 3</code> → <strong>PULLBACK_WAIT (눌림대기)</strong><br>
+    elif <code>close &gt; entryPrice × 1.03</code> → <strong>CHASE_CAUTION (추격주의)</strong><br>
+    else → <strong>REVIEW_OK (검토가능)</strong><br>
+    ⇒ 즉 검토가능 = 돌파일 기준 D+0~D+2 + 종가가 entryPrice 이상이면서 +3% 이내
+  </div>
+
+  <h2>요약</h2>
+  <div class="summary-grid" id="summary-grid"></div>
+
+  <h2>D+0~D+2 진입 판단 상태 분포</h2>
+  <p class="subtitle">각 H그룹 이벤트의 돌파일/D+1/D+2 종가에 대해 라이브 규칙으로 분류한 분포.</p>
+  <table id="dist-table"><thead><tr>
+    <th class="txt">상태</th><th>D+0</th><th>D+1</th><th>D+2</th>
+  </tr></thead><tbody id="dist-tbody"></tbody></table>
+
+  <h2>코호트별 성과 비교</h2>
+  <p class="subtitle">REVIEW_OK 코호트 = 첫 검토가능 일자 종가에 매수. 비교 = H그룹 전체 돌파일 종가에 매수.</p>
+  <table id="cohort-table"><thead><tr>
+    <th class="txt">코호트</th><th class="txt">기간</th>
+    <th>N</th><th>승률</th><th>평균%</th><th>중앙값%</th><th>최대</th><th>최저</th><th>+10%↑</th><th>-7%↓</th>
+  </tr></thead><tbody id="cohort-tbody"></tbody></table>
+
+  <h2>MFE / MAE (10거래일 윈도우)</h2>
+  <table id="mfe-table"><thead><tr>
+    <th class="txt">코호트</th><th class="txt">지표</th><th>평균</th><th>중앙</th><th>Q75 / Q25</th><th>Q90 / Q10</th>
+  </tr></thead><tbody id="mfe-tbody"></tbody></table>
+
+  <h2>REVIEW_OK 진입 일자 / 미도달 사유</h2>
+  <div class="summary-grid" id="entry-dist"></div>
+
+  <h2>TOP 5 사례 (REVIEW_OK, D+10 수익률 상위)</h2>
+  <table id="top-table"><thead><tr>
+    <th class="txt">종목</th><th class="txt">QVA일</th><th class="txt">VVI일</th><th class="txt">돌파일</th><th class="txt">매수일</th>
+    <th>D+0~+</th><th>매수가</th><th>D+5</th><th>D+10</th><th>D+20</th><th>MFE10</th><th>MAE10</th>
+  </tr></thead><tbody id="top-tbody"></tbody></table>
+
+  <h2>WORST 5 사례 (REVIEW_OK, D+10 수익률 하위)</h2>
+  <table id="worst-table"><thead><tr>
+    <th class="txt">종목</th><th class="txt">QVA일</th><th class="txt">VVI일</th><th class="txt">돌파일</th><th class="txt">매수일</th>
+    <th>D+0~+</th><th>매수가</th><th>D+5</th><th>D+10</th><th>D+20</th><th>MFE10</th><th>MAE10</th>
+  </tr></thead><tbody id="worst-tbody"></tbody></table>
+
+  <h2>전체 진입 내역 (56건)</h2>
+  <table id="all-table"><thead><tr>
+    <th class="txt">종목</th><th class="txt">QVA일</th><th class="txt">VVI일</th><th class="txt">돌파일</th><th class="txt">매수일</th>
+    <th>D+0~+</th><th>매수가</th><th>D+1</th><th>D+5</th><th>D+10</th><th>D+20</th><th>MFE10</th><th>MAE10</th>
+  </tr></thead><tbody id="all-tbody"></tbody></table>
+
+<script>
+(function rewriteNavForFileProtocol(){
+  if (location.protocol !== 'file:') return;
+  const map = {
+    '/qva-watchlist': 'qva-watchlist-board.html',
+    '/qva-vvi-breakout-entry-report': 'qva-vvi-breakout-entry-report.html',
+    '/qva-vvi-breakout-exit-report': 'qva-vvi-breakout-exit-report.html',
+    '/qva-review-ok-backtest-report': 'qva-review-ok-backtest-report.html',
+  };
+  document.querySelectorAll('a[href]').forEach(a => {
+    const h = a.getAttribute('href');
+    if (map[h]) a.setAttribute('href', map[h]);
+  });
+})();
+
+const DATA = {"meta":{"purpose":"H그룹 중 진입 판단 상태가 REVIEW_OK(검토가능)인 시점에 매수했을 때의 승률 백테스트","notice":"본 보고서는 매수 추천이 아닙니다. 단일 시장 사이클 데이터 기반.","scanStart":"20250401","scanEnd":"20260319","forwardHorizons":[1,3,5,10,20],"judgmentRule":{"entryPrice":"vviHigh × 1.01","REVIEW_OK":"entryPrice ≤ close ≤ entryPrice × 1.03 AND daysFromBreakout ≤ 2","CHASE_CAUTION":"entryPrice × 1.03 < close ≤ entryPrice × 1.07","PULLBACK_WAIT":"close > entryPrice × 1.07 OR daysFromBreakout ≥ 3","MANAGEMENT":"close ≥ entryPrice × 1.15","BREAKDOWN_WEAK":"close < entryPrice OR close < vviHigh"},"generatedAt":"2026-05-03T12:42:09.014Z"},"hGroupRawCount":180,"hGroupCount":93,"reviewOkSummary":{"count":56,"byHorizon":{"1":{"n":56,"winRate":51.79,"mean":1.56,"median":0.9,"max":19.93,"min":-8.66,"win10pctRate":7.14,"loss7pctRate":1.79},"3":{"n":56,"winRate":57.14,"mean":3.05,"median":1.08,"max":29.62,"min":-17.58,"win10pctRate":17.86,"loss7pctRate":8.93},"5":{"n":56,"winRate":53.57,"mean":3.76,"median":1.08,"max":41.8,"min":-17.4,"win10pctRate":21.43,"loss7pctRate":12.5},"10":{"n":56,"winRate":71.43,"mean":6.62,"median":5.19,"max":54.82,"min":-23.59,"win10pctRate":35.71,"loss7pctRate":10.71},"20":{"n":56,"winRate":71.43,"mean":14.12,"median":12.49,"max":87.05,"min":-31.36,"win10pctRate":53.57,"loss7pctRate":17.86}},"mfe10":{"mean":18.3,"median":13.77,"q75":22.56,"q90":41.03},"mae10":{"mean":-5.61,"median":-4.83,"q25":-7.44,"q10":-12.56}},"breakoutSummary":{"count":93,"byHorizon":{"1":{"n":93,"winRate":55.91,"mean":2.06,"median":0.96,"max":19.93,"min":-8.66,"win10pctRate":9.68,"loss7pctRate":1.08},"3":{"n":93,"winRate":65.59,"mean":5.28,"median":2.89,"max":48.78,"min":-17.58,"win10pctRate":25.81,"loss7pctRate":5.38},"5":{"n":93,"winRate":60.22,"mean":5.47,"median":2.69,"max":69.18,"min":-17.4,"win10pctRate":27.96,"loss7pctRate":13.98},"10":{"n":93,"winRate":67.74,"mean":7.09,"median":5.91,"max":50.22,"min":-23.59,"win10pctRate":35.48,"loss7pctRate":12.9},"20":{"n":93,"winRate":70.97,"mean":15.06,"median":11.64,"max":97.51,"min":-31.36,"win10pctRate":53.76,"loss7pctRate":17.2}},"mfe10":{"mean":20.33,"median":15.53,"q75":27.36,"q90":45.79},"mae10":{"mean":-5.79,"median":-4.53,"q25":-7.64,"q10":-13.99}},"qvaOnlySummary":{"count":5233,"byHorizon":{"1":{"n":5233,"winRate":45.82,"mean":0.1,"median":-0.18,"max":30,"min":-25.41,"win10pctRate":2.5,"loss7pctRate":3.29},"3":{"n":5233,"winRate":47.24,"mean":0.7,"median":-0.25,"max":68.97,"min":-32.3,"win10pctRate":8.05,"loss7pctRate":8.87},"5":{"n":5233,"winRate":48.61,"mean":1.4,"median":-0.15,"max":179.82,"min":-44.78,"win10pctRate":12.5,"loss7pctRate":13.53},"10":{"n":5233,"winRate":51.67,"mean":3.16,"median":0.44,"max":410.7,"min":-40.06,"win10pctRate":20.39,"loss7pctRate":18.04},"20":{"n":5233,"winRate":56.18,"mean":7.46,"median":2.24,"max":625.38,"min":-41.21,"win10pctRate":31.68,"loss7pctRate":22.19}},"mfe10":{"mean":12.64,"median":7.57,"q75":15.81,"q90":28.81},"mae10":{"mean":-6.98,"median":-5.51,"q25":-9.8,"q10":-15.51}},"judgmentDist":{"D0":{"MANAGEMENT":4,"CHASE_CAUTION":17,"PULLBACK_WAIT":8,"BREAKDOWN_WEAK":21,"REVIEW_OK":43},"D1":{"MANAGEMENT":10,"REVIEW_OK":20,"PULLBACK_WAIT":16,"BREAKDOWN_WEAK":26,"CHASE_CAUTION":21},"D2":{"MANAGEMENT":14,"PULLBACK_WAIT":19,"CHASE_CAUTION":15,"REVIEW_OK":19,"BREAKDOWN_WEAK":26}},"buyDayDist":{"0":43,"1":9,"2":4},"reasonsNoReviewOk":{"weak":12,"chase":13,"pullback":8,"mgmt":4},"skip":{"skippedNoChart":0,"skippedNoIdx":0,"skippedNoForward":0},"top5":[{"code":"092870","name":"엑시콘","market":"KOSDAQ","qvaSignalDate":"20260105","vviDate":"20260121","breakoutDate":"20260122","buyDate":"20260123","daysFromBreakout":1,"vviHigh":17620,"entryPrice":17796.2,"buyPrice":18150,"d1":15.15,"d3":26.45,"d5":34.99,"d10":54.82,"d20":72.18,"mfe10":64.19,"mae10":-2.2},{"code":"204320","name":"HL만도","market":"KOSPI","qvaSignalDate":"20251030","vviDate":"20251119","breakoutDate":"20251120","buyDate":"20251120","daysFromBreakout":0,"vviHigh":39200,"entryPrice":39592,"buyPrice":39600,"d1":-0.63,"d3":4.55,"d5":8.84,"d10":36.62,"d20":29.55,"mfe10":46.46,"mae10":-2.9},{"code":"017670","name":"SK텔레콤","market":"KOSPI","qvaSignalDate":"20260113","vviDate":"20260119","breakoutDate":"20260120","buyDate":"20260121","daysFromBreakout":1,"vviHigh":59600,"entryPrice":60196,"buyPrice":61000,"d1":1.15,"d3":1.31,"d5":13.11,"d10":27.7,"d20":31.31,"mfe10":30.16,"mae10":-0.16},{"code":"036930","name":"주성엔지니어링","market":"KOSDAQ","qvaSignalDate":"20260106","vviDate":"20260127","breakoutDate":"20260128","buyDate":"20260128","daysFromBreakout":0,"vviHigh":37300,"entryPrice":37673,"buyPrice":38350,"d1":1.17,"d3":6.52,"d5":25.16,"d10":27.51,"d20":53.85,"mfe10":35.59,"mae10":-5.61},{"code":"003280","name":"흥아해운","market":"KOSPI","qvaSignalDate":"20260128","vviDate":"20260219","breakoutDate":"20260220","buyDate":"20260220","daysFromBreakout":0,"vviHigh":1878,"entryPrice":1896.78,"buyPrice":1938,"d1":1.34,"d3":-2.94,"d5":-7.33,"d10":26.42,"d20":87.05,"mfe10":69.76,"mae10":-7.38}],"worst5":[{"code":"226950","name":"올릭스","market":"KOSDAQ","qvaSignalDate":"20250529","vviDate":"20250530","breakoutDate":"20250602","buyDate":"20250602","daysFromBreakout":0,"vviHigh":54800,"entryPrice":55348,"buyPrice":56600,"d1":-8.66,"d3":-17.58,"d5":-17.4,"d10":-23.59,"d20":-31.36,"mfe10":-3.18,"mae10":-27.92},{"code":"003550","name":"LG","market":"KOSPI","qvaSignalDate":"20260129","vviDate":"20260226","breakoutDate":"20260227","buyDate":"20260227","daysFromBreakout":0,"vviHigh":104200,"entryPrice":105242,"buyPrice":107700,"d1":-4.83,"d3":-10.12,"d5":-17.08,"d10":-17.73,"d20":-21.26,"mfe10":0.09,"mae10":-19.22},{"code":"052690","name":"한전기술","market":"KOSPI","qvaSignalDate":"20251205","vviDate":"20251211","breakoutDate":"20251212","buyDate":"20251212","daysFromBreakout":0,"vviHigh":102000,"entryPrice":103020,"buyPrice":103900,"d1":-6.74,"d3":-11.36,"d5":-13.57,"d10":-13.09,"d20":12.42,"mfe10":-0.19,"mae10":-14.53},{"code":"247540","name":"에코프로비엠","market":"KOSDAQ","qvaSignalDate":"20251201","vviDate":"20251208","breakoutDate":"20251209","buyDate":"20251210","daysFromBreakout":1,"vviHigh":174600,"entryPrice":176346,"buyPrice":179500,"d1":-3.18,"d3":0.11,"d5":-7.63,"d10":-12.14,"d20":-15.71,"mfe10":1.34,"mae10":-17.72},{"code":"464080","name":"에스오에스랩","market":"KOSDAQ","qvaSignalDate":"20250814","vviDate":"20250912","breakoutDate":"20250915","buyDate":"20250915","daysFromBreakout":0,"vviHigh":11310,"entryPrice":11423.1,"buyPrice":11450,"d1":1.66,"d3":4.19,"d5":0,"d10":-11.88,"d20":-14.76,"mfe10":7.86,"mae10":-11.88}],"reviewOkEntries":[{"code":"092870","name":"엑시콘","market":"KOSDAQ","qvaSignalDate":"20260105","vviDate":"20260121","breakoutDate":"20260122","buyDate":"20260123","daysFromBreakout":1,"vviHigh":17620,"entryPrice":17796.2,"buyPrice":18150,"d1":15.15,"d3":26.45,"d5":34.99,"d10":54.82,"d20":72.18,"mfe10":64.19,"mae10":-2.2},{"code":"204320","name":"HL만도","market":"KOSPI","qvaSignalDate":"20251030","vviDate":"20251119","breakoutDate":"20251120","buyDate":"20251120","daysFromBreakout":0,"vviHigh":39200,"entryPrice":39592,"buyPrice":39600,"d1":-0.63,"d3":4.55,"d5":8.84,"d10":36.62,"d20":29.55,"mfe10":46.46,"mae10":-2.9},{"code":"036930","name":"주성엔지니어링","market":"KOSDAQ","qvaSignalDate":"20260106","vviDate":"20260127","breakoutDate":"20260128","buyDate":"20260128","daysFromBreakout":0,"vviHigh":37300,"entryPrice":37673,"buyPrice":38350,"d1":1.17,"d3":6.52,"d5":25.16,"d10":27.51,"d20":53.85,"mfe10":35.59,"mae10":-5.61},{"code":"003280","name":"흥아해운","market":"KOSPI","qvaSignalDate":"20260128","vviDate":"20260219","breakoutDate":"20260220","buyDate":"20260220","daysFromBreakout":0,"vviHigh":1878,"entryPrice":1896.78,"buyPrice":1938,"d1":1.34,"d3":-2.94,"d5":-7.33,"d10":26.42,"d20":87.05,"mfe10":69.76,"mae10":-7.38},{"code":"039490","name":"키움증권","market":"KOSPI","qvaSignalDate":"20260122","vviDate":"20260123","breakoutDate":"20260126","buyDate":"20260126","daysFromBreakout":0,"vviHigh":345000,"entryPrice":348450,"buyPrice":358500,"d1":8.93,"d3":18.83,"d5":16.32,"d10":23.71,"d20":31.52,"mfe10":30.96,"mae10":-2.09},{"code":"005830","name":"DB손해보험","market":"KOSPI","qvaSignalDate":"20260108","vviDate":"20260204","breakoutDate":"20260205","buyDate":"20260205","daysFromBreakout":0,"vviHigh":157500,"entryPrice":159075,"buyPrice":159700,"d1":2.76,"d3":7.58,"d5":16.91,"d10":22.73,"d20":14.72,"mfe10":34,"mae10":-2.63},{"code":"017670","name":"SK텔레콤","market":"KOSPI","qvaSignalDate":"20260113","vviDate":"20260119","breakoutDate":"20260120","buyDate":"20260121","daysFromBreakout":1,"vviHigh":59600,"entryPrice":60196,"buyPrice":61000,"d1":1.15,"d3":1.31,"d5":13.11,"d10":27.7,"d20":31.31,"mfe10":30.16,"mae10":-0.16},{"code":"166090","name":"하나머티리얼즈","market":"KOSDAQ","qvaSignalDate":"20260105","vviDate":"20260114","breakoutDate":"20260115","buyDate":"20260115","daysFromBreakout":0,"vviHigh":52800,"entryPrice":53328,"buyPrice":53500,"d1":2.43,"d3":-2.8,"d5":-0.19,"d10":21.68,"d20":13.27,"mfe10":27.66,"mae10":-6.17},{"code":"095610","name":"테스","market":"KOSDAQ","qvaSignalDate":"20251229","vviDate":"20260126","breakoutDate":"20260127","buyDate":"20260127","daysFromBreakout":0,"vviHigh":54600,"entryPrice":55146,"buyPrice":55700,"d1":19.93,"d3":29.62,"d5":26.21,"d10":19.39,"d20":32.14,"mfe10":47.04,"mae10":8.44},{"code":"004170","name":"신세계","market":"KOSPI","qvaSignalDate":"20260114","vviDate":"20260128","breakoutDate":"20260129","buyDate":"20260129","daysFromBreakout":0,"vviHigh":302500,"entryPrice":305525,"buyPrice":307000,"d1":4.07,"d3":4.89,"d5":7.33,"d10":18.89,"d20":4.23,"mfe10":27.36,"mae10":-1.79},{"code":"128940","name":"한미약품","market":"KOSPI","qvaSignalDate":"20260106","vviDate":"20260123","breakoutDate":"20260126","buyDate":"20260126","daysFromBreakout":0,"vviHigh":470500,"entryPrice":475205,"buyPrice":481000,"d1":-1.25,"d3":4.99,"d5":-2.91,"d10":17.05,"d20":23.49,"mfe10":18.92,"mae10":-3.74},{"code":"033100","name":"제룡전기","market":"KOSDAQ","qvaSignalDate":"20260112","vviDate":"20260128","breakoutDate":"20260129","buyDate":"20260129","daysFromBreakout":0,"vviHigh":43950,"entryPrice":44389.5,"buyPrice":44500,"d1":9.78,"d3":7.08,"d5":41.8,"d10":17.53,"d20":-3.37,"mfe10":57.53,"mae10":-2.36},{"code":"047050","name":"포스코인터내셔널","market":"KOSPI","qvaSignalDate":"20251211","vviDate":"20260113","breakoutDate":"20260114","buyDate":"20260114","daysFromBreakout":0,"vviHigh":54000,"entryPrice":54540,"buyPrice":55200,"d1":4.53,"d3":13.22,"d5":13.04,"d10":15.76,"d20":17.21,"mfe10":21.92,"mae10":0.91},{"code":"178320","name":"서진시스템","market":"KOSDAQ","qvaSignalDate":"20250912","vviDate":"20251015","breakoutDate":"20251016","buyDate":"20251016","daysFromBreakout":0,"vviHigh":24500,"entryPrice":24745,"buyPrice":25450,"d1":-1.96,"d3":5.7,"d5":3.34,"d10":13.36,"d20":-3.34,"mfe10":22,"mae10":-2.95},{"code":"088350","name":"한화생명","market":"KOSPI","qvaSignalDate":"20260115","vviDate":"20260210","breakoutDate":"20260211","buyDate":"20260211","daysFromBreakout":0,"vviHigh":4155,"entryPrice":4196.55,"buyPrice":4255,"d1":5.64,"d3":19.39,"d5":40.31,"d10":12.93,"d20":12.57,"mfe10":77.67,"mae10":1.18},{"code":"121600","name":"나노신소재","market":"KOSDAQ","qvaSignalDate":"20260120","vviDate":"20260122","breakoutDate":"20260123","buyDate":"20260123","daysFromBreakout":0,"vviHigh":56000,"entryPrice":56560,"buyPrice":57300,"d1":17.45,"d3":25.31,"d5":20.59,"d10":11.87,"d20":24.96,"mfe10":31.76,"mae10":7.68},{"code":"034020","name":"두산에너빌리티","market":"KOSPI","qvaSignalDate":"20251216","vviDate":"20260105","breakoutDate":"20260106","buyDate":"20260106","daysFromBreakout":0,"vviHigh":83300,"entryPrice":84133,"buyPrice":85900,"d1":-2.21,"d3":-1.98,"d5":1.28,"d10":10.94,"d20":6.17,"mfe10":14.2,"mae10":-3.14},{"code":"353200","name":"대덕전자","market":"KOSPI","qvaSignalDate":"20250905","vviDate":"20250909","breakoutDate":"20250910","buyDate":"20250910","daysFromBreakout":0,"vviHigh":25500,"entryPrice":25755,"buyPrice":25950,"d1":-1.16,"d3":2.89,"d5":3.08,"d10":12.14,"d20":26.59,"mfe10":12.52,"mae10":-1.93},{"code":"033780","name":"KT&G","market":"KOSPI","qvaSignalDate":"20260113","vviDate":"20260130","breakoutDate":"20260202","buyDate":"20260203","daysFromBreakout":1,"vviHigh":153900,"entryPrice":155439,"buyPrice":157700,"d1":2.6,"d3":3.55,"d5":9.07,"d10":12.3,"d20":-2.6,"mfe10":14.65,"mae10":-1.71},{"code":"005880","name":"대한해운","market":"KOSPI","qvaSignalDate":"20260121","vviDate":"20260128","breakoutDate":"20260129","buyDate":"20260129","daysFromBreakout":0,"vviHigh":1966,"entryPrice":1985.66,"buyPrice":2015,"d1":-3.08,"d3":1.99,"d5":6.45,"d10":9.68,"d20":10.67,"mfe10":13.9,"mae10":-5.66},{"code":"001200","name":"유진투자증권","market":"KOSPI","qvaSignalDate":"20260106","vviDate":"20260123","breakoutDate":"20260126","buyDate":"20260126","daysFromBreakout":0,"vviHigh":3755,"entryPrice":3792.55,"buyPrice":3795,"d1":1.32,"d3":13.57,"d5":4.61,"d10":10.67,"d20":45.19,"mfe10":24.24,"mae10":-1.84},{"code":"001120","name":"LX인터내셔널","market":"KOSPI","qvaSignalDate":"20251212","vviDate":"20260114","breakoutDate":"20260115","buyDate":"20260116","daysFromBreakout":1,"vviHigh":34400,"entryPrice":34744,"buyPrice":35650,"d1":1.54,"d3":0.84,"d5":1.4,"d10":7.29,"d20":27.91,"mfe10":10.24,"mae10":-1.82},{"code":"336370","name":"솔루스첨단소재","market":"KOSPI","qvaSignalDate":"20260122","vviDate":"20260128","breakoutDate":"20260129","buyDate":"20260129","daysFromBreakout":0,"vviHigh":8390,"entryPrice":8473.9,"buyPrice":8600,"d1":-5.23,"d3":-6.74,"d5":-7.56,"d10":6.4,"d20":-17.56,"mfe10":9.65,"mae10":-14.07},{"code":"034730","name":"SK","market":"KOSPI","qvaSignalDate":"20260107","vviDate":"20260114","breakoutDate":"20260115","buyDate":"20260115","daysFromBreakout":0,"vviHigh":297500,"entryPrice":300475,"buyPrice":301500,"d1":-0.83,"d3":-2.16,"d5":-3.32,"d10":7.46,"d20":13.6,"mfe10":9.45,"mae10":-5.64},{"code":"005850","name":"에스엘","market":"KOSPI","qvaSignalDate":"20251030","vviDate":"20251127","breakoutDate":"20251128","buyDate":"20251128","daysFromBreakout":0,"vviHigh":40500,"entryPrice":40905,"buyPrice":41400,"d1":-2.66,"d3":5.92,"d5":10.27,"d10":6.4,"d20":3.26,"mfe10":19.81,"mae10":-3.62},{"code":"272210","name":"한화시스템","market":"KOSPI","qvaSignalDate":"20251215","vviDate":"20251219","breakoutDate":"20251222","buyDate":"20251222","daysFromBreakout":0,"vviHigh":55800,"entryPrice":56358,"buyPrice":56800,"d1":3.52,"d3":-3.7,"d5":-4.23,"d10":6.16,"d20":55.46,"mfe10":9.51,"mae10":-4.58},{"code":"214150","name":"클래시스","market":"KOSDAQ","qvaSignalDate":"20260102","vviDate":"20260123","breakoutDate":"20260126","buyDate":"20260126","daysFromBreakout":0,"vviHigh":62800,"entryPrice":63428,"buyPrice":64900,"d1":-1.54,"d3":16.49,"d5":12.02,"d10":4.47,"d20":-9.24,"mfe10":19.57,"mae10":-3.08},{"code":"166090","name":"하나머티리얼즈","market":"KOSDAQ","qvaSignalDate":"20251204","vviDate":"20260105","breakoutDate":"20260106","buyDate":"20260106","daysFromBreakout":0,"vviHigh":48300,"entryPrice":48783,"buyPrice":49100,"d1":3.26,"d3":-7.03,"d5":-5.7,"d10":5.91,"d20":31.98,"mfe10":19.96,"mae10":-7.64},{"code":"011780","name":"금호석유화학","market":"KOSPI","qvaSignalDate":"20251217","vviDate":"20260112","breakoutDate":"20260113","buyDate":"20260115","daysFromBreakout":2,"vviHigh":137700,"entryPrice":139077,"buyPrice":142400,"d1":-1.62,"d3":0,"d5":1.97,"d10":1.76,"d20":3.23,"mfe10":7.58,"mae10":-3.09},{"code":"090430","name":"아모레퍼시픽","market":"KOSPI","qvaSignalDate":"20260107","vviDate":"20260122","breakoutDate":"20260123","buyDate":"20260123","daysFromBreakout":0,"vviHigh":128500,"entryPrice":129785,"buyPrice":133300,"d1":-1.28,"d3":0.45,"d5":4.13,"d10":3,"d20":17.78,"mfe10":7.28,"mae10":-2.1},{"code":"425420","name":"티에프이","market":"KOSDAQ","qvaSignalDate":"20260128","vviDate":"20260204","breakoutDate":"20260205","buyDate":"20260206","daysFromBreakout":1,"vviHigh":41200,"entryPrice":41612,"buyPrice":42400,"d1":1.53,"d3":9.43,"d5":3.42,"d10":0.12,"d20":36.08,"mfe10":14.74,"mae10":-0.94},{"code":"171090","name":"선익시스템","market":"KOSDAQ","qvaSignalDate":"20250911","vviDate":"20250924","breakoutDate":"20250925","buyDate":"20250925","daysFromBreakout":0,"vviHigh":44350,"entryPrice":44793.5,"buyPrice":45700,"d1":-4.6,"d3":2.08,"d5":0.88,"d10":1.86,"d20":12.91,"mfe10":5.47,"mae10":-5.91},{"code":"078600","name":"대주전자재료","market":"KOSDAQ","qvaSignalDate":"20260120","vviDate":"20260122","breakoutDate":"20260123","buyDate":"20260123","daysFromBreakout":0,"vviHigh":68400,"entryPrice":69084,"buyPrice":70500,"d1":7.94,"d3":11.63,"d5":7.52,"d10":1.42,"d20":37.3,"mfe10":16.31,"mae10":-0.85},{"code":"012330","name":"현대모비스","market":"KOSPI","qvaSignalDate":"20251202","vviDate":"20251204","breakoutDate":"20251205","buyDate":"20251205","daysFromBreakout":0,"vviHigh":351000,"entryPrice":354510,"buyPrice":362500,"d1":0,"d3":-0.14,"d5":4.14,"d10":1.1,"d20":8.28,"mfe10":5.66,"mae10":-4.28},{"code":"403870","name":"HPSP","market":"KOSDAQ","qvaSignalDate":"20251226","vviDate":"20251229","breakoutDate":"20251230","buyDate":"20260102","daysFromBreakout":1,"vviHigh":33300,"entryPrice":33633,"buyPrice":34450,"d1":1.6,"d3":-3.63,"d5":-3.92,"d10":3.77,"d20":34.98,"mfe10":13.64,"mae10":-5.08},{"code":"036930","name":"주성엔지니어링","market":"KOSDAQ","qvaSignalDate":"20251212","vviDate":"20260102","breakoutDate":"20260105","buyDate":"20260105","daysFromBreakout":0,"vviHigh":30550,"entryPrice":30855.5,"buyPrice":31200,"d1":4.01,"d3":12.02,"d5":4.81,"d10":1.44,"d20":30.93,"mfe10":15.06,"mae10":-2.24},{"code":"307180","name":"아이엘","market":"KOSDAQ","qvaSignalDate":"20251208","vviDate":"20251218","breakoutDate":"20251219","buyDate":"20251223","daysFromBreakout":2,"vviHigh":3350,"entryPrice":3383.5,"buyPrice":3400,"d1":-0.59,"d3":-8.38,"d5":-9.26,"d10":9.41,"d20":12.94,"mfe10":20.88,"mae10":-13.24},{"code":"003030","name":"세아제강지주","market":"KOSPI","qvaSignalDate":"20260121","vviDate":"20260122","breakoutDate":"20260123","buyDate":"20260123","daysFromBreakout":0,"vviHigh":132700,"entryPrice":134027,"buyPrice":137900,"d1":0.65,"d3":-1.89,"d5":-1.38,"d10":-1.02,"d20":6.09,"mfe10":6.53,"mae10":-7.32},{"code":"425040","name":"티이엠씨","market":"KOSDAQ","qvaSignalDate":"20260107","vviDate":"20260128","breakoutDate":"20260129","buyDate":"20260129","daysFromBreakout":0,"vviHigh":9420,"entryPrice":9514.2,"buyPrice":9540,"d1":4.72,"d3":6.6,"d5":-0.63,"d10":0.73,"d20":-18.87,"mfe10":8.39,"mae10":-6.6},{"code":"403870","name":"HPSP","market":"KOSDAQ","qvaSignalDate":"20251230","vviDate":"20260102","breakoutDate":"20260105","buyDate":"20260105","daysFromBreakout":0,"vviHigh":34500,"entryPrice":34845,"buyPrice":35000,"d1":11.86,"d3":-1.71,"d5":-4,"d10":0.29,"d20":21.86,"mfe10":11.86,"mae10":-6.57},{"code":"006360","name":"GS건설","market":"KOSPI","qvaSignalDate":"20260130","vviDate":"20260210","breakoutDate":"20260211","buyDate":"20260211","daysFromBreakout":0,"vviHigh":21450,"entryPrice":21664.5,"buyPrice":21950,"d1":-1.14,"d3":1.82,"d5":5.01,"d10":-2.73,"d20":0.23,"mfe10":10.71,"mae10":-2.96},{"code":"082920","name":"비츠로셀","market":"KOSDAQ","qvaSignalDate":"20250516","vviDate":"20250521","breakoutDate":"20250522","buyDate":"20250526","daysFromBreakout":2,"vviHigh":14761,"entryPrice":14908.61,"buyPrice":15089,"d1":0,"d3":-3.34,"d5":-4.18,"d10":2.01,"d20":-5.51,"mfe10":4.02,"mae10":-8.36},{"code":"009830","name":"한화솔루션","market":"KOSPI","qvaSignalDate":"20251212","vviDate":"20260113","breakoutDate":"20260114","buyDate":"20260115","daysFromBreakout":1,"vviHigh":28850,"entryPrice":29138.5,"buyPrice":29600,"d1":-3.21,"d3":-5.07,"d5":-5.07,"d10":-2.53,"d20":60.64,"mfe10":2.7,"mae10":-9.12},{"code":"192080","name":"더블유게임즈","market":"KOSPI","qvaSignalDate":"20260202","vviDate":"20260206","breakoutDate":"20260209","buyDate":"20260209","daysFromBreakout":0,"vviHigh":55700,"entryPrice":56257,"buyPrice":56600,"d1":-0.35,"d3":-2.3,"d5":-4.59,"d10":-3.71,"d20":-10.78,"mfe10":1.59,"mae10":-6.01},{"code":"000270","name":"기아","market":"KOSPI","qvaSignalDate":"20251204","vviDate":"20251205","breakoutDate":"20251208","buyDate":"20251208","daysFromBreakout":0,"vviHigh":123800,"entryPrice":125038,"buyPrice":125600,"d1":-1.43,"d3":-2.15,"d5":-1.27,"d10":-3.58,"d20":-0.56,"mfe10":0.64,"mae10":-5.89},{"code":"394280","name":"오픈엣지테크놀로지","market":"KOSDAQ","qvaSignalDate":"20260129","vviDate":"20260209","breakoutDate":"20260210","buyDate":"20260210","daysFromBreakout":0,"vviHigh":16400,"entryPrice":16564,"buyPrice":16740,"d1":3.7,"d3":0.6,"d5":0.24,"d10":-4.78,"d20":-8.24,"mfe10":17.98,"mae10":-10.04},{"code":"051600","name":"한전KPS","market":"KOSPI","qvaSignalDate":"20260114","vviDate":"20260116","breakoutDate":"20260119","buyDate":"20260121","daysFromBreakout":2,"vviHigh":56300,"entryPrice":56863,"buyPrice":58000,"d1":-0.34,"d3":-1.72,"d5":-0.34,"d10":0,"d20":8.79,"mfe10":13.62,"mae10":-6.9},{"code":"077970","name":"STX엔진","market":"KOSPI","qvaSignalDate":"20251224","vviDate":"20260109","breakoutDate":"20260112","buyDate":"20260112","daysFromBreakout":0,"vviHigh":38950,"entryPrice":39339.5,"buyPrice":39800,"d1":-3.02,"d3":-3.64,"d5":-5.28,"d10":-6.53,"d20":-20.48,"mfe10":0.25,"mae10":-10.43},{"code":"353200","name":"대덕전자","market":"KOSPI","qvaSignalDate":"20250430","vviDate":"20250512","breakoutDate":"20250513","buyDate":"20250513","daysFromBreakout":0,"vviHigh":15140,"entryPrice":15291.4,"buyPrice":15430,"d1":2.07,"d3":-2.72,"d5":-4.47,"d10":-6.35,"d20":5.12,"mfe10":4.34,"mae10":-7},{"code":"035720","name":"카카오","market":"KOSPI","qvaSignalDate":"20260107","vviDate":"20260123","breakoutDate":"20260126","buyDate":"20260127","daysFromBreakout":1,"vviHigh":61300,"entryPrice":61913,"buyPrice":62200,"d1":-0.64,"d3":-1.29,"d5":-4.82,"d10":-6.27,"d20":0.16,"mfe10":1.61,"mae10":-10.77},{"code":"035420","name":"NAVER","market":"KOSPI","qvaSignalDate":"20260106","vviDate":"20260123","breakoutDate":"20260126","buyDate":"20260126","daysFromBreakout":0,"vviHigh":269500,"entryPrice":272195,"buyPrice":272500,"d1":3.3,"d3":5.32,"d5":-1.65,"d10":-8.26,"d20":-4.4,"mfe10":7.16,"mae10":-10.46},{"code":"247540","name":"에코프로비엠","market":"KOSDAQ","qvaSignalDate":"20251201","vviDate":"20251208","breakoutDate":"20251209","buyDate":"20251210","daysFromBreakout":1,"vviHigh":174600,"entryPrice":176346,"buyPrice":179500,"d1":-3.18,"d3":0.11,"d5":-7.63,"d10":-12.14,"d20":-15.71,"mfe10":1.34,"mae10":-17.72},{"code":"464080","name":"에스오에스랩","market":"KOSDAQ","qvaSignalDate":"20250814","vviDate":"20250912","breakoutDate":"20250915","buyDate":"20250915","daysFromBreakout":0,"vviHigh":11310,"entryPrice":11423.1,"buyPrice":11450,"d1":1.66,"d3":4.19,"d5":0,"d10":-11.88,"d20":-14.76,"mfe10":7.86,"mae10":-11.88},{"code":"052690","name":"한전기술","market":"KOSPI","qvaSignalDate":"20251205","vviDate":"20251211","breakoutDate":"20251212","buyDate":"20251212","daysFromBreakout":0,"vviHigh":102000,"entryPrice":103020,"buyPrice":103900,"d1":-6.74,"d3":-11.36,"d5":-13.57,"d10":-13.09,"d20":12.42,"mfe10":-0.19,"mae10":-14.53},{"code":"003550","name":"LG","market":"KOSPI","qvaSignalDate":"20260129","vviDate":"20260226","breakoutDate":"20260227","buyDate":"20260227","daysFromBreakout":0,"vviHigh":104200,"entryPrice":105242,"buyPrice":107700,"d1":-4.83,"d3":-10.12,"d5":-17.08,"d10":-17.73,"d20":-21.26,"mfe10":0.09,"mae10":-19.22},{"code":"226950","name":"올릭스","market":"KOSDAQ","qvaSignalDate":"20250529","vviDate":"20250530","breakoutDate":"20250602","buyDate":"20250602","daysFromBreakout":0,"vviHigh":54800,"entryPrice":55348,"buyPrice":56600,"d1":-8.66,"d3":-17.58,"d5":-17.4,"d10":-23.59,"d20":-31.36,"mfe10":-3.18,"mae10":-27.92}]};
+
+function fmtDate(d) { return d && d.length === 8 ? d.slice(0,4) + '-' + d.slice(4,6) + '-' + d.slice(6,8) : (d || '-'); }
+function fmtNum(n) { return n != null ? Math.round(n).toLocaleString() : '-'; }
+function fmtPct(n, sign) {
+  if (n == null || !Number.isFinite(n)) return '<span class="muted">-</span>';
+  const cls = n > 0 ? 'pos' : (n < 0 ? 'neg' : 'muted');
+  const s = (sign && n > 0 ? '+' : '') + n.toFixed(2) + '%';
+  return '<span class="' + cls + '">' + s + '</span>';
+}
+function marketCls(m) { return m === 'KOSDAQ' ? 'market-Q' : 'market-K'; }
+
+document.getElementById('subtitle').textContent =
+  '스캔 ' + fmtDate(DATA.meta.scanStart) + ' ~ ' + fmtDate(DATA.meta.scanEnd) +
+  ' · H그룹 ' + DATA.hGroupCount + '건 (raw ' + DATA.hGroupRawCount + ' → dedup) · ' +
+  'REVIEW_OK ' + DATA.reviewOkSummary.count + '건 진입 · ' +
+  '생성 ' + DATA.meta.generatedAt.slice(0, 19).replace('T', ' ');
+
+// 요약 카드 — D+10/D+20 승률을 가장 강조
+function makeStat(label, val, cls) {
+  return '<div class="stat ' + (cls || '') + '"><div class="lbl">' + label + '</div><div class="val">' + val + '</div></div>';
+}
+const r = DATA.reviewOkSummary.byHorizon;
+const b = DATA.breakoutSummary.byHorizon;
+document.getElementById('summary-grid').innerHTML = [
+  makeStat('REVIEW_OK 진입 N', DATA.reviewOkSummary.count + '건'),
+  makeStat('D+1 승률', (r[1]?.winRate ?? '-') + '%', 'mid'),
+  makeStat('D+5 승률', (r[5]?.winRate ?? '-') + '%', 'mid'),
+  makeStat('D+10 승률', (r[10]?.winRate ?? '-') + '%', 'hi'),
+  makeStat('D+20 승률', (r[20]?.winRate ?? '-') + '%', 'hi'),
+  makeStat('D+10 평균%', (r[10]?.mean >= 0 ? '+' : '') + (r[10]?.mean ?? '-') + '%', 'hi'),
+  makeStat('D+20 평균%', (r[20]?.mean >= 0 ? '+' : '') + (r[20]?.mean ?? '-') + '%', 'hi'),
+  makeStat('비교: 돌파일 매수 D+10 승률', (b[10]?.winRate ?? '-') + '%'),
+  makeStat('비교: QVA 단독 매수 D+10 승률', (DATA.qvaOnlySummary.byHorizon[10]?.winRate ?? '-') + '%'),
+].join('');
+
+// 상태 분포
+const STATUS_LABELS = { REVIEW_OK: '검토가능', CHASE_CAUTION: '추격주의', PULLBACK_WAIT: '눌림대기', MANAGEMENT: '관리구간', BREAKDOWN_WEAK: '돌파약화' };
+const STATUS_ORDER = ['REVIEW_OK', 'CHASE_CAUTION', 'PULLBACK_WAIT', 'MANAGEMENT', 'BREAKDOWN_WEAK'];
+document.getElementById('dist-tbody').innerHTML = STATUS_ORDER.map(s => {
+  const d0 = DATA.judgmentDist.D0[s] || 0;
+  const d1 = DATA.judgmentDist.D1[s] || 0;
+  const d2 = DATA.judgmentDist.D2[s] || 0;
+  return '<tr' + (s === 'REVIEW_OK' ? ' class="hi-row"' : '') + '>' +
+    '<td class="txt">' + STATUS_LABELS[s] + '</td>' +
+    '<td>' + d0 + '</td><td>' + d1 + '</td><td>' + d2 + '</td></tr>';
+}).join('');
+
+// 코호트 비교
+function cohortRows(label, summary, hi) {
+  return [1, 3, 5, 10, 20].map((h, i) => {
+    const x = summary.byHorizon[h];
+    if (!x) return '';
+    const labelCol = i === 0 ? '<td class="txt" rowspan="5"><strong>' + label + '</strong><br><span class="muted">N=' + summary.count + '</span></td>' : '';
+    const cls = (hi && (h === 10 || h === 20)) ? ' class="hi-row"' : '';
+    return '<tr' + cls + '>' + labelCol +
+      '<td class="txt">D+' + h + '</td>' +
+      '<td>' + x.n + '</td>' +
+      '<td><strong>' + x.winRate + '%</strong></td>' +
+      '<td>' + fmtPct(x.mean, true) + '</td>' +
+      '<td>' + fmtPct(x.median, true) + '</td>' +
+      '<td>' + fmtPct(x.max, true) + '</td>' +
+      '<td>' + fmtPct(x.min, true) + '</td>' +
+      '<td>' + x.win10pctRate + '%</td>' +
+      '<td>' + x.loss7pctRate + '%</td>' +
+      '</tr>';
+  }).join('');
+}
+document.getElementById('cohort-tbody').innerHTML =
+  cohortRows('REVIEW_OK 진입', DATA.reviewOkSummary, true) +
+  cohortRows('비교: 돌파일 매수 (H그룹)', DATA.breakoutSummary, false) +
+  cohortRows('비교: QVA 신호 단독 매수', DATA.qvaOnlySummary, false);
+
+// MFE/MAE
+function mfeRow(cohortLabel, kind, x) {
+  if (!x) return '';
+  return '<tr><td class="txt">' + cohortLabel + '</td>' +
+    '<td class="txt">' + kind + '</td>' +
+    '<td>' + fmtPct(x.mean, true) + '</td>' +
+    '<td>' + fmtPct(x.median, true) + '</td>' +
+    '<td>' + fmtPct(x.q75 != null ? x.q75 : x.q25, true) + '</td>' +
+    '<td>' + fmtPct(x.q90 != null ? x.q90 : x.q10, true) + '</td></tr>';
+}
+document.getElementById('mfe-tbody').innerHTML = [
+  mfeRow('REVIEW_OK', 'MFE10 (최대 미실현 이익)', DATA.reviewOkSummary.mfe10),
+  mfeRow('REVIEW_OK', 'MAE10 (최대 미실현 손실)', DATA.reviewOkSummary.mae10),
+  mfeRow('비교: 돌파일 매수', 'MFE10', DATA.breakoutSummary.mfe10),
+  mfeRow('비교: 돌파일 매수', 'MAE10', DATA.breakoutSummary.mae10),
+].join('');
+
+// 진입일 분포 + 미도달 사유
+const bd = DATA.buyDayDist; const nr = DATA.reasonsNoReviewOk;
+document.getElementById('entry-dist').innerHTML = [
+  makeStat('D+0 매수', bd[0] + '건', 'hi'),
+  makeStat('D+1 매수', bd[1] + '건', 'mid'),
+  makeStat('D+2 매수', bd[2] + '건', 'mid'),
+  makeStat('미도달: 약화', nr.weak + '건', 'lo'),
+  makeStat('미도달: 추격', nr.chase + '건', 'lo'),
+  makeStat('미도달: 눌림', nr.pullback + '건', 'lo'),
+  makeStat('미도달: 관리', nr.mgmt + '건', 'lo'),
+].join('');
+
+// 사례 테이블
+function caseRow(d) {
+  return '<tr>' +
+    '<td class="txt"><span class="' + marketCls(d.market) + '">' + d.name + '</span> <span class="muted">' + d.code + '</span></td>' +
+    '<td class="txt">' + fmtDate(d.qvaSignalDate) + '</td>' +
+    '<td class="txt">' + fmtDate(d.vviDate) + '</td>' +
+    '<td class="txt">' + fmtDate(d.breakoutDate) + '</td>' +
+    '<td class="txt">' + fmtDate(d.buyDate) + '</td>' +
+    '<td>D+' + d.daysFromBreakout + '</td>' +
+    '<td>' + fmtNum(d.buyPrice) + '</td>' +
+    '<td>' + fmtPct(d.d5, true) + '</td>' +
+    '<td>' + fmtPct(d.d10, true) + '</td>' +
+    '<td>' + fmtPct(d.d20, true) + '</td>' +
+    '<td>' + fmtPct(d.mfe10, true) + '</td>' +
+    '<td>' + fmtPct(d.mae10, true) + '</td>' +
+    '</tr>';
+}
+document.getElementById('top-tbody').innerHTML = DATA.top5.map(caseRow).join('');
+document.getElementById('worst-tbody').innerHTML = DATA.worst5.map(caseRow).join('');
+
+// 전체 진입 (D+10 내림차순)
+const allRows = [...DATA.reviewOkEntries].sort((a, b) => (b.d10 ?? -Infinity) - (a.d10 ?? -Infinity));
+document.getElementById('all-tbody').innerHTML = allRows.map(d =>
+  '<tr>' +
+  '<td class="txt"><span class="' + marketCls(d.market) + '">' + d.name + '</span> <span class="muted">' + d.code + '</span></td>' +
+  '<td class="txt">' + fmtDate(d.qvaSignalDate) + '</td>' +
+  '<td class="txt">' + fmtDate(d.vviDate) + '</td>' +
+  '<td class="txt">' + fmtDate(d.breakoutDate) + '</td>' +
+  '<td class="txt">' + fmtDate(d.buyDate) + '</td>' +
+  '<td>D+' + d.daysFromBreakout + '</td>' +
+  '<td>' + fmtNum(d.buyPrice) + '</td>' +
+  '<td>' + fmtPct(d.d1, true) + '</td>' +
+  '<td>' + fmtPct(d.d5, true) + '</td>' +
+  '<td>' + fmtPct(d.d10, true) + '</td>' +
+  '<td>' + fmtPct(d.d20, true) + '</td>' +
+  '<td>' + fmtPct(d.mfe10, true) + '</td>' +
+  '<td>' + fmtPct(d.mae10, true) + '</td>' +
+  '</tr>'
+).join('');
+</script>
+</body>
+</html>

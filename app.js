@@ -2057,6 +2057,10 @@ function renderIndex(res, overrides = {}) {
     chartRows: null,
     patternData: null,
     csbDetail: null,
+    smallCsbDetail: null,
+    csbSignalHistory: null,
+    qvaDetail: null,
+    qvaWatchData: null,
     flowSummary: null,
     flowRecent: null,
     materialAnalysis: null,
@@ -2361,6 +2365,110 @@ const handleSearch = async (req, res) => {
       };
     }
 
+    // ─── QVA Watchlist 보드 lookup — 현재 단계 / VVI / 돌파 정보 ───
+    // qva-watchlist-board.json의 stages[*]에서 code 매칭 항목을 찾아 상세 페이지에 노출.
+    let qvaWatchData = null;
+    try {
+      const watchPath = path.join(__dirname, "qva-watchlist-board.json");
+      if (fs.existsSync(watchPath)) {
+        const watch = JSON.parse(fs.readFileSync(watchPath, "utf-8"));
+        const allStages = watch.stages || {};
+        let found = null;
+        for (const stageName of Object.keys(allStages)) {
+          const list = allStages[stageName] || [];
+          const hit = list.find((c) => c.code === code);
+          if (hit) { found = hit; break; }
+        }
+        if (found) {
+          // 현재 위치 판단 — entryReturn + 돌파 강도 기반 정형 분류
+          const entryPrice = found.breakoutEntryPrice1Pct;
+          const c = found.currentClose;
+          const vviHigh = found.vviHigh;
+          const daysFromBreakout = found.daysFromBreakout;
+          const entryReturn = (entryPrice && c) ? ((c - entryPrice) / entryPrice * 100) : null;
+
+          let positionStatus = null;
+          let positionStatusLabel = null;
+          let positionStatusMessage = null;
+          if (entryPrice && c && vviHigh) {
+            if (c < entryPrice || c < vviHigh) {
+              positionStatus = 'BREAKDOWN_WEAK';
+              positionStatusLabel = '돌파 약화';
+              positionStatusMessage = '돌파 기준을 다시 밑돌고 있어 돌파 강도가 약화된 상태입니다.';
+            } else if (entryReturn >= 15) {
+              positionStatus = 'MANAGEMENT';
+              positionStatusLabel = '관리 구간';
+              positionStatusMessage = '이미 기준 진입가 대비 크게 오른 상태입니다. 신규 진입보다는 보유자 관점의 익절/청산 관리 구간에 가깝습니다.';
+            } else if (entryReturn > 7) {
+              positionStatus = 'PULLBACK_WAIT';
+              positionStatusLabel = '눌림 대기';
+              positionStatusMessage = '기준 진입가에서 많이 올라 신규 진입보다는 눌림 확인이 더 적절합니다.';
+            } else if (entryReturn > 3) {
+              positionStatus = 'CHASE_CAUTION';
+              positionStatusLabel = '추격 주의';
+              positionStatusMessage = '기준 진입가보다 다소 오른 상태입니다. 추격 진입은 변동성에 주의가 필요합니다.';
+            } else if (entryReturn >= 0 && (daysFromBreakout == null || daysFromBreakout <= 2)) {
+              positionStatus = 'REVIEW_OK';
+              positionStatusLabel = '진입가 근처';
+              positionStatusMessage = '기준 진입가에서 크게 멀어지지 않은 상태입니다. 매수 추천이 아니라 추격을 피하기 위한 가격 위치 확인 기준입니다.';
+            } else {
+              positionStatus = 'PULLBACK_WAIT';
+              positionStatusLabel = '눌림 대기';
+              positionStatusMessage = '돌파 후 시간이 경과해 눌림 확인 관점에서 보는 것이 적절합니다.';
+            }
+          }
+
+          // 단계별 라벨/설명 (qva-watchlist meta와 동일 톤)
+          const stageLabelMap = {
+            BREAKOUT_SUCCESS: '돌파 성공 확인 종목',
+            VVI_FIRED: '다음 거래일 돌파 대기',
+            QVA_TRACKING: 'QVA 추적 중',
+            QVA_NEW: 'QVA 신규',
+            FAILED: '실패/이탈',
+          };
+          const stageDescMap = {
+            BREAKOUT_SUCCESS: '돌파 성공 확인 종목은 QVA → VVI → 다음 거래일 +1% 돌파 → 종가 유지까지 통과한 후보입니다. 1년 검증에서 20일 뒤 플러스 마감 비율 71.0%, 평균 수익률 +15.1%를 기록했습니다. 단, 매수 추천이 아니며 현재가가 기준 가격에서 많이 멀어진 경우에는 눌림 확인 또는 관리 구간으로 봐야 합니다.',
+            VVI_FIRED: 'VVI는 QVA 후보 중 실제 거래대금 초동이 확인된 상태입니다. VVI 다음 거래일에 VVI 고가보다 1% 이상 돌파하는지 확인해야 하는 후보입니다.',
+            QVA_TRACKING: 'QVA 발생 후 20거래일 동안 VVI 발생 여부를 지켜보는 후보입니다. 1년 검증에서 QVA 단독의 20일 뒤 플러스 마감 비율은 56.2%로, 바로 매수하기보다는 추적 후보로 보는 것이 적절합니다.',
+            QVA_NEW: 'QVA는 처음 관심 후보로 잡는 단계입니다. 1년 검증에서 QVA 단독의 20일 뒤 플러스 마감 비율은 56.2%로, 바로 매수하기보다는 20거래일 추적 후보로 보는 것이 적절합니다.',
+            FAILED: 'QVA 이후 조건이 약화되었거나 돌파에 실패해 추적 우선순위가 낮아진 상태입니다.',
+          };
+
+          // 단계 — 초보자도 이해할 수 있는 쉬운 설명
+          const stageEasyDescMap = {
+            BREAKOUT_SUCCESS: '거래대금 확인 후 가격이 한 번 더 강하게 올라간 상태입니다. 단, 이미 많이 오른 경우에는 추격보다 눌림 확인이 필요합니다.',
+            VVI_FIRED: '거래대금이 강하게 붙어 한 단계 더 확인된 상태입니다.',
+            QVA_TRACKING: '처음 관심 후보로 잡힌 뒤, 20거래일 동안 흐름을 지켜보는 단계입니다.',
+            QVA_NEW: '오늘 처음 관심 후보로 잡힌 종목입니다. 바로 매수 신호가 아니라 앞으로 흐름을 지켜보는 단계입니다.',
+            FAILED: '20거래일 안에 다음 단계로 진행되지 않았거나 가격이 무너진 종목입니다.',
+          };
+
+          // 진입 판단 — 초보자도 이해할 수 있는 쉬운 설명
+          const positionStatusEasyMap = {
+            REVIEW_OK: '기준 가격에서 크게 멀지 않은 위치입니다. 매수 신호가 아니라 가격 위치 확인용입니다.',
+            CHASE_CAUTION: '기준 가격에서 어느 정도 올라간 상태입니다. 추격 매수는 위험할 수 있습니다.',
+            PULLBACK_WAIT: '이미 많이 올라간 상태입니다. 신규 진입보다는 가격이 한 번 내려오는지(눌림) 확인이 필요합니다.',
+            MANAGEMENT: '이미 크게 오른 상태입니다. 신규 진입보다는 보유자 관점의 익절·청산 관리 구간에 가깝습니다.',
+            BREAKDOWN_WEAK: '가격이 다시 기준 아래로 밀려 돌파 강도가 약해진 상태입니다.',
+          };
+
+          qvaWatchData = {
+            ...found,
+            mainStageLabel: stageLabelMap[found.mainStage] || found.mainStage,
+            mainStageDesc: stageDescMap[found.mainStage] || '',
+            mainStageEasyDesc: stageEasyDescMap[found.mainStage] || '',
+            entryReturn: entryReturn != null ? +entryReturn.toFixed(2) : null,
+            positionStatus,
+            positionStatusLabel,
+            positionStatusMessage,
+            positionStatusEasyMessage: positionStatus ? (positionStatusEasyMap[positionStatus] || '') : null,
+            isHGroup: found.mainStage === 'BREAKOUT_SUCCESS' && found.breakoutSuccess === true,
+            boardBasisDate: watch.meta?.latestTradingDate || watch.meta?.today || null,
+          };
+        }
+      }
+    } catch (_) {}
+
     // 4) flow-history (외국인/기관 일별 순매수) 로드 + 1d/5d/20d 합계
     let flowSummary = null;
     let flowRecent = null;
@@ -2460,6 +2568,7 @@ const handleSearch = async (req, res) => {
       smallCsbDetail,
       csbSignalHistory,
       qvaDetail,
+      qvaWatchData,
       flowSummary,
       flowRecent,
       materialAnalysis,
@@ -2773,6 +2882,9 @@ app.get("/qva-vvi-breakout-entry", (req, res) => res.redirect("/qva-vvi-breakout
 
 app.get("/qva-vvi-breakout-exit-report", serveReport("qva-vvi-breakout-exit-report.html"));
 app.get("/qva-vvi-breakout-exit", (req, res) => res.redirect("/qva-vvi-breakout-exit-report"));
+
+app.get("/qva-review-ok-backtest-report", serveReport("qva-review-ok-backtest-report.html"));
+app.get("/qva-review-ok", (req, res) => res.redirect("/qva-review-ok-backtest-report"));
 
 app.get("/qva-watchlist", serveReport("qva-watchlist-board.html"));
 app.get("/qva-watchlist-board", (req, res) => res.redirect("/qva-watchlist"));
