@@ -3739,11 +3739,35 @@ function calculateQuietVolumeAnomaly(chartRows, flowRows, meta = {}) {
 // 기존 QVA(Confirmed)보다 더 이른 신호. "아직 크게 오르지 않았는데 거래대금이
 // 조용히 살아나고 저점이 안정되며 가격이 바닥권에서 고개를 드는 종목"을 잡는다.
 // 매수 신호가 아니라 관심 후보 조기 발굴용이며 실패 가능성이 높을 수 있다.
-function calculateEarlyQVA(chartRows, flowRows, meta = {}) {
+function calculateEarlyQVA(chartRows, flowRows, meta = {}, overrides = {}) {
   if (!chartRows || chartRows.length < 60) return null;
   const reject = (reason, debug = []) => ({
     passed: false, reason, excludeReasons: debug,
   });
+
+  // ─── thresholds (default = D안 — strict 대비 거래대금 ceiling/저점조건 완화) ───
+  // 1년 백테스트 (5-way 비교) 결과 D안이 D+20 플러스 마감 비율 + 평균 + 중앙값 모두
+  // strict보다 개선되며 -10%↓ 도 줄어 채택. 상세 비교는
+  // early-qva-threshold-comparison.json 참고.
+  const TH = {
+    returnFromLow20Max: 15,
+    ret5Max: 8,
+    ret10Max: 12,
+    ret20Max: 18,
+    maxDailyClose5Max: 7,
+    maxDailyHigh5Max: 10,
+    maxDailyClose10Max: 10,
+    tv3RatioMin: 1.5, tv3RatioMax: 4.5,    // D안: 3.0 → 4.5
+    tv5RatioMin: 1.25, tv5RatioMax: 4.0,    // D안: 2.8 → 4.0
+    lowStabilizedMul: 1.03,
+    requireLowStabilizedAndOther: false,    // D안: strict AND → 완화 OR (lowStab OR higherLow OR closeMa5)
+    ma5RecoveryMul: 0.99,
+    closeLocationMin: 0.55,
+    prevCloseMul: 0.98,
+    ret20MinForRisk: -25,
+    ma20MulForRisk: 0.87,
+    ...overrides,
+  };
 
   // ─── 기본 필터 (기존 QVA와 동일) ───
   if (meta.isSpecial || meta.isEtf) return reject('special/etf', ['ETF/특수상품']);
@@ -3829,64 +3853,67 @@ function calculateEarlyQVA(chartRows, flowRows, meta = {}) {
   // ─── debugReasons 누적 ───
   const excludeReasons = [];
 
-  // 가격 위치 조건 (strict)
+  // 가격 위치 조건
   const priceNotExtended =
-    returnFromLow20 <= 15 &&
-    ret5 <= 8 &&
-    ret10 <= 12 &&
-    ret20 <= 18;
+    returnFromLow20 <= TH.returnFromLow20Max &&
+    ret5 <= TH.ret5Max &&
+    ret10 <= TH.ret10Max &&
+    ret20 <= TH.ret20Max;
   if (!priceNotExtended) {
-    if (returnFromLow20 > 15) excludeReasons.push(`최근 20일 저점 대비 상승폭 초과 (+${returnFromLow20.toFixed(1)}% > 15%)`);
-    if (ret5 > 8) excludeReasons.push(`최근 5일 상승률 초과 (+${ret5.toFixed(1)}% > 8%)`);
-    if (ret10 > 12) excludeReasons.push(`최근 10일 상승률 초과 (+${ret10.toFixed(1)}% > 12%)`);
-    if (ret20 > 18) excludeReasons.push(`최근 20일 상승률 초과 (+${ret20.toFixed(1)}% > 18%)`);
+    if (returnFromLow20 > TH.returnFromLow20Max) excludeReasons.push(`최근 20일 저점 대비 상승폭 초과 (+${returnFromLow20.toFixed(1)}% > ${TH.returnFromLow20Max}%)`);
+    if (ret5 > TH.ret5Max) excludeReasons.push(`최근 5일 상승률 초과 (+${ret5.toFixed(1)}% > ${TH.ret5Max}%)`);
+    if (ret10 > TH.ret10Max) excludeReasons.push(`최근 10일 상승률 초과 (+${ret10.toFixed(1)}% > ${TH.ret10Max}%)`);
+    if (ret20 > TH.ret20Max) excludeReasons.push(`최근 20일 상승률 초과 (+${ret20.toFixed(1)}% > ${TH.ret20Max}%)`);
   }
 
-  // 최근 급등 제외 (strict)
+  // 최근 급등 제외
   const noRecentSurge =
-    maxDailyCloseReturn5 <= 7 &&
-    maxDailyHighReturn5 <= 10 &&
-    maxDailyCloseReturn10 <= 10;
+    maxDailyCloseReturn5 <= TH.maxDailyClose5Max &&
+    maxDailyHighReturn5 <= TH.maxDailyHigh5Max &&
+    maxDailyCloseReturn10 <= TH.maxDailyClose10Max;
   if (!noRecentSurge) {
-    if (maxDailyCloseReturn5 > 7) excludeReasons.push(`최근 5일 단일일 종가 급등 발생 (+${maxDailyCloseReturn5.toFixed(1)}% > 7%)`);
-    if (maxDailyHighReturn5 > 10) excludeReasons.push(`최근 5일 단일일 고가 급등 발생 (+${maxDailyHighReturn5.toFixed(1)}% > 10%)`);
-    if (maxDailyCloseReturn10 > 10) excludeReasons.push(`최근 10일 단일일 종가 급등 발생 (+${maxDailyCloseReturn10.toFixed(1)}% > 10%)`);
+    if (maxDailyCloseReturn5 > TH.maxDailyClose5Max) excludeReasons.push(`최근 5일 단일일 종가 급등 발생 (+${maxDailyCloseReturn5.toFixed(1)}% > ${TH.maxDailyClose5Max}%)`);
+    if (maxDailyHighReturn5 > TH.maxDailyHigh5Max) excludeReasons.push(`최근 5일 단일일 고가 급등 발생 (+${maxDailyHighReturn5.toFixed(1)}% > ${TH.maxDailyHigh5Max}%)`);
+    if (maxDailyCloseReturn10 > TH.maxDailyClose10Max) excludeReasons.push(`최근 10일 단일일 종가 급등 발생 (+${maxDailyCloseReturn10.toFixed(1)}% > ${TH.maxDailyClose10Max}%)`);
   }
 
-  // 거래대금 조용한 증가 (strict)
+  // 거래대금 조용한 증가
   const quietVolumeIncrease =
-    tv3Ratio >= 1.5 && tv3Ratio <= 3.0 &&
-    tv5Ratio >= 1.25 && tv5Ratio <= 2.8;
+    tv3Ratio >= TH.tv3RatioMin && tv3Ratio <= TH.tv3RatioMax &&
+    tv5Ratio >= TH.tv5RatioMin && tv5Ratio <= TH.tv5RatioMax;
   if (!quietVolumeIncrease) {
-    if (tv3Ratio < 1.5) excludeReasons.push(`3일 거래대금 비율 부족 (${tv3Ratio.toFixed(2)} < 1.5)`);
-    if (tv3Ratio > 3.0) excludeReasons.push(`3일 거래대금이 이미 폭발 (${tv3Ratio.toFixed(2)} > 3.0)`);
-    if (tv5Ratio < 1.25) excludeReasons.push(`5일 거래대금 비율 부족 (${tv5Ratio.toFixed(2)} < 1.25)`);
-    if (tv5Ratio > 2.8) excludeReasons.push(`5일 거래대금이 이미 폭발 (${tv5Ratio.toFixed(2)} > 2.8)`);
+    if (tv3Ratio < TH.tv3RatioMin) excludeReasons.push(`3일 거래대금 비율 부족 (${tv3Ratio.toFixed(2)} < ${TH.tv3RatioMin})`);
+    if (tv3Ratio > TH.tv3RatioMax) excludeReasons.push(`3일 거래대금이 이미 폭발 (${tv3Ratio.toFixed(2)} > ${TH.tv3RatioMax})`);
+    if (tv5Ratio < TH.tv5RatioMin) excludeReasons.push(`5일 거래대금 비율 부족 (${tv5Ratio.toFixed(2)} < ${TH.tv5RatioMin})`);
+    if (tv5Ratio > TH.tv5RatioMax) excludeReasons.push(`5일 거래대금이 이미 폭발 (${tv5Ratio.toFixed(2)} > ${TH.tv5RatioMax})`);
   }
 
-  // 저점 조건 (strict): lowStabilized AND (higherLow OR close>=ma5)
-  const strictLowCondition = lowStabilized && (higherLow || (ma5 != null && close >= ma5));
+  // 저점 조건: lowStabilized AND (higherLow OR close>=ma5) — 완화 시 OR로
+  const lowStabilizedDyn = recent5MinLow >= low20 * TH.lowStabilizedMul;
+  const strictLowCondition = TH.requireLowStabilizedAndOther
+    ? (lowStabilizedDyn && (higherLow || (ma5 != null && close >= ma5)))
+    : (lowStabilizedDyn || higherLow || (ma5 != null && close >= ma5));
   if (!strictLowCondition) {
-    if (!lowStabilized) excludeReasons.push(`저점 안정 미충족 (recent5Low ${recent5MinLow} < low20×1.03 ${(low20 * 1.03).toFixed(0)})`);
+    if (!lowStabilizedDyn) excludeReasons.push(`저점 안정 미충족 (recent5Low ${recent5MinLow} < low20×${TH.lowStabilizedMul} ${(low20 * TH.lowStabilizedMul).toFixed(0)})`);
     else if (!higherLow && !(ma5 != null && close >= ma5)) excludeReasons.push(`저점 상승/5일선 회복 미충족 (higherLow=false AND close<ma5)`);
   }
 
-  // 종가 회복 (strict)
+  // 종가 회복
   const closeRecovery =
-    (ma5 != null && close >= ma5 * 0.99) &&
-    closeLocation >= 0.55 &&
-    close >= prevClose * 0.98;
+    (ma5 != null && close >= ma5 * TH.ma5RecoveryMul) &&
+    closeLocation >= TH.closeLocationMin &&
+    close >= prevClose * TH.prevCloseMul;
   if (!closeRecovery) {
-    if (ma5 != null && close < ma5 * 0.99) excludeReasons.push(`5일선 회복 미충족 (close ${close} < ma5×0.99 ${(ma5 * 0.99).toFixed(0)})`);
-    if (closeLocation < 0.55) excludeReasons.push(`종가 위치 저가권 (closeLocation ${(closeLocation * 100).toFixed(0)}% < 55%)`);
-    if (close < prevClose * 0.98) excludeReasons.push(`전일 대비 -2% 이상 하락 (${((close / prevClose - 1) * 100).toFixed(1)}%)`);
+    if (ma5 != null && close < ma5 * TH.ma5RecoveryMul) excludeReasons.push(`5일선 회복 미충족 (close ${close} < ma5×${TH.ma5RecoveryMul} ${(ma5 * TH.ma5RecoveryMul).toFixed(0)})`);
+    if (closeLocation < TH.closeLocationMin) excludeReasons.push(`종가 위치 저가권 (closeLocation ${(closeLocation * 100).toFixed(0)}% < ${(TH.closeLocationMin * 100).toFixed(0)}%)`);
+    if (close < prevClose * TH.prevCloseMul) excludeReasons.push(`전일 대비 ${((TH.prevCloseMul - 1) * 100).toFixed(0)}% 이상 하락 (${((close / prevClose - 1) * 100).toFixed(1)}%)`);
   }
 
-  // 위험 제외 (strict)
-  const riskFilter = ret20 > -25 && (ma20 != null && close >= ma20 * 0.87);
+  // 위험 제외
+  const riskFilter = ret20 > TH.ret20MinForRisk && (ma20 != null && close >= ma20 * TH.ma20MulForRisk);
   if (!riskFilter) {
-    if (ret20 <= -25) excludeReasons.push(`20일 강한 하락 (${ret20.toFixed(1)}% ≤ -25%)`);
-    if (ma20 != null && close < ma20 * 0.87) excludeReasons.push(`MA20 대비 -13% 미만 (close ${close} < ma20×0.87 ${(ma20 * 0.87).toFixed(0)})`);
+    if (ret20 <= TH.ret20MinForRisk) excludeReasons.push(`20일 강한 하락 (${ret20.toFixed(1)}% ≤ ${TH.ret20MinForRisk}%)`);
+    if (ma20 != null && close < ma20 * TH.ma20MulForRisk) excludeReasons.push(`MA20 대비 ${((TH.ma20MulForRisk - 1) * 100).toFixed(0)}% 미만 (close ${close} < ma20×${TH.ma20MulForRisk} ${(ma20 * TH.ma20MulForRisk).toFixed(0)})`);
   }
 
   // ─── 최종 통과 여부 ───

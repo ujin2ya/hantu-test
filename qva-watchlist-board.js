@@ -1168,6 +1168,11 @@ const htmlTemplate = `<!DOCTYPE html>
           <li style="margin-bottom:10px;"><strong style="color:#93c5fd;">진입가 근처</strong> — 기준 가격에서 너무 멀리 오르지 않은 상태입니다. '매수해도 된다'는 뜻이 아니라, 추격 매수 위험을 줄이기 위한 위치 확인입니다.</li>
           <li style="margin-bottom:10px;"><span class="badge tag-CONFIRMED_QVA_PASS" style="font-size:10px;padding:1px 6px;border-radius:3px;">확인 QVA 통과</span> — 초기 QVA 이후 가격 유지, 저점 상승, 거래대금 흐름이 한 번 더 확인된 경우 붙는 보조 태그입니다. 메인 단계는 아니고 참고용입니다.</li>
         </ul>
+        <div style="background:#fef3c7;border-left:3px solid #f59e0b;padding:8px 12px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.7;color:#78350f;">
+          💡 <strong>초기 QVA와 VVI의 경계</strong> — Early QVA는 거래대금이 조용히 붙기 시작한 관심 후보입니다.
+          거래대금이 이미 크게 터진 날은 Early QVA보다 VVI 단계에 더 가깝습니다.
+          따라서 일부 종목은 사람이 보기에 바닥 반등 시작처럼 보여도, 거래대금이 이미 과도하게 터진 경우 Early QVA가 아니라 VVI 후보로 분류될 수 있습니다.
+        </div>
       </div>
 
       <div class="help-section">

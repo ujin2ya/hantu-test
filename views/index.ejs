@@ -193,7 +193,7 @@
         <div class="chart-title">
           <div>
             <div style="font-weight:700;"><i class="bi bi-graph-up me-1"></i>QVA / VVI 분석 차트</div>
-            <div style="font-size:10px;color:#94a3b8;font-weight:400;margin-top:2px;">초기 QVA, VVI, 돌파 성공 이벤트와 기준 가격을 표시합니다.</div>
+            <div style="font-size:10px;color:#94a3b8;font-weight:400;margin-top:2px;">초기 QVA, VVI, 돌파 성공 위치를 점으로 표시합니다.</div>
           </div>
           <button id="refresh-chart-btn" type="button" data-code="<%= stockMeta.code %>"
             style="background:#2563eb;color:white;border:none;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;flex-shrink:0;">
@@ -202,27 +202,69 @@
         </div>
         <div id="refresh-status" style="font-size:11px;color:#94a3b8;padding:0 6px 4px;display:none;"></div>
 
+        <!-- ============ 시그널 요약 박스 (날짜 표시는 여기서만) ============ -->
+        <% if (qvaEpisodes && qvaEpisodes.length > 0) {
+          var latest = qvaEpisodes[qvaEpisodes.length - 1];
+          function fmtSig(d) { return d ? d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8) : null; }
+        %>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 12px;margin:6px 6px 10px;font-size:12px;line-height:1.7;">
+          <div style="font-weight:700;color:#0f172a;margin-bottom:4px;">📋 시그널 요약</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px 12px;">
+            <div>🌱 초기 QVA: <strong style="color:#047857;"><%= fmtSig(latest.firstSignalDate) || '-' %></strong></div>
+            <% if (breakoutData && breakoutData.vviDate) { %>
+            <div>⏳ VVI: <strong style="color:#92400e;"><%= fmtSig(breakoutData.vviDate) %></strong></div>
+            <% } else { %>
+            <div>⏳ VVI: <span class="muted">-</span></div>
+            <% } %>
+            <% if (breakoutData && breakoutData.breakoutDate) { %>
+            <div>🔥 돌파 성공: <strong style="color:#991b1b;"><%= fmtSig(breakoutData.breakoutDate) %></strong></div>
+            <% } else { %>
+            <div>🔥 돌파 성공: <span class="muted">-</span></div>
+            <% } %>
+            <% if (qvaWatchData && qvaWatchData.positionStatusLabel) { %>
+            <div>현재 위치: <strong style="color:#1e40af;"><%= qvaWatchData.positionStatusLabel %></strong></div>
+            <% } %>
+          </div>
+        </div>
+        <% } %>
+
         <% if (!hasAnyEvent) { %>
         <div style="background:#fef3c7;border-left:3px solid #f59e0b;padding:8px 10px;border-radius:6px;margin:6px;font-size:11px;color:#78350f;line-height:1.5;">
           ⚠️ 현재 이 종목은 QVA/VVI 이벤트가 연결되지 않아 기본 시세 차트만 표시합니다.
         </div>
         <% } %>
 
+        <!-- 컨트롤: 보조 토글 -->
+        <div style="padding:0 6px 6px;display:flex;gap:6px;flex-wrap:wrap;">
+          <button id="toggle-volume" type="button"
+            style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;"
+            data-active="false">
+            ◻ 거래대금 보기
+          </button>
+          <button id="toggle-episode-box" type="button"
+            style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;"
+            data-active="false">
+            ◻ QVA 구간 보기
+          </button>
+          <button id="toggle-vvi-high" type="button"
+            style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;"
+            data-active="false">
+            ◻ VVI 고가선 보기
+          </button>
+        </div>
+
         <!-- 가격 캔들 차트 -->
         <div class="chart-price-wrap"><canvas id="priceChart"></canvas></div>
-        <!-- 거래량 -->
-        <div class="chart-sub-title">📊 거래량 (5일/20일 평균선)</div>
-        <div class="chart-volume-wrap"><canvas id="volumeChart"></canvas></div>
-        <!-- 거래대금 -->
-        <div class="chart-sub-title">💰 거래대금 (5일/20일 평균선)</div>
-        <div class="chart-value-wrap"><canvas id="valueChart"></canvas></div>
+        <!-- 거래대금 (단일 서브차트) — 기본 숨김 -->
+        <div id="value-chart-section" style="display:none;">
+          <div class="chart-sub-title">💰 거래대금 <span style="font-weight:400;color:#94a3b8;">(20일 평균선)</span></div>
+          <div class="chart-value-wrap"><canvas id="valueChart"></canvas></div>
+        </div>
 
         <div class="chart-legend">
-          <span><span class="dot" style="background:#10b981"></span>🌱 초기 QVA</span>
-          <span><span class="dot" style="background:#f59e0b"></span>⏳ VVI</span>
-          <span><span class="dot" style="background:#dc2626"></span>🔥 돌파 성공</span>
-          <span><span class="dot" style="background:#94a3b8"></span>━ 기준 진입가</span>
-          <span><span class="dot" style="background:#3b82f6"></span>━ VVI 고가</span>
+          <span><span class="dot" style="background:#10b981"></span>초기 QVA</span>
+          <span><span class="dot" style="background:#f59e0b"></span>VVI</span>
+          <span><span class="dot" style="background:#dc2626"></span>돌파 성공</span>
           <span style="color:#dc2626;">━ MA5</span>
           <span style="color:#2563eb;">━ MA20</span>
           <span style="color:#16a34a;">━ MA60</span>
@@ -312,6 +354,13 @@
           💡 QVA는 하루짜리 점 신호가 아니라, 며칠 동안 거래대금이 조용히 붙고 저점이 안정되는 흐름을 바탕으로 잡힙니다.
           그래서 차트에서는 QVA를 <strong>'관찰 구간'</strong>으로 표시합니다.
           테이블의 QVA일은 그 흐름이 <strong>처음 시작된 날(firstSignalDate)</strong>을 기준으로 표시합니다.
+        </div>
+
+        <!-- 도움말: Early QVA vs VVI 경계 -->
+        <div style="background:#fef3c7;border-left:3px solid #f59e0b;padding:8px 12px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.7;color:#78350f;">
+          ⚠️ Early QVA는 거래대금이 <strong>조용히 붙기 시작한</strong> 관심 후보입니다.
+          거래대금이 이미 크게 터진 날은 Early QVA보다 VVI 단계에 더 가깝습니다.
+          따라서 일부 종목은 사람이 보기에 바닥 반등 시작처럼 보여도, 거래대금이 이미 과도하게 터진 경우 Early QVA가 아니라 VVI 후보로 분류될 수 있습니다.
         </div>
 
         <!-- 디버그 폴드: episode 상세 + dayBefore reject 사유 + 윈도우 상수 -->
@@ -538,30 +587,33 @@
           return { up, down, unchanged: '#94a3b8' };
         }
 
-        // QVA episode 일자 셋 (이벤트 컬러 비교용)
-        const qvaEpisodeDates = new Set();
+        // QVA episode firstSignalDate 셋 (이벤트 컬러 비교용)
+        const qvaFirstDates = new Set();
         qvaEpisodes.forEach(ep => {
-          // first/best/last 만 강조
-          qvaEpisodeDates.add(ep.firstSignalDate);
-          qvaEpisodeDates.add(ep.bestSignalDate);
-          qvaEpisodeDates.add(ep.lastSignalDate);
+          qvaFirstDates.add(ep.firstSignalDate);
+          if (ep.bestSignalDate) qvaFirstDates.add(ep.bestSignalDate);
         });
 
-        // 거래량/거래대금 색: 이벤트일 강조
+        // 거래대금 색: 이벤트일 강조 (QVA=진초록, VVI=주황, 돌파=빨강)
         function eventBarColor(date, baseUp, baseDown, prevClose, close) {
-          if (qvaEpisodeDates.has(date)) return '#10b981'; // 초록
-          if (date === vviDate) return '#f59e0b';        // 주황
-          if (date === breakoutDate) return '#dc2626';   // 빨강 진하게
+          if (qvaFirstDates.has(date)) return '#10b981';
+          if (date === vviDate) return '#f59e0b';
+          if (date === breakoutDate) return '#dc2626';
           return close >= prevClose ? baseUp : baseDown;
         }
-        const volumeColors = view.map((r, i) => {
-          const prev = i > 0 ? view[i - 1].close : r.close;
-          return eventBarColor(r.date, 'rgba(220,38,38,0.55)', 'rgba(37,99,235,0.55)', prev, r.close);
-        });
+        function eventBarBorder(date) {
+          if (qvaFirstDates.has(date) || date === vviDate || date === breakoutDate) return '#0f172a';
+          return 'transparent';
+        }
+        function eventBarBorderWidth(date) {
+          return (qvaFirstDates.has(date) || date === vviDate || date === breakoutDate) ? 1.5 : 0;
+        }
         const valueColors = view.map((r, i) => {
           const prev = i > 0 ? view[i - 1].close : r.close;
           return eventBarColor(r.date, 'rgba(220,38,38,0.55)', 'rgba(37,99,235,0.55)', prev, r.close);
         });
+        const valueBorders = view.map(r => eventBarBorder(r.date));
+        const valueBorderWidths = view.map(r => eventBarBorderWidth(r.date));
 
         // 이벤트 인덱스 + epoch
         function findIdx(date) { return date ? view.findIndex(r => r.date === date) : -1; }
@@ -570,83 +622,106 @@
         const vviEpoch = toEpoch(vviDate);
         const breakoutEpoch = toEpoch(breakoutDate);
 
-        // 가격 차트 annotation 빌드
+        // 가격 차트 annotation 빌드 (단순화: 시그널은 점으로, 세로선/날짜라벨/박스 모두 토글로 이동)
         const priceAnnotations = {};
 
-        // ─── QVA episodes — 박스 + first(○) + best(★) 마커 ───
-        // 차트 view 구간(최근 120일) 안의 episode만 그림
+        // 차트 view 구간(최근 120일) 안의 episode만 활용 (점/박스 동기화)
         const viewFirstDate = view.length > 0 ? view[0].date : null;
         const visibleEpisodes = qvaEpisodes.filter(ep => ep.lastSignalDate >= viewFirstDate);
-        // 가장 최근 episode = isLatest=true 가 진하게
+
+        // ─── 토글로 켤 episode 박스 (기본 OFF) ───
+        const episodeBoxIds = [];
         visibleEpisodes.forEach((ep, i) => {
           const isLatest = ep.isLatest;
           const fEpoch = toEpoch(ep.firstSignalDate);
           const lEpoch = toEpoch(ep.lastSignalDate);
           if (!fEpoch || !lEpoch) return;
-          // 박스 (관찰 구간 = first ~ last)
-          priceAnnotations['ep' + i + 'Box'] = {
+          const id = 'ep' + i + 'Box';
+          episodeBoxIds.push(id);
+          priceAnnotations[id] = {
             type: 'box', xMin: fEpoch, xMax: lEpoch,
-            backgroundColor: isLatest ? 'rgba(16,185,129,0.16)' : 'rgba(16,185,129,0.06)',
-            borderColor: isLatest ? 'rgba(16,185,129,0.5)' : 'rgba(16,185,129,0.2)',
+            backgroundColor: isLatest ? 'rgba(16,185,129,0.16)' : 'rgba(16,185,129,0.05)',
+            borderColor: isLatest ? 'rgba(16,185,129,0.4)' : 'rgba(16,185,129,0.15)',
             borderWidth: 1,
             drawTime: 'beforeDatasetsDraw',
-            label: isLatest ? {
-              display: true, content: '🌱 초기 QVA 관찰 구간',
-              position: 'start', backgroundColor: '#10b981', color: 'white',
-              font: { size: 10, weight: 'bold' }, padding: 3, yAdjust: -6
-            } : { display: false }
+            display: false, // 기본 OFF — 토글 버튼으로 활성화
           };
-          // first(○) 와 best(★) 마커는 dataset 으로 추가 (annotation point는 안정성 떨어져서 dataset 사용)
         });
 
-        // VVI / 돌파 세로선 (기존 유지)
-        if (vviEpoch) priceAnnotations.vviLine = {
-          type: 'line', xMin: vviEpoch, xMax: vviEpoch,
-          borderColor: '#f59e0b', borderWidth: 2,
-          label: { display: true, content: '⏳ VVI', position: 'start', backgroundColor: '#f59e0b', color: 'white', font: { size: 10, weight: 'bold' }, padding: 3, yAdjust: -22 }
-        };
-        if (breakoutEpoch) priceAnnotations.breakoutLine = {
-          type: 'line', xMin: breakoutEpoch, xMax: breakoutEpoch,
-          borderColor: '#dc2626', borderWidth: 2,
-          label: { display: true, content: '🔥 돌파', position: 'start', backgroundColor: '#dc2626', color: 'white', font: { size: 10, weight: 'bold' }, padding: 3, yAdjust: -38 }
-        };
-
-        // 가로선 (qvaSignalPrice = 최근 episode의 first 신호가, 기준 진입가, VVI 고가, +15%, -7%)
-        // 최근 episode의 신호가 = first idx의 close
-        if (visibleEpisodes.length > 0) {
-          const latest = visibleEpisodes[visibleEpisodes.length - 1];
-          const firstRow = view.find(r => r.date === latest.firstSignalDate);
-          if (firstRow) {
-            priceAnnotations.qvaSignalPrice = {
-              type: 'line', yMin: firstRow.close, yMax: firstRow.close,
-              borderColor: '#10b981', borderWidth: 1, borderDash: [2, 4],
-              label: { display: true, content: 'QVA 신호가 ' + firstRow.close.toLocaleString(), position: 'start', backgroundColor: '#10b981', color: 'white', font: { size: 9 }, padding: 2 }
-            };
-          }
-        }
-        if (breakout.breakoutEntryPrice1Pct) {
-          priceAnnotations.entryLine = {
-            type: 'line', yMin: breakout.breakoutEntryPrice1Pct, yMax: breakout.breakoutEntryPrice1Pct,
-            borderColor: '#94a3b8', borderWidth: 1.2, borderDash: [4, 3],
-            label: { display: true, content: '기준 진입가 ' + Math.round(breakout.breakoutEntryPrice1Pct).toLocaleString(), position: 'end', backgroundColor: '#94a3b8', color: 'white', font: { size: 9 }, padding: 2 }
-          };
-          priceAnnotations.plus15 = {
-            type: 'line', yMin: breakout.breakoutEntryPrice1Pct * 1.15, yMax: breakout.breakoutEntryPrice1Pct * 1.15,
-            borderColor: '#10b981', borderWidth: 1, borderDash: [3, 3],
-            label: { display: true, content: '+15%', position: 'end', backgroundColor: '#10b981', color: 'white', font: { size: 9 }, padding: 2 }
-          };
-          priceAnnotations.minus7 = {
-            type: 'line', yMin: breakout.breakoutEntryPrice1Pct * 0.93, yMax: breakout.breakoutEntryPrice1Pct * 0.93,
-            borderColor: '#dc2626', borderWidth: 1, borderDash: [3, 3],
-            label: { display: true, content: '-7%', position: 'end', backgroundColor: '#dc2626', color: 'white', font: { size: 9 }, padding: 2 }
-          };
-        }
+        // ─── 토글로 켤 VVI 고가선 (기본 OFF) ───
         if (breakout.vviHigh) {
           priceAnnotations.vviHighLine = {
             type: 'line', yMin: breakout.vviHigh, yMax: breakout.vviHigh,
-            borderColor: '#3b82f6', borderWidth: 1.2, borderDash: [4, 3],
-            label: { display: true, content: 'VVI 고가 ' + breakout.vviHigh.toLocaleString(), position: 'start', backgroundColor: '#3b82f6', color: 'white', font: { size: 9 }, padding: 2 }
+            borderColor: '#f59e0b', borderWidth: 1, borderDash: [3, 3],
+            display: false, // 토글
           };
+        }
+
+        // ─── 항상 표시: 기준 진입가만 (옅은 파란 점선 — 보조 정보처럼) ───
+        if (breakout.breakoutEntryPrice1Pct) {
+          priceAnnotations.entryLine = {
+            type: 'line', yMin: breakout.breakoutEntryPrice1Pct, yMax: breakout.breakoutEntryPrice1Pct,
+            borderColor: 'rgba(59,130,246,0.35)', borderWidth: 1, borderDash: [3, 4],
+            label: { display: true, content: '기준 진입가', position: 'end', backgroundColor: 'rgba(59,130,246,0.6)', color: 'white', font: { size: 9 }, padding: 2, borderRadius: 3 }
+          };
+        }
+
+        // ─── 시그널 마커 — annotation point (작은 컬러 점, 흰 테두리) ───
+        // 초기 QVA = 캔들 아래쪽 / VVI/돌파 = 캔들 위쪽
+
+        // 초기 QVA — firstSignalDate (최근 진하게, 과거 연하게)
+        visibleEpisodes.forEach((ep, i) => {
+          const isLatest = ep.isLatest;
+          const fRow = view.find(r => r.date === ep.firstSignalDate);
+          if (fRow) {
+            priceAnnotations['ep' + i + 'First'] = {
+              type: 'point',
+              xValue: toEpoch(ep.firstSignalDate),
+              yValue: fRow.low,
+              backgroundColor: isLatest ? '#10b981' : 'rgba(134,239,172,0.7)',
+              borderColor: 'white',
+              borderWidth: 1,
+              radius: isLatest ? 6 : 5,
+              yAdjust: 12,  // 캔들 아래쪽
+              z: 10,
+            };
+          }
+        });
+
+        // VVI 점 (주황) — 캔들 위
+        if (vviDate) {
+          const vRow = view.find(r => r.date === vviDate);
+          if (vRow) {
+            priceAnnotations.vviPoint = {
+              type: 'point',
+              xValue: toEpoch(vviDate),
+              yValue: vRow.high,
+              backgroundColor: '#f59e0b',
+              borderColor: 'white',
+              borderWidth: 1,
+              radius: 6,
+              yAdjust: -12,
+              z: 10,
+            };
+          }
+        }
+
+        // 돌파 성공 점 (빨강) — 캔들 위
+        if (breakoutDate) {
+          const brRow = view.find(r => r.date === breakoutDate);
+          if (brRow) {
+            priceAnnotations.breakoutPoint = {
+              type: 'point',
+              xValue: toEpoch(breakoutDate),
+              yValue: brRow.high,
+              backgroundColor: '#dc2626',
+              borderColor: 'white',
+              borderWidth: 1,
+              radius: 6,
+              yAdjust: -12,
+              z: 10,
+            };
+          }
         }
 
         // ─── 가격 차트 (캔들스틱) ───
@@ -665,39 +740,6 @@
               { label: 'MA5', type: 'line', data: ma5, borderColor: '#dc2626', borderWidth: 1.3, pointRadius: 0, order: 5, parsing: false },
               { label: 'MA20', type: 'line', data: ma20, borderColor: '#2563eb', borderWidth: 1.3, pointRadius: 0, order: 4, parsing: false },
               { label: 'MA60', type: 'line', data: ma60, borderColor: '#16a34a', borderWidth: 1.3, pointRadius: 0, order: 3, parsing: false },
-              // QVA episode first/best 마커 — 동그라미와 별표
-              ...(function() {
-                const ds = [];
-                visibleEpisodes.forEach((ep, i) => {
-                  const isLatest = ep.isLatest;
-                  const fRow = view.find(r => r.date === ep.firstSignalDate);
-                  const bRow = view.find(r => r.date === ep.bestSignalDate);
-                  if (fRow) {
-                    ds.push({
-                      label: '첫 신호 #' + (i+1),
-                      type: 'line',
-                      data: [{ x: toEpoch(ep.firstSignalDate), y: fRow.close }],
-                      borderColor: isLatest ? '#10b981' : '#86efac',
-                      backgroundColor: isLatest ? '#10b981' : '#86efac',
-                      pointRadius: 8, pointStyle: 'circle', pointBorderWidth: 2, pointBorderColor: 'white',
-                      showLine: false, parsing: false, order: 1
-                    });
-                  }
-                  // best != first 일 때만 별표 추가
-                  if (bRow && ep.bestSignalDate !== ep.firstSignalDate) {
-                    ds.push({
-                      label: '최고 점수 #' + (i+1),
-                      type: 'line',
-                      data: [{ x: toEpoch(ep.bestSignalDate), y: bRow.close }],
-                      borderColor: isLatest ? '#047857' : '#34d399',
-                      backgroundColor: isLatest ? '#047857' : '#34d399',
-                      pointRadius: 10, pointStyle: 'star', pointBorderWidth: 1, pointBorderColor: 'white',
-                      showLine: false, parsing: false, order: 1
-                    });
-                  }
-                });
-                return ds;
-              })(),
             ]
           },
           options: {
@@ -716,14 +758,30 @@
                     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
                   },
                   label: function(item) {
-                    if (item.dataset.label !== '일봉') return null;
-                    const r = item.raw;
-                    return [
-                      '시 ' + r.o.toLocaleString() + '원',
-                      '고 ' + r.h.toLocaleString() + '원',
-                      '저 ' + r.l.toLocaleString() + '원',
-                      '종 ' + r.c.toLocaleString() + '원',
-                    ];
+                    // MA 라인은 숨김
+                    if (item.dataset.label && item.dataset.label.startsWith('MA')) return null;
+                    // 기본 캔들: OHLC + 거래량 + 거래대금
+                    if (item.dataset.label === '일봉') {
+                      const r = item.raw;
+                      const ts = r.x;
+                      const row = view.find(rr => toEpoch(rr.date) === ts);
+                      const lines = [
+                        '시 ' + r.o.toLocaleString() + '원',
+                        '고 ' + r.h.toLocaleString() + '원',
+                        '저 ' + r.l.toLocaleString() + '원',
+                        '종 ' + r.c.toLocaleString() + '원',
+                      ];
+                      if (row && row.volume) {
+                        const vol = row.volume;
+                        lines.push('거래량 ' + (vol >= 1e4 ? (vol/1e4).toFixed(0) + '만주' : vol.toLocaleString() + '주'));
+                      }
+                      if (row && row.valueApprox) {
+                        const val = row.valueApprox;
+                        lines.push('거래대금 ' + (val >= 1e8 ? (val/1e8).toFixed(1) + '억' : (val/1e4).toFixed(0) + '만') + '원');
+                      }
+                      return lines;
+                    }
+                    return null;
                   },
                   afterBody: function(items) {
                     if (!items.length) return '';
@@ -794,69 +852,20 @@
           }
         });
 
-        // ─── 거래량 차트 ───
-        const volumeCtx = document.getElementById('volumeChart').getContext('2d');
-        new Chart(volumeCtx, {
-          data: {
-            datasets: [
-              { type: 'bar', label: '거래량', data: volumes, backgroundColor: volumeColors, borderWidth: 0, parsing: false, order: 10 },
-              { type: 'line', label: '5일 평균', data: volSma5, borderColor: '#dc2626', borderWidth: 1.2, pointRadius: 0, parsing: false, order: 1 },
-              { type: 'line', label: '20일 평균', data: volSma20, borderColor: '#2563eb', borderWidth: 1.2, pointRadius: 0, borderDash: [3,2], parsing: false, order: 2 },
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { intersect: false, mode: 'index' },
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                callbacks: {
-                  title: function(items) {
-                    if (!items.length) return '';
-                    const ts = items[0].parsed.x;
-                    const d = new Date(ts);
-                    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-                  },
-                  label: function(item) {
-                    const v = item.parsed.y;
-                    if (v == null) return null;
-                    const s = v >= 1e8 ? (v/1e8).toFixed(2) + '억' : v >= 1e4 ? (v/1e4).toFixed(0) + '만' : v.toLocaleString();
-                    return item.dataset.label + ': ' + s;
-                  }
-                }
-              }
-            },
-            scales: {
-              y: {
-                ticks: {
-                  callback: v => {
-                    if (v >= 1e8) return (v/1e8).toFixed(1) + '억';
-                    if (v >= 1e4) return (v/1e4).toFixed(0) + '만';
-                    return v.toLocaleString();
-                  },
-                  font: { size: 9 }
-                },
-                grid: { color: 'rgba(0,0,0,0.05)' }
-              },
-              x: {
-                type: 'time',
-                time: { unit: 'month', displayFormats: { month: 'yy-MM' } },
-                ticks: { font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 },
-                grid: { display: false }
-              }
-            }
-          }
-        });
+        // ─── 거래량 차트 — 사용자 spec에 따라 별도 차트 제거 (가격 차트 툴팁에서만 표시) ───
+        // (volumeChart canvas는 마크업에서 제거됨)
 
-        // ─── 거래대금 차트 ───
+        // ─── 거래대금 차트 (단순화: 20일 평균선만) ───
         const valueCtx = document.getElementById('valueChart').getContext('2d');
         new Chart(valueCtx, {
           data: {
             datasets: [
-              { type: 'bar', label: '거래대금', data: values, backgroundColor: valueColors, borderWidth: 0, parsing: false, order: 10 },
-              { type: 'line', label: '5일 평균', data: valSma5, borderColor: '#dc2626', borderWidth: 1.2, pointRadius: 0, parsing: false, order: 1 },
-              { type: 'line', label: '20일 평균', data: valSma20, borderColor: '#2563eb', borderWidth: 1.2, pointRadius: 0, borderDash: [3,2], parsing: false, order: 2 },
+              { type: 'bar', label: '거래대금', data: values,
+                backgroundColor: valueColors,
+                borderColor: valueBorders,
+                borderWidth: valueBorderWidths,
+                parsing: false, order: 10 },
+              { type: 'line', label: '20일 평균', data: valSma20, borderColor: '#2563eb', borderWidth: 1.2, pointRadius: 0, parsing: false, order: 1 },
             ]
           },
           options: {
@@ -906,6 +915,61 @@
       </script>
 
       <script>
+        // 토글 — 거래대금 차트 ON/OFF
+        const volToggleBtn = document.getElementById('toggle-volume');
+        const valueSection = document.getElementById('value-chart-section');
+        if (volToggleBtn && valueSection) {
+          volToggleBtn.addEventListener('click', () => {
+            const active = volToggleBtn.dataset.active === 'true';
+            const next = !active;
+            volToggleBtn.dataset.active = next ? 'true' : 'false';
+            volToggleBtn.textContent = (next ? '☑ ' : '◻ ') + '거래대금 보기';
+            volToggleBtn.style.background = next ? '#dbeafe' : '#f1f5f9';
+            volToggleBtn.style.color = next ? '#1e40af' : '#475569';
+            valueSection.style.display = next ? 'block' : 'none';
+          });
+        }
+
+        // 토글 — QVA 구간 박스 ON/OFF
+        const epToggleBtn = document.getElementById('toggle-episode-box');
+        if (epToggleBtn) {
+          epToggleBtn.addEventListener('click', () => {
+            const active = epToggleBtn.dataset.active === 'true';
+            const next = !active;
+            epToggleBtn.dataset.active = next ? 'true' : 'false';
+            epToggleBtn.textContent = (next ? '☑ ' : '◻ ') + 'QVA 구간 보기';
+            epToggleBtn.style.background = next ? '#dcfce7' : '#f1f5f9';
+            epToggleBtn.style.color = next ? '#166534' : '#475569';
+            episodeBoxIds.forEach(id => {
+              if (priceChart.options.plugins.annotation.annotations[id]) {
+                priceChart.options.plugins.annotation.annotations[id].display = next;
+              }
+            });
+            priceChart.update();
+          });
+        }
+
+        // 토글 — VVI 고가선 ON/OFF
+        const vviToggleBtn = document.getElementById('toggle-vvi-high');
+        if (vviToggleBtn) {
+          vviToggleBtn.addEventListener('click', () => {
+            const active = vviToggleBtn.dataset.active === 'true';
+            const next = !active;
+            vviToggleBtn.dataset.active = next ? 'true' : 'false';
+            vviToggleBtn.textContent = (next ? '☑ ' : '◻ ') + 'VVI 고가선 보기';
+            vviToggleBtn.style.background = next ? '#fed7aa' : '#f1f5f9';
+            vviToggleBtn.style.color = next ? '#9a3412' : '#475569';
+            const ann = priceChart.options.plugins.annotation.annotations.vviHighLine;
+            if (ann) {
+              ann.display = next;
+              if (next) {
+                ann.label = { display: true, content: 'VVI 고가 ' + breakout.vviHigh.toLocaleString(), position: 'start', backgroundColor: '#f59e0b', color: 'white', font: { size: 9 }, padding: 2, borderRadius: 3 };
+              }
+              priceChart.update();
+            }
+          });
+        }
+
         // 차트 갱신 버튼
         const refreshBtn = document.getElementById('refresh-chart-btn');
         const refreshStatus = document.getElementById('refresh-status');
