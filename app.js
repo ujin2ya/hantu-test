@@ -2721,6 +2721,71 @@ const handleSearch = async (req, res) => {
 
 app.post("/search", handleSearch);
 
+// 차트 캐시 갱신 — 단일 종목의 최근 일봉을 KIS API로 새로 받아 cache/stock-charts-long/{code}.json 에 병합
+app.post("/refresh-chart", express.json(), async (req, res) => {
+  try {
+    const code = String(req.body.code || "").trim();
+    if (!/^\d{6}$/.test(code)) return res.status(400).json({ error: "유효하지 않은 종목코드" });
+
+    const cacheFile = path.join(__dirname, "cache", "stock-charts-long", `${code}.json`);
+    if (!fs.existsSync(cacheFile)) return res.status(404).json({ error: "캐시 파일이 없습니다 (시드 필요)" });
+
+    // 최근 60일 일봉 요청 (영업일 30~40개 + 여유)
+    const end = new Date();
+    const start = new Date(); start.setDate(end.getDate() - 60);
+    const endDate = formatDate(end);
+    const startDate = formatDate(start);
+
+    const token = await getAccessToken();
+    const apiData = await safeApiCall(() => getPeriodChart(token, code, "D", startDate, endDate));
+    const normalized = normalizePeriodData(apiData, { shortCode: code, name: "", market: "" }, "D");
+    const newRows = (normalized.items || [])
+      .filter((it) => it.date && it.closePrice > 0)
+      .map((it) => ({
+        date: it.date,
+        open: it.openPrice,
+        high: it.highPrice,
+        low: it.lowPrice,
+        close: it.closePrice,
+        volume: it.volume,
+        valueApprox: it.tradeValue,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    if (newRows.length === 0) return res.status(502).json({ error: "KIS API가 빈 응답을 반환했습니다" });
+
+    // 기존 캐시 + 신규 병합 (같은 date면 신규로 덮어씀)
+    const existing = JSON.parse(fs.readFileSync(cacheFile, "utf-8"));
+    const byDate = new Map((existing.rows || []).map((r) => [r.date, r]));
+    let updatedCount = 0;
+    let addedCount = 0;
+    for (const nr of newRows) {
+      if (byDate.has(nr.date)) {
+        const old = byDate.get(nr.date);
+        if (old.close !== nr.close || old.volume !== nr.volume) updatedCount++;
+      } else {
+        addedCount++;
+      }
+      byDate.set(nr.date, nr);
+    }
+    const mergedRows = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+    const merged = { ...existing, rows: mergedRows };
+    fs.writeFileSync(cacheFile, JSON.stringify(merged), "utf-8");
+
+    return res.json({
+      ok: true,
+      code,
+      addedDays: addedCount,
+      updatedDays: updatedCount,
+      latestDate: mergedRows[mergedRows.length - 1].date,
+      totalRows: mergedRows.length,
+    });
+  } catch (err) {
+    console.error("[refresh-chart] error:", err.message || err);
+    return res.status(500).json({ error: err.message || "차트 갱신 실패" });
+  }
+});
+
 // AI 그라운딩 보정 단건 호출 — index 상세 페이지의 "AI 보정 받기" 버튼이 fetch 로 사용.
 // 캐시 적중 시 즉시 반환, 아니면 Gemini Google 검색 그라운딩 1회 호출 (~3~10초).
 app.post("/ai/adjust", express.json(), async (req, res) => {

@@ -3,379 +3,302 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= stockMeta ? stockMeta.name + ' — QVA 상세' : '종목 검색' %></title>
+  <title><%= stockMeta ? stockMeta.name + ' — 차트 & AI 분석' : '종목 검색' %></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
   <style>
-    body { background: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif; color: #0f172a; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 18px 16px 60px; }
-    .topbar { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
-    .topbar h1 { margin: 0; font-size: 22px; }
-    .glass { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 18px; margin-bottom: 14px; }
-    .glass h2 { font-size: 16px; color: #0f172a; margin: 0 0 10px 0; }
-    .glass h3 { font-size: 13px; color: #475569; margin: 14px 0 6px 0; font-weight: 600; }
-    .small { font-size: 0.85rem; }
-    .text-secondary { color: #64748b; }
-    .muted { color: #94a3b8; }
+    :root { --pos: #047857; --neg: #dc2626; --muted: #64748b; }
+    * { box-sizing: border-box; }
+    html, body { background: #f8fafc; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif; color: #0f172a; margin: 0; -webkit-text-size-adjust: 100%; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 12px 12px 60px; }
 
-    .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
-    .meta-cell { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 10px; }
-    .meta-cell .label { color: #64748b; font-size: 11px; }
-    .meta-cell .value { color: #0f172a; font-size: 14px; font-weight: 600; margin-top: 2px; }
+    /* 검색 (간단) */
+    .search-bar { display: flex; gap: 6px; margin-bottom: 10px; }
+    .search-bar input { flex: 1; padding: 9px 12px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
+    .search-bar button { padding: 9px 14px; background: #2563eb; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; }
+    .nav-back { color: #64748b; font-size: 12px; text-decoration: none; padding: 4px 0; display: inline-block; }
 
-    .badge-pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
-    .stage-EARLY_QVA { background: #ecfdf5; color: #047857; border: 1px solid #10b981; }
-    .stage-VVI_FIRED { background: #eff6ff; color: #1e40af; border: 1px solid #3b82f6; }
-    .stage-BREAKOUT_SUCCESS { background: #ecfdf5; color: #064e3b; border: 1px solid #047857; }
-    .stage-FAILED { background: #f1f5f9; color: #475569; border: 1px solid #94a3b8; }
-    .pos-REVIEW_OK { background: #dbeafe; color: #1e40af; }
-    .pos-CHASE_CAUTION { background: #fef3c7; color: #92400e; }
-    .pos-PULLBACK_WAIT { background: #fed7aa; color: #9a3412; }
-    .pos-MANAGEMENT { background: #ede9fe; color: #5b21b6; }
-    .pos-BREAKDOWN_WEAK { background: #fee2e2; color: #991b1b; }
+    .card { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+    .card h2 { font-size: 14px; color: #0f172a; margin: 0 0 8px 0; font-weight: 700; }
 
-    .ret-pos { color: #047857; font-weight: 600; }
-    .ret-neg { color: #dc2626; font-weight: 600; }
+    /* 종목 헤더 - 컴팩트 */
+    .header-card { padding: 14px; }
+    .header-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+    .header-name { font-size: 19px; font-weight: 700; }
+    .header-code { color: var(--muted); font-size: 13px; }
+    .header-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .price-block { margin-top: 10px; }
+    .price-main { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .price-big { font-size: 28px; font-weight: 800; line-height: 1; color: #0f172a; }
+    .price-unit { font-size: 14px; font-weight: 600; color: #64748b; margin-left: 2px; }
+    .price-change { font-size: 14px; font-weight: 700; }
+    .price-change.pos { color: var(--pos); }
+    .price-change.neg { color: var(--neg); }
+    .price-sub-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .badge-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .price-sub-text { font-size: 11px; color: var(--muted); }
 
-    .risk { padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; font-size: 13px; }
-    .risk.high { background: #fee2e2; border-left: 3px solid #dc2626; color: #7f1d1d; }
-    .risk.mid { background: #fef3c7; border-left: 3px solid #f59e0b; color: #78350f; }
-    .risk.low { background: #f0fdf4; border-left: 3px solid #10b981; color: #064e3b; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .badge-EARLY_QVA { background: #ecfdf5; color: #047857; border: 1px solid #10b981; }
+    .badge-VVI_FIRED { background: #eff6ff; color: #1e40af; border: 1px solid #3b82f6; }
+    .badge-BREAKOUT_SUCCESS { background: #ecfdf5; color: #064e3b; border: 1px solid #047857; }
+    .badge-FAILED { background: #f1f5f9; color: #475569; }
+    .badge-confirmed { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
 
-    .stale-tag { background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
-    .price-info { display: flex; gap: 14px; flex-wrap: wrap; align-items: baseline; }
-    .price-info .big { font-size: 22px; font-weight: 700; color: #0f172a; }
-    .price-info .label { color: #64748b; font-size: 11px; }
+    /* 차트 */
+    .chart-card { padding: 10px 8px 12px; }
+    .chart-title { font-size: 13px; font-weight: 600; color: #0f172a; padding: 0 6px 6px; display: flex; justify-content: space-between; align-items: center; }
+    .chart-legend { display: flex; flex-wrap: wrap; gap: 8px 12px; font-size: 10px; color: var(--muted); padding: 0 6px; margin-top: 6px; }
+    .chart-legend .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; margin-right: 3px; }
+    .chart-price-wrap { position: relative; height: 280px; }
+    .chart-volume-wrap { position: relative; height: 80px; margin-top: 2px; }
 
-    .nav-back { color: #2563eb; text-decoration: none; font-size: 13px; }
-    .nav-back:hover { text-decoration: underline; }
+    /* AI 분석 안내 */
+    .ai-loading-notice { background: #fef3c7; border-left: 3px solid #f59e0b; padding: 8px 10px; border-radius: 6px; margin-bottom: 10px; font-size: 11px; color: #78350f; line-height: 1.5; }
+    .ai-card h2 { color: #1e40af; }
+    .ai-card .summary-text { font-size: 13px; line-height: 1.7; background: #f8fafc; padding: 10px 12px; border-radius: 6px; border-left: 3px solid #60a5fa; color: #1e293b; }
+    .ai-card ul { font-size: 13px; line-height: 1.7; padding-left: 18px; margin: 6px 0; color: #1e293b; }
+    .ai-card .cautions { color: #78350f; }
+    .ai-card .ai-footnote { font-size: 11px; color: var(--muted); margin-top: 8px; }
+    .ai-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .ai-badge.ai-type { background: #ede9fe; color: #5b21b6; }
+    .ai-badge.ai-strong-h { background: #fee2e2; color: #991b1b; }
+    .ai-badge.ai-strong-m { background: #fef3c7; color: #78350f; }
+    .ai-badge.ai-strong-l { background: #f1f5f9; color: #475569; }
+    .ai-badge.ai-fresh { background: #dbeafe; color: #1e40af; }
 
-    .footnote { color: #fbbf24; background: #422006; padding: 12px 14px; border-radius: 8px; font-size: 13px; line-height: 1.7; margin-top: 24px; color: #fde68a; }
+    .footer-disclaimer { background: #422006; color: #fde68a; padding: 12px 14px; border-radius: 8px; font-size: 12px; line-height: 1.6; margin-top: 12px; }
+    .footer-disclaimer strong { color: #fbbf24; }
 
-    .chart-wrap { position: relative; width: 100%; height: 380px; }
-    .chart-marker-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: #64748b; margin-top: 6px; }
-    .chart-marker-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+    .empty-state { color: var(--muted); font-size: 13px; text-align: center; padding: 24px 0; }
+    .ret-pos { color: var(--pos); font-weight: 600; }
+    .ret-neg { color: var(--neg); font-weight: 600; }
+
+    @media (min-width: 720px) {
+      .wrap { padding: 16px 18px 60px; }
+      .header-name { font-size: 22px; }
+      .price-big { font-size: 28px; }
+      .chart-price-wrap { height: 360px; }
+      .chart-volume-wrap { height: 100px; }
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="topbar">
-      <h1><i class="bi bi-bar-chart-line me-2"></i>QVA 종목 상세</h1>
-      <a href="/qva-watchlist" class="nav-back ms-auto"><i class="bi bi-arrow-left me-1"></i>매일 운영 보드</a>
+
+    <a href="/qva-watchlist" class="nav-back"><i class="bi bi-arrow-left me-1"></i>운영 보드로</a>
+
+    <div class="search-bar">
+      <form method="post" action="/search" style="display:flex;gap:6px;flex:1;">
+        <input type="text" name="stockQuery" value="<%= query || '' %>" placeholder="종목명 또는 6자리 코드" />
+        <button type="submit"><i class="bi bi-search"></i></button>
+      </form>
     </div>
 
     <% if (error) { %>
-      <div class="alert alert-danger"><%= error %></div>
+      <div class="alert alert-danger" style="font-size:13px;padding:10px 12px;"><%= error %></div>
     <% } %>
 
-    <div class="glass">
-      <form method="post" action="/search" class="row g-2 align-items-center">
-        <div class="col">
-          <input type="text" name="stockQuery" value="<%= query || '' %>" placeholder="종목명 또는 6자리 코드 (예: 이노션, 214320)" class="form-control form-control-sm" autofocus />
-        </div>
-        <div class="col-auto">
-          <button class="btn btn-primary btn-sm"><i class="bi bi-search me-1"></i>검색</button>
-        </div>
-      </form>
-      <% if (candidates && candidates.length > 1) { %>
-        <div class="mt-2 small text-secondary">여러 종목이 일치합니다:</div>
-        <div class="d-flex gap-1 flex-wrap mt-1">
-          <% candidates.forEach(function(c) { %>
-            <a class="btn btn-outline-secondary btn-sm" href="/?query=<%= c.shortCode %>"><%= c.name %> <%= c.shortCode %></a>
-          <% }); %>
-        </div>
-      <% } %>
+    <% if (candidates && candidates.length > 1) { %>
+    <div class="card">
+      <div style="font-size:12px;color:#64748b;margin-bottom:6px;">여러 종목이 일치합니다</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <% candidates.forEach(function(c) { %>
+          <a class="btn btn-outline-secondary btn-sm" href="/?query=<%= c.shortCode %>" style="font-size:12px;"><%= c.name %> <%= c.shortCode %></a>
+        <% }); %>
+      </div>
     </div>
+    <% } %>
 
-    <% if (stockMeta) { %>
-      <%
-        var changeRateClass = stockMeta.changeRate > 0 ? 'ret-pos' : (stockMeta.changeRate < 0 ? 'ret-neg' : '');
-        var changeRateText = (stockMeta.changeRate > 0 ? '+' : '') + (stockMeta.changeRate || 0).toFixed(2) + '%';
-      %>
+    <% if (stockMeta) {
+      var changeRate = stockMeta.changeRate || 0;
+      var changeClass = changeRate > 0 ? 'pos' : (changeRate < 0 ? 'neg' : '');
+      var changeText = (changeRate > 0 ? '+' : '') + changeRate.toFixed(2) + '%';
+      var qw = qvaWatchData;
+    %>
 
-      <!-- ============ 1. 종목 헤더 ============ -->
-      <div class="glass">
-        <div class="d-flex justify-content-between align-items-start flex-wrap" style="gap:10px;">
-          <div>
-            <h2 style="font-size:20px;margin:0;"><%= stockMeta.name %> <span class="muted small">(<%= stockMeta.code %>)</span></h2>
-            <div class="small text-secondary mt-1">
-              <%= stockMeta.market || '-' %>
-              <% if (stockMeta.marketCap) { %> · 시총 <%= (stockMeta.marketCap / 1e8).toLocaleString() %>억원<% } %>
-            </div>
+      <!-- AI 로딩 안내 -->
+      <div class="ai-loading-notice">
+        💡 AI 뉴스·공시 분석이 포함돼 있어 첫 조회 시 10~30초 걸릴 수 있습니다 (재조회는 캐시로 즉시 표시).
+      </div>
+
+      <!-- ============ 종목 헤더 (컴팩트) ============ -->
+      <div class="card header-card">
+        <div class="header-row">
+          <span class="header-name"><%= stockMeta.name %></span>
+          <span class="header-code"><%= stockMeta.code %></span>
+          <% if (qw && qw.mainStage) { %>
+            <span class="badge badge-<%= qw.mainStage %>"><%= qw.mainStageLabel || qw.mainStage %></span>
+          <% } %>
+          <% if (breakoutData && breakoutData.confirmedQvaPass) { %>
+            <span class="badge badge-confirmed" title="초기 QVA 이후 가격 유지·저점 상승·거래대금 흐름 한 번 더 확인됨">확인 QVA 통과</span>
+          <% } %>
+        </div>
+        <div class="header-meta">
+          <%= stockMeta.market || '-' %>
+          <% if (stockMeta.marketCap) { %> · 시총 <%= (stockMeta.marketCap / 1e8).toLocaleString() %>억<% } %>
+        </div>
+        <% if (priceInfo) {
+          var dispPrice = priceInfo.displayPriceType === 'INTRADAY_CURRENT' ? priceInfo.displayPrice : priceInfo.lastClose;
+          var basePrice = chartRows && chartRows.length >= 2 ? chartRows[chartRows.length - 2].close : null;
+          var changeAmount = basePrice ? (dispPrice - basePrice) : null;
+          var arrow = changeRate > 0 ? '▲' : (changeRate < 0 ? '▼' : '─');
+          var dateLbl = priceInfo.latestTradingDate.slice(0,4) + '-' + priceInfo.latestTradingDate.slice(4,6) + '-' + priceInfo.latestTradingDate.slice(6,8);
+        %>
+        <div class="price-block">
+          <div class="price-main">
+            <span class="price-big"><%= dispPrice.toLocaleString() %><span class="price-unit">원</span></span>
+            <span class="price-change <%= changeClass %>"><%= arrow %>
+              <% if (changeAmount != null) { %><%= Math.abs(changeAmount).toLocaleString() %>원 <% } %>
+              <%= changeText %>
+            </span>
           </div>
-          <div class="text-end">
-            <% if (qwData = qvaWatchData) { %>
-              <span class="badge-pill stage-<%= qwData.mainStage %>">
-                <%= qwData.mainStageLabel || qwData.mainStage %>
-              </span>
-              <% if (breakoutData && breakoutData.confirmedQvaPass) { %>
-                <span class="badge-pill" style="background:#dbeafe;color:#1e40af;border:1px solid #3b82f6;margin-left:4px;" title="초기 QVA 이후 가격 유지·저점 상승·거래대금 흐름이 한 번 더 확인된 상태">확인 QVA 통과</span>
-              <% } %>
+          <div class="price-sub-row">
+            <% if (priceInfo.displayPriceType === 'INTRADAY_CURRENT') { %>
+              <span class="badge-tag" style="background:#dcfce7;color:#15803d;">🟢 장중 현재가</span>
+              <span class="price-sub-text">전일 종가 <%= priceInfo.lastClose.toLocaleString() %>원 (<%= dateLbl %>)</span>
             <% } else { %>
-              <span class="badge-pill" style="background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1;">QVA 추적 후보 아님</span>
+              <span class="badge-tag" style="background:#f1f5f9;color:#475569;">📅 <%= dateLbl %> 종가</span>
+              <% if (chartRows && chartRows.length > 0) {
+                var lr = chartRows[chartRows.length - 1];
+              %>
+                <span class="price-sub-text">고 <%= lr.high.toLocaleString() %> · 저 <%= lr.low.toLocaleString() %> · 거래량 <%= (lr.volume/10000).toFixed(0) %>만</span>
+              <% } %>
             <% } %>
           </div>
         </div>
-
-        <div class="price-info mt-3">
-          <% if (priceInfo && priceInfo.displayPriceType === 'INTRADAY_CURRENT') { %>
-            <div>
-              <div class="label">현재가 (장중)</div>
-              <div class="big"><%= priceInfo.displayPrice.toLocaleString() %>원
-                <span class="small <%= changeRateClass %>"><%= changeRateText %></span>
-              </div>
-              <div class="muted small">조회 시각: <%= new Date(priceInfo.currentPriceFetchedAt).toLocaleString('ko-KR') %></div>
-            </div>
-            <div>
-              <div class="label">기준 종가 (<%= priceInfo.latestTradingDate.slice(0,4) %>-<%= priceInfo.latestTradingDate.slice(4,6) %>-<%= priceInfo.latestTradingDate.slice(6,8) %>)</div>
-              <div class="big" style="color:#475569;font-size:18px;"><%= priceInfo.lastClose.toLocaleString() %>원</div>
-            </div>
-          <% } else if (priceInfo) { %>
-            <div>
-              <div class="label">기준 종가 (<%= priceInfo.latestTradingDate.slice(0,4) %>-<%= priceInfo.latestTradingDate.slice(4,6) %>-<%= priceInfo.latestTradingDate.slice(6,8) %>)</div>
-              <div class="big"><%= priceInfo.lastClose.toLocaleString() %>원
-                <span class="small <%= changeRateClass %>"><%= changeRateText %></span>
-              </div>
-              <div class="muted small">현재는 장중 가격이 없어 최신 거래일 종가 기준으로 표시됩니다.</div>
-            </div>
-          <% } %>
-        </div>
-
-        <% if (cacheStale) { %>
-          <div class="mt-2"><span class="stale-tag">⚠ 캐시 <%= cacheStale %>일 전 — 시드 갱신 필요할 수 있음</span></div>
         <% } %>
       </div>
 
-      <!-- ============ 2. 현재 단계 요약 ============ -->
-      <% if (qvaWatchData) { var qw = qvaWatchData; %>
-      <div class="glass">
-        <h2><i class="bi bi-signpost-2 me-1"></i>현재 단계 요약</h2>
-        <div class="d-flex align-items-baseline gap-2 flex-wrap">
-          <span class="badge-pill stage-<%= qw.mainStage %>" style="font-size:13px;padding:4px 14px;">
-            <%= qw.mainStageLabel %>
-          </span>
-          <% if (qw.boardBasisDate) { %>
-            <span class="muted small">기준일 <%= qw.boardBasisDate.slice(0,4) %>-<%= qw.boardBasisDate.slice(4,6) %>-<%= qw.boardBasisDate.slice(6,8) %></span>
-          <% } %>
-        </div>
-        <div class="small mt-3" style="line-height:1.7;color:#1e293b;">
-          <%= qw.mainStageEasyDesc || qw.mainStageDesc %>
-        </div>
-      </div>
-      <% } %>
-
-      <!-- ============ 3. 현재 위치 판단 ============ -->
-      <% if (qvaWatchData && qvaWatchData.positionStatus && breakoutData && breakoutData.breakoutEntryPrice1Pct) {
-           var qw3 = qvaWatchData;
-           var ep = breakoutData.breakoutEntryPrice1Pct;
-           var dp = priceInfo ? priceInfo.displayPrice : qw3.currentClose;
-           var entryReturnByDisplay = ((dp - ep) / ep * 100);
-      %>
-      <div class="glass">
-        <h2><i class="bi bi-geo-alt me-1"></i>현재 위치 판단</h2>
-        <div class="d-flex align-items-baseline gap-2 mb-2 flex-wrap">
-          <span class="badge-pill pos-<%= qw3.positionStatus %>" style="font-size:13px;padding:4px 14px;">
-            <%= qw3.positionStatusLabel %>
-          </span>
-          <span class="muted small">기준 진입가 <%= ep.toLocaleString() %>원 (vviHigh × 1.01)</span>
-        </div>
-        <div class="meta-grid mt-2">
-          <div class="meta-cell">
-            <div class="label">표시가 기준 진입가 대비</div>
-            <div class="value <%= entryReturnByDisplay >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (entryReturnByDisplay >= 0 ? '+' : '') + entryReturnByDisplay.toFixed(2) %>%</div>
-          </div>
-          <% if (priceInfo && priceInfo.displayPriceType === 'INTRADAY_CURRENT') { var er2 = ((priceInfo.lastClose - ep) / ep * 100); %>
-          <div class="meta-cell">
-            <div class="label">기준 종가 대비</div>
-            <div class="value <%= er2 >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (er2 >= 0 ? '+' : '') + er2.toFixed(2) %>%</div>
-          </div>
-          <% } %>
-        </div>
-        <% if (qw3.positionStatusEasyMessage) { %>
-        <div class="small mt-3" style="background:#f8fafc;padding:10px 12px;border-radius:6px;line-height:1.6;color:#475569;">
-          💡 <%= qw3.positionStatusEasyMessage %>
-        </div>
-        <% } %>
-      </div>
-      <% } %>
-
-      <!-- ============ 4. 차트 ============ -->
+      <!-- ============ 차트 (가격 + 거래량) ============ -->
       <% if (chartRows && chartRows.length > 0) { %>
-      <div class="glass">
-        <h2><i class="bi bi-graph-up me-1"></i>일봉 + 거래량 차트</h2>
-        <div class="chart-wrap"><canvas id="priceChart"></canvas></div>
-        <div class="chart-marker-legend">
-          <span><span class="dot" style="background:#10b981"></span>초기 QVA 발생 (감시 시작)</span>
-          <span><span class="dot" style="background:#3b82f6"></span>VVI (거래대금 확인)</span>
-          <span><span class="dot" style="background:#dc2626"></span>돌파 성공 (+1% 돌파 + 종가 유지)</span>
-          <span><span class="dot" style="background:#94a3b8"></span>기준선 (vviHigh × 1.01, +15%, -7%)</span>
+      <div class="card chart-card">
+        <div class="chart-title">
+          <span><i class="bi bi-graph-up me-1"></i>차트 (최근 250일) <span style="font-size:10px;color:#94a3b8;font-weight:400;">기준일 <%= lastDate ? lastDate.slice(0,4)+'-'+lastDate.slice(4,6)+'-'+lastDate.slice(6,8) : '-' %></span></span>
+          <button id="refresh-chart-btn" type="button" data-code="<%= stockMeta.code %>"
+            style="background:#2563eb;color:white;border:none;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+            <span class="refresh-spin">↻</span> 차트 갱신
+          </button>
+        </div>
+        <div id="refresh-status" style="font-size:11px;color:#94a3b8;padding:0 6px 4px;display:none;"></div>
+        <div class="chart-price-wrap"><canvas id="priceChart"></canvas></div>
+        <div class="chart-volume-wrap"><canvas id="volumeChart"></canvas></div>
+        <div class="chart-legend">
+          <span><span class="dot" style="background:#10b981"></span>🌱 초기 QVA</span>
+          <span><span class="dot" style="background:#3b82f6"></span>⏳ VVI</span>
+          <span><span class="dot" style="background:#dc2626"></span>🔥 돌파 성공</span>
+          <span><span class="dot" style="background:#94a3b8"></span>기준 진입가/±</span>
+          <span style="color:#dc2626;">━ MA5</span>
+          <span style="color:#2563eb;">━ MA20</span>
+          <span style="color:#16a34a;">━ MA60</span>
         </div>
       </div>
       <% } %>
 
-      <!-- ============ 5. 초기 QVA 분석 ============ -->
-      <div class="glass">
-        <h2 style="color:#047857;"><i class="bi bi-flower3 me-1"></i>초기 QVA 분석</h2>
-        <div class="small text-secondary mb-3" style="line-height:1.7;">
-          초기 QVA는 아직 크게 오르기 전, 거래대금이 조용히 붙고 저점이 안정되는 관심 후보를 찾는 신호입니다.
-          매수 신호가 아니라 감시 시작 단계입니다.
+      <!-- ============ AI 뉴스·공시 분석 ============ -->
+      <% if (materialAnalysis && !materialAnalysis.error) { var ma = materialAnalysis; %>
+      <div class="card ai-card">
+        <h2><i class="bi bi-newspaper me-1"></i>AI 뉴스·공시 분석</h2>
+
+        <!-- 메타 배지 -->
+        <% if (ma.materialType || ma.materialStrength || ma.freshness) { %>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+          <% if (ma.materialType) { %><span class="ai-badge ai-type"><%= ma.materialType %></span><% } %>
+          <% if (ma.materialStrength) {
+              var sCls = ma.materialStrength === '강함' ? 'ai-strong-h' : (ma.materialStrength === '약함' ? 'ai-strong-l' : 'ai-strong-m');
+          %><span class="ai-badge <%= sCls %>">강도 <%= ma.materialStrength %></span><% } %>
+          <% if (ma.freshness) { %><span class="ai-badge ai-fresh"><%= ma.freshness %></span><% } %>
         </div>
-        <% if (earlyQvaData && earlyQvaData.passed) { var eq = earlyQvaData; %>
-        <div class="d-flex gap-2 align-items-baseline mb-3 flex-wrap">
-          <span class="badge-pill stage-EARLY_QVA" style="padding:4px 14px;font-size:13px;">
-            <%= eq.gradeLabel %> · 점수 <%= eq.score %>
-          </span>
-        </div>
-        <div class="meta-grid">
-          <% if (qvaWatchData && qvaWatchData.firstEarlyQvaDate) { %>
-          <div class="meta-cell"><div class="label">최초 감지일</div><div class="value"><%= qvaWatchData.firstEarlyQvaDate.slice(0,4) %>-<%= qvaWatchData.firstEarlyQvaDate.slice(4,6) %>-<%= qvaWatchData.firstEarlyQvaDate.slice(6,8) %></div></div>
-          <% } %>
-          <div class="meta-cell"><div class="label">20일 저점 대비 상승률</div><div class="value">+<%= eq.signals.returnFromLow20.toFixed(1) %>%</div></div>
-          <div class="meta-cell"><div class="label">최근 5일 수익률</div><div class="value <%= eq.signals.ret5 >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (eq.signals.ret5 >= 0 ? '+' : '') + eq.signals.ret5.toFixed(1) %>%</div></div>
-          <div class="meta-cell"><div class="label">최근 10일 수익률</div><div class="value <%= eq.signals.ret10 >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (eq.signals.ret10 >= 0 ? '+' : '') + eq.signals.ret10.toFixed(1) %>%</div></div>
-          <div class="meta-cell"><div class="label">최근 20일 수익률</div><div class="value <%= eq.signals.ret20 >= 0 ? 'ret-pos' : 'ret-neg' %>"><%= (eq.signals.ret20 >= 0 ? '+' : '') + eq.signals.ret20.toFixed(1) %>%</div></div>
-          <div class="meta-cell"><div class="label">3일 거래대금 배율</div><div class="value"><%= eq.signals.tv3Ratio.toFixed(2) %>×</div></div>
-          <div class="meta-cell"><div class="label">5일 거래대금 배율</div><div class="value"><%= eq.signals.tv5Ratio.toFixed(2) %>×</div></div>
-          <div class="meta-cell"><div class="label">오늘 거래대금 배율</div><div class="value"><%= eq.signals.tvTodayRatio.toFixed(2) %>×</div></div>
-          <div class="meta-cell"><div class="label">저점 안정</div><div class="value"><%= eq.signals.lowStabilized ? '✅' : '❌' %></div></div>
-          <div class="meta-cell"><div class="label">저점 상승</div><div class="value"><%= eq.signals.higherLow ? '✅' : '❌' %></div></div>
-          <div class="meta-cell"><div class="label">종가 위치</div><div class="value"><%= (eq.signals.closeLocation * 100).toFixed(0) %>%</div></div>
-          <div class="meta-cell"><div class="label">윗꼬리 비율</div><div class="value"><%= (eq.signals.upperWickRatio * 100).toFixed(0) %>%</div></div>
-        </div>
-        <% } else if (earlyQvaData && !earlyQvaData.passed) { %>
-        <div class="small text-secondary" style="background:#f8fafc;padding:10px 12px;border-radius:6px;line-height:1.6;">
-          <strong>현재 초기 QVA 조건을 만족하지 않습니다.</strong>
-          <% if (earlyQvaData.excludeReasons && earlyQvaData.excludeReasons.length > 0) { %>
-          <ul class="mt-2 mb-0 small" style="padding-left:18px;">
-            <% earlyQvaData.excludeReasons.slice(0, 5).forEach(function(r) { %>
-            <li><%= r %></li>
+        <% } %>
+
+        <!-- 핵심 재료 한 줄 -->
+        <% if (ma.keyMaterial) { %>
+          <div style="font-size:14px;font-weight:700;color:#1e40af;background:#eff6ff;padding:10px 12px;border-radius:6px;border-left:3px solid #3b82f6;line-height:1.55;">
+            💡 <%= ma.keyMaterial %>
+          </div>
+        <% } %>
+
+        <!-- 뉴스 요약 -->
+        <% if (ma.newsSummary) { %>
+          <h3 style="font-size:12px;color:#475569;margin:12px 0 4px 0;font-weight:600;">📰 뉴스 요약</h3>
+          <div style="font-size:13px;line-height:1.7;color:#1e293b;background:#f8fafc;padding:8px 12px;border-radius:6px;">
+            <%= ma.newsSummary %>
+          </div>
+        <% } %>
+
+        <!-- 공시 요약 -->
+        <% if (ma.disclosureSummary && ma.disclosureSummary !== '해당 없음') { %>
+          <h3 style="font-size:12px;color:#475569;margin:12px 0 4px 0;font-weight:600;">📋 공시 요약</h3>
+          <div style="font-size:13px;line-height:1.7;color:#1e293b;background:#f8fafc;padding:8px 12px;border-radius:6px;">
+            <%= ma.disclosureSummary %>
+          </div>
+        <% } %>
+
+        <!-- 가격-재료 연결 해석 -->
+        <% if (ma.priceReaction) { %>
+          <h3 style="font-size:12px;color:#475569;margin:12px 0 4px 0;font-weight:600;">📈 가격 반응 해석</h3>
+          <div style="font-size:13px;line-height:1.7;color:#1e293b;background:#f8fafc;padding:8px 12px;border-radius:6px;">
+            <%= ma.priceReaction %>
+          </div>
+        <% } %>
+
+        <!-- 리스크 -->
+        <% if (ma.risks && ma.risks.length > 0) { %>
+          <h3 style="font-size:12px;color:#92400e;margin:12px 0 4px 0;font-weight:600;">⚠️ 리스크</h3>
+          <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.7;color:#78350f;">
+            <% ma.risks.forEach(function(r) { %>
+              <li><%= r %></li>
             <% }); %>
           </ul>
-          <% } %>
-        </div>
-        <% } else { %>
-        <div class="muted small">초기 QVA 데이터를 계산할 수 없습니다.</div>
         <% } %>
-      </div>
 
-      <!-- ============ 6. 확인 QVA 통과 태그 ============ -->
-      <div class="glass">
-        <h2><i class="bi bi-bookmark-check me-1"></i>확인 QVA 통과 태그</h2>
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <% var passConfirmed = breakoutData && breakoutData.confirmedQvaPass; %>
-          <% if (passConfirmed) { %>
-            <span class="badge-pill" style="background:#dbeafe;color:#1e40af;border:1px solid #3b82f6;padding:4px 14px;font-size:13px;">✅ 확인 QVA 통과: 예</span>
-          <% } else { %>
-            <span class="badge-pill" style="background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1;padding:4px 14px;font-size:13px;">확인 QVA 통과: 아니오</span>
-          <% } %>
-        </div>
-        <div class="small text-secondary" style="line-height:1.7;">
-          초기 QVA 이후 가격 유지, 저점 상승, 거래대금 흐름이 한 번 더 확인된 경우 붙는 보조 태그입니다.
-          메인 단계가 아니라 참고 태그입니다.
-        </div>
-      </div>
+        <!-- 한 줄 결론 -->
+        <% if (ma.oneLineConclusion) { %>
+          <div style="margin-top:12px;background:#fef3c7;color:#78350f;padding:10px 12px;border-radius:6px;border-left:3px solid #f59e0b;font-size:13px;font-weight:600;line-height:1.55;">
+            🎯 <%= ma.oneLineConclusion %>
+          </div>
+        <% } %>
 
-      <!-- ============ 7. VVI / 돌파 분석 ============ -->
-      <% if (breakoutData && breakoutData.vviDate) { var bd = breakoutData; %>
-      <div class="glass">
-        <h2 style="color:#1e40af;"><i class="bi bi-lightning-charge me-1"></i>VVI / 돌파 분석</h2>
-        <div class="small text-secondary mb-3" style="line-height:1.7;">
-          VVI는 실제 거래대금이 강하게 붙은 상태입니다.
-          VVI 이후 다음 거래일에 기준 가격을 돌파하고 종가도 버티면 돌파 성공 확인 종목으로 분류합니다.
-        </div>
-        <h3>VVI 발생 정보</h3>
-        <div class="meta-grid">
-          <div class="meta-cell"><div class="label">VVI 발생일</div><div class="value"><%= bd.vviDate ? bd.vviDate.slice(0,4) + '-' + bd.vviDate.slice(4,6) + '-' + bd.vviDate.slice(6,8) : '-' %></div></div>
-          <% if (bd.vviHigh) { %><div class="meta-cell"><div class="label">VVI 고가</div><div class="value"><%= bd.vviHigh.toLocaleString() %>원</div></div><% } %>
-          <% if (bd.vviClose) { %><div class="meta-cell"><div class="label">VVI 종가</div><div class="value"><%= bd.vviClose.toLocaleString() %>원</div></div><% } %>
-          <% if (bd.vviLow) { %><div class="meta-cell"><div class="label">VVI 저가</div><div class="value"><%= bd.vviLow.toLocaleString() %>원</div></div><% } %>
-          <% if (bd.vviHigh && bd.vviClose && bd.vviLow) { var vviCloseLoc = ((bd.vviClose - bd.vviLow) / (bd.vviHigh - bd.vviLow) * 100).toFixed(0); %>
-          <div class="meta-cell"><div class="label">VVI 종가 위치</div><div class="value"><%= vviCloseLoc %>%</div></div>
-          <% } %>
-        </div>
-
-        <% if (bd.breakoutDate) { %>
-        <h3>돌파 결과</h3>
-        <div class="meta-grid">
-          <div class="meta-cell"><div class="label">+1% 돌파 기준가</div><div class="value"><%= bd.breakoutEntryPrice1Pct ? Math.round(bd.breakoutEntryPrice1Pct).toLocaleString() : '-' %>원</div></div>
-          <div class="meta-cell"><div class="label">다음 거래일 고가</div><div class="value"><%= bd.breakoutNextHigh ? bd.breakoutNextHigh.toLocaleString() : '-' %>원</div></div>
-          <div class="meta-cell"><div class="label">다음 거래일 종가</div><div class="value"><%= bd.breakoutNextClose ? bd.breakoutNextClose.toLocaleString() : '-' %>원</div></div>
-          <div class="meta-cell">
-            <div class="label">돌파 성공 여부</div>
-            <div class="value">
-              <% if (bd.breakoutSuccess === true) { %>
-                <span class="ret-pos">✅ 성공</span>
-              <% } else if (bd.breakoutSuccess === false) { %>
-                <span class="ret-neg">❌ 실패</span>
+        <!-- 출처 -->
+        <% if (ma.sources && ma.sources.length > 0) { %>
+          <h3 style="font-size:11px;color:#94a3b8;margin:10px 0 4px 0;font-weight:600;">출처</h3>
+          <div style="font-size:11px;line-height:1.7;color:#64748b;">
+            <% ma.sources.forEach(function(s, i) {
+              var isUrl = typeof s === 'string' && s.match(/^https?:\/\//);
+            %>
+              <% if (isUrl) { %>
+                <a href="<%= s %>" target="_blank" rel="noopener" style="color:#2563eb;text-decoration:none;display:block;word-break:break-all;">[<%= i+1 %>] <%= s %></a>
               <% } else { %>
-                <span class="muted">-</span>
+                <span style="display:block;">[<%= i+1 %>] <%= s %></span>
               <% } %>
-            </div>
-          </div>
-          <div class="meta-cell">
-            <div class="label">H그룹 여부</div>
-            <div class="value"><%= bd.isHGroup ? '🔥 예' : '아니오' %></div>
-          </div>
-        </div>
-        <% } %>
-      </div>
-      <% } %>
-
-      <!-- ============ 8. 뉴스·공시 재료 분석 ============ -->
-      <% if (materialAnalysis) { %>
-      <div class="glass">
-        <h2 style="color:#1e40af;"><i class="bi bi-newspaper me-1"></i>뉴스·공시 재료 확인</h2>
-        <div class="small text-secondary mb-3" style="line-height:1.7;">
-          이 종목의 거래대금 증가와 연결될 수 있는 상승 배경 후보 재료입니다.
-          단기 테마성 재료인지 지속 재료인지 확인이 필요합니다.
-        </div>
-        <% if (materialAnalysis.summary) { %>
-          <h3>핵심 재료</h3>
-          <div class="small" style="line-height:1.8;color:#1e293b;background:#f8fafc;padding:12px 14px;border-radius:6px;border-left:3px solid #60a5fa;">
-            <%- materialAnalysis.summary %>
-          </div>
-        <% } %>
-        <% if (materialAnalysis.keyFactors && materialAnalysis.keyFactors.length > 0) { %>
-          <h3>주요 요인</h3>
-          <ul class="small" style="line-height:1.8;color:#1e293b;padding-left:20px;">
-            <% materialAnalysis.keyFactors.forEach(function(f) { %>
-              <li><%= f %></li>
             <% }); %>
-          </ul>
+          </div>
         <% } %>
-        <% if (materialAnalysis.cautions && materialAnalysis.cautions.length > 0) { %>
-          <h3 style="color:#92400e;">주의할 점</h3>
-          <ul class="small" style="line-height:1.8;color:#78350f;padding-left:20px;">
-            <% materialAnalysis.cautions.forEach(function(c) { %>
-              <li><%= c %></li>
-            <% }); %>
-          </ul>
-        <% } %>
-        <div class="small muted mt-2" style="font-size:11px;">
-          ※ 뉴스·공시는 자동 수집된 공개 정보 기반이며, 정확성은 출처 페이지에서 직접 확인해야 합니다.
+
+        <div class="ai-footnote">
+          ※ 자동 수집된 공개 정보 기반. 정확성은 출처에서 직접 확인.
+          <% if (ma.cached) { %>· <span style="color:#10b981;">캐시</span><% } %>
+          <% if (ma.generatedAt) { %>· <%= new Date(ma.generatedAt).toLocaleString('ko-KR') %><% } %>
+          <% if (ma.model) { %>· <%= ma.model %><% } %>
         </div>
+      </div>
+      <% } else if (materialAnalysis && materialAnalysis.error) { %>
+      <div class="card">
+        <h2><i class="bi bi-newspaper me-1"></i>AI 뉴스·공시 분석</h2>
+        <div class="empty-state">분석 호출 중 오류: <%= materialAnalysis.error %></div>
+      </div>
+      <% } else { %>
+      <div class="card">
+        <h2><i class="bi bi-newspaper me-1"></i>AI 뉴스·공시 분석</h2>
+        <div class="empty-state">AI 분석 데이터가 없습니다 (GEMINI_API_KEY 설정 또는 캐시 확인 필요).</div>
       </div>
       <% } %>
 
-      <!-- ============ 9. 리스크 체크 ============ -->
-      <% if (riskChecks && riskChecks.length > 0) { %>
-      <div class="glass">
-        <h2 style="color:#92400e;"><i class="bi bi-shield-exclamation me-1"></i>리스크 체크</h2>
-        <div class="small text-secondary mb-2" style="line-height:1.7;">
-          QVA/VVI 기준에서 자동으로 점검한 리스크 신호입니다. 매수 추천이 아닙니다.
-        </div>
-        <% riskChecks.forEach(function(r) { %>
-          <div class="risk <%= r.level %>"><%= r.text %></div>
-        <% }); %>
-      </div>
-      <% } %>
-
-      <!-- ============ 10. 하단 주의 문구 ============ -->
-      <div class="footnote">
-        ⚠️ 이 상세 분석은 <strong>QVA/VVI 조건과 공개 뉴스·공시·가격 흐름</strong>을 바탕으로 후보를 이해하기 위한 <strong>참고 정보</strong>입니다.
-        매수 추천이 아니며, 실제 판단은 차트, 뉴스, 공시, 시장 상황을 함께 보고 사용자가 직접 해야 합니다.
+      <!-- ============ 하단 주의 ============ -->
+      <div class="footer-disclaimer">
+        <strong>⚠️ 매수 추천이 아닙니다.</strong> 이 화면은 차트 흐름과 공개 뉴스·공시를 바탕으로 후보를 이해하기 위한 참고 정보입니다. 실제 판단은 사용자가 직접 해야 합니다.
       </div>
 
       <!-- 차트 데이터 + Chart.js 초기화 -->
@@ -387,10 +310,6 @@
         const vviDate = <%- JSON.stringify(breakoutData ? breakoutData.vviDate : null) %>;
         const breakoutDate = <%- JSON.stringify(breakoutData ? breakoutData.breakoutDate : null) %>;
 
-        function fmtDateShort(d) {
-          if (!d || d.length !== 8) return d;
-          return d.slice(4,6) + '-' + d.slice(6,8);
-        }
         function fmtChartDate(d) {
           if (!d || d.length !== 8) return d;
           return d.slice(0,4) + '-' + d.slice(4,6) + '-' + d.slice(6,8);
@@ -398,49 +317,62 @@
 
         const labels = chartData.map(r => fmtChartDate(r.date));
         const closes = chartData.map(r => r.close);
+        const highs = chartData.map(r => r.high);
+        const lows = chartData.map(r => r.low);
         const ma5 = chartData.map(r => r.ma5);
         const ma20 = chartData.map(r => r.ma20);
         const ma60 = chartData.map(r => r.ma60);
-        const volumes = chartData.map(r => r.volume);
+        const volumes = chartData.map(r => r.volume || 0);
+        // 양봉(상승)/음봉(하락) 판정 - 거래량 색 (한국식 빨강=상승, 파랑=하락)
+        const volumeColors = chartData.map((r, i) => {
+          const prev = i > 0 ? chartData[i - 1].close : r.close;
+          return r.close >= prev ? 'rgba(220,38,38,0.78)' : 'rgba(37,99,235,0.78)';
+        });
 
-        // 마커 인덱스
         function findIdx(date) { return date ? labels.findIndex(l => l === fmtChartDate(date)) : -1; }
         const earlyIdx = findIdx(earlyQvaDate);
         const vviIdx = findIdx(vviDate);
         const breakoutIdx = findIdx(breakoutDate);
 
-        // 마커 데이터 (point only at marker indexes)
-        function markerSeries(idx, color, label) {
+        function markerSeries(idx) {
           return chartData.map((r, i) => i === idx ? r.close : null);
         }
 
-        const ctx = document.getElementById('priceChart').getContext('2d');
-        new Chart(ctx, {
+        // ─── 가격 차트 ───
+        const priceCtx = document.getElementById('priceChart').getContext('2d');
+        const priceChart = new Chart(priceCtx, {
           type: 'line',
           data: {
             labels,
             datasets: [
-              { label: '종가', data: closes, borderColor: '#0f172a', borderWidth: 1.5, pointRadius: 0, tension: 0.05 },
-              { label: 'MA5', data: ma5, borderColor: '#dc2626', borderWidth: 1, pointRadius: 0, borderDash: [4, 2] },
-              { label: 'MA20', data: ma20, borderColor: '#2563eb', borderWidth: 1, pointRadius: 0, borderDash: [4, 2] },
-              { label: 'MA60', data: ma60, borderColor: '#16a34a', borderWidth: 1, pointRadius: 0, borderDash: [4, 2] },
+              // 고가-저가 범위 (회색 밴드)
+              { label: '고가', data: highs, borderColor: 'rgba(148,163,184,0.0)', backgroundColor: 'rgba(148,163,184,0.18)',
+                fill: '+1', pointRadius: 0, borderWidth: 0, order: 20 },
+              { label: '저가', data: lows, borderColor: 'rgba(148,163,184,0.0)', backgroundColor: 'rgba(148,163,184,0.0)',
+                pointRadius: 0, borderWidth: 0, fill: false, order: 21 },
+              // 종가 — 두꺼운 검정 라인
+              { label: '종가', data: closes, borderColor: '#0f172a', borderWidth: 2, pointRadius: 0, tension: 0.05, order: 10 },
+              // MA — 두께 1.6px 솔리드
+              { label: 'MA5', data: ma5, borderColor: '#dc2626', borderWidth: 1.4, pointRadius: 0, order: 5 },
+              { label: 'MA20', data: ma20, borderColor: '#2563eb', borderWidth: 1.4, pointRadius: 0, order: 4 },
+              { label: 'MA60', data: ma60, borderColor: '#16a34a', borderWidth: 1.4, pointRadius: 0, order: 3 },
               earlyIdx >= 0 ? {
                 label: '🌱 초기 QVA',
                 data: markerSeries(earlyIdx),
                 borderColor: '#10b981', backgroundColor: '#10b981',
-                pointRadius: 6, pointStyle: 'triangle', showLine: false
+                pointRadius: 9, pointStyle: 'triangle', showLine: false, order: 1
               } : null,
               vviIdx >= 0 ? {
                 label: '⏳ VVI',
                 data: markerSeries(vviIdx),
                 borderColor: '#3b82f6', backgroundColor: '#3b82f6',
-                pointRadius: 6, pointStyle: 'rectRot', showLine: false
+                pointRadius: 9, pointStyle: 'rectRot', showLine: false, order: 1
               } : null,
               breakoutIdx >= 0 ? {
                 label: '🔥 돌파 성공',
                 data: markerSeries(breakoutIdx),
                 borderColor: '#dc2626', backgroundColor: '#dc2626',
-                pointRadius: 6, pointStyle: 'star', showLine: false
+                pointRadius: 9, pointStyle: 'star', showLine: false, order: 1
               } : null,
             ].filter(Boolean)
           },
@@ -449,56 +381,149 @@
             maintainAspectRatio: false,
             interaction: { intersect: false, mode: 'index' },
             plugins: {
-              legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
+              legend: { display: false },
               tooltip: {
                 callbacks: {
+                  label: function(item) {
+                    const r = chartData[item.dataIndex];
+                    if (!r) return '';
+                    return [
+                      '종가 ' + r.close.toLocaleString() + '원',
+                      '고가 ' + r.high.toLocaleString() + '원',
+                      '저가 ' + r.low.toLocaleString() + '원',
+                    ];
+                  },
                   afterBody: function(items) {
                     if (!items.length) return '';
                     const idx = items[0].dataIndex;
-                    const r = chartData[idx];
-                    if (!r) return '';
                     const lines = [];
                     if (idx === earlyIdx) lines.push('🌱 초기 QVA — 감시 시작');
                     if (idx === vviIdx) lines.push('⏳ VVI — 거래대금 확인');
-                    if (idx === breakoutIdx) lines.push('🔥 돌파 성공 — +1% 돌파와 종가 유지 확인');
-                    if (r.volume) lines.push('거래량: ' + r.volume.toLocaleString());
+                    if (idx === breakoutIdx) lines.push('🔥 돌파 성공 — +1% 돌파 + 종가 유지');
                     return lines;
                   }
                 }
-              },
-              annotation: {
-                annotations: (function() {
-                  const ann = {};
-                  if (breakout.breakoutEntryPrice1Pct) {
-                    ann.entryLine = { type:'line', yMin: breakout.breakoutEntryPrice1Pct, yMax: breakout.breakoutEntryPrice1Pct,
-                      borderColor: '#94a3b8', borderWidth: 1, borderDash: [3, 3],
-                      label: { display: true, content: '기준 진입가 ' + Math.round(breakout.breakoutEntryPrice1Pct).toLocaleString(), position: 'end', backgroundColor: '#94a3b8', font: { size: 9 } } };
-                    ann.plus15Line = { type:'line', yMin: breakout.breakoutEntryPrice1Pct * 1.15, yMax: breakout.breakoutEntryPrice1Pct * 1.15,
-                      borderColor: '#10b981', borderWidth: 1, borderDash: [3, 3],
-                      label: { display: true, content: '+15%', position: 'end', backgroundColor: '#10b981', font: { size: 9 } } };
-                    ann.minus7Line = { type:'line', yMin: breakout.breakoutEntryPrice1Pct * 0.93, yMax: breakout.breakoutEntryPrice1Pct * 0.93,
-                      borderColor: '#dc2626', borderWidth: 1, borderDash: [3, 3],
-                      label: { display: true, content: '-7%', position: 'end', backgroundColor: '#dc2626', font: { size: 9 } } };
-                  }
-                  if (breakout.vviHigh) {
-                    ann.vviHighLine = { type:'line', yMin: breakout.vviHigh, yMax: breakout.vviHigh,
-                      borderColor: '#3b82f6', borderWidth: 1, borderDash: [3, 3],
-                      label: { display: true, content: 'VVI 고가 ' + breakout.vviHigh.toLocaleString(), position: 'start', backgroundColor: '#3b82f6', font: { size: 9 } } };
-                  }
-                  return ann;
-                })()
               }
             },
             scales: {
-              y: { ticks: { callback: v => v.toLocaleString() } },
-              x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8, font: { size: 10 } } }
+              y: {
+                ticks: { callback: v => v.toLocaleString(), font: { size: 10 } },
+                grid: { color: 'rgba(0,0,0,0.05)' }
+              },
+              x: {
+                ticks: { display: false },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+
+        // ─── 거래량 차트 ───
+        const volumeCtx = document.getElementById('volumeChart').getContext('2d');
+        new Chart(volumeCtx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: '거래량',
+              data: volumes,
+              backgroundColor: volumeColors,
+              borderWidth: 0,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(item) {
+                    return '거래량 ' + (item.raw || 0).toLocaleString();
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                ticks: {
+                  callback: v => {
+                    if (v >= 1e8) return (v/1e8).toFixed(1) + '억';
+                    if (v >= 1e4) return (v/1e4).toFixed(0) + '만';
+                    return v.toLocaleString();
+                  },
+                  font: { size: 9 }
+                },
+                grid: { color: 'rgba(0,0,0,0.05)' }
+              },
+              x: {
+                ticks: {
+                  font: { size: 9 },
+                  maxRotation: 0,
+                  autoSkip: true,
+                  maxTicksLimit: 6,
+                  callback: function(value, index) {
+                    const lbl = labels[index];
+                    if (!lbl) return '';
+                    return lbl.slice(2,7); // YY-MM
+                  }
+                },
+                grid: { display: false }
+              }
             }
           }
         });
       </script>
+
+      <script>
+        // 차트 갱신 버튼
+        const refreshBtn = document.getElementById('refresh-chart-btn');
+        const refreshStatus = document.getElementById('refresh-status');
+        if (refreshBtn) {
+          refreshBtn.addEventListener('click', async () => {
+            const code = refreshBtn.dataset.code;
+            refreshBtn.disabled = true;
+            refreshBtn.style.opacity = '0.6';
+            refreshStatus.style.display = 'block';
+            refreshStatus.style.color = '#94a3b8';
+            refreshStatus.textContent = '⏳ KIS API에서 최신 일봉을 받아오는 중... (최대 10초)';
+            try {
+              const r = await fetch('/refresh-chart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }),
+              });
+              const data = await r.json();
+              if (!r.ok || !data.ok) {
+                refreshStatus.style.color = '#dc2626';
+                refreshStatus.textContent = '⚠️ 갱신 실패: ' + (data.error || r.statusText);
+                refreshBtn.disabled = false;
+                refreshBtn.style.opacity = '1';
+                return;
+              }
+              const latest = data.latestDate;
+              const dateLabel = latest ? latest.slice(0,4)+'-'+latest.slice(4,6)+'-'+latest.slice(6,8) : '-';
+              refreshStatus.style.color = '#047857';
+              refreshStatus.textContent = '✅ 갱신 완료 — 최신 ' + dateLabel + ' (신규 ' + (data.addedDays||0) + '일, 수정 ' + (data.updatedDays||0) + '일). 잠시 후 페이지를 새로 고칩니다...';
+              setTimeout(() => window.location.reload(), 800);
+            } catch (e) {
+              refreshStatus.style.color = '#dc2626';
+              refreshStatus.textContent = '⚠️ 네트워크 오류: ' + (e.message || e);
+              refreshBtn.disabled = false;
+              refreshBtn.style.opacity = '1';
+            }
+          });
+        }
+      </script>
       <% } %>
 
+    <% } else if (!error) { %>
+      <div class="card">
+        <div class="empty-state">검색 후 종목 차트와 AI 분석을 볼 수 있습니다.</div>
+      </div>
     <% } %>
+
   </div>
 </body>
 </html>
