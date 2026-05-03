@@ -2074,8 +2074,8 @@ app.get("/", (req, res) => {
     req.body = { ...req.query, stockQuery: incomingQuery };
     return handleSearch(req, res);
   }
-  // 첫 화면을 패턴 대시보드로 — 검색 쿼리 없을 때 /pattern 으로 이동
-  return res.redirect("/pattern");
+  // 첫 화면을 매일 운영 보드(QVA Watchlist)로
+  return res.redirect("/qva-watchlist");
 });
 
 function buildScanReturnUrl(body) {
@@ -2749,13 +2749,33 @@ app.post("/scan", (req, res) => res.render("scan", {}));
 app.get("/backtest", (req, res) => res.render("backtest", {}));
 app.post("/backtest", (req, res) => res.render("backtest", {}));
 
-app.get("/qva-surge", (req, res) => {
-  const filePath = path.join(__dirname, "qva-surge-day-report.html");
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send("qva-surge-day-report.html 파일이 없습니다. `node qva-surge-day-report.js`를 먼저 실행하세요.");
-  }
-  res.sendFile(filePath);
-});
+// 보고서 라우트 — path는 파일명(-report.html)과 일치시킨다.
+// 기존 짧은 path는 호환성 유지를 위해 redirect로 보존.
+function serveReport(htmlName) {
+  return (req, res) => {
+    const filePath = path.join(__dirname, htmlName);
+    if (!fs.existsSync(filePath)) {
+      const jsName = htmlName.replace(/\.html$/, ".js");
+      return res.status(404).send(`${htmlName} 파일이 없습니다. \`node ${jsName}\`를 먼저 실행하세요.`);
+    }
+    res.sendFile(filePath);
+  };
+}
+
+app.get("/qva-surge-day-report", serveReport("qva-surge-day-report.html"));
+app.get("/qva-surge", (req, res) => res.redirect("/qva-surge-day-report"));
+
+app.get("/qva-to-vvi-report", serveReport("qva-to-vvi-report.html"));
+app.get("/qva-to-vvi", (req, res) => res.redirect("/qva-to-vvi-report"));
+
+app.get("/qva-vvi-breakout-entry-report", serveReport("qva-vvi-breakout-entry-report.html"));
+app.get("/qva-vvi-breakout-entry", (req, res) => res.redirect("/qva-vvi-breakout-entry-report"));
+
+app.get("/qva-vvi-breakout-exit-report", serveReport("qva-vvi-breakout-exit-report.html"));
+app.get("/qva-vvi-breakout-exit", (req, res) => res.redirect("/qva-vvi-breakout-exit-report"));
+
+app.get("/qva-watchlist", serveReport("qva-watchlist-board.html"));
+app.get("/qva-watchlist-board", (req, res) => res.redirect("/qva-watchlist"));
 
 // ─────────── 패턴 스크리너 ───────────
 const patternState = {
@@ -3127,7 +3147,24 @@ cron.schedule('20 16 * * 1-5', async () => {
 });
 console.log('[스케줄] 매일 평일 16:20 일일 데이터 업데이트 + 재분석 활성화 (한국 시간)');
 
-// ─── 자동 메일 발송 스케줄 (매일 18:00, MAIL_CRON_ENABLED=1 시) ───
+// ─── QVA Watchlist Board 갱신 (매일 평일 16:35 — 일일 업데이트 후) ───
+cron.schedule('35 16 * * 1-5', () => {
+  console.log('[Watchlist] 16:35 시작 — qva-watchlist-board 갱신');
+  try {
+    const { execSync } = require('child_process');
+    const scriptPath = path.join(__dirname, 'qva-watchlist-board.js');
+    execSync(`node ${scriptPath}`, { stdio: 'pipe' });
+    console.log('[Watchlist] 갱신 완료');
+  } catch (e) {
+    console.error('[Watchlist] 에러:', e.message);
+  }
+}, { scheduled: true, timezone: 'Asia/Seoul' });
+console.log('[스케줄] 매일 평일 16:35 QVA Watchlist Board 갱신 활성화 (한국 시간)');
+
+// ─── 자동 메일 발송 스케줄 (매일 18:00) — 현재 비활성화 ───
+// 18:00 cron은 사용자 요청으로 비활성화. /admin/send-pattern-mail 수동 발송 라우트는 살아있음.
+// 다시 활성화하려면 아래 블록 주석 해제 + .env에 MAIL_CRON_ENABLED=1 설정.
+/*
 if (process.env.MAIL_CRON_ENABLED === '1') {
   cron.schedule('0 18 * * *', async () => {
     console.log('[메일발송] 18:00 — pattern-result.json 기반 VVI 신호 메일 발송 시작');
@@ -3138,7 +3175,6 @@ if (process.env.MAIL_CRON_ENABLED === '1') {
         return;
       }
       const result = JSON.parse(fs.readFileSync(resultPath, 'utf-8'));
-      // 오늘 날짜 결과인지 확인 (analyzeFinishedAt 기준)
       if (result.analyzeFinishedAt) {
         const resultDate = new Date(result.analyzeFinishedAt).toDateString();
         const today = new Date().toDateString();
@@ -3154,6 +3190,7 @@ if (process.env.MAIL_CRON_ENABLED === '1') {
   }, { scheduled: true, timezone: 'Asia/Seoul' });
   console.log('[스케줄] 매일 18:00 VVI 신호 메일 자동 발송 활성화 (한국 시간)');
 }
+*/
 
 // QVA 보고서 파싱 함수
 function parseQvaReport(markdown) {
