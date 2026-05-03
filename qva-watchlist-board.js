@@ -384,6 +384,22 @@ for (let fi = 0; fi < files.length; fi++) {
     if (baseAvg > 0 && last3Avg >= baseAvg * 1.5) auxTags.push('VALUE_REACTIVATION');
   }
 
+  // ─── QVA_TRACKING 보조 신호: 위험 / 만료 임박 / 관심도 점수 ───
+  // 위험: 신호가 대비 -5% 이하 (가격이 무너지기 시작한 후보)
+  const riskTag = currentReturnFromSignal != null && currentReturnFromSignal <= -5;
+  // 만료 임박: D+15 이상 (TRACKING_DAYS=20 중 마지막 5거래일)
+  const expiringSoon = daysSinceQva >= 15;
+  // 관심도 점수 (watchScore 0~100): 보조 태그 ×25 + 가격 유지 보너스 - 위험/만료 감점
+  let _ws = (auxTags.length || 0) * 25;
+  if (currentReturnFromSignal != null) {
+    if (currentReturnFromSignal >= 5) _ws += 15;
+    else if (currentReturnFromSignal >= 0) _ws += 10;
+    else if (currentReturnFromSignal <= -5) _ws -= 15;
+  }
+  if (expiringSoon) _ws -= 10;
+  if (daysSinceQva <= 5) _ws += 5;
+  const watchScore = Math.max(0, Math.min(100, Math.round(_ws)));
+
   // ─── 후보 레코드 ───
   candidates.push({
     code,
@@ -421,6 +437,11 @@ for (let fi = 0; fi < files.length; fi++) {
     mainStage,
     stageReason,
     auxTags,
+
+    // QVA 추적 중 전용 신호
+    riskTag,
+    expiringSoon,
+    watchScore,
   });
 }
 
@@ -509,10 +530,11 @@ function sortStage(stage, items) {
       arr.sort((a, b) => (b.currentReturnFromSignal ?? -Infinity) - (a.currentReturnFromSignal ?? -Infinity));
       break;
     case 'QVA_TRACKING':
-      // 보조 태그 많은 순 → 신호가 대비 수익률 높은 순
+      // watchScore 높은 순 → 거래대금 큰 순 → D+ 작은 순
       arr.sort((a, b) => {
-        if (b.auxTags.length !== a.auxTags.length) return b.auxTags.length - a.auxTags.length;
-        return (b.currentReturnFromSignal ?? -Infinity) - (a.currentReturnFromSignal ?? -Infinity);
+        if ((b.watchScore ?? 0) !== (a.watchScore ?? 0)) return (b.watchScore ?? 0) - (a.watchScore ?? 0);
+        if ((b.currentValue ?? 0) !== (a.currentValue ?? 0)) return (b.currentValue ?? 0) - (a.currentValue ?? 0);
+        return (a.daysSinceQva ?? 0) - (b.daysSinceQva ?? 0);
       });
       break;
     case 'QVA_NEW':
@@ -589,6 +611,20 @@ const recentVviHistorySummary = {
   pending: recentVviHistoryItems.filter(c => c.vviOutcome === 'PENDING').length,
 };
 
+// QVA 추적 중 그룹 요약 (접힘 상태에서도 보여주는 카드)
+const _trk = byStage.get('QVA_TRACKING') || [];
+const qvaTrackingSummary = {
+  total: _trk.length,
+  tag3: _trk.filter(c => (c.auxTags?.length || 0) === 3).length,
+  tag2plus: _trk.filter(c => (c.auxTags?.length || 0) >= 2).length,
+  priceHold: _trk.filter(c => c.auxTags?.includes('PRICE_HOLD')).length,
+  lowRising: _trk.filter(c => c.auxTags?.includes('LOW_RISING')).length,
+  valueReactivation: _trk.filter(c => c.auxTags?.includes('VALUE_REACTIVATION')).length,
+  riskTag: _trk.filter(c => c.riskTag).length,
+  expiringSoon: _trk.filter(c => c.expiringSoon).length,
+};
+const qvaTrackingTopPreview = (stagedItems['QVA_TRACKING'] || []).slice(0, 10);
+
 const summary = {
   today: TODAY,
   todayDateLabel: formatDate(TODAY),
@@ -639,6 +675,11 @@ const jsonOut = {
     items: recentVviHistoryItems,
     summary: recentVviHistorySummary,
     note: '이 섹션은 매수 추천이 아니라 VVI 발생 이력과 돌파 판정 흐름을 보여주는 참고 정보입니다.',
+  },
+  qvaTracking: {
+    summary: qvaTrackingSummary,
+    topPreview: qvaTrackingTopPreview,
+    note: 'QVA 추적 중 후보는 아직 VVI 확인 전 단계입니다. 많은 후보 중 가격 유지, 저점 상승, 거래대금 재활성 태그가 함께 붙은 종목을 우선적으로 관찰합니다.',
   },
 };
 
@@ -699,6 +740,28 @@ const htmlTemplate = `<!DOCTYPE html>
   .help-content .h-group-card ol { margin: 4px 0 8px 0; padding-left: 22px; font-size: 13px; }
   .help-content .h-group-card ol li { margin-bottom: 2px; }
   .help-content .warn { color: #fbbf24; font-size: 12px; margin-top: 6px; padding: 6px 10px; background: #422006; border-radius: 4px; }
+
+  /* QVA 추적 중 — 요약 카드 / 미리보기 (접힘 상태에서도 노출) */
+  .tracking-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .tracking-summary .card { background: #0f172a; padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; }
+  .tracking-summary .card .lbl { color: #94a3b8; font-size: 11px; }
+  .tracking-summary .card .cnt { color: #f1f5f9; font-size: 20px; font-weight: 700; margin-top: 2px; }
+  .tracking-summary .card.warn { border-left: 3px solid #f87171; }
+  .tracking-summary .card.expiring { border-left: 3px solid #fbbf24; }
+  .tracking-summary .card.strong { border-left: 3px solid #10b981; }
+
+  .tracking-preview { background: #0f172a; padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; margin-bottom: 12px; }
+  .tracking-preview .preview-title { color: #cbd5e1; font-size: 12px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .tracking-preview .preview-title .pill { font-size: 10px; padding: 1px 8px; background: #14532d; color: #6ee7b7; }
+  .tracking-preview table { width: 100%; font-size: 12px; }
+  .tracking-preview td, .tracking-preview th { padding: 5px 8px; border-bottom: 1px solid #1e293b; }
+
+  /* 펼치기 버튼 (QVA_TRACKING 전용 큰 토글) */
+  .toggle-large { display: inline-block; padding: 4px 12px; background: #1e3a8a; color: #f1f5f9; border-radius: 999px; font-size: 12px; font-weight: 600; cursor: pointer; user-select: none; border: 1px solid #3b82f6; }
+  .toggle-large:hover { background: #1e40af; }
+
+  .stage-section.collapsed.q-tracking .table-wrap { display: none; }
+  .stage-section .toggle.tag-active { background: #14532d; color: #6ee7b7; border-color: #10b981; }
 
   .stage-bar { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
   .stage-pill { display: flex; flex-direction: column; padding: 10px 14px; border-radius: 8px; background: #1e293b; min-width: 110px; cursor: pointer; user-select: none; border: 2px solid transparent; transition: border 0.15s; }
@@ -952,9 +1015,16 @@ const COLS_BY_STAGE = {
     { key: 'currentReturnFromSignal', label: '신호가 대비%', render: c => fmtPct(c.currentReturnFromSignal, true) },
   ],
   QVA_TRACKING: [
+    { key: 'watchScore', label: '관심도', render: c => '<strong style="color:#f1f5f9;">' + (c.watchScore ?? 0) + '</strong>' },
     { key: 'qvaSignalDate', label: 'QVA일', txt: true, render: c => fmtDate(c.qvaSignalDate) },
-    { key: 'daysSinceQva', label: 'D+', render: c => 'D+' + c.daysSinceQva },
-    { key: 'name', label: '종목', txt: true, render: c => '<span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span>' + badges(c) },
+    { key: 'daysSinceQva', label: 'D+', render: c => {
+      const tag = c.expiringSoon ? ' <span style="color:#fbbf24;font-size:10px;">만료임박</span>' : '';
+      return 'D+' + c.daysSinceQva + tag;
+    }},
+    { key: 'name', label: '종목', txt: true, render: c => {
+      const risk = c.riskTag ? '<span class="badge" style="background:#4c1d1d;color:#fca5a5;">위험</span>' : '';
+      return '<span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span>' + risk + badges(c);
+    }},
     { key: 'qvaSignalPrice', label: 'QVA 신호가', render: c => fmtNum(c.qvaSignalPrice) + '원' },
     { key: 'currentClose', label: '현재가', render: c => fmtNum(c.currentClose) + '원' },
     { key: 'currentReturnFromSignal', label: '신호가 대비%', render: c => fmtPct(c.currentReturnFromSignal, true) },
@@ -984,10 +1054,17 @@ const stageContent = {};
 function buildStageSection(stage) {
   const items = DATA.stages[stage] || [];
   const cols = COLS_BY_STAGE[stage] || [];
-  const collapsed = stage === 'FAILED';
+  // 기본 펼침: BREAKOUT_SUCCESS, VVI_FIRED, QVA_NEW
+  // 기본 접힘: QVA_TRACKING (감시 풀 — 너무 많아 시야 분산), FAILED
+  const collapsed = stage === 'FAILED' || stage === 'QVA_TRACKING';
   const sec = document.createElement('div');
-  sec.className = 'stage-section' + (collapsed ? ' collapsed' : '');
+  sec.className = 'stage-section' + (collapsed ? ' collapsed' : '') + (stage === 'QVA_TRACKING' ? ' q-tracking' : '');
   sec.dataset.stage = stage;
+
+  // 토글 라벨 — QVA_TRACKING은 별도 문구
+  const toggleCollapsedText = stage === 'QVA_TRACKING' ? 'QVA 추적 후보 전체 보기' : '▼ 펼치기';
+  const toggleExpandedText = stage === 'QVA_TRACKING' ? 'QVA 추적 후보 접기' : '▲ 접기';
+  const toggleClass = stage === 'QVA_TRACKING' ? 'toggle toggle-large' : 'toggle';
 
   const title = document.createElement('h2');
   title.className = 'h-section';
@@ -995,19 +1072,44 @@ function buildStageSection(stage) {
   title.innerHTML = '<span>' + stageColor + ' ' + DATA.meta.stageLabels[stage] + '</span>' +
     '<span class="pill">' + items.length + '건</span>' +
     '<span class="desc">' + DATA.meta.stageDescriptions[stage] + '</span>' +
-    '<span class="toggle" data-stage="' + stage + '">' + (collapsed ? '▼ 펼치기' : '▲ 접기') + '</span>';
+    '<span class="' + toggleClass + '" data-stage="' + stage + '"' +
+    ' data-collapsed-text="' + toggleCollapsedText + '"' +
+    ' data-expanded-text="' + toggleExpandedText + '">' +
+    (collapsed ? toggleCollapsedText : toggleExpandedText) + '</span>';
   sec.appendChild(title);
 
-  // QVA_TRACKING 그룹은 보조 태그 필터 추가
+  // ─── QVA_TRACKING: 요약 카드 (접힘 상태에서도 표시) ───
+  if (stage === 'QVA_TRACKING') {
+    const sm = DATA.qvaTracking?.summary || { total: 0, tag3: 0, tag2plus: 0, priceHold: 0, lowRising: 0, valueReactivation: 0, riskTag: 0, expiringSoon: 0 };
+    const summaryEl = document.createElement('div');
+    summaryEl.className = 'tracking-summary';
+    summaryEl.innerHTML =
+      '<div class="card"><div class="lbl">전체 추적 중</div><div class="cnt">' + sm.total + '</div></div>' +
+      '<div class="card strong"><div class="lbl">보조 태그 3/3</div><div class="cnt">' + sm.tag3 + '</div></div>' +
+      '<div class="card"><div class="lbl">보조 태그 2/3 이상</div><div class="cnt">' + sm.tag2plus + '</div></div>' +
+      '<div class="card"><div class="lbl">가격 유지</div><div class="cnt">' + sm.priceHold + '</div></div>' +
+      '<div class="card"><div class="lbl">저점 상승</div><div class="cnt">' + sm.lowRising + '</div></div>' +
+      '<div class="card"><div class="lbl">거래대금 재활성</div><div class="cnt">' + sm.valueReactivation + '</div></div>' +
+      '<div class="card warn"><div class="lbl">위험 태그</div><div class="cnt">' + sm.riskTag + '</div></div>' +
+      '<div class="card expiring"><div class="lbl">만료 임박</div><div class="cnt">' + sm.expiringSoon + '</div></div>';
+    sec.appendChild(summaryEl);
+  }
+
+  // ─── 컨트롤 (검색 + 빠른 필터) ───
   if (stage === 'QVA_TRACKING') {
     const ctrls = document.createElement('div');
     ctrls.className = 'controls';
     ctrls.innerHTML =
       '<input type="text" class="search" placeholder="종목명 또는 코드 검색…" data-stage="' + stage + '">' +
       '<div class="tag-filter">' +
-        Object.entries(TAG_LABELS).map(([t, lbl]) =>
-          '<button data-tag="' + t + '" data-stage="' + stage + '">' + lbl + '</button>'
-        ).join('') +
+        '<button data-qfilter="ALL" data-stage="' + stage + '">전체</button>' +
+        '<button data-qfilter="TAG3" data-stage="' + stage + '">3/3</button>' +
+        '<button data-qfilter="TAG2PLUS" data-stage="' + stage + '">2/3 이상</button>' +
+        '<button data-qfilter="PRICE_HOLD" data-stage="' + stage + '">가격 유지</button>' +
+        '<button data-qfilter="LOW_RISING" data-stage="' + stage + '">저점 상승</button>' +
+        '<button data-qfilter="VALUE_REACTIVATION" data-stage="' + stage + '">거래대금 재활성</button>' +
+        '<button data-qfilter="NO_RISK" data-stage="' + stage + '">위험 제외</button>' +
+        '<button data-qfilter="EXPIRING" data-stage="' + stage + '">만료 임박</button>' +
       '</div>';
     sec.appendChild(ctrls);
   } else if (stage !== 'QVA_NEW' && stage !== 'FAILED') {
@@ -1017,6 +1119,33 @@ function buildStageSection(stage) {
     sec.appendChild(ctrls);
   }
 
+  // ─── QVA_TRACKING: 관심도 상위 10개 미리보기 (접힘 상태에서도 표시) ───
+  if (stage === 'QVA_TRACKING') {
+    const top = DATA.qvaTracking?.topPreview || [];
+    const previewEl = document.createElement('div');
+    previewEl.className = 'tracking-preview';
+    if (top.length === 0) {
+      previewEl.innerHTML = '<div class="preview-title">관심도 상위 10개 <span class="pill">없음</span></div>';
+    } else {
+      const head = '<thead><tr><th class="txt">종목</th><th>D+</th><th>현재 수익률</th><th>보조 태그</th><th>거래대금</th><th>관심도</th></tr></thead>';
+      const body = '<tbody>' + top.map(c =>
+        '<tr>' +
+          '<td class="txt"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span>' + (c.expiringSoon ? '<span class="badge" style="background:#422006;color:#fbbf24;">만료임박</span>' : '') + (c.riskTag ? '<span class="badge" style="background:#4c1d1d;color:#fca5a5;">위험</span>' : '') + '</td>' +
+          '<td>D+' + c.daysSinceQva + '</td>' +
+          '<td>' + fmtPct(c.currentReturnFromSignal, true) + '</td>' +
+          '<td>' + (c.auxTags?.length || 0) + '/3</td>' +
+          '<td>' + fmtValue(c.currentValue) + '</td>' +
+          '<td><strong style="color:#f1f5f9;">' + (c.watchScore ?? 0) + '</strong></td>' +
+        '</tr>'
+      ).join('') + '</tbody>';
+      previewEl.innerHTML =
+        '<div class="preview-title">🎯 관심도 상위 10개 <span class="pill">미리보기</span></div>' +
+        '<table>' + head + body + '</table>';
+    }
+    sec.appendChild(previewEl);
+  }
+
+  // ─── 전체 테이블 (collapsed 시 .table-wrap만 hide) ───
   const wrap = document.createElement('div');
   wrap.className = 'table-wrap';
   if (items.length === 0) {
@@ -1033,7 +1162,10 @@ function buildStageSection(stage) {
     const head = '<thead><tr>' + cols.map(c => '<th class="' + (c.txt ? 'txt' : '') + '">' + c.label + '</th>').join('') + '</tr></thead>';
     const body = '<tbody>' + items.map(c => {
       const dataAttrs = 'data-name="' + (c.name || '') + '" data-code="' + c.code + '"' +
-        ' data-tags="' + (c.auxTags || []).join(',') + '"';
+        ' data-tags="' + (c.auxTags || []).join(',') + '"' +
+        ' data-tagcount="' + (c.auxTags?.length || 0) + '"' +
+        ' data-risk="' + !!c.riskTag + '"' +
+        ' data-expiring="' + !!c.expiringSoon + '"';
       return '<tr ' + dataAttrs + '>' + cols.map(col => {
         const cell = col.render(c);
         return '<td' + (col.txt ? ' class="txt"' : '') + '>' + cell + '</td>';
@@ -1043,13 +1175,18 @@ function buildStageSection(stage) {
   }
   sec.appendChild(wrap);
 
-  // BREAKOUT_SUCCESS 섹션 하단 주의 문구
+  // ─── 섹션 하단 주의 문구 ───
   if (stage === 'BREAKOUT_SUCCESS' && items.length > 0) {
     const footer = document.createElement('div');
     footer.className = 'section-footer';
     footer.innerHTML =
       '⚠️ 돌파 성공은 <strong>조건 통과</strong>를 의미하며, <strong>현재가에서의 신규 진입 적합성</strong>을 의미하지 않습니다.<br>' +
       '현재가가 기준 진입가에서 많이 멀어진 경우에는 <strong>추격보다 눌림 확인</strong>이 필요합니다.';
+    sec.appendChild(footer);
+  } else if (stage === 'QVA_TRACKING') {
+    const footer = document.createElement('div');
+    footer.className = 'section-footer';
+    footer.innerHTML = 'QVA 추적 중 후보는 <strong>아직 VVI 확인 전 단계</strong>입니다. 많은 후보 중 <strong>가격 유지, 저점 상승, 거래대금 재활성</strong> 태그가 함께 붙은 종목을 우선적으로 관찰합니다.';
     sec.appendChild(footer);
   }
   return sec;
@@ -1171,7 +1308,7 @@ document.querySelectorAll('.stage-pill').forEach(pill => {
   });
 });
 
-// 펼침/접기 토글
+// 펼침/접기 토글 — 단계별 라벨은 data-collapsed-text / data-expanded-text 사용
 document.querySelectorAll('.toggle').forEach(btn => {
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -1179,12 +1316,15 @@ document.querySelectorAll('.toggle').forEach(btn => {
     const sec = document.querySelector('.stage-section[data-stage="' + stage + '"]');
     if (sec) {
       sec.classList.toggle('collapsed');
-      btn.textContent = sec.classList.contains('collapsed') ? '▼ 펼치기' : '▲ 접기';
+      const collapsed = sec.classList.contains('collapsed');
+      const txtCollapsed = btn.dataset.collapsedText || '▼ 펼치기';
+      const txtExpanded = btn.dataset.expandedText || '▲ 접기';
+      btn.textContent = collapsed ? txtCollapsed : txtExpanded;
     }
   });
 });
 
-// 검색 + 태그 + outcome 필터
+// 검색 + 태그 + outcome + qfilter (QVA_TRACKING 전용)
 function applyFiltersForStage(stage) {
   const sec = document.querySelector('.stage-section[data-stage="' + stage + '"]');
   if (!sec) return;
@@ -1193,15 +1333,36 @@ function applyFiltersForStage(stage) {
   const activeBtns = Array.from(sec.querySelectorAll('.tag-filter button.active'));
   const activeTags = activeBtns.filter(b => b.dataset.tag).map(b => b.dataset.tag);
   const activeOutcomes = activeBtns.filter(b => b.dataset.outcome).map(b => b.dataset.outcome);
+  const activeQfilters = activeBtns.filter(b => b.dataset.qfilter).map(b => b.dataset.qfilter);
+
+  // 'ALL' 필터가 active면 그것만 유효하게 — 다른 qfilter는 무시
+  const isAll = activeQfilters.includes('ALL');
+
   sec.querySelectorAll('tbody tr').forEach(tr => {
     const name = (tr.dataset.name || '').toLowerCase();
     const code = (tr.dataset.code || '').toLowerCase();
     const tags = (tr.dataset.tags || '').split(',');
     const outcome = tr.dataset.outcome || '';
+    const tagcount = parseInt(tr.dataset.tagcount || '0', 10);
+    const isRisk = tr.dataset.risk === 'true';
+    const isExpiring = tr.dataset.expiring === 'true';
+
     const matchQ = !q || name.includes(q) || code.includes(q);
     const matchT = activeTags.length === 0 || activeTags.every(t => tags.includes(t));
     const matchO = activeOutcomes.length === 0 || activeOutcomes.includes(outcome);
-    tr.style.display = matchQ && matchT && matchO ? '' : 'none';
+
+    let matchF = true;
+    if (!isAll && activeQfilters.length > 0) {
+      for (const f of activeQfilters) {
+        if (f === 'TAG3' && tagcount !== 3) { matchF = false; break; }
+        if (f === 'TAG2PLUS' && tagcount < 2) { matchF = false; break; }
+        if ((f === 'PRICE_HOLD' || f === 'LOW_RISING' || f === 'VALUE_REACTIVATION') && !tags.includes(f)) { matchF = false; break; }
+        if (f === 'NO_RISK' && isRisk) { matchF = false; break; }
+        if (f === 'EXPIRING' && !isExpiring) { matchF = false; break; }
+      }
+    }
+
+    tr.style.display = matchQ && matchT && matchO && matchF ? '' : 'none';
   });
 }
 document.querySelectorAll('input.search').forEach(input => {
@@ -1209,7 +1370,35 @@ document.querySelectorAll('input.search').forEach(input => {
 });
 document.querySelectorAll('.tag-filter button').forEach(btn => {
   btn.addEventListener('click', () => {
-    btn.classList.toggle('active');
+    // QVA_TRACKING의 'ALL' 버튼은 다른 qfilter를 모두 끔
+    if (btn.dataset.qfilter === 'ALL') {
+      const sec = btn.closest('.stage-section');
+      if (sec) {
+        sec.querySelectorAll('.tag-filter button[data-qfilter]').forEach(b => {
+          if (b !== btn) b.classList.remove('active');
+        });
+      }
+      btn.classList.add('active');
+    } else {
+      // 다른 qfilter 클릭 시 'ALL'은 끈다
+      const sec = btn.closest('.stage-section');
+      if (sec && btn.dataset.qfilter) {
+        const allBtn = sec.querySelector('.tag-filter button[data-qfilter="ALL"]');
+        if (allBtn) allBtn.classList.remove('active');
+      }
+      btn.classList.toggle('active');
+    }
+
+    // 접힘 상태에서 필터를 누르면 자동 펼침
+    const sec = btn.closest('.stage-section');
+    if (sec && sec.classList.contains('collapsed')) {
+      sec.classList.remove('collapsed');
+      const toggleEl = sec.querySelector('.toggle');
+      if (toggleEl) {
+        toggleEl.textContent = toggleEl.dataset.expandedText || '▲ 접기';
+      }
+    }
+
     applyFiltersForStage(btn.dataset.stage);
   });
 });
