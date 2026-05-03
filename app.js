@@ -2062,6 +2062,8 @@ function renderIndex(res, overrides = {}) {
     priceInfo: null,
     riskChecks: null,
     materialAnalysis: null,
+    qvaEpisodes: null,
+    qvaWindows: null,
     high60: null,
     low60: null,
     lastDate: null,
@@ -2503,6 +2505,107 @@ const handleSearch = async (req, res) => {
       }
     } catch (_) {}
 
+    // ─── QVA 윈도우 상수 (사용자 spec 9, 10번 — 명시적 분리) ───
+    const QVA_CORE_WINDOW = 20;          // 신호 계산 핵심창 (returnFromLow20, ret20 등)
+    const QVA_CONTEXT_WINDOW = 60;       // 보조 배경창 (60일 평균 거래대금 등 - calculateEarlyQVA 내부)
+    const QVA_EPISODE_MERGE_WINDOW = 10; // 같은 episode로 묶는 간격 (10거래일 이내 재발생)
+    const QVA_TRACKING_WINDOW = 20;      // QVA 발생 후 VVI/돌파 추적 기간
+
+    // ─── QVA episode 빌더: 차트 전체에서 EarlyQVA 발화일 모아 episode 그룹화 ───
+    function buildQvaEpisodes(rowsAll, meta, mergeWindow) {
+      const ps = require("./pattern-screener");
+      const passing = [];
+      // 60일 history 필요 → idx >= 60
+      for (let i = 60; i < rowsAll.length; i++) {
+        const sliced = rowsAll.slice(0, i + 1);
+        let res = null;
+        try { res = ps.calculateEarlyQVA(sliced, [], meta); } catch (_) {}
+        if (res?.passed) {
+          passing.push({ idx: i, date: rowsAll[i].date, score: res.score, grade: res.grade });
+        }
+      }
+      if (passing.length === 0) return [];
+      const eps = [];
+      let cur = null;
+      for (const p of passing) {
+        if (!cur || (p.idx - cur.lastIdx) > mergeWindow) {
+          cur = {
+            firstSignalDate: p.date, firstSignalIdx: p.idx,
+            bestSignalDate: p.date, bestSignalIdx: p.idx, bestScore: p.score, bestGrade: p.grade,
+            lastSignalDate: p.date, lastIdx: p.idx,
+            scoreMax: p.score, signalCount: 1,
+            durationDays: 1,
+          };
+          eps.push(cur);
+        } else {
+          cur.lastSignalDate = p.date;
+          cur.lastIdx = p.idx;
+          cur.signalCount++;
+          cur.durationDays = cur.lastIdx - cur.firstSignalIdx + 1;
+          if (p.score > cur.scoreMax) {
+            cur.scoreMax = p.score;
+            cur.bestSignalDate = p.date;
+            cur.bestSignalIdx = p.idx;
+            cur.bestScore = p.score;
+            cur.bestGrade = p.grade;
+          }
+        }
+      }
+      return eps;
+    }
+
+    // ─── 새로 추가: '왜 초기 QVA로 잡혔나' 설명 (signals 기반, EJS 렌더용) ───
+    function buildEarlyQvaWhy(signals) {
+      if (!signals) return null;
+      const sig = signals;
+      const sections = [
+        {
+          icon: '📉',
+          title: '아직 크게 오르지 않음',
+          items: [
+            `20일 저점 대비 +${sig.returnFromLow20.toFixed(1)}%`,
+            `최근 10일 수익률 ${sig.ret10 >= 0 ? '+' : ''}${sig.ret10.toFixed(1)}%`,
+            `최근 20일 수익률 ${sig.ret20 >= 0 ? '+' : ''}${sig.ret20.toFixed(1)}%`,
+          ],
+        },
+        {
+          icon: '💰',
+          title: '거래대금이 조용히 증가',
+          items: [
+            `최근 3일 평균 거래대금 ${sig.tv3Ratio.toFixed(2)}배 (직전 20일 중앙값 대비)`,
+            `최근 5일 평균 거래대금 ${sig.tv5Ratio.toFixed(2)}배`,
+            `오늘 거래대금 ${sig.tvTodayRatio.toFixed(2)}배`,
+          ],
+        },
+        {
+          icon: '🎯',
+          title: '저점이 안정됨',
+          items: [
+            sig.lowStabilized ? '최근 5일 저점이 20일 최저가보다 3% 위' : '⚠ 저점 안정 미충족',
+            sig.higherLow ? '최근 5일 저점이 이전 5일 저점보다 높음 (저점 상승)' : '저점 상승은 없음',
+          ],
+        },
+        {
+          icon: '📈',
+          title: '종가가 회복 중',
+          items: [
+            `종가 위치 ${(sig.closeLocation * 100).toFixed(0)}% (당일 고저 범위 안에서)`,
+            `윗꼬리 비율 ${(sig.upperWickRatio * 100).toFixed(0)}%`,
+          ],
+        },
+        {
+          icon: '🚫',
+          title: '최근 급등 없음',
+          items: [
+            `최근 5일 최대 단일일 종가 상승 ${sig.maxDailyCloseReturn5.toFixed(1)}%`,
+            `최근 5일 최대 단일일 고가 상승 ${sig.maxDailyHighReturn5.toFixed(1)}%`,
+            `최근 10일 최대 단일일 종가 상승 ${sig.maxDailyCloseReturn10.toFixed(1)}%`,
+          ],
+        },
+      ];
+      return sections;
+    }
+
     // ─── 새로 추가: Early QVA 라이브 검출 (이 종목 차트로 직접) ───
     // 보드 캐시에 없더라도 종목 자체가 오늘 Early QVA 조건을 만족하는지 확인.
     let earlyQvaData = null;
@@ -2524,6 +2627,7 @@ const handleSearch = async (req, res) => {
           gradeLabel: earlyRes.gradeLabel,
           breakdown: earlyRes.breakdown,
           signals: earlyRes.signals,
+          why: buildEarlyQvaWhy(earlyRes.signals),
         };
       } else if (earlyRes) {
         earlyQvaData = {
@@ -2534,6 +2638,32 @@ const handleSearch = async (req, res) => {
         };
       }
     } catch (_) {}
+
+    // ─── 새로 추가: QVA episodes (과거 흐름 포함) ───
+    let qvaEpisodes = [];
+    try {
+      const epMeta = { code, name: stockMeta.name, marketValue: stockMeta.marketCap, isEtf: false, isSpecial: false };
+      qvaEpisodes = buildQvaEpisodes(rows, epMeta, QVA_EPISODE_MERGE_WINDOW);
+      // 최근 episode에 VVI/돌파 정보 연결 (qvaWatchData 기반)
+      if (qvaEpisodes.length > 0) {
+        const lastEp = qvaEpisodes[qvaEpisodes.length - 1];
+        lastEp.isLatest = true;
+        if (qvaWatchData?.vviDate) {
+          // VVI가 episode lastSignalDate 기준 +tracking 안에 있으면 연결
+          const vIdx = rows.findIndex(r => r.date === qvaWatchData.vviDate);
+          if (vIdx >= 0 && vIdx >= lastEp.lastIdx && vIdx <= lastEp.lastIdx + QVA_TRACKING_WINDOW) {
+            lastEp.convertedToVvi = true;
+            lastEp.vviDate = qvaWatchData.vviDate;
+          }
+        }
+        if (qvaWatchData?.breakoutDate) {
+          lastEp.convertedToBreakout = true;
+          lastEp.breakoutDate = qvaWatchData.breakoutDate;
+        }
+      }
+    } catch (e) {
+      console.error("[QVA episodes] error:", e.message);
+    }
 
     // ─── 새로 추가: 돌파 분석 데이터 (qvaWatchData에서 추출) ───
     let breakoutData = null;
@@ -2715,6 +2845,14 @@ const handleSearch = async (req, res) => {
     } catch (_) {}
 
 
+    // QVA window 메타 (디버그/도움말 표시용)
+    const qvaWindows = {
+      qvaCoreWindow: QVA_CORE_WINDOW,
+      qvaContextWindow: QVA_CONTEXT_WINDOW,
+      qvaEpisodeMergeWindow: QVA_EPISODE_MERGE_WINDOW,
+      qvaTrackingWindow: QVA_TRACKING_WINDOW,
+    };
+
     return renderIndex(res, {
       query,
       candidates: candidates.length > 1 ? candidates : [],
@@ -2727,6 +2865,8 @@ const handleSearch = async (req, res) => {
       priceInfo,
       riskChecks,
       materialAnalysis,
+      qvaEpisodes,
+      qvaWindows,
       high60,
       low60,
       lastDate: lastRow.date,
