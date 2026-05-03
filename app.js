@@ -2749,6 +2749,14 @@ app.post("/scan", (req, res) => res.render("scan", {}));
 app.get("/backtest", (req, res) => res.render("backtest", {}));
 app.post("/backtest", (req, res) => res.render("backtest", {}));
 
+app.get("/qva-surge", (req, res) => {
+  const filePath = path.join(__dirname, "qva-surge-day-report.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("qva-surge-day-report.html 파일이 없습니다. `node qva-surge-day-report.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
 // ─────────── 패턴 스크리너 ───────────
 const patternState = {
   seeding: false, seedStartedAt: null, seedFinishedAt: null, seedProgress: null, seedError: null,
