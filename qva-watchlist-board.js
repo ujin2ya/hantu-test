@@ -216,15 +216,21 @@ for (let fi = 0; fi < files.length; fi++) {
   const flowRows = flow.rows || [];
   const namedMeta = { ...meta, name: meta.name || chart.name };
 
-  // ─── 가장 최근 QVA 신호 (today 포함, 최대 D+20 이전까지) ───
+  // ─── 가장 최근 QVA 신호 + first/best (today 포함, 최대 D+20 이전까지) ───
   let qvaIdx = null;
+  const confirmedQvaIdxList = [];
   for (let k = 0; k <= TRACKING_DAYS && todayIdx - k >= 60; k++) {
     if (checkQVASignalAtIdx(rows, todayIdx - k)) {
-      qvaIdx = todayIdx - k;
-      break;
+      const cand = todayIdx - k;
+      confirmedQvaIdxList.push(cand);
+      if (qvaIdx == null) qvaIdx = cand; // 가장 최근 = funnel anchor
     }
   }
   if (qvaIdx == null) continue;
+  // first = 가장 이른 (= 최대 k), best = 현재 anchor (Confirmed QVA는 score 없음)
+  const firstConfirmedQvaIdx = confirmedQvaIdxList.length > 0
+    ? confirmedQvaIdxList[confirmedQvaIdxList.length - 1] : qvaIdx;
+  const bestConfirmedQvaIdx = qvaIdx;
 
   const qvaDate = rows[qvaIdx].date;
   const signalPrice = rows[qvaIdx].close;
@@ -442,18 +448,130 @@ for (let fi = 0; fi < files.length; fi++) {
     riskTag,
     expiringSoon,
     watchScore,
+
+    // first/best 추적 (Confirmed QVA)
+    firstConfirmedQvaDate: rows[firstConfirmedQvaIdx]?.date || qvaDate,
+    bestConfirmedQvaDate: rows[bestConfirmedQvaIdx]?.date || qvaDate,
   });
 }
 
 console.log(`\n→ 전체 후보: ${candidates.length}건 (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
 
+// ─────────── Early QVA 별도 스캔 ───────────
+// 기존 Confirmed QVA가 잡지 못하는, 더 이른 바닥권 초기 흔적을 별도 스캔.
+// 최근 TRACKING_DAYS 거래일 윈도우 안에서 ps.calculateEarlyQVA passed=true 인
+// 모든 신호를 모아 first/best (= 점수 max) 추출.
+const earlyQvaCandidates = [];
+const t1 = Date.now();
+console.log(`\n🌱 Early QVA 스캔 시작...`);
+for (let fi = 0; fi < files.length; fi++) {
+  if (fi % 500 === 0) process.stdout.write(`  Early QVA 진행 ${fi}/${files.length}\r`);
+  const code = files[fi].replace('.json', '');
+  const meta = codeMeta.get(code);
+  if (!meta) continue;
+  if (isExcludedProduct(meta.name)) continue;
+  let chart;
+  try { chart = JSON.parse(fs.readFileSync(path.join(LONG_CACHE_DIR, files[fi]), 'utf-8')); }
+  catch (_) { continue; }
+  const rows = chart.rows || [];
+  if (rows.length < 65) continue;
+
+  const todayIdx = rows.findIndex(r => r.date === TODAY);
+  if (todayIdx < 0) continue;
+  const todayRow = rows[todayIdx];
+  if (!todayRow.close || todayRow.close <= 0) continue;
+
+  const namedMeta = { ...meta, name: meta.name || chart.name };
+
+  // 윈도우 안 모든 Early QVA 신호 수집
+  const earlySignals = [];
+  for (let k = 0; k <= TRACKING_DAYS && todayIdx - k >= 60; k++) {
+    const cand = todayIdx - k;
+    const sliced = rows.slice(0, cand + 1);
+    let res = null;
+    try { res = ps.calculateEarlyQVA(sliced, [], namedMeta); }
+    catch (_) { res = null; }
+    if (res?.passed) {
+      earlySignals.push({
+        idx: cand, date: rows[cand].date, score: res.score,
+        grade: res.grade, gradeLabel: res.gradeLabel, signals: res.signals,
+      });
+    }
+  }
+  if (earlySignals.length === 0) continue;
+
+  // first = 가장 이른 (= 큰 k = 작은 idx), best = 점수 max
+  earlySignals.sort((a, b) => a.idx - b.idx);
+  const firstSig = earlySignals[0];
+  const bestSig = earlySignals.reduce((acc, s) => (s.score > acc.score ? s : acc), earlySignals[0]);
+  // 화면 anchor = 가장 이른 신호 (사용자 요청: "최초 감지일 우선 표시")
+  const anchorSig = firstSig;
+
+  const currentClose = todayRow.close;
+  const signalPrice = rows[anchorSig.idx].close;
+  const currentReturnFromSignal = (currentClose / signalPrice - 1) * 100;
+  const daysSinceFirst = todayIdx - firstSig.idx;
+  const daysSinceBest = todayIdx - bestSig.idx;
+
+  earlyQvaCandidates.push({
+    code,
+    name: meta.name,
+    market: meta.market,
+    isPreferred: isPreferredStock(meta.name),
+    marketValue: meta.marketValue,
+
+    firstEarlyQvaDate: firstSig.date,
+    bestEarlyQvaDate: bestSig.date,
+    bestEarlyQvaScore: bestSig.score,
+    bestEarlyQvaGrade: bestSig.grade,
+    bestEarlyQvaGradeLabel: bestSig.gradeLabel,
+    earlyQvaSignalCount: earlySignals.length,
+    daysSinceFirst,
+    daysSinceBest,
+
+    anchorPrice: signalPrice,
+    currentDate: TODAY,
+    currentClose,
+    currentReturnFromSignal: round2(currentReturnFromSignal),
+
+    // 화면용 보조 데이터
+    signals: anchorSig.signals,
+    // 보조 태그 — Confirmed QVA 통과 여부는 아래에서 채움
+    auxTags: [],
+  });
+}
+process.stdout.write(`  Early QVA 진행 ${files.length}/${files.length}\n`);
+console.log(`→ Early QVA 후보: ${earlyQvaCandidates.length}건 (${((Date.now() - t1) / 1000).toFixed(1)}s)`);
+
+// ─── Early QVA 후보에 'CONFIRMED_QVA_PASS' 보조 태그 부여 ───
+// 메인 candidates 배열에 같은 code가 있으면 = Confirmed QVA 윈도우(D-20~D)에도 통과한 종목
+// 사용자 spec: 초기 QVA 이후 가격 유지·저점 상승·거래대금 흐름이 한 번 더 확인된 상태
+const confirmedQvaCodeSet = new Set(candidates.map(c => c.code));
+let confirmedPassCount = 0;
+for (const ec of earlyQvaCandidates) {
+  if (confirmedQvaCodeSet.has(ec.code)) {
+    ec.auxTags = ['CONFIRMED_QVA_PASS'];
+    ec.confirmedQvaPass = true;
+    confirmedPassCount++;
+  } else {
+    ec.confirmedQvaPass = false;
+  }
+}
+console.log(`→ Early QVA 후보 중 '확인 QVA 통과' 태그: ${confirmedPassCount}건`);
+
 // ─────────── 단계별 그룹핑 ───────────
-const stageOrder = ['BREAKOUT_SUCCESS', 'VVI_FIRED', 'QVA_TRACKING', 'QVA_NEW', 'FAILED'];
+// 메인 화면 표시 단계 — 사용자 spec에 따라 단순화 (Early QVA 중심).
+// QVA_TRACKING / QVA_NEW (Confirmed QVA)는 내부 로직에는 유지하나 메인 화면에서 제거.
+// 기존 Confirmed QVA 통과 여부는 Early QVA 후보의 'CONFIRMED_QVA_PASS' 보조 태그로 노출.
+const stageOrder = ['BREAKOUT_SUCCESS', 'VVI_FIRED', 'EARLY_QVA', 'FAILED'];
+// 내부 로직용 전체 단계 (백테스트, 전환률, 그룹 분류 등에서 계속 사용)
+const allStageOrder = ['BREAKOUT_SUCCESS', 'VVI_FIRED', 'QVA_TRACKING', 'QVA_NEW', 'EARLY_QVA', 'FAILED'];
 const stageLabels = {
   BREAKOUT_SUCCESS: '돌파 성공 확인 종목',
   VVI_FIRED: '다음 거래일 돌파 대기',
-  QVA_TRACKING: 'QVA 추적 중',
-  QVA_NEW: 'QVA 신규',
+  QVA_TRACKING: '확인 QVA 추적 중 (기존 QVA)',
+  QVA_NEW: '확인 QVA 신규 (기존 QVA)',
+  EARLY_QVA: '🌱 초기 QVA (Early QVA)',
   FAILED: '실패/이탈',
 };
 const stageDescriptions = {
@@ -462,9 +580,11 @@ const stageDescriptions = {
   VVI_FIRED:
     'VVI는 QVA 후보 중 실제 거래대금 초동이 확인된 상태입니다. VVI 다음 거래일에 vviHigh × 1.01 돌파 여부를 기다리는 후보입니다.',
   QVA_TRACKING:
-    'QVA 발생 후 20거래일 동안 VVI 발생 여부를 지켜보는 후보입니다. 1년 검증에서 QVA 단독의 20일 뒤 플러스 마감 비율은 56.2%로, 바로 매수하기보다는 추적 후보로 보는 것이 적절합니다.',
+    '기존 (Confirmed) QVA 발생 후 20거래일 동안 VVI 발생 여부를 지켜보는 후보입니다. 1년 검증에서 QVA 단독의 20일 뒤 플러스 마감 비율은 56.2%로, 바로 매수하기보다는 추적 후보로 보는 것이 적절합니다.',
   QVA_NEW:
-    'QVA는 처음 관심 후보로 잡는 단계입니다. 1년 검증에서 QVA 단독의 20일 뒤 플러스 마감 비율은 56.2%로, 바로 매수하기보다는 20거래일 추적 후보로 보는 것이 적절합니다.',
+    '기존 (Confirmed) QVA는 처음 관심 후보로 잡는 단계입니다. 1년 검증에서 QVA 단독의 20일 뒤 플러스 마감 비율은 56.2%로, 바로 매수하기보다는 20거래일 추적 후보로 보는 것이 적절합니다.',
+  EARLY_QVA:
+    '초기 QVA(Early QVA)는 기존 QVA보다 더 빠르게 수급 흔적을 잡기 위한 감시 후보입니다. 아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되는 종목을 찾습니다. 기존 QVA보다 빠른 대신 실패 가능성도 높기 때문에, 화면에는 점수가 높은 후보 위주로 표시합니다 (70점 이상, 최대 50개).',
   FAILED:
     'QVA 이후 가격이 크게 무너졌거나, 20거래일 안에 VVI가 발생하지 않았거나, 돌파에 실패한 종목입니다.',
 };
@@ -473,11 +593,13 @@ const auxTagLabels = {
   PRICE_HOLD: '가격 유지',
   LOW_RISING: '저점 상승',
   VALUE_REACTIVATION: '거래대금 재활성',
+  CONFIRMED_QVA_PASS: '확인 QVA 통과',
 };
 const auxTagDescriptions = {
   PRICE_HOLD: '현재 종가가 QVA 신호가의 95% 이상',
   LOW_RISING: '최근 5거래일 저가 최소값 > 그 이전 5거래일 저가 최소값',
   VALUE_REACTIVATION: '최근 3거래일 평균 거래대금이 신호 직전 20일 평균의 1.5배 이상',
+  CONFIRMED_QVA_PASS: '초기 QVA 이후 가격 유지·저점 상승·거래대금 흐름이 한 번 더 확인된 상태입니다.',
 };
 
 // 진입 판단 상태 — BREAKOUT_SUCCESS 그룹 내 분류
@@ -509,7 +631,13 @@ function groupBy(items, fn) {
 
 const byStage = groupBy(candidates, c => c.mainStage);
 const stageCounts = {};
-for (const s of stageOrder) stageCounts[s] = byStage.get(s)?.length || 0;
+// 내부 로직용 카운트는 모든 단계 (QVA_TRACKING/QVA_NEW 포함) — 백테스트/요약에서 사용
+for (const s of allStageOrder) stageCounts[s] = byStage.get(s)?.length || 0;
+// Early QVA는 별도 후보 리스트 (화면 표시 = 70점 이상 strict)
+// 단계 pill 카운트는 화면 노출분 기준으로 표시
+// (전체 raw 카운트는 earlyQvaSummary에서 별도 노출)
+// 아래에서 stagedItems.EARLY_QVA가 채워진 후 stageCounts도 갱신함
+stageCounts.EARLY_QVA = earlyQvaCandidates.length; // 임시값, 아래에서 displayed로 교체
 
 // ─────────── 정렬 (각 단계별로 보기 좋게) ───────────
 function sortStage(stage, items) {
@@ -550,14 +678,89 @@ function sortStage(stage, items) {
 }
 
 const stagedItems = {};
-for (const s of stageOrder) {
+// 내부 로직용 — 모든 단계를 stagedItems에 저장 (qvaTracking 미리보기, 백테스트 등)
+for (const s of allStageOrder) {
   stagedItems[s] = sortStage(s, byStage.get(s) || []);
 }
+// Early QVA — 화면 노출 제한 + 정렬 (사용자 spec)
+//   1) earlyQvaScore 높은 순
+//   2) 거래대금 재활성 배율 (tv3Ratio) 높은 순
+//   3) 저점 상승 태그 있는 순 (higherLow=true 우선)
+//   4) 20일 저점 대비 상승폭 낮은 순
+const earlyQvaSorted = earlyQvaCandidates.slice().sort((a, b) => {
+  const sA = a.bestEarlyQvaScore ?? 0, sB = b.bestEarlyQvaScore ?? 0;
+  if (sB !== sA) return sB - sA;
+  const tA = a.signals?.tv3Ratio ?? 0, tB = b.signals?.tv3Ratio ?? 0;
+  if (tB !== tA) return tB - tA;
+  const hA = a.signals?.higherLow ? 1 : 0, hB = b.signals?.higherLow ? 1 : 0;
+  if (hB !== hA) return hB - hA;
+  const rA = a.signals?.returnFromLow20 ?? 0, rB = b.signals?.returnFromLow20 ?? 0;
+  return rA - rB;
+});
+
+// 화면 표시 = 70점 이상 (EARLY_QVA + STRONG_EARLY_QVA), 최대 50개
+const EARLY_QVA_DISPLAY_THRESHOLD = 70;
+const EARLY_QVA_DISPLAY_LIMIT = 50;
+const earlyQvaDisplayed = earlyQvaSorted
+  .filter(c => (c.bestEarlyQvaScore ?? 0) >= EARLY_QVA_DISPLAY_THRESHOLD)
+  .slice(0, EARLY_QVA_DISPLAY_LIMIT);
+
+// stages.EARLY_QVA에는 화면 표시분만 (기본 보드는 정리된 상태)
+// stages.EARLY_QVA_ALL에는 전체를 저장 (전체 보기 모드용)
+stagedItems.EARLY_QVA = earlyQvaDisplayed;
+stagedItems.EARLY_QVA_ALL = earlyQvaSorted;
+
+// 요약 통계
+const strongEarlyCount = earlyQvaSorted.filter(c => c.bestEarlyQvaGrade === 'STRONG_EARLY_QVA').length;
+const earlyMidCount = earlyQvaSorted.filter(c => c.bestEarlyQvaGrade === 'EARLY_QVA').length;
+const watchEarlyCount = earlyQvaSorted.filter(c => c.bestEarlyQvaGrade === 'WATCH_EARLY').length;
+const avgEarlyScore = earlyQvaSorted.length > 0
+  ? Math.round(earlyQvaSorted.reduce((s, c) => s + (c.bestEarlyQvaScore || 0), 0) / earlyQvaSorted.length)
+  : 0;
+const valueReactivationCount = earlyQvaSorted.filter(c => (c.signals?.tv3Ratio ?? 0) >= 1.5).length;
+const higherLowCount = earlyQvaSorted.filter(c => c.signals?.higherLow).length;
+const priceHoldCount = earlyQvaSorted.filter(c => {
+  // close >= prevClose 와 비슷한 의미 (signals에 없으니 currentReturnFromSignal 양수로 근사)
+  return (c.currentReturnFromSignal ?? -1) >= 0;
+}).length;
+
+const earlyQvaSummary = {
+  totalCount: earlyQvaSorted.length,
+  strongCount: strongEarlyCount,
+  earlyCount: earlyMidCount,
+  watchCount: watchEarlyCount,
+  displayedCount: earlyQvaDisplayed.length,
+  displayThreshold: EARLY_QVA_DISPLAY_THRESHOLD,
+  displayLimit: EARLY_QVA_DISPLAY_LIMIT,
+  avgScore: avgEarlyScore,
+  valueReactivationCount,
+  higherLowCount,
+  priceHoldCount,
+};
+
+// Early QVA 디버그 로그 (raw / 등급별 / 표시)
+console.log(`\n🌱 Early QVA 분포:`);
+console.log(`  Early QVA raw candidates:    ${earlyQvaSorted.length}`);
+console.log(`  STRONG_EARLY_QVA (80+):      ${strongEarlyCount}`);
+console.log(`  EARLY_QVA (70~79):           ${earlyMidCount}`);
+console.log(`  WATCH_EARLY (60~69):         ${watchEarlyCount}`);
+console.log(`  Displayed (70+, max 50):     ${earlyQvaDisplayed.length}`);
+console.log(`  평균 점수:                   ${avgEarlyScore}`);
+console.log(`  거래대금 재활성 동반:        ${valueReactivationCount}`);
+console.log(`  저점 상승 동반:              ${higherLowCount}`);
+
+// stageCounts.EARLY_QVA는 화면 표시분 기준으로 갱신
+stageCounts.EARLY_QVA = earlyQvaDisplayed.length;
 
 // ─────────── 콘솔 출력 ───────────
 console.log(`\n${'='.repeat(120)}`);
-console.log(`📊 단계별 후보 수`);
+console.log(`📊 단계별 후보 수 (메인)`);
 for (const s of stageOrder) {
+  console.log(`  ${stageLabels[s].padEnd(20)} ${String(stageCounts[s]).padStart(4)} 건`);
+}
+console.log(`\n📊 단계별 후보 수 (내부 — 화면 비표시)`);
+for (const s of allStageOrder) {
+  if (stageOrder.includes(s)) continue;
   console.log(`  ${stageLabels[s].padEnd(20)} ${String(stageCounts[s]).padStart(4)} 건`);
 }
 
@@ -670,6 +873,7 @@ const jsonOut = {
     generatedAt: new Date().toISOString(),
   },
   summary,
+  earlyQvaSummary,
   stages: stagedItems,
   recentVviHistory: {
     items: recentVviHistoryItems,
@@ -761,6 +965,8 @@ const htmlTemplate = `<!DOCTYPE html>
   .toggle-large:hover { background: #1e40af; }
 
   .stage-section.collapsed.q-tracking .table-wrap { display: none; }
+  .stage-section.collapsed.early-qva .table-wrap { display: none; }
+  .stage-section.collapsed.early-qva .controls { display: none; }
   .stage-section .toggle.tag-active { background: #14532d; color: #6ee7b7; border-color: #10b981; }
 
   .stage-bar { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
@@ -773,6 +979,7 @@ const htmlTemplate = `<!DOCTYPE html>
   .stage-pill.s-VVI_FIRED { border-left: 3px solid #3b82f6; }
   .stage-pill.s-QVA_TRACKING { border-left: 3px solid #fbbf24; }
   .stage-pill.s-QVA_NEW { border-left: 3px solid #f59e0b; }
+  .stage-pill.s-EARLY_QVA { border-left: 3px solid #34d399; background: #064e3b22; }
   .stage-pill.s-FAILED { border-left: 3px solid #94a3b8; opacity: 0.7; }
 
   .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
@@ -801,6 +1008,7 @@ const htmlTemplate = `<!DOCTYPE html>
   .section-footer { color: #94a3b8; font-size: 12px; line-height: 1.6; padding: 10px 14px; background: #1e293b; border-radius: 6px; border-left: 3px solid #f59e0b; margin-top: -8px; margin-bottom: 14px; }
   .badge.tag-LOW_RISING { background: #14532d; color: #6ee7b7; }
   .badge.tag-VALUE_REACTIVATION { background: #422006; color: #fbbf24; }
+  .badge.tag-CONFIRMED_QVA_PASS { background: #1e3a8a; color: #93c5fd; border: 1px solid #3b82f6; font-weight: 600; }
   .badge.pref { background: #4c1d1d; color: #fca5a5; }
 
   .stage-section { margin-bottom: 24px; }
@@ -837,37 +1045,37 @@ const htmlTemplate = `<!DOCTYPE html>
     <a href="/qva-review-ok" title="QVA 단독, H그룹, 진입가 근처 후보의 성과를 비교한 검증 보고서">📊 3단계 코호트 비교 보고서</a>
   </div>
 
-  <div class="info-box" style="background:#0f172a;border-left-color:#60a5fa;border-left-width:4px;padding:18px 22px;">
+  <div class="info-box" style="background:#0f172a;border-left-color:#34d399;border-left-width:4px;padding:18px 22px;">
     <p style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:10px;">📌 이 화면을 처음 보는 분들에게</p>
     <p>이 화면은 <strong>'살 종목'을 알려주는 곳이 아니라, 관심 있게 지켜볼 종목을 단계별로 정리해주는 화면</strong>입니다.</p>
-    <p style="margin-top:8px;"><strong>QVA</strong>는 처음 관심을 가져볼 만한 종목을 찾는 단계입니다.<br>
-    <strong>VVI</strong>는 그중 실제로 거래대금이 강하게 붙은 종목을 확인하는 단계입니다.<br>
-    <strong>돌파 성공</strong>은 거래대금이 붙은 뒤 가격이 한 단계 더 올라간 것을 확인한 상태입니다.</p>
-    <p style="margin-top:8px;">과거 1년 데이터에서는, QVA만 나온 종목보다 VVI와 돌파 성공까지 진행된 종목의 <strong>20일 뒤 플러스 마감 비율</strong>이 더 높았습니다.<br>
-    QVA 단독은 <strong style="color:#fbbf24;">56.2%</strong>, 진입가 근처까지 진행된 후보는 <strong style="color:#6ee7b7;">71.4%</strong>였습니다.</p>
+    <p style="margin-top:8px;"><strong style="color:#34d399;">🌱 초기 QVA</strong>는 아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되는 종목을 찾는 단계입니다.<br>
+    <strong style="color:#3b82f6;">⏳ VVI</strong>는 그중 실제로 거래대금이 강하게 붙은 것을 확인하는 단계입니다.<br>
+    <strong style="color:#10b981;">🔥 돌파 성공</strong>은 거래대금이 붙은 뒤 가격이 한 단계 더 올라간 것을 확인한 상태입니다.</p>
+    <p style="margin-top:8px;">과거 1년 데이터에서는, 초기 QVA의 <strong>20일 뒤 플러스 마감 비율은 58.2%</strong>로 기존 확인 QVA(53.2%)보다 더 좋았고, 돌파 성공까지 진행된 종목은 <strong style="color:#6ee7b7;">83.3%</strong>였습니다. 또한 초기 QVA는 기존 확인 QVA보다 <strong>평균 4.6일 (중앙값 3일) 먼저</strong> 잡힙니다.</p>
+    <p style="margin-top:8px;font-size:12px;color:#94a3b8;">기존 확인 QVA는 화면에서 별도 섹션으로 보여주지 않고, 초기 QVA가 확인 QVA 조건도 만족하면 <span class="badge tag-CONFIRMED_QVA_PASS" style="font-size:10px;padding:1px 6px;border-radius:3px;">확인 QVA 통과</span> 보조 태그로 표시합니다.</p>
     <p style="margin-top:10px;color:#fbbf24;">하지만 이것은 과거 통계일 뿐입니다. 이 화면은 매수 추천이 아니며, <strong>실제 판단은 사용자가 직접 해야 합니다.</strong></p>
   </div>
 
-  <h2 style="font-size:14px;color:#cbd5e1;margin:0 0 8px 0;border:none;padding:0;">📊 1년 검증 요약</h2>
+  <h2 style="font-size:14px;color:#cbd5e1;margin:0 0 8px 0;border:none;padding:0;">📊 1년 검증 요약 — 초기 QVA 중심</h2>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:16px;">
-    <div style="background:#1e293b;border-left:3px solid #fbbf24;padding:14px 16px;border-radius:6px;">
-      <div style="color:#94a3b8;font-size:12px;">QVA 단독</div>
-      <div style="color:#fbbf24;font-size:24px;font-weight:700;margin-top:4px;">56.2%</div>
+    <div style="background:#1e293b;border-left:3px solid #34d399;padding:14px 16px;border-radius:6px;">
+      <div style="color:#94a3b8;font-size:12px;">🌱 초기 QVA</div>
+      <div style="color:#34d399;font-size:24px;font-weight:700;margin-top:4px;">58.2%</div>
       <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">20일 뒤 플러스 마감 비율</div>
     </div>
     <div style="background:#1e293b;border-left:3px solid #10b981;padding:14px 16px;border-radius:6px;">
-      <div style="color:#94a3b8;font-size:12px;">진입가 근처까지 진행된 후보</div>
-      <div style="color:#6ee7b7;font-size:24px;font-weight:700;margin-top:4px;">71.4%</div>
+      <div style="color:#94a3b8;font-size:12px;">🔥 초기 QVA → 돌파 성공</div>
+      <div style="color:#6ee7b7;font-size:24px;font-weight:700;margin-top:4px;">83.3%</div>
       <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">20일 뒤 플러스 마감 비율</div>
     </div>
     <div style="background:#1e293b;border-left:3px solid #60a5fa;padding:14px 16px;border-radius:6px;">
-      <div style="color:#94a3b8;font-size:12px;">차이</div>
-      <div style="color:#93c5fd;font-size:24px;font-weight:700;margin-top:4px;">+15.2%p</div>
-      <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">단계 진행에 따른 차이</div>
+      <div style="color:#94a3b8;font-size:12px;">초기 QVA가 평균 며칠 먼저</div>
+      <div style="color:#93c5fd;font-size:24px;font-weight:700;margin-top:4px;">4.6일</div>
+      <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">기존 확인 QVA보다 (중앙값 3일)</div>
     </div>
     <div style="background:#1e293b;border-left:3px solid #94a3b8;padding:14px 16px;border-radius:6px;">
       <div style="color:#94a3b8;font-size:12px;">해석</div>
-      <div style="color:#cbd5e1;font-size:12px;line-height:1.5;margin-top:4px;">단계가 진행될수록 과거 데이터상 좋은 흐름을 보인 비율이 높아졌습니다. 단, 이 수치는 매수 신호가 아닙니다.</div>
+      <div style="color:#cbd5e1;font-size:12px;line-height:1.5;margin-top:4px;">초기 QVA는 더 빠르면서도 플러스 마감 비율이 더 좋습니다. 돌파 성공까지 진행되면 비율이 가장 높아집니다. 단, 매수 신호 아님.</div>
     </div>
   </div>
 
@@ -880,6 +1088,60 @@ const htmlTemplate = `<!DOCTYPE html>
     <p id="trading-date-meta" style="font-family:monospace;font-size:12px;color:#94a3b8;"></p>
   </div>
 
+  <h2 style="font-size:14px;color:#cbd5e1;margin:0 0 8px 0;border:none;padding:0;">📑 백테스팅 보고서</h2>
+  <div style="background:#1e293b;border-radius:8px;padding:14px 16px;margin-bottom:16px;border-left:3px solid #94a3b8;">
+    <p style="font-size:12px;color:#94a3b8;margin:0 0 10px 0;line-height:1.6;">
+      QVA → VVI → 돌파 성공 funnel의 각 단계가 과거 데이터에서 어떤 흐름을 보였는지 검증한 1년치 백테스팅 보고서들입니다.
+      매수 추천이 아니라 모델 검증/분석 목적입니다.
+    </p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;">
+
+      <a href="/qva-surge-day-report" style="display:block;background:#0f172a;padding:10px 14px;border-radius:6px;border:1px solid #334155;text-decoration:none;color:#cbd5e1;transition:border 0.15s;" onmouseover="this.style.borderColor='#60a5fa'" onmouseout="this.style.borderColor='#334155'">
+        <div style="color:#fbbf24;font-size:13px;font-weight:700;">📈 QVA 단일일 급등 분석</div>
+        <div style="font-size:11px;margin-top:4px;color:#94a3b8;line-height:1.5;">QVA 신호 후 20거래일 안에 +10/+15/+20/+30% 단일일 급등이 얼마나 자주 발생했는지 분석.</div>
+        <div style="font-size:10px;margin-top:5px;color:#64748b;font-family:monospace;">/qva-surge</div>
+      </a>
+
+      <a href="/qva-to-vvi-report" style="display:block;background:#0f172a;padding:10px 14px;border-radius:6px;border:1px solid #334155;text-decoration:none;color:#cbd5e1;transition:border 0.15s;" onmouseover="this.style.borderColor='#60a5fa'" onmouseout="this.style.borderColor='#334155'">
+        <div style="color:#93c5fd;font-size:13px;font-weight:700;">🔄 QVA → VVI 전환 검증</div>
+        <div style="font-size:11px;margin-top:4px;color:#94a3b8;line-height:1.5;">QVA 신호 이후 20거래일 안에 VVI(거래대금 초동 확인)로 전환된 종목의 성과 검증.</div>
+        <div style="font-size:10px;margin-top:5px;color:#64748b;font-family:monospace;">/qva-to-vvi</div>
+      </a>
+
+      <a href="/qva-vvi-breakout-entry-report" style="display:block;background:#0f172a;padding:10px 14px;border-radius:6px;border:1px solid #334155;text-decoration:none;color:#cbd5e1;transition:border 0.15s;" onmouseover="this.style.borderColor='#60a5fa'" onmouseout="this.style.borderColor='#334155'">
+        <div style="color:#a5b4fc;font-size:13px;font-weight:700;">🚀 돌파 진입 검증 + 손절 시나리오</div>
+        <div style="font-size:11px;margin-top:4px;color:#94a3b8;line-height:1.5;">QVA → VVI → 다음 거래일 +1% 돌파 진입 후 성과와 손절 시나리오 (A~E) 비교.</div>
+        <div style="font-size:10px;margin-top:5px;color:#64748b;font-family:monospace;">/qva-vvi-breakout-entry</div>
+      </a>
+
+      <a href="/qva-vvi-breakout-exit-report" style="display:block;background:#0f172a;padding:10px 14px;border-radius:6px;border:1px solid #334155;text-decoration:none;color:#cbd5e1;transition:border 0.15s;" onmouseover="this.style.borderColor='#60a5fa'" onmouseout="this.style.borderColor='#334155'">
+        <div style="color:#f9a8d4;font-size:13px;font-weight:700;">💰 익절/청산 시나리오 비교</div>
+        <div style="font-size:11px;margin-top:4px;color:#94a3b8;line-height:1.5;">돌파 성공(H그룹) 진입 후 14개 익절/청산 규칙(TP/Trail/Stop) 조합의 성과 비교.</div>
+        <div style="font-size:10px;margin-top:5px;color:#64748b;font-family:monospace;">/qva-vvi-breakout-exit</div>
+      </a>
+
+      <a href="/early-qva-backtest" style="display:block;background:#0f172a;padding:10px 14px;border-radius:6px;border:1px solid #334155;text-decoration:none;color:#cbd5e1;transition:border 0.15s;" onmouseover="this.style.borderColor='#34d399'" onmouseout="this.style.borderColor='#334155'">
+        <div style="color:#34d399;font-size:13px;font-weight:700;">🌱 Early QVA 백테스트</div>
+        <div style="font-size:11px;margin-top:4px;color:#94a3b8;line-height:1.5;">Early QVA가 기존 Confirmed QVA보다 평균 며칠 먼저 잡히는지, 그리고 품질이 너무 떨어지지 않는지 검증합니다.</div>
+        <div style="font-size:10px;margin-top:5px;color:#64748b;font-family:monospace;">/early-qva-backtest</div>
+      </a>
+
+      <a href="/qva-review-ok-backtest-report" style="display:block;background:#0f172a;padding:10px 14px;border-radius:6px;border:1px solid #10b981;text-decoration:none;color:#cbd5e1;transition:border 0.15s;grid-column:1/-1;" onmouseover="this.style.borderColor='#34d399'" onmouseout="this.style.borderColor='#10b981'">
+        <div style="color:#6ee7b7;font-size:13px;font-weight:700;">⭐ 3단계 코호트 비교 (요약본)</div>
+        <div style="font-size:11px;margin-top:4px;color:#94a3b8;line-height:1.5;">QVA 단독 / H그룹 / 진입가 근처 — 세 코호트의 같은 기간 20일 뒤 플러스 마감 비율 비교.<br>QVA 단독 56.2% → H그룹 71.0% → 진입가 근처 71.4%로 funnel 단계가 진행될수록 좋은 흐름을 보인 비율이 높아짐을 정량 확인.</div>
+        <div style="font-size:10px;margin-top:5px;color:#64748b;font-family:monospace;">/qva-review-ok</div>
+      </a>
+
+    </div>
+  </div>
+
+  <div class="info-box" style="border-left-color:#34d399;background:#064e3b33;margin-top:14px;">
+    <p style="color:#a7f3d0;"><strong>🌱 초기 QVA(Early QVA) 추가됨</strong></p>
+    <p style="color:#cbd5e1;">초기 QVA는 기존 QVA보다 더 빠르게 수급 흔적을 잡기 위한 감시 후보입니다. 아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되는 종목을 찾습니다. 기존 QVA보다 빠른 대신 실패 가능성도 높기 때문에, 화면에는 점수가 높은 후보 위주로 표시합니다.</p>
+    <p style="color:#94a3b8;font-size:12px;">funnel: <strong style="color:#34d399;">🌱 Early QVA</strong> → <strong style="color:#fbbf24;">👀 Confirmed QVA</strong> → <strong style="color:#3b82f6;">⏳ VVI</strong> → <strong style="color:#a5b4fc;">🚀 +1% 돌파</strong> → <strong style="color:#10b981;">🔥 H그룹</strong></p>
+    <p style="margin-top:6px;font-size:12px;color:#94a3b8;">→ 검증 보고서: <a href="/early-qva-backtest" style="color:#6ee7b7;">Early QVA 백테스트</a></p>
+  </div>
+
   <div class="help-wrap">
     <button class="help-btn open" id="help-btn">
       <span>📖 QVA / VVI / H그룹 설명 닫기</span>
@@ -890,7 +1152,8 @@ const htmlTemplate = `<!DOCTYPE html>
       <div class="help-section">
         <h3>📖 용어를 쉽게 말하면</h3>
         <ul style="list-style:none;padding-left:0;">
-          <li style="margin-bottom:10px;"><strong style="color:#f1f5f9;">QVA</strong> — 처음 관심을 가져볼 만한 종목입니다. 아직 크게 오르지는 않았지만, 거래량이나 거래대금에서 이상 징후가 보이는 경우입니다.</li>
+          <li style="margin-bottom:10px;"><strong style="color:#34d399;">🌱 초기 QVA (Early QVA)</strong> — 아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되기 시작한 후보입니다. 기존 QVA보다 더 이른 신호이지만 실패 가능성도 더 높습니다.</li>
+          <li style="margin-bottom:10px;"><strong style="color:#f1f5f9;">QVA (Confirmed QVA)</strong> — 처음 관심을 가져볼 만한 종목입니다. 아직 크게 오르지는 않았지만, 거래량이나 거래대금에서 이상 징후가 보이는 경우입니다. (기존 검증된 QVA)</li>
           <li style="margin-bottom:10px;"><strong style="color:#f1f5f9;">VVI</strong> — QVA 후보 중 실제로 거래대금이 강하게 붙은 종목입니다. 관심 후보에서 한 단계 더 확인된 상태입니다.</li>
           <li style="margin-bottom:10px;"><strong style="color:#f1f5f9;">돌파 성공</strong> — VVI 이후 가격이 한 번 더 강하게 올라가고, 종가도 버틴 상태입니다. 백테스트에서 H그룹이라고 부른 후보와 같은 의미입니다.</li>
           <li style="margin-bottom:10px;"><strong style="color:#f1f5f9;">H그룹</strong> — QVA → VVI → 돌파 성공까지 진행된 종목입니다. 과거 검증에서 QVA 단독보다 좋은 흐름을 보였던 최종 확인 그룹입니다.</li>
@@ -899,40 +1162,35 @@ const htmlTemplate = `<!DOCTYPE html>
       </div>
 
       <div class="help-section">
-        <h3>QVA / VVI 모델 설명 — 1년 검증 결과 반영</h3>
-        <p>이 화면은 <strong>QVA 신호가 발생한 종목을 20거래일 동안 추적</strong>하면서, VVI 발생과 다음 거래일 돌파 성공 여부까지 확인하는 운영 보드입니다.</p>
-        <p><strong>QVA</strong>는 감시 시작 신호입니다. 거래량·거래대금 이상징후, 저점 상승, 아직 크게 움직이지 않은 가격 흐름을 기반으로 후보를 좁힙니다. <strong>1년 검증에서 QVA 단독의 20일 뒤 플러스 마감 비율은 56.2%</strong>로, 바로 매수하기보다는 20거래일 추적 후보로 보는 것이 적절합니다.</p>
-        <p><strong>VVI</strong>는 QVA 후보 중 실제 거래대금 초동이 확인된 상태입니다. 거래량/거래대금이 강하게 증가하고, 종가가 양호하게 마감한 종목을 확인합니다.</p>
-        <p><strong>돌파 성공 확인 종목</strong>은 QVA → VVI → 다음 거래일 +1% 돌파 → 종가 유지까지 통과한 후보입니다. <strong>1년 검증에서 20일 뒤 플러스 마감 비율 71.0%, 평균 수익률 +15.1%</strong>를 기록했습니다.</p>
-        <p>백테스트 보고서에서 말한 <strong>H그룹</strong>은 이 화면의 <strong>'돌파 성공 확인 종목'과 같은 의미</strong>입니다.</p>
-        <p><strong>진입가 근처</strong>는 H그룹 중 현재가가 기준 진입가에서 크게 멀지 않은 위치입니다. 이 조건은 플러스 마감 비율을 크게 높이는 필터가 아니라 <strong>추격 매수를 피하기 위한 위치 확인 기준</strong>입니다 (H그룹 N=93 vs 진입가 근처 N=56, 20일 뒤 플러스 마감 비율 71.0% vs 71.4%로 차이 미미).</p>
+        <h3>모델 설명 — 초기 QVA 중심 (1년 검증 반영)</h3>
+        <p>이 화면은 <strong>초기 QVA 신호가 발생한 종목을 20거래일 동안 추적</strong>하면서, VVI 발생과 다음 거래일 돌파 성공 여부까지 확인하는 운영 보드입니다.</p>
+        <p><strong>🌱 초기 QVA (Early QVA)</strong>는 아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되는 종목을 찾는 단계입니다. <strong>1년 검증에서 20일 뒤 플러스 마감 비율 58.2%</strong>로, 기존 확인 QVA(53.2%)보다 좋고 평균 4.6일(중앙값 3일) 먼저 잡힙니다.</p>
+        <p><strong>⏳ VVI</strong>는 초기 QVA 후보 중 실제 거래대금 초동이 확인된 상태입니다. 거래량/거래대금이 강하게 증가하고, 종가가 양호하게 마감한 종목을 확인합니다.</p>
+        <p><strong>🚀 다음 거래일 돌파 대기</strong>는 VVI 다음 거래일에 vviHigh × 1.01 돌파 여부를 기다리는 후보입니다.</p>
+        <p><strong>🔥 돌파 성공 확인 종목 (= H그룹)</strong>은 +1% 돌파 → 종가 유지까지 통과한 후보입니다. <strong>1년 검증에서 초기 QVA → 돌파 성공까지 진행된 종목의 20일 뒤 플러스 마감 비율은 83.3%</strong>를 기록했습니다.</p>
+        <p style="margin-top:6px;"><strong>확인 QVA(기존 QVA)</strong>는 메인 화면에서 별도 섹션으로 보여주지 않고, 초기 QVA 후보 중 확인 QVA 조건도 만족하면 <span class="badge tag-CONFIRMED_QVA_PASS" style="font-size:10px;padding:1px 6px;border-radius:3px;">확인 QVA 통과</span> 보조 태그로 표시합니다. 백테스트와 내부 분석에는 계속 사용됩니다.</p>
       </div>
 
       <div class="help-section">
         <h3>단계 흐름</h3>
         <div class="funnel">
-          <span class="step">QVA 신규</span>
+          <span class="step" style="background:#064e3b;color:#34d399;">🌱 초기 QVA</span>
           <span class="arrow-r">→</span>
-          <span class="step">QVA 추적 중</span>
+          <span class="step">⏳ VVI 발생</span>
           <span class="arrow-r">→</span>
-          <span class="step">VVI 발생</span>
+          <span class="step">🚀 다음 거래일 돌파 대기</span>
           <span class="arrow-r">→</span>
-          <span class="step">다음 거래일 돌파 대기</span>
-          <span class="arrow-r">→</span>
-          <span class="step h-group">돌파 성공 확인 종목 = H그룹</span>
-          <span class="arrow-r">→</span>
-          <span class="step">진입가 근처</span>
+          <span class="step h-group">🔥 돌파 성공 확인 종목 = H그룹</span>
           <span class="arrow-r">→</span>
           <span class="step">익절/청산 시나리오 검토</span>
         </div>
         <ul>
-          <li><strong>QVA 신규</strong> — 오늘 새로 관심 후보로 잡힌 종목 <span style="color:#94a3b8;">(QVA 단독 20일 뒤 플러스 마감 비율 56.2%)</span></li>
-          <li><strong>QVA 추적 중</strong> — QVA 발생 후 20거래일 동안 VVI 발생 여부를 지켜보는 종목</li>
-          <li><strong>VVI 발생</strong> — QVA 후보 중 실제 거래대금 초동이 확인된 상태</li>
-          <li><strong>다음 거래일 돌파 대기</strong> — VVI 다음 거래일에 vviHigh × 1.01 돌파 여부를 기다리는 종목</li>
-          <li><strong>돌파 성공 확인 종목</strong> — QVA → VVI → +1% 돌파 → 종가 유지까지 통과한 후보 <span style="color:#6ee7b7;">(20일 뒤 플러스 마감 비율 71.0%, 평균 수익률 +15.1%)</span></li>
+          <li><strong>🌱 초기 QVA</strong> — 아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되는 종목 <span style="color:#34d399;">(20일 뒤 플러스 마감 비율 58.2%)</span></li>
+          <li><strong>⏳ VVI 발생</strong> — 실제 거래대금 초동이 확인된 상태</li>
+          <li><strong>🚀 다음 거래일 돌파 대기</strong> — VVI 다음 거래일에 vviHigh × 1.01 돌파 여부를 기다리는 종목</li>
+          <li><strong>🔥 돌파 성공 확인 종목</strong> — +1% 돌파 → 종가 유지까지 통과한 후보 <span style="color:#6ee7b7;">(초기 QVA → 돌파 성공 시 20일 뒤 플러스 마감 비율 83.3%)</span></li>
           <li><strong>H그룹</strong> — 백테스트에서 검증한 돌파 성공 확인 종목 그룹 (위와 동일)</li>
-          <li><strong>진입가 근처</strong> — 기준 가격에서 크게 멀지 않은 위치. 추격 매수를 피하기 위한 위치 확인 기준 (플러스 마감 비율 추가 개선 효과 거의 없음)</li>
+          <li><span class="badge tag-CONFIRMED_QVA_PASS" style="font-size:10px;padding:1px 6px;border-radius:3px;">확인 QVA 통과</span> 보조 태그 — 초기 QVA 이후 가격 유지·저점 상승·거래대금 흐름이 한 번 더 확인된 상태 (기존 QVA 조건 만족)</li>
         </ul>
       </div>
 
@@ -940,10 +1198,10 @@ const htmlTemplate = `<!DOCTYPE html>
         <h3>H그룹이란?</h3>
         <div class="h-group-card">
           <p><strong>H그룹은 QVA → VVI → 다음날 +1% 돌파 → 종가 유지까지 확인된 돌파 성공 확인 종목입니다.</strong></p>
-          <p><strong>1년 검증에서 QVA 단독보다 20일 뒤 플러스 마감 비율과 평균 수익률이 크게 개선된 핵심 후보군입니다</strong> (QVA 단독 56.2% → H그룹 71.0%, 평균 수익률 +7.5% → +15.1%).</p>
+          <p><strong>1년 검증에서 funnel 진행에 따라 20일 뒤 플러스 마감 비율이 크게 개선된 핵심 후보군입니다</strong> (초기 QVA 단독 58.2% → 초기 QVA → H그룹 진행 시 83.3%).</p>
           <p>조건은 다음과 같습니다.</p>
           <ol>
-            <li>QVA 발생</li>
+            <li>QVA(초기 또는 확인) 발생</li>
             <li>QVA 이후 20거래일 안에 VVI 발생</li>
             <li>VVI 다음 거래일에 vviHigh × 1.01 이상 돌파</li>
             <li>그날 종가가 vviHigh 이상에서 마감</li>
@@ -1098,6 +1356,22 @@ const COLS_BY_STAGE = {
     { key: 'currentReturnFromSignal', label: '신호가 대비%', render: c => fmtPct(c.currentReturnFromSignal, true) },
     { key: 'stageReason', label: '사유', txt: true, render: c => '<span class="muted">' + (c.stageReason || '-') + '</span>' },
   ],
+  EARLY_QVA: [
+    { key: 'bestEarlyQvaScore', label: '점수', render: c => '<strong style="color:#6ee7b7;">' + (c.bestEarlyQvaScore ?? 0) + '</strong>' },
+    { key: 'bestEarlyQvaGradeLabel', label: '등급', txt: true, render: c => {
+      const g = c.bestEarlyQvaGrade;
+      const colors = { STRONG_EARLY_QVA: '#10b981', EARLY_QVA: '#34d399', WATCH_EARLY: '#94a3b8' };
+      return '<span style="color:' + (colors[g] || '#94a3b8') + ';font-weight:600;">' + (c.bestEarlyQvaGradeLabel || '-') + '</span>';
+    }},
+    { key: 'firstEarlyQvaDate', label: '최초 감지일', txt: true, render: c => fmtDate(c.firstEarlyQvaDate) + ' <span class="muted">D+' + (c.daysSinceFirst ?? 0) + '</span>' },
+    { key: 'bestEarlyQvaDate', label: '최고 점수일', txt: true, render: c => fmtDate(c.bestEarlyQvaDate) + ' <span class="muted">D+' + (c.daysSinceBest ?? 0) + '</span>' },
+    { key: 'name', label: '종목', txt: true, render: c => '<span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span>' + badges(c) },
+    { key: 'anchorPrice', label: '신호가', render: c => fmtNum(c.anchorPrice) + '원' },
+    { key: 'currentClose', label: '현재가', render: c => fmtNum(c.currentClose) + '원' },
+    { key: 'currentReturnFromSignal', label: '신호가 대비%', render: c => fmtPct(c.currentReturnFromSignal, true) },
+    { key: 'earlyQvaSignalCount', label: '신호일수', render: c => (c.earlyQvaSignalCount || 0) + '회' },
+    { key: 'marketValue', label: '시총', render: c => fmtValue(c.marketValue) },
+  ],
 };
 
 const stagesWrap = document.getElementById('stages-wrap');
@@ -1107,22 +1381,41 @@ function buildStageSection(stage) {
   const items = DATA.stages[stage] || [];
   const cols = COLS_BY_STAGE[stage] || [];
   // 기본 펼침: BREAKOUT_SUCCESS, VVI_FIRED, QVA_NEW
-  // 기본 접힘: QVA_TRACKING (감시 풀 — 너무 많아 시야 분산), FAILED
-  const collapsed = stage === 'FAILED' || stage === 'QVA_TRACKING';
+  // 기본 접힘: QVA_TRACKING (감시 풀 — 너무 많아 시야 분산), FAILED, EARLY_QVA (사용자 spec)
+  const collapsed = stage === 'FAILED' || stage === 'QVA_TRACKING' || stage === 'EARLY_QVA';
   const sec = document.createElement('div');
-  sec.className = 'stage-section' + (collapsed ? ' collapsed' : '') + (stage === 'QVA_TRACKING' ? ' q-tracking' : '');
+  sec.className = 'stage-section' + (collapsed ? ' collapsed' : '') + (stage === 'QVA_TRACKING' ? ' q-tracking' : '') + (stage === 'EARLY_QVA' ? ' early-qva' : '');
   sec.dataset.stage = stage;
 
-  // 토글 라벨 — QVA_TRACKING은 별도 문구
-  const toggleCollapsedText = stage === 'QVA_TRACKING' ? 'QVA 추적 후보 전체 보기' : '▼ 펼치기';
-  const toggleExpandedText = stage === 'QVA_TRACKING' ? 'QVA 추적 후보 접기' : '▲ 접기';
-  const toggleClass = stage === 'QVA_TRACKING' ? 'toggle toggle-large' : 'toggle';
+  // 토글 라벨 — QVA_TRACKING / EARLY_QVA는 별도 문구
+  let toggleCollapsedText = '▼ 펼치기';
+  let toggleExpandedText = '▲ 접기';
+  let toggleClass = 'toggle';
+  if (stage === 'QVA_TRACKING') {
+    toggleCollapsedText = 'QVA 추적 후보 전체 보기';
+    toggleExpandedText = 'QVA 추적 후보 접기';
+    toggleClass = 'toggle toggle-large';
+  } else if (stage === 'EARLY_QVA') {
+    toggleCollapsedText = '🌱 초기 QVA 후보 보기';
+    toggleExpandedText = '🌱 초기 QVA 후보 접기';
+    toggleClass = 'toggle toggle-large';
+  }
 
   const title = document.createElement('h2');
   title.className = 'h-section';
-  const stageColor = { BREAKOUT_SUCCESS: '🔥', VVI_FIRED: '⏳', QVA_TRACKING: '👀', QVA_NEW: '🆕', FAILED: '❌' }[stage] || '';
+  const stageColor = { BREAKOUT_SUCCESS: '🔥', VVI_FIRED: '⏳', QVA_TRACKING: '👀', QVA_NEW: '🆕', EARLY_QVA: '🌱', FAILED: '❌' }[stage] || '';
+  // EARLY_QVA: 전체/화면표시/강한 카운트를 같이 보여줌
+  let pillContent;
+  if (stage === 'EARLY_QVA') {
+    const eq = DATA.earlyQvaSummary || {};
+    pillContent = '<span class="pill">전체 ' + (eq.totalCount ?? 0) + '건</span>' +
+                  '<span class="pill" style="background:#34d399;color:#064e3b;">화면 ' + (eq.displayedCount ?? 0) + '건</span>' +
+                  '<span class="pill" style="background:#10b981;color:#fff;">강한 ' + (eq.strongCount ?? 0) + '건</span>';
+  } else {
+    pillContent = '<span class="pill">' + items.length + '건</span>';
+  }
   title.innerHTML = '<span>' + stageColor + ' ' + DATA.meta.stageLabels[stage] + '</span>' +
-    '<span class="pill">' + items.length + '건</span>' +
+    pillContent +
     '<span class="desc">' + DATA.meta.stageDescriptions[stage] + '</span>' +
     '<span class="' + toggleClass + '" data-stage="' + stage + '"' +
     ' data-collapsed-text="' + toggleCollapsedText + '"' +
@@ -1145,6 +1438,31 @@ function buildStageSection(stage) {
       '<div class="card warn"><div class="lbl">위험 태그</div><div class="cnt">' + sm.riskTag + '</div></div>' +
       '<div class="card expiring"><div class="lbl">만료 임박</div><div class="cnt">' + sm.expiringSoon + '</div></div>';
     sec.appendChild(summaryEl);
+  }
+
+  // ─── EARLY_QVA: 요약 카드 (접힘 상태에서도 표시) ───
+  if (stage === 'EARLY_QVA') {
+    const eq = DATA.earlyQvaSummary || { totalCount: 0, strongCount: 0, earlyCount: 0, watchCount: 0, displayedCount: 0, displayThreshold: 70, displayLimit: 50, avgScore: 0, valueReactivationCount: 0, higherLowCount: 0, priceHoldCount: 0 };
+    const summaryEl = document.createElement('div');
+    summaryEl.className = 'tracking-summary';
+    summaryEl.innerHTML =
+      '<div class="card"><div class="lbl">전체 초기 QVA 후보</div><div class="cnt">' + eq.totalCount + '</div></div>' +
+      '<div class="card strong"><div class="lbl">강한 초기 QVA (' + 80 + '+)</div><div class="cnt">' + eq.strongCount + '</div></div>' +
+      '<div class="card"><div class="lbl">화면 표시 (' + eq.displayThreshold + '+, 최대 ' + eq.displayLimit + ')</div><div class="cnt">' + eq.displayedCount + '</div></div>' +
+      '<div class="card"><div class="lbl">평균 점수</div><div class="cnt">' + eq.avgScore + '</div></div>' +
+      '<div class="card"><div class="lbl">거래대금 재활성 동반</div><div class="cnt">' + eq.valueReactivationCount + '</div></div>' +
+      '<div class="card"><div class="lbl">저점 상승 동반</div><div class="cnt">' + eq.higherLowCount + '</div></div>' +
+      '<div class="card"><div class="lbl">가격 유지 동반</div><div class="cnt">' + eq.priceHoldCount + '</div></div>';
+    sec.appendChild(summaryEl);
+
+    // Early QVA 안내문
+    const noteEl = document.createElement('div');
+    noteEl.style.cssText = 'background:#0f172a;border-left:3px solid #34d399;padding:10px 14px;border-radius:6px;margin-bottom:12px;color:#cbd5e1;font-size:12px;line-height:1.6;';
+    noteEl.innerHTML =
+      '초기 QVA는 기존 QVA보다 더 빠르게 수급 흔적을 잡기 위한 감시 후보입니다. ' +
+      '아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되는 종목을 찾습니다. ' +
+      '<strong style="color:#fbbf24;">기존 QVA보다 빠른 대신 실패 가능성도 높기 때문에, 화면에는 점수가 높은 후보 위주로 표시합니다.</strong>';
+    sec.appendChild(noteEl);
   }
 
   // ─── 컨트롤 (검색 + 빠른 필터) ───
@@ -1244,8 +1562,12 @@ function buildStageSection(stage) {
   return sec;
 }
 
+// 메인 단계 렌더링 + 최근 VVI 발생 이력은 VVI_FIRED 다음 자리에 삽입
 for (const s of stageOrder) {
   stagesWrap.appendChild(buildStageSection(s));
+  if (s === 'VVI_FIRED') {
+    stagesWrap.appendChild(buildRecentVviHistorySection());
+  }
 }
 
 // ─── 최근 VVI 발생 이력 (참고 섹션) — 메인 단계 분류와 별개 ───
@@ -1330,7 +1652,7 @@ function buildRecentVviHistorySection() {
   return sec;
 }
 
-stagesWrap.appendChild(buildRecentVviHistorySection());
+// 최근 VVI 발생 이력은 메인 render 루프에서 VVI_FIRED 다음 자리에 삽입됨
 
 // QVA / VVI / H그룹 도움말 토글
 const helpBtn = document.getElementById('help-btn');

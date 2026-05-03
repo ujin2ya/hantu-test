@@ -85,17 +85,36 @@
   <div class="nav" style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
     <a href="/qva-watchlist" style="color:#93c5fd;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e293b;border-radius:6px;">📋 매일 운영 보드</a>
     <span style="color:#475569;font-size:11px;align-self:center;">검증 ▶</span>
+    <a href="/qva-surge-day-report" style="color:#93c5fd;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e293b;border-radius:6px;">단일일 급등</a>
     <a href="/qva-to-vvi-report" style="color:#93c5fd;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e293b;border-radius:6px;">QVA → VVI 전환</a>
     <a href="/qva-vvi-breakout-entry-report" style="color:#fff;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e3a8a;border-radius:6px;">진입</a>
     <a href="/qva-vvi-breakout-exit-report" style="color:#93c5fd;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e293b;border-radius:6px;">익절/청산</a>
+    <a href="/qva-review-ok" style="color:#6ee7b7;text-decoration:none;font-size:13px;padding:6px 10px;background:#0f172a;border:1px solid #10b981;border-radius:6px;">⭐ 3단계 코호트 비교</a>
   </div>
 
   <div class="note" style="color:#94a3b8;font-size:12px;margin-bottom:6px;">📚 <strong style="color:#cbd5e1;">검증 보고서</strong> — 매일 운영 화면이 아닌 과거 데이터 분석. 매일 보드는 <a href="/qva-watchlist" style="color:#93c5fd;">📋 매일 운영 보드</a>로 이동하세요.</div>
 
   <div class="info-box">
-    <p>이 보고서는 <strong>QVA 후보 중 VVI로 전환된 종목이 다음 거래일에 VVI 고가를 돌파했을 때, 실제 진입 후보로 볼 수 있는지</strong> 검증합니다.</p>
-    <p>QVA는 <strong>감시 시작</strong>, VVI는 <strong>거래대금 초동 확인</strong>, 다음날 고가 돌파는 <strong>진입 후보 검토 조건</strong>입니다.</p>
-    <p>본 보고서는 <strong>매수 추천이 아니라 조건 조합의 성과 검증용</strong>입니다.</p>
+    <h3 style="margin:0 0 10px 0;color:#f1f5f9;font-size:15px;border:none;padding:0;">📌 보고서 안내</h3>
+    <p><strong>이 보고서가 답하는 질문</strong></p>
+    <p>QVA → VVI 후 다음 거래일에 VVI 고가 + 1% 돌파가 발생했을 때 실제 진입 후보로 볼 수 있는가? 진입 후 어떤 손절 조건(A~E)이 가장 효과적인가?</p>
+
+    <p style="margin-top:10px;"><strong>📍 funnel에서의 위치</strong></p>
+    <p style="font-size:12px;background:#0f172a;padding:8px 12px;border-radius:6px;border:1px solid #334155;">
+      <span style="color:#93c5fd;font-weight:700;">VVI(2단계)</span> → <span style="color:#a5b4fc;font-weight:700;">돌파 진입(3단계)</span> 조건 검증. <strong>H그룹 = 돌파 성공 확인 종목</strong>은 매일 운영 보드의 'BREAKOUT_SUCCESS' 카드와 같은 의미입니다.
+    </p>
+
+    <p style="margin-top:10px;"><strong>📊 읽는 법</strong></p>
+    <ul style="margin:4px 0;padding-left:20px;font-size:13px;line-height:1.7;color:#cbd5e1;">
+      <li>그룹별로 진입 트리거 수, 5/10일 수익률, MFE10/MAE10, 5/10일 뒤 <strong>플러스 마감 비율</strong> 비교</li>
+      <li>F/G 행은 손절 시나리오(A: VVI 저가 / B: VVI 종가 / C: -5% / D: -7% / E: 다음날 종가 < vviHigh)를 적용한 조정 결과</li>
+      <li><strong>중복 제거 비교</strong> 섹션 — code + vviDate + entryDate 기준 dedup. 신뢰도 더 높음.</li>
+    </ul>
+
+    <p style="margin-top:10px;"><strong>🎯 핵심 의미</strong></p>
+    <p>1년 검증에서 <strong>H그룹의 20일 뒤 플러스 마감 비율은 71.0%, 평균 수익률 +15.1%</strong>로 QVA 단독(56.2%) 대비 큰 폭 개선됐습니다. 즉 funnel을 끝까지 통과한 후보가 실제 알파의 핵심임을 정량 확인.</p>
+
+    <p style="margin-top:10px;color:#fbbf24;">⚠️ 매수 추천이 아니라 조건 조합의 성과 검증입니다.</p>
   </div>
 
   <div class="note warn" id="period-warn"></div>

@@ -688,10 +688,37 @@ const htmlTemplate = `<!DOCTYPE html>
   <h1>📊 QVA 신호 후 20거래일 내 급등일 탐지 보고서<span class="sub">— QVA 단일일 급등 발생 분석</span></h1>
   <div class="subtitle" id="subtitle"></div>
 
+  <div class="nav" style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+    <a href="/qva-watchlist" style="color:#93c5fd;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e293b;border-radius:6px;">📋 매일 운영 보드</a>
+    <span style="color:#475569;font-size:11px;align-self:center;">검증 ▶</span>
+    <a href="/qva-surge-day-report" style="color:#fff;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e3a8a;border-radius:6px;">단일일 급등</a>
+    <a href="/qva-to-vvi-report" style="color:#93c5fd;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e293b;border-radius:6px;">QVA → VVI 전환</a>
+    <a href="/qva-vvi-breakout-entry-report" style="color:#93c5fd;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e293b;border-radius:6px;">진입</a>
+    <a href="/qva-vvi-breakout-exit-report" style="color:#93c5fd;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e293b;border-radius:6px;">익절/청산</a>
+    <a href="/qva-review-ok" style="color:#6ee7b7;text-decoration:none;font-size:13px;padding:6px 10px;background:#0f172a;border:1px solid #10b981;border-radius:6px;">⭐ 3단계 코호트 비교</a>
+  </div>
+
   <div class="info-box">
-    <p>이 보고서는 <strong>QVA 신호가 나온 종목들이 신호 후 20거래일 안에 전일 종가 대비 하루 +10%, +15%, +20%, +30% 이상 급등한 적이 있는지</strong> 분석합니다.</p>
-    <p>QVA는 매수 추천 신호가 아니라, <strong>관심종목에 넣고 추적할 만한 후보를 좁혀주는 선행 감지 모델</strong>입니다.</p>
-    <p>따라서 본 보고서의 급등 발생률은 <strong>승률이 아니라, QVA 신호 이후 급등 이벤트가 발생한 비율</strong>입니다.</p>
+    <h3 style="margin:0 0 10px 0;color:#f1f5f9;font-size:15px;border:none;padding:0;">📌 보고서 안내</h3>
+    <p><strong>이 보고서가 답하는 질문</strong></p>
+    <p>QVA 신호가 발생한 종목이 그 후 20거래일 안에 단일일 기준 +10/+15/+20/+30% 큰 급등을 얼마나 자주 일으켰는가?</p>
+
+    <p style="margin-top:10px;"><strong>📍 funnel에서의 위치</strong></p>
+    <p style="font-size:12px;background:#0f172a;padding:8px 12px;border-radius:6px;border:1px solid #334155;">
+      <span style="color:#fbbf24;font-weight:700;">QVA(감시 시작)</span> 단계의 폭발력 자체를 측정. VVI나 돌파 성공까지 진행되지 않더라도, QVA 후보가 <strong>한 번이라도 급등을 일으킨 비율</strong>을 봅니다.
+    </p>
+
+    <p style="margin-top:10px;"><strong>📊 읽는 법</strong></p>
+    <ul style="margin:4px 0;padding-left:20px;font-size:13px;line-height:1.7;color:#cbd5e1;">
+      <li><strong>종가 기준</strong> = 그날 강하게 마감한 진짜 급등</li>
+      <li><strong>고가 기준</strong> = 장중에 한 번이라도 튄 급등 (다시 내려와 마감했을 수도 있음)</li>
+      <li><strong>"급등 발생률"은 매수 시 승률이 아닙니다.</strong> 매수해서 얻은 수익률이 아니라 이벤트 발생 빈도입니다.</li>
+    </ul>
+
+    <p style="margin-top:10px;"><strong>🎯 핵심 의미</strong></p>
+    <p>QVA 신호가 폭발력 측면에서 얼마나 가치 있는지를 보여줍니다. 급등 발생률이 높을수록 QVA 후보를 추적할 가치가 있다는 근거가 됩니다.</p>
+
+    <p style="margin-top:10px;color:#fbbf24;">⚠️ 매수 추천이 아니라 모델 검증/분석입니다.</p>
   </div>
 
   <h3>전체 개요</h3>

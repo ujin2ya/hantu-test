@@ -418,7 +418,7 @@ const html = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>REVIEW_OK 백테스트 — 검토가능 진입 승률</title>
+<title>3단계 코호트 비교 — QVA / H그룹 / 진입가 근처</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif; margin: 0; padding: 24px; background: #0f172a; color: #e2e8f0; }
@@ -463,20 +463,45 @@ const html = `<!DOCTYPE html>
 </style>
 </head>
 <body>
-  <h1>REVIEW_OK 백테스트 <span class="sub">검토가능 진입 시점 승률 검증</span></h1>
+  <h1>⭐ 3단계 코호트 비교 (요약본) <span class="sub">QVA 단독 / H그룹 / 진입가 근처 — 같은 1년 같은 척도</span></h1>
   <div class="subtitle" id="subtitle"></div>
 
   <div class="nav">
-    <a href="/qva-watchlist">← QVA Watchlist</a>
-    <a href="/qva-vvi-breakout-entry-report">진입 검증 보고서</a>
-    <a href="/qva-vvi-breakout-exit-report">익절/청산 보고서</a>
-    <a href="/qva-review-ok-backtest-report" class="active">REVIEW_OK 백테스트</a>
+    <a href="/qva-watchlist">📋 매일 운영 보드</a>
+    <span style="color:#475569;font-size:11px;align-self:center;">검증 ▶</span>
+    <a href="/qva-surge-day-report">단일일 급등</a>
+    <a href="/qva-to-vvi-report">QVA → VVI 전환</a>
+    <a href="/qva-vvi-breakout-entry-report">진입 검증</a>
+    <a href="/qva-vvi-breakout-exit-report">익절/청산</a>
+    <a href="/qva-review-ok-backtest-report" class="active">⭐ 3단계 코호트 비교</a>
   </div>
 
   <div class="info-box">
-    <p><strong>이 보고서가 답하는 질문:</strong> Watchlist 보드의 '돌파 성공 확인 종목' 중 진입 판단 상태가 <strong>검토가능(REVIEW_OK)</strong>인 시점에 매수했을 때, 단순 보유 기준 D+1~D+20 승률은 얼마인가?</p>
-    <p><strong>표본:</strong> H그룹(=돌파 성공 확인 종목) 이벤트를 (code, vviDate) 단위로 dedup. 각 이벤트마다 돌파일 D+0~D+2를 walk-forward해서 라이브 규칙 그대로 진입 판단 상태를 재계산하고, 최초 REVIEW_OK 일자 종가에 매수했다고 가정.</p>
-    <p class="warn">⚠️ 본 보고서는 매수 추천이 아닙니다. 단일 시장 사이클 데이터 기반이며, 손절·자금관리·시장 국면을 고려하지 않은 단순 보유 시뮬레이션입니다. 다른 국면에서도 동일하게 작동하는지는 추가 검증이 필요합니다.</p>
+    <h3 style="margin:0 0 10px 0;color:#f1f5f9;font-size:15px;border:none;padding:0;">📌 보고서 안내</h3>
+    <p><strong>이 보고서가 답하는 질문</strong></p>
+    <p>QVA 단독 / H그룹(돌파 성공 확인 종목) / 진입가 근처(REVIEW_OK) — <strong>세 코호트의 20일 뒤 플러스 마감 비율</strong>을 같은 1년 기간에 같은 척도로 비교했을 때 차이가 있는가?</p>
+
+    <p style="margin-top:10px;"><strong>📍 funnel에서의 위치</strong></p>
+    <p style="font-size:12px;background:#0f172a;padding:8px 12px;border-radius:6px;border:1px solid #334155;">
+      funnel <strong>전체(1단계 → 2단계 → 3단계)를 같은 표에서 비교한 요약본</strong>입니다. 다른 보고서들은 각 단계를 깊이 들여다보고, 이 보고서는 단계 간 차이를 한눈에 보여줍니다.
+    </p>
+
+    <p style="margin-top:10px;"><strong>📊 읽는 법</strong></p>
+    <ul style="margin:4px 0;padding-left:20px;font-size:13px;line-height:1.7;color:#cbd5e1;">
+      <li>세 코호트의 <strong>D+1 / D+3 / D+5 / D+10 / D+20 플러스 마감 비율</strong>과 평균/중앙값 수익률을 같은 줄에서 비교</li>
+      <li>각 코호트의 표본 크기(N)도 함께 표시 — 표본 차이로 신뢰도 차이도 함께 보세요</li>
+      <li>D+0~D+2 진입 판단 상태 분포 표 — 각 H그룹 이벤트가 돌파일/D+1/D+2에 어느 상태로 분류되는지</li>
+      <li><strong>표본 정의:</strong> H그룹(=돌파 성공 확인 종목) 이벤트를 (code, vviDate) 단위로 dedup. 각 이벤트마다 돌파일 D+0~D+2를 walk-forward해서 라이브 규칙 그대로 진입 판단 상태를 재계산하고, 최초 '진입가 근처(REVIEW_OK)' 일자 종가에 매수했다고 가정.</li>
+    </ul>
+
+    <p style="margin-top:10px;"><strong>🎯 핵심 결과</strong></p>
+    <p style="background:#0f172a;padding:10px 14px;border-radius:6px;border:1px solid #14532d;line-height:1.7;">
+      <strong style="color:#fbbf24;">QVA 단독 56.2%</strong> → <strong style="color:#6ee7b7;">H그룹 71.0%</strong> → <strong style="color:#6ee7b7;">진입가 근처 71.4%</strong><br>
+      funnel 단계가 진행될수록 좋은 흐름을 보인 비율이 높아졌으나, '진입가 근처' 필터는 H그룹 대비 추가 개선 효과가 미미(0.4%p)합니다.
+      '진입가 근처'는 플러스 마감 비율을 높이는 필터가 아니라 <strong>추격 매수를 피하기 위한 위치 확인 기준</strong>입니다.
+    </p>
+
+    <p class="warn" style="margin-top:10px;">⚠️ 본 보고서는 매수 추천이 아닙니다. 단일 시장 사이클 데이터 기반이며, 손절·자금관리·시장 국면을 고려하지 않은 단순 보유 시뮬레이션입니다.</p>
   </div>
 
   <h2>판정 규칙 (라이브 워치리스트와 동일)</h2>
@@ -486,8 +511,8 @@ const html = `<!DOCTYPE html>
     elif <code>close ≥ entryPrice × 1.15</code> → <strong>MANAGEMENT (관리구간)</strong><br>
     elif <code>close &gt; entryPrice × 1.07 OR daysFromBreakout ≥ 3</code> → <strong>PULLBACK_WAIT (눌림대기)</strong><br>
     elif <code>close &gt; entryPrice × 1.03</code> → <strong>CHASE_CAUTION (추격주의)</strong><br>
-    else → <strong>REVIEW_OK (검토가능)</strong><br>
-    ⇒ 즉 검토가능 = 돌파일 기준 D+0~D+2 + 종가가 entryPrice 이상이면서 +3% 이내
+    else → <strong>REVIEW_OK (진입가 근처)</strong><br>
+    ⇒ 즉 진입가 근처 = 돌파일 기준 D+0~D+2 + 종가가 entryPrice 이상이면서 +3% 이내
   </div>
 
   <h2>요약</h2>
@@ -500,10 +525,10 @@ const html = `<!DOCTYPE html>
   </tr></thead><tbody id="dist-tbody"></tbody></table>
 
   <h2>코호트별 성과 비교</h2>
-  <p class="subtitle">REVIEW_OK 코호트 = 첫 검토가능 일자 종가에 매수. 비교 = H그룹 전체 돌파일 종가에 매수.</p>
+  <p class="subtitle">진입가 근처 코호트 = 첫 진입가 근처(REVIEW_OK) 일자 종가에 매수. H그룹 코호트 = 돌파일 종가에 매수. QVA 단독 = QVA 신호일 종가에 매수.</p>
   <table id="cohort-table"><thead><tr>
     <th class="txt">코호트</th><th class="txt">기간</th>
-    <th>N</th><th>승률</th><th>평균%</th><th>중앙값%</th><th>최대</th><th>최저</th><th>+10%↑</th><th>-7%↓</th>
+    <th>N</th><th>플러스 마감 비율</th><th>평균%</th><th>중앙값%</th><th>최대</th><th>최저</th><th>+10%↑</th><th>-7%↓</th>
   </tr></thead><tbody id="cohort-tbody"></tbody></table>
 
   <h2>MFE / MAE (10거래일 윈도우)</h2>
@@ -511,16 +536,16 @@ const html = `<!DOCTYPE html>
     <th class="txt">코호트</th><th class="txt">지표</th><th>평균</th><th>중앙</th><th>Q75 / Q25</th><th>Q90 / Q10</th>
   </tr></thead><tbody id="mfe-tbody"></tbody></table>
 
-  <h2>REVIEW_OK 진입 일자 / 미도달 사유</h2>
+  <h2>진입가 근처 진입 일자 / 미도달 사유</h2>
   <div class="summary-grid" id="entry-dist"></div>
 
-  <h2>TOP 5 사례 (REVIEW_OK, D+10 수익률 상위)</h2>
+  <h2>TOP 5 사례 (진입가 근처 코호트, D+10 수익률 상위)</h2>
   <table id="top-table"><thead><tr>
     <th class="txt">종목</th><th class="txt">QVA일</th><th class="txt">VVI일</th><th class="txt">돌파일</th><th class="txt">매수일</th>
     <th>D+0~+</th><th>매수가</th><th>D+5</th><th>D+10</th><th>D+20</th><th>MFE10</th><th>MAE10</th>
   </tr></thead><tbody id="top-tbody"></tbody></table>
 
-  <h2>WORST 5 사례 (REVIEW_OK, D+10 수익률 하위)</h2>
+  <h2>WORST 5 사례 (진입가 근처 코호트, D+10 수익률 하위)</h2>
   <table id="worst-table"><thead><tr>
     <th class="txt">종목</th><th class="txt">QVA일</th><th class="txt">VVI일</th><th class="txt">돌파일</th><th class="txt">매수일</th>
     <th>D+0~+</th><th>매수가</th><th>D+5</th><th>D+10</th><th>D+20</th><th>MFE10</th><th>MAE10</th>
@@ -562,29 +587,29 @@ function marketCls(m) { return m === 'KOSDAQ' ? 'market-Q' : 'market-K'; }
 document.getElementById('subtitle').textContent =
   '스캔 ' + fmtDate(DATA.meta.scanStart) + ' ~ ' + fmtDate(DATA.meta.scanEnd) +
   ' · H그룹 ' + DATA.hGroupCount + '건 (raw ' + DATA.hGroupRawCount + ' → dedup) · ' +
-  'REVIEW_OK ' + DATA.reviewOkSummary.count + '건 진입 · ' +
+  '진입가 근처 코호트 ' + DATA.reviewOkSummary.count + '건 진입 · ' +
   '생성 ' + DATA.meta.generatedAt.slice(0, 19).replace('T', ' ');
 
-// 요약 카드 — D+10/D+20 승률을 가장 강조
+// 요약 카드 — D+10/D+20 플러스 마감 비율을 가장 강조
 function makeStat(label, val, cls) {
   return '<div class="stat ' + (cls || '') + '"><div class="lbl">' + label + '</div><div class="val">' + val + '</div></div>';
 }
 const r = DATA.reviewOkSummary.byHorizon;
 const b = DATA.breakoutSummary.byHorizon;
 document.getElementById('summary-grid').innerHTML = [
-  makeStat('REVIEW_OK 진입 N', DATA.reviewOkSummary.count + '건'),
-  makeStat('D+1 승률', (r[1]?.winRate ?? '-') + '%', 'mid'),
-  makeStat('D+5 승률', (r[5]?.winRate ?? '-') + '%', 'mid'),
-  makeStat('D+10 승률', (r[10]?.winRate ?? '-') + '%', 'hi'),
-  makeStat('D+20 승률', (r[20]?.winRate ?? '-') + '%', 'hi'),
+  makeStat('진입가 근처 N', DATA.reviewOkSummary.count + '건'),
+  makeStat('D+1 플러스 마감', (r[1]?.winRate ?? '-') + '%', 'mid'),
+  makeStat('D+5 플러스 마감', (r[5]?.winRate ?? '-') + '%', 'mid'),
+  makeStat('D+10 플러스 마감', (r[10]?.winRate ?? '-') + '%', 'hi'),
+  makeStat('D+20 플러스 마감', (r[20]?.winRate ?? '-') + '%', 'hi'),
   makeStat('D+10 평균%', (r[10]?.mean >= 0 ? '+' : '') + (r[10]?.mean ?? '-') + '%', 'hi'),
   makeStat('D+20 평균%', (r[20]?.mean >= 0 ? '+' : '') + (r[20]?.mean ?? '-') + '%', 'hi'),
-  makeStat('비교: 돌파일 매수 D+10 승률', (b[10]?.winRate ?? '-') + '%'),
-  makeStat('비교: QVA 단독 매수 D+10 승률', (DATA.qvaOnlySummary.byHorizon[10]?.winRate ?? '-') + '%'),
+  makeStat('비교: H그룹 D+10', (b[10]?.winRate ?? '-') + '%'),
+  makeStat('비교: QVA 단독 D+10', (DATA.qvaOnlySummary.byHorizon[10]?.winRate ?? '-') + '%'),
 ].join('');
 
 // 상태 분포
-const STATUS_LABELS = { REVIEW_OK: '검토가능', CHASE_CAUTION: '추격주의', PULLBACK_WAIT: '눌림대기', MANAGEMENT: '관리구간', BREAKDOWN_WEAK: '돌파약화' };
+const STATUS_LABELS = { REVIEW_OK: '진입가 근처', CHASE_CAUTION: '추격주의', PULLBACK_WAIT: '눌림대기', MANAGEMENT: '관리구간', BREAKDOWN_WEAK: '돌파약화' };
 const STATUS_ORDER = ['REVIEW_OK', 'CHASE_CAUTION', 'PULLBACK_WAIT', 'MANAGEMENT', 'BREAKDOWN_WEAK'];
 document.getElementById('dist-tbody').innerHTML = STATUS_ORDER.map(s => {
   const d0 = DATA.judgmentDist.D0[s] || 0;
@@ -616,7 +641,7 @@ function cohortRows(label, summary, hi) {
   }).join('');
 }
 document.getElementById('cohort-tbody').innerHTML =
-  cohortRows('REVIEW_OK 진입', DATA.reviewOkSummary, true) +
+  cohortRows('진입가 근처', DATA.reviewOkSummary, true) +
   cohortRows('비교: 돌파일 매수 (H그룹)', DATA.breakoutSummary, false) +
   cohortRows('비교: QVA 신호 단독 매수', DATA.qvaOnlySummary, false);
 
@@ -631,8 +656,8 @@ function mfeRow(cohortLabel, kind, x) {
     '<td>' + fmtPct(x.q90 != null ? x.q90 : x.q10, true) + '</td></tr>';
 }
 document.getElementById('mfe-tbody').innerHTML = [
-  mfeRow('REVIEW_OK', 'MFE10 (최대 미실현 이익)', DATA.reviewOkSummary.mfe10),
-  mfeRow('REVIEW_OK', 'MAE10 (최대 미실현 손실)', DATA.reviewOkSummary.mae10),
+  mfeRow('진입가 근처', 'MFE10 (최대 미실현 이익)', DATA.reviewOkSummary.mfe10),
+  mfeRow('진입가 근처', 'MAE10 (최대 미실현 손실)', DATA.reviewOkSummary.mae10),
   mfeRow('비교: 돌파일 매수', 'MFE10', DATA.breakoutSummary.mfe10),
   mfeRow('비교: 돌파일 매수', 'MAE10', DATA.breakoutSummary.mae10),
 ].join('');

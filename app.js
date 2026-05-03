@@ -2886,6 +2886,9 @@ app.get("/qva-vvi-breakout-exit", (req, res) => res.redirect("/qva-vvi-breakout-
 app.get("/qva-review-ok-backtest-report", serveReport("qva-review-ok-backtest-report.html"));
 app.get("/qva-review-ok", (req, res) => res.redirect("/qva-review-ok-backtest-report"));
 
+app.get("/early-qva-backtest-report", serveReport("early-qva-backtest-report.html"));
+app.get("/early-qva-backtest", (req, res) => res.redirect("/early-qva-backtest-report"));
+
 app.get("/qva-watchlist", serveReport("qva-watchlist-board.html"));
 app.get("/qva-watchlist-board", (req, res) => res.redirect("/qva-watchlist"));
 

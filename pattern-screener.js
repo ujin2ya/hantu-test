@@ -912,10 +912,16 @@ async function analyzeAll({ logProgress = false } = {}) {
       }
     }
 
-    // QVA (거래량 이상징후 선행 감지)
+    // QVA (거래량 이상징후 선행 감지) — Confirmed QVA
     let qva = null;
     if (rows.length >= 60) {
       try { qva = calculateQuietVolumeAnomaly(rows, flowRows, { ...meta, code }); } catch (_) {}
+    }
+
+    // EARLY QVA (바닥권 초기 수급 흔적)
+    let earlyQva = null;
+    if (rows.length >= 60) {
+      try { earlyQva = calculateEarlyQVA(rows, flowRows, { ...meta, code }); } catch (_) {}
     }
 
     // QVA-EVOLUTION (점수 기반 진화 가능성 모델)
@@ -1084,6 +1090,7 @@ async function analyzeAll({ logProgress = false } = {}) {
       rebound: rebound?.passed ? { score: rebound.score, breakdown: rebound.breakdown, signals: rebound.signals } : null,
       vvi: vvi?.passed ? { score: vvi.score, category: vvi.category, breakdown: vvi.breakdown, signals: vvi.signals } : null,
       qva: qva?.passed ? { score: qva.score, category: qva.category, breakdown: qva.breakdown, signals: qva.signals } : null,
+      earlyQva: earlyQva?.passed ? { score: earlyQva.score, grade: earlyQva.grade, gradeLabel: earlyQva.gradeLabel, breakdown: earlyQva.breakdown, signals: earlyQva.signals } : null,
       qvaEvolution: qvaEvolution?.passed ? { score: qvaEvolution.score, breakdown: qvaEvolution.breakdown, signals: qvaEvolution.signals } : null,
       qvaHold: qvaHold?.passed ? { score: qvaHold.score, breakdown: qvaHold.breakdown, signals: qvaHold.signals } : null,
       qvaHigherLow: qvaHigherLow?.passed ? { score: qvaHigherLow.score, breakdown: qvaHigherLow.breakdown, signals: qvaHigherLow.signals } : null,
@@ -3728,6 +3735,270 @@ function calculateQuietVolumeAnomaly(chartRows, flowRows, meta = {}) {
   };
 }
 
+// ─── EARLY QVA — 바닥권 초기 수급 흔적 탐지 ───
+// 기존 QVA(Confirmed)보다 더 이른 신호. "아직 크게 오르지 않았는데 거래대금이
+// 조용히 살아나고 저점이 안정되며 가격이 바닥권에서 고개를 드는 종목"을 잡는다.
+// 매수 신호가 아니라 관심 후보 조기 발굴용이며 실패 가능성이 높을 수 있다.
+function calculateEarlyQVA(chartRows, flowRows, meta = {}) {
+  if (!chartRows || chartRows.length < 60) return null;
+  const reject = (reason, debug = []) => ({
+    passed: false, reason, excludeReasons: debug,
+  });
+
+  // ─── 기본 필터 (기존 QVA와 동일) ───
+  if (meta.isSpecial || meta.isEtf) return reject('special/etf', ['ETF/특수상품']);
+  const marketValue = meta.marketValue || 0;
+  if (marketValue > 0 && marketValue < 50_000_000_000) return reject('marketcap<500B', ['시총 500억 미만']);
+
+  const idx = chartRows.length - 1;
+  const today = chartRows[idx];
+  const close = today?.close;
+  if (!close || close <= 0) return null;
+
+  // ─── 데이터 준비 ───
+  const last20 = chartRows.slice(-20);
+  const last10 = chartRows.slice(-10);
+  const last5 = chartRows.slice(-5);
+  const prev5 = chartRows.slice(-10, -5);
+  const prev20 = chartRows.slice(-21, -1); // 직전 20일 (오늘 제외)
+
+  // 거래대금 평균
+  const avg20Value = last20.reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+  if (avg20Value < 1_000_000_000) return reject('value<1B', ['20일 평균 거래대금 10억 미만']);
+
+  // 직전 20일 거래대금 중앙값 (오늘 제외)
+  const sortedPrev20Value = prev20.map(r => r.valueApprox || 0).sort((a, b) => a - b);
+  const medianPrev20Value = sortedPrev20Value.length > 0
+    ? sortedPrev20Value[Math.floor(sortedPrev20Value.length / 2)]
+    : 0;
+  const denomMedian = medianPrev20Value > 0 ? medianPrev20Value : (avg20Value || 1);
+
+  // 비율 계산
+  const todayValue = today.valueApprox || (today.close * today.volume);
+  const tvTodayRatio = todayValue / denomMedian;
+  const last3Avg = last5.slice(-3).reduce((s, r) => s + (r.valueApprox || 0), 0) / 3;
+  const last5Avg = last5.reduce((s, r) => s + (r.valueApprox || 0), 0) / 5;
+  const tv3Ratio = last3Avg / denomMedian;
+  const tv5Ratio = last5Avg / denomMedian;
+
+  // 가격 위치
+  const low20 = Math.min(...last20.map(r => r.low));
+  const returnFromLow20 = low20 > 0 ? (close / low20 - 1) * 100 : 0;
+  const ret5 = idx >= 5 ? (close / chartRows[idx - 5].close - 1) * 100 : 0;
+  const ret10 = idx >= 10 ? (close / chartRows[idx - 10].close - 1) * 100 : 0;
+  const ret20 = idx >= 20 ? (close / chartRows[idx - 20].close - 1) * 100 : 0;
+
+  // 단일일 급등 체크
+  function dailyCloseReturn(r, prevR) {
+    return prevR && prevR.close > 0 ? (r.close / prevR.close - 1) * 100 : 0;
+  }
+  function dailyHighReturn(r, prevR) {
+    return prevR && prevR.close > 0 ? (r.high / prevR.close - 1) * 100 : 0;
+  }
+  let maxDailyCloseReturn5 = 0, maxDailyHighReturn5 = 0, maxDailyCloseReturn10 = 0;
+  for (let k = idx - 4; k <= idx; k++) {
+    if (k <= 0) continue;
+    const dc = dailyCloseReturn(chartRows[k], chartRows[k - 1]);
+    const dh = dailyHighReturn(chartRows[k], chartRows[k - 1]);
+    if (dc > maxDailyCloseReturn5) maxDailyCloseReturn5 = dc;
+    if (dh > maxDailyHighReturn5) maxDailyHighReturn5 = dh;
+  }
+  for (let k = idx - 9; k <= idx; k++) {
+    if (k <= 0) continue;
+    const dc = dailyCloseReturn(chartRows[k], chartRows[k - 1]);
+    if (dc > maxDailyCloseReturn10) maxDailyCloseReturn10 = dc;
+  }
+
+  // 저점 안정
+  const recent5MinLow = Math.min(...last5.map(r => r.low));
+  const previous5MinLow = prev5.length > 0 ? Math.min(...prev5.map(r => r.low)) : Infinity;
+  const lowStabilized = recent5MinLow >= low20 * 1.03;
+  const higherLow = recent5MinLow > previous5MinLow;
+  const lowCondition = lowStabilized || higherLow;
+
+  // 종가 회복
+  const ma5 = sma(last5.map(r => r.close), 5);
+  const ma20 = sma(last20.map(r => r.close), 20);
+  const range = today.high - today.low;
+  const closeLocation = range > 0 ? (today.close - today.low) / range : 0.5;
+  const prevClose = chartRows[idx - 1]?.close || close;
+
+  // 윗꼬리
+  const upperWickRatio = range > 0 ? (today.high - today.close) / range : 0;
+
+  // ─── debugReasons 누적 ───
+  const excludeReasons = [];
+
+  // 가격 위치 조건 (strict)
+  const priceNotExtended =
+    returnFromLow20 <= 15 &&
+    ret5 <= 8 &&
+    ret10 <= 12 &&
+    ret20 <= 18;
+  if (!priceNotExtended) {
+    if (returnFromLow20 > 15) excludeReasons.push(`최근 20일 저점 대비 상승폭 초과 (+${returnFromLow20.toFixed(1)}% > 15%)`);
+    if (ret5 > 8) excludeReasons.push(`최근 5일 상승률 초과 (+${ret5.toFixed(1)}% > 8%)`);
+    if (ret10 > 12) excludeReasons.push(`최근 10일 상승률 초과 (+${ret10.toFixed(1)}% > 12%)`);
+    if (ret20 > 18) excludeReasons.push(`최근 20일 상승률 초과 (+${ret20.toFixed(1)}% > 18%)`);
+  }
+
+  // 최근 급등 제외 (strict)
+  const noRecentSurge =
+    maxDailyCloseReturn5 <= 7 &&
+    maxDailyHighReturn5 <= 10 &&
+    maxDailyCloseReturn10 <= 10;
+  if (!noRecentSurge) {
+    if (maxDailyCloseReturn5 > 7) excludeReasons.push(`최근 5일 단일일 종가 급등 발생 (+${maxDailyCloseReturn5.toFixed(1)}% > 7%)`);
+    if (maxDailyHighReturn5 > 10) excludeReasons.push(`최근 5일 단일일 고가 급등 발생 (+${maxDailyHighReturn5.toFixed(1)}% > 10%)`);
+    if (maxDailyCloseReturn10 > 10) excludeReasons.push(`최근 10일 단일일 종가 급등 발생 (+${maxDailyCloseReturn10.toFixed(1)}% > 10%)`);
+  }
+
+  // 거래대금 조용한 증가 (strict)
+  const quietVolumeIncrease =
+    tv3Ratio >= 1.5 && tv3Ratio <= 3.0 &&
+    tv5Ratio >= 1.25 && tv5Ratio <= 2.8;
+  if (!quietVolumeIncrease) {
+    if (tv3Ratio < 1.5) excludeReasons.push(`3일 거래대금 비율 부족 (${tv3Ratio.toFixed(2)} < 1.5)`);
+    if (tv3Ratio > 3.0) excludeReasons.push(`3일 거래대금이 이미 폭발 (${tv3Ratio.toFixed(2)} > 3.0)`);
+    if (tv5Ratio < 1.25) excludeReasons.push(`5일 거래대금 비율 부족 (${tv5Ratio.toFixed(2)} < 1.25)`);
+    if (tv5Ratio > 2.8) excludeReasons.push(`5일 거래대금이 이미 폭발 (${tv5Ratio.toFixed(2)} > 2.8)`);
+  }
+
+  // 저점 조건 (strict): lowStabilized AND (higherLow OR close>=ma5)
+  const strictLowCondition = lowStabilized && (higherLow || (ma5 != null && close >= ma5));
+  if (!strictLowCondition) {
+    if (!lowStabilized) excludeReasons.push(`저점 안정 미충족 (recent5Low ${recent5MinLow} < low20×1.03 ${(low20 * 1.03).toFixed(0)})`);
+    else if (!higherLow && !(ma5 != null && close >= ma5)) excludeReasons.push(`저점 상승/5일선 회복 미충족 (higherLow=false AND close<ma5)`);
+  }
+
+  // 종가 회복 (strict)
+  const closeRecovery =
+    (ma5 != null && close >= ma5 * 0.99) &&
+    closeLocation >= 0.55 &&
+    close >= prevClose * 0.98;
+  if (!closeRecovery) {
+    if (ma5 != null && close < ma5 * 0.99) excludeReasons.push(`5일선 회복 미충족 (close ${close} < ma5×0.99 ${(ma5 * 0.99).toFixed(0)})`);
+    if (closeLocation < 0.55) excludeReasons.push(`종가 위치 저가권 (closeLocation ${(closeLocation * 100).toFixed(0)}% < 55%)`);
+    if (close < prevClose * 0.98) excludeReasons.push(`전일 대비 -2% 이상 하락 (${((close / prevClose - 1) * 100).toFixed(1)}%)`);
+  }
+
+  // 위험 제외 (strict)
+  const riskFilter = ret20 > -25 && (ma20 != null && close >= ma20 * 0.87);
+  if (!riskFilter) {
+    if (ret20 <= -25) excludeReasons.push(`20일 강한 하락 (${ret20.toFixed(1)}% ≤ -25%)`);
+    if (ma20 != null && close < ma20 * 0.87) excludeReasons.push(`MA20 대비 -13% 미만 (close ${close} < ma20×0.87 ${(ma20 * 0.87).toFixed(0)})`);
+  }
+
+  // ─── 최종 통과 여부 ───
+  const allPassed =
+    priceNotExtended &&
+    noRecentSurge &&
+    quietVolumeIncrease &&
+    strictLowCondition &&
+    closeRecovery &&
+    riskFilter;
+
+  // ─── 점수 계산 (통과 여부와 무관하게 항상 계산해서 반환) ───
+  let score = 0;
+  const breakdown = { price: 0, volume: 0, low: 0, recovery: 0, wick: 0, stability: 0 };
+
+  // 가격 위치 25점
+  if (returnFromLow20 <= 10) breakdown.price += 10;
+  else if (returnFromLow20 <= 18) breakdown.price += 7;
+  if (ret10 <= 10) breakdown.price += 8;
+  else if (ret10 <= 18) breakdown.price += 5;
+  if (ret20 <= 15) breakdown.price += 7;
+  else if (ret20 <= 25) breakdown.price += 4;
+
+  // 거래대금 25점
+  if (tv3Ratio >= 1.3 && tv3Ratio <= 2.5) breakdown.volume += 12;
+  else if (tv3Ratio > 2.5 && tv3Ratio <= 3.5) breakdown.volume += 8;
+  if (tv5Ratio >= 1.15 && tv5Ratio <= 2.5) breakdown.volume += 8;
+  else if (tv5Ratio > 2.5 && tv5Ratio <= 3.2) breakdown.volume += 5;
+  if (tvTodayRatio >= 1.2 && tvTodayRatio <= 3.0) breakdown.volume += 5;
+
+  // 저점 안정 20점
+  if (recent5MinLow >= low20 * 1.05) breakdown.low += 10;
+  else if (recent5MinLow >= low20 * 1.03) breakdown.low += 7;
+  if (recent5MinLow > previous5MinLow) breakdown.low += 10;
+
+  // 종가 회복 15점
+  if (ma5 != null && close >= ma5) breakdown.recovery += 6;
+  else if (ma5 != null && close >= ma5 * 0.98) breakdown.recovery += 4;
+  if (closeLocation >= 0.6) breakdown.recovery += 5;
+  else if (closeLocation >= 0.45) breakdown.recovery += 3;
+  if (close >= prevClose) breakdown.recovery += 4;
+  else if (close >= prevClose * 0.97) breakdown.recovery += 2;
+
+  // 윗꼬리 10점
+  if (upperWickRatio <= 0.25) breakdown.wick += 10;
+  else if (upperWickRatio <= 0.40) breakdown.wick += 6;
+
+  // 기타 안정성 5점
+  if (ret20 > -20) breakdown.stability += 3;
+  if (ma20 != null && close >= ma20 * 0.9) breakdown.stability += 2;
+
+  score = breakdown.price + breakdown.volume + breakdown.low + breakdown.recovery + breakdown.wick + breakdown.stability;
+
+  // ─── 등급 (strict cuts) ───
+  let grade = 'NONE';
+  let gradeLabel = null;
+  if (score >= 80) { grade = 'STRONG_EARLY_QVA'; gradeLabel = '강한 초기 QVA'; }
+  else if (score >= 70) { grade = 'EARLY_QVA'; gradeLabel = '초기 QVA'; }
+  else if (score >= 60) { grade = 'WATCH_EARLY'; gradeLabel = '초기 관찰'; }
+
+  if (!allPassed) {
+    return {
+      passed: false,
+      score,
+      grade: 'NONE',
+      gradeLabel: null,
+      excludeReasons,
+      signals: {
+        returnFromLow20: +returnFromLow20.toFixed(2),
+        ret5: +ret5.toFixed(2),
+        ret10: +ret10.toFixed(2),
+        ret20: +ret20.toFixed(2),
+        maxDailyCloseReturn5: +maxDailyCloseReturn5.toFixed(2),
+        maxDailyHighReturn5: +maxDailyHighReturn5.toFixed(2),
+        maxDailyCloseReturn10: +maxDailyCloseReturn10.toFixed(2),
+        tv3Ratio: +tv3Ratio.toFixed(2),
+        tv5Ratio: +tv5Ratio.toFixed(2),
+        tvTodayRatio: +tvTodayRatio.toFixed(2),
+        closeLocation: +closeLocation.toFixed(2),
+        upperWickRatio: +upperWickRatio.toFixed(2),
+        lowStabilized,
+        higherLow,
+      },
+    };
+  }
+
+  return {
+    passed: true,
+    score,
+    grade,
+    gradeLabel,
+    breakdown,
+    excludeReasons: [],
+    signals: {
+      returnFromLow20: +returnFromLow20.toFixed(2),
+      ret5: +ret5.toFixed(2),
+      ret10: +ret10.toFixed(2),
+      ret20: +ret20.toFixed(2),
+      maxDailyCloseReturn5: +maxDailyCloseReturn5.toFixed(2),
+      maxDailyHighReturn5: +maxDailyHighReturn5.toFixed(2),
+      maxDailyCloseReturn10: +maxDailyCloseReturn10.toFixed(2),
+      tv3Ratio: +tv3Ratio.toFixed(2),
+      tv5Ratio: +tv5Ratio.toFixed(2),
+      tvTodayRatio: +tvTodayRatio.toFixed(2),
+      closeLocation: +closeLocation.toFixed(2),
+      upperWickRatio: +upperWickRatio.toFixed(2),
+      lowStabilized,
+      higherLow,
+    },
+  };
+}
+
 // ─── QVA_STRICT — 더 엄격한 실험 버전 ───
 // 기본 QVA보다 훨씬 까다로운 조건으로 더 순수한 신호만 포착
 function calculateQuietVolumeAnomalyStrict(chartRows, flowRows, meta = {}) {
@@ -4829,6 +5100,7 @@ module.exports = {
   calculateQuietVolumeAnomalyStrict,
   calculateQuietVolumeAnomalyLoose,
   calculateQuietVolumeAnomalyV2,
+  calculateEarlyQVA,
   calculateQuietVolumeFirst,
   calculateQuietVolume2Day,
   calculateQuietVolumeAbsorb,

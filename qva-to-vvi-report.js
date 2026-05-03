@@ -692,17 +692,37 @@ const htmlTemplate = `<!DOCTYPE html>
   <div class="nav" style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
     <a href="/qva-watchlist" style="color:#93c5fd;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e293b;border-radius:6px;">📋 매일 운영 보드</a>
     <span style="color:#475569;font-size:11px;align-self:center;">검증 ▶</span>
+    <a href="/qva-surge-day-report" style="color:#93c5fd;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e293b;border-radius:6px;">단일일 급등</a>
     <a href="/qva-to-vvi-report" style="color:#fff;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e3a8a;border-radius:6px;">QVA → VVI 전환</a>
     <a href="/qva-vvi-breakout-entry-report" style="color:#93c5fd;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e293b;border-radius:6px;">진입</a>
     <a href="/qva-vvi-breakout-exit-report" style="color:#93c5fd;text-decoration:none;font-size:13px;padding:6px 10px;background:#1e293b;border-radius:6px;">익절/청산</a>
+    <a href="/qva-review-ok" style="color:#6ee7b7;text-decoration:none;font-size:13px;padding:6px 10px;background:#0f172a;border:1px solid #10b981;border-radius:6px;">⭐ 3단계 코호트 비교</a>
   </div>
 
   <div class="note" style="color:#94a3b8;font-size:12px;margin-bottom:6px;">📚 <strong style="color:#cbd5e1;">검증 보고서</strong> — 매일 운영 화면이 아닌 과거 데이터 분석. 매일 보드는 <a href="/qva-watchlist" style="color:#93c5fd;">📋 매일 운영 보드</a>로 이동하세요.</div>
 
   <div class="info-box">
-    <p>이 보고서는 <strong>QVA 신호가 나온 종목 중 ${QVA_TRACKING_DAYS}거래일 안에 VVI로 이어진 종목</strong>을 찾고, VVI 발생 시점 이후의 성과를 분석합니다.</p>
-    <p>QVA는 매수 추천 신호가 아니라 <strong>관심종목 후보를 좁히는 선행 감지 모델</strong>이고, VVI는 <strong>실제 거래대금 초동이 터진 확인 신호</strong>입니다.</p>
-    <p>따라서 이 보고서는 <strong>"QVA 후보 중 VVI 확인까지 이어진 종목이 더 좋은 매수 검토 후보가 되는가"</strong>를 검증하기 위한 보고서입니다.</p>
+    <h3 style="margin:0 0 10px 0;color:#f1f5f9;font-size:15px;border:none;padding:0;">📌 보고서 안내</h3>
+    <p><strong>이 보고서가 답하는 질문</strong></p>
+    <p>QVA 후보 중 ${QVA_TRACKING_DAYS}거래일 안에 VVI(거래대금 초동 확인)로 이어진 종목은 어떤 성과를 보였는가? VVI까지 이어진 후보가 단순 QVA 후보보다 더 좋은 매수 검토 후보가 되는가?</p>
+
+    <p style="margin-top:10px;"><strong>📍 funnel에서의 위치</strong></p>
+    <p style="font-size:12px;background:#0f172a;padding:8px 12px;border-radius:6px;border:1px solid #334155;">
+      <span style="color:#fbbf24;font-weight:700;">QVA(1단계)</span> → <span style="color:#93c5fd;font-weight:700;">VVI(2단계)</span> 전환을 측정. funnel의 <strong>첫 번째 점프 검증</strong>입니다.
+    </p>
+
+    <p style="margin-top:10px;"><strong>📊 읽는 법</strong></p>
+    <ul style="margin:4px 0;padding-left:20px;font-size:13px;line-height:1.7;color:#cbd5e1;">
+      <li>각 그룹별 QVA → VVI 전환 비율 / 평균 도달 일수</li>
+      <li>VVI 발생 후 D5 / D10 평균 수익률, 10일 안 최고/최저 (MFE10/MAE10)</li>
+      <li>5일·10일 뒤 <strong>플러스 마감 비율</strong> (전체 양수 마감 비율, 매수 시 승률 아님)</li>
+      <li>다음 거래일 VVI 고가 돌파율 (다음 단계로 이어진 비율)</li>
+    </ul>
+
+    <p style="margin-top:10px;"><strong>🎯 핵심 의미</strong></p>
+    <p>VVI 확인까지 이어진 후보가 단순 QVA 후보보다 얼마나 더 좋은 매수 검토 후보가 되는지를 보여줍니다. 그룹 조건이 강해질수록 신호 수는 줄지만 성과 지표는 개선되는지 비교하세요.</p>
+
+    <p style="margin-top:10px;color:#fbbf24;">⚠️ 매수 추천이 아니라 모델 검증/분석입니다.</p>
   </div>
 
   <h3>전체 요약</h3>
