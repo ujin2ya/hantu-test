@@ -2494,7 +2494,7 @@ const handleSearch = async (req, res) => {
             qvaWatchData = {
               ...earlyHit,
               mainStage: 'EARLY_QVA',
-              mainStageLabel: '🌱 초기 QVA',
+              mainStageLabel: '🟢 QVA',
               mainStageDesc: '아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되는 종목을 찾는 단계입니다.',
               mainStageEasyDesc: '아직 크게 오르기 전, 거래대금이 조용히 붙기 시작한 관심 후보입니다.',
               isHGroup: false,
@@ -2505,13 +2505,13 @@ const handleSearch = async (req, res) => {
       }
     } catch (_) {}
 
-    // ─── QVA 윈도우 상수 (사용자 spec 9, 10번 — 명시적 분리) ───
+    // ─── QVA 윈도우 상수 ───
     const QVA_CORE_WINDOW = 20;          // 신호 계산 핵심창 (returnFromLow20, ret20 등)
-    const QVA_CONTEXT_WINDOW = 60;       // 보조 배경창 (60일 평균 거래대금 등 - calculateEarlyQVA 내부)
+    const QVA_CONTEXT_WINDOW = 60;       // 보조 배경창 (60일 저점, MA60 등 - QVA 내부)
     const QVA_EPISODE_MERGE_WINDOW = 10; // 같은 episode로 묶는 간격 (10거래일 이내 재발생)
     const QVA_TRACKING_WINDOW = 20;      // QVA 발생 후 VVI/돌파 추적 기간
 
-    // ─── QVA episode 빌더: 차트 전체에서 EarlyQVA 발화일 모아 episode 그룹화 ───
+    // ─── QVA episode 빌더: 차트 전체에서 QVA 발화일 모아 episode 그룹화 ───
     function buildQvaEpisodes(rowsAll, meta, mergeWindow) {
       const ps = require("./pattern-screener");
       const passing = [];
@@ -2519,9 +2519,10 @@ const handleSearch = async (req, res) => {
       for (let i = 60; i < rowsAll.length; i++) {
         const sliced = rowsAll.slice(0, i + 1);
         let res = null;
-        try { res = ps.calculateEarlyQVA(sliced, [], meta); } catch (_) {}
+        try { res = ps.calculateRedefinedQVA(sliced, [], meta); } catch (_) {}
         if (res?.passed) {
-          passing.push({ idx: i, date: rowsAll[i].date, score: res.score, grade: res.grade });
+          // signals 도 함께 저장 — 상세 페이지에서 firstSignalDate 시점 기준으로 표시
+          passing.push({ idx: i, date: rowsAll[i].date, score: res.score, grade: res.grade, signals: res.signals, gradeLabel: res.gradeLabel });
         }
       }
       if (passing.length === 0) return [];
@@ -2532,7 +2533,10 @@ const handleSearch = async (req, res) => {
           cur = {
             firstSignalDate: p.date, firstSignalIdx: p.idx,
             firstSignalScore: p.score, firstSignalGrade: p.grade,
+            firstSignalGradeLabel: p.gradeLabel,
+            firstSignalSignals: p.signals, // ← firstSignal 시점 signals
             bestSignalDate: p.date, bestSignalIdx: p.idx, bestScore: p.score, bestGrade: p.grade,
+            bestSignalSignals: p.signals,
             lastSignalDate: p.date, lastIdx: p.idx,
             scoreMax: p.score, signalCount: 1,
             durationDays: 1,
@@ -2549,6 +2553,7 @@ const handleSearch = async (req, res) => {
             cur.bestSignalIdx = p.idx;
             cur.bestScore = p.score;
             cur.bestGrade = p.grade;
+            cur.bestSignalSignals = p.signals;
           }
         }
       }
@@ -2563,7 +2568,7 @@ const handleSearch = async (req, res) => {
           if (checkIdx < 60) break;
           const sliced = rowsAll.slice(0, checkIdx + 1);
           let res = null;
-          try { res = ps.calculateEarlyQVA(sliced, [], meta); } catch (_) {}
+          try { res = ps.calculateRedefinedQVA(sliced, [], meta); } catch (_) {}
           dayBeforeChecks.push({
             date: rowsAll[checkIdx].date,
             daysBefore: k,
@@ -2578,60 +2583,61 @@ const handleSearch = async (req, res) => {
       return eps;
     }
 
-    // ─── 새로 추가: '왜 초기 QVA로 잡혔나' 설명 (signals 기반, EJS 렌더용) ───
+    // ─── '왜 QVA로 잡혔나' — 저점권 거래대금 돌파 정의 기반 (REDEFINED_TIGHT) ───
     function buildEarlyQvaWhy(signals) {
       if (!signals) return null;
       const sig = signals;
+      const fmt억 = v => (v / 1e8).toFixed(2) + '억';
+      const fmtVol = v => v >= 1e4 ? Math.round(v / 1e4).toLocaleString() + '만주' : v.toLocaleString() + '주';
       const sections = [
         {
           icon: '📉',
-          title: '아직 크게 오르지 않음',
+          title: '저점권 위치 (아직 대상승 전)',
           items: [
-            `20일 저점 대비 +${sig.returnFromLow20.toFixed(1)}%`,
-            `최근 10일 수익률 ${sig.ret10 >= 0 ? '+' : ''}${sig.ret10.toFixed(1)}%`,
-            `최근 20일 수익률 ${sig.ret20 >= 0 ? '+' : ''}${sig.ret20.toFixed(1)}%`,
+            `20일 저점 대비 +${(sig.returnFromLow20 || 0).toFixed(1)}%`,
+            `60일 저점 대비 +${(sig.returnFromLow60 || 0).toFixed(1)}%`,
+            `최근 20일 수익률 ${sig.ret20 >= 0 ? '+' : ''}${(sig.ret20 || 0).toFixed(1)}%`,
           ],
         },
         {
           icon: '💰',
-          title: '거래대금이 조용히 증가',
+          title: '거래대금 돌파 (직전 20일 흐름 대비)',
           items: [
-            `최근 3일 평균 거래대금 ${sig.tv3Ratio.toFixed(2)}배 (직전 20일 중앙값 대비)`,
-            `최근 5일 평균 거래대금 ${sig.tv5Ratio.toFixed(2)}배`,
-            `오늘 거래대금 ${sig.tvTodayRatio.toFixed(2)}배`,
+            `오늘 거래대금 ${fmt억(sig.todayValue)}`,
+            `직전 20일 중앙값 ${fmt억(sig.medianPrev20Value)} → ×${(sig.valueRatioMedian || 0).toFixed(2)}배`,
+            `직전 20일 최대 ${fmt억(sig.maxPrev20Value)} → ×${(sig.valueRatioMax || 0).toFixed(2)}배`,
           ],
         },
         {
-          icon: '🎯',
-          title: '저점이 안정됨',
+          icon: '📊',
+          title: '거래량 돌파',
           items: [
-            sig.lowStabilized ? '최근 5일 저점이 20일 최저가보다 3% 위' : '⚠ 저점 안정 미충족',
-            sig.higherLow ? '최근 5일 저점이 이전 5일 저점보다 높음 (저점 상승)' : '저점 상승은 없음',
+            `오늘 거래량 ${fmtVol(sig.todayVolume)}`,
+            `직전 20일 중앙값 ${fmtVol(sig.medianPrev20Volume)} → ×${(sig.volumeRatioMedian || 0).toFixed(2)}배`,
           ],
         },
         {
           icon: '📈',
-          title: '종가가 회복 중',
+          title: '아직 단기 급등 없음',
           items: [
-            `종가 위치 ${(sig.closeLocation * 100).toFixed(0)}% (당일 고저 범위 안에서)`,
-            `윗꼬리 비율 ${(sig.upperWickRatio * 100).toFixed(0)}%`,
+            `최근 5일 수익률 ${sig.ret5 >= 0 ? '+' : ''}${(sig.ret5 || 0).toFixed(1)}%`,
+            `최근 10일 수익률 ${sig.ret10 >= 0 ? '+' : ''}${(sig.ret10 || 0).toFixed(1)}%`,
           ],
         },
         {
-          icon: '🚫',
-          title: '최근 급등 없음',
+          icon: '🟢',
+          title: '약한 마감 아님',
           items: [
-            `최근 5일 최대 단일일 종가 상승 ${sig.maxDailyCloseReturn5.toFixed(1)}%`,
-            `최근 5일 최대 단일일 고가 상승 ${sig.maxDailyHighReturn5.toFixed(1)}%`,
-            `최근 10일 최대 단일일 종가 상승 ${sig.maxDailyCloseReturn10.toFixed(1)}%`,
+            `종가 위치 ${((sig.closeLocation || 0) * 100).toFixed(0)}% (고저 범위 내)`,
+            `전일 대비 ${sig.prevClose ? ((sig.close / sig.prevClose - 1) * 100).toFixed(2) : '0.00'}%`,
           ],
         },
       ];
       return sections;
     }
 
-    // ─── 새로 추가: Early QVA 라이브 검출 (이 종목 차트로 직접) ───
-    // 보드 캐시에 없더라도 종목 자체가 오늘 Early QVA 조건을 만족하는지 확인.
+    // ─── QVA 라이브 검출 (이 종목 차트로 직접) — REDEFINED_TIGHT ───
+    // 보드 캐시에 없더라도 종목 자체가 오늘 QVA 조건을 만족하는지 확인.
     let earlyQvaData = null;
     try {
       const ps = require("./pattern-screener");
@@ -2642,7 +2648,7 @@ const handleSearch = async (req, res) => {
         isEtf: false,
         isSpecial: false,
       };
-      const earlyRes = ps.calculateEarlyQVA(rows, flowRowsArr, earlyMeta);
+      const earlyRes = ps.calculateRedefinedQVA(rows, flowRowsArr, earlyMeta);
       if (earlyRes?.passed) {
         earlyQvaData = {
           passed: true,
@@ -2668,12 +2674,20 @@ const handleSearch = async (req, res) => {
     try {
       const epMeta = { code, name: stockMeta.name, marketValue: stockMeta.marketCap, isEtf: false, isSpecial: false };
       qvaEpisodes = buildQvaEpisodes(rows, epMeta, QVA_EPISODE_MERGE_WINDOW);
-      // 최근 episode에 VVI/돌파 정보 연결 (qvaWatchData 기반)
+      // 최근 episode에 VVI/돌파 정보 연결 + firstSignal 기준 why 섹션 빌드
       if (qvaEpisodes.length > 0) {
         const lastEp = qvaEpisodes[qvaEpisodes.length - 1];
         lastEp.isLatest = true;
+        // firstSignalDate 시점 signals 기반으로 why 섹션 생성 (오늘 시점 미충족이어도 표시 가능)
+        if (lastEp.firstSignalSignals) {
+          lastEp.why = buildEarlyQvaWhy(lastEp.firstSignalSignals);
+        }
+        // 현재(오늘) 시점에서 다시 평가 시 통과하는지 — 단순 플래그
+        lastEp.stillPassingToday = !!(earlyQvaData && earlyQvaData.passed);
+        // firstSignal 이후 경과 거래일 (오늘 행 idx - firstSignalIdx)
+        const todayIdx = rows.length - 1;
+        lastEp.daysSinceFirstSignal = Math.max(0, todayIdx - lastEp.firstSignalIdx);
         if (qvaWatchData?.vviDate) {
-          // VVI가 episode lastSignalDate 기준 +tracking 안에 있으면 연결
           const vIdx = rows.findIndex(r => r.date === qvaWatchData.vviDate);
           if (vIdx >= 0 && vIdx >= lastEp.lastIdx && vIdx <= lastEp.lastIdx + QVA_TRACKING_WINDOW) {
             lastEp.convertedToVvi = true;
@@ -2769,11 +2783,11 @@ const handleSearch = async (req, res) => {
       const ret5 = (rows[rows.length - 1].close / rows[rows.length - 6]?.close - 1) * 100;
       if (ret5 >= 25) riskChecks.push({ level: 'high', text: '최근 5거래일 ' + ret5.toFixed(1) + '% 급등 — 단기 과열 가능성이 있습니다.' });
     }
-    // 초기 QVA 신호가 이탈
+    // QVA 신호가 이탈
     if (earlyQvaData?.passed === false && earlyQvaData?.excludeReasons?.length > 0) {
       const top = earlyQvaData.excludeReasons[0];
       if (top.includes('하락') || top.includes('약화')) {
-        riskChecks.push({ level: 'mid', text: '초기 QVA 조건에서 멀어졌습니다 (' + top + ').' });
+        riskChecks.push({ level: 'mid', text: 'QVA 조건에서 멀어졌습니다 (' + top + ').' });
       }
     }
     if (riskChecks.length === 0) {
@@ -3272,6 +3286,9 @@ app.get("/qva-review-ok", (req, res) => res.redirect("/qva-review-ok-backtest-re
 
 app.get("/early-qva-backtest-report", serveReport("early-qva-backtest-report.html"));
 app.get("/early-qva-backtest", (req, res) => res.redirect("/early-qva-backtest-report"));
+
+app.get("/qva-redefined-hgroup-report", serveReport("qva-redefined-hgroup-report.html"));
+app.get("/qva-redefined-hgroup", (req, res) => res.redirect("/qva-redefined-hgroup-report"));
 
 app.get("/qva-watchlist", serveReport("qva-watchlist-board.html"));
 app.get("/qva-watchlist-board", (req, res) => res.redirect("/qva-watchlist"));

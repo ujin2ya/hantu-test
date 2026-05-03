@@ -1,0 +1,1368 @@
+{
+  "generatedAt": "2026-05-03T21:34:59.718Z",
+  "scanStart": "20250401",
+  "scanEnd": "20260424",
+  "qvaDefinition": {
+    "name": "REDEFINED_TIGHT_FILTER_C30",
+    "displayName": "QVA",
+    "label": "저점권 거래대금 돌파형 QVA",
+    "conditions": {
+      "lowZone": [
+        "returnFromLow20 ≤ 20",
+        "returnFromLow60 ≤ 25",
+        "return20 ≤ 25"
+      ],
+      "valueBreak": [
+        "todayValue ≥ prev20ValueMedian × 3.0",
+        "OR todayValue ≥ prev20ValueMax × 1.1"
+      ],
+      "volumeBreak": [
+        "todayVolume ≥ prev20VolumeMedian × 2.0"
+      ],
+      "notExtended": [
+        "return5 ≤ 15",
+        "return10 ≤ 20"
+      ],
+      "notWeakClose": [
+        "close ≥ prevClose × 0.99",
+        "closeLocation ≥ 0.50"
+      ],
+      "liquidityFloor": [
+        "todayValue ≥ 10억",
+        "medianPrev20Value ≥ 3억"
+      ],
+      "lowStabilizedEnough": [
+        "recent5Low ≥ low20×1.03",
+        "OR higherLow",
+        "OR close ≥ ma5"
+      ],
+      "notCollapsedAfterPump": [
+        "NOT (returnFromHigh60 ≤ -30 AND maxValue60 ≥ todayValue × 3)"
+      ],
+      "notTooBroken": [
+        "close ≥ ma60 × 0.85"
+      ]
+    }
+  },
+  "hgroupDefinition": {
+    "entry": "vviHigh × 1.01",
+    "success": "nextHigh ≥ entryPrice AND nextClose ≥ vviHigh"
+  },
+  "cohorts": {
+    "NEW_QVA": {
+      "fwdKey": "fwd",
+      "event": {
+        "n": 1240,
+        "uniqueStocks": 475,
+        "dailyAvg": 5.17,
+        "d5": {
+          "n": 1232,
+          "winRate": 52.03,
+          "mean": 2.67,
+          "median": 0.39
+        },
+        "d10": {
+          "n": 1215,
+          "winRate": 55.8,
+          "mean": 4.66,
+          "median": 1.29
+        },
+        "d20": {
+          "n": 1162,
+          "winRate": 61.88,
+          "mean": 10.07,
+          "median": 4.14
+        },
+        "win10pct20": 33.91,
+        "win20pct20": 20.91,
+        "loss10pct20": 9.98,
+        "avgMfe20": 22.52,
+        "avgMae20": -6.85
+      },
+      "episode": {
+        "n": 975,
+        "uniqueStocks": 475,
+        "dailyAvg": 4.06,
+        "d5": {
+          "n": 967,
+          "winRate": 50.88,
+          "mean": 2.43,
+          "median": 0.19
+        },
+        "d10": {
+          "n": 951,
+          "winRate": 55.31,
+          "mean": 4.19,
+          "median": 0.98
+        },
+        "d20": {
+          "n": 903,
+          "winRate": 60.58,
+          "mean": 8.82,
+          "median": 3.69
+        },
+        "win10pct20": 32.78,
+        "win20pct20": 19.93,
+        "loss10pct20": 11.41,
+        "avgMfe20": 20.95,
+        "avgMae20": -6.9
+      }
+    },
+    "NEW_QVA_TO_VVI": {
+      "fwdKey": "vviFwd",
+      "event": {
+        "n": 141,
+        "uniqueStocks": 97,
+        "dailyAvg": 0.59,
+        "d5": {
+          "n": 134,
+          "winRate": 56.72,
+          "mean": 5.35,
+          "median": 1.33
+        },
+        "d10": {
+          "n": 133,
+          "winRate": 64.66,
+          "mean": 7.76,
+          "median": 5.23
+        },
+        "d20": {
+          "n": 129,
+          "winRate": 64.34,
+          "mean": 19.24,
+          "median": 5.05
+        },
+        "win10pct20": 45.74,
+        "win20pct20": 31.78,
+        "loss10pct20": 11.63,
+        "avgMfe20": 35.48,
+        "avgMae20": -9.48
+      },
+      "episode": {
+        "n": 111,
+        "uniqueStocks": 97,
+        "dailyAvg": 0.46,
+        "d5": {
+          "n": 104,
+          "winRate": 59.62,
+          "mean": 4.78,
+          "median": 1.38
+        },
+        "d10": {
+          "n": 103,
+          "winRate": 66.02,
+          "mean": 7.33,
+          "median": 4.9
+        },
+        "d20": {
+          "n": 100,
+          "winRate": 64,
+          "mean": 18.38,
+          "median": 5.66
+        },
+        "win10pct20": 46,
+        "win20pct20": 33,
+        "loss10pct20": 14,
+        "avgMfe20": 33.85,
+        "avgMae20": -9.52
+      }
+    },
+    "NEW_HGROUP": {
+      "fwdKey": "fwdAtEntry",
+      "event": {
+        "n": 40,
+        "uniqueStocks": 36,
+        "dailyAvg": 0.17,
+        "d5": {
+          "n": 38,
+          "winRate": 73.68,
+          "mean": 14.41,
+          "median": 6.34
+        },
+        "d10": {
+          "n": 38,
+          "winRate": 73.68,
+          "mean": 11.62,
+          "median": 7.81
+        },
+        "d20": {
+          "n": 37,
+          "winRate": 72.97,
+          "mean": 21.61,
+          "median": 13.38
+        },
+        "win10pct20": 59.46,
+        "win20pct20": 37.84,
+        "loss10pct20": 5.41,
+        "avgMfe20": 44.91,
+        "avgMae20": -2.57
+      },
+      "episode": {
+        "n": 37,
+        "uniqueStocks": 36,
+        "dailyAvg": 0.15,
+        "d5": {
+          "n": 35,
+          "winRate": 71.43,
+          "mean": 12.4,
+          "median": 6.28
+        },
+        "d10": {
+          "n": 35,
+          "winRate": 71.43,
+          "mean": 10.88,
+          "median": 6.99
+        },
+        "d20": {
+          "n": 34,
+          "winRate": 70.59,
+          "mean": 20.84,
+          "median": 12.91
+        },
+        "win10pct20": 55.88,
+        "win20pct20": 35.29,
+        "loss10pct20": 5.88,
+        "avgMfe20": 43.06,
+        "avgMae20": -2.76
+      },
+      "episodeBreakoutClose": {
+        "n": 37,
+        "uniqueStocks": 36,
+        "dailyAvg": 0.15,
+        "d5": {
+          "n": 35,
+          "winRate": 60,
+          "mean": 9.09,
+          "median": 2.67
+        },
+        "d10": {
+          "n": 35,
+          "winRate": 65.71,
+          "mean": 7.51,
+          "median": 4.28
+        },
+        "d20": {
+          "n": 34,
+          "winRate": 73.53,
+          "mean": 16.96,
+          "median": 9.53
+        },
+        "win10pct20": 47.06,
+        "win20pct20": 29.41,
+        "loss10pct20": 5.88,
+        "avgMfe20": 37.5,
+        "avgMae20": -6.08
+      },
+      "eventBreakoutClose": {
+        "n": 40,
+        "uniqueStocks": 36,
+        "dailyAvg": 0.17,
+        "d5": {
+          "n": 38,
+          "winRate": 60.53,
+          "mean": 11.22,
+          "median": 3
+        },
+        "d10": {
+          "n": 38,
+          "winRate": 68.42,
+          "mean": 8.38,
+          "median": 4.31
+        },
+        "d20": {
+          "n": 37,
+          "winRate": 75.68,
+          "mean": 17.88,
+          "median": 10.67
+        },
+        "win10pct20": 51.35,
+        "win20pct20": 32.43,
+        "loss10pct20": 5.41,
+        "avgMfe20": 39.61,
+        "avgMae20": -5.76
+      }
+    },
+    "OLD_HGROUP": {
+      "fwdKey": "fwdAtEntry",
+      "event": {
+        "n": 56,
+        "uniqueStocks": 38,
+        "dailyAvg": 0.23,
+        "d5": {
+          "n": 55,
+          "winRate": 69.09,
+          "mean": 6.39,
+          "median": 3.18
+        },
+        "d10": {
+          "n": 55,
+          "winRate": 69.09,
+          "mean": 7.26,
+          "median": 6.48
+        },
+        "d20": {
+          "n": 55,
+          "winRate": 74.55,
+          "mean": 17.77,
+          "median": 15.2
+        },
+        "win10pct20": 60,
+        "win20pct20": 40,
+        "loss10pct20": 12.73,
+        "avgMfe20": 32.2,
+        "avgMae20": -4.82
+      },
+      "episode": {
+        "n": 39,
+        "uniqueStocks": 38,
+        "dailyAvg": 0.16,
+        "d5": {
+          "n": 38,
+          "winRate": 65.79,
+          "mean": 7.23,
+          "median": 3.47
+        },
+        "d10": {
+          "n": 38,
+          "winRate": 68.42,
+          "mean": 6.75,
+          "median": 5.96
+        },
+        "d20": {
+          "n": 38,
+          "winRate": 73.68,
+          "mean": 17.93,
+          "median": 13.78
+        },
+        "win10pct20": 57.89,
+        "win20pct20": 39.47,
+        "loss10pct20": 10.53,
+        "avgMfe20": 33.41,
+        "avgMae20": -4.41
+      },
+      "episodeBreakoutClose": {
+        "n": 39,
+        "uniqueStocks": 38,
+        "dailyAvg": 0.16,
+        "d5": {
+          "n": 38,
+          "winRate": 60.53,
+          "mean": 5.37,
+          "median": 1.9
+        },
+        "d10": {
+          "n": 38,
+          "winRate": 65.79,
+          "mean": 4.91,
+          "median": 2.33
+        },
+        "d20": {
+          "n": 38,
+          "winRate": 71.05,
+          "mean": 15.88,
+          "median": 11.54
+        },
+        "win10pct20": 52.63,
+        "win20pct20": 34.21,
+        "loss10pct20": 10.53,
+        "avgMfe20": 30.57,
+        "avgMae20": -6.53
+      },
+      "eventBreakoutClose": {
+        "n": 56,
+        "uniqueStocks": 38,
+        "dailyAvg": 0.23,
+        "d5": {
+          "n": 55,
+          "winRate": 61.82,
+          "mean": 4.48,
+          "median": 2.29
+        },
+        "d10": {
+          "n": 55,
+          "winRate": 65.45,
+          "mean": 5.35,
+          "median": 2.48
+        },
+        "d20": {
+          "n": 55,
+          "winRate": 74.55,
+          "mean": 15.63,
+          "median": 12.42
+        },
+        "win10pct20": 54.55,
+        "win20pct20": 34.55,
+        "loss10pct20": 12.73,
+        "avgMfe20": 29.46,
+        "avgMae20": -6.85
+      }
+    }
+  },
+  "funnel": {
+    "qvaEvents": 1240,
+    "qvaEpisodes": 975,
+    "vviEvents": 141,
+    "vviEpisodes": 111,
+    "hgroupEvents": 40,
+    "hgroupEpisodes": 37,
+    "qvaToVviRate_event": 11.37,
+    "qvaToVviRate_episode": 11.38,
+    "qvaToHgroupRate_event": 3.23,
+    "qvaToHgroupRate_episode": 3.79,
+    "vviToHgroupRate_event": 28.37,
+    "vviToHgroupRate_episode": 33.33,
+    "daysToVvi_mean": 8.04,
+    "daysToVvi_median": 6,
+    "daysToHgroup_mean": 9.3,
+    "daysToHgroup_median": 8.5
+  },
+  "inocianCase": {
+    "qvaDate": "20260410",
+    "qvaScore": 85,
+    "qvaGrade": "STRONG_REDEFINED_QVA",
+    "signals": {
+      "returnFromLow20": 4,
+      "returnFromLow60": 4,
+      "returnFromHigh60": -11.55,
+      "ret5": 2.24,
+      "ret10": 0.22,
+      "ret20": -6.99,
+      "todayValue": 26586753525,
+      "todayVolume": 1460610,
+      "medianPrev20Value": 2066100420,
+      "maxPrev20Value": 5061308000,
+      "maxValue60": 31598726250,
+      "medianPrev20Volume": 114868,
+      "valueRatioMedian": 12.87,
+      "valueRatioMax": 5.25,
+      "volumeRatioMedian": 12.72,
+      "closeLocation": 0.5,
+      "upperWickRatio": 0.5,
+      "recent5Low": 17580,
+      "previous5Low": 17520,
+      "low20": 17520,
+      "ma5": 17914,
+      "ma60": 19024,
+      "lowStabilized": false,
+      "higherLow": true,
+      "prevClose": 18100,
+      "close": 18220
+    },
+    "vvi": null,
+    "hgroup": null,
+    "fwd": {
+      "d": {
+        "5": 2.7442371020856227,
+        "10": 5.817782656421522,
+        "20": null
+      },
+      "mfe20": 9.165751920965981,
+      "mae20": -0.8781558726673966
+    }
+  },
+  "examples": {
+    "newQva_topD20": [
+      {
+        "code": "187660",
+        "name": "페니트리움바이오",
+        "market": "KOSDAQ",
+        "qvaDate": "20260120",
+        "qvaScore": 59,
+        "value": 248.8721804511278,
+        "label": "D20%",
+        "valueRatioMedian": 4.07,
+        "returnFromLow20": 14.41
+      },
+      {
+        "code": "001510",
+        "name": "SK증권",
+        "market": "KOSPI",
+        "qvaDate": "20260123",
+        "qvaScore": 77,
+        "value": 149.62042788129745,
+        "label": "D20%",
+        "valueRatioMedian": 6.07,
+        "returnFromLow20": 13.47
+      },
+      {
+        "code": "092220",
+        "name": "KEC",
+        "market": "KOSPI",
+        "qvaDate": "20260223",
+        "qvaScore": 65,
+        "value": 126.1694058154235,
+        "label": "D20%",
+        "valueRatioMedian": 5.78,
+        "returnFromLow20": 16.32
+      },
+      {
+        "code": "158430",
+        "name": "아톤",
+        "market": "KOSDAQ",
+        "qvaDate": "20250523",
+        "qvaScore": 57,
+        "value": 117.80821917808217,
+        "label": "D20%",
+        "valueRatioMedian": 3.11,
+        "returnFromLow20": 6.76
+      },
+      {
+        "code": "044490",
+        "name": "태웅",
+        "market": "KOSDAQ",
+        "qvaDate": "20250520",
+        "qvaScore": 70,
+        "value": 114.85411140583554,
+        "label": "D20%",
+        "valueRatioMedian": 3,
+        "returnFromLow20": 12.79
+      },
+      {
+        "code": "171090",
+        "name": "선익시스템",
+        "market": "KOSDAQ",
+        "qvaDate": "20260116",
+        "qvaScore": 90,
+        "value": 100.60180541624875,
+        "label": "D20%",
+        "valueRatioMedian": 5.46,
+        "returnFromLow20": 11.65
+      },
+      {
+        "code": "048410",
+        "name": "현대바이오",
+        "market": "KOSDAQ",
+        "qvaDate": "20260112",
+        "qvaScore": 81,
+        "value": 93.83177570093457,
+        "label": "D20%",
+        "valueRatioMedian": 3.68,
+        "returnFromLow20": 15.18
+      },
+      {
+        "code": "241520",
+        "name": "DSC인베스트먼트",
+        "market": "KOSDAQ",
+        "qvaDate": "20260120",
+        "qvaScore": 67,
+        "value": 93.29829172141919,
+        "label": "D20%",
+        "valueRatioMedian": 7.41,
+        "returnFromLow20": 8.4
+      },
+      {
+        "code": "222080",
+        "name": "씨아이에스",
+        "market": "KOSDAQ",
+        "qvaDate": "20260119",
+        "qvaScore": 93,
+        "value": 89.71830985915491,
+        "label": "D20%",
+        "valueRatioMedian": 4.19,
+        "returnFromLow20": 8.4
+      },
+      {
+        "code": "001820",
+        "name": "삼화콘덴서",
+        "market": "KOSPI",
+        "qvaDate": "20260121",
+        "qvaScore": 76,
+        "value": 87.5,
+        "label": "D20%",
+        "valueRatioMedian": 3.13,
+        "returnFromLow20": 7.8
+      }
+    ],
+    "newQva_worstD20": [
+      {
+        "code": "053030",
+        "name": "바이넥스",
+        "market": "KOSDAQ",
+        "qvaDate": "20260227",
+        "qvaScore": 73,
+        "value": -28.57142857142857,
+        "label": "D20%",
+        "valueRatioMedian": 4,
+        "returnFromLow20": 11.74
+      },
+      {
+        "code": "044490",
+        "name": "태웅",
+        "market": "KOSDAQ",
+        "qvaDate": "20251015",
+        "qvaScore": 69,
+        "value": -26.68539325842697,
+        "label": "D20%",
+        "valueRatioMedian": 2.82,
+        "returnFromLow20": 17.69
+      },
+      {
+        "code": "408900",
+        "name": "스튜디오미르",
+        "market": "KOSDAQ",
+        "qvaDate": "20251028",
+        "qvaScore": 85,
+        "value": -25.85596221959858,
+        "label": "D20%",
+        "valueRatioMedian": 5.89,
+        "returnFromLow20": 11.45
+      },
+      {
+        "code": "356680",
+        "name": "엑스게이트",
+        "market": "KOSDAQ",
+        "qvaDate": "20260129",
+        "qvaScore": 76,
+        "value": -23.690773067331673,
+        "label": "D20%",
+        "valueRatioMedian": 3.63,
+        "returnFromLow20": 12.64
+      },
+      {
+        "code": "019550",
+        "name": "SBI인베스트먼트",
+        "market": "KOSDAQ",
+        "qvaDate": "20260227",
+        "qvaScore": 65,
+        "value": -22.989949748743722,
+        "label": "D20%",
+        "valueRatioMedian": 3.05,
+        "returnFromLow20": 9.94
+      },
+      {
+        "code": "189300",
+        "name": "인텔리안테크",
+        "market": "KOSDAQ",
+        "qvaDate": "20251010",
+        "qvaScore": 68,
+        "value": -22.718631178707227,
+        "label": "D20%",
+        "valueRatioMedian": 3.79,
+        "returnFromLow20": 14.1
+      },
+      {
+        "code": "048410",
+        "name": "현대바이오",
+        "market": "KOSDAQ",
+        "qvaDate": "20250522",
+        "qvaScore": 73,
+        "value": -22.212389380530972,
+        "label": "D20%",
+        "valueRatioMedian": 7.27,
+        "returnFromLow20": 9.28
+      },
+      {
+        "code": "036460",
+        "name": "한국가스공사",
+        "market": "KOSPI",
+        "qvaDate": "20260220",
+        "qvaScore": 60,
+        "value": -22.14912280701754,
+        "label": "D20%",
+        "valueRatioMedian": 3.29,
+        "returnFromLow20": 17.53
+      },
+      {
+        "code": "103140",
+        "name": "풍산",
+        "market": "KOSPI",
+        "qvaDate": "20260305",
+        "qvaScore": 69,
+        "value": -21.706081081081084,
+        "label": "D20%",
+        "valueRatioMedian": 5.05,
+        "returnFromLow20": 15.96
+      },
+      {
+        "code": "035720",
+        "name": "카카오",
+        "market": "KOSPI",
+        "qvaDate": "20260226",
+        "qvaScore": 79,
+        "value": -20.52117263843648,
+        "label": "D20%",
+        "valueRatioMedian": 3.65,
+        "returnFromLow20": 10.63
+      }
+    ],
+    "newQva_topMfe": [
+      {
+        "code": "187660",
+        "name": "페니트리움바이오",
+        "market": "KOSDAQ",
+        "qvaDate": "20260120",
+        "qvaScore": 59,
+        "value": 290.6015037593985,
+        "label": "MFE20%",
+        "valueRatioMedian": 4.07,
+        "returnFromLow20": 14.41
+      },
+      {
+        "code": "001510",
+        "name": "SK증권",
+        "market": "KOSPI",
+        "qvaDate": "20260123",
+        "qvaScore": 77,
+        "value": 182.53968253968256,
+        "label": "MFE20%",
+        "valueRatioMedian": 6.07,
+        "returnFromLow20": 13.47
+      },
+      {
+        "code": "356680",
+        "name": "엑스게이트",
+        "market": "KOSDAQ",
+        "qvaDate": "20260327",
+        "qvaScore": 67,
+        "value": 166.29526462395546,
+        "label": "MFE20%",
+        "valueRatioMedian": 3.48,
+        "returnFromLow20": 17.7
+      },
+      {
+        "code": "092220",
+        "name": "KEC",
+        "market": "KOSPI",
+        "qvaDate": "20260223",
+        "qvaScore": 65,
+        "value": 156.63716814159292,
+        "label": "MFE20%",
+        "valueRatioMedian": 5.78,
+        "returnFromLow20": 16.32
+      },
+      {
+        "code": "048410",
+        "name": "현대바이오",
+        "market": "KOSDAQ",
+        "qvaDate": "20260112",
+        "qvaScore": 81,
+        "value": 142.4299065420561,
+        "label": "MFE20%",
+        "valueRatioMedian": 3.68,
+        "returnFromLow20": 15.18
+      },
+      {
+        "code": "158430",
+        "name": "아톤",
+        "market": "KOSDAQ",
+        "qvaDate": "20250523",
+        "qvaScore": 57,
+        "value": 139.55479452054794,
+        "label": "MFE20%",
+        "valueRatioMedian": 3.11,
+        "returnFromLow20": 6.76
+      },
+      {
+        "code": "044490",
+        "name": "태웅",
+        "market": "KOSDAQ",
+        "qvaDate": "20250520",
+        "qvaScore": 70,
+        "value": 134.74801061007958,
+        "label": "MFE20%",
+        "valueRatioMedian": 3,
+        "returnFromLow20": 12.79
+      },
+      {
+        "code": "293580",
+        "name": "나우IB",
+        "market": "KOSDAQ",
+        "qvaDate": "20250404",
+        "qvaScore": 73,
+        "value": 126.83142100617827,
+        "label": "MFE20%",
+        "valueRatioMedian": 6.61,
+        "returnFromLow20": 15.26
+      },
+      {
+        "code": "000440",
+        "name": "중앙에너비스",
+        "market": "KOSDAQ",
+        "qvaDate": "20260130",
+        "qvaScore": 73,
+        "value": 118.64211737629459,
+        "label": "MFE20%",
+        "valueRatioMedian": 9.32,
+        "returnFromLow20": 14.19
+      },
+      {
+        "code": "000440",
+        "name": "중앙에너비스",
+        "market": "KOSDAQ",
+        "qvaDate": "20260219",
+        "qvaScore": 68,
+        "value": 118.51638872915467,
+        "label": "MFE20%",
+        "valueRatioMedian": 3.59,
+        "returnFromLow20": 13.88
+      }
+    ],
+    "newQva_worstMae": [
+      {
+        "code": "053030",
+        "name": "바이넥스",
+        "market": "KOSDAQ",
+        "qvaDate": "20260227",
+        "qvaScore": 73,
+        "value": -29.452485840151045,
+        "label": "MAE20%",
+        "valueRatioMedian": 4,
+        "returnFromLow20": 11.74
+      },
+      {
+        "code": "044490",
+        "name": "태웅",
+        "market": "KOSDAQ",
+        "qvaDate": "20251015",
+        "qvaScore": 69,
+        "value": -29.35393258426966,
+        "label": "MAE20%",
+        "valueRatioMedian": 2.82,
+        "returnFromLow20": 17.69
+      },
+      {
+        "code": "103140",
+        "name": "풍산",
+        "market": "KOSPI",
+        "qvaDate": "20260305",
+        "qvaScore": 69,
+        "value": -27.36486486486487,
+        "label": "MAE20%",
+        "valueRatioMedian": 5.05,
+        "returnFromLow20": 15.96
+      },
+      {
+        "code": "333430",
+        "name": "일승",
+        "market": "KOSDAQ",
+        "qvaDate": "20260220",
+        "qvaScore": 70,
+        "value": -27.33017377567141,
+        "label": "MAE20%",
+        "valueRatioMedian": 3.24,
+        "returnFromLow20": 18.32
+      },
+      {
+        "code": "408900",
+        "name": "스튜디오미르",
+        "market": "KOSDAQ",
+        "qvaDate": "20251028",
+        "qvaScore": 85,
+        "value": -26.800472255017706,
+        "label": "MAE20%",
+        "valueRatioMedian": 5.89,
+        "returnFromLow20": 11.45
+      },
+      {
+        "code": "366030",
+        "name": "공구우먼",
+        "market": "KOSDAQ",
+        "qvaDate": "20260219",
+        "qvaScore": 53,
+        "value": -26.78855325914149,
+        "label": "MAE20%",
+        "valueRatioMedian": 3.39,
+        "returnFromLow20": 17.57
+      },
+      {
+        "code": "226330",
+        "name": "신테카바이오",
+        "market": "KOSDAQ",
+        "qvaDate": "20260224",
+        "qvaScore": 61,
+        "value": -26.657997399219767,
+        "label": "MAE20%",
+        "valueRatioMedian": 3.31,
+        "returnFromLow20": 16.16
+      },
+      {
+        "code": "075580",
+        "name": "세진중공업",
+        "market": "KOSPI",
+        "qvaDate": "20260220",
+        "qvaScore": 67,
+        "value": -26.449999999999996,
+        "label": "MAE20%",
+        "valueRatioMedian": 2.55,
+        "returnFromLow20": 16.69
+      },
+      {
+        "code": "394280",
+        "name": "오픈엣지테크놀로지",
+        "market": "KOSDAQ",
+        "qvaDate": "20251103",
+        "qvaScore": 61,
+        "value": -25.39797395079595,
+        "label": "MAE20%",
+        "valueRatioMedian": 3.4,
+        "returnFromLow20": 18.12
+      },
+      {
+        "code": "071320",
+        "name": "지역난방공사",
+        "market": "KOSPI",
+        "qvaDate": "20260324",
+        "qvaScore": 74,
+        "value": -25.109170305676855,
+        "label": "MAE20%",
+        "valueRatioMedian": 3.21,
+        "returnFromLow20": 12.53
+      }
+    ],
+    "newVvi_topD20": [
+      {
+        "code": "187660",
+        "name": "페니트리움바이오",
+        "market": "KOSDAQ",
+        "qvaDate": "20260120",
+        "qvaScore": 59,
+        "value": 471.8978102189781,
+        "label": "D20%",
+        "valueRatioMedian": 4.07,
+        "returnFromLow20": 14.41
+      },
+      {
+        "code": "048410",
+        "name": "현대바이오",
+        "market": "KOSDAQ",
+        "qvaDate": "20260112",
+        "qvaScore": 81,
+        "value": 169.23076923076925,
+        "label": "D20%",
+        "valueRatioMedian": 3.68,
+        "returnFromLow20": 15.18
+      },
+      {
+        "code": "001510",
+        "name": "SK증권",
+        "market": "KOSPI",
+        "qvaDate": "20260106",
+        "qvaScore": 88,
+        "value": 149.62042788129745,
+        "label": "D20%",
+        "valueRatioMedian": 5.46,
+        "returnFromLow20": 7.38
+      },
+      {
+        "code": "092870",
+        "name": "엑시콘",
+        "market": "KOSDAQ",
+        "qvaDate": "20260102",
+        "qvaScore": 56,
+        "value": 78.09798270893371,
+        "label": "D20%",
+        "valueRatioMedian": 3.89,
+        "returnFromLow20": 15.29
+      },
+      {
+        "code": "272210",
+        "name": "한화시스템",
+        "market": "KOSPI",
+        "qvaDate": "20251212",
+        "qvaScore": 76,
+        "value": 63.53591160220995,
+        "label": "D20%",
+        "valueRatioMedian": 9.61,
+        "returnFromLow20": 18.66
+      },
+      {
+        "code": "003280",
+        "name": "흥아해운",
+        "market": "KOSPI",
+        "qvaDate": "20260129",
+        "qvaScore": 81,
+        "value": 62.81569048898441,
+        "label": "D20%",
+        "valueRatioMedian": 12.65,
+        "returnFromLow20": 11.59
+      },
+      {
+        "code": "036540",
+        "name": "SFA반도체",
+        "market": "KOSDAQ",
+        "qvaDate": "20251223",
+        "qvaScore": 67,
+        "value": 60.985626283367566,
+        "label": "D20%",
+        "valueRatioMedian": 3.88,
+        "returnFromLow20": 12.04
+      },
+      {
+        "code": "009830",
+        "name": "한화솔루션",
+        "market": "KOSPI",
+        "qvaDate": "20260113",
+        "qvaScore": 79,
+        "value": 60.64189189189189,
+        "label": "D20%",
+        "valueRatioMedian": 3.67,
+        "returnFromLow20": 10.7
+      },
+      {
+        "code": "031980",
+        "name": "피에스케이홀딩스",
+        "market": "KOSDAQ",
+        "qvaDate": "20251222",
+        "qvaScore": 71,
+        "value": 56.85884691848906,
+        "label": "D20%",
+        "valueRatioMedian": 2.57,
+        "returnFromLow20": 13.58
+      },
+      {
+        "code": "474170",
+        "name": "루미르",
+        "market": "KOSDAQ",
+        "qvaDate": "20251215",
+        "qvaScore": 66,
+        "value": 54.17558886509637,
+        "label": "D20%",
+        "valueRatioMedian": 8.22,
+        "returnFromLow20": 16.92
+      }
+    ],
+    "newVvi_worstD20": [
+      {
+        "code": "036460",
+        "name": "한국가스공사",
+        "market": "KOSPI",
+        "qvaDate": "20260120",
+        "qvaScore": 91,
+        "value": -22.14912280701754,
+        "label": "D20%",
+        "valueRatioMedian": 3.52,
+        "returnFromLow20": 7.37
+      },
+      {
+        "code": "050890",
+        "name": "쏠리드",
+        "market": "KOSDAQ",
+        "qvaDate": "20260128",
+        "qvaScore": 54,
+        "value": -20.45454545454546,
+        "label": "D20%",
+        "valueRatioMedian": 2.69,
+        "returnFromLow20": 16.17
+      },
+      {
+        "code": "008770",
+        "name": "호텔신라",
+        "market": "KOSPI",
+        "qvaDate": "20260129",
+        "qvaScore": 67,
+        "value": -19.18714555765595,
+        "label": "D20%",
+        "valueRatioMedian": 2.07,
+        "returnFromLow20": 5.52
+      },
+      {
+        "code": "008770",
+        "name": "호텔신라",
+        "market": "KOSPI",
+        "qvaDate": "20260114",
+        "qvaScore": 72,
+        "value": -19.18714555765595,
+        "label": "D20%",
+        "valueRatioMedian": 2.97,
+        "returnFromLow20": 7.13
+      },
+      {
+        "code": "199820",
+        "name": "제일일렉트릭",
+        "market": "KOSDAQ",
+        "qvaDate": "20251023",
+        "qvaScore": 77,
+        "value": -17.256637168141598,
+        "label": "D20%",
+        "valueRatioMedian": 11.96,
+        "returnFromLow20": 16.86
+      },
+      {
+        "code": "096770",
+        "name": "SK이노베이션",
+        "market": "KOSPI",
+        "qvaDate": "20260122",
+        "qvaScore": 69,
+        "value": -17.24137931034483,
+        "label": "D20%",
+        "valueRatioMedian": 3.07,
+        "returnFromLow20": 12.99
+      },
+      {
+        "code": "464080",
+        "name": "에스오에스랩",
+        "market": "KOSDAQ",
+        "qvaDate": "20250804",
+        "qvaScore": 63,
+        "value": -14.415156507413506,
+        "label": "D20%",
+        "valueRatioMedian": 3.18,
+        "returnFromLow20": 15.24
+      },
+      {
+        "code": "394280",
+        "name": "오픈엣지테크놀로지",
+        "market": "KOSDAQ",
+        "qvaDate": "20251002",
+        "qvaScore": 67,
+        "value": -14.32706222865412,
+        "label": "D20%",
+        "valueRatioMedian": 3.33,
+        "returnFromLow20": 14.89
+      },
+      {
+        "code": "432720",
+        "name": "퀄리타스반도체",
+        "market": "KOSDAQ",
+        "qvaDate": "20251229",
+        "qvaScore": 53,
+        "value": -13.928329952670726,
+        "label": "D20%",
+        "valueRatioMedian": 3.39,
+        "returnFromLow20": 12.83
+      },
+      {
+        "code": "241560",
+        "name": "두산밥캣",
+        "market": "KOSPI",
+        "qvaDate": "20260112",
+        "qvaScore": 82,
+        "value": -12.634822804314327,
+        "label": "D20%",
+        "valueRatioMedian": 4.19,
+        "returnFromLow20": 11.92
+      }
+    ],
+    "newHgr_topD20": [
+      {
+        "code": "048410",
+        "name": "현대바이오",
+        "market": "KOSDAQ",
+        "qvaDate": "20260112",
+        "qvaScore": 81,
+        "value": 148.7941101802488,
+        "label": "D20%",
+        "valueRatioMedian": 3.68,
+        "returnFromLow20": 15.18
+      },
+      {
+        "code": "003280",
+        "name": "흥아해운",
+        "market": "KOSPI",
+        "qvaDate": "20260129",
+        "qvaScore": 81,
+        "value": 91.1133605373317,
+        "label": "D20%",
+        "valueRatioMedian": 12.65,
+        "returnFromLow20": 11.59
+      },
+      {
+        "code": "092870",
+        "name": "엑시콘",
+        "market": "KOSDAQ",
+        "qvaDate": "20260102",
+        "qvaScore": 56,
+        "value": 85.99476292691696,
+        "label": "D20%",
+        "valueRatioMedian": 3.89,
+        "returnFromLow20": 15.29
+      },
+      {
+        "code": "272210",
+        "name": "한화시스템",
+        "market": "KOSPI",
+        "qvaDate": "20251212",
+        "qvaScore": 76,
+        "value": 56.676958018382486,
+        "label": "D20%",
+        "valueRatioMedian": 9.61,
+        "returnFromLow20": 18.66
+      },
+      {
+        "code": "383310",
+        "name": "에코프로에이치엔",
+        "market": "KOSDAQ",
+        "qvaDate": "20260119",
+        "qvaScore": 67,
+        "value": 47.094627495536436,
+        "label": "D20%",
+        "valueRatioMedian": 1.98,
+        "returnFromLow20": 5.16
+      },
+      {
+        "code": "031980",
+        "name": "피에스케이홀딩스",
+        "market": "KOSDAQ",
+        "qvaDate": "20251222",
+        "qvaScore": 71,
+        "value": 43.73034936629758,
+        "label": "D20%",
+        "valueRatioMedian": 2.57,
+        "returnFromLow20": 13.58
+      },
+      {
+        "code": "036540",
+        "name": "SFA반도체",
+        "market": "KOSDAQ",
+        "qvaDate": "20251223",
+        "qvaScore": 67,
+        "value": 41.12454190204298,
+        "label": "D20%",
+        "valueRatioMedian": 3.88,
+        "returnFromLow20": 12.04
+      },
+      {
+        "code": "017670",
+        "name": "SK텔레콤",
+        "market": "KOSPI",
+        "qvaDate": "20260113",
+        "qvaScore": 88,
+        "value": 34.228187919463096,
+        "label": "D20%",
+        "valueRatioMedian": 3.55,
+        "returnFromLow20": 3.63
+      },
+      {
+        "code": "001120",
+        "name": "LX인터내셔널",
+        "market": "KOSPI",
+        "qvaDate": "20251212",
+        "qvaScore": 66,
+        "value": 29.66267556988258,
+        "label": "D20%",
+        "valueRatioMedian": 3.31,
+        "returnFromLow20": 13.55
+      },
+      {
+        "code": "247540",
+        "name": "에코프로비엠",
+        "market": "KOSDAQ",
+        "qvaDate": "20260120",
+        "qvaScore": 50,
+        "value": 22.97952049373999,
+        "label": "D20%",
+        "valueRatioMedian": 2.45,
+        "returnFromLow20": 15.01
+      }
+    ],
+    "newHgr_worstD20": [
+      {
+        "code": "425040",
+        "name": "티이엠씨",
+        "market": "KOSDAQ",
+        "qvaDate": "20260123",
+        "qvaScore": 54,
+        "value": -18.64791574698872,
+        "label": "D20%",
+        "valueRatioMedian": 4.88,
+        "returnFromLow20": 15.36
+      },
+      {
+        "code": "192080",
+        "name": "더블유게임즈",
+        "market": "KOSPI",
+        "qvaDate": "20260123",
+        "qvaScore": 70,
+        "value": -10.23339317773788,
+        "label": "D20%",
+        "valueRatioMedian": 2.2,
+        "returnFromLow20": 6.28
+      },
+      {
+        "code": "257720",
+        "name": "실리콘투",
+        "market": "KOSDAQ",
+        "qvaDate": "20260120",
+        "qvaScore": 76,
+        "value": -7.07508250825083,
+        "label": "D20%",
+        "valueRatioMedian": 3.8,
+        "returnFromLow20": 16.53
+      },
+      {
+        "code": "035420",
+        "name": "NAVER",
+        "market": "KOSPI",
+        "qvaDate": "20260106",
+        "qvaScore": 75,
+        "value": -4.29655210419001,
+        "label": "D20%",
+        "valueRatioMedian": 3.87,
+        "returnFromLow20": 14.79
+      },
+      {
+        "code": "033100",
+        "name": "제룡전기",
+        "market": "KOSDAQ",
+        "qvaDate": "20260120",
+        "qvaScore": 74,
+        "value": -3.1302447650908394,
+        "label": "D20%",
+        "valueRatioMedian": 6.58,
+        "returnFromLow20": 17.99
+      },
+      {
+        "code": "042660",
+        "name": "한화오션",
+        "market": "KOSPI",
+        "qvaDate": "20251223",
+        "qvaScore": 77,
+        "value": -1.9659357899398766,
+        "label": "D20%",
+        "valueRatioMedian": 7.88,
+        "returnFromLow20": 19.23
+      },
+      {
+        "code": "035720",
+        "name": "카카오",
+        "market": "KOSPI",
+        "qvaDate": "20251229",
+        "qvaScore": 64,
+        "value": -0.8285820425435686,
+        "label": "D20%",
+        "valueRatioMedian": 2.2,
+        "returnFromLow20": 10.27
+      },
+      {
+        "code": "178320",
+        "name": "서진시스템",
+        "market": "KOSDAQ",
+        "qvaDate": "20250912",
+        "qvaScore": 56,
+        "value": -0.5859769650434443,
+        "label": "D20%",
+        "valueRatioMedian": 3.61,
+        "returnFromLow20": 17.33
+      },
+      {
+        "code": "017800",
+        "name": "현대엘리베이터",
+        "market": "KOSPI",
+        "qvaDate": "20251113",
+        "qvaScore": 68,
+        "value": -0.08486562942008335,
+        "label": "D20%",
+        "valueRatioMedian": 5.91,
+        "returnFromLow20": 15.18
+      },
+      {
+        "code": "011780",
+        "name": "금호석유화학",
+        "market": "KOSPI",
+        "qvaDate": "20251217",
+        "qvaScore": 64,
+        "value": -0.05536501362554125,
+        "label": "D20%",
+        "valueRatioMedian": 2.76,
+        "returnFromLow20": 11.26
+      }
+    ]
+  },
+  "verdict": {
+    "label": "ADOPT_REDEFINED_QVA",
+    "reasons": [
+      "NEW_QVA D+20 평균 8.82, win% 60.58, -10%↓ 11.41 — 모두 양호",
+      "NEW_HGROUP D+20 평균 20.84 — 강한 후보군 확인"
+    ]
+  }
+}

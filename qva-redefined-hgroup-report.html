@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>REDEFINED_TIGHT QVA → VVI → H그룹 재검증 보고서</title>
+<style>
+body{font-family:'Inter','Pretendard',-apple-system,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;padding:20px;font-size:13px;line-height:1.6;}
+.container{max-width:1500px;margin:0 auto;}
+h1{font-size:22px;color:#f1f5f9;border-bottom:2px solid #334155;padding-bottom:10px;margin:0 0 8px 0;}
+h2{font-size:17px;color:#cbd5e1;margin:20px 0 8px 0;border-left:3px solid #34d399;padding-left:10px;}
+h3{font-size:14px;color:#a5b4fc;margin:16px 0 6px 0;}
+h4{font-size:13px;margin:0 0 8px 0;}
+.subtitle{color:#94a3b8;font-size:12px;}
+.warning{background:#422006;border-left:3px solid #fbbf24;padding:10px 14px;border-radius:6px;margin:12px 0;color:#fde68a;font-size:12px;line-height:1.7;}
+.nav{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.nav a{display:inline-block;padding:6px 12px;background:#1e293b;color:#cbd5e1;border-radius:6px;text-decoration:none;font-size:12px;border:1px solid #334155;}
+.nav a:hover{border-color:#34d399;color:#34d399;}
+.verdict{background:#1e293b;border:2px solid #34d399;padding:16px 20px;border-radius:10px;margin:16px 0;}
+.verdict h2{border:none;padding:0;color:#34d399;margin:0 0 8px 0;}
+.verdict .reasons{font-size:12px;color:#cbd5e1;line-height:1.8;}
+.verdict .reasons li{margin-left:16px;}
+table{width:100%;border-collapse:collapse;background:#1e293b;border-radius:6px;overflow:hidden;font-size:11px;margin-bottom:12px;}
+th{background:#0f172a;padding:8px 6px;text-align:right;font-weight:600;color:#94a3b8;border-bottom:1px solid #334155;}
+td{padding:7px 6px;text-align:right;border-bottom:1px solid #1e293b;}
+td.txt,th.txt{text-align:left;}
+.muted{color:#64748b;}
+.pos{color:#34d399;}
+.neg{color:#f87171;}
+table.cohort tr:nth-child(odd) td{background:rgba(255,255,255,0.02);}
+.funnel-flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#1e293b;padding:14px;border-radius:8px;margin:12px 0;font-size:12px;}
+.funnel-step{background:#0f172a;border:1px solid #334155;padding:8px 14px;border-radius:6px;min-width:160px;}
+.funnel-step .lbl{color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;}
+.funnel-step .cnt{font-size:18px;font-weight:700;color:#34d399;margin-top:3px;}
+.funnel-step.qva .cnt{color:#34d399;}
+.funnel-step.vvi .cnt{color:#fbbf24;}
+.funnel-step.h .cnt{color:#f87171;}
+.funnel-arrow{color:#475569;font-size:14px;font-weight:700;}
+.funnel-rate{font-size:10px;color:#64748b;margin-top:3px;}
+.ino-box{background:#1e293b;border:1px solid #34d399;border-radius:8px;padding:14px 18px;margin:12px 0;}
+.ino-box .quote{background:#0a1322;border-left:3px solid #34d399;padding:8px 12px;border-radius:6px;color:#a7f3d0;margin-bottom:10px;font-style:italic;font-size:12px;}
+.ino-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;}
+.ino-card{background:#0a1322;padding:10px 12px;border-radius:6px;border-left:2px solid #475569;}
+.ino-card .lbl{color:#94a3b8;font-size:10px;text-transform:uppercase;}
+.ino-card .val{color:#e2e8f0;font-size:13px;font-weight:600;margin-top:2px;}
+.ino-card.green{border-left-color:#34d399;}
+.ino-card.amber{border-left-color:#fbbf24;}
+.ino-card.red{border-left-color:#f87171;}
+.examples-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:12px;}
+.example-block{background:#1e293b;padding:12px 14px;border-radius:8px;}
+.ex-table{font-size:11px;}
+.ex-table th{padding:5px 4px;}
+.ex-table td{padding:4px 4px;}
+.cond-table{background:#0a1322;font-size:11px;}
+.cond-table td{padding:5px 8px;}
+.cond-table td.k{color:#94a3b8;width:140px;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="nav">
+    <a href="/qva-watchlist">📋 매일 운영 보드</a>
+    <a href="/qva-review-ok">📊 3단계 코호트 비교</a>
+    <a href="/qva-vvi-breakout-entry">🚀 돌파 진입 검증 (구)</a>
+  </div>
+
+  <h1>QVA → VVI → H그룹 재검증 보고서 <span style="font-size:13px;color:#94a3b8;font-weight:400;">(저점권 거래대금 돌파형 QVA, 내부명 REDEFINED_TIGHT_FILTER_C30)</span></h1>
+  <p class="subtitle">기간 2025-04-01 ~ 2026-04-24 · 생성 2026-05-03</p>
+
+  <div class="warning">
+    📌 본 보고서는 QVA 정의 변경에 따른 조건 조합의 과거 성과 검증입니다.
+    매수 추천이 아니며, 실제 판단은 차트, 뉴스, 거래대금, 시장 상황을 함께 확인해야 합니다.
+  </div>
+
+  <div class="verdict">
+    <h2>✅ REDEFINED_TIGHT QVA 채택 권장</h2>
+    <div class="reasons">
+      <ul><li>NEW_QVA D+20 평균 8.82, win% 60.58, -10%↓ 11.41 — 모두 양호</li><li>NEW_HGROUP D+20 평균 20.84 — 강한 후보군 확인</li></ul>
+    </div>
+  </div>
+
+  <h2>1. 최종 QVA 정의 — 저점권 거래대금 돌파형 (내부명 REDEFINED_TIGHT_FILTER_C30)</h2>
+  <table class="cond-table">
+    <tr><td class="k">lowZone</td><td>returnFromLow20 ≤ 20 / returnFromLow60 ≤ 25 / return20 ≤ 25</td></tr>
+    <tr><td class="k">valueBreak</td><td>todayValue ≥ prev20ValueMedian × 3.0 OR todayValue ≥ prev20ValueMax × 1.1</td></tr>
+    <tr><td class="k">volumeBreak</td><td>todayVolume ≥ prev20VolumeMedian × 2.0</td></tr>
+    <tr><td class="k">notExtended</td><td>return5 ≤ 15 / return10 ≤ 20</td></tr>
+    <tr><td class="k">notWeakClose</td><td>close ≥ prevClose × 0.99 / closeLocation ≥ 0.50</td></tr>
+    <tr><td class="k">liquidityFloor</td><td>todayValue ≥ 10억 / medianPrev20Value ≥ 3억</td></tr>
+    <tr><td class="k">lowStabilizedEnough</td><td>recent5Low ≥ low20×1.03 OR higherLow OR close ≥ ma5</td></tr>
+    <tr><td class="k">notCollapsedAfterPump</td><td>NOT (returnFromHigh60 ≤ -30 AND maxValue60 ≥ todayValue × 3)</td></tr>
+    <tr><td class="k">notTooBroken</td><td>close ≥ ma60 × 0.85</td></tr>
+    <tr><td class="k">H그룹 entry</td><td>vviHigh × 1.01</td></tr>
+    <tr><td class="k">H그룹 success</td><td>nextHigh ≥ entryPrice AND nextClose ≥ vviHigh</td></tr>
+  </table>
+
+  <h2>2. funnel 전환률 (NEW QVA 기준 · 에피소드)</h2>
+  <div class="funnel-flow">
+    <div class="funnel-step qva">
+      <div class="lbl">🟢 QVA</div>
+      <div class="cnt">975</div>
+      <div class="funnel-rate">에피소드</div>
+    </div>
+    <div class="funnel-arrow">→</div>
+    <div class="funnel-step vvi">
+      <div class="lbl">⏳ VVI</div>
+      <div class="cnt">111</div>
+      <div class="funnel-rate">11.38% 전환 · 평균 8.04일 / 중앙값 6일</div>
+    </div>
+    <div class="funnel-arrow">→</div>
+    <div class="funnel-step h">
+      <div class="lbl">🔥 H그룹</div>
+      <div class="cnt">37</div>
+      <div class="funnel-rate">QVA 대비 3.79% · VVI 대비 33.33% · 평균 9.3일 / 중앙값 8.5일</div>
+    </div>
+  </div>
+
+  <h2>3. 코호트 성과 비교 — 에피소드 기준 (최종 판단용)</h2>
+  
+    <h3>에피소드 기준 (10거래일 merge window 적용)</h3>
+    <table class="cohort">
+      <thead><tr>
+        <th class="txt">코호트</th><th>N</th><th>종목</th><th>하루평균</th>
+        <th>D5+%</th><th>D5avg</th><th>D10+%</th><th>D10avg</th><th>D20+%</th><th>D20avg</th><th>D20mid</th>
+        <th>+10%↑</th><th>+20%↑</th><th>-10%↓</th><th>MFE20</th><th>MAE20</th>
+      </tr></thead>
+      <tbody>
+        
+      <tr>
+        <td class="txt"><strong>🟢 NEW QVA 단독 (REDEFINED_TIGHT)</strong></td>
+        <td>975</td><td>475</td><td>4.06</td>
+        <td class="pos">50.88%</td>
+        <td class="pos">+2.43%</td>
+        <td class="pos">55.31%</td>
+        <td class="pos">+4.19%</td>
+        <td class="pos">60.58%</td>
+        <td class="pos">+8.82%</td>
+        <td class="pos">+3.69%</td>
+        <td>32.78%</td>
+        <td>19.93%</td>
+        <td class="neg">11.41%</td>
+        <td class="pos">+20.95%</td>
+        <td class="neg">-6.9%</td>
+      </tr>
+      
+    
+        
+      <tr>
+        <td class="txt"><strong>⏳ NEW QVA → VVI (VVI일 종가 기준)</strong></td>
+        <td>111</td><td>97</td><td>0.46</td>
+        <td class="pos">59.62%</td>
+        <td class="pos">+4.78%</td>
+        <td class="pos">66.02%</td>
+        <td class="pos">+7.33%</td>
+        <td class="pos">64%</td>
+        <td class="pos">+18.38%</td>
+        <td class="pos">+5.66%</td>
+        <td>46%</td>
+        <td>33%</td>
+        <td class="neg">14%</td>
+        <td class="pos">+33.85%</td>
+        <td class="neg">-9.52%</td>
+      </tr>
+      
+    
+        
+      <tr>
+        <td class="txt"><strong>🔥 NEW H그룹 (entry=vviHigh×1.01 기준)</strong></td>
+        <td>37</td><td>36</td><td>0.15</td>
+        <td class="pos">71.43%</td>
+        <td class="pos">+12.4%</td>
+        <td class="pos">71.43%</td>
+        <td class="pos">+10.88%</td>
+        <td class="pos">70.59%</td>
+        <td class="pos">+20.84%</td>
+        <td class="pos">+12.91%</td>
+        <td>55.88%</td>
+        <td>35.29%</td>
+        <td class="neg">5.88%</td>
+        <td class="pos">+43.06%</td>
+        <td class="neg">-2.76%</td>
+      </tr>
+      
+      <tr style="background:#0a1322;">
+        <td class="txt muted">  └ 돌파일 종가 기준</td>
+        <td colspan="3" class="muted">참고</td>
+        <td class="pos">60%</td>
+        <td class="pos">+9.09%</td>
+        <td class="pos">65.71%</td>
+        <td class="pos">+7.51%</td>
+        <td class="pos">73.53%</td>
+        <td class="pos">+16.96%</td>
+        <td class="pos">+9.53%</td>
+        <td>47.06%</td>
+        <td>29.41%</td>
+        <td class="neg">5.88%</td>
+        <td class="pos">+37.5%</td>
+        <td class="neg">-6.08%</td>
+      </tr>
+    
+        
+      <tr>
+        <td class="txt"><strong>📦 OLD H그룹 (D안 기준 baseline)</strong></td>
+        <td>39</td><td>38</td><td>0.16</td>
+        <td class="pos">65.79%</td>
+        <td class="pos">+7.23%</td>
+        <td class="pos">68.42%</td>
+        <td class="pos">+6.75%</td>
+        <td class="pos">73.68%</td>
+        <td class="pos">+17.93%</td>
+        <td class="pos">+13.78%</td>
+        <td>57.89%</td>
+        <td>39.47%</td>
+        <td class="neg">10.53%</td>
+        <td class="pos">+33.41%</td>
+        <td class="neg">-4.41%</td>
+      </tr>
+      
+    
+      </tbody>
+    </table>
+  
+
+  <h2>4. 코호트 성과 비교 — 이벤트 기준 (참고)</h2>
+  
+    <h3>모든 신호를 개별 이벤트로 카운트</h3>
+    <table class="cohort">
+      <thead><tr>
+        <th class="txt">코호트</th><th>N</th><th>종목</th><th>하루평균</th>
+        <th>D5+%</th><th>D5avg</th><th>D10+%</th><th>D10avg</th><th>D20+%</th><th>D20avg</th><th>D20mid</th>
+        <th>+10%↑</th><th>+20%↑</th><th>-10%↓</th><th>MFE20</th><th>MAE20</th>
+      </tr></thead>
+      <tbody>
+        
+      <tr>
+        <td class="txt"><strong>🟢 NEW QVA 단독 (REDEFINED_TIGHT)</strong></td>
+        <td>1240</td><td>475</td><td>5.17</td>
+        <td class="pos">52.03%</td>
+        <td class="pos">+2.67%</td>
+        <td class="pos">55.8%</td>
+        <td class="pos">+4.66%</td>
+        <td class="pos">61.88%</td>
+        <td class="pos">+10.07%</td>
+        <td class="pos">+4.14%</td>
+        <td>33.91%</td>
+        <td>20.91%</td>
+        <td class="neg">9.98%</td>
+        <td class="pos">+22.52%</td>
+        <td class="neg">-6.85%</td>
+      </tr>
+      
+    
+        
+      <tr>
+        <td class="txt"><strong>⏳ NEW QVA → VVI (VVI일 종가 기준)</strong></td>
+        <td>141</td><td>97</td><td>0.59</td>
+        <td class="pos">56.72%</td>
+        <td class="pos">+5.35%</td>
+        <td class="pos">64.66%</td>
+        <td class="pos">+7.76%</td>
+        <td class="pos">64.34%</td>
+        <td class="pos">+19.24%</td>
+        <td class="pos">+5.05%</td>
+        <td>45.74%</td>
+        <td>31.78%</td>
+        <td class="neg">11.63%</td>
+        <td class="pos">+35.48%</td>
+        <td class="neg">-9.48%</td>
+      </tr>
+      
+    
+        
+      <tr>
+        <td class="txt"><strong>🔥 NEW H그룹 (entry=vviHigh×1.01 기준)</strong></td>
+        <td>40</td><td>36</td><td>0.17</td>
+        <td class="pos">73.68%</td>
+        <td class="pos">+14.41%</td>
+        <td class="pos">73.68%</td>
+        <td class="pos">+11.62%</td>
+        <td class="pos">72.97%</td>
+        <td class="pos">+21.61%</td>
+        <td class="pos">+13.38%</td>
+        <td>59.46%</td>
+        <td>37.84%</td>
+        <td class="neg">5.41%</td>
+        <td class="pos">+44.91%</td>
+        <td class="neg">-2.57%</td>
+      </tr>
+      
+      <tr style="background:#0a1322;">
+        <td class="txt muted">  └ 돌파일 종가 기준</td>
+        <td colspan="3" class="muted">참고</td>
+        <td class="pos">60.53%</td>
+        <td class="pos">+11.22%</td>
+        <td class="pos">68.42%</td>
+        <td class="pos">+8.38%</td>
+        <td class="pos">75.68%</td>
+        <td class="pos">+17.88%</td>
+        <td class="pos">+10.67%</td>
+        <td>51.35%</td>
+        <td>32.43%</td>
+        <td class="neg">5.41%</td>
+        <td class="pos">+39.61%</td>
+        <td class="neg">-5.76%</td>
+      </tr>
+    
+        
+      <tr>
+        <td class="txt"><strong>📦 OLD H그룹 (D안 기준 baseline)</strong></td>
+        <td>56</td><td>38</td><td>0.23</td>
+        <td class="pos">69.09%</td>
+        <td class="pos">+6.39%</td>
+        <td class="pos">69.09%</td>
+        <td class="pos">+7.26%</td>
+        <td class="pos">74.55%</td>
+        <td class="pos">+17.77%</td>
+        <td class="pos">+15.2%</td>
+        <td>60%</td>
+        <td>40%</td>
+        <td class="neg">12.73%</td>
+        <td class="pos">+32.2%</td>
+        <td class="neg">-4.82%</td>
+      </tr>
+      
+    
+      </tbody>
+    </table>
+  
+
+  <h2>5. 이노션 214320 사례 (필수 포함)</h2>
+  
+  <div class="ino-box">
+    <div class="quote">
+      "이노션 2026-04-10은 저점권에서 기존 거래량·거래대금을 크게 뛰어넘은 사례입니다.
+      새 QVA 정의에서는 QVA로 분류됩니다."
+    </div>
+    <div class="ino-grid">
+      <div class="ino-card green">
+        <div class="lbl">QVA 통과</div>
+        <div class="val">✅ 2026-04-10 · score 85</div>
+      </div>
+      <div class="ino-card">
+        <div class="lbl">거래대금 / 중앙값 배수</div>
+        <div class="val">×12.87 (median) / ×5.25 (max)</div>
+      </div>
+      <div class="ino-card">
+        <div class="lbl">거래량 / 중앙값 배수</div>
+        <div class="val">×12.72</div>
+      </div>
+      <div class="ino-card">
+        <div class="lbl">저점 대비</div>
+        <div class="val">+4% (20일) / +4% (60일)</div>
+      </div>
+      <div class="ino-card green">
+        <div class="lbl">D+5</div>
+        <div class="val">+2.74%</div>
+      </div>
+      <div class="ino-card green">
+        <div class="lbl">D+10</div>
+        <div class="val">+5.82%</div>
+      </div>
+      <div class="ino-card green">
+        <div class="lbl">D+20</div>
+        <div class="val">-</div>
+      </div>
+      <div class="ino-card green">
+        <div class="lbl">MFE20</div>
+        <div class="val">+9.17%</div>
+      </div>
+      <div class="ino-card red">
+        <div class="lbl">MAE20</div>
+        <div class="val">-0.88%</div>
+      </div>
+      <div class="ino-card red">
+        <div class="lbl">VVI 발생</div>
+        <div class="val">❌ 미발생</div>
+      </div>
+      <div class="ino-card red">
+        <div class="lbl">H그룹 진행</div>
+        <div class="val">❌ 미진행</div>
+      </div>
+      <div class="ino-card">
+        <div class="lbl">차트 마커</div>
+        <div class="val">2026-04-10 캔들 아래 🟢 초록 동그라미</div>
+      </div>
+    </div>
+  </div>
+  
+
+  <h2>6. TOP / WORST — 새 QVA 단독 (에피소드)</h2>
+  <div class="examples-grid">
+    
+    <div class="example-block">
+      <h4 style="color:#34d399;">D+20 수익률 TOP 10</h4>
+      
+        <table class="ex-table">
+          <thead><tr><th>종목</th><th>QVA일</th><th>점수</th><th>D20%</th><th>×median</th><th>저점대비</th></tr></thead>
+          <tbody>
+            
+              <tr>
+                <td class="txt">페니트리움바이오 <span class="muted">187660</span></td>
+                <td>2026-01-20</td>
+                <td>59</td>
+                <td class="pos">+248.87%</td>
+                <td>×4.07</td>
+                <td>+14.41%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">SK증권 <span class="muted">001510</span></td>
+                <td>2026-01-23</td>
+                <td>77</td>
+                <td class="pos">+149.62%</td>
+                <td>×6.07</td>
+                <td>+13.47%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">KEC <span class="muted">092220</span></td>
+                <td>2026-02-23</td>
+                <td>65</td>
+                <td class="pos">+126.17%</td>
+                <td>×5.78</td>
+                <td>+16.32%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">아톤 <span class="muted">158430</span></td>
+                <td>2025-05-23</td>
+                <td>57</td>
+                <td class="pos">+117.81%</td>
+                <td>×3.11</td>
+                <td>+6.76%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">태웅 <span class="muted">044490</span></td>
+                <td>2025-05-20</td>
+                <td>70</td>
+                <td class="pos">+114.85%</td>
+                <td>×3</td>
+                <td>+12.79%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">선익시스템 <span class="muted">171090</span></td>
+                <td>2026-01-16</td>
+                <td>90</td>
+                <td class="pos">+100.6%</td>
+                <td>×5.46</td>
+                <td>+11.65%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">현대바이오 <span class="muted">048410</span></td>
+                <td>2026-01-12</td>
+                <td>81</td>
+                <td class="pos">+93.83%</td>
+                <td>×3.68</td>
+                <td>+15.18%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">DSC인베스트먼트 <span class="muted">241520</span></td>
+                <td>2026-01-20</td>
+                <td>67</td>
+                <td class="pos">+93.3%</td>
+                <td>×7.41</td>
+                <td>+8.4%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">씨아이에스 <span class="muted">222080</span></td>
+                <td>2026-01-19</td>
+                <td>93</td>
+                <td class="pos">+89.72%</td>
+                <td>×4.19</td>
+                <td>+8.4%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">삼화콘덴서 <span class="muted">001820</span></td>
+                <td>2026-01-21</td>
+                <td>76</td>
+                <td class="pos">+87.5%</td>
+                <td>×3.13</td>
+                <td>+7.8%</td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
+    </div>
+  
+    
+    <div class="example-block">
+      <h4 style="color:#f87171;">D+20 수익률 WORST 10</h4>
+      
+        <table class="ex-table">
+          <thead><tr><th>종목</th><th>QVA일</th><th>점수</th><th>D20%</th><th>×median</th><th>저점대비</th></tr></thead>
+          <tbody>
+            
+              <tr>
+                <td class="txt">바이넥스 <span class="muted">053030</span></td>
+                <td>2026-02-27</td>
+                <td>73</td>
+                <td class="neg">-28.57%</td>
+                <td>×4</td>
+                <td>+11.74%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">태웅 <span class="muted">044490</span></td>
+                <td>2025-10-15</td>
+                <td>69</td>
+                <td class="neg">-26.69%</td>
+                <td>×2.82</td>
+                <td>+17.69%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">스튜디오미르 <span class="muted">408900</span></td>
+                <td>2025-10-28</td>
+                <td>85</td>
+                <td class="neg">-25.86%</td>
+                <td>×5.89</td>
+                <td>+11.45%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">엑스게이트 <span class="muted">356680</span></td>
+                <td>2026-01-29</td>
+                <td>76</td>
+                <td class="neg">-23.69%</td>
+                <td>×3.63</td>
+                <td>+12.64%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">SBI인베스트먼트 <span class="muted">019550</span></td>
+                <td>2026-02-27</td>
+                <td>65</td>
+                <td class="neg">-22.99%</td>
+                <td>×3.05</td>
+                <td>+9.94%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">인텔리안테크 <span class="muted">189300</span></td>
+                <td>2025-10-10</td>
+                <td>68</td>
+                <td class="neg">-22.72%</td>
+                <td>×3.79</td>
+                <td>+14.1%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">현대바이오 <span class="muted">048410</span></td>
+                <td>2025-05-22</td>
+                <td>73</td>
+                <td class="neg">-22.21%</td>
+                <td>×7.27</td>
+                <td>+9.28%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">한국가스공사 <span class="muted">036460</span></td>
+                <td>2026-02-20</td>
+                <td>60</td>
+                <td class="neg">-22.15%</td>
+                <td>×3.29</td>
+                <td>+17.53%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">풍산 <span class="muted">103140</span></td>
+                <td>2026-03-05</td>
+                <td>69</td>
+                <td class="neg">-21.71%</td>
+                <td>×5.05</td>
+                <td>+15.96%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">카카오 <span class="muted">035720</span></td>
+                <td>2026-02-26</td>
+                <td>79</td>
+                <td class="neg">-20.52%</td>
+                <td>×3.65</td>
+                <td>+10.63%</td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
+    </div>
+  
+    
+    <div class="example-block">
+      <h4 style="color:#34d399;">MFE20 TOP 10</h4>
+      
+        <table class="ex-table">
+          <thead><tr><th>종목</th><th>QVA일</th><th>점수</th><th>MFE20%</th><th>×median</th><th>저점대비</th></tr></thead>
+          <tbody>
+            
+              <tr>
+                <td class="txt">페니트리움바이오 <span class="muted">187660</span></td>
+                <td>2026-01-20</td>
+                <td>59</td>
+                <td class="pos">+290.6%</td>
+                <td>×4.07</td>
+                <td>+14.41%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">SK증권 <span class="muted">001510</span></td>
+                <td>2026-01-23</td>
+                <td>77</td>
+                <td class="pos">+182.54%</td>
+                <td>×6.07</td>
+                <td>+13.47%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">엑스게이트 <span class="muted">356680</span></td>
+                <td>2026-03-27</td>
+                <td>67</td>
+                <td class="pos">+166.3%</td>
+                <td>×3.48</td>
+                <td>+17.7%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">KEC <span class="muted">092220</span></td>
+                <td>2026-02-23</td>
+                <td>65</td>
+                <td class="pos">+156.64%</td>
+                <td>×5.78</td>
+                <td>+16.32%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">현대바이오 <span class="muted">048410</span></td>
+                <td>2026-01-12</td>
+                <td>81</td>
+                <td class="pos">+142.43%</td>
+                <td>×3.68</td>
+                <td>+15.18%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">아톤 <span class="muted">158430</span></td>
+                <td>2025-05-23</td>
+                <td>57</td>
+                <td class="pos">+139.55%</td>
+                <td>×3.11</td>
+                <td>+6.76%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">태웅 <span class="muted">044490</span></td>
+                <td>2025-05-20</td>
+                <td>70</td>
+                <td class="pos">+134.75%</td>
+                <td>×3</td>
+                <td>+12.79%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">나우IB <span class="muted">293580</span></td>
+                <td>2025-04-04</td>
+                <td>73</td>
+                <td class="pos">+126.83%</td>
+                <td>×6.61</td>
+                <td>+15.26%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">중앙에너비스 <span class="muted">000440</span></td>
+                <td>2026-01-30</td>
+                <td>73</td>
+                <td class="pos">+118.64%</td>
+                <td>×9.32</td>
+                <td>+14.19%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">중앙에너비스 <span class="muted">000440</span></td>
+                <td>2026-02-19</td>
+                <td>68</td>
+                <td class="pos">+118.52%</td>
+                <td>×3.59</td>
+                <td>+13.88%</td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
+    </div>
+  
+    
+    <div class="example-block">
+      <h4 style="color:#f87171;">MAE20 WORST 10</h4>
+      
+        <table class="ex-table">
+          <thead><tr><th>종목</th><th>QVA일</th><th>점수</th><th>MAE20%</th><th>×median</th><th>저점대비</th></tr></thead>
+          <tbody>
+            
+              <tr>
+                <td class="txt">바이넥스 <span class="muted">053030</span></td>
+                <td>2026-02-27</td>
+                <td>73</td>
+                <td class="neg">-29.45%</td>
+                <td>×4</td>
+                <td>+11.74%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">태웅 <span class="muted">044490</span></td>
+                <td>2025-10-15</td>
+                <td>69</td>
+                <td class="neg">-29.35%</td>
+                <td>×2.82</td>
+                <td>+17.69%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">풍산 <span class="muted">103140</span></td>
+                <td>2026-03-05</td>
+                <td>69</td>
+                <td class="neg">-27.36%</td>
+                <td>×5.05</td>
+                <td>+15.96%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">일승 <span class="muted">333430</span></td>
+                <td>2026-02-20</td>
+                <td>70</td>
+                <td class="neg">-27.33%</td>
+                <td>×3.24</td>
+                <td>+18.32%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">스튜디오미르 <span class="muted">408900</span></td>
+                <td>2025-10-28</td>
+                <td>85</td>
+                <td class="neg">-26.8%</td>
+                <td>×5.89</td>
+                <td>+11.45%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">공구우먼 <span class="muted">366030</span></td>
+                <td>2026-02-19</td>
+                <td>53</td>
+                <td class="neg">-26.79%</td>
+                <td>×3.39</td>
+                <td>+17.57%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">신테카바이오 <span class="muted">226330</span></td>
+                <td>2026-02-24</td>
+                <td>61</td>
+                <td class="neg">-26.66%</td>
+                <td>×3.31</td>
+                <td>+16.16%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">세진중공업 <span class="muted">075580</span></td>
+                <td>2026-02-20</td>
+                <td>67</td>
+                <td class="neg">-26.45%</td>
+                <td>×2.55</td>
+                <td>+16.69%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">오픈엣지테크놀로지 <span class="muted">394280</span></td>
+                <td>2025-11-03</td>
+                <td>61</td>
+                <td class="neg">-25.4%</td>
+                <td>×3.4</td>
+                <td>+18.12%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">지역난방공사 <span class="muted">071320</span></td>
+                <td>2026-03-24</td>
+                <td>74</td>
+                <td class="neg">-25.11%</td>
+                <td>×3.21</td>
+                <td>+12.53%</td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
+    </div>
+  
+  </div>
+
+  <h2>7. TOP / WORST — 새 QVA → VVI</h2>
+  <div class="examples-grid">
+    
+    <div class="example-block">
+      <h4 style="color:#fbbf24;">VVI 후 D+20 TOP 10</h4>
+      
+        <table class="ex-table">
+          <thead><tr><th>종목</th><th>QVA일</th><th>점수</th><th>D20%</th><th>×median</th><th>저점대비</th></tr></thead>
+          <tbody>
+            
+              <tr>
+                <td class="txt">페니트리움바이오 <span class="muted">187660</span></td>
+                <td>2026-01-20</td>
+                <td>59</td>
+                <td class="pos">+471.9%</td>
+                <td>×4.07</td>
+                <td>+14.41%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">현대바이오 <span class="muted">048410</span></td>
+                <td>2026-01-12</td>
+                <td>81</td>
+                <td class="pos">+169.23%</td>
+                <td>×3.68</td>
+                <td>+15.18%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">SK증권 <span class="muted">001510</span></td>
+                <td>2026-01-06</td>
+                <td>88</td>
+                <td class="pos">+149.62%</td>
+                <td>×5.46</td>
+                <td>+7.38%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">엑시콘 <span class="muted">092870</span></td>
+                <td>2026-01-02</td>
+                <td>56</td>
+                <td class="pos">+78.1%</td>
+                <td>×3.89</td>
+                <td>+15.29%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">한화시스템 <span class="muted">272210</span></td>
+                <td>2025-12-12</td>
+                <td>76</td>
+                <td class="pos">+63.54%</td>
+                <td>×9.61</td>
+                <td>+18.66%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">흥아해운 <span class="muted">003280</span></td>
+                <td>2026-01-29</td>
+                <td>81</td>
+                <td class="pos">+62.82%</td>
+                <td>×12.65</td>
+                <td>+11.59%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">SFA반도체 <span class="muted">036540</span></td>
+                <td>2025-12-23</td>
+                <td>67</td>
+                <td class="pos">+60.99%</td>
+                <td>×3.88</td>
+                <td>+12.04%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">한화솔루션 <span class="muted">009830</span></td>
+                <td>2026-01-13</td>
+                <td>79</td>
+                <td class="pos">+60.64%</td>
+                <td>×3.67</td>
+                <td>+10.7%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">피에스케이홀딩스 <span class="muted">031980</span></td>
+                <td>2025-12-22</td>
+                <td>71</td>
+                <td class="pos">+56.86%</td>
+                <td>×2.57</td>
+                <td>+13.58%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">루미르 <span class="muted">474170</span></td>
+                <td>2025-12-15</td>
+                <td>66</td>
+                <td class="pos">+54.18%</td>
+                <td>×8.22</td>
+                <td>+16.92%</td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
+    </div>
+  
+    
+    <div class="example-block">
+      <h4 style="color:#f87171;">VVI 후 D+20 WORST 10</h4>
+      
+        <table class="ex-table">
+          <thead><tr><th>종목</th><th>QVA일</th><th>점수</th><th>D20%</th><th>×median</th><th>저점대비</th></tr></thead>
+          <tbody>
+            
+              <tr>
+                <td class="txt">한국가스공사 <span class="muted">036460</span></td>
+                <td>2026-01-20</td>
+                <td>91</td>
+                <td class="neg">-22.15%</td>
+                <td>×3.52</td>
+                <td>+7.37%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">쏠리드 <span class="muted">050890</span></td>
+                <td>2026-01-28</td>
+                <td>54</td>
+                <td class="neg">-20.45%</td>
+                <td>×2.69</td>
+                <td>+16.17%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">호텔신라 <span class="muted">008770</span></td>
+                <td>2026-01-29</td>
+                <td>67</td>
+                <td class="neg">-19.19%</td>
+                <td>×2.07</td>
+                <td>+5.52%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">호텔신라 <span class="muted">008770</span></td>
+                <td>2026-01-14</td>
+                <td>72</td>
+                <td class="neg">-19.19%</td>
+                <td>×2.97</td>
+                <td>+7.13%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">제일일렉트릭 <span class="muted">199820</span></td>
+                <td>2025-10-23</td>
+                <td>77</td>
+                <td class="neg">-17.26%</td>
+                <td>×11.96</td>
+                <td>+16.86%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">SK이노베이션 <span class="muted">096770</span></td>
+                <td>2026-01-22</td>
+                <td>69</td>
+                <td class="neg">-17.24%</td>
+                <td>×3.07</td>
+                <td>+12.99%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">에스오에스랩 <span class="muted">464080</span></td>
+                <td>2025-08-04</td>
+                <td>63</td>
+                <td class="neg">-14.42%</td>
+                <td>×3.18</td>
+                <td>+15.24%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">오픈엣지테크놀로지 <span class="muted">394280</span></td>
+                <td>2025-10-02</td>
+                <td>67</td>
+                <td class="neg">-14.33%</td>
+                <td>×3.33</td>
+                <td>+14.89%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">퀄리타스반도체 <span class="muted">432720</span></td>
+                <td>2025-12-29</td>
+                <td>53</td>
+                <td class="neg">-13.93%</td>
+                <td>×3.39</td>
+                <td>+12.83%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">두산밥캣 <span class="muted">241560</span></td>
+                <td>2026-01-12</td>
+                <td>82</td>
+                <td class="neg">-12.63%</td>
+                <td>×4.19</td>
+                <td>+11.92%</td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
+    </div>
+  
+  </div>
+
+  <h2>8. TOP / WORST — 새 QVA → H그룹</h2>
+  <div class="examples-grid">
+    
+    <div class="example-block">
+      <h4 style="color:#f87171;">H그룹 후 D+20 TOP 10</h4>
+      
+        <table class="ex-table">
+          <thead><tr><th>종목</th><th>QVA일</th><th>점수</th><th>D20%</th><th>×median</th><th>저점대비</th></tr></thead>
+          <tbody>
+            
+              <tr>
+                <td class="txt">현대바이오 <span class="muted">048410</span></td>
+                <td>2026-01-12</td>
+                <td>81</td>
+                <td class="pos">+148.79%</td>
+                <td>×3.68</td>
+                <td>+15.18%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">흥아해운 <span class="muted">003280</span></td>
+                <td>2026-01-29</td>
+                <td>81</td>
+                <td class="pos">+91.11%</td>
+                <td>×12.65</td>
+                <td>+11.59%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">엑시콘 <span class="muted">092870</span></td>
+                <td>2026-01-02</td>
+                <td>56</td>
+                <td class="pos">+85.99%</td>
+                <td>×3.89</td>
+                <td>+15.29%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">한화시스템 <span class="muted">272210</span></td>
+                <td>2025-12-12</td>
+                <td>76</td>
+                <td class="pos">+56.68%</td>
+                <td>×9.61</td>
+                <td>+18.66%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">에코프로에이치엔 <span class="muted">383310</span></td>
+                <td>2026-01-19</td>
+                <td>67</td>
+                <td class="pos">+47.09%</td>
+                <td>×1.98</td>
+                <td>+5.16%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">피에스케이홀딩스 <span class="muted">031980</span></td>
+                <td>2025-12-22</td>
+                <td>71</td>
+                <td class="pos">+43.73%</td>
+                <td>×2.57</td>
+                <td>+13.58%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">SFA반도체 <span class="muted">036540</span></td>
+                <td>2025-12-23</td>
+                <td>67</td>
+                <td class="pos">+41.12%</td>
+                <td>×3.88</td>
+                <td>+12.04%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">SK텔레콤 <span class="muted">017670</span></td>
+                <td>2026-01-13</td>
+                <td>88</td>
+                <td class="pos">+34.23%</td>
+                <td>×3.55</td>
+                <td>+3.63%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">LX인터내셔널 <span class="muted">001120</span></td>
+                <td>2025-12-12</td>
+                <td>66</td>
+                <td class="pos">+29.66%</td>
+                <td>×3.31</td>
+                <td>+13.55%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">에코프로비엠 <span class="muted">247540</span></td>
+                <td>2026-01-20</td>
+                <td>50</td>
+                <td class="pos">+22.98%</td>
+                <td>×2.45</td>
+                <td>+15.01%</td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
+    </div>
+  
+    
+    <div class="example-block">
+      <h4 style="color:#94a3b8;">H그룹 후 D+20 WORST 10</h4>
+      
+        <table class="ex-table">
+          <thead><tr><th>종목</th><th>QVA일</th><th>점수</th><th>D20%</th><th>×median</th><th>저점대비</th></tr></thead>
+          <tbody>
+            
+              <tr>
+                <td class="txt">티이엠씨 <span class="muted">425040</span></td>
+                <td>2026-01-23</td>
+                <td>54</td>
+                <td class="neg">-18.65%</td>
+                <td>×4.88</td>
+                <td>+15.36%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">더블유게임즈 <span class="muted">192080</span></td>
+                <td>2026-01-23</td>
+                <td>70</td>
+                <td class="neg">-10.23%</td>
+                <td>×2.2</td>
+                <td>+6.28%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">실리콘투 <span class="muted">257720</span></td>
+                <td>2026-01-20</td>
+                <td>76</td>
+                <td class="neg">-7.08%</td>
+                <td>×3.8</td>
+                <td>+16.53%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">NAVER <span class="muted">035420</span></td>
+                <td>2026-01-06</td>
+                <td>75</td>
+                <td class="neg">-4.3%</td>
+                <td>×3.87</td>
+                <td>+14.79%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">제룡전기 <span class="muted">033100</span></td>
+                <td>2026-01-20</td>
+                <td>74</td>
+                <td class="neg">-3.13%</td>
+                <td>×6.58</td>
+                <td>+17.99%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">한화오션 <span class="muted">042660</span></td>
+                <td>2025-12-23</td>
+                <td>77</td>
+                <td class="neg">-1.97%</td>
+                <td>×7.88</td>
+                <td>+19.23%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">카카오 <span class="muted">035720</span></td>
+                <td>2025-12-29</td>
+                <td>64</td>
+                <td class="neg">-0.83%</td>
+                <td>×2.2</td>
+                <td>+10.27%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">서진시스템 <span class="muted">178320</span></td>
+                <td>2025-09-12</td>
+                <td>56</td>
+                <td class="neg">-0.59%</td>
+                <td>×3.61</td>
+                <td>+17.33%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">현대엘리베이터 <span class="muted">017800</span></td>
+                <td>2025-11-13</td>
+                <td>68</td>
+                <td class="neg">-0.08%</td>
+                <td>×5.91</td>
+                <td>+15.18%</td>
+              </tr>
+            
+              <tr>
+                <td class="txt">금호석유화학 <span class="muted">011780</span></td>
+                <td>2025-12-17</td>
+                <td>64</td>
+                <td class="neg">-0.06%</td>
+                <td>×2.76</td>
+                <td>+11.26%</td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
+    </div>
+  
+  </div>
+
+  <div class="warning" style="margin-top:24px;">
+    📌 본 보고서는 QVA 정의 변경에 따른 조건 조합의 과거 성과 검증입니다.
+    매수 추천이 아니며, 실제 판단은 차트, 뉴스, 거래대금, 시장 상황을 함께 확인해야 합니다.
+  </div>
+</div>
+</body>
+</html>
