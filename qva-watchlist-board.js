@@ -430,7 +430,7 @@ console.log(`\n→ 전체 후보: ${candidates.length}건 (${((Date.now() - t0) 
 const stageOrder = ['BREAKOUT_SUCCESS', 'VVI_FIRED', 'QVA_TRACKING', 'QVA_NEW', 'FAILED'];
 const stageLabels = {
   BREAKOUT_SUCCESS: '돌파 성공 후보',
-  VVI_FIRED: 'VVI 발생/돌파 대기',
+  VVI_FIRED: '다음 거래일 돌파 대기',
   QVA_TRACKING: 'QVA 추적 중',
   QVA_NEW: 'QVA 신규',
   FAILED: '실패/이탈',
@@ -440,7 +440,7 @@ const stageDescriptions = {
     'VVI 다음 거래일에 vviHigh × 1.01을 돌파했고, 종가가 vviHigh 이상에서 마감한 종목입니다. ' +
     '다만 현재가가 기준 진입가에서 많이 멀어진 종목은 신규 진입보다 눌림 대기 또는 추적 관점으로 봅니다. ' +
     '본 섹션은 매수 추천이 아니라 돌파 성공 여부를 확인하는 구간입니다.',
-  VVI_FIRED: 'vviDate가 latestTradingDate와 같고 nextTradingDate가 아직 도래하지 않아 다음 거래일 돌파 판정을 기다리는 종목 (= 돌파 대기). 0건이면 최신 거래일에 신규 VVI가 없는 정상 상태일 수 있음.',
+  VVI_FIRED: '최신 거래일에 VVI가 발생해 아직 다음 거래일의 +1% 돌파 여부가 판정되지 않은 후보입니다. 이미 판정이 끝난 VVI 종목은 돌파 성공 또는 실패/이탈로 이동합니다.',
   QVA_TRACKING: 'QVA 발생 후 D+1 ~ D+20, VVI 미발생, 미이탈. 보조 태그(가격 유지/저점 상승/거래대금 재활성)로 진척도 확인.',
   QVA_NEW: '오늘 새로 QVA 신호가 잡힌 후보. 감시 시작.',
   FAILED: '신호가 -15% 이탈, D+20 만료(VVI 미발생), 또는 돌파 실패 (최근 ' + RECENT_FAILED_DAYS + '거래일).',
@@ -560,9 +560,32 @@ for (const s of ['BREAKOUT_SUCCESS', 'VVI_FIRED', 'QVA_NEW']) {
 }
 
 // ─────────── JSON ───────────
-// 최근 5거래일 내 VVI 발생 종목 수 (참고용 — 다른 단계로 분류됐어도 카운트)
+// 최근 5거래일 내 VVI 발생 이력 (참고 섹션) — 메인 단계 분류와 별개로,
+// VVI 발생 후 돌파 성공/실패로 어떻게 흘러갔는지 한 화면에 보여준다.
 const recentTradingDates = tradingDates.slice(-5);
 const recentVviCount = candidates.filter(c => c.vviDate && recentTradingDates.includes(c.vviDate)).length;
+
+const recentVviHistoryItems = candidates
+  .filter(c => c.vviDate && recentTradingDates.includes(c.vviDate))
+  .map(c => {
+    let vviOutcome;
+    if (c.breakoutSuccess === true) vviOutcome = 'SUCCESS';
+    else if (c.breakoutSuccess === false) vviOutcome = 'FAIL';
+    else vviOutcome = 'PENDING';
+    return { ...c, vviOutcome };
+  })
+  .sort((a, b) => {
+    if (a.vviDate !== b.vviDate) return b.vviDate.localeCompare(a.vviDate); // 최신 VVI일 우선
+    const order = { PENDING: 0, SUCCESS: 1, FAIL: 2 };
+    return (order[a.vviOutcome] ?? 9) - (order[b.vviOutcome] ?? 9);
+  });
+
+const recentVviHistorySummary = {
+  total: recentVviHistoryItems.length,
+  success: recentVviHistoryItems.filter(c => c.vviOutcome === 'SUCCESS').length,
+  fail: recentVviHistoryItems.filter(c => c.vviOutcome === 'FAIL').length,
+  pending: recentVviHistoryItems.filter(c => c.vviOutcome === 'PENDING').length,
+};
 
 const summary = {
   today: TODAY,
@@ -610,6 +633,11 @@ const jsonOut = {
   },
   summary,
   stages: stagedItems,
+  recentVviHistory: {
+    items: recentVviHistoryItems,
+    summary: recentVviHistorySummary,
+    note: '이 섹션은 매수 추천이 아니라 VVI 발생 이력과 돌파 판정 흐름을 보여주는 참고 정보입니다.',
+  },
 };
 
 fs.writeFileSync(
@@ -908,16 +936,10 @@ function buildStageSection(stage) {
   if (items.length === 0) {
     let emptyMsg = '해당 후보가 없습니다.';
     if (stage === 'VVI_FIRED') {
-      const latest = fmtDate(DATA.meta.latestTradingDate);
-      const next = fmtDate(DATA.meta.nextTradingDate);
+      emptyMsg = '최신 거래일 기준 새 VVI 발생 종목이 없어 다음 거래일 돌파 판정 대기 후보가 없습니다. ' +
+        '최근 5거래일 내 VVI 발생 종목은 별도 카운터로 표시되며, 이미 판정이 끝난 종목은 돌파 성공 또는 실패/이탈로 분류됩니다.';
       if (DATA.meta.isMarketClosedToday) {
-        emptyMsg = '최신 거래일(' + latest + ') 기준 신규 VVI 발생 종목이 없어 다음 거래일(' + next + ') 돌파 판정 후보가 없습니다. ' +
-          '오늘(' + fmtDate(DATA.meta.todayCalendarDate) + ')은 휴장/주말이므로 보드는 ' + latest + ' 데이터를 기준으로 표시됩니다.';
-      } else {
-        emptyMsg = '최신 거래일(' + latest + ') 기준 신규 VVI 발생 종목이 없어 다음 거래일(' + next + ') 돌파 판정 후보가 없습니다.';
-      }
-      if ((DATA.meta.recentVviCount ?? 0) > 0) {
-        emptyMsg += ' 참고: 최근 5거래일 내 VVI 발생 종목은 ' + DATA.meta.recentVviCount + '건이며 이미 돌파 성공/실패로 분류되어 있습니다.';
+        emptyMsg += ' (오늘 ' + fmtDate(DATA.meta.todayCalendarDate) + '은 휴장/주말이라 ' + fmtDate(DATA.meta.latestTradingDate) + ' 데이터 기준입니다.)';
       }
     }
     wrap.innerHTML = '<div class="empty">' + emptyMsg + '</div>';
@@ -951,6 +973,90 @@ for (const s of stageOrder) {
   stagesWrap.appendChild(buildStageSection(s));
 }
 
+// ─── 최근 VVI 발생 이력 (참고 섹션) — 메인 단계 분류와 별개 ───
+function buildRecentVviHistorySection() {
+  const items = DATA.recentVviHistory?.items || [];
+  const sm = DATA.recentVviHistory?.summary || { total: 0, success: 0, fail: 0, pending: 0 };
+
+  const sec = document.createElement('div');
+  sec.className = 'stage-section';
+  sec.dataset.stage = 'RECENT_VVI_HISTORY';
+
+  const title = document.createElement('h2');
+  title.className = 'h-section';
+  title.innerHTML =
+    '<span>🎯 최근 VVI 발생 이력</span>' +
+    '<span class="pill">' + items.length + '건</span>' +
+    '<span class="desc">최근 5거래일 내 VVI 발생 종목 — VVI 후 돌파 성공/실패 흐름을 확인하기 위한 참고 이력 (메인 단계와 별개).</span>' +
+    '<span class="toggle" data-stage="RECENT_VVI_HISTORY">▲ 접기</span>';
+  sec.appendChild(title);
+
+  // 상단 요약 바
+  const summary = document.createElement('div');
+  summary.style.cssText = 'display:flex;gap:14px;margin-bottom:10px;font-size:13px;color:#cbd5e1;flex-wrap:wrap;padding:8px 12px;background:#0f172a;border-radius:6px;border:1px solid #334155;';
+  summary.innerHTML =
+    '<span>최근 5거래일 VVI 발생 총 <strong style="color:#f1f5f9;">' + sm.total + '</strong>건</span>' +
+    '<span class="muted">·</span>' +
+    '<span>돌파 성공 <strong style="color:#10b981;">' + sm.success + '</strong>건</span>' +
+    '<span class="muted">·</span>' +
+    '<span>돌파 실패/이탈 <strong style="color:#f87171;">' + sm.fail + '</strong>건</span>' +
+    '<span class="muted">·</span>' +
+    '<span>판정 대기 <strong style="color:#fbbf24;">' + sm.pending + '</strong>건</span>';
+  sec.appendChild(summary);
+
+  // 검색 + 결과 필터
+  const ctrls = document.createElement('div');
+  ctrls.className = 'controls';
+  ctrls.innerHTML =
+    '<input type="text" class="search" placeholder="종목명 또는 코드 검색…" data-stage="RECENT_VVI_HISTORY">' +
+    '<div class="tag-filter">' +
+      '<button data-outcome="SUCCESS" data-stage="RECENT_VVI_HISTORY">돌파 성공</button>' +
+      '<button data-outcome="FAIL" data-stage="RECENT_VVI_HISTORY">돌파 실패</button>' +
+      '<button data-outcome="PENDING" data-stage="RECENT_VVI_HISTORY">판정 대기</button>' +
+    '</div>';
+  sec.appendChild(ctrls);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'table-wrap';
+  if (items.length === 0) {
+    wrap.innerHTML = '<div class="empty">최근 5거래일 내 VVI 발생 종목이 없습니다.</div>';
+  } else {
+    const outcomeRender = (o) => {
+      if (o === 'SUCCESS') return '<span style="color:#10b981;font-weight:600;">돌파 성공</span>';
+      if (o === 'FAIL') return '<span style="color:#f87171;font-weight:600;">돌파 실패</span>';
+      return '<span style="color:#fbbf24;font-weight:600;">판정 대기</span>';
+    };
+    const cols = [
+      { label: 'VVI일', txt: true, render: c => fmtDate(c.vviDate) },
+      { label: '종목', txt: true, render: c => '<span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span>' + (c.isPreferred ? '<span class="badge pref">우</span>' : '') },
+      { label: 'VVI 고가', render: c => fmtNum(c.vviHigh) + '원' },
+      { label: '+1% 기준가', render: c => fmtNum(c.breakoutEntryPrice1Pct) + '원' },
+      { label: '다음 거래일 결과', txt: true, render: c => outcomeRender(c.vviOutcome) },
+      { label: '현재 단계', txt: true, render: c => '<span class="muted">' + (DATA.meta.stageLabels[c.mainStage] || c.mainStage) + '</span>' },
+      { label: '현재가', render: c => fmtNum(c.currentClose) + '원' },
+      { label: 'QVA 신호가 대비%', render: c => fmtPct(c.currentReturnFromSignal, true) },
+      { label: '진입가 대비%', render: c => fmtPct(c.currentReturnFromEntry, true) },
+    ];
+    const head = '<thead><tr>' + cols.map(c => '<th class="' + (c.txt ? 'txt' : '') + '">' + c.label + '</th>').join('') + '</tr></thead>';
+    const body = '<tbody>' + items.map(c => {
+      const dataAttrs = 'data-name="' + (c.name || '') + '" data-code="' + c.code + '" data-outcome="' + c.vviOutcome + '" data-tags=""';
+      return '<tr ' + dataAttrs + '>' + cols.map(col => '<td' + (col.txt ? ' class="txt"' : '') + '>' + col.render(c) + '</td>').join('') + '</tr>';
+    }).join('') + '</tbody>';
+    wrap.innerHTML = '<table>' + head + body + '</table>';
+  }
+  sec.appendChild(wrap);
+
+  // 하단 주의 문구
+  const footer = document.createElement('div');
+  footer.className = 'section-footer';
+  footer.innerHTML = '⚠️ 이 섹션은 <strong>매수 추천이 아니라</strong> VVI 발생 이력과 돌파 판정 흐름을 보여주는 <strong>참고 정보</strong>입니다.';
+  sec.appendChild(footer);
+
+  return sec;
+}
+
+stagesWrap.appendChild(buildRecentVviHistorySection());
+
 // 단계 카드 클릭 — 해당 섹션으로 스크롤
 document.querySelectorAll('.stage-pill').forEach(pill => {
   pill.addEventListener('click', () => {
@@ -979,20 +1085,24 @@ document.querySelectorAll('.toggle').forEach(btn => {
   });
 });
 
-// 검색 + 태그 필터
+// 검색 + 태그 + outcome 필터
 function applyFiltersForStage(stage) {
   const sec = document.querySelector('.stage-section[data-stage="' + stage + '"]');
   if (!sec) return;
   const searchInput = sec.querySelector('input.search');
   const q = (searchInput?.value || '').trim().toLowerCase();
-  const activeTags = Array.from(sec.querySelectorAll('.tag-filter button.active')).map(b => b.dataset.tag);
+  const activeBtns = Array.from(sec.querySelectorAll('.tag-filter button.active'));
+  const activeTags = activeBtns.filter(b => b.dataset.tag).map(b => b.dataset.tag);
+  const activeOutcomes = activeBtns.filter(b => b.dataset.outcome).map(b => b.dataset.outcome);
   sec.querySelectorAll('tbody tr').forEach(tr => {
     const name = (tr.dataset.name || '').toLowerCase();
     const code = (tr.dataset.code || '').toLowerCase();
     const tags = (tr.dataset.tags || '').split(',');
+    const outcome = tr.dataset.outcome || '';
     const matchQ = !q || name.includes(q) || code.includes(q);
     const matchT = activeTags.length === 0 || activeTags.every(t => tags.includes(t));
-    tr.style.display = matchQ && matchT ? '' : 'none';
+    const matchO = activeOutcomes.length === 0 || activeOutcomes.includes(outcome);
+    tr.style.display = matchQ && matchT && matchO ? '' : 'none';
   });
 }
 document.querySelectorAll('input.search').forEach(input => {
