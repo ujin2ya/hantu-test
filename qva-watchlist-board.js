@@ -429,7 +429,7 @@ console.log(`\n→ 전체 후보: ${candidates.length}건 (${((Date.now() - t0) 
 // ─────────── 단계별 그룹핑 ───────────
 const stageOrder = ['BREAKOUT_SUCCESS', 'VVI_FIRED', 'QVA_TRACKING', 'QVA_NEW', 'FAILED'];
 const stageLabels = {
-  BREAKOUT_SUCCESS: '돌파 성공 후보',
+  BREAKOUT_SUCCESS: '돌파 성공 확인 종목',
   VVI_FIRED: '다음 거래일 돌파 대기',
   QVA_TRACKING: 'QVA 추적 중',
   QVA_NEW: 'QVA 신규',
@@ -437,13 +437,15 @@ const stageLabels = {
 };
 const stageDescriptions = {
   BREAKOUT_SUCCESS:
-    'VVI 다음 거래일에 vviHigh × 1.01을 돌파했고, 종가가 vviHigh 이상에서 마감한 종목입니다. ' +
-    '다만 현재가가 기준 진입가에서 많이 멀어진 종목은 신규 진입보다 눌림 대기 또는 추적 관점으로 봅니다. ' +
-    '본 섹션은 매수 추천이 아니라 돌파 성공 여부를 확인하는 구간입니다.',
-  VVI_FIRED: '최신 거래일에 VVI가 발생해 아직 다음 거래일의 +1% 돌파 여부가 판정되지 않은 후보입니다. 이미 판정이 끝난 VVI 종목은 돌파 성공 또는 실패/이탈로 이동합니다.',
-  QVA_TRACKING: 'QVA 발생 후 D+1 ~ D+20, VVI 미발생, 미이탈. 보조 태그(가격 유지/저점 상승/거래대금 재활성)로 진척도 확인.',
-  QVA_NEW: '오늘 새로 QVA 신호가 잡힌 후보. 감시 시작.',
-  FAILED: '신호가 -15% 이탈, D+20 만료(VVI 미발생), 또는 돌파 실패 (최근 ' + RECENT_FAILED_DAYS + '거래일).',
+    'VVI 다음 거래일에 vviHigh × 1.01을 돌파하고, 종가가 vviHigh 이상에서 마감한 후보입니다. 백테스트의 H그룹과 같은 의미입니다.',
+  VVI_FIRED:
+    '최신 거래일에 VVI가 발생해 아직 다음 거래일 돌파 성공/실패 판정이 끝나지 않은 후보입니다.',
+  QVA_TRACKING:
+    'QVA 발생 후 20거래일 동안 VVI 발생 여부를 지켜보는 후보입니다. 가격 유지, 저점 상승, 거래대금 재활성 같은 보조 태그로 흐름을 판단합니다.',
+  QVA_NEW:
+    '오늘 새로 QVA 신호가 발생한 종목입니다. 감시를 시작하는 단계입니다.',
+  FAILED:
+    'QVA 이후 가격이 크게 무너졌거나, 20거래일 안에 VVI가 발생하지 않았거나, 돌파에 실패한 종목입니다.',
 };
 
 const auxTagLabels = {
@@ -674,6 +676,30 @@ const htmlTemplate = `<!DOCTYPE html>
   .info-box p:last-child { margin-bottom: 0; }
   .info-box strong { color: #f1f5f9; }
 
+  /* QVA/VVI/H그룹 도움말 토글 */
+  .help-wrap { margin-bottom: 14px; }
+  .help-btn { width: 100%; padding: 10px 14px; background: #1e3a8a; color: #f1f5f9; border: 1px solid #3b82f6; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; text-align: left; display: flex; align-items: center; gap: 8px; }
+  .help-btn:hover { background: #1e40af; }
+  .help-btn .arrow { margin-left: auto; transition: transform 0.15s; }
+  .help-btn.open .arrow { transform: rotate(180deg); }
+  .help-content { background: #1e293b; padding: 16px 20px; border-radius: 8px; margin-top: 8px; border-left: 3px solid #3b82f6; line-height: 1.7; color: #cbd5e1; }
+  .help-content.collapsed { display: none; }
+  .help-content h3 { color: #f1f5f9; font-size: 15px; margin: 0 0 8px 0; padding-bottom: 6px; border-bottom: 1px solid #334155; }
+  .help-content .help-section { margin-bottom: 18px; }
+  .help-content .help-section:last-child { margin-bottom: 0; }
+  .help-content p { margin: 0 0 8px 0; font-size: 13px; }
+  .help-content ul { margin: 6px 0; padding-left: 20px; font-size: 13px; }
+  .help-content ul li { margin-bottom: 4px; }
+  .help-content strong { color: #f1f5f9; }
+  .help-content .funnel { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; margin: 8px 0; font-size: 12px; }
+  .help-content .funnel .step { padding: 4px 10px; background: #334155; border-radius: 999px; color: #f1f5f9; white-space: nowrap; }
+  .help-content .funnel .step.h-group { background: #14532d; color: #6ee7b7; }
+  .help-content .funnel .arrow-r { color: #64748b; }
+  .help-content .h-group-card { background: #0f172a; border: 1px solid #14532d; border-left: 3px solid #10b981; padding: 10px 14px; border-radius: 6px; margin-top: 8px; }
+  .help-content .h-group-card ol { margin: 4px 0 8px 0; padding-left: 22px; font-size: 13px; }
+  .help-content .h-group-card ol li { margin-bottom: 2px; }
+  .help-content .warn { color: #fbbf24; font-size: 12px; margin-top: 6px; padding: 6px 10px; background: #422006; border-radius: 4px; }
+
   .stage-bar { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
   .stage-pill { display: flex; flex-direction: column; padding: 10px 14px; border-radius: 8px; background: #1e293b; min-width: 110px; cursor: pointer; user-select: none; border: 2px solid transparent; transition: border 0.15s; }
   .stage-pill:hover { border-color: #475569; }
@@ -755,6 +781,66 @@ const htmlTemplate = `<!DOCTYPE html>
       📅 <strong>현재 보드는 최신 거래일 기준으로 생성됩니다.</strong> 오늘이 휴장일이면 마지막 거래일 데이터를 기준으로 표시됩니다.
     </p>
     <p id="trading-date-meta" style="font-family:monospace;font-size:12px;color:#94a3b8;"></p>
+  </div>
+
+  <div class="help-wrap">
+    <button class="help-btn" id="help-btn">
+      <span>📖 QVA / VVI / H그룹 설명 보기</span>
+      <span class="arrow">▼</span>
+    </button>
+    <div class="help-content collapsed" id="help-content">
+
+      <div class="help-section">
+        <h3>QVA / VVI 모델 설명</h3>
+        <p>이 화면은 <strong>QVA 신호가 발생한 종목을 20거래일 동안 추적</strong>하면서, VVI 발생과 다음 거래일 돌파 성공 여부까지 확인하는 운영 보드입니다.</p>
+        <p><strong>QVA</strong>는 매수 신호가 아니라 <strong>"누군가 들어오기 시작한 흔적"</strong>을 찾는 감시 시작 후보입니다. 거래량·거래대금 이상징후, 저점 상승, 아직 크게 움직이지 않은 가격 흐름을 기반으로 후보를 좁힙니다.</p>
+        <p><strong>VVI</strong>는 QVA 후보 중 실제 거래대금 초동이 터진 <strong>수급 확인 후보</strong>입니다. 거래량/거래대금이 강하게 증가하고, 종가가 양호하게 마감한 종목을 확인합니다.</p>
+        <p><strong>돌파 성공 확인 종목</strong>은 VVI 다음 거래일에 vviHigh × 1.01을 돌파하고, 종가가 vviHigh 이상에서 마감한 종목입니다.</p>
+        <p>백테스트 보고서에서 말한 <strong>H그룹</strong>은 이 화면의 <strong>'돌파 성공 확인 종목'과 같은 의미</strong>입니다.</p>
+      </div>
+
+      <div class="help-section">
+        <h3>단계 흐름</h3>
+        <div class="funnel">
+          <span class="step">QVA 신규</span>
+          <span class="arrow-r">→</span>
+          <span class="step">QVA 추적 중</span>
+          <span class="arrow-r">→</span>
+          <span class="step">VVI 발생</span>
+          <span class="arrow-r">→</span>
+          <span class="step">다음 거래일 돌파 대기</span>
+          <span class="arrow-r">→</span>
+          <span class="step h-group">돌파 성공 확인 종목 = H그룹</span>
+          <span class="arrow-r">→</span>
+          <span class="step">익절/청산 시나리오 검토</span>
+        </div>
+        <ul>
+          <li><strong>QVA 신규</strong> — 오늘 새로 감시를 시작한 종목</li>
+          <li><strong>QVA 추적 중</strong> — QVA 발생 후 20거래일 동안 VVI 발생 여부를 지켜보는 종목</li>
+          <li><strong>VVI 발생</strong> — 실제 거래대금 초동이 확인된 종목</li>
+          <li><strong>다음 거래일 돌파 대기</strong> — VVI 다음 거래일에 vviHigh × 1.01 돌파 여부를 기다리는 종목</li>
+          <li><strong>돌파 성공 확인 종목</strong> — vviHigh × 1.01 돌파 + 종가가 vviHigh 이상 마감한 종목</li>
+          <li><strong>H그룹</strong> — 백테스트에서 검증한 돌파 성공 확인 종목 그룹</li>
+        </ul>
+      </div>
+
+      <div class="help-section">
+        <h3>H그룹이란?</h3>
+        <div class="h-group-card">
+          <p><strong>H그룹은 백테스트에서 가장 강하게 검증된 최종 확인 그룹입니다.</strong></p>
+          <p>조건은 다음과 같습니다.</p>
+          <ol>
+            <li>QVA 발생</li>
+            <li>QVA 이후 20거래일 안에 VVI 발생</li>
+            <li>VVI 다음 거래일에 vviHigh × 1.01 이상 돌파</li>
+            <li>그날 종가가 vviHigh 이상에서 마감</li>
+          </ol>
+          <p>즉, H그룹은 <strong>QVA 감시 → VVI 수급 확인 → 다음날 돌파 → 종가 유지</strong>까지 확인된 종목입니다. 이 화면에서는 H그룹을 <strong>'돌파 성공 확인 종목'</strong>으로 표시합니다.</p>
+          <div class="warn">⚠️ 단, H그룹은 매수 추천이 아닙니다. 현재가가 기준 진입가에서 많이 멀어진 경우에는 신규 진입보다 <strong>눌림 대기 또는 추적 관점</strong>으로 봐야 합니다.</div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <h2 class="h-section">단계별 후보 수 <span class="pill" id="total-pill"></span></h2>
@@ -987,7 +1073,7 @@ function buildRecentVviHistorySection() {
   title.innerHTML =
     '<span>🎯 최근 VVI 발생 이력</span>' +
     '<span class="pill">' + items.length + '건</span>' +
-    '<span class="desc">최근 5거래일 내 VVI 발생 종목 — VVI 후 돌파 성공/실패 흐름을 확인하기 위한 참고 이력 (메인 단계와 별개).</span>' +
+    '<span class="desc">최근 5거래일 안에 VVI가 발생한 종목과 이후 돌파 판정 결과를 보여주는 참고 영역입니다.</span>' +
     '<span class="toggle" data-stage="RECENT_VVI_HISTORY">▲ 접기</span>';
   sec.appendChild(title);
 
@@ -1056,6 +1142,19 @@ function buildRecentVviHistorySection() {
 }
 
 stagesWrap.appendChild(buildRecentVviHistorySection());
+
+// QVA / VVI / H그룹 도움말 토글
+const helpBtn = document.getElementById('help-btn');
+const helpContent = document.getElementById('help-content');
+if (helpBtn && helpContent) {
+  helpBtn.addEventListener('click', () => {
+    const collapsed = helpContent.classList.toggle('collapsed');
+    helpBtn.classList.toggle('open', !collapsed);
+    helpBtn.querySelector('span:first-child').textContent = collapsed
+      ? '📖 QVA / VVI / H그룹 설명 보기'
+      : '📖 QVA / VVI / H그룹 설명 닫기';
+  });
+}
 
 // 단계 카드 클릭 — 해당 섹션으로 스크롤
 document.querySelectorAll('.stage-pill').forEach(pill => {
