@@ -510,13 +510,11 @@ for (let fi = 0; fi < files.length; fi++) {
 console.log(`\n→ 전체 후보: ${candidates.length}건 (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
 
 // ─────────── QVA 별도 스캔 (저점권 거래대금 돌파 — REDEFINED_TIGHT_FILTER_C30) ───
-// 사용자 spec(2026-05): 3개 그룹 분리 (이노션 같은 재확인 종목도 상단에서 잘 보이게).
-//   QVA_TODAY              = 오늘 처음 잡힌 종목 (firstSig === TODAY)
-//   QVA_TODAY_RECONFIRMED  = 과거 잡혀서 오늘 재확인 (firstSig < TODAY AND latestSig === TODAY, VVI 전)
-//   QVA_TRACKING           = 최근 20거래일 안 발화 + 오늘 미통과 + VVI 전
-const earlyQvaCandidates = [];          // QVA_TRACKING (latestSig < TODAY, VVI 전)
-const todayQvaCandidates = [];          // QVA_TODAY (오늘 신규)
-const todayReconfirmedCandidates = [];  // QVA_TODAY_RECONFIRMED (오늘 재확인)
+// 사용자 spec(2026-05): 2개 섹션으로 통합 (UX 단순화).
+//   QVA_TODAY    = 오늘 통과한 종목 (신규 + 재확인 모두) — 행에 'NEW_TODAY' / 'TODAY_RECONFIRMED' 태그
+//   EARLY_QVA    = 최근 20거래일 안 발화 + 오늘 미통과 + VVI 전 (= QVA 추적 중)
+const earlyQvaCandidates = [];   // QVA_TRACKING (latestSig < TODAY, VVI 전)
+const todayQvaCandidates = [];   // QVA_TODAY (오늘 신규 + 오늘 재확인 통합)
 const debugCounts = {
   totalUniverseCount: files.length,
   chartDataAvailableCount: 0,            // long cache에 TODAY row가 있는 종목 수
@@ -635,18 +633,19 @@ for (let fi = 0; fi < files.length; fi++) {
     auxTags: [],
   };
 
-  // 분류 (3개 그룹):
-  //   isTodayNew              → QVA_TODAY (오늘 신규)
-  //   isTodayReconfirm + !hasVvi → QVA_TODAY_RECONFIRMED (오늘 재확인, 별도 섹션)
-  //   !isToday* + !hasVvi      → EARLY_QVA (추적 중)
+  // 분류 (2개 그룹, 통합):
+  //   isTodayNew  OR (isTodayReconfirm + !hasVvi) → QVA_TODAY (행에 태그로 구분)
+  //   latestSig < TODAY + !hasVvi                  → EARLY_QVA (추적 중)
   if (isTodayNew) {
-    todayQvaCandidates.push({ ...baseRecord, isTodayNew: true });
+    const rec = { ...baseRecord, isTodayNew: true };
+    rec.auxTags = ['NEW_TODAY', ...(rec.auxTags || [])];
+    todayQvaCandidates.push(rec);
     debugCounts.qvaCandidatesTodayAfterFilters++;
   } else if (isTodayReconfirm && !hasVvi) {
-    const reconfirmRecord = { ...baseRecord };
-    reconfirmRecord.auxTags = [...(reconfirmRecord.auxTags || []), 'TODAY_RECONFIRMED'];
-    reconfirmRecord.todayReconfirmed = true;
-    todayReconfirmedCandidates.push(reconfirmRecord);
+    const rec = { ...baseRecord };
+    rec.auxTags = ['TODAY_RECONFIRMED', ...(rec.auxTags || [])];
+    rec.todayReconfirmed = true;
+    todayQvaCandidates.push(rec);
     debugCounts.qvaTodayReconfirmedCount++;
   } else if (!hasVvi) {
     earlyQvaCandidates.push(baseRecord);
@@ -655,8 +654,7 @@ for (let fi = 0; fi < files.length; fi++) {
   if (hasVvi) debugCounts.qvaTrackingHasVviCount++;
 }
 process.stdout.write(`  QVA 진행 ${files.length}/${files.length}\n`);
-console.log(`→ QVA_TODAY (오늘 신규 = firstSig===TODAY): ${todayQvaCandidates.length}건`);
-console.log(`→ QVA_TODAY_RECONFIRMED (오늘 재확인 = firstSig<TODAY, latestSig===TODAY): ${todayReconfirmedCandidates.length}건`);
+console.log(`→ QVA_TODAY (오늘 통과 = 신규 + 재확인): ${todayQvaCandidates.length}건  (신규 ${debugCounts.qvaCandidatesTodayAfterFilters} + 재확인 ${debugCounts.qvaTodayReconfirmedCount})`);
 console.log(`→ EARLY_QVA (추적 중, latestSig<TODAY, VVI 전): ${earlyQvaCandidates.length}건`);
 console.log(`  (윈도우 안 통과 후 VVI 이미 발생: ${debugCounts.qvaTrackingHasVviCount}건 — VVI_FIRED/BREAKOUT_SUCCESS 단계에서 추적)`);
 console.log(`  (${((Date.now() - t1) / 1000).toFixed(1)}s)`);
@@ -664,7 +662,7 @@ console.log(`  (${((Date.now() - t1) / 1000).toFixed(1)}s)`);
 // ─── QVA 후보에 'CONFIRMED_QVA_PASS' 보조 태그 부여 (기존 태그 보존) ───
 const confirmedQvaCodeSet = new Set(candidates.map(c => c.code));
 let confirmedPassCount = 0;
-for (const arr of [todayQvaCandidates, todayReconfirmedCandidates, earlyQvaCandidates]) {
+for (const arr of [todayQvaCandidates, earlyQvaCandidates]) {
   for (const ec of arr) {
     if (confirmedQvaCodeSet.has(ec.code)) {
       ec.auxTags = [...(ec.auxTags || []), 'CONFIRMED_QVA_PASS'];
@@ -678,19 +676,17 @@ for (const arr of [todayQvaCandidates, todayReconfirmedCandidates, earlyQvaCandi
 console.log(`→ QVA 후보 중 '확인 QVA 통과' 태그: ${confirmedPassCount}건`);
 
 // ─────────── 단계별 그룹핑 ───────────
-// 사용자 spec(2026-05): QVA를 3개 섹션으로 분리.
-//   QVA_TODAY              : 오늘 신규 QVA (firstSig === TODAY)
-//   QVA_TODAY_RECONFIRMED  : 오늘 재확인 (firstSig < TODAY, latestSig === TODAY, VVI 전)
-//   EARLY_QVA              : QVA 추적 중 (latestSig < TODAY, VVI 전)
-const stageOrder = ['BREAKOUT_SUCCESS', 'VVI_FIRED', 'QVA_TODAY', 'QVA_TODAY_RECONFIRMED', 'EARLY_QVA', 'FAILED'];
-const allStageOrder = ['BREAKOUT_SUCCESS', 'VVI_FIRED', 'QVA_TODAY', 'QVA_TODAY_RECONFIRMED', 'QVA_TRACKING', 'QVA_NEW', 'EARLY_QVA', 'FAILED'];
+// 사용자 spec(2026-05): UX 단순화 — QVA를 2개 섹션으로 통합.
+//   QVA_TODAY  = 오늘 통과한 QVA 종목 (신규 + 재확인). 행에 'NEW_TODAY'/'TODAY_RECONFIRMED' 태그
+//   EARLY_QVA  = QVA 추적 중 (latestSig < TODAY, VVI 전)
+const stageOrder = ['BREAKOUT_SUCCESS', 'VVI_FIRED', 'QVA_TODAY', 'EARLY_QVA', 'FAILED'];
+const allStageOrder = ['BREAKOUT_SUCCESS', 'VVI_FIRED', 'QVA_TODAY', 'QVA_TRACKING', 'QVA_NEW', 'EARLY_QVA', 'FAILED'];
 const stageLabels = {
   BREAKOUT_SUCCESS: '돌파 성공 확인 종목',
   VVI_FIRED: '다음 거래일 돌파 대기',
   QVA_TRACKING: 'QVA 확인 추적 중',
   QVA_NEW: 'QVA 확인 신규',
-  QVA_TODAY: '오늘 신규 QVA',
-  QVA_TODAY_RECONFIRMED: '오늘 재확인 QVA',
+  QVA_TODAY: '오늘 QVA',
   EARLY_QVA: 'QVA 추적 중',
   FAILED: '실패/이탈',
 };
@@ -704,9 +700,7 @@ const stageDescriptions = {
   QVA_NEW:
     'QVA 확인 신규는 처음 관심 후보로 잡는 단계입니다. 바로 매수하기보다는 20거래일 동안 VVI 발생 여부를 추적하는 후보로 보는 것이 적절합니다.',
   QVA_TODAY:
-    '오늘 처음 QVA로 감지된 종목입니다 (firstSignalDate === 오늘). QVA는 발생 후 20거래일 동안 VVI로 이어지는지 추적합니다.',
-  QVA_TODAY_RECONFIRMED:
-    '과거(최근 20거래일 안)에 QVA로 잡혔고, 오늘도 조건을 다시 만족한 종목입니다. 같은 흐름의 연속 발화 — 새 신호가 아니라 기존 추적 후보의 강한 재확인입니다. VVI는 아직 발생하지 않은 상태입니다.',
+    '오늘 QVA 조건을 통과한 종목입니다. "오늘 신규" 태그는 오늘 처음 QVA로 감지된 종목, "오늘 재확인" 태그는 과거에 잡혔고 오늘도 조건을 다시 만족한 종목입니다 (같은 흐름의 연속 발화). QVA는 발생 후 20거래일 동안 VVI로 이어지는지 추적합니다.',
   EARLY_QVA:
     '최근 20거래일 안에 QVA가 발생했고, 오늘은 통과 못했지만 아직 VVI 확인 전인 관심 후보입니다. QVA → VVI 전환률은 1년 검증에서 약 11%이므로 대부분의 추적 후보는 VVI까지 진행되지 않지만, 일부는 VVI/돌파 성공으로 진화합니다. 매수 신호가 아니라 관찰 후보입니다.',
   FAILED:
@@ -718,6 +712,7 @@ const auxTagLabels = {
   LOW_RISING: '저점 상승',
   VALUE_REACTIVATION: '거래대금 재활성',
   CONFIRMED_QVA_PASS: 'QVA 확인 통과',
+  NEW_TODAY: '오늘 신규',
   TODAY_RECONFIRMED: '오늘 재확인',
 };
 const auxTagDescriptions = {
@@ -725,7 +720,8 @@ const auxTagDescriptions = {
   LOW_RISING: '최근 5거래일 저가 최소값 > 그 이전 5거래일 저가 최소값',
   VALUE_REACTIVATION: '오늘 거래대금이 직전 20일 중앙값의 3배 이상',
   CONFIRMED_QVA_PASS: 'QVA 이후 가격 유지·저점 상승·거래대금 흐름이 한 번 더 확인된 상태입니다.',
-  TODAY_RECONFIRMED: '과거에 QVA로 잡혔고 오늘도 조건을 다시 만족한 종목입니다 (오늘 신규는 아님).',
+  NEW_TODAY: '오늘 처음 QVA로 감지된 종목입니다 (firstSignalDate === 오늘).',
+  TODAY_RECONFIRMED: '과거에 QVA로 잡혔고 오늘도 조건을 다시 만족한 종목입니다 (같은 흐름의 연속 발화).',
 };
 
 // 진입 판단 상태 — BREAKOUT_SUCCESS 그룹 내 분류
@@ -758,9 +754,8 @@ function groupBy(items, fn) {
 const byStage = groupBy(candidates, c => c.mainStage);
 const stageCounts = {};
 for (const s of allStageOrder) stageCounts[s] = byStage.get(s)?.length || 0;
-// QVA_TODAY/QVA_TODAY_RECONFIRMED/EARLY_QVA는 별도 후보 리스트로 채워짐
+// QVA_TODAY/EARLY_QVA는 별도 후보 리스트로 채워짐
 stageCounts.QVA_TODAY = todayQvaCandidates.length;
-stageCounts.QVA_TODAY_RECONFIRMED = todayReconfirmedCandidates.length;
 stageCounts.EARLY_QVA = earlyQvaCandidates.length;
 
 // ─────────── 정렬 (각 단계별로 보기 좋게) ───────────
@@ -837,8 +832,8 @@ function sortTrackingCandidates(arr) {
   });
 }
 
+// QVA_TODAY 정렬: 점수 높은 순 (신규/재확인 구분 없이) — 사용자 spec
 const todayQvaSorted = sortQvaCandidates(todayQvaCandidates);
-const todayReconfirmedSorted = sortQvaCandidates(todayReconfirmedCandidates);
 const earlyQvaSorted = sortTrackingCandidates(earlyQvaCandidates);
 
 // 화면 표시 — 통과한 모든 종목을 보여주되 최대 50개로 제한 (사용자 spec).
@@ -846,18 +841,15 @@ const earlyQvaSorted = sortTrackingCandidates(earlyQvaCandidates);
 const EARLY_QVA_DISPLAY_THRESHOLD = 0;
 const EARLY_QVA_DISPLAY_LIMIT = 50;
 const todayQvaDisplayed = todayQvaSorted.slice(0, EARLY_QVA_DISPLAY_LIMIT);
-const todayReconfirmedDisplayed = todayReconfirmedSorted.slice(0, EARLY_QVA_DISPLAY_LIMIT);
 const earlyQvaDisplayed = earlyQvaSorted.slice(0, EARLY_QVA_DISPLAY_LIMIT);
 
 stagedItems.QVA_TODAY = todayQvaDisplayed;
 stagedItems.QVA_TODAY_ALL = todayQvaSorted;
-stagedItems.QVA_TODAY_RECONFIRMED = todayReconfirmedDisplayed;
-stagedItems.QVA_TODAY_RECONFIRMED_ALL = todayReconfirmedSorted;
 stagedItems.EARLY_QVA = earlyQvaDisplayed;
 stagedItems.EARLY_QVA_ALL = earlyQvaSorted;
 
-// 요약 통계 — TODAY + RECONFIRMED + TRACKING 합쳐서 계산 (전체 윈도우 안 통과 흔적)
-const allQvaCandidates = [...todayQvaSorted, ...todayReconfirmedSorted, ...earlyQvaSorted];
+// 요약 통계 — TODAY(신규+재확인 통합) + TRACKING 합쳐서 계산
+const allQvaCandidates = [...todayQvaSorted, ...earlyQvaSorted];
 const strongEarlyCount = allQvaCandidates.filter(c => c.bestEarlyQvaGrade === 'STRONG_REDEFINED_QVA' || c.bestEarlyQvaGrade === 'STRONG_EARLY_QVA').length;
 const earlyMidCount = allQvaCandidates.filter(c => c.bestEarlyQvaGrade === 'REDEFINED_QVA' || c.bestEarlyQvaGrade === 'EARLY_QVA').length;
 const watchEarlyCount = allQvaCandidates.filter(c => c.bestEarlyQvaGrade === 'WATCH_REDEFINED' || c.bestEarlyQvaGrade === 'WATCH_EARLY').length;
@@ -868,13 +860,16 @@ const valueReactivationCount = allQvaCandidates.filter(c => (c.signals?.valueRat
 const higherLowCount = allQvaCandidates.filter(c => (c.signals?.returnFromLow20 ?? 99) <= 5).length;
 const priceHoldCount = allQvaCandidates.filter(c => (c.currentReturnFromSignal ?? -1) >= 0).length;
 
+// 오늘 통과 안에서 신규/재확인 카운트 (행 태그 기반)
+const todayNewCount = todayQvaSorted.filter(c => c.isTodayNew === true).length;
+const todayReconfirmedCount = todayQvaSorted.filter(c => c.todayReconfirmed === true).length;
 const earlyQvaSummary = {
-  todayNewCount: todayQvaSorted.length,                       // 오늘 신규 (firstSig === TODAY)
-  todayReconfirmedCount: todayReconfirmedSorted.length,        // 오늘 재확인 (별도 섹션)
-  todayCount: todayQvaSorted.length,                           // 호환 — 오늘 신규
-  trackingCount: earlyQvaSorted.length,                        // 순수 추적 (오늘 미통과, VVI 전)
-  pureTrackingCount: earlyQvaSorted.length,                    // 같음
-  totalWindowCount: todayQvaSorted.length + todayReconfirmedSorted.length + earlyQvaSorted.length,
+  todayCount: todayQvaSorted.length,             // 오늘 통과 전체 (신규+재확인)
+  todayNewCount,                                 // 오늘 신규 (행 태그)
+  todayReconfirmedCount,                         // 오늘 재확인 (행 태그)
+  trackingCount: earlyQvaSorted.length,          // 추적 중 (오늘 미통과, VVI 전)
+  pureTrackingCount: earlyQvaSorted.length,
+  totalWindowCount: todayQvaSorted.length + earlyQvaSorted.length,
   totalCount: allQvaCandidates.length,
   strongCount: strongEarlyCount,
   earlyCount: earlyMidCount,
@@ -902,7 +897,6 @@ console.log(`  저점권 (≤+5%):               ${higherLowCount}`);
 
 // stageCounts 갱신 (화면 표시분 기준)
 stageCounts.QVA_TODAY = todayQvaDisplayed.length;
-stageCounts.QVA_TODAY_RECONFIRMED = todayReconfirmedDisplayed.length;
 stageCounts.EARLY_QVA = earlyQvaDisplayed.length;
 
 // ─── 데이터 상태 점검 디버그 (사용자 spec 4번) ───
@@ -1188,6 +1182,7 @@ const htmlTemplate = `<!DOCTYPE html>
   .badge.tag-LOW_RISING { background: #14532d; color: #6ee7b7; }
   .badge.tag-VALUE_REACTIVATION { background: #422006; color: #fbbf24; }
   .badge.tag-CONFIRMED_QVA_PASS { background: #1e3a8a; color: #93c5fd; border: 1px solid #3b82f6; font-weight: 600; }
+  .badge.tag-NEW_TODAY { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; font-weight: 600; }
   .badge.tag-TODAY_RECONFIRMED { background: #4c1d95; color: #c4b5fd; border: 1px solid #a78bfa; font-weight: 600; }
   .badge.pref { background: #4c1d1d; color: #fca5a5; }
 
@@ -1593,9 +1588,8 @@ const COLS_BY_STAGE = {
     { key: 'marketValue', label: '시총', render: c => fmtValue(c.marketValue) },
   ],
 };
-// QVA_TODAY/QVA_TODAY_RECONFIRMED는 EARLY_QVA와 같은 컬럼 사용
+// QVA_TODAY는 EARLY_QVA와 같은 컬럼 사용 (행에 NEW_TODAY/TODAY_RECONFIRMED 태그)
 COLS_BY_STAGE.QVA_TODAY = COLS_BY_STAGE.EARLY_QVA;
-COLS_BY_STAGE.QVA_TODAY_RECONFIRMED = COLS_BY_STAGE.EARLY_QVA;
 
 const stagesWrap = document.getElementById('stages-wrap');
 const stageContent = {};
@@ -1611,8 +1605,7 @@ function buildStageSection(stage) {
     + (collapsed ? ' collapsed' : '')
     + (stage === 'QVA_TRACKING' ? ' q-tracking' : '')
     + (stage === 'EARLY_QVA' ? ' early-qva' : '')
-    + (stage === 'QVA_TODAY' ? ' qva-today' : '')
-    + (stage === 'QVA_TODAY_RECONFIRMED' ? ' qva-today-reconfirmed' : '');
+    + (stage === 'QVA_TODAY' ? ' qva-today' : '');
   sec.dataset.stage = stage;
 
   let toggleCollapsedText = '▼ 펼치기';
@@ -1627,23 +1620,21 @@ function buildStageSection(stage) {
     toggleExpandedText = '👀 QVA 추적 후보 접기';
     toggleClass = 'toggle toggle-large';
   } else if (stage === 'QVA_TODAY') {
-    toggleCollapsedText = '🟢 오늘 신규 QVA 보기';
-    toggleExpandedText = '🟢 오늘 신규 QVA 접기';
-    toggleClass = 'toggle toggle-large';
-  } else if (stage === 'QVA_TODAY_RECONFIRMED') {
-    toggleCollapsedText = '🔄 오늘 재확인 QVA 보기';
-    toggleExpandedText = '🔄 오늘 재확인 QVA 접기';
+    toggleCollapsedText = '🟢 오늘 QVA 보기';
+    toggleExpandedText = '🟢 오늘 QVA 접기';
     toggleClass = 'toggle toggle-large';
   }
 
   const title = document.createElement('h2');
   title.className = 'h-section';
-  const stageColor = { BREAKOUT_SUCCESS: '🔥', VVI_FIRED: '⏳', QVA_TRACKING: '👀', QVA_NEW: '🆕', QVA_TODAY: '🟢', QVA_TODAY_RECONFIRMED: '🔄', EARLY_QVA: '👀', FAILED: '❌' }[stage] || '';
+  const stageColor = { BREAKOUT_SUCCESS: '🔥', VVI_FIRED: '⏳', QVA_TRACKING: '👀', QVA_NEW: '🆕', QVA_TODAY: '🟢', EARLY_QVA: '👀', FAILED: '❌' }[stage] || '';
   let pillContent;
   if (stage === 'QVA_TODAY') {
-    pillContent = '<span class="pill" style="background:#10b981;color:#fff;">오늘 신규 ' + (eqSummary.todayNewCount ?? eqSummary.todayCount ?? 0) + '건</span>';
-  } else if (stage === 'QVA_TODAY_RECONFIRMED') {
-    pillContent = '<span class="pill" style="background:#a78bfa;color:#1e1b4b;">오늘 재확인 ' + (eqSummary.todayReconfirmedCount ?? 0) + '건</span>';
+    const newN = eqSummary.todayNewCount ?? 0;
+    const reN = eqSummary.todayReconfirmedCount ?? 0;
+    pillContent = '<span class="pill" style="background:#10b981;color:#fff;">오늘 통과 ' + (eqSummary.todayCount ?? 0) + '건</span>' +
+      (newN > 0 ? '<span class="pill" style="background:#064e3b;color:#6ee7b7;border:1px solid #10b981;">신규 ' + newN + '</span>' : '') +
+      (reN > 0 ? '<span class="pill" style="background:#4c1d95;color:#c4b5fd;border:1px solid #a78bfa;">재확인 ' + reN + '</span>' : '');
   } else if (stage === 'EARLY_QVA') {
     pillContent = '<span class="pill">추적 중 ' + (eqSummary.trackingCount ?? 0) + '건</span>' +
                   '<span class="pill" style="background:#34d399;color:#064e3b;">화면 ' + (eqSummary.displayedCount ?? 0) + '건</span>';
@@ -1676,25 +1667,15 @@ function buildStageSection(stage) {
     sec.appendChild(summaryEl);
   }
 
-  // ─── QVA_TODAY: 안내문 (간결) ───
+  // ─── QVA_TODAY: 안내문 (신규 + 재확인 통합) ───
   if (stage === 'QVA_TODAY') {
     const noteEl = document.createElement('div');
     noteEl.style.cssText = 'background:#0f172a;border-left:3px solid #10b981;padding:10px 14px;border-radius:6px;margin-bottom:12px;color:#cbd5e1;font-size:12px;line-height:1.7;';
     noteEl.innerHTML =
-      '<strong style="color:#34d399;">오늘 신규 QVA</strong>는 오늘 처음 QVA로 감지된 종목입니다 (firstSignalDate === 오늘).<br>' +
-      'QVA는 발생 후 20거래일 동안 VVI로 이어지는지 추적합니다.<br>' +
-      '<strong style="color:#fbbf24;">오늘 신규가 적더라도 "오늘 재확인 QVA"와 "QVA 추적 중" 섹션을 함께 확인하세요.</strong>';
-    sec.appendChild(noteEl);
-  }
-
-  // ─── QVA_TODAY_RECONFIRMED: 안내문 ───
-  if (stage === 'QVA_TODAY_RECONFIRMED') {
-    const noteEl = document.createElement('div');
-    noteEl.style.cssText = 'background:#0f172a;border-left:3px solid #a78bfa;padding:10px 14px;border-radius:6px;margin-bottom:12px;color:#cbd5e1;font-size:12px;line-height:1.7;';
-    noteEl.innerHTML =
-      '<strong style="color:#c4b5fd;">오늘 재확인 QVA</strong>는 과거(최근 20거래일 안)에 QVA로 잡혔고 오늘도 조건을 다시 만족한 종목입니다.<br>' +
-      '같은 흐름의 연속 발화 — 새 신호가 아니라 기존 추적 후보의 강한 재확인입니다. VVI는 아직 발생하지 않은 상태입니다.<br>' +
-      '<strong style="color:#fbbf24;">매수 신호가 아니라 관찰 후보입니다.</strong>';
+      '오늘 QVA 조건을 통과한 종목입니다. 점수 높은 순으로 정렬됩니다.<br>' +
+      '<span class="badge tag-NEW_TODAY" style="font-size:10px;padding:1px 6px;border-radius:3px;">오늘 신규</span> 태그는 오늘 처음 QVA로 감지된 종목, ' +
+      '<span class="badge tag-TODAY_RECONFIRMED" style="font-size:10px;padding:1px 6px;border-radius:3px;">오늘 재확인</span> 태그는 과거에 잡혔고 오늘도 다시 만족한 종목 (같은 흐름의 연속 발화).<br>' +
+      '<strong style="color:#fbbf24;">QVA는 발생 후 20거래일 동안 VVI로 이어지는지 추적합니다. 매수 신호가 아니라 관찰 후보입니다.</strong>';
     sec.appendChild(noteEl);
   }
 
@@ -1704,9 +1685,8 @@ function buildStageSection(stage) {
     const summaryEl = document.createElement('div');
     summaryEl.className = 'tracking-summary';
     summaryEl.innerHTML =
-      '<div class="card" style="border-color:#10b981;"><div class="lbl">오늘 신규 QVA</div><div class="cnt" style="color:#34d399;">' + (eq.todayNewCount ?? 0) + '</div></div>' +
-      '<div class="card" style="border-color:#a78bfa;"><div class="lbl">오늘 재확인 QVA</div><div class="cnt" style="color:#c4b5fd;">' + (eq.todayReconfirmedCount ?? 0) + '</div></div>' +
-      '<div class="card"><div class="lbl">순수 추적 중</div><div class="cnt">' + (eq.trackingCount ?? 0) + '</div></div>' +
+      '<div class="card" style="border-color:#10b981;"><div class="lbl">오늘 통과 (위 섹션)</div><div class="cnt" style="color:#34d399;">' + (eq.todayCount ?? 0) + '</div></div>' +
+      '<div class="card"><div class="lbl">추적 중 (VVI 전)</div><div class="cnt">' + (eq.trackingCount ?? 0) + '</div></div>' +
       '<div class="card strong"><div class="lbl">강한 QVA (80+)</div><div class="cnt">' + (eq.strongCount ?? 0) + '</div></div>' +
       '<div class="card"><div class="lbl">평균 점수</div><div class="cnt">' + (eq.avgScore ?? 0) + '</div></div>' +
       '<div class="card"><div class="lbl">거래대금 강돌파 (×3+)</div><div class="cnt">' + (eq.valueReactivationCount ?? 0) + '</div></div>' +
@@ -1718,7 +1698,6 @@ function buildStageSection(stage) {
     noteEl.style.cssText = 'background:#0f172a;border-left:3px solid #34d399;padding:10px 14px;border-radius:6px;margin-bottom:12px;color:#cbd5e1;font-size:12px;line-height:1.7;';
     noteEl.innerHTML =
       '<strong style="color:#34d399;">QVA 추적 중</strong>은 최근 20거래일 안에 QVA가 발생했고, 오늘은 통과 못했지만 아직 VVI 확인 전인 관심 후보입니다.<br>' +
-      '오늘 다시 통과한 종목은 위쪽 <span style="color:#c4b5fd;">"오늘 재확인 QVA"</span> 섹션에 별도로 표시됩니다.<br>' +
       'QVA → VVI 전환률은 1년 검증에서 약 11%이므로 대부분의 추적 후보는 VVI까지 진행되지 않지만, 일부는 VVI/돌파 성공으로 진화합니다.<br>' +
       '<strong style="color:#fbbf24;">매수 신호가 아니라 관찰 후보입니다. 후보가 많을 경우 기본 접힘 처리되며, 펼쳐서 확인하세요 (최대 50건).</strong>';
     sec.appendChild(noteEl);
