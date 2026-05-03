@@ -2139,10 +2139,30 @@ const handleSearch = async (req, res) => {
     const selected = candidates[0];
     const code = selected.shortCode || selected.standardCode || "";
 
-    // 1) 캐시 우선, 없으면 라이브 fetch
-    let cache = naverFetcher.loadStockChart(code);
-    let rows = cache?.rows || [];
-    let cacheFetchedAt = cache?.meta?.fetchedAt || null;
+    // 1) 캐시 우선 — long(매일 cron 갱신, 1년치)을 먼저 보고, 없으면 short(naver 130일치) fallback
+    let rows = [];
+    let cacheFetchedAt = null;
+    let cacheSource = null;
+    try {
+      const longPath = path.join(__dirname, "cache", "stock-charts-long", `${code}.json`);
+      if (fs.existsSync(longPath)) {
+        const longChart = JSON.parse(fs.readFileSync(longPath, "utf-8"));
+        if (longChart?.rows?.length) {
+          rows = longChart.rows;
+          // long cache 의 fetchedAt — 파일 mtime 으로 추정
+          cacheFetchedAt = fs.statSync(longPath).mtime.toISOString();
+          cacheSource = 'long';
+        }
+      }
+    } catch (_) {}
+
+    if (!rows.length) {
+      // fallback: naver short-cache
+      const cache = naverFetcher.loadStockChart(code);
+      rows = cache?.rows || [];
+      cacheFetchedAt = cache?.meta?.fetchedAt || null;
+      cacheSource = rows.length ? 'short' : null;
+    }
 
     if (!rows.length) {
       try {
@@ -2150,6 +2170,7 @@ const handleSearch = async (req, res) => {
         if (rows.length) {
           naverFetcher.saveStockChart(code, rows);
           cacheFetchedAt = new Date().toISOString();
+          cacheSource = 'live';
         }
       } catch (e) {
         return renderIndex(res, { query, error: `차트 조회 실패: ${e.message}` });
