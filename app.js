@@ -2531,6 +2531,7 @@ const handleSearch = async (req, res) => {
         if (!cur || (p.idx - cur.lastIdx) > mergeWindow) {
           cur = {
             firstSignalDate: p.date, firstSignalIdx: p.idx,
+            firstSignalScore: p.score, firstSignalGrade: p.grade,
             bestSignalDate: p.date, bestSignalIdx: p.idx, bestScore: p.score, bestGrade: p.grade,
             lastSignalDate: p.date, lastIdx: p.idx,
             scoreMax: p.score, signalCount: 1,
@@ -2551,6 +2552,29 @@ const handleSearch = async (req, res) => {
           }
         }
       }
+
+      // 가장 최근 episode에 한해 firstSignal 직전 N=5일 reject 사유 캡처
+      // (사용자가 "왜 더 일찍 안 잡혔나"를 디버그할 수 있게)
+      if (eps.length > 0) {
+        const latest = eps[eps.length - 1];
+        const dayBeforeChecks = [];
+        for (let k = 1; k <= 7; k++) {
+          const checkIdx = latest.firstSignalIdx - k;
+          if (checkIdx < 60) break;
+          const sliced = rowsAll.slice(0, checkIdx + 1);
+          let res = null;
+          try { res = ps.calculateEarlyQVA(sliced, [], meta); } catch (_) {}
+          dayBeforeChecks.push({
+            date: rowsAll[checkIdx].date,
+            daysBefore: k,
+            passed: !!res?.passed,
+            score: res?.score || 0,
+            excludeReasons: res?.excludeReasons || [],
+          });
+        }
+        latest.dayBeforeChecks = dayBeforeChecks;
+      }
+
       return eps;
     }
 

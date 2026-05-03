@@ -185,7 +185,8 @@
 
       <!-- ============ QVA / VVI 분석 차트 ============ -->
       <% if (chartRows && chartRows.length > 0) {
-        var hasAnyEvent = (qvaWatchData && (qvaWatchData.firstEarlyQvaDate || qvaWatchData.qvaSignalDate)) ||
+        var hasAnyEvent = (qvaEpisodes && qvaEpisodes.length > 0) ||
+                         (qvaWatchData && (qvaWatchData.firstEarlyQvaDate || qvaWatchData.qvaSignalDate)) ||
                          (breakoutData && (breakoutData.vviDate || breakoutData.breakoutDate));
       %>
       <div class="card chart-card">
@@ -306,11 +307,48 @@
         </div>
         <% } %>
 
-        <!-- 윈도우 상수 디버그 폴드 -->
-        <% if (qvaWindows) { %>
+        <!-- 도움말: 왜 firstSignalDate를 기준으로 표시하는가 -->
+        <div style="background:#eff6ff;border-left:3px solid #3b82f6;padding:8px 12px;border-radius:6px;margin-top:10px;font-size:11px;line-height:1.7;color:#1e3a8a;">
+          💡 QVA는 하루짜리 점 신호가 아니라, 며칠 동안 거래대금이 조용히 붙고 저점이 안정되는 흐름을 바탕으로 잡힙니다.
+          그래서 차트에서는 QVA를 <strong>'관찰 구간'</strong>으로 표시합니다.
+          테이블의 QVA일은 그 흐름이 <strong>처음 시작된 날(firstSignalDate)</strong>을 기준으로 표시합니다.
+        </div>
+
+        <!-- 디버그 폴드: episode 상세 + dayBefore reject 사유 + 윈도우 상수 -->
+        <% if (qvaWindows || latestEp) { %>
         <details style="margin-top:8px;font-size:11px;color:#64748b;">
-          <summary style="cursor:pointer;color:#2563eb;">🔧 QVA 기준 기간 (디버그)</summary>
-          <div style="background:#f8fafc;padding:8px 10px;border-radius:4px;margin-top:4px;font-family:monospace;line-height:1.6;">
+          <summary style="cursor:pointer;color:#2563eb;">🔧 디버그 — QVA 날짜 결정 로직</summary>
+          <% if (latestEp) {
+            function dbg(d) { return d ? d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8) : '-'; }
+          %>
+          <div style="background:#f8fafc;padding:8px 10px;border-radius:4px;margin-top:4px;font-family:monospace;line-height:1.7;">
+            <strong>이번 episode</strong><br>
+            firstSignalDate: <%= dbg(latestEp.firstSignalDate) %><br>
+            bestSignalDate: <%= dbg(latestEp.bestSignalDate) %><br>
+            lastSignalDate: <%= dbg(latestEp.lastSignalDate) %><br>
+            episodeStart: <%= dbg(latestEp.firstSignalDate) %><br>
+            episodeEnd: <%= dbg(latestEp.lastSignalDate) %><br>
+            firstSignalScore: <%= latestEp.firstSignalScore %> / 100<br>
+            bestSignalScore: <%= latestEp.bestScore %> / 100<br>
+            signalCount: <%= latestEp.signalCount %>회<br>
+            durationDays: <%= latestEp.durationDays %>거래일<br>
+            whyDisplayedDateChosen: 화면/표 기본 표시는 firstSignalDate (최초 포착일) 기준
+          </div>
+          <% if (latestEp.dayBeforeChecks && latestEp.dayBeforeChecks.length > 0) { %>
+          <div style="margin-top:6px;background:#fef3c7;padding:8px 10px;border-radius:4px;font-family:monospace;line-height:1.7;font-size:10px;color:#78350f;">
+            <strong>왜 더 일찍 안 잡혔나? (firstSignalDate 직전 7일 reject 사유)</strong><br>
+            <% latestEp.dayBeforeChecks.forEach(function(c) { %>
+              [D-<%= c.daysBefore %>] <%= dbg(c.date) %> · score=<%= c.score %> · <%= c.passed ? '✅ passed' : '❌' %><br>
+              <% if (!c.passed && c.excludeReasons.length > 0) { %>
+                &nbsp;&nbsp;&nbsp;&nbsp;<%= c.excludeReasons.slice(0, 3).join(' / ') %><br>
+              <% } %>
+            <% }); %>
+          </div>
+          <% } %>
+          <% } %>
+          <% if (qvaWindows) { %>
+          <div style="background:#f8fafc;padding:8px 10px;border-radius:4px;margin-top:6px;font-family:monospace;line-height:1.7;">
+            <strong>QVA 기준 기간 상수</strong><br>
             qvaCoreWindow = <%= qvaWindows.qvaCoreWindow %><br>
             qvaContextWindow = <%= qvaWindows.qvaContextWindow %><br>
             qvaEpisodeMergeWindow = <%= qvaWindows.qvaEpisodeMergeWindow %><br>
@@ -321,6 +359,7 @@
             너무 짧으면 잡음이 많아지고, 너무 길면 신호가 늦어질 수 있기 때문입니다.
             대신 더 큰 자리 판단을 위해 60거래일 배경 흐름도 함께 참고합니다.
           </div>
+          <% } %>
         </details>
         <% } %>
       </div>
