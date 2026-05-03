@@ -2056,13 +2056,11 @@ function renderIndex(res, overrides = {}) {
     stockMeta: null,
     chartRows: null,
     patternData: null,
-    csbDetail: null,
-    smallCsbDetail: null,
-    csbSignalHistory: null,
-    qvaDetail: null,
     qvaWatchData: null,
-    flowSummary: null,
-    flowRecent: null,
+    earlyQvaData: null,
+    breakoutData: null,
+    priceInfo: null,
+    riskChecks: null,
     materialAnalysis: null,
     high60: null,
     low60: null,
@@ -2466,8 +2464,146 @@ const handleSearch = async (req, res) => {
             boardBasisDate: watch.meta?.latestTradingDate || watch.meta?.today || null,
           };
         }
+        // EARLY_QVA stages 도 함께 검색 — 메인 화면에서 빠졌으므로 stages.EARLY_QVA에서 별도 lookup
+        if (!qvaWatchData) {
+          const earlyHit = (watch.stages?.EARLY_QVA || []).find(it => it.code === code);
+          if (earlyHit) {
+            qvaWatchData = {
+              ...earlyHit,
+              mainStage: 'EARLY_QVA',
+              mainStageLabel: '🌱 초기 QVA',
+              mainStageDesc: '아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되는 종목을 찾는 단계입니다.',
+              mainStageEasyDesc: '아직 크게 오르기 전, 거래대금이 조용히 붙기 시작한 관심 후보입니다.',
+              isHGroup: false,
+              boardBasisDate: watch.meta?.latestTradingDate || watch.meta?.today || null,
+            };
+          }
+        }
       }
     } catch (_) {}
+
+    // ─── 새로 추가: Early QVA 라이브 검출 (이 종목 차트로 직접) ───
+    // 보드 캐시에 없더라도 종목 자체가 오늘 Early QVA 조건을 만족하는지 확인.
+    let earlyQvaData = null;
+    try {
+      const ps = require("./pattern-screener");
+      const earlyMeta = {
+        code,
+        name: stockMeta.name,
+        marketValue: stockMeta.marketCap,
+        isEtf: false,
+        isSpecial: false,
+      };
+      const earlyRes = ps.calculateEarlyQVA(rows, flowRowsArr, earlyMeta);
+      if (earlyRes?.passed) {
+        earlyQvaData = {
+          passed: true,
+          score: earlyRes.score,
+          grade: earlyRes.grade,
+          gradeLabel: earlyRes.gradeLabel,
+          breakdown: earlyRes.breakdown,
+          signals: earlyRes.signals,
+        };
+      } else if (earlyRes) {
+        earlyQvaData = {
+          passed: false,
+          score: earlyRes.score || 0,
+          excludeReasons: earlyRes.excludeReasons || [],
+          signals: earlyRes.signals || null,
+        };
+      }
+    } catch (_) {}
+
+    // ─── 새로 추가: 돌파 분석 데이터 (qvaWatchData에서 추출) ───
+    let breakoutData = null;
+    if (qvaWatchData) {
+      breakoutData = {
+        vviDate: qvaWatchData.vviDate || null,
+        vviHigh: qvaWatchData.vviHigh || null,
+        vviClose: qvaWatchData.vviClose || null,
+        vviLow: qvaWatchData.vviLow || null,
+        breakoutDate: qvaWatchData.breakoutDate || null,
+        breakoutEntryPrice1Pct: qvaWatchData.breakoutEntryPrice1Pct || null,
+        breakoutNextHigh: qvaWatchData.breakoutNextHigh || null,
+        breakoutNextClose: qvaWatchData.breakoutNextClose || null,
+        breakoutSuccess: qvaWatchData.breakoutSuccess ?? null,
+        isHGroup: qvaWatchData.isHGroup || false,
+        confirmedQvaPass: qvaWatchData.auxTags?.includes('CONFIRMED_QVA_PASS') || false,
+      };
+    }
+
+    // ─── 새로 추가: priceInfo (장중/장외 구분) ───
+    const _now = new Date();
+    const todayCalendar = `${_now.getFullYear()}${String(_now.getMonth() + 1).padStart(2, '0')}${String(_now.getDate()).padStart(2, '0')}`;
+    // 장중 판정 — KST 09:00~15:30
+    const kstHour = (_now.getUTCHours() + 9) % 24;
+    const kstMin = _now.getUTCMinutes();
+    const inMarketHours = (kstHour > 9 || (kstHour === 9 && kstMin >= 0)) &&
+                          (kstHour < 15 || (kstHour === 15 && kstMin <= 30));
+    const isWeekday = ![0, 6].includes(((_now.getUTCDay() + ((_now.getUTCHours() + 9) >= 24 ? 1 : 0)) % 7));
+    const latestTradingDate = lastRow.date;
+    const isMarketOpenNow = inMarketHours && isWeekday && (todayCalendar === latestTradingDate);
+    const currentPriceLive = (stockMeta.closePrice && stockMeta.closePrice !== lastRow.close)
+      ? stockMeta.closePrice : null;
+    const priceInfo = {
+      latestTradingDate,
+      lastClose: lastRow.close,
+      todayCalendarDate: todayCalendar,
+      isMarketOpenNow,
+      currentPrice: currentPriceLive,
+      currentPriceFetchedAt: currentPriceLive ? _now.toISOString() : null,
+      displayPrice: isMarketOpenNow && currentPriceLive ? currentPriceLive : lastRow.close,
+      displayPriceType: isMarketOpenNow && currentPriceLive ? 'INTRADAY_CURRENT' : 'LATEST_CLOSE',
+      nextTradingDate: null, // qvaWatchData에서 채울 수도 있음
+      changeRate: stockMeta.changeRate,
+    };
+
+    // ─── 새로 추가: riskChecks ───
+    const riskChecks = [];
+    if (breakoutData?.breakoutEntryPrice1Pct) {
+      const er = (priceInfo.displayPrice / breakoutData.breakoutEntryPrice1Pct - 1) * 100;
+      if (er >= 15) riskChecks.push({ level: 'high', text: '현재가는 기준 진입가 대비 +' + er.toFixed(1) + '%로 크게 올라 신규 추격은 부담이 큽니다.' });
+      else if (er >= 7) riskChecks.push({ level: 'mid', text: '기준 진입가에서 +' + er.toFixed(1) + '% 떨어져 있어 추격보다는 눌림 확인이 적절할 수 있습니다.' });
+      if (breakoutData.vviHigh && priceInfo.displayPrice < breakoutData.vviHigh) {
+        riskChecks.push({ level: 'high', text: 'VVI 고가(' + breakoutData.vviHigh.toLocaleString() + '원) 아래로 다시 밀려 돌파 강도가 약화된 상태입니다.' });
+      }
+    }
+    // 거래대금 급감 체크
+    if (rows.length >= 25) {
+      const last5Val = rows.slice(-5).reduce((s, r) => s + (r.valueApprox || 0), 0) / 5;
+      const prev20Val = rows.slice(-25, -5).reduce((s, r) => s + (r.valueApprox || 0), 0) / 20;
+      if (prev20Val > 0 && last5Val < prev20Val * 0.6) {
+        riskChecks.push({ level: 'mid', text: '최근 5일 거래대금이 직전 20일 평균의 60% 미만으로 줄어 흐름이 약해졌습니다.' });
+      }
+    }
+    // 윗꼬리 과대 체크 (최근 5일 평균)
+    if (rows.length >= 5) {
+      const last5 = rows.slice(-5);
+      let bigWickCount = 0;
+      for (const r of last5) {
+        const range = r.high - r.low;
+        if (range > 0) {
+          const wick = (r.high - r.close) / range;
+          if (wick >= 0.5) bigWickCount++;
+        }
+      }
+      if (bigWickCount >= 3) riskChecks.push({ level: 'mid', text: '최근 5일 중 ' + bigWickCount + '일이 윗꼬리 50% 이상 — 추가 상승 피로감이 있을 수 있습니다.' });
+    }
+    // 최근 급등 후 과열
+    if (rows.length >= 5) {
+      const ret5 = (rows[rows.length - 1].close / rows[rows.length - 6]?.close - 1) * 100;
+      if (ret5 >= 25) riskChecks.push({ level: 'high', text: '최근 5거래일 ' + ret5.toFixed(1) + '% 급등 — 단기 과열 가능성이 있습니다.' });
+    }
+    // 초기 QVA 신호가 이탈
+    if (earlyQvaData?.passed === false && earlyQvaData?.excludeReasons?.length > 0) {
+      const top = earlyQvaData.excludeReasons[0];
+      if (top.includes('하락') || top.includes('약화')) {
+        riskChecks.push({ level: 'mid', text: '초기 QVA 조건에서 멀어졌습니다 (' + top + ').' });
+      }
+    }
+    if (riskChecks.length === 0) {
+      riskChecks.push({ level: 'low', text: '특별한 리스크 신호가 감지되지 않습니다. 다만 시장 상황과 뉴스·공시는 별도로 확인이 필요합니다.' });
+    }
 
     // 4) flow-history (외국인/기관 일별 순매수) 로드 + 1d/5d/20d 합계
     let flowSummary = null;
@@ -2564,13 +2700,11 @@ const handleSearch = async (req, res) => {
       stockMeta,
       chartRows,
       patternData,
-      csbDetail,
-      smallCsbDetail,
-      csbSignalHistory,
-      qvaDetail,
       qvaWatchData,
-      flowSummary,
-      flowRecent,
+      earlyQvaData,
+      breakoutData,
+      priceInfo,
+      riskChecks,
       materialAnalysis,
       high60,
       low60,
