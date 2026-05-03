@@ -1046,18 +1046,25 @@ const htmlTemplate = `<!DOCTYPE html>
   </div>
 
   <div class="info-box" style="background:#0f172a;border-left-color:#34d399;border-left-width:4px;padding:18px 22px;">
-    <p style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:10px;">📌 이 화면을 처음 보는 분들에게</p>
     <p>이 화면은 <strong>'살 종목'을 알려주는 곳이 아니라, 관심 있게 지켜볼 종목을 단계별로 정리해주는 화면</strong>입니다.</p>
-    <p style="margin-top:8px;"><strong style="color:#34d399;">🌱 초기 QVA</strong>는 아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되는 종목을 찾는 단계입니다.<br>
-    <strong style="color:#3b82f6;">⏳ VVI</strong>는 그중 실제로 거래대금이 강하게 붙은 것을 확인하는 단계입니다.<br>
-    <strong style="color:#10b981;">🔥 돌파 성공</strong>은 거래대금이 붙은 뒤 가격이 한 단계 더 올라간 것을 확인한 상태입니다.</p>
-    <p style="margin-top:8px;">과거 1년 데이터에서는, 초기 QVA의 <strong>20일 뒤 플러스 마감 비율은 58.2%</strong>로 기존 확인 QVA(53.2%)보다 더 좋았고, 돌파 성공까지 진행된 종목은 <strong style="color:#6ee7b7;">83.3%</strong>였습니다. 또한 초기 QVA는 기존 확인 QVA보다 <strong>평균 4.6일 (중앙값 3일) 먼저</strong> 잡힙니다.</p>
-    <p style="margin-top:8px;font-size:12px;color:#94a3b8;">기존 확인 QVA는 화면에서 별도 섹션으로 보여주지 않고, 초기 QVA가 확인 QVA 조건도 만족하면 <span class="badge tag-CONFIRMED_QVA_PASS" style="font-size:10px;padding:1px 6px;border-radius:3px;">확인 QVA 통과</span> 보조 태그로 표시합니다.</p>
-    <p style="margin-top:10px;color:#fbbf24;">하지만 이것은 과거 통계일 뿐입니다. 이 화면은 매수 추천이 아니며, <strong>실제 판단은 사용자가 직접 해야 합니다.</strong></p>
+    <p style="margin-top:10px;">흐름은 단순합니다.</p>
+    <p style="margin-top:6px;font-size:15px;text-align:center;background:#1e293b;padding:10px 12px;border-radius:6px;">
+      <strong style="color:#34d399;">🌱 초기 QVA</strong>
+      <span style="color:#64748b;">→</span>
+      <strong style="color:#3b82f6;">⏳ VVI</strong>
+      <span style="color:#64748b;">→</span>
+      <strong style="color:#10b981;">🔥 돌파 성공</strong>
+    </p>
+    <p style="margin-top:10px;"><strong style="color:#34d399;">초기 QVA</strong>는 아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되는 관심 후보입니다.<br>
+    <strong style="color:#3b82f6;">VVI</strong>는 그중 실제로 거래대금이 강하게 붙은 단계입니다.<br>
+    <strong style="color:#10b981;">돌파 성공</strong>은 VVI 이후 가격이 한 번 더 올라가고 종가도 버틴 상태입니다.</p>
+    <p style="margin-top:10px;">과거 1년 검증에서는 초기 QVA의 20일 뒤 플러스 마감 비율이 <strong style="color:#34d399;">58.2%</strong>였고, 초기 QVA가 돌파 성공까지 진행된 경우에는 <strong style="color:#6ee7b7;">83.3%</strong>였습니다.</p>
+    <p style="margin-top:8px;">즉, 단계가 진행될수록 과거 데이터상 좋은 흐름을 보인 비율이 높아졌습니다.</p>
+    <p style="margin-top:10px;color:#fbbf24;">다만 이 결과는 과거 통계일 뿐이며, 매수 추천이 아닙니다. <strong>실제 판단은 현재 가격, 차트, 뉴스, 거래대금, 시장 상황을 함께 보고 사용자가 직접 해야 합니다.</strong></p>
   </div>
 
-  <h2 style="font-size:14px;color:#cbd5e1;margin:0 0 8px 0;border:none;padding:0;">📊 1년 검증 요약 — 초기 QVA 중심</h2>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:16px;">
+  <h2 style="font-size:14px;color:#cbd5e1;margin:0 0 8px 0;border:none;padding:0;">📊 1년 검증 요약</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:16px;">
     <div style="background:#1e293b;border-left:3px solid #34d399;padding:14px 16px;border-radius:6px;">
       <div style="color:#94a3b8;font-size:12px;">🌱 초기 QVA</div>
       <div style="color:#34d399;font-size:24px;font-weight:700;margin-top:4px;">58.2%</div>
@@ -1067,15 +1074,16 @@ const htmlTemplate = `<!DOCTYPE html>
       <div style="color:#94a3b8;font-size:12px;">🔥 초기 QVA → 돌파 성공</div>
       <div style="color:#6ee7b7;font-size:24px;font-weight:700;margin-top:4px;">83.3%</div>
       <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">20일 뒤 플러스 마감 비율</div>
+      <div style="color:#94a3b8;font-size:10px;margin-top:4px;">단, 표본이 적어 참고 지표입니다.</div>
     </div>
     <div style="background:#1e293b;border-left:3px solid #60a5fa;padding:14px 16px;border-radius:6px;">
-      <div style="color:#94a3b8;font-size:12px;">초기 QVA가 평균 며칠 먼저</div>
-      <div style="color:#93c5fd;font-size:24px;font-weight:700;margin-top:4px;">4.6일</div>
-      <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">기존 확인 QVA보다 (중앙값 3일)</div>
+      <div style="color:#94a3b8;font-size:12px;">초기 QVA의 장점</div>
+      <div style="color:#93c5fd;font-size:24px;font-weight:700;margin-top:4px;">4.6일 먼저</div>
+      <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">기존 QVA보다 평균 더 빠르게 포착</div>
     </div>
     <div style="background:#1e293b;border-left:3px solid #94a3b8;padding:14px 16px;border-radius:6px;">
       <div style="color:#94a3b8;font-size:12px;">해석</div>
-      <div style="color:#cbd5e1;font-size:12px;line-height:1.5;margin-top:4px;">초기 QVA는 더 빠르면서도 플러스 마감 비율이 더 좋습니다. 돌파 성공까지 진행되면 비율이 가장 높아집니다. 단, 매수 신호 아님.</div>
+      <div style="color:#cbd5e1;font-size:12px;line-height:1.5;margin-top:4px;">초기 QVA는 더 빠른 관심 후보입니다. VVI와 돌파 성공까지 진행될수록 과거 데이터상 좋은 흐름을 보인 비율이 높아졌습니다. 단, 매수 신호는 아닙니다.</div>
     </div>
   </div>
 
@@ -1140,12 +1148,6 @@ const htmlTemplate = `<!DOCTYPE html>
     </div>
   </details>
 
-  <div class="info-box" style="border-left-color:#34d399;background:#064e3b33;margin-top:14px;">
-    <p style="color:#a7f3d0;"><strong>🌱 초기 QVA(Early QVA) 추가됨</strong></p>
-    <p style="color:#cbd5e1;">초기 QVA는 기존 QVA보다 더 빠르게 수급 흔적을 잡기 위한 감시 후보입니다. 아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되는 종목을 찾습니다. 기존 QVA보다 빠른 대신 실패 가능성도 높기 때문에, 화면에는 점수가 높은 후보 위주로 표시합니다.</p>
-    <p style="color:#94a3b8;font-size:12px;">funnel: <strong style="color:#34d399;">🌱 Early QVA</strong> → <strong style="color:#fbbf24;">👀 Confirmed QVA</strong> → <strong style="color:#3b82f6;">⏳ VVI</strong> → <strong style="color:#a5b4fc;">🚀 +1% 돌파</strong> → <strong style="color:#10b981;">🔥 H그룹</strong></p>
-    <p style="margin-top:6px;font-size:12px;color:#94a3b8;">→ 검증 보고서: <a href="/early-qva-backtest" style="color:#6ee7b7;">Early QVA 백테스트</a></p>
-  </div>
 
   <div class="help-wrap">
     <button class="help-btn open" id="help-btn">
@@ -1157,23 +1159,12 @@ const htmlTemplate = `<!DOCTYPE html>
       <div class="help-section">
         <h3>📖 용어를 쉽게 말하면</h3>
         <ul style="list-style:none;padding-left:0;">
-          <li style="margin-bottom:10px;"><strong style="color:#34d399;">🌱 초기 QVA (Early QVA)</strong> — 아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되기 시작한 후보입니다. 기존 QVA보다 더 이른 신호이지만 실패 가능성도 더 높습니다.</li>
-          <li style="margin-bottom:10px;"><strong style="color:#f1f5f9;">QVA (Confirmed QVA)</strong> — 처음 관심을 가져볼 만한 종목입니다. 아직 크게 오르지는 않았지만, 거래량이나 거래대금에서 이상 징후가 보이는 경우입니다. (기존 검증된 QVA)</li>
-          <li style="margin-bottom:10px;"><strong style="color:#f1f5f9;">VVI</strong> — QVA 후보 중 실제로 거래대금이 강하게 붙은 종목입니다. 관심 후보에서 한 단계 더 확인된 상태입니다.</li>
-          <li style="margin-bottom:10px;"><strong style="color:#f1f5f9;">돌파 성공</strong> — VVI 이후 가격이 한 번 더 강하게 올라가고, 종가도 버틴 상태입니다. 백테스트에서 H그룹이라고 부른 후보와 같은 의미입니다.</li>
-          <li style="margin-bottom:10px;"><strong style="color:#f1f5f9;">H그룹</strong> — QVA → VVI → 돌파 성공까지 진행된 종목입니다. 과거 검증에서 QVA 단독보다 좋은 흐름을 보였던 최종 확인 그룹입니다.</li>
-          <li style="margin-bottom:10px;"><strong style="color:#f1f5f9;">진입가 근처</strong> — 기준 가격에서 너무 멀리 오르지 않은 상태입니다. '매수해도 된다'는 뜻이 아니라, 추격 매수 위험이 상대적으로 덜한 위치라는 뜻입니다.</li>
+          <li style="margin-bottom:10px;"><strong style="color:#34d399;">🌱 초기 QVA</strong> — 아직 크게 오르기 전, 거래대금이 조용히 붙기 시작한 관심 후보입니다.</li>
+          <li style="margin-bottom:10px;"><strong style="color:#3b82f6;">⏳ VVI</strong> — 초기 QVA 후보 중 실제로 거래대금이 강하게 붙은 상태입니다.</li>
+          <li style="margin-bottom:10px;"><strong style="color:#10b981;">🔥 돌파 성공</strong> — VVI 이후 가격이 한 번 더 올라가고 종가도 버틴 상태입니다. 백테스트에서는 H그룹이라고 부릅니다.</li>
+          <li style="margin-bottom:10px;"><strong style="color:#93c5fd;">진입가 근처</strong> — 기준 가격에서 너무 멀리 오르지 않은 상태입니다. '매수해도 된다'는 뜻이 아니라, 추격 매수 위험을 줄이기 위한 위치 확인입니다.</li>
+          <li style="margin-bottom:10px;"><span class="badge tag-CONFIRMED_QVA_PASS" style="font-size:10px;padding:1px 6px;border-radius:3px;">확인 QVA 통과</span> — 초기 QVA 이후 가격 유지, 저점 상승, 거래대금 흐름이 한 번 더 확인된 경우 붙는 보조 태그입니다. 메인 단계는 아니고 참고용입니다.</li>
         </ul>
-      </div>
-
-      <div class="help-section">
-        <h3>모델 설명 — 초기 QVA 중심 (1년 검증 반영)</h3>
-        <p>이 화면은 <strong>초기 QVA 신호가 발생한 종목을 20거래일 동안 추적</strong>하면서, VVI 발생과 다음 거래일 돌파 성공 여부까지 확인하는 운영 보드입니다.</p>
-        <p><strong>🌱 초기 QVA (Early QVA)</strong>는 아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되는 종목을 찾는 단계입니다. <strong>1년 검증에서 20일 뒤 플러스 마감 비율 58.2%</strong>로, 기존 확인 QVA(53.2%)보다 좋고 평균 4.6일(중앙값 3일) 먼저 잡힙니다.</p>
-        <p><strong>⏳ VVI</strong>는 초기 QVA 후보 중 실제 거래대금 초동이 확인된 상태입니다. 거래량/거래대금이 강하게 증가하고, 종가가 양호하게 마감한 종목을 확인합니다.</p>
-        <p><strong>🚀 다음 거래일 돌파 대기</strong>는 VVI 다음 거래일에 vviHigh × 1.01 돌파 여부를 기다리는 후보입니다.</p>
-        <p><strong>🔥 돌파 성공 확인 종목 (= H그룹)</strong>은 +1% 돌파 → 종가 유지까지 통과한 후보입니다. <strong>1년 검증에서 초기 QVA → 돌파 성공까지 진행된 종목의 20일 뒤 플러스 마감 비율은 83.3%</strong>를 기록했습니다.</p>
-        <p style="margin-top:6px;"><strong>확인 QVA(기존 QVA)</strong>는 메인 화면에서 별도 섹션으로 보여주지 않고, 초기 QVA 후보 중 확인 QVA 조건도 만족하면 <span class="badge tag-CONFIRMED_QVA_PASS" style="font-size:10px;padding:1px 6px;border-radius:3px;">확인 QVA 통과</span> 보조 태그로 표시합니다. 백테스트와 내부 분석에는 계속 사용됩니다.</p>
       </div>
 
       <div class="help-section">
@@ -1181,38 +1172,13 @@ const htmlTemplate = `<!DOCTYPE html>
         <div class="funnel">
           <span class="step" style="background:#064e3b;color:#34d399;">🌱 초기 QVA</span>
           <span class="arrow-r">→</span>
-          <span class="step">⏳ VVI 발생</span>
+          <span class="step">⏳ VVI</span>
           <span class="arrow-r">→</span>
           <span class="step">🚀 다음 거래일 돌파 대기</span>
           <span class="arrow-r">→</span>
-          <span class="step h-group">🔥 돌파 성공 확인 종목 = H그룹</span>
+          <span class="step h-group">🔥 돌파 성공</span>
           <span class="arrow-r">→</span>
-          <span class="step">익절/청산 시나리오 검토</span>
-        </div>
-        <ul>
-          <li><strong>🌱 초기 QVA</strong> — 아직 크게 오르기 전, 거래대금이 조용히 살아나고 저점이 안정되는 종목 <span style="color:#34d399;">(20일 뒤 플러스 마감 비율 58.2%)</span></li>
-          <li><strong>⏳ VVI 발생</strong> — 실제 거래대금 초동이 확인된 상태</li>
-          <li><strong>🚀 다음 거래일 돌파 대기</strong> — VVI 다음 거래일에 vviHigh × 1.01 돌파 여부를 기다리는 종목</li>
-          <li><strong>🔥 돌파 성공 확인 종목</strong> — +1% 돌파 → 종가 유지까지 통과한 후보 <span style="color:#6ee7b7;">(초기 QVA → 돌파 성공 시 20일 뒤 플러스 마감 비율 83.3%)</span></li>
-          <li><strong>H그룹</strong> — 백테스트에서 검증한 돌파 성공 확인 종목 그룹 (위와 동일)</li>
-          <li><span class="badge tag-CONFIRMED_QVA_PASS" style="font-size:10px;padding:1px 6px;border-radius:3px;">확인 QVA 통과</span> 보조 태그 — 초기 QVA 이후 가격 유지·저점 상승·거래대금 흐름이 한 번 더 확인된 상태 (기존 QVA 조건 만족)</li>
-        </ul>
-      </div>
-
-      <div class="help-section">
-        <h3>H그룹이란?</h3>
-        <div class="h-group-card">
-          <p><strong>H그룹은 QVA → VVI → 다음날 +1% 돌파 → 종가 유지까지 확인된 돌파 성공 확인 종목입니다.</strong></p>
-          <p><strong>1년 검증에서 funnel 진행에 따라 20일 뒤 플러스 마감 비율이 크게 개선된 핵심 후보군입니다</strong> (초기 QVA 단독 58.2% → 초기 QVA → H그룹 진행 시 83.3%).</p>
-          <p>조건은 다음과 같습니다.</p>
-          <ol>
-            <li>QVA(초기 또는 확인) 발생</li>
-            <li>QVA 이후 20거래일 안에 VVI 발생</li>
-            <li>VVI 다음 거래일에 vviHigh × 1.01 이상 돌파</li>
-            <li>그날 종가가 vviHigh 이상에서 마감</li>
-          </ol>
-          <p>이 화면에서는 H그룹을 <strong>'돌파 성공 확인 종목'</strong>으로 표시합니다.</p>
-          <div class="warn">⚠️ 단, H그룹도 매수 추천이 아니며 현재가가 기준 가격에서 많이 멀어진 경우에는 <strong>눌림 확인 또는 관리 구간</strong>으로 봐야 합니다.</div>
+          <span class="step">현재 위치 확인</span>
         </div>
       </div>
 
@@ -1266,12 +1232,39 @@ function fmtPct(n, sign) {
 }
 function marketCls(m) { return m === 'KOSDAQ' ? 'market-Q' : 'market-K'; }
 
-document.getElementById('subtitle').textContent =
-  'latestTradingDate: ' + fmtDate(DATA.meta.latestTradingDate) +
-  ' · todayCalendarDate: ' + fmtDate(DATA.meta.todayCalendarDate) +
-  (DATA.meta.isMarketClosedToday ? ' (휴장/주말)' : ' (거래일)') +
-  ' · nextTradingDate: ' + fmtDate(DATA.meta.nextTradingDate) +
-  ' · 갱신: ' + DATA.meta.generatedAt.slice(0, 19).replace('T', ' ');
+// 사용자 친화 subtitle + 개발자 정보 접힘 영역
+const subtitleEl = document.getElementById('subtitle');
+const baseDate = fmtDate(DATA.meta.latestTradingDate);
+const nextDate = fmtDate(DATA.meta.nextTradingDate);
+const closed = DATA.meta.isMarketClosedToday;
+subtitleEl.innerHTML =
+  '기준 거래일: <strong>' + baseDate + '</strong>' +
+  ' · 다음 거래일: <strong>' + nextDate + '</strong>' +
+  '<br><span style="color:#94a3b8;font-size:11px;">' +
+  (closed ? '오늘은 휴장일이라 ' : '') +
+  '마지막 거래일 기준으로 표시됩니다.' +
+  ' · 갱신: ' + DATA.meta.generatedAt.slice(0, 16).replace('T', ' ') +
+  ' · <a href="#" id="dev-info-toggle" style="color:#64748b;text-decoration:underline;font-size:11px;">개발자 정보 보기 ▾</a>' +
+  '</span>' +
+  '<div id="dev-info-detail" style="display:none;margin-top:8px;padding:8px 12px;background:#1e293b;border-radius:6px;border:1px solid #334155;font-family:monospace;font-size:11px;color:#94a3b8;">' +
+    'latestTradingDate=' + DATA.meta.latestTradingDate +
+    ' · todayCalendarDate=' + DATA.meta.todayCalendarDate +
+    ' · nextTradingDate=' + DATA.meta.nextTradingDate +
+    ' · isMarketClosedToday=' + DATA.meta.isMarketClosedToday +
+    ' · tradingDateCount=' + DATA.meta.tradingDateCount +
+    ' · recentVviCount=' + DATA.meta.recentVviCount +
+    ' · trackingDays=' + DATA.meta.trackingDays +
+  '</div>';
+const devInfoToggle = document.getElementById('dev-info-toggle');
+const devInfoDetail = document.getElementById('dev-info-detail');
+if (devInfoToggle && devInfoDetail) {
+  devInfoToggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    const open = devInfoDetail.style.display !== 'none';
+    devInfoDetail.style.display = open ? 'none' : 'block';
+    devInfoToggle.textContent = open ? '개발자 정보 보기 ▾' : '개발자 정보 닫기 ▴';
+  });
+}
 
 // 디버그 메타 표시 (info-box 하단)
 const metaEl = document.getElementById('trading-date-meta');
