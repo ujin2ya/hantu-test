@@ -456,6 +456,35 @@ const htmlTemplate = `<!DOCTYPE html>
   .market-K { color: #60a5fa; }
   .market-Q { color: #c084fc; }
   .empty { padding: 18px; color: #64748b; text-align: center; font-size: 13px; }
+
+  /* 모바일: 카드 레이아웃 */
+  .cards { display: none; padding: 6px 10px 12px 10px; }
+  .card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  .card-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .card-head .name { font-weight: 700; font-size: 15px; }
+  .card-head .meta { color: #64748b; font-size: 11px; margin-left: auto; }
+  .card-headline { display: flex; align-items: baseline; gap: 10px; padding: 6px 0 10px 0; border-bottom: 1px dashed #334155; margin-bottom: 10px; }
+  .card-headline .big-pct { font-size: 28px; font-weight: 700; }
+  .card-headline .surge-when { color: #cbd5e1; font-size: 13px; }
+  .card-body { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font-size: 12px; }
+  .card-body .lbl { color: #64748b; }
+  .card-body .val { color: #e2e8f0; text-align: right; }
+  @media (max-width: 640px) {
+    body { padding: 12px; }
+    h1 { font-size: 19px; }
+    h2 { font-size: 15px; margin-top: 24px; }
+    .subtitle { font-size: 11px; }
+    .summary { padding: 12px; }
+    .stat-value { font-size: 15px; }
+    .stat-label { font-size: 10px; }
+    .highlight { font-size: 12px; padding: 10px 12px; }
+    details summary { padding: 12px 14px; font-size: 13px; }
+    .date-stats { font-size: 11px; padding: 6px 14px; }
+    .date-stats span { margin-right: 10px; }
+    table { display: none; }
+    .cards { display: block; }
+    .controls input[type=text], .controls select { font-size: 14px; }
+  }
 </style>
 </head>
 <body>
@@ -599,6 +628,38 @@ DATA.signalDates.forEach((d, idx) => {
     ).join('') + '</tbody>';
     tbl.innerHTML = thead + tbody;
     det.appendChild(tbl);
+
+    // 모바일 카드 (같은 데이터, 다른 레이아웃)
+    const cards = document.createElement('div');
+    cards.className = 'cards';
+    cards.innerHTML = d.stocks.map(s => {
+      const pctCls = s.bestSingleDayReturn > 0 ? 'pos' : (s.bestSingleDayReturn < 0 ? 'neg' : 'muted');
+      const pctSign = s.bestSingleDayReturn > 0 ? '+' : '';
+      const fromSignSign = s.returnFromSignal > 0 ? '+' : '';
+      const fromSignCls = s.returnFromSignal > 0 ? 'pos' : (s.returnFromSignal < 0 ? 'neg' : 'muted');
+      const mddCls = s.preSurgeMaxDrop < 0 ? 'neg' : 'muted';
+      return '<div class="card" data-name="' + (s.name || '') + '" data-code="' + s.code +
+        '" data-h10="' + (s.hit10 ? 1 : 0) + '" data-h15="' + (s.hit15 ? 1 : 0) +
+        '" data-h20="' + (s.hit20 ? 1 : 0) + '" data-h30="' + (s.hit30 ? 1 : 0) + '">' +
+        '<div class="card-head">' +
+          '<span class="name ' + marketCls(s.market) + '">' + (s.name || '') + '</span>' +
+          badges(s) +
+          '<span class="meta">' + s.market + ' · ' + s.code + '</span>' +
+        '</div>' +
+        '<div class="card-headline">' +
+          '<span class="big-pct ' + pctCls + '">' + pctSign + s.bestSingleDayReturn.toFixed(2) + '%</span>' +
+          '<span class="surge-when">' + fmtDate(s.surgeDate) + ' · D+' + s.daysToSurge + '</span>' +
+        '</div>' +
+        '<div class="card-body">' +
+          '<span class="lbl">신호가</span><span class="val">' + fmtNum(s.signalPrice) + '원 (' + fmtDate(s.signalDate) + ')</span>' +
+          '<span class="lbl">전일종가 → 급등종가</span><span class="val">' + fmtNum(s.prevClose) + '원 → ' + fmtNum(s.surgeClose) + '원</span>' +
+          '<span class="lbl">신호대비</span><span class="val ' + fromSignCls + '">' + fromSignSign + s.returnFromSignal.toFixed(2) + '%</span>' +
+          '<span class="lbl">거래대금</span><span class="val">' + (s.surgeValue / 1e8).toFixed(0) + '억 (' + s.surgeValueRatio.toFixed(2) + 'x)</span>' +
+          '<span class="lbl">급등 전 MDD</span><span class="val ' + mddCls + '">' + s.preSurgeMaxDrop.toFixed(2) + '%</span>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    det.appendChild(cards);
   }
   datesEl.appendChild(det);
 });
@@ -634,16 +695,16 @@ const hitFilter = document.getElementById('hit-filter');
 function applyFilter() {
   const q = filterInput.value.trim().toLowerCase();
   const hf = hitFilter.value;
-  document.querySelectorAll('table tbody tr').forEach(tr => {
-    const name = (tr.dataset.name || '').toLowerCase();
-    const code = (tr.dataset.code || '').toLowerCase();
+  document.querySelectorAll('table tbody tr, .cards .card').forEach(el => {
+    const name = (el.dataset.name || '').toLowerCase();
+    const code = (el.dataset.code || '').toLowerCase();
     const matchQ = !q || name.includes(q) || code.includes(q);
     let matchH = true;
-    if (hf === 'hit10') matchH = tr.dataset.h10 === '1';
-    else if (hf === 'hit15') matchH = tr.dataset.h15 === '1';
-    else if (hf === 'hit20') matchH = tr.dataset.h20 === '1';
-    else if (hf === 'hit30') matchH = tr.dataset.h30 === '1';
-    tr.style.display = matchQ && matchH ? '' : 'none';
+    if (hf === 'hit10') matchH = el.dataset.h10 === '1';
+    else if (hf === 'hit15') matchH = el.dataset.h15 === '1';
+    else if (hf === 'hit20') matchH = el.dataset.h20 === '1';
+    else if (hf === 'hit30') matchH = el.dataset.h30 === '1';
+    el.style.display = matchQ && matchH ? '' : 'none';
   });
 }
 filterInput.addEventListener('input', applyFilter);
