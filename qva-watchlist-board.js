@@ -1907,14 +1907,32 @@ if (helpBtn && helpContent) {
 }
 
 // ─── 전체 종목 검색 — 모든 stage-section 테이블 행 필터링 ───
+// 사용자 spec: 매칭 행이 접힌 섹션 안에 있으면 자동으로 펼쳐서 노출하고,
+// 검색어를 비우면 원래 상태(접힘)로 복귀.
 const globalSearch = document.getElementById('global-search');
 const globalSearchStatus = document.getElementById('global-search-status');
 const globalSearchClear = document.getElementById('global-search-clear');
 if (globalSearch) {
+  // 각 섹션의 사용자 의도 collapsed 상태(검색 전)를 기억
+  const originalCollapsed = new Map();
+  document.querySelectorAll('.stage-section').forEach(sec => {
+    originalCollapsed.set(sec.dataset.stage, sec.classList.contains('collapsed'));
+  });
+
+  function setSectionCollapsed(sec, collapsed) {
+    if (collapsed) sec.classList.add('collapsed');
+    else sec.classList.remove('collapsed');
+    const toggle = sec.querySelector('.toggle');
+    if (toggle) {
+      const cText = toggle.dataset.collapsedText || '▼ 펼치기';
+      const eText = toggle.dataset.expandedText || '▲ 접기';
+      toggle.textContent = collapsed ? cText : eText;
+    }
+  }
+
   function applyGlobalSearch() {
     const q = (globalSearch.value || '').trim().toLowerCase();
     let totalRows = 0, matchRows = 0;
-    const matchByStage = {};
     document.querySelectorAll('.stage-section').forEach(sec => {
       const stage = sec.dataset.stage;
       let secTotal = 0, secMatch = 0;
@@ -1927,7 +1945,6 @@ if (globalSearch) {
         }
         const name = (tr.dataset.name || '').toLowerCase();
         const code = (tr.dataset.code || '').toLowerCase();
-        // 데이터 attr 없는 경우 textContent로 fallback
         const text = (name || code) ? '' : (tr.textContent || '').toLowerCase();
         const match = name.includes(q) || code.includes(q) || text.includes(q);
         tr.style.display = match ? '' : 'none';
@@ -1935,8 +1952,8 @@ if (globalSearch) {
       });
       totalRows += secTotal;
       matchRows += secMatch;
-      matchByStage[stage] = { total: secTotal, match: secMatch };
-      // 섹션 타이틀에 매칭 카운트 갱신 (일시적)
+
+      // 매칭 카운트 pill 갱신
       const matchPill = sec.querySelector('.search-match-pill');
       if (matchPill) matchPill.remove();
       if (q.length > 0 && secTotal > 0) {
@@ -1948,6 +1965,14 @@ if (globalSearch) {
           pill.textContent = '🔍 ' + secMatch + '/' + secTotal;
           title.appendChild(pill);
         }
+      }
+
+      // 핵심 fix: 검색어가 있고 매칭 행이 있으면 섹션을 자동으로 펼친다.
+      // 검색어가 비면 원래(검색 전) collapsed 상태로 복귀.
+      if (q.length === 0) {
+        setSectionCollapsed(sec, originalCollapsed.get(stage) === true);
+      } else if (secMatch > 0) {
+        setSectionCollapsed(sec, false);
       }
     });
     if (q.length === 0) {
