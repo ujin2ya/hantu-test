@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>愿由ъ옄 ??쒕낫??/title>
+  <title>관리자 대시보드</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
   <style>
@@ -70,25 +70,25 @@
 <body>
   <div class="wrap">
     <div class="topbar">
-      <h1><i class="bi bi-speedometer2 me-2"></i>愿由ъ옄 ??쒕낫??/h1>
+      <h1><i class="bi bi-speedometer2 me-2"></i>관리자 대시보드</h1>
       <a href="/admin/logout" class="text-decoration-none text-secondary small">
-        <i class="bi bi-box-arrow-right me-1"></i>濡쒓렇?꾩썐
+        <i class="bi bi-box-arrow-right me-1"></i>로그아웃
       </a>
     </div>
 
     <% if (flash) { %>
       <%
         const flashMap = {
-          missing_email: { type: "danger", msg: "?대찓?쇱씠 鍮꾩뼱 ?덉뒿?덈떎." },
-          not_found: { type: "danger", msg: "?대떦 ?대찓?쇱쓣 李얠쓣 ???놁뒿?덈떎." },
-          removed: { type: "success", msg: "援щ룆?먮? ?쒓굅?덉뒿?덈떎." },
-          pattern_seeding: { type: "warning", msg: "?⑦꽩 ?쒕뱶媛 ?대? 吏꾪뻾 以묒엯?덈떎." },
-          pattern_seed_started: { type: "success", msg: "?⑦꽩 ?쒕뱶瑜??쒖옉?덉뒿?덈떎 (4~8遺??뚯슂). ?덈줈怨좎묠?쇰줈 吏꾪뻾 ?뺤씤." },
-          pattern_analyzing: { type: "warning", msg: "?⑦꽩 遺꾩꽍???대? 吏꾪뻾 以묒엯?덈떎." },
-          pattern_analyze_started: { type: "success", msg: "?⑦꽩 遺꾩꽍???쒖옉?덉뒿?덈떎 (~1遺?. ?꾨즺 ??/pattern ?섏씠吏?먯꽌 寃곌낵 ?뺤씤." },
-          mail_sent: { type: "success", msg: "VVI ?좏샇 硫붿씪??諛쒖넚?덉뒿?덈떎." },
-          no_result: { type: "danger", msg: "pattern-result.json ?뚯씪???놁뒿?덈떎. 癒쇱? 遺꾩꽍???ㅽ뻾?섏꽭??" },
-          mail_error: { type: "danger", msg: "硫붿씪 諛쒖넚 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎." },
+          missing_email: { type: "danger", msg: "이메일이 비어 있습니다." },
+          not_found: { type: "danger", msg: "해당 이메일을 찾을 수 없습니다." },
+          removed: { type: "success", msg: "구독자를 제거했습니다." },
+          pattern_seeding: { type: "warning", msg: "패턴 시드가 이미 진행 중입니다." },
+          pattern_seed_started: { type: "success", msg: "패턴 시드를 시작했습니다 (4~8분 소요). 새로고침으로 진행 확인." },
+          pattern_analyzing: { type: "warning", msg: "패턴 분석이 이미 진행 중입니다." },
+          pattern_analyze_started: { type: "success", msg: "패턴 분석을 시작했습니다 (~1분). 완료 후 /pattern 페이지에서 결과 확인." },
+          mail_sent: { type: "success", msg: "VVI 신호 메일을 발송했습니다." },
+          no_result: { type: "danger", msg: "pattern-result.json 파일이 없습니다. 먼저 분석을 실행하세요." },
+          mail_error: { type: "danger", msg: "메일 발송 중 오류가 발생했습니다." },
         };
         const f = flashMap[flash];
       %>
@@ -98,60 +98,61 @@
     <% } %>
 
     <div class="card-soft">
-      <h2><i class="bi bi-info-circle me-1"></i>?댁쁺 ?곹깭</h2>
+      <h2><i class="bi bi-info-circle me-1"></i>운영 상태</h2>
       <div class="meta-grid">
         <div class="meta-cell">
-          <div class="label">援щ룆??/div>
+          <div class="label">구독자</div>
           <div class="value"><%= subscribers.length %> / <%= maxSubscribers %></div>
         </div>
         <% if (typeof stocksMaster !== 'undefined' && stocksMaster) { %>
           <div class="meta-cell">
-            <div class="label">醫낅ぉ 留덉뒪??/div>
+            <div class="label">종목 마스터</div>
             <div class="value">
               <% if (stocksMaster.stale) { %>
-                <span class="badge-soft run"><%= stocksMaster.ageDays %>??????/span>
+                <span class="badge-soft run"><%= stocksMaster.ageDays %>일 전 ⚠</span>
               <% } else { %>
-                <%= stocksMaster.ageDays %>????              <% } %>
+                <%= stocksMaster.ageDays %>일 전
+              <% } %>
             </div>
           </div>
         <% } %>
       </div>
       <% if (typeof seededCount !== 'undefined') { %>
         <div class="meta-cell mt-2">
-          <div class="label">李⑦듃 ?쒕뱶 醫낅ぉ</div>
-          <div class="value"><%= seededCount %> 醫낅ぉ ???쇰큺 罹먯떆 (cache/stock-charts-long)</div>
+          <div class="label">차트 시드 종목</div>
+          <div class="value"><%= seededCount %> 종목 — 일봉 캐시 (cache/stock-charts-long)</div>
         </div>
       <% } %>
       <div class="alert alert-info small mt-2 mb-0">
-        ?꾩옱 硫붿씤 紐⑤뜽: <strong>QVA_HIGHER_LOW</strong> (????곸듅 + 嫄곕옒?湲?利앷?) + <strong>QVA_EVOLUTION</strong> (援ъ“ 吏꾪솕 ?꾪꽣) = <strong>QVA_STRONG</strong> (理쒖슦??
-        + <strong>VVI</strong> (嫄곕옒?湲?珥덈룞 + ?좏샇 異붿쟻) ???뱀뀡留??⑦꽩 ?섏씠吏???쒖떆.
+        현재 메인 모델: <strong>QVA_HIGHER_LOW</strong> (저점 상승 + 거래대금 증가) + <strong>QVA_EVOLUTION</strong> (구조 진화 필터) = <strong>QVA_STRONG</strong> (최우선)
+        + <strong>VVI</strong> (거래대금 초동 + 신호 추적) 두 섹션만 패턴 페이지에 표시.
       </div>
     </div>
 
     <div class="card-soft">
-      <h2><i class="bi bi-graph-up-arrow me-1"></i>醫낅ぉ 遺꾩꽍 ?뚯씠?꾨씪??/h2>
+      <h2><i class="bi bi-graph-up-arrow me-1"></i>종목 분석 파이프라인</h2>
       <div class="small text-secondary mb-3">
-        <strong>???쒕뱶</strong>: KRX ?쇰큺 李⑦듃 ?곗씠???ㅼ슫濡쒕뱶 (cache 媛깆떊) 쨌
-        <strong>??遺꾩꽍</strong>: <code>analyzeAll()</code> ?몄텧 = QVA_HIGHER_LOW + QVA_EVOLUTION 湲곗? ?щ텇??(cache/pattern-result.json ?낅뜲?댄듃, /pattern ?섏씠吏 諛섏쁺) 쨌
-        <strong>???쇱씪 ?낅뜲?댄듃</strong>: pykrx + Naver 理쒓렐 5嫄곕옒??李⑦듃/?섍툒 媛깆떊 + ?щ텇??(留ㅼ씪 16:20 ?먮룞 ?ㅽ뻾)
-        <br>??肄붾뱶 諛고룷 ?꾩뿏 諛섎뱶??<strong>??遺꾩꽍</strong>???ㅼ떆 ?ㅽ뻾?댁빞 /pattern ?섏씠吏??諛섏쁺?⑸땲??
+        <strong>① 시드</strong>: KRX 일봉 차트 데이터 다운로드 (cache 갱신) ·
+        <strong>② 분석</strong>: <code>analyzeAll()</code> 호출 = QVA_HIGHER_LOW + QVA_EVOLUTION 기준 재분석 (cache/pattern-result.json 업데이트, /pattern 페이지 반영) ·
+        <strong>⚡ 일일 업데이트</strong>: pykrx + Naver 최근 5거래일 차트/수급 갱신 + 재분석 (매일 16:20 자동 실행)
+        <br>새 코드 배포 후엔 반드시 <strong>② 분석</strong>을 다시 실행해야 /pattern 페이지에 반영됩니다.
       </div>
       <% if (typeof patternState !== 'undefined' && patternState) { %>
         <div class="row g-2 mb-3">
           <div class="col-12 col-md-6">
             <div class="meta-cell">
-              <div class="label">?쒕뱶 ?곹깭</div>
+              <div class="label">시드 상태</div>
               <div class="value">
                 <% if (patternState.seeding) { %>
-                  <span class="badge-soft run">吏꾪뻾 以?/span>
+                  <span class="badge-soft run">진행 중</span>
                   <% if (patternState.seedProgress?.total) { %>
-                    <span class="text-secondary small ms-2"><%= patternState.seedProgress.i %>/<%= patternState.seedProgress.total %> 쨌 <%= patternState.seedProgress.code %> <%= patternState.seedProgress.name %></span>
+                    <span class="text-secondary small ms-2"><%= patternState.seedProgress.i %>/<%= patternState.seedProgress.total %> · <%= patternState.seedProgress.code %> <%= patternState.seedProgress.name %></span>
                   <% } %>
                 <% } else if (patternState.seedFinishedAt) { %>
-                  <span class="badge-soft on">?꾨즺</span>
+                  <span class="badge-soft on">완료</span>
                   <span class="text-secondary small ms-2"><%= new Date(patternState.seedFinishedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %></span>
                 <% } else { %>
-                  <span class="text-secondary small">誘몄떎??/span>
+                  <span class="text-secondary small">미실행</span>
                 <% } %>
                 <% if (patternState.seedError) { %>
                   <div class="text-danger small mt-1"><%= patternState.seedError %></div>
@@ -161,15 +162,15 @@
           </div>
           <div class="col-12 col-md-6">
             <div class="meta-cell">
-              <div class="label">遺꾩꽍 ?곹깭</div>
+              <div class="label">분석 상태</div>
               <div class="value">
                 <% if (patternState.analyzing) { %>
-                  <span class="badge-soft run">吏꾪뻾 以?/span>
+                  <span class="badge-soft run">진행 중</span>
                 <% } else if (patternState.analyzeFinishedAt) { %>
-                  <span class="badge-soft on">?꾨즺</span>
+                  <span class="badge-soft on">완료</span>
                   <span class="text-secondary small ms-2"><%= new Date(patternState.analyzeFinishedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %></span>
                 <% } else { %>
-                  <span class="text-secondary small">誘몄떎??/span>
+                  <span class="text-secondary small">미실행</span>
                 <% } %>
                 <% if (patternState.analyzeError) { %>
                   <div class="text-danger small mt-1"><%= patternState.analyzeError %></div>
@@ -179,16 +180,16 @@
           </div>
           <div class="col-12 col-md-6">
             <div class="meta-cell">
-              <div class="label">?쇱씪 ?낅뜲?댄듃 ?곹깭</div>
+              <div class="label">일일 업데이트 상태</div>
               <div class="value">
                 <% if (patternState.dailyUpdating) { %>
-                  <span class="badge-soft run">遺꾩꽍以?/span>
-                  <span class="text-secondary small ms-2">??20~30遺??뚯슂 (李⑦듃 + ?섍툒 + 遺꾩꽍)</span>
+                  <span class="badge-soft run">분석중</span>
+                  <span class="text-secondary small ms-2">약 20~30분 소요 (차트 + 수급 + 분석)</span>
                 <% } else if (patternState.dailyUpdateFinishedAt) { %>
-                  <span class="badge-soft on">遺꾩꽍??/span>
+                  <span class="badge-soft on">분석끝</span>
                   <span class="text-secondary small ms-2"><%= new Date(patternState.dailyUpdateFinishedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %></span>
                 <% } else { %>
-                  <span class="text-secondary small">誘몄떎??/span>
+                  <span class="text-secondary small">미실행</span>
                 <% } %>
                 <% if (patternState.dailyUpdateError) { %>
                   <div class="text-danger small mt-1"><%= patternState.dailyUpdateError %></div>
@@ -199,47 +200,47 @@
         </div>
       <% } %>
       <div class="d-flex gap-2 flex-wrap">
-        <form method="post" action="/admin/pattern/seed" class="m-0" onsubmit="return confirm('??李⑦듃 ?쒕뱶瑜??ㅼ떆 ?ㅽ뻾?좉퉴?? 湲곗〈 罹먯떆???좎?, ?좉퇋 醫낅ぉ留?異붽? (~10遺?.');">
+        <form method="post" action="/admin/pattern/seed" class="m-0" onsubmit="return confirm('① 차트 시드를 다시 실행할까요? 기존 캐시는 유지, 신규 종목만 추가 (~10분).');">
           <button type="submit" class="btn btn-outline-primary btn-sm" <%= (typeof patternState !== 'undefined' && patternState?.seeding) ? 'disabled' : '' %>>
-            <i class="bi bi-cloud-download me-1"></i>??李⑦듃 ?쒕뱶 (KRX ?쇰큺)
+            <i class="bi bi-cloud-download me-1"></i>① 차트 시드 (KRX 일봉)
           </button>
         </form>
-        <form method="post" action="/admin/pattern/analyze" class="m-0" onsubmit="return confirm('??遺꾩꽍???ㅼ떆 ?ㅽ뻾?좉퉴?? QVA_HIGHER_LOW + QVA_EVOLUTION 湲곗? ?щ텇????/pattern ?섏씠吏 諛섏쁺 (~1遺?.');">
+        <form method="post" action="/admin/pattern/analyze" class="m-0" onsubmit="return confirm('② 분석을 다시 실행할까요? QVA_HIGHER_LOW + QVA_EVOLUTION 기준 재분석 후 /pattern 페이지 반영 (~1분).');">
           <button type="submit" class="btn btn-success btn-sm" <%= (typeof patternState !== 'undefined' && patternState?.analyzing) ? 'disabled' : '' %>>
-            <i class="bi bi-cpu me-1"></i>??遺꾩꽍 ?ㅽ뻾 (QVA_STRONG)
+            <i class="bi bi-cpu me-1"></i>② 분석 실행 (QVA_STRONG)
           </button>
         </form>
         <button type="button" class="btn btn-outline-info btn-sm"
           <%= (typeof patternState !== 'undefined' && patternState?.dailyUpdating) ? 'disabled' : '' %>
           onclick="runDailyUpdate()">
-          <i class="bi bi-arrow-clockwise me-1"></i>???쇱씪 ?낅뜲?댄듃
+          <i class="bi bi-arrow-clockwise me-1"></i>⚡ 일일 업데이트
         </button>
-        <form method="post" action="/admin/send-pattern-mail" class="m-0" onsubmit="return confirm('VVI ?좏샇 硫붿씪??吏湲?諛쒖넚?좉퉴??');">
+        <form method="post" action="/admin/send-pattern-mail" class="m-0" onsubmit="return confirm('VVI 신호 메일을 지금 발송할까요?');">
           <button type="submit" class="btn btn-outline-warning btn-sm">
-            <i class="bi bi-envelope-check me-1"></i>??VVI ?좏샇 硫붿씪 諛쒖넚
+            <i class="bi bi-envelope-check me-1"></i>③ VVI 신호 메일 발송
           </button>
         </form>
         <a href="/pattern" class="btn btn-outline-secondary btn-sm">
-          <i class="bi bi-eye me-1"></i>/pattern 蹂닿린
+          <i class="bi bi-eye me-1"></i>/pattern 보기
         </a>
       </div>
       <div class="small text-secondary mt-2">
-        ????肄붾뱶 諛고룷 吏곹썑??<strong>??遺꾩꽍 ?ㅽ뻾</strong> 留??꾨Ⅴ硫??⑸땲?? ?쒕뱶??KRX ?쇰큺 媛깆떊???꾩슂???뚮쭔.
+        ※ 새 코드 배포 직후엔 <strong>② 분석 실행</strong> 만 누르면 됩니다. 시드는 KRX 일봉 갱신이 필요할 때만.
       </div>
     </div>
 
     <div class="card-soft">
-      <h2><i class="bi bi-people me-1"></i>援щ룆??(<%= subscribers.length %>)</h2>
+      <h2><i class="bi bi-people me-1"></i>구독자 (<%= subscribers.length %>)</h2>
       <% if (subscribers.length === 0) { %>
-        <div class="small text-muted">援щ룆?먭? ?놁뒿?덈떎.</div>
+        <div class="small text-muted">구독자가 없습니다.</div>
       <% } else { %>
         <div class="table-responsive">
           <table class="table table-sm subs align-middle">
             <thead>
               <tr>
-                <th>?대찓??/th>
-                <th>援щ룆??/th>
-                <th class="text-end">愿由?/th>
+                <th>이메일</th>
+                <th>구독일</th>
+                <th class="text-end">관리</th>
               </tr>
             </thead>
             <tbody>
@@ -254,7 +255,7 @@
                     <% } %>
                   </td>
                   <td class="text-end">
-                    <form method="post" action="/admin/unsubscribe" class="d-inline" onsubmit="return confirm('<%= sub.email %> ??瑜? 援щ룆 ?댁젣?좉퉴??');">
+                    <form method="post" action="/admin/unsubscribe" class="d-inline" onsubmit="return confirm('<%= sub.email %> 을(를) 구독 해제할까요?');">
                       <input type="hidden" name="email" value="<%= sub.email %>" />
                       <button type="submit" class="btn btn-outline-danger btn-sm">
                         <i class="bi bi-x-circle"></i>
@@ -270,28 +271,28 @@
     </div>
 
     <div class="text-center small text-secondary mt-3">
-      <a href="/" class="text-decoration-none text-secondary me-3"><i class="bi bi-arrow-left me-1"></i>?덉쑝濡?/a>
-      <a href="/subscribe" class="text-decoration-none text-secondary"><i class="bi bi-envelope-plus me-1"></i>援щ룆 ?섏씠吏</a>
+      <a href="/" class="text-decoration-none text-secondary me-3"><i class="bi bi-arrow-left me-1"></i>홈으로</a>
+      <a href="/subscribe" class="text-decoration-none text-secondary"><i class="bi bi-envelope-plus me-1"></i>구독 페이지</a>
     </div>
   </div>
 
   <script>
     async function runDailyUpdate() {
-      const msg = '?쇱씪 ?낅뜲?댄듃瑜??ㅽ뻾?좉퉴?? (李⑦듃 + ?섍툒 + 遺꾩꽍, ??20~30遺??뚯슂)';
+      const msg = '일일 업데이트를 실행할까요? (차트 + 수급 + 분석, 약 20~30분 소요)';
       if (!confirm(msg)) return;
 
       try {
         const resp = await fetch('/admin/run-daily-update', { method: 'POST' });
         if (resp.ok) {
-          // ?쒕쾭 ?곹깭 ?낅뜲?댄듃 ?湲????섏씠吏 ?덈줈怨좎묠 (300ms)
+          // 서버 상태 업데이트 대기 후 페이지 새로고침 (300ms)
           setTimeout(() => {
             location.reload();
           }, 300);
         } else {
-          alert('?붿껌 ?ㅽ뙣: ' + resp.status);
+          alert('요청 실패: ' + resp.status);
         }
       } catch (e) {
-        alert('?ㅻ쪟: ' + e.message);
+        alert('오류: ' + e.message);
       }
     }
   </script>
