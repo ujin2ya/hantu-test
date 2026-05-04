@@ -63,7 +63,9 @@ const CONFIG = {
   ASOF_DATE: String(args['date'] || '20260430'),
   MIN_MARKET_CAP: parseInt(args['min-mc'] || '300') * 100_000_000,
   MIN_HISTORY: 60,
-  COMPARE_NEXT: !!args['compare-next'],
+  // 다음 거래일 OHLCV는 기본 수집 (점수/라벨에는 절대 미반영, 별도 표시용).
+  // --no-compare-next로 끌 수 있음.
+  COMPARE_NEXT: args['no-compare-next'] !== true,
 };
 
 const EXCLUDE_KEYWORDS = ['ETN', 'ETF', '레버리지', '인버스', '선물', 'TR', 'H)'];
@@ -709,6 +711,7 @@ footer.foot strong { color: #fde68a; }
         <th class="numeric" data-sort="closeFromRecentLow20">저점대비</th>
         <th data-sort="historyQuality">차트</th>
         <th data-sort="riskLevel">위험</th>
+        <th class="numeric" data-sort="nextDayReturn">다음일 (참고)</th>
       </tr>
     </thead>
     <tbody id="list-body"></tbody>
@@ -784,6 +787,23 @@ footer.foot strong { color: #fde68a; }
   function ma20Class(v) { if (v == null || !isFinite(v)) return ''; if (v >= 20) return 'hot'; if (v >= 12) return 'warm'; return v > 0 ? 'pos' : (v < 0 ? 'neg' : ''); }
   function lowClass(v) { if (v == null || !isFinite(v)) return ''; if (v >= 40) return 'hot'; if (v >= 25) return 'warm'; return v > 0 ? 'pos' : (v < 0 ? 'neg' : ''); }
 
+  // 다음 거래일 셀 (asOfDate+1 종가 + D+1 등락률)
+  function nextDayCellHtml(nd) {
+    if (!nd || nd.nextClose == null) {
+      return '<span style="color:#64748b;">—</span>';
+    }
+    const ret = nd.nextDayReturn;
+    const cls = (ret == null || !isFinite(ret)) ? '' : (ret >= 5 ? 'pos' : (ret > 0 ? 'pos' : (ret < -5 ? 'neg' : (ret < 0 ? 'neg' : ''))));
+    const closeStr = Number(nd.nextClose).toLocaleString();
+    const dateStr = nd.nextDate ? (nd.nextDate.slice(4,6) + '/' + nd.nextDate.slice(6,8)) : '';
+    const retStr = (ret == null || !isFinite(ret)) ? '-' : ((ret >= 0 ? '+' : '') + Number(ret).toFixed(2) + '%');
+    return '<div style="line-height:1.25;">' +
+      '<span style="color:#cbd5e1;">' + closeStr + '</span> ' +
+      '<span class="tcell-num ' + cls + '" style="font-weight:600;">' + retStr + '</span>' +
+      '<div style="font-size:10px;color:#64748b;">' + dateStr + '</div>' +
+      '</div>';
+  }
+
   function buildRow(c) {
     const tr = document.createElement('tr');
     tr.className = 'row tag-' + c.watchTagV3_1 + (c.riskOverlay ? ' has-overlay' : '');
@@ -799,7 +819,8 @@ footer.foot strong { color: #fde68a; }
       '<td class="numeric tcell-num ' + ma20Class(c.closeToMA20) + '">MA20 ' + fmtPct(c.closeToMA20, 1) + '</td>' +
       '<td class="numeric tcell-num ' + lowClass(c.closeFromRecentLow20) + '">' + fmtPct(c.closeFromRecentLow20, 1) + '</td>' +
       '<td><span class="chart-pill ' + chartClass(c.chartLevel) + '">' + c.chartLevel + '</span></td>' +
-      '<td><span class="risk-pill ' + riskClass(c.riskLevel) + '">' + c.riskLevel + '</span></td>';
+      '<td><span class="risk-pill ' + riskClass(c.riskLevel) + '">' + c.riskLevel + '</span></td>' +
+      '<td class="numeric col-next">' + nextDayCellHtml(c.nextDay) + '</td>';
 
     const trd = document.createElement('tr');
     trd.className = 'detail';
@@ -817,7 +838,7 @@ footer.foot strong { color: #fde68a; }
           '</div>')
       : '';
     trd.innerHTML =
-      '<td colspan="10">' +
+      '<td colspan="11">' +
         '<div class="detail-grid">' +
           '<div class="detail-block">' +
             '<h4>분류 · 라벨</h4>' +
@@ -864,7 +885,7 @@ footer.foot strong { color: #fde68a; }
       tr.className = 'group-row';
       tr.dataset.block = b.id;
       tr.innerHTML =
-        '<td colspan="10">' +
+        '<td colspan="11">' +
           '<span class="gnum">' + numerals[b.id] + '</span>' +
           '<span class="gtitle">' + escapeHtml(b.title) + '</span>' +
           '<span class="gcount">(' + counts[b.id] + '건)</span>' +
