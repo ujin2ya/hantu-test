@@ -65,6 +65,8 @@ Thumbs.db
 
 # Claude Code 개인 설정
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
+.claude/projects/
 
 # 임시 파일
 *.tmp
