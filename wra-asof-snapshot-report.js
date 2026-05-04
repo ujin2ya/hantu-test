@@ -507,9 +507,35 @@ function main() {
   dump('단기 반응 후보 (BREAKOUT_MOMENTUM, overlay 없는)', sorted.filter(c => c.watchTagV3_1 === 'BREAKOUT_MOMENTUM' && !c.riskOverlay), 15);
 
   // ─────────────────────── 출력 ───────────────────────
+  // 보드 HTML JS가 기대하는 meta/summary 키와 호환되도록 매핑
+  const boardCompatMeta = {
+    // 보드용 키 (HTML JS에서 직접 참조)
+    latestTradingDate: CONFIG.ASOF_DATE,
+    universeProcessed: processed,
+    totalCandidates: sorted.length,
+    coreVisibleCount: coreCount.total,
+    block1Count: coreCount.block1Cnt,
+    block2Count: coreCount.block2Cnt,
+    block3Count: coreCount.block3Cnt,
+    collapsedCount: sorted.length - coreCount.total,
+    highVolatilityTotalCount: (summary.highVolatilitySoloCount || 0) + (summary.highVolatilityOverlayCount || 0),
+  };
+  const boardCompatSummary = {
+    // 보드용 키 (대문자/언더스코어)
+    VALUE_SURGE_CONFIRM: summary.valueSurgeConfirmCount || 0,
+    CLEAN_VALUE_SETUP: summary.cleanValueSetupCount || 0,
+    BREAKOUT_MOMENTUM: summary.breakoutMomentumCount || 0,
+    VALUE_LOOSE: summary.valueLooseCount || 0,
+    HIGH_VOLATILITY_solo: summary.highVolatilitySoloCount || 0,
+    HIGH_VOLATILITY_overlay: summary.highVolatilityOverlayCount || 0,
+    WATCH_ONLY: summary.watchOnlyCount || 0,
+    LOW_SIGNAL: summary.lowSignalCount || 0,
+    midfullCount: summary.midfullCount || 0,
+    unclassifiedCount: summary.unclassifiedCount || 0,
+  };
   const out = {
     meta: {
-      version: 'wra-asof-snapshot-v1',
+      version: 'wra-asof-snapshot-v2',
       generatedAt: new Date().toISOString(),
       asOfDate: CONFIG.ASOF_DATE,
       mode: 'as-of-snapshot',
@@ -522,9 +548,10 @@ function main() {
         ? '--compare-next 옵션으로 asOfDate 다음 거래일 OHLCV를 별도 candidate.nextDay 필드로 수집함. 후보 선정/점수/라벨에는 절대 반영하지 않음.'
         : '5/4 데이터는 후보 생성에 사용되지 않았음 (--compare-next 미사용).',
       executionSeconds: Math.round(elapsed),
+      ...boardCompatMeta,    // 보드 호환 키 머지
     },
     config: CONFIG,
-    summary,
+    summary: { ...summary, ...boardCompatSummary },     // 보드 호환 키 머지
     blockDef: BLOCK_DEF,
     displayLabel: DISPLAY_LABEL,
     summaryText: SUMMARY_TEXT,

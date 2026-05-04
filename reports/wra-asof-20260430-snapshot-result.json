@@ -1,7 +1,7 @@
 {
   "meta": {
-    "version": "wra-asof-snapshot-v1",
-    "generatedAt": "2026-05-04T13:17:26.549Z",
+    "version": "wra-asof-snapshot-v2",
+    "generatedAt": "2026-05-04T13:21:24.462Z",
     "asOfDate": "20260430",
     "mode": "as-of-snapshot",
     "title": "2026-04-30 장 마감 기준 WRA 후보 스냅샷 보고서",
@@ -10,7 +10,16 @@
     "purpose": "현재 기준 결과가 아니라, 과거 특정 시점에서 WRA가 사전에 포착했을 후보를 확인하기 위한 스냅샷 보고서",
     "compareNextEnabled": true,
     "compareNextNote": "--compare-next 옵션으로 asOfDate 다음 거래일 OHLCV를 별도 candidate.nextDay 필드로 수집함. 후보 선정/점수/라벨에는 절대 반영하지 않음.",
-    "executionSeconds": 1
+    "executionSeconds": 1,
+    "latestTradingDate": "20260430",
+    "universeProcessed": 2338,
+    "totalCandidates": 160,
+    "coreVisibleCount": 23,
+    "block1Count": 20,
+    "block2Count": 3,
+    "block3Count": 0,
+    "collapsedCount": 137,
+    "highVolatilityTotalCount": 44
   },
   "config": {
     "ASOF_DATE": "20260430",
@@ -60,7 +69,15 @@
     "watchOnlyCount": 50,
     "lowSignalCount": 11,
     "midfullCount": 4,
-    "unclassifiedCount": 0
+    "unclassifiedCount": 0,
+    "VALUE_SURGE_CONFIRM": 3,
+    "CLEAN_VALUE_SETUP": 25,
+    "BREAKOUT_MOMENTUM": 0,
+    "VALUE_LOOSE": 27,
+    "HIGH_VOLATILITY_solo": 44,
+    "HIGH_VOLATILITY_overlay": 0,
+    "WATCH_ONLY": 50,
+    "LOW_SIGNAL": 11
   },
   "blockDef": [
     {
