@@ -553,7 +553,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
 <style>
 * { box-sizing: border-box; }
 body {
-  margin: 0; padding: 16px 20px 80px;
+  margin: 0 auto; padding: 18px 28px 80px; max-width: 1640px;
   font-family: -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   background: #0f172a; color: #e2e8f0;
   font-size: 13px;
@@ -592,7 +592,7 @@ h1 { font-size: 22px; margin: 0 0 4px; color: #f1f5f9; font-weight: 700; }
 table.list { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
 table.list thead th {
   background: #0f172a; color: #94a3b8; font-weight: 600; text-align: left;
-  padding: 10px 8px; border-bottom: 1px solid #334155; white-space: nowrap;
+  padding: 11px 14px; border-bottom: 1px solid #334155; white-space: nowrap;
   position: sticky; top: 0; z-index: 5; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px;
   cursor: pointer; user-select: none;
 }
@@ -602,31 +602,31 @@ table.list thead th .arrow { color: #38bdf8; margin-left: 3px; }
 table.list tbody tr.row { border-bottom: 1px solid #1e293b; cursor: pointer; transition: background 0.1s; }
 table.list tbody tr.row:hover { background: #273549; }
 table.list tbody tr.row.expanded { background: #1e3a5f; }
-table.list tbody tr.row td { padding: 8px 6px; vertical-align: middle; white-space: nowrap; }
+table.list tbody tr.row td { padding: 10px 14px; vertical-align: middle; white-space: nowrap; line-height: 1.35; }
 table.list tbody tr.row td.numeric { text-align: right; }
-table.list tbody tr.row td.col-rank { color: #64748b; font-size: 12px; width: 36px; padding-left: 10px; }
+table.list tbody tr.row td.col-rank { color: #64748b; font-size: 12px; width: 38px; padding-left: 14px; padding-right: 8px; }
 table.list tbody tr.row td.col-name {
-  font-weight: 600; color: #f1f5f9; min-width: 130px; max-width: 200px;
-  line-height: 1.25;
+  font-weight: 600; color: #f1f5f9; min-width: 140px; max-width: 200px;
+  padding-right: 8px;
 }
 /* 코드/시장/시총을 종목명 아래 한 줄로 — 가로 길이 절약 */
 table.list tbody tr.row td.col-name .meta {
-  display: block; font-size: 10px; color: #64748b; font-weight: 400;
-  margin-left: 0; margin-top: 2px;
+  display: block; font-size: 10.5px; color: #64748b; font-weight: 400;
+  margin-left: 0; margin-top: 3px; letter-spacing: 0.2px;
 }
 table.list tbody tr.row td.col-summary {
-  color: #cbd5e1; max-width: 200px;
+  color: #cbd5e1; max-width: 220px; padding-right: 16px;
   overflow: hidden; text-overflow: ellipsis;
 }
 /* 우측 컬럼들 폭 가이드 (몰림 방지) */
-table.list tbody tr.row td.col-next { min-width: 110px; padding: 6px 10px; }
-.next-cell { display: flex; flex-direction: column; gap: 2px; line-height: 1.2; align-items: flex-end; }
-.next-row { display: flex; gap: 6px; align-items: baseline; font-size: 12px; }
-.next-tag { color: #94a3b8; font-size: 10px; font-weight: 700; min-width: 12px; }
+table.list tbody tr.row td.col-next { min-width: 140px; padding: 9px 16px 9px 14px; }
+.next-cell { display: flex; flex-direction: column; gap: 3px; line-height: 1.25; align-items: flex-end; }
+.next-row { display: flex; gap: 8px; align-items: baseline; font-size: 12.5px; }
+.next-tag { color: #94a3b8; font-size: 10.5px; font-weight: 700; min-width: 13px; }
 .next-tag.tag-high { color: #fbbf24; }
-.next-num { color: #cbd5e1; font-variant-numeric: tabular-nums; }
-.next-pct { font-weight: 600; min-width: 56px; text-align: right; font-variant-numeric: tabular-nums; }
-.next-date { font-size: 9px; color: #64748b; margin-top: 1px; }
+.next-num { color: #cbd5e1; font-variant-numeric: tabular-nums; min-width: 48px; text-align: right; }
+.next-pct { font-weight: 600; min-width: 60px; text-align: right; font-variant-numeric: tabular-nums; }
+.next-date { font-size: 10px; color: #64748b; margin-top: 2px; letter-spacing: 0.5px; }
 
 /* group separator */
 table.list tbody tr.group-row { background: #15243a; }

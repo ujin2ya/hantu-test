@@ -3398,6 +3398,22 @@ app.get("/wra-asof/:date", (req, res) => {
 });
 app.get("/wra-asof", (req, res) => res.redirect("/wra-asof/20260430"));
 
+// ─────────── WRA Success/Failure Diff Report (4/30 → 5/4) ───────────
+app.get("/wra-diff/:date", (req, res) => {
+  const date = String(req.params.date || '').trim();
+  if (!/^\d{8}$/.test(date)) {
+    return res.status(400).send("잘못된 날짜 형식입니다 (YYYYMMDD).");
+  }
+  const filePath = path.join(__dirname, "reports", `wra-${date}-success-failure-diff-result.html`);
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send(
+      `reports/wra-${date}-success-failure-diff-result.html 파일이 없습니다. \`node wra-success-failure-diff-report.js\`를 먼저 실행하세요.`
+    );
+  }
+  res.sendFile(filePath);
+});
+app.get("/wra-diff", (req, res) => res.redirect("/wra-diff/20260430"));
+
 // ─────────── 패턴 스크리너 ───────────
 const patternState = {
   seeding: false, seedStartedAt: null, seedFinishedAt: null, seedProgress: null, seedError: null,
