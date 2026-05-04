@@ -1340,52 +1340,11 @@ const summary = {
   generatedAt: new Date().toISOString(),
 };
 
-// BMS 보드 데이터 lookup 만들기 (보조 태그 + 검색 안내용)
-let _bmsLookup = {};
-let _bmsBoardMeta = null;
-try {
-  const bmsBoardPath = path.join(ROOT, 'bms-board.json');
-  if (fs.existsSync(bmsBoardPath)) {
-    const bmsBoard = JSON.parse(fs.readFileSync(bmsBoardPath, 'utf-8'));
-    _bmsBoardMeta = {
-      latestTradingDate: bmsBoard.meta?.latestTradingDate,
-      totalCandidates: bmsBoard.meta?.totalCandidates,
-      generatedAtKST: bmsBoard.meta?.generatedAtKST,
-    };
-    // 모든 섹션의 후보를 모아 lookup 만들기 — 가장 강한 등급으로 분류
-    const allBmsCands = [];
-    Object.values(bmsBoard.sections || {}).forEach(arr => {
-      if (Array.isArray(arr)) arr.forEach(c => allBmsCands.push(c));
-    });
-    allBmsCands.forEach(c => {
-      // 같은 종목이 여러 섹션에 있을 수 있음 — 가장 강한 정보 우선
-      const existing = _bmsLookup[c.code];
-      if (existing && existing.isBmsH) return; // 이미 BMS-H면 유지
-      _bmsLookup[c.code] = {
-        bmsScore: c.normalizedScore,
-        label: c.label,
-        positionLabel: c.positionLabel,
-        rank: c.rank,
-        totalCount: c.totalCount,
-        isBmsH: !!c.isBmsH,
-        isTriple: !!c.isTriple,
-      };
-    });
-    console.log(`[BMS lookup] ${Object.keys(_bmsLookup).length}개 종목 (BMS-H ${allBmsCands.filter(c=>c.isBmsH).length}, 삼중 ${allBmsCands.filter(c=>c.isTriple).length})`);
-  } else {
-    console.log('[BMS lookup] bms-board.json 없음 — BMS 보조 태그 비활성화');
-  }
-} catch (e) {
-  console.warn('[BMS lookup] 로드 실패:', e.message);
-}
-
 const jsonOut = {
   meta: {
     purpose: 'QVA → VVI → 돌파 성공의 funnel 전체를 한 화면에 보여주는 매일 운영용 보드',
     notice: '본 보드는 매수 추천이 아니라 후보 추적/모니터링용입니다. 실제 매매는 차트, 뉴스, 시장 상황을 함께 보고 판단해야 합니다.',
     boardBasisNotice: '현재 보드는 최신 거래일 기준으로 생성됩니다. 오늘이 휴장일이면 마지막 거래일 데이터를 기준으로 표시됩니다.',
-    bmsLookup: _bmsLookup,
-    bmsBoardMeta: _bmsBoardMeta,
     today: TODAY,
     todayCalendarDate,
     todayCalendarLabel,
@@ -1453,17 +1412,6 @@ const htmlTemplate = `<!DOCTYPE html>
   .nav { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
   .nav a { color: #93c5fd; text-decoration: none; font-size: 12px; padding: 6px 10px; background: #1e293b; border-radius: 6px; }
   .nav a.active { background: #1e3a8a; color: #fff; }
-  .bms-badge { display:inline-block; padding:1px 6px; border-radius:8px; font-size:10px; font-weight:600; margin-left:4px; text-decoration:none; white-space:nowrap; }
-  .bms-badge.bms-h { background:#10b981; color:#0f172a; }
-  .bms-badge.bms-tri { background:#a855f7; color:#fff; }
-  .bms-badge.bms-strong { background:#7c3aed; color:#fff; }
-  .bms-badge.bms-watch { background:#3b1d6e; color:#c4b5fd; border:1px solid #6d28d9; }
-  .bms-badge.bms-low { background:#1e293b; color:#94a3b8; border:1px solid #334155; }
-  .bms-badge:hover { filter:brightness(1.15); }
-  #queryNotice { background:#1e293b; border-left:3px solid #38bdf8; padding:10px 14px; margin:10px 0; border-radius:6px; font-size:12px; color:#cbd5e1; display:none; }
-  #queryNotice strong { color:#f1f5f9; }
-  #queryNotice .miss { color:#fbbf24; }
-  #queryNotice a { color:#a855f7; }
 
   .info-box { background: #1e293b; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; border-left: 3px solid #60a5fa; }
   .info-box p { margin: 0 0 6px 0; font-size: 13px; line-height: 1.6; color: #cbd5e1; }
@@ -1603,12 +1551,6 @@ const htmlTemplate = `<!DOCTYPE html>
   <div class="nav">
     <a href="/qva-watchlist" class="active">📋 매일 운영 보드</a>
     <a href="/qva-review-ok" title="QVA 단독, H그룹, 진입가 근처 후보의 성과를 비교한 검증 보고서">📊 3단계 코호트 비교 보고서</a>
-    <a href="/bms-board" title="과거 +40% 상승 종목과 현재 종목의 유사도를 보는 BMS 전용 보드로 이동합니다." style="background:#3b1d6e;color:#c4b5fd;border:1px solid #6d28d9;font-weight:600;">📊 BMS 보드 보기 →</a>
-  </div>
-  <div style="background:#1e293b;border-left:3px solid #38bdf8;padding:10px 14px;margin:0 0 12px 0;border-radius:6px;font-size:12px;color:#cbd5e1;">
-    <strong style="color:#34d399;">QVA 보드</strong> = 저점권 수급 흔적 추적 (이 화면) ·
-    <strong style="color:#a855f7;">BMS 보드</strong> = 과거 대상승 조건 유사도 분석 (<a href="/bms-board" style="color:#a855f7;">→ 이동</a>)
-    <br><span style="color:#94a3b8;">두 보드는 분리 운영됩니다. 종목이 양쪽에 잡힌 경우 카드에 작은 보조 태그로 표시되며, 전체 BMS 후보 목록은 BMS 보드에서 확인합니다.</span>
   </div>
 
   <div class="info-box" style="background:#0f172a;border-left-color:#34d399;border-left-width:4px;padding:18px 22px;">
@@ -1628,8 +1570,6 @@ const htmlTemplate = `<!DOCTYPE html>
     <p style="margin-top:8px;">즉, 단계가 진행될수록 과거 데이터상 좋은 흐름을 보인 비율이 높아졌습니다.</p>
     <p style="margin-top:10px;color:#fbbf24;">다만 이 결과는 과거 통계일 뿐이며, 매수 추천이 아닙니다. <strong>실제 판단은 현재 가격, 차트, 뉴스, 거래대금, 시장 상황을 함께 보고 사용자가 직접 해야 합니다.</strong></p>
   </div>
-
-  <div id="queryNotice"></div>
 
   <h2 style="font-size:14px;color:#cbd5e1;margin:0 0 8px 0;border:none;padding:0;">📊 1년 검증 요약</h2>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:16px;">
@@ -1801,7 +1741,6 @@ const htmlTemplate = `<!DOCTYPE html>
 })();
 
 const DATA = __JSON_DATA__;
-const BMS_LOOKUP = (DATA.meta && DATA.meta.bmsLookup) || {};
 
 function fmtDate(d) { return d && d.length === 8 ? d.slice(0,4) + '-' + d.slice(4,6) + '-' + d.slice(6,8) : (d || '-'); }
 function fmtNum(n) { return n != null ? Math.round(n).toLocaleString() : '-'; }
@@ -1813,27 +1752,6 @@ function fmtPct(n, sign) {
   return '<span class="' + cls + '">' + s + '</span>';
 }
 function marketCls(m) { return m === 'KOSDAQ' ? 'market-Q' : 'market-K'; }
-
-// BMS 보조 태그 HTML (QVA 카드/행 안에 작게 표시)
-function bmsBadge(code) {
-  const b = BMS_LOOKUP[code];
-  if (!b) return '';
-  const score = b.bmsScore != null ? b.bmsScore.toFixed(1) : '-';
-  const link = '/bms-board?query=' + encodeURIComponent(code);
-  let tag;
-  if (b.isBmsH) {
-    tag = '<a href="'+link+'" class="bms-badge bms-h" title="BMS-H 후보 — BMS '+score+', '+b.positionLabel+'. 클릭 시 BMS 보드에서 검색">🏆 BMS-H '+score+'</a>';
-  } else if (b.isTriple) {
-    tag = '<a href="'+link+'" class="bms-badge bms-tri" title="BMS+QVA+VVI 삼중 충족 — BMS '+score+'. 클릭 시 BMS 보드에서 검색">💎 삼중 '+score+'</a>';
-  } else if (b.bmsScore >= 80) {
-    tag = '<a href="'+link+'" class="bms-badge bms-strong" title="BMS '+score+' '+b.positionLabel+' (구조 유사도 높음). 클릭 시 BMS 보드에서 검색">BMS '+score+' · '+b.positionLabel+'</a>';
-  } else if (b.bmsScore >= 65) {
-    tag = '<a href="'+link+'" class="bms-badge bms-watch" title="BMS '+score+' '+(b.positionLabel||b.label)+'. 클릭 시 BMS 보드에서 검색">BMS '+score+' · '+(b.positionLabel||'관심')+'</a>';
-  } else {
-    tag = '<a href="'+link+'" class="bms-badge bms-low" title="BMS '+score+'">BMS '+score+'</a>';
-  }
-  return tag;
-}
 
 // 사용자 친화 subtitle + 개발자 정보 접힘 영역
 const subtitleEl = document.getElementById('subtitle');
@@ -2652,90 +2570,6 @@ document.querySelectorAll('.tag-filter button').forEach(btn => {
     applyFiltersForStage(btn.dataset.stage);
   });
 });
-
-// ─────────── BMS 보조 태그 자동 삽입 ───────────
-// 카드/행에 data-code 속성이 있는 요소를 찾아 종목명 옆에 BMS 뱃지 자동 추가.
-// 이미 추가된 경우 중복 방지.
-(function injectBmsBadges(){
-  if (!Object.keys(BMS_LOOKUP).length) return;
-  const targets = document.querySelectorAll('[data-code]');
-  targets.forEach(el => {
-    const code = el.dataset.code;
-    if (!code || !BMS_LOOKUP[code]) return;
-    if (el.querySelector('.bms-badge')) return; // 이미 삽입됨
-    const html = bmsBadge(code);
-    if (!html) return;
-    // 종목명을 담는 요소를 찾는다 — 카드 헤더 또는 첫 셀
-    const nameEl = el.querySelector('.stock-name, .name, .market-K, .market-Q, td:nth-child(2), .head .name, h3, strong');
-    if (nameEl) {
-      nameEl.insertAdjacentHTML('beforeend', ' ' + html);
-    } else {
-      // fallback: el 자체 끝에 추가
-      el.insertAdjacentHTML('beforeend', ' ' + html);
-    }
-  });
-})();
-
-// ─────────── URL query 파라미터 검색 + 안내 ───────────
-(function handleQuery(){
-  const params = new URLSearchParams(location.search);
-  const q = (params.get('query') || params.get('q') || '').trim();
-  if (!q) return;
-
-  // 모든 검색창에 query 자동 입력
-  const inputs = document.querySelectorAll('input[type="text"]');
-  inputs.forEach(inp => {
-    if (inp.placeholder && inp.placeholder.includes('검색')) {
-      inp.value = q;
-      inp.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-  });
-
-  // 안내 박스 표시
-  const lowerQ = q.toLowerCase();
-  const matchedEls = Array.from(document.querySelectorAll('[data-code], [data-name]')).filter(el => {
-    const code = (el.dataset.code || '').toLowerCase();
-    const name = (el.dataset.name || '').toLowerCase();
-    return code === lowerQ || name === q || name.includes(lowerQ) || code.includes(lowerQ);
-  });
-  const found = matchedEls.length > 0;
-
-  // BMS 보드에 있는지 확인
-  const bms = BMS_LOOKUP[q] || (function(){
-    // 종목명으로도 찾을 수 있게 — DATA에 stockMap 없으니 코드 기준만 동작
-    return null;
-  })();
-
-  const notice = document.getElementById('queryNotice');
-  if (!notice) return;
-  notice.style.display = '';
-
-  if (found) {
-    // QVA 보드 안에서 발견 — 어떤 stage인지 표시
-    let stages = [];
-    matchedEls.forEach(el => {
-      const sec = el.closest('.stage-section, [data-stage]');
-      if (sec) {
-        const stageName = sec.querySelector('h2')?.textContent || sec.dataset.stage || '';
-        if (stageName && !stages.includes(stageName)) stages.push(stageName.trim());
-      }
-    });
-    notice.innerHTML = '<strong>"' + q + '" 검색 결과</strong>: QVA 보드에서 ' + matchedEls.length + '건 발견됨' +
-      (stages.length ? ' · 위치: ' + stages.slice(0, 3).join(', ') : '') +
-      (bms ? ' · BMS 보드 상태: <a href="/bms-board?query=' + encodeURIComponent(q) + '">BMS ' + bms.bmsScore.toFixed(1) + ' / ' + (bms.positionLabel || bms.label) + (bms.isBmsH ? ' / BMS-H 🏆' : '') + '</a>' : '');
-  } else {
-    // QVA 보드에 없음
-    if (bms) {
-      notice.innerHTML = '<span class="miss">⚠ "' + q + '"는 현재 QVA 보드에 없습니다.</span> ' +
-        'BMS 보드에서는 <strong>BMS ' + bms.bmsScore.toFixed(1) + ' / ' + (bms.positionLabel || bms.label) +
-        (bms.isBmsH ? ' / BMS-H 🏆' : '') + '</strong> 후보로 잡혀 있습니다. ' +
-        '<a href="/bms-board?query=' + encodeURIComponent(q) + '">→ BMS 보드에서 보기</a>';
-    } else {
-      notice.innerHTML = '<span class="miss">⚠ "' + q + '"는 현재 QVA 보드에도 BMS 보드에도 없습니다.</span> ' +
-        '입력값을 확인하거나 종목코드(예: 251370)로 다시 검색해 주세요.';
-    }
-  }
-})();
 </script>
 </body>
 </html>
