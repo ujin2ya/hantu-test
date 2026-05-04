@@ -8,8 +8,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Python 의존성 설치: `python -m venv .venv && .venv\Scripts\pip install -r requirements.txt` (Windows) — pykrx/pandas 기반 시드/갱신 스크립트용
 - 웹 앱 실행: `node app.js` (포트는 `PORT` 환경변수, 기본값 `3012`)
 - 종목 마스터 재생성: `npm run generate-stocks` (`master/`의 zip을 읽어 `stocks.json` 작성)
+- **운영 서버 캐시 동기화 (push 전 필수)**: `bash scripts/sync-remote-cache.sh` — 운영 서버의 `cache/pattern-result.json` + `cache/flow-history/` + `cache/stock-charts-long/`를 로컬로 받는다. 이유는 [push 절차](#push-절차) 참고.
 
 테스트, 린터, 빌드 단계는 구성되어 있지 않다. 운영 배포는 GitHub Actions(`.github/workflows/deploy.yml`)가 ydata.co.kr 서버에 SSH로 push해 PM2(`hantu-test` 프로세스)로 재기동한다.
+
+## push 절차
+
+코드 변경을 운영 서버에 배포하려면 다음 순서를 따른다:
+
+1. **운영 서버 캐시를 먼저 동기화**: `bash scripts/sync-remote-cache.sh`
+2. 캐시 변경이 있으면 `git add cache/...` → `git commit`
+3. 코드 변경 commit
+4. `git push`
+
+**왜 이 순서가 필요한가?**
+
+운영 서버의 cron이 매일 16:10 일일 업데이트로 `cache/pattern-result.json`, `cache/flow-history/`, `cache/stock-charts-long/`를 갱신한다. 이 캐시는 `.gitignore` 화이트리스트로 git에 추적되지만, 운영 서버 자체에서 push하지 않는다.
+
+GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin main && git reset --hard origin/main`을 실행한다. **`reset --hard`는 운영 서버의 모든 변경(캐시 포함)을 git의 origin/main 상태로 강제 일치**시키므로, push 전에 운영 서버의 최신 cache를 로컬 git으로 가져오지 않으면 deploy 시 운영 서버 cache가 옛날 git 버전으로 덮어써진다.
+
+`sync-remote-cache.sh`는 plink/pscp(PuTTY)로 ssh 접속해 운영 서버 cache를 tar.gz로 묶어 받는다. 비밀번호는 `.env`의 `REMOTE_SSH_PASSWORD`에서 읽는다.
+
+`bash scripts/sync-remote-cache.sh --commit "메시지"` 형태로 실행하면 자동 commit까지 한 번에 한다 (push는 별도).
 
 ## 필수 환경변수
 
@@ -39,6 +59,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `PATTERN_MAX_MARKETCAP` (기본 5천억), `PATTERN_MIN_MARKETCAP` (기본 50억) — `naver-fetcher.js`의 시드 시총 필터. 운영은 9천억으로 ramp
 - `ANALYSIS_DATE` — `pattern-screener.js`가 분석 기준일을 강제 (재현 백테스트용)
 - `PORT` — 웹 서버 포트
+
+**운영 서버 SSH (`scripts/sync-remote-cache.sh`용)**
+- `REMOTE_SSH_PASSWORD` — 필수. plink/pscp가 운영 서버에 접속할 때 사용
+- `REMOTE_SSH_HOST` (기본 `hajiny.co.kr`), `REMOTE_SSH_PORT` (기본 `1027`), `REMOTE_SSH_USER` (기본 `eugene`), `REMOTE_SSH_PATH` (기본 `/home/eugene/workspace/hantu-test`) — 오버라이드 가능
 
 ## 아키텍처
 
