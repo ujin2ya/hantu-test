@@ -481,7 +481,9 @@ footer.foot strong { color: #fde68a; }
   body { padding: 12px 12px 60px; max-width: 100%; }
   .detail-grid { grid-template-columns: 1fr; }
   table.list { font-size: 12px; }
-  .col-summary { display: none; }  /* 좁은 화면에서는 한줄판단 컬럼 숨김 (행 클릭으로 확인) */
+  /* 좁은 화면에서는 한줄판단 컬럼 숨김 (헤더+셀 둘 다 숨겨야 정렬 어긋나지 않음) */
+  .col-summary,
+  table.list thead th[data-sort="summaryText"] { display: none; }
   /* sticky thead가 모바일에서 일부 브라우저에서 스크롤 막을 수 있어 해제 */
   table.list thead th { position: static; }
   /* 표 가로 스크롤 보장 */
