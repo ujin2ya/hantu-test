@@ -128,7 +128,7 @@ function printDataStatus(result) {
   console.log('='.repeat(70) + '\n');
 }
 
-function printSummary(chartOk, flowOk, analysisResult, timings) {
+function printSummary(chartOk, flowOk, analysisResult, timings, qvaBoardOk) {
   /**
    * 최종 요약 (소요 시간 포함)
    */
@@ -136,9 +136,10 @@ function printSummary(chartOk, flowOk, analysisResult, timings) {
   console.log('📋 Daily Update 완료 요약');
   console.log('='.repeat(70));
 
-  console.log(`차트 데이터 갱신:   ${chartOk ? '✅' : '❌'} (${timings?.chartTime || '?'}s)`);
-  console.log(`수급 데이터 갱신:   ${flowOk ? '✅' : '❌'} (${timings?.flowTime || '?'}s)`);
-  console.log(`패턴 분석 재실행:   ${analysisResult ? '✅' : '❌'} (${timings?.analysisTime || '?'}s)`);
+  console.log(`차트 데이터 갱신:    ${chartOk ? '✅' : '❌'} (${timings?.chartTime || '?'}s)`);
+  console.log(`수급 데이터 갱신:    ${flowOk ? '✅' : '❌'} (${timings?.flowTime || '?'}s)`);
+  console.log(`패턴 분석 재실행:    ${analysisResult ? '✅' : '❌'} (${timings?.analysisTime || '?'}s)`);
+  console.log(`QVA 보드 재생성:    ${qvaBoardOk ? '✅' : '❌'} (${timings?.qvaBoardTime || '?'}s)`);
 
   if (analysisResult) {
     console.log(
@@ -194,15 +195,27 @@ async function main() {
   const analysisResult = await runAnalysis();
   timings.analysisTime = Math.ceil((Date.now() - t3) / 1000);
 
-  // 4. 데이터 상태 리포트
+  console.log('');
+
+  // 4. QVA 운영 보드 재생성 (qva-watchlist-board.html / .json)
+  //    /qva-watchlist 라우트는 정적 HTML을 sendFile로 내보내므로 pattern-result.json만 갱신되면
+  //    보드 화면은 옛 시점에 멈춘다. 이 단계가 그 차이를 메운다.
+  let t4 = Date.now();
+  const qvaBoardOk = runCommand(
+    `node "${path.join(ROOT, 'qva-watchlist-board.js')}"`,
+    'QVA 운영 보드 재생성 (qva-watchlist-board.html)',
+  );
+  timings.qvaBoardTime = Math.ceil((Date.now() - t4) / 1000);
+
+  // 5. 데이터 상태 리포트
   printDataStatus(analysisResult);
 
-  // 5. 최종 요약
+  // 6. 최종 요약
   timings.totalTime = Math.ceil((Date.now() - startTime) / 1000);
-  printSummary(chartOk, flowOk, analysisResult, timings);
+  printSummary(chartOk, flowOk, analysisResult, timings, qvaBoardOk);
 
-  // 6. 종료 코드
-  const allOk = chartOk && flowOk && analysisResult;
+  // 7. 종료 코드
+  const allOk = chartOk && flowOk && analysisResult && qvaBoardOk;
   process.exit(allOk ? 0 : 1);
 }
 
