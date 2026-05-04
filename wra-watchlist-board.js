@@ -503,7 +503,11 @@ footer.foot strong { color: #fde68a; }
 </head>
 <body>
 
-<h1>WRA 단기 반응 후보 보드</h1>
+<h1 style="font-size:26px;">오늘은 어떤 후보를 볼까요?</h1>
+<div class="lead-desc" style="font-size:14px;color:#cbd5e1;margin:4px 0 12px;line-height:1.6;">
+  WRA는 매수 신호가 아니라 <strong style="color:#67e8f9;">단기 반응 가능성을 목적별로 나눠 보여주는 보드</strong>입니다.
+  아래에서 오늘 보고 싶은 후보 그룹을 선택하세요.
+</div>
 <div class="board-switch-row">
   <span class="hint">20거래일 추적 후보는 QVA 보드에서 확인하세요.</span>
   <a class="board-switch-btn qva" href="/qva-watchlist">📋 QVA 20거래일 추적 후보 보드 보기 →</a>
@@ -524,15 +528,69 @@ footer.foot strong { color: #fde68a; }
   <span style="color:#94a3b8;">전체 후보와 고위험 변동성 후보는 아래 빠른 필터로 확인하세요.</span>
 </div>
 
-<div id="mode-desc" style="background:#1e293b;border-left:4px solid #38bdf8;padding:9px 14px;border-radius:6px;font-size:12px;color:#cbd5e1;margin-bottom:10px;line-height:1.6;"></div>
+<style>
+  .mode-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 12px; }
+  .mode-card-btn {
+    background: #1e293b; border: 2px solid #334155; border-radius: 12px;
+    padding: 14px 16px; cursor: pointer; text-align: left;
+    transition: all 0.15s; position: relative;
+    color: #cbd5e1; font-family: inherit;
+  }
+  .mode-card-btn:hover { border-color: #64748b; transform: translateY(-1px); background: #273549; }
+  .mode-card-btn.active { background: #0f4f64; border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8 inset; }
+  .mode-card-btn .ic { font-size: 22px; line-height: 1; }
+  .mode-card-btn .title { font-size: 15px; font-weight: 700; color: #f1f5f9; margin: 6px 0 4px; display: flex; align-items: center; gap: 6px; }
+  .mode-card-btn .desc { font-size: 11.5px; color: #94a3b8; line-height: 1.5; }
+  .mode-card-btn.aggressive { border-color: rgba(239,68,68,0.4); }
+  .mode-card-btn.aggressive .title { color: #fca5a5; }
+  .mode-card-btn.aggressive.active { background: #4c0a0a; border-color: #ef4444; box-shadow: 0 0 0 1px #ef4444 inset; }
+  .warn-badge {
+    display: inline-block; background: #b91c1c; color: #fee2e2;
+    font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+    letter-spacing: 0.4px; animation: pulse-warn 2s infinite;
+  }
+  @keyframes pulse-warn { 0%,100% { opacity: 1; } 50% { opacity: 0.65; } }
+  .mode-card-btn .count-badge {
+    position: absolute; top: 10px; right: 12px;
+    background: rgba(0,0,0,0.3); color: #cbd5e1;
+    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+  }
+  .mode-card-btn.active .count-badge { background: #38bdf8; color: #0f172a; }
+  .mode-card-btn.aggressive.active .count-badge { background: #ef4444; color: #fee2e2; }
+</style>
 
-<div class="quick-bar">
-  <button class="qf-btn active" data-preset="STABLE">🛡️ 안정 관찰</button>
-  <button class="qf-btn" data-preset="REACTION">⚡ 단기 반응</button>
-  <button class="qf-btn" data-preset="HIGH_VOL_ONLY">🔥 고위험만</button>
-  <button class="qf-btn" data-preset="ALL">📋 전체 보기</button>
-  <button class="qf-btn" data-preset="MID_FULL">📊 차트신뢰 높은 것만</button>
+<div class="mode-cards">
+  <button type="button" class="mode-card-btn active" data-preset="STABLE">
+    <span class="count-badge" data-count-for="STABLE"></span>
+    <span class="ic">🛡️</span>
+    <div class="title">안정 관찰</div>
+    <div class="desc">거래대금은 들어왔지만 상대적으로 위험이 낮은 후보입니다. 단기 급등보다는 관심종목 관찰에 적합합니다.</div>
+  </button>
+  <button type="button" class="mode-card-btn" data-preset="REACTION">
+    <span class="count-badge" data-count-for="REACTION"></span>
+    <span class="ic">⚡</span>
+    <div class="title">단기 반응</div>
+    <div class="desc">다음 거래일 크게 움직일 가능성이 있는 후보입니다. 실패율도 높으므로 추격주의가 필요합니다.</div>
+  </button>
+  <button type="button" class="mode-card-btn aggressive" data-preset="HIGH_VOL_ONLY">
+    <span class="count-badge" data-count-for="HIGH_VOL_ONLY"></span>
+    <span class="ic">🔥</span>
+    <div class="title">고위험 공격형 <span class="warn-badge">⚠ 주의</span></div>
+    <div class="desc">공격적으로 단기 변동성을 확인하고 싶을 때 보는 후보입니다. 크게 움직일 가능성과 실패 가능성이 모두 높습니다.</div>
+  </button>
+  <button type="button" class="mode-card-btn" data-preset="ALL">
+    <span class="count-badge" data-count-for="ALL"></span>
+    <span class="ic">📋</span>
+    <div class="title">전체 보기</div>
+    <div class="desc">전체 WRA 후보를 모두 확인합니다. 약한 신호와 약한 관찰도 포함됩니다.</div>
+  </button>
+</div>
+
+<div id="mode-desc" style="background:#1e293b;border-left:4px solid #38bdf8;padding:9px 14px;border-radius:6px;font-size:12px;color:#cbd5e1;margin-bottom:10px;line-height:1.6;display:none;"></div>
+
+<div class="quick-bar" style="margin-bottom:8px;">
   <span class="match-status" id="match-status"></span>
+  <button class="qf-btn" data-preset="MID_FULL" style="margin-left:auto;">📊 차트신뢰 높은 것만</button>
   <button class="adv-toggle" id="adv-toggle">고급 필터 ▾</button>
 </div>
 
@@ -939,12 +997,16 @@ footer.foot strong { color: #fde68a; }
     document.getElementById('match-status').innerHTML =
       '<strong style="color:#cbd5e1;">' + visible + '</strong>건 표시 / 전체 ' + total;
 
-    // 모드 설명 갱신
+    // 모드 설명 갱신 — MID_FULL 같이 카드에 없는 모드일 때만 인라인 표시
     const modeDesc = document.getElementById('mode-desc');
     if (modeDesc) {
       const mode = MODES[state.preset];
-      if (mode) {
+      const inCardSet = ['STABLE', 'REACTION', 'HIGH_VOL_ONLY', 'ALL'].includes(state.preset);
+      if (mode && !inCardSet) {
+        modeDesc.style.display = '';
         modeDesc.innerHTML = '<span style="font-size:14px;">' + (mode.icon || '📊') + '</span> <strong style="color:#67e8f9;">' + mode.title + '</strong> — ' + mode.desc;
+      } else {
+        modeDesc.style.display = 'none';
       }
     }
   }
@@ -1022,14 +1084,30 @@ footer.foot strong { color: #fde68a; }
     th.addEventListener('click', () => applySort(th.dataset.sort));
   });
 
-  document.querySelectorAll('.qf-btn[data-preset]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.qf-btn[data-preset]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.preset = btn.dataset.preset;
-      applyFilters();
-    });
+  // 큰 모드 카드 + 작은 빠른 버튼 모두 처리
+  function activatePreset(preset) {
+    document.querySelectorAll('.mode-card-btn[data-preset], .qf-btn[data-preset]').forEach(b => b.classList.remove('active'));
+    const cardBtn = document.querySelector('.mode-card-btn[data-preset="' + preset + '"]');
+    const qfBtn = document.querySelector('.qf-btn[data-preset="' + preset + '"]');
+    if (cardBtn) cardBtn.classList.add('active');
+    if (qfBtn) qfBtn.classList.add('active');
+    state.preset = preset;
+    applyFilters();
+  }
+  document.querySelectorAll('.mode-card-btn[data-preset], .qf-btn[data-preset]').forEach(btn => {
+    btn.addEventListener('click', () => activatePreset(btn.dataset.preset));
   });
+
+  // 각 모드 카드의 count 배지 미리 계산해서 표시
+  function updateModeCounts() {
+    ['STABLE', 'REACTION', 'HIGH_VOL_ONLY', 'ALL'].forEach(p => {
+      const m = MODES[p]; if (!m) return;
+      const n = candidates.filter(c => m.filter(c)).length;
+      const badge = document.querySelector('[data-count-for="' + p + '"]');
+      if (badge) badge.textContent = n + '건';
+    });
+  }
+  updateModeCounts();
 
   document.querySelectorAll('.btn-f[data-tag]').forEach(btn => {
     btn.addEventListener('click', () => {
