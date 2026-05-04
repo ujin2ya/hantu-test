@@ -568,7 +568,7 @@ body { -webkit-overflow-scrolling: touch; }
 </style>
 
 <div class="mode-cards">
-  <button type="button" class="mode-card-btn aggressive" data-preset="HIGH_VOL_ONLY">
+  <button type="button" class="mode-card-btn aggressive active" data-preset="HIGH_VOL_ONLY">
     <span class="count-badge" data-count-for="HIGH_VOL_ONLY"></span>
     <span class="ic">🔥</span>
     <div class="title">고위험 공격형 <span class="warn-badge">⚠ 주의</span></div>
@@ -580,7 +580,7 @@ body { -webkit-overflow-scrolling: touch; }
     <div class="title">단기 반응</div>
     <div class="desc">다음 거래일 크게 움직일 가능성이 있는 후보입니다. 실패율도 높으므로 추격주의가 필요합니다.</div>
   </button>
-  <button type="button" class="mode-card-btn active" data-preset="STABLE">
+  <button type="button" class="mode-card-btn" data-preset="STABLE">
     <span class="count-badge" data-count-for="STABLE"></span>
     <span class="ic">🛡️</span>
     <div class="title">안정 관찰</div>
@@ -711,8 +711,9 @@ body { -webkit-overflow-scrolling: touch; }
   });
 
   // ── 상태 (v3.2 모드 5가지: STABLE / REACTION / HIGH_VOL_ONLY / ALL / MID_FULL)
+  // 기본 모드 = HIGH_VOL_ONLY (사용자가 진입 시 고위험 후보부터 보고 싶음)
   const state = {
-    preset: 'STABLE',
+    preset: 'HIGH_VOL_ONLY',
     tags: new Set(),
     market: new Set(),
     box: new Set(),
