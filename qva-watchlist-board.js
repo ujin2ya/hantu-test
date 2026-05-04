@@ -619,13 +619,7 @@ function computeLongQvaReactivationScore(rows, todayIdx, qvaIdx, signalPrice) {
   };
 }
 
-// 장기 QVA 라벨 (점수 → 등급)
-function longQvaLabel(score) {
-  if (score >= 80) return { tier: 'REACTIVE', label: '장기 QVA 재점화' };
-  if (score >= 60) return { tier: 'INTEREST', label: '장기 QVA 관심' };
-  if (score >= 40) return { tier: 'WATCH', label: '장기 QVA 관찰' };
-  return { tier: 'TRACKING', label: '장기 추적 유지' };
-}
+// 장기 QVA tier — 인라인 분류 (qvaReturnPct + score 조합)로 결정 (사용자 spec 2026-05)
 const t1 = Date.now();
 console.log(`\n🌱 QVA 스캔 시작 (window=${TRACKING_DAYS}d, TODAY=${TODAY})...`);
 
@@ -799,7 +793,55 @@ for (let fi = 0; fi < files.length; fi++) {
 
     // 재점화 점수 계산
     const reactScore = computeLongQvaReactivationScore(rows, todayIdx, longFirstSig.idx, longSignalPrice);
-    const tierInfo = longQvaLabel(reactScore.score);
+
+    // signalIdx ~ todayIdx 사이 최대/최저 추적 — MFE / 최근 고점 / 그 후 하락폭
+    let mfeHigh = longSignalPrice, mfeHighIdx = longFirstSig.idx;
+    let maeLow = longSignalPrice;
+    for (let k = longFirstSig.idx; k <= todayIdx; k++) {
+      const r = rows[k];
+      if (r.high > mfeHigh) { mfeHigh = r.high; mfeHighIdx = k; }
+      if (r.low < maeLow) maeLow = r.low;
+    }
+    const mfeFromSignal = (mfeHigh / longSignalPrice - 1) * 100;
+    const maeFromSignal = (maeLow / longSignalPrice - 1) * 100;
+    const dropFromMfeHigh = mfeHigh > 0 ? (todayRow.close / mfeHigh - 1) * 100 : 0;
+    const daysSinceMfeHigh = todayIdx - mfeHighIdx;
+
+    // ─── 새 분류 (사용자 spec 2026-05) ───
+    //   REACTIVE      : qvaReturnPct ≤ 20 AND score ≥ 80
+    //   INTEREST      : qvaReturnPct ≤ 20 AND score 60~79
+    //   BREAKOUT_DONE : qvaReturnPct ≥ 25 OR (mfeFromSignal ≥ 30 AND qvaReturnPct ≥ 20)
+    //   ALL_OTHER     : 그 외 (점수 낮거나 +20~+25 사이 등)
+    const qvaReturnPct = longCurrentReturn;
+    let tier, label;
+    if (qvaReturnPct >= 25 || (mfeFromSignal >= 30 && qvaReturnPct >= 20)) {
+      tier = 'BREAKOUT_DONE';
+      label = 'QVA 성공 후 급등';
+    } else if (qvaReturnPct <= 20 && reactScore.score >= 80) {
+      tier = 'REACTIVE';
+      label = '장기 QVA 재점화';
+    } else if (qvaReturnPct <= 20 && reactScore.score >= 60) {
+      tier = 'INTEREST';
+      label = '장기 QVA 관심';
+    } else if (reactScore.score >= 40) {
+      tier = 'WATCH';
+      label = '장기 QVA 관찰';
+    } else {
+      tier = 'TRACKING';
+      label = '장기 추적 유지';
+    }
+
+    // 눌림 대기 태그 — BREAKOUT_DONE 안에서 추가 조건 충족 시
+    let pullbackWait = false;
+    if (tier === 'BREAKOUT_DONE') {
+      const ma20 = reactScore.metrics?.ma20;
+      const dropOk = dropFromMfeHigh <= -5 && dropFromMfeHigh >= -15;
+      const ma20Ok = ma20 != null && todayRow.close >= ma20;
+      pullbackWait = qvaReturnPct >= 25 && dropOk && ma20Ok;
+    }
+
+    const auxTags = ['LONG_QVA_' + tier];
+    if (pullbackWait) auxTags.push('PULLBACK_WAIT');
 
     longQvaCandidates.push({
       code,
@@ -808,7 +850,6 @@ for (let fi = 0; fi < files.length; fi++) {
       isPreferred: isPreferredStock(meta.name),
       marketValue: meta.marketValue,
 
-      // QVA episode 정보 (D+21~D+40)
       firstEarlyQvaDate: longFirstSig.date,
       latestEarlyQvaDate: longLatestSig.date,
       bestEarlyQvaDate: longBestSig.date,
@@ -818,21 +859,28 @@ for (let fi = 0; fi < files.length; fi++) {
       earlyQvaSignalCount: longQvaSignals.length,
       daysSinceFirst: daysSinceLong,
 
-      // 가격
       anchorPrice: longSignalPrice,
       currentDate: TODAY,
       currentClose: todayRow.close,
-      currentReturnFromSignal: round2(longCurrentReturn),
+      currentReturnFromSignal: round2(qvaReturnPct),
 
-      // 장기 재점화
+      // 새 추적 필드
+      mfeFromSignal: round2(mfeFromSignal),
+      maeFromSignal: round2(maeFromSignal),
+      mfeHighDate: rows[mfeHighIdx].date,
+      mfeHighPrice: mfeHigh,
+      dropFromMfeHigh: round2(dropFromMfeHigh),
+      daysSinceMfeHigh,
+
       longQvaReactivationScore: reactScore.score,
-      longQvaTier: tierInfo.tier,
-      longQvaLabel: tierInfo.label,
+      longQvaTier: tier,
+      longQvaLabel: label,
       longQvaChecks: reactScore.checks,
       longQvaMetrics: reactScore.metrics,
+      pullbackWait,
 
       signals: longBestSig.signals,
-      auxTags: ['LONG_QVA_' + tierInfo.tier],
+      auxTags,
     });
     debugCounts.longQvaIncluded++;
   }
@@ -843,7 +891,8 @@ console.log(`→ EARLY_QVA (추적 중, D+1~D+20, VVI 전): ${earlyQvaCandidates
 console.log(`  (윈도우 안 통과 후 VVI 이미 발생: ${debugCounts.qvaTrackingHasVviCount}건 — VVI_FIRED/BREAKOUT_SUCCESS 단계에서 추적)`);
 console.log(`→ 장기 QVA (D+${LONG_QVA_START}~D+${LONG_QVA_END}, VVI/H 미전환): ${longQvaCandidates.length}건  (스캔 ${debugCounts.longQvaScanned} 중 만료 ${debugCounts.longQvaExpired}건 제외)`);
 const longTierBreakdown = longQvaCandidates.reduce((acc, c) => { acc[c.longQvaTier] = (acc[c.longQvaTier] || 0) + 1; return acc; }, {});
-console.log(`  └ 재점화(80+) ${longTierBreakdown.REACTIVE || 0} / 관심(60~79) ${longTierBreakdown.INTEREST || 0} / 관찰(40~59) ${longTierBreakdown.WATCH || 0} / 추적(<40) ${longTierBreakdown.TRACKING || 0}`);
+const pullbackCount = longQvaCandidates.filter(c => c.pullbackWait).length;
+console.log(`  └ 재점화 ${longTierBreakdown.REACTIVE || 0} / 관심 ${longTierBreakdown.INTEREST || 0} / 이미 급등 ${longTierBreakdown.BREAKOUT_DONE || 0} (눌림 대기 ${pullbackCount}) / 관찰 ${longTierBreakdown.WATCH || 0} / 추적 ${longTierBreakdown.TRACKING || 0}`);
 console.log(`  (${((Date.now() - t1) / 1000).toFixed(1)}s)`);
 
 // ─── QVA 후보에 'CONFIRMED_QVA_PASS' 보조 태그 부여 (기존 태그 보존) ───
@@ -869,8 +918,8 @@ console.log(`→ QVA 후보 중 '확인 QVA 통과' 태그: ${confirmedPassCount
 //   LONG_QVA_REACTIVE    = D+21~D+40, longQvaReactivationScore ≥ 80 (재점화)
 //   LONG_QVA_INTEREST    = D+21~D+40, score 60~79 (관심)
 //   LONG_QVA_ALL         = D+21~D+40 전체 (기본 접힘)
-const stageOrder = ['BREAKOUT_SUCCESS', 'VVI_FIRED', 'QVA_TODAY', 'EARLY_QVA', 'LONG_QVA_REACTIVE', 'LONG_QVA_INTEREST', 'LONG_QVA_ALL', 'FAILED'];
-const allStageOrder = ['BREAKOUT_SUCCESS', 'VVI_FIRED', 'QVA_TODAY', 'QVA_TRACKING', 'QVA_NEW', 'EARLY_QVA', 'LONG_QVA_REACTIVE', 'LONG_QVA_INTEREST', 'LONG_QVA_ALL', 'FAILED'];
+const stageOrder = ['BREAKOUT_SUCCESS', 'VVI_FIRED', 'QVA_TODAY', 'EARLY_QVA', 'LONG_QVA_REACTIVE', 'LONG_QVA_INTEREST', 'LONG_QVA_BREAKOUT_DONE', 'LONG_QVA_ALL', 'FAILED'];
+const allStageOrder = ['BREAKOUT_SUCCESS', 'VVI_FIRED', 'QVA_TODAY', 'QVA_TRACKING', 'QVA_NEW', 'EARLY_QVA', 'LONG_QVA_REACTIVE', 'LONG_QVA_INTEREST', 'LONG_QVA_BREAKOUT_DONE', 'LONG_QVA_ALL', 'FAILED'];
 const stageLabels = {
   BREAKOUT_SUCCESS: '돌파 성공 확인 종목',
   VVI_FIRED: '다음 거래일 돌파 대기',
@@ -880,6 +929,7 @@ const stageLabels = {
   EARLY_QVA: 'QVA 추적 중',
   LONG_QVA_REACTIVE: '장기 QVA 재점화',
   LONG_QVA_INTEREST: '장기 QVA 관심',
+  LONG_QVA_BREAKOUT_DONE: 'QVA 성공 후 급등',
   LONG_QVA_ALL: '장기 QVA 전체',
   FAILED: '실패/이탈',
 };
@@ -897,11 +947,13 @@ const stageDescriptions = {
   EARLY_QVA:
     '최근 20거래일 안에 QVA가 발생했고, 오늘은 통과 못했지만 아직 VVI 확인 전인 관심 후보입니다. QVA → VVI 전환률은 1년 검증에서 약 11%이므로 대부분의 추적 후보는 VVI까지 진행되지 않지만, 일부는 VVI/돌파 성공으로 진화합니다. 매수 신호가 아니라 관찰 후보입니다.',
   LONG_QVA_REACTIVE:
-    '장기 QVA 재점화는 QVA 발생 후 20거래일 안에 VVI/H그룹으로 이어지지 않았지만, 21~40거래일 구간에서 다시 거래대금과 가격 흐름이 살아나는 종목입니다 (재점화 점수 80+). 매수 추천이 아니라, 뒤늦게 반응하는 QVA 후보를 다시 눈에 띄게 보기 위한 보조 관찰 영역입니다.',
+    '장기 QVA 재점화는 QVA 발생 후 21~40거래일 구간에서 아직 크게 오르지 않은(QVA 대비 +20% 이내) 상태로 다시 거래대금/가격 흐름이 살아나는 종목입니다 (재점화 점수 80+). 매수 추천이 아니라, 뒤늦게 반응하는 신규 관심 후보를 골라주는 보조 관찰 영역입니다.',
   LONG_QVA_INTEREST:
-    '장기 QVA 관심은 D+21~D+40 구간에서 일부 재점화 신호(거래대금/저점/MA 회복)가 나타나기 시작한 후보입니다 (재점화 점수 60~79). 재점화보다는 약하지만 추적 가치가 있는 보조 관찰군입니다.',
+    '장기 QVA 관심은 QVA 대비 +20% 이내이고 재점화 점수 60~79인 후보입니다. 재점화보다는 약하지만 추적 가치가 있는 보조 관찰군입니다.',
+  LONG_QVA_BREAKOUT_DONE:
+    'QVA 이후 이미 큰 상승이 나온 종목입니다 (QVA 대비 +25% 이상 또는 MFE +30% AND 현재가 +20% 이상). 신규 진입 후보라기보다 성과 확인 또는 눌림 관찰 대상으로 봅니다. "눌림 대기" 태그가 붙은 종목은 고점 대비 -5~-15% 조정 + MA20 위 유지 — 눌림 확인용 후보입니다.',
   LONG_QVA_ALL:
-    '장기 QVA 전체는 D+21~D+40 구간에 머물러 있는 모든 추적 후보입니다 (재점화 점수 무관). 위쪽 재점화/관심 섹션에 노출되지 않은 종목까지 포함합니다. 기본 접힘.',
+    '장기 QVA 전체는 D+21~D+40 구간에 머물러 있는 모든 추적 후보입니다 (분류 무관). 위쪽 섹션에 노출되지 않은 종목까지 포함합니다. 기본 접힘.',
   FAILED:
     'QVA 이후 가격이 크게 무너졌거나, 20거래일 안에 VVI가 발생하지 않았거나, 돌파에 실패한 종목입니다.',
 };
@@ -915,8 +967,10 @@ const auxTagLabels = {
   TODAY_RECONFIRMED: '오늘 재확인',
   LONG_QVA_REACTIVE: '장기 재점화',
   LONG_QVA_INTEREST: '장기 관심',
+  LONG_QVA_BREAKOUT_DONE: '이미 급등',
   LONG_QVA_WATCH: '장기 관찰',
   LONG_QVA_TRACKING: '장기 추적',
+  PULLBACK_WAIT: '눌림 대기',
 };
 const auxTagDescriptions = {
   PRICE_HOLD: '현재 종가가 QVA 신호가의 95% 이상',
@@ -925,10 +979,12 @@ const auxTagDescriptions = {
   CONFIRMED_QVA_PASS: 'QVA 이후 가격 유지·저점 상승·거래대금 흐름이 한 번 더 확인된 상태입니다.',
   NEW_TODAY: '오늘 처음 QVA로 감지된 종목입니다 (firstSignalDate === 오늘).',
   TODAY_RECONFIRMED: '과거에 QVA로 잡혔고 오늘도 조건을 다시 만족한 종목입니다 (같은 흐름의 연속 발화).',
-  LONG_QVA_REACTIVE: 'D+21~D+40, 재점화 점수 80+ — 거래대금/저점/MA 모두 재점화',
-  LONG_QVA_INTEREST: 'D+21~D+40, 재점화 점수 60~79',
+  LONG_QVA_REACTIVE: 'D+21~D+40, QVA 대비 ≤ +20%, 재점화 점수 80+',
+  LONG_QVA_INTEREST: 'D+21~D+40, QVA 대비 ≤ +20%, 재점화 점수 60~79',
+  LONG_QVA_BREAKOUT_DONE: 'QVA 이후 이미 +25% 이상 상승 — 신규 진입보다는 성과/눌림 관찰',
   LONG_QVA_WATCH: 'D+21~D+40, 재점화 점수 40~59',
   LONG_QVA_TRACKING: 'D+21~D+40, 재점화 점수 40 미만',
+  PULLBACK_WAIT: '이미 급등한 후 고점 대비 -5~-15% 조정 + MA20 위 유지 — 눌림 확인용 후보',
 };
 
 // 진입 판단 상태 — BREAKOUT_SUCCESS 그룹 내 분류
@@ -966,6 +1022,7 @@ stageCounts.QVA_TODAY = todayQvaCandidates.length;
 stageCounts.EARLY_QVA = earlyQvaCandidates.length;
 stageCounts.LONG_QVA_REACTIVE = longQvaCandidates.filter(c => c.longQvaTier === 'REACTIVE').length;
 stageCounts.LONG_QVA_INTEREST = longQvaCandidates.filter(c => c.longQvaTier === 'INTEREST').length;
+stageCounts.LONG_QVA_BREAKOUT_DONE = longQvaCandidates.filter(c => c.longQvaTier === 'BREAKOUT_DONE').length;
 stageCounts.LONG_QVA_ALL = longQvaCandidates.length;
 
 // ─────────── 정렬 (각 단계별로 보기 좋게) ───────────
@@ -1068,6 +1125,12 @@ function sortLongQvaCandidates(arr) {
 const longQvaSorted = sortLongQvaCandidates(longQvaCandidates);
 const longQvaReactiveDisplayed = longQvaSorted.filter(c => c.longQvaTier === 'REACTIVE');
 const longQvaInterestDisplayed = longQvaSorted.filter(c => c.longQvaTier === 'INTEREST');
+// 이미 급등 — qvaReturnPct 높은 순으로 정렬 (Large gain 먼저), 같으면 재점화 점수
+const longQvaBreakoutDoneDisplayed = longQvaSorted.filter(c => c.longQvaTier === 'BREAKOUT_DONE')
+  .sort((a, b) => {
+    if (a.pullbackWait !== b.pullbackWait) return a.pullbackWait ? -1 : 1; // 눌림 대기 우선
+    return (b.currentReturnFromSignal ?? 0) - (a.currentReturnFromSignal ?? 0);
+  });
 
 // 화면 표시 — 통과한 모든 종목을 보여주되 최대 50개로 제한 (사용자 spec).
 // 50건 이하면 전부 표시 / 50건 초과면 상위 50개 + 나머지는 '전체 보기' 토글.
@@ -1080,11 +1143,12 @@ stagedItems.QVA_TODAY = todayQvaDisplayed;
 stagedItems.QVA_TODAY_ALL = todayQvaSorted;
 stagedItems.EARLY_QVA = earlyQvaDisplayed;
 stagedItems.EARLY_QVA_ALL = earlyQvaSorted;
-// 장기 QVA — 점수별 3개 섹션 + 전체
+// 장기 QVA — 4개 섹션 (사용자 spec)
 stagedItems.LONG_QVA_REACTIVE = longQvaReactiveDisplayed.slice(0, EARLY_QVA_DISPLAY_LIMIT);
 stagedItems.LONG_QVA_INTEREST = longQvaInterestDisplayed.slice(0, EARLY_QVA_DISPLAY_LIMIT);
+stagedItems.LONG_QVA_BREAKOUT_DONE = longQvaBreakoutDoneDisplayed.slice(0, EARLY_QVA_DISPLAY_LIMIT);
 stagedItems.LONG_QVA_ALL = longQvaSorted.slice(0, EARLY_QVA_DISPLAY_LIMIT);
-stagedItems.LONG_QVA_ALL_FULL = longQvaSorted; // 전체
+stagedItems.LONG_QVA_ALL_FULL = longQvaSorted;
 
 // 요약 통계 — TODAY(신규+재확인 통합) + TRACKING 합쳐서 계산
 const allQvaCandidates = [...todayQvaSorted, ...earlyQvaSorted];
@@ -1103,8 +1167,10 @@ const todayNewCount = todayQvaSorted.filter(c => c.isTodayNew === true).length;
 const todayReconfirmedCount = todayQvaSorted.filter(c => c.todayReconfirmed === true).length;
 const longQvaReactiveCount = longQvaSorted.filter(c => c.longQvaTier === 'REACTIVE').length;
 const longQvaInterestCount = longQvaSorted.filter(c => c.longQvaTier === 'INTEREST').length;
+const longQvaBreakoutDoneCount = longQvaSorted.filter(c => c.longQvaTier === 'BREAKOUT_DONE').length;
 const longQvaWatchCount = longQvaSorted.filter(c => c.longQvaTier === 'WATCH').length;
 const longQvaTrackingCount = longQvaSorted.filter(c => c.longQvaTier === 'TRACKING').length;
+const longQvaPullbackWaitCount = longQvaSorted.filter(c => c.pullbackWait === true).length;
 const earlyQvaSummary = {
   todayCount: todayQvaSorted.length,
   todayNewCount,
@@ -1116,8 +1182,10 @@ const earlyQvaSummary = {
   longQvaTotal: longQvaSorted.length,
   longQvaReactiveCount,
   longQvaInterestCount,
+  longQvaBreakoutDoneCount,
   longQvaWatchCount,
   longQvaTrackingCount,
+  longQvaPullbackWaitCount,
   strongCount: strongEarlyCount,
   earlyCount: earlyMidCount,
   watchCount: watchEarlyCount,
@@ -1147,6 +1215,7 @@ stageCounts.QVA_TODAY = todayQvaDisplayed.length;
 stageCounts.EARLY_QVA = earlyQvaDisplayed.length;
 stageCounts.LONG_QVA_REACTIVE = stagedItems.LONG_QVA_REACTIVE.length;
 stageCounts.LONG_QVA_INTEREST = stagedItems.LONG_QVA_INTEREST.length;
+stageCounts.LONG_QVA_BREAKOUT_DONE = stagedItems.LONG_QVA_BREAKOUT_DONE.length;
 stageCounts.LONG_QVA_ALL = stagedItems.LONG_QVA_ALL.length;
 
 // ─── 데이터 상태 점검 디버그 (사용자 spec 4번) ───
@@ -1436,8 +1505,10 @@ const htmlTemplate = `<!DOCTYPE html>
   .badge.tag-TODAY_RECONFIRMED { background: #4c1d95; color: #c4b5fd; border: 1px solid #a78bfa; font-weight: 600; }
   .badge.tag-LONG_QVA_REACTIVE { background: #5b21b6; color: #ddd6fe; border: 1px solid #c4b5fd; font-weight: 600; }
   .badge.tag-LONG_QVA_INTEREST { background: #312e81; color: #a5b4fc; border: 1px solid #818cf8; font-weight: 600; }
+  .badge.tag-LONG_QVA_BREAKOUT_DONE { background: #422006; color: #fbbf24; border: 1px solid #f59e0b; font-weight: 600; }
   .badge.tag-LONG_QVA_WATCH { background: #1e1b4b; color: #c7d2fe; }
   .badge.tag-LONG_QVA_TRACKING { background: #1e1b4b; color: #818cf8; }
+  .badge.tag-PULLBACK_WAIT { background: #5c2c0f; color: #fb923c; border: 1px solid #fb923c; font-weight: 600; }
   .badge.pref { background: #4c1d1d; color: #fca5a5; }
 
   .stage-section { margin-bottom: 24px; }
@@ -1845,19 +1916,31 @@ const COLS_BY_STAGE = {
 // QVA_TODAY는 EARLY_QVA와 같은 컬럼 사용 (행에 NEW_TODAY/TODAY_RECONFIRMED 태그)
 COLS_BY_STAGE.QVA_TODAY = COLS_BY_STAGE.EARLY_QVA;
 
-// 장기 QVA 전용 컬럼 — 재점화 점수 + 5개 체크 항목
+// 장기 QVA 전용 컬럼 — 재점화/관심/전체 공통
 COLS_BY_STAGE.LONG_QVA_REACTIVE = [
   { key: 'longQvaReactivationScore', label: '재점화', render: c => '<strong style="color:#c4b5fd;">' + (c.longQvaReactivationScore ?? 0) + '</strong>' },
   { key: 'longQvaLabel', label: '등급', txt: true, render: c => {
     const t = c.longQvaTier;
-    const colors = { REACTIVE: '#c4b5fd', INTEREST: '#a5b4fc', WATCH: '#94a3b8', TRACKING: '#64748b' };
+    const colors = { REACTIVE: '#c4b5fd', INTEREST: '#a5b4fc', BREAKOUT_DONE: '#fbbf24', WATCH: '#94a3b8', TRACKING: '#64748b' };
     return '<span style="color:' + (colors[t] || '#94a3b8') + ';font-weight:600;">' + (c.longQvaLabel || '-') + '</span>';
   }},
   { key: 'firstEarlyQvaDate', label: 'QVA일', txt: true, render: c => fmtDate(c.firstEarlyQvaDate) + ' <span class="muted">D+' + (c.daysSinceFirst ?? 0) + '</span>' },
   { key: 'name', label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기 (AI 뉴스 분석 포함, 첫 조회 10~30초 소요)"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
   { key: 'anchorPrice', label: 'QVA 신호가', render: c => fmtNum(c.anchorPrice) + '원' },
   { key: 'currentClose', label: '현재가', render: c => fmtNum(c.currentClose) + '원' },
-  { key: 'currentReturnFromSignal', label: '신호가 대비%', render: c => fmtPct(c.currentReturnFromSignal, true) },
+  { key: 'currentReturnFromSignal', label: 'QVA 대비%', render: c => {
+    const v = c.currentReturnFromSignal;
+    if (v == null || !Number.isFinite(v)) return '<span class="muted">-</span>';
+    // +25% 이상이면 강조
+    if (v >= 25) return '<strong style="color:#fbbf24;">' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%</strong>';
+    const cls = v > 0 ? 'pos' : (v < 0 ? 'neg' : 'muted');
+    return '<span class="' + cls + '">' + (v > 0 ? '+' : '') + v.toFixed(2) + '%</span>';
+  }},
+  { key: 'mfeFromSignal', label: '최고%', render: c => {
+    const v = c.mfeFromSignal;
+    if (v == null) return '<span class="muted">-</span>';
+    return '<span style="color:#34d399;">+' + v.toFixed(2) + '%</span>';
+  }},
   { key: 'longQvaChecks', label: '체크', txt: true, render: c => {
     const ch = c.longQvaChecks || {};
     const dot = (ok) => ok ? '<span style="color:#34d399;">●</span>' : '<span style="color:#475569;">○</span>';
@@ -1868,10 +1951,34 @@ COLS_BY_STAGE.LONG_QVA_REACTIVE = [
            '<span title="MA20 회복" style="margin-left:3px;">' + dot(ch.ma20Recovery) + '</span>';
   }},
   { key: 'bestEarlyQvaScore', label: 'QVA점수', render: c => (c.bestEarlyQvaScore ?? 0) },
-  { key: 'marketValue', label: '시총', render: c => fmtValue(c.marketValue) },
 ];
 COLS_BY_STAGE.LONG_QVA_INTEREST = COLS_BY_STAGE.LONG_QVA_REACTIVE;
 COLS_BY_STAGE.LONG_QVA_ALL = COLS_BY_STAGE.LONG_QVA_REACTIVE;
+// BREAKOUT_DONE 전용 컬럼 — 최고 상승/현재/고점 대비 하락 강조
+COLS_BY_STAGE.LONG_QVA_BREAKOUT_DONE = [
+  { key: 'currentReturnFromSignal', label: 'QVA 대비%', render: c => {
+    const v = c.currentReturnFromSignal;
+    if (v == null) return '<span class="muted">-</span>';
+    return '<strong style="color:#fbbf24;">' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%</strong>';
+  }},
+  { key: 'mfeFromSignal', label: '최고%', render: c => {
+    const v = c.mfeFromSignal;
+    if (v == null) return '<span class="muted">-</span>';
+    return '<strong style="color:#34d399;">+' + v.toFixed(2) + '%</strong>';
+  }},
+  { key: 'dropFromMfeHigh', label: '고점 대비', render: c => {
+    const v = c.dropFromMfeHigh;
+    if (v == null) return '<span class="muted">-</span>';
+    const cls = v <= -10 ? 'neg' : (v <= -5 ? 'muted' : 'pos');
+    return '<span class="' + cls + '">' + v.toFixed(2) + '%</span> <span class="muted">(D+' + (c.daysSinceMfeHigh ?? 0) + ')</span>';
+  }},
+  { key: 'firstEarlyQvaDate', label: 'QVA일', txt: true, render: c => fmtDate(c.firstEarlyQvaDate) + ' <span class="muted">D+' + (c.daysSinceFirst ?? 0) + '</span>' },
+  { key: 'name', label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
+  { key: 'anchorPrice', label: 'QVA 신호가', render: c => fmtNum(c.anchorPrice) + '원' },
+  { key: 'mfeHighPrice', label: '최고가', render: c => fmtNum(c.mfeHighPrice) + '원' },
+  { key: 'currentClose', label: '현재가', render: c => fmtNum(c.currentClose) + '원' },
+  { key: 'longQvaReactivationScore', label: '재점화', render: c => (c.longQvaReactivationScore ?? 0) },
+];
 
 const stagesWrap = document.getElementById('stages-wrap');
 const stageContent = {};
@@ -1883,12 +1990,13 @@ function buildStageSection(stage) {
   const eqSummary = DATA.earlyQvaSummary || {};
   const collapsed = (stage === 'EARLY_QVA' && (eqSummary.trackingCount ?? items.length) > 10);
   const sec = document.createElement('div');
-  // 장기 QVA: REACTIVE만 펼침 / INTEREST·ALL 기본 접힘
+  // 장기 QVA: REACTIVE만 펼침 / INTEREST/BREAKOUT_DONE/ALL 기본 접힘
   const isLongReactive = stage === 'LONG_QVA_REACTIVE';
   const isLongInterest = stage === 'LONG_QVA_INTEREST';
+  const isLongBreakoutDone = stage === 'LONG_QVA_BREAKOUT_DONE';
   const isLongAll = stage === 'LONG_QVA_ALL';
-  const isLongAny = isLongReactive || isLongInterest || isLongAll;
-  const longCollapseDefault = (isLongInterest || isLongAll) && items.length > 0;
+  const isLongAny = isLongReactive || isLongInterest || isLongBreakoutDone || isLongAll;
+  const longCollapseDefault = (isLongInterest || isLongBreakoutDone || isLongAll) && items.length > 0;
   const finalCollapsed = collapsed || longCollapseDefault;
 
   sec.className = 'stage-section'
@@ -1896,7 +2004,8 @@ function buildStageSection(stage) {
     + (stage === 'QVA_TRACKING' ? ' q-tracking' : '')
     + (stage === 'EARLY_QVA' ? ' early-qva' : '')
     + (stage === 'QVA_TODAY' ? ' qva-today' : '')
-    + (isLongAny ? ' long-qva' : '');
+    + (isLongAny ? ' long-qva' : '')
+    + (isLongBreakoutDone ? ' long-qva-breakout-done' : '');
   sec.dataset.stage = stage;
 
   let toggleCollapsedText = '▼ 펼치기';
@@ -1922,6 +2031,10 @@ function buildStageSection(stage) {
     toggleCollapsedText = '🔍 장기 QVA 관심 보기 (' + items.length + '건)';
     toggleExpandedText = '🔍 장기 QVA 관심 접기';
     toggleClass = 'toggle toggle-large';
+  } else if (isLongBreakoutDone) {
+    toggleCollapsedText = '🚀 QVA 성공 후 급등 보기 (' + items.length + '건)';
+    toggleExpandedText = '🚀 QVA 성공 후 급등 접기';
+    toggleClass = 'toggle toggle-large';
   } else if (isLongAll) {
     toggleCollapsedText = '📋 장기 QVA 전체 보기 (' + items.length + '건)';
     toggleExpandedText = '📋 장기 QVA 전체 접기';
@@ -1931,7 +2044,7 @@ function buildStageSection(stage) {
   const title = document.createElement('h2');
   title.className = 'h-section';
   const stageColor = { BREAKOUT_SUCCESS: '🔥', VVI_FIRED: '⏳', QVA_TRACKING: '👀', QVA_NEW: '🆕', QVA_TODAY: '🟢', EARLY_QVA: '👀',
-    LONG_QVA_REACTIVE: '🔄', LONG_QVA_INTEREST: '🔍', LONG_QVA_ALL: '📋', FAILED: '❌' }[stage] || '';
+    LONG_QVA_REACTIVE: '🔄', LONG_QVA_INTEREST: '🔍', LONG_QVA_BREAKOUT_DONE: '🚀', LONG_QVA_ALL: '📋', FAILED: '❌' }[stage] || '';
   let pillContent;
   if (stage === 'QVA_TODAY') {
     const newN = eqSummary.todayNewCount ?? 0;
@@ -1943,9 +2056,15 @@ function buildStageSection(stage) {
     pillContent = '<span class="pill">추적 중 ' + (eqSummary.trackingCount ?? 0) + '건</span>' +
                   '<span class="pill" style="background:#34d399;color:#064e3b;">화면 ' + (eqSummary.displayedCount ?? 0) + '건</span>';
   } else if (isLongReactive) {
-    pillContent = '<span class="pill" style="background:#5b21b6;color:#ddd6fe;border:1px solid #c4b5fd;">' + items.length + '건 (점수 80+)</span>';
+    pillContent = '<span class="pill" style="background:#5b21b6;color:#ddd6fe;border:1px solid #c4b5fd;">' + items.length + '건</span>' +
+      '<span class="pill muted" style="font-size:10px;">≤+20% AND 점수 80+</span>';
   } else if (isLongInterest) {
-    pillContent = '<span class="pill" style="background:#312e81;color:#a5b4fc;">' + items.length + '건 (점수 60~79)</span>';
+    pillContent = '<span class="pill" style="background:#312e81;color:#a5b4fc;">' + items.length + '건</span>' +
+      '<span class="pill muted" style="font-size:10px;">≤+20% AND 60~79</span>';
+  } else if (isLongBreakoutDone) {
+    const pbCount = (eqSummary.longQvaPullbackWaitCount ?? 0);
+    pillContent = '<span class="pill" style="background:#422006;color:#fbbf24;border:1px solid #f59e0b;">' + items.length + '건 (이미 급등)</span>' +
+      (pbCount > 0 ? '<span class="pill" style="background:#5c2c0f;color:#fb923c;border:1px solid #fb923c;">눌림 대기 ' + pbCount + '</span>' : '');
   } else if (isLongAll) {
     pillContent = '<span class="pill" style="background:#1e1b4b;color:#c7d2fe;">' + items.length + '건 (전체)</span>';
   } else {
@@ -1965,17 +2084,26 @@ function buildStageSection(stage) {
     const noteEl = document.createElement('div');
     noteEl.style.cssText = 'background:#0f172a;border-left:3px solid #c4b5fd;padding:10px 14px;border-radius:6px;margin-bottom:12px;color:#cbd5e1;font-size:12px;line-height:1.7;';
     noteEl.innerHTML =
-      '<strong style="color:#c4b5fd;">장기 QVA 재점화</strong>는 QVA 발생 후 20거래일 안에 VVI/H그룹으로 이어지지 않았지만, ' +
-      '<strong>21~40거래일 구간에서 다시 거래대금과 가격 흐름이 살아나는</strong> 종목입니다 (재점화 점수 80+).<br>' +
-      '체크 항목: ● 거래대금 재활성 / ● 신호가 위 유지 / ● 고점 돌파 재시도 / ● 저점 상승 / ● MA20 회복 — 5개 중 충족된 항목.<br>' +
-      '<strong style="color:#fbbf24;">매수 추천이 아니라, 뒤늦게 반응하는 QVA 후보를 다시 눈에 띄게 보기 위한 보조 관찰 영역입니다.</strong>';
+      '<strong style="color:#c4b5fd;">장기 QVA 재점화</strong>는 D+21~D+40 구간에서 <strong>아직 크게 오르지 않은 (QVA 대비 +20% 이내)</strong> 종목 중 ' +
+      '재점화 점수 80+로 다시 살아나는 후보입니다. 이미 큰 상승이 나온 종목은 <strong style="color:#fbbf24;">"QVA 성공 후 급등"</strong> 섹션으로 분리됩니다.<br>' +
+      '체크: ● 거래대금 재활성 / ● 신호가 위 유지 / ● 고점 돌파 재시도 / ● 저점 상승 / ● MA20 회복.<br>' +
+      '<strong style="color:#fbbf24;">매수 추천이 아니라 뒤늦게 반응하는 신규 관심 후보를 골라주는 보조 관찰 영역입니다.</strong>';
     sec.appendChild(noteEl);
   }
   if (isLongInterest && items.length > 0) {
     const noteEl = document.createElement('div');
     noteEl.style.cssText = 'background:#0f172a;border-left:3px solid #818cf8;padding:8px 14px;border-radius:6px;margin-bottom:12px;color:#cbd5e1;font-size:11px;line-height:1.6;';
     noteEl.innerHTML =
-      '<strong style="color:#a5b4fc;">장기 QVA 관심</strong>: D+21~D+40, 재점화 점수 60~79. 일부 신호(거래대금/저점/MA)가 살아나는 중. 재점화군보다 한 단계 약함.';
+      '<strong style="color:#a5b4fc;">장기 QVA 관심</strong>: D+21~D+40, QVA 대비 +20% 이내, 재점화 점수 60~79. 재점화군보다 한 단계 약함.';
+    sec.appendChild(noteEl);
+  }
+  if (isLongBreakoutDone && items.length > 0) {
+    const noteEl = document.createElement('div');
+    noteEl.style.cssText = 'background:#0f172a;border-left:3px solid #f59e0b;padding:10px 14px;border-radius:6px;margin-bottom:12px;color:#cbd5e1;font-size:12px;line-height:1.7;';
+    noteEl.innerHTML =
+      '<strong style="color:#fbbf24;">QVA 성공 후 급등</strong>은 QVA 이후 이미 +25% 이상 상승한 종목입니다.<br>' +
+      '<strong style="color:#fb923c;">신규 진입 후보가 아니라 성과 확인 또는 눌림 관찰 대상</strong>으로 봅니다. ' +
+      '<span class="badge tag-PULLBACK_WAIT" style="font-size:10px;padding:1px 6px;border-radius:3px;">눌림 대기</span> 태그가 붙은 종목은 고점 대비 -5~-15% 조정 + MA20 위 유지 상태 — 눌림 확인용 후보입니다.';
     sec.appendChild(noteEl);
   }
   if (isLongAll && items.length > 0) {
