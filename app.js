@@ -3423,6 +3423,24 @@ app.get("/wra-rolling-diff", (req, res) => {
   res.sendFile(filePath);
 });
 
+// ─────────── BMS Winner Scan Report ───────────
+app.get("/bms-winner", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "bms-winner-scan-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/bms-winner-scan-result.html 파일이 없습니다. `node bms-winner-scan-report.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
+// ─────────── BMS Winner Quality Filter Report ───────────
+app.get("/bms-winner-quality", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "bms-winner-quality-filter-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/bms-winner-quality-filter-result.html 파일이 없습니다. `node bms-winner-quality-filter-report.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
 // ─────────── WRA 운영 모드별 4/30 → 5/4 검증 보고서 ───────────
 app.get("/wra-mode", (req, res) => {
   const filePath = path.join(__dirname, "reports", "wra-mode-20260430-to-20260504-validation-result.html");
