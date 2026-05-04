@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-05-04T11:44:48.502Z",
+    "generatedAt": "2026-05-04T12:47:25.615Z",
     "sourceVersion": "wra-current-similarity-v3.1",
     "latestTradingDate": "20260504",
     "universeProcessed": 2338,
@@ -56,21 +56,21 @@
     "BREAKOUT_MOMENTUM_NO_OVERLAY": 15
   },
   "displayLabel": {
-    "CLEAN_VALUE_SETUP": "먼저 볼 후보",
-    "VALUE_SURGE_CONFIRM": "힘 붙은 후보",
-    "BREAKOUT_MOMENTUM": "단기 반응 후보",
-    "VALUE_LOOSE": "보조 후보",
-    "HIGH_VOLATILITY": "고위험 변동성",
-    "WATCH_ONLY": "관찰만",
+    "CLEAN_VALUE_SETUP": "안정 관찰",
+    "VALUE_SURGE_CONFIRM": "상승 확인",
+    "BREAKOUT_MOMENTUM": "단기 반응",
+    "VALUE_LOOSE": "보조 유입",
+    "HIGH_VOLATILITY": "고위험 단기반응",
+    "WATCH_ONLY": "약한 관찰",
     "LOW_SIGNAL": "약한 신호"
   },
   "summaryText": {
-    "CLEAN_VALUE_SETUP": "거래대금 유입, 과열 낮음",
+    "CLEAN_VALUE_SETUP": "거래대금 유입, 상대적으로 위험 낮음",
     "VALUE_SURGE_CONFIRM": "거래대금+상승 확인, 눌림/유지 확인",
-    "BREAKOUT_MOMENTUM": "돌파 시도, 추격 주의",
+    "BREAKOUT_MOMENTUM": "돌파/반응 가능, 추격주의",
     "VALUE_LOOSE": "거래대금은 있으나 조건 보통",
-    "HIGH_VOLATILITY": "크게 튈 수 있지만 흔들림 큼",
-    "WATCH_ONLY": "아직은 관찰 단계",
+    "HIGH_VOLATILITY": "크게 움직일 수 있지만 실패율 높음",
+    "WATCH_ONLY": "움직임 약함, 기본 후순위",
     "LOW_SIGNAL": "신호 약함"
   },
   "candidates": [
@@ -106,8 +106,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.4배 · MA20 +6.2% · 저점 +11.0% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "중간",
@@ -149,8 +149,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.5배 · MA20 +2.8% · 저점 +12.6% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "중간",
@@ -192,8 +192,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.7배 · MA20 +4.3% · 저점 +9.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "중간",
@@ -236,8 +236,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 3.5배 · MA20 +6.4% · 저점 +11.9% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -280,8 +280,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.2배 · MA20 +8.3% · 저점 +15.4% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -324,8 +324,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.6배 · MA20 +7.9% · 저점 +20.5% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -368,8 +368,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.0배 · MA20 +5.6% · 저점 +10.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -412,8 +412,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.9배 · MA20 +4.4% · 저점 +11.3% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -456,8 +456,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.6배 · MA20 +5.3% · 저점 +11.3% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -499,8 +499,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 3.1배 · MA20 +2.3% · 저점 +8.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -542,8 +542,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 3.0배 · MA20 +5.0% · 저점 +8.7% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -585,8 +585,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 3.2배 · MA20 +3.0% · 저점 +5.5% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -628,8 +628,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.6배 · MA20 +0.9% · 저점 +7.3% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -671,8 +671,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.7배 · MA20 +4.4% · 저점 +11.1% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -714,8 +714,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 3.1배 · MA20 +6.2% · 저점 +16.0% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -757,8 +757,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.6배 · MA20 +4.2% · 저점 +10.9% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -800,8 +800,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.4배 · MA20 +2.7% · 저점 +8.3% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -843,8 +843,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.6배 · MA20 +6.4% · 저점 +15.3% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -886,8 +886,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.0배 · MA20 +8.9% · 저점 +21.6% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -929,8 +929,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.2배 · MA20 +2.2% · 저점 +7.2% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -972,8 +972,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.0배 · MA20 +2.0% · 저점 +9.0% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1015,8 +1015,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.8배 · MA20 +0.9% · 저점 +5.6% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1058,8 +1058,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.1배 · MA20 +4.2% · 저점 +11.5% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1101,8 +1101,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.2배 · MA20 +5.3% · 저점 +15.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1144,8 +1144,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.7배 · MA20 +3.9% · 저점 +10.1% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1187,8 +1187,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.3배 · MA20 +10.7% · 저점 +18.1% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1230,8 +1230,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.6배 · MA20 +9.5% · 저점 +18.7% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1273,8 +1273,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.9배 · MA20 +9.3% · 저점 +22.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1316,8 +1316,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.9배 · MA20 +5.3% · 저점 +16.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1359,8 +1359,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.7배 · MA20 +4.7% · 저점 +11.0% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1402,8 +1402,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.8배 · MA20 +6.3% · 저점 +16.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1445,8 +1445,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.6배 · MA20 +4.9% · 저점 +12.4% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1488,8 +1488,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.7배 · MA20 +10.4% · 저점 +17.1% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1531,8 +1531,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.7배 · MA20 +1.1% · 저점 +10.3% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1574,8 +1574,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.5배 · MA20 +2.7% · 저점 +16.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1617,8 +1617,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.3배 · MA20 +1.2% · 저점 +4.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1660,8 +1660,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.7배 · MA20 +0.4% · 저점 +3.3% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1702,8 +1702,8 @@
       "labels": [
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.6배 · MA20 -3.5% · 저점 +3.2% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1744,8 +1744,8 @@
       "labels": [
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.2배 · MA20 -4.4% · 저점 +4.3% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1787,8 +1787,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 2.0배 · MA20 -1.8% · 저점 +4.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1830,8 +1830,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.9배 · MA20 -1.9% · 저점 +4.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1873,8 +1873,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "먼저 볼 후보",
-      "summaryText": "거래대금 유입, 과열 낮음",
+      "displayLabel": "안정 관찰",
+      "summaryText": "거래대금 유입, 상대적으로 위험 낮음",
       "metricSummary": "거래대금 1.6배 · MA20 -1.8% · 저점 +4.4% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -1917,7 +1917,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 3.3배 · MA20 +6.8% · 저점 +22.7% · 박스 안정",
       "riskLevel": "낮음",
@@ -1961,7 +1961,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 2.4배 · MA20 +4.1% · 저점 +15.1% · 박스 안정",
       "riskLevel": "낮음",
@@ -2005,7 +2005,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 1.8배 · MA20 +7.0% · 저점 +22.1% · 박스 안정",
       "riskLevel": "낮음",
@@ -2051,7 +2051,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 1.6배 · MA20 +3.1% · 저점 +13.7% · 박스 변동",
       "riskLevel": "낮음",
@@ -2096,7 +2096,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 12.6배 · MA20 +19.0% · 저점 +32.9% · 박스 안정",
       "riskLevel": "주의",
@@ -2143,7 +2143,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 2.4배 · MA20 +19.2% · 저점 +38.5% · 박스 변동",
       "riskLevel": "주의",
@@ -2189,7 +2189,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 1.8배 · MA20 +8.9% · 저점 +26.7% · 박스 변동",
       "riskLevel": "낮음",
@@ -2237,7 +2237,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 1.5배 · MA20 +9.8% · 저점 +27.3% · 박스 변동",
       "riskLevel": "주의",
@@ -2285,7 +2285,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 1.6배 · MA20 +17.3% · 저점 +35.3% · 박스 변동",
       "riskLevel": "주의",
@@ -2330,7 +2330,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 3.3배 · MA20 +9.1% · 저점 +22.1% · 박스 안정",
       "riskLevel": "낮음",
@@ -2375,7 +2375,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 3.0배 · MA20 +5.9% · 저점 +16.1% · 박스 안정",
       "riskLevel": "낮음",
@@ -2419,7 +2419,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 3.3배 · MA20 +6.4% · 저점 +15.9% · 박스 안정",
       "riskLevel": "낮음",
@@ -2463,7 +2463,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 2.3배 · MA20 +9.4% · 저점 +19.6% · 박스 안정",
       "riskLevel": "낮음",
@@ -2508,7 +2508,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 8.6배 · MA20 +9.8% · 저점 +20.4% · 박스 안정",
       "riskLevel": "주의",
@@ -2552,7 +2552,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 1.8배 · MA20 +8.2% · 저점 +20.7% · 박스 안정",
       "riskLevel": "낮음",
@@ -2599,7 +2599,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 2.7배 · MA20 +10.9% · 저점 +24.2% · 박스 안정",
       "riskLevel": "주의",
@@ -2646,7 +2646,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 2.3배 · MA20 +8.1% · 저점 +21.6% · 박스 안정",
       "riskLevel": "주의",
@@ -2692,7 +2692,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 2.2배 · MA20 +2.8% · 저점 +21.8% · 박스 변동",
       "riskLevel": "낮음",
@@ -2736,7 +2736,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 3.6배 · MA20 +15.2% · 저점 +25.1% · 박스 안정",
       "riskLevel": "주의",
@@ -2782,7 +2782,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 1.7배 · MA20 +4.1% · 저점 +21.0% · 박스 변동",
       "riskLevel": "낮음",
@@ -2829,7 +2829,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 2.3배 · MA20 +16.3% · 저점 +31.0% · 박스 변동",
       "riskLevel": "주의",
@@ -2876,7 +2876,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 2.4배 · MA20 +18.5% · 저점 +36.5% · 박스 변동",
       "riskLevel": "주의",
@@ -2922,7 +2922,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 3.1배 · MA20 +19.2% · 저점 +30.7% · 박스 변동",
       "riskLevel": "주의",
@@ -2970,7 +2970,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 2.4배 · MA20 +11.7% · 저점 +33.3% · 박스 변동",
       "riskLevel": "주의",
@@ -3016,7 +3016,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 3.9배 · MA20 +14.0% · 저점 +29.7% · 박스 불안정",
       "riskLevel": "주의",
@@ -3062,7 +3062,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 1.7배 · MA20 +16.3% · 저점 +32.2% · 박스 불안정",
       "riskLevel": "주의",
@@ -3108,7 +3108,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 1.9배 · MA20 +12.5% · 저점 +31.7% · 박스 불안정",
       "riskLevel": "주의",
@@ -3154,7 +3154,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 1.8배 · MA20 +16.6% · 저점 +34.2% · 박스 불안정",
       "riskLevel": "주의",
@@ -3202,7 +3202,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 2.8배 · MA20 +16.8% · 저점 +36.8% · 박스 불안정",
       "riskLevel": "주의",
@@ -3250,7 +3250,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 11.3배 · MA20 +20.6% · 저점 +31.0% · 과열 주의",
       "riskLevel": "높음",
@@ -3299,7 +3299,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 2.2배 · MA20 +18.2% · 저점 +43.2% · 과열 주의",
       "riskLevel": "높음",
@@ -3348,7 +3348,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 3.4배 · MA20 +21.1% · 저점 +44.1% · 과열 주의",
       "riskLevel": "높음",
@@ -3396,7 +3396,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 2.2배 · MA20 +23.2% · 저점 +44.5% · 과열 주의",
       "riskLevel": "높음",
@@ -3444,7 +3444,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 2.1배 · MA20 +21.8% · 저점 +49.5% · 과열 주의",
       "riskLevel": "높음",
@@ -3492,7 +3492,7 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 1.9배 · MA20 +24.8% · 저점 +52.4% · 과열 주의",
       "riskLevel": "높음",
@@ -3540,7 +3540,7 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "힘 붙은 후보",
+      "displayLabel": "상승 확인",
       "summaryText": "거래대금+상승 확인, 눌림/유지 확인",
       "metricSummary": "거래대금 1.8배 · MA20 +16.0% · 저점 +45.7% · 과열 주의",
       "riskLevel": "높음",
@@ -3584,8 +3584,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 1.6배 · MA20 +10.7% · 저점 +25.7% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "중간",
@@ -3628,8 +3628,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 3.9배 · MA20 +10.7% · 저점 +23.4% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -3672,8 +3672,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 3.4배 · MA20 +10.7% · 저점 +23.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -3716,8 +3716,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 4.1배 · MA20 +7.1% · 저점 +17.9% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -3760,8 +3760,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 4.8배 · MA20 +11.6% · 저점 +26.3% · 박스 안정",
       "riskLevel": "주의",
       "chartLevel": "짧음",
@@ -3804,8 +3804,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 7.1배 · MA20 +12.9% · 저점 +18.3% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -3850,8 +3850,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 2.1배 · MA20 +13.6% · 저점 +23.5% · 박스 안정",
       "riskLevel": "주의",
       "chartLevel": "짧음",
@@ -3896,8 +3896,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 7.1배 · MA20 +5.0% · 저점 +8.1% · 박스 안정",
       "riskLevel": "주의",
       "chartLevel": "짧음",
@@ -3943,8 +3943,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 2.2배 · MA20 +19.8% · 저점 +34.1% · 박스 변동",
       "riskLevel": "주의",
       "chartLevel": "짧음",
@@ -3990,8 +3990,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 43.3배 · MA20 +20.8% · 저점 +35.2% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4039,8 +4039,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 3.2배 · MA20 +58.6% · 저점 +99.8% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4086,8 +4086,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 12.4배 · MA20 +21.1% · 저점 +36.3% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4136,8 +4136,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 2.6배 · MA20 +28.3% · 저점 +54.9% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4186,8 +4186,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 2.7배 · MA20 +50.7% · 저점 +98.1% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4236,8 +4236,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 2.4배 · MA20 +31.5% · 저점 +52.1% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4286,8 +4286,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 1.9배 · MA20 +28.5% · 저점 +68.3% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4336,8 +4336,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 1.6배 · MA20 +24.1% · 저점 +58.3% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4386,8 +4386,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 1.7배 · MA20 +37.6% · 저점 +85.5% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4435,8 +4435,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 1.5배 · MA20 +20.6% · 저점 +40.0% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4485,8 +4485,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 3.9배 · MA20 +44.1% · 저점 +71.8% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4535,8 +4535,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 5.2배 · MA20 +42.3% · 저점 +63.4% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4585,8 +4585,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 17.0배 · MA20 +57.6% · 저점 +76.0% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4634,8 +4634,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 2.7배 · MA20 +27.8% · 저점 +46.4% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4685,8 +4685,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 3.4배 · MA20 +144.9% · 저점 +246.6% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4736,8 +4736,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 3.5배 · MA20 +22.4% · 저점 +46.5% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4787,8 +4787,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 3.4배 · MA20 +49.1% · 저점 +111.2% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4838,8 +4838,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 3.1배 · MA20 +48.5% · 저점 +109.6% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4889,8 +4889,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 3.7배 · MA20 +42.9% · 저점 +103.4% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4940,8 +4940,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 10.5배 · MA20 +32.9% · 저점 +54.1% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -4991,8 +4991,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 7.9배 · MA20 +24.8% · 저점 +45.9% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -5042,8 +5042,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 12.9배 · MA20 +73.6% · 저점 +107.2% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -5093,8 +5093,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 5.3배 · MA20 +76.5% · 저점 +154.6% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -5144,8 +5144,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 5.4배 · MA20 +60.4% · 저점 +105.9% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -5195,8 +5195,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 18.2배 · MA20 +48.6% · 저점 +66.4% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -5245,8 +5245,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 1.7배 · MA20 +39.4% · 저점 +112.3% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -5295,8 +5295,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 1.7배 · MA20 +33.6% · 저점 +65.8% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -5345,8 +5345,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 1.5배 · MA20 +43.4% · 저점 +101.9% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -5395,8 +5395,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 3.4배 · MA20 +89.8% · 저점 +191.4% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -5445,8 +5445,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 4.3배 · MA20 +58.4% · 저점 +112.2% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -5495,8 +5495,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 10.8배 · MA20 +35.6% · 저점 +61.2% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -5546,8 +5546,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 1.9배 · MA20 +135.6% · 저점 +213.5% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -5594,8 +5594,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 4.7배 · MA20 +23.4% · 저점 +38.3% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -5643,8 +5643,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 10.8배 · MA20 +30.1% · 저점 +37.4% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -5691,8 +5691,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 2.9배 · MA20 +16.3% · 저점 +40.3% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -5741,8 +5741,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 38.2배 · MA20 +445.3% · 저점 - · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -5791,8 +5791,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 2.8배 · MA20 +38.2% · 저점 +100.0% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -5839,8 +5839,8 @@
         "BMS_VALUE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 3.3배 · MA20 +22.3% · 저점 +48.0% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -5889,8 +5889,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 21.0배 · MA20 +28.0% · 저점 +42.7% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -5940,8 +5940,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 10.1배 · MA20 +36.1% · 저점 +54.3% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -5991,8 +5991,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 2.5배 · MA20 +21.3% · 저점 +48.9% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -6042,8 +6042,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 4.1배 · MA20 +52.8% · 저점 +79.6% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -6093,8 +6093,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 6.2배 · MA20 +73.2% · 저점 +126.1% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -6144,8 +6144,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 8.9배 · MA20 +42.0% · 저점 +78.6% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -6194,8 +6194,8 @@
         "BMS_SURGE",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "단기 반응 후보",
-      "summaryText": "돌파 시도, 추격 주의",
+      "displayLabel": "단기 반응",
+      "summaryText": "돌파/반응 가능, 추격주의",
       "metricSummary": "거래대금 1.3배 · MA20 +61.5% · 저점 +153.4% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -6239,7 +6239,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 1.5배 · MA20 +17.6% · 저점 +33.9% · 박스 불안정",
       "riskLevel": "주의",
@@ -6281,7 +6281,7 @@
       "labels": [
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 2.0배 · MA20 -4.8% · 저점 +6.7% · 박스 안정",
       "riskLevel": "낮음",
@@ -6324,7 +6324,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 8.2배 · MA20 +11.9% · 저점 +18.9% · 박스 안정",
       "riskLevel": "주의",
@@ -6369,7 +6369,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 1.5배 · MA20 +5.5% · 저점 +20.3% · 박스 변동",
       "riskLevel": "낮음",
@@ -6414,7 +6414,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 2.3배 · MA20 +9.3% · 저점 +28.6% · 박스 변동",
       "riskLevel": "낮음",
@@ -6459,7 +6459,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 1.9배 · MA20 +11.5% · 저점 +25.3% · 박스 변동",
       "riskLevel": "낮음",
@@ -6504,7 +6504,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 1.7배 · MA20 +8.2% · 저점 +17.5% · 박스 불안정",
       "riskLevel": "낮음",
@@ -6549,7 +6549,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 1.5배 · MA20 +16.3% · 저점 +28.9% · 박스 변동",
       "riskLevel": "주의",
@@ -6594,7 +6594,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 2.7배 · MA20 +17.6% · 저점 +33.2% · 박스 불안정",
       "riskLevel": "주의",
@@ -6639,7 +6639,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 2.4배 · MA20 +16.8% · 저점 +32.2% · 박스 불안정",
       "riskLevel": "주의",
@@ -6684,7 +6684,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 2.3배 · MA20 +13.7% · 저점 +33.7% · 박스 불안정",
       "riskLevel": "주의",
@@ -6729,7 +6729,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 1.7배 · MA20 +12.4% · 저점 +30.8% · 박스 불안정",
       "riskLevel": "주의",
@@ -6774,7 +6774,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 1.8배 · MA20 +14.6% · 저점 +30.6% · 박스 불안정",
       "riskLevel": "주의",
@@ -6817,7 +6817,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 3.5배 · MA20 +4.7% · 저점 +12.5% · 박스 안정",
       "riskLevel": "낮음",
@@ -6860,7 +6860,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 3.0배 · MA20 +6.3% · 저점 +15.1% · 박스 안정",
       "riskLevel": "낮음",
@@ -6903,7 +6903,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 2.8배 · MA20 +4.2% · 저점 +13.9% · 박스 안정",
       "riskLevel": "낮음",
@@ -6946,7 +6946,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 2.8배 · MA20 +2.0% · 저점 +10.1% · 박스 안정",
       "riskLevel": "낮음",
@@ -6989,7 +6989,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 2.1배 · MA20 +3.7% · 저점 +14.1% · 박스 안정",
       "riskLevel": "낮음",
@@ -7032,7 +7032,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 1.9배 · MA20 +1.7% · 저점 +10.5% · 박스 안정",
       "riskLevel": "낮음",
@@ -7075,7 +7075,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 4.9배 · MA20 +9.3% · 저점 +18.9% · 박스 안정",
       "riskLevel": "낮음",
@@ -7118,7 +7118,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 5.8배 · MA20 +6.8% · 저점 +12.7% · 박스 안정",
       "riskLevel": "낮음",
@@ -7161,7 +7161,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 7.2배 · MA20 +4.3% · 저점 +8.8% · 박스 안정",
       "riskLevel": "낮음",
@@ -7204,7 +7204,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 5.4배 · MA20 +6.8% · 저점 +20.1% · 박스 안정",
       "riskLevel": "낮음",
@@ -7247,7 +7247,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 5.7배 · MA20 +8.7% · 저점 +19.3% · 박스 안정",
       "riskLevel": "낮음",
@@ -7292,7 +7292,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 2.4배 · MA20 +1.5% · 저점 +12.1% · 박스 변동",
       "riskLevel": "낮음",
@@ -7337,7 +7337,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 1.6배 · MA20 +4.4% · 저점 +16.8% · 박스 변동",
       "riskLevel": "낮음",
@@ -7382,7 +7382,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 1.5배 · MA20 +9.7% · 저점 +25.0% · 박스 변동",
       "riskLevel": "낮음",
@@ -7426,7 +7426,7 @@
       "labels": [
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 1.5배 · MA20 -11.1% · 저점 +7.2% · 박스 변동",
       "riskLevel": "낮음",
@@ -7471,7 +7471,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 2.6배 · MA20 +12.7% · 저점 +22.8% · 박스 변동",
       "riskLevel": "낮음",
@@ -7516,7 +7516,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 3.0배 · MA20 +8.8% · 저점 +27.4% · 박스 변동",
       "riskLevel": "낮음",
@@ -7559,7 +7559,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 44.4배 · MA20 +13.9% · 저점 +18.7% · 박스 안정",
       "riskLevel": "주의",
@@ -7604,7 +7604,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 5.6배 · MA20 +2.1% · 저점 +18.8% · 박스 변동",
       "riskLevel": "낮음",
@@ -7649,7 +7649,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 4.4배 · MA20 -2.3% · 저점 +7.1% · 박스 변동",
       "riskLevel": "낮음",
@@ -7692,7 +7692,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 8.4배 · MA20 +14.0% · 저점 +25.0% · 박스 안정",
       "riskLevel": "낮음",
@@ -7737,7 +7737,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 1.7배 · MA20 +11.4% · 저점 +29.0% · 박스 변동",
       "riskLevel": "낮음",
@@ -7782,7 +7782,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 1.5배 · MA20 +13.8% · 저점 +19.6% · 박스 변동",
       "riskLevel": "낮음",
@@ -7827,7 +7827,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 3.9배 · MA20 +17.5% · 저점 +35.2% · 박스 변동",
       "riskLevel": "주의",
@@ -7872,7 +7872,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 5.0배 · MA20 +0.4% · 저점 +15.0% · 박스 불안정",
       "riskLevel": "낮음",
@@ -7917,7 +7917,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 2.4배 · MA20 +12.4% · 저점 +24.1% · 박스 안정",
       "riskLevel": "주의",
@@ -7962,7 +7962,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 2.5배 · MA20 +15.6% · 저점 +26.2% · 박스 변동",
       "riskLevel": "주의",
@@ -8007,7 +8007,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 2.1배 · MA20 +15.1% · 저점 +32.7% · 박스 변동",
       "riskLevel": "주의",
@@ -8052,7 +8052,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 6.4배 · MA20 +11.7% · 저점 +27.8% · 박스 변동",
       "riskLevel": "낮음",
@@ -8096,7 +8096,7 @@
       "labels": [
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 3.3배 · MA20 -19.6% · 저점 -3.9% · 박스 불안정",
       "riskLevel": "낮음",
@@ -8140,7 +8140,7 @@
       "labels": [
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 2.3배 · MA20 -21.5% · 저점 +4.7% · 박스 불안정",
       "riskLevel": "낮음",
@@ -8185,7 +8185,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 1.6배 · MA20 +19.4% · 저점 +38.0% · 박스 불안정",
       "riskLevel": "주의",
@@ -8230,7 +8230,7 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "보조 후보",
+      "displayLabel": "보조 유입",
       "summaryText": "거래대금은 있으나 조건 보통",
       "metricSummary": "거래대금 4.9배 · MA20 +19.9% · 저점 +31.3% · 박스 불안정",
       "riskLevel": "주의",
@@ -8278,8 +8278,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 5.1배 · MA20 +119.3% · 저점 +202.5% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "좋음",
@@ -8324,8 +8324,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 3.2배 · MA20 +6.4% · 저점 +23.4% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -8370,8 +8370,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.6배 · MA20 -2.2% · 저점 +36.7% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -8416,8 +8416,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 3.2배 · MA20 +14.8% · 저점 +40.4% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -8462,8 +8462,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 2.1배 · MA20 +15.9% · 저점 +43.6% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -8508,8 +8508,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 2.0배 · MA20 +19.0% · 저점 +44.7% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -8554,8 +8554,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.6배 · MA20 +16.0% · 저점 +43.4% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -8600,8 +8600,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.6배 · MA20 +17.4% · 저점 +40.6% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -8648,8 +8648,8 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 2.2배 · MA20 +13.8% · 저점 +60.5% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -8696,8 +8696,8 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.7배 · MA20 +15.0% · 저점 +43.9% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -8741,8 +8741,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.3배 · MA20 +20.5% · 저점 +34.8% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -8788,8 +8788,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 3.6배 · MA20 +51.8% · 저점 +87.3% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -8835,8 +8835,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 2.9배 · MA20 +58.9% · 저점 +114.0% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -8884,8 +8884,8 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 2.7배 · MA20 +32.8% · 저점 +59.7% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -8931,8 +8931,8 @@
         "BMS_EARLY",
         "BMS_SURGE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.5배 · MA20 +36.3% · 저점 +111.0% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -8977,8 +8977,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.6배 · MA20 +25.6% · 저점 +53.4% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -9025,8 +9025,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 2.2배 · MA20 +57.6% · 저점 +118.3% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -9071,8 +9071,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.4배 · MA20 +36.2% · 저점 +76.7% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -9117,8 +9117,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.4배 · MA20 +20.4% · 저점 +47.8% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -9163,8 +9163,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.4배 · MA20 +24.5% · 저점 +61.1% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -9211,8 +9211,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.5배 · MA20 +33.0% · 저점 +89.3% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -9260,8 +9260,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.6배 · MA20 +109.2% · 저점 +168.1% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "중간",
@@ -9306,8 +9306,8 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 8.5배 · MA20 +9.7% · 저점 +18.6% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -9353,8 +9353,8 @@
         "BMS_VALUE",
         "BMS_SURGE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 2.6배 · MA20 +3.1% · 저점 +18.8% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -9399,8 +9399,8 @@
         "BMS_EARLY",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.8배 · MA20 +4.5% · 저점 +10.1% · 박스 안정",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -9446,8 +9446,8 @@
         "BMS_EARLY",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.5배 · MA20 +11.1% · 저점 +27.7% · 박스 변동",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -9492,8 +9492,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 2.1배 · MA20 +19.2% · 저점 +48.6% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -9538,8 +9538,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.5배 · MA20 +14.3% · 저점 +40.1% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -9585,8 +9585,8 @@
         "BMS_EARLY",
         "BMS_BREAKOUT"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.5배 · MA20 +18.7% · 저점 +35.7% · 박스 변동",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -9631,8 +9631,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 13.1배 · MA20 +17.2% · 저점 +30.8% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -9678,8 +9678,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.8배 · MA20 +24.9% · 저점 +73.2% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -9725,8 +9725,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.5배 · MA20 +25.5% · 저점 +57.1% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -9772,8 +9772,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.6배 · MA20 +23.4% · 저점 +51.9% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -9819,8 +9819,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 4.7배 · MA20 +40.9% · 저점 +60.0% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -9866,8 +9866,8 @@
         "BMS_EARLY",
         "BMS_SURGE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 1.4배 · MA20 +19.4% · 저점 +75.2% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -9914,8 +9914,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 2.2배 · MA20 +43.6% · 저점 +116.4% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -9963,8 +9963,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 34.2배 · MA20 +29.9% · 저점 +48.6% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -10012,8 +10012,8 @@
         "BMS_EARLY",
         "BMS_VALUE"
       ],
-      "displayLabel": "고위험 변동성",
-      "summaryText": "크게 튈 수 있지만 흔들림 큼",
+      "displayLabel": "고위험 단기반응",
+      "summaryText": "크게 움직일 수 있지만 실패율 높음",
       "metricSummary": "거래대금 13.0배 · MA20 +26.5% · 저점 +54.2% · 과열 주의",
       "riskLevel": "높음",
       "chartLevel": "짧음",
@@ -10054,8 +10054,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 +5.1% · 저점 +15.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "좋음",
@@ -10096,8 +10096,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.3배 · MA20 +1.8% · 저점 +6.4% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "좋음",
@@ -10138,8 +10138,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 +3.1% · 저점 +6.1% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "중간",
@@ -10180,8 +10180,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 +1.2% · 저점 +4.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "중간",
@@ -10224,8 +10224,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.3배 · MA20 +1.8% · 저점 +23.2% · 박스 불안정",
       "riskLevel": "낮음",
       "chartLevel": "중간",
@@ -10268,8 +10268,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 +8.7% · 저점 +27.8% · 박스 불안정",
       "riskLevel": "낮음",
       "chartLevel": "중간",
@@ -10310,8 +10310,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 3.1배 · MA20 +1.7% · 저점 +7.9% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10352,8 +10352,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 3.1배 · MA20 +2.7% · 저점 +7.5% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10394,8 +10394,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 2.2배 · MA20 +2.4% · 저점 +10.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10436,8 +10436,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 2.0배 · MA20 +5.8% · 저점 +17.1% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10478,8 +10478,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 2.3배 · MA20 +8.1% · 저점 +13.5% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10520,8 +10520,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 2.2배 · MA20 +2.2% · 저점 +9.7% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10562,8 +10562,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 2.1배 · MA20 +7.4% · 저점 +16.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10604,8 +10604,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 2.1배 · MA20 +0.2% · 저점 +9.7% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10646,8 +10646,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.5배 · MA20 +0.6% · 저점 +6.4% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10688,8 +10688,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.6배 · MA20 +4.0% · 저점 +11.3% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10730,8 +10730,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.5배 · MA20 +2.5% · 저점 +13.2% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10772,8 +10772,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.6배 · MA20 +5.1% · 저점 +14.1% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10814,8 +10814,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.5배 · MA20 +3.5% · 저점 +11.5% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10856,8 +10856,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.5배 · MA20 +1.8% · 저점 +8.9% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10898,8 +10898,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 3.3배 · MA20 -0.4% · 저점 +3.5% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10940,8 +10940,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.5배 · MA20 +0.6% · 저점 +10.7% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -10982,8 +10982,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.7배 · MA20 +0.7% · 저점 +3.5% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11024,8 +11024,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 +2.3% · 저점 +6.6% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11066,8 +11066,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 +1.6% · 저점 +5.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11108,8 +11108,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 +2.0% · 저점 +9.7% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11150,8 +11150,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.3배 · MA20 +3.0% · 저점 +8.4% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11192,8 +11192,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 +3.2% · 저점 +12.6% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11234,8 +11234,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.3배 · MA20 +0.5% · 저점 +6.0% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11276,8 +11276,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 +2.6% · 저점 +12.4% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11318,8 +11318,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.3배 · MA20 +2.0% · 저점 +8.0% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11360,8 +11360,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.5배 · MA20 +5.1% · 저점 +12.3% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11402,8 +11402,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.3배 · MA20 +2.0% · 저점 +10.5% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11444,8 +11444,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 4.1배 · MA20 +0.4% · 저점 +2.7% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11486,8 +11486,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 +2.1% · 저점 +12.8% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11528,8 +11528,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 +0.7% · 저점 +7.5% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11570,8 +11570,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.3배 · MA20 +3.0% · 저점 +10.4% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11612,8 +11612,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.6배 · MA20 -1.2% · 저점 +2.9% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11654,8 +11654,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.3배 · MA20 -0.0% · 저점 +8.9% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11696,8 +11696,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 -1.1% · 저점 +7.1% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11738,8 +11738,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.3배 · MA20 +0.7% · 저점 +4.1% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11780,8 +11780,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 -0.6% · 저점 +6.6% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11822,8 +11822,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 -0.3% · 저점 +5.4% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11866,8 +11866,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.9배 · MA20 +7.8% · 저점 +24.9% · 박스 변동",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11908,8 +11908,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 -2.1% · 저점 +2.1% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11950,8 +11950,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 -0.3% · 저점 +3.9% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -11992,8 +11992,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.3배 · MA20 -2.9% · 저점 +3.1% · 박스 안정",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -12036,8 +12036,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.4배 · MA20 +5.7% · 저점 +22.2% · 박스 변동",
       "riskLevel": "낮음",
       "chartLevel": "짧음",
@@ -12080,8 +12080,8 @@
       "labels": [
         "BMS_EARLY"
       ],
-      "displayLabel": "관찰만",
-      "summaryText": "아직은 관찰 단계",
+      "displayLabel": "약한 관찰",
+      "summaryText": "움직임 약함, 기본 후순위",
       "metricSummary": "거래대금 1.3배 · MA20 +9.9% · 저점 +31.1% · 박스 변동",
       "riskLevel": "주의",
       "chartLevel": "짧음",

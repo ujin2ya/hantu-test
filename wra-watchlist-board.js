@@ -38,23 +38,23 @@ const TAG_RANK = {
 const HISTORY_RANK = { FULL_HISTORY: 1, MID_HISTORY: 2, SHORT_HISTORY: 3, INSUFFICIENT: 4 };
 const BOX_RANK = { BOX_STABLE: 1, BOX_VOLATILE: 2, BOX_UNSTABLE: 3 };
 
-// 한국어 표시명 (사용자 친화 라벨, 내부 라벨은 유지)
+// 한국어 표시명 (v3.2: rolling 검증 결과 반영, 사용자 친화 라벨)
 const DISPLAY_LABEL = {
-  CLEAN_VALUE_SETUP: '먼저 볼 후보',
-  VALUE_SURGE_CONFIRM: '힘 붙은 후보',
-  BREAKOUT_MOMENTUM: '단기 반응 후보',
-  VALUE_LOOSE: '보조 후보',
-  HIGH_VOLATILITY: '고위험 변동성',
-  WATCH_ONLY: '관찰만',
+  CLEAN_VALUE_SETUP: '안정 관찰',
+  VALUE_SURGE_CONFIRM: '상승 확인',
+  BREAKOUT_MOMENTUM: '단기 반응',
+  VALUE_LOOSE: '보조 유입',
+  HIGH_VOLATILITY: '고위험 단기반응',
+  WATCH_ONLY: '약한 관찰',
   LOW_SIGNAL: '약한 신호',
 };
 const SUMMARY_TEXT = {
-  CLEAN_VALUE_SETUP: '거래대금 유입, 과열 낮음',
+  CLEAN_VALUE_SETUP: '거래대금 유입, 상대적으로 위험 낮음',
   VALUE_SURGE_CONFIRM: '거래대금+상승 확인, 눌림/유지 확인',
-  BREAKOUT_MOMENTUM: '돌파 시도, 추격 주의',
+  BREAKOUT_MOMENTUM: '돌파/반응 가능, 추격주의',
   VALUE_LOOSE: '거래대금은 있으나 조건 보통',
-  HIGH_VOLATILITY: '크게 튈 수 있지만 흔들림 큼',
-  WATCH_ONLY: '아직은 관찰 단계',
+  HIGH_VOLATILITY: '크게 움직일 수 있지만 실패율 높음',
+  WATCH_ONLY: '움직임 약함, 기본 후순위',
   LOW_SIGNAL: '신호 약함',
 };
 
@@ -511,7 +511,9 @@ footer.foot strong { color: #fde68a; }
 <div class="subtitle" id="subtitle">로딩 중…</div>
 
 <div class="warn-banner">
-  ⚠️ <strong>매수 신호가 아닙니다.</strong> 단기 반응 가능성이 있는 후보를 분류해 보여줍니다. 실제 매수는 차트·뉴스·시장 상황을 별도로 확인하세요.
+  ⚠️ <strong>매수 신호가 아닙니다.</strong> WRA는 단기 반응 가능성을 분류하는 보드입니다.
+  <strong>안정 관찰</strong>은 실패율이 낮은 후보, <strong>단기 반응</strong>은 크게 움직일 수 있지만 실패율도 높은 후보입니다.
+  실제 매수 판단은 차트·뉴스·시장 상황을 별도로 확인하세요.
 </div>
 
 <div class="big-summary" id="big-summary"></div>
@@ -522,11 +524,14 @@ footer.foot strong { color: #fde68a; }
   <span style="color:#94a3b8;">전체 후보와 고위험 변동성 후보는 아래 빠른 필터로 확인하세요.</span>
 </div>
 
+<div id="mode-desc" style="background:#1e293b;border-left:4px solid #38bdf8;padding:9px 14px;border-radius:6px;font-size:12px;color:#cbd5e1;margin-bottom:10px;line-height:1.6;"></div>
+
 <div class="quick-bar">
-  <button class="qf-btn active" data-preset="CORE">⭐ 오늘 볼 후보</button>
-  <button class="qf-btn" data-preset="NO_HIGH_VOL">고변동성 제외</button>
-  <button class="qf-btn" data-preset="ALL">전체 보기</button>
-  <button class="qf-btn" data-preset="MID_FULL">차트신뢰 높은 것만</button>
+  <button class="qf-btn active" data-preset="STABLE">🛡️ 안정 관찰</button>
+  <button class="qf-btn" data-preset="REACTION">⚡ 단기 반응</button>
+  <button class="qf-btn" data-preset="HIGH_VOL_ONLY">🔥 고위험만</button>
+  <button class="qf-btn" data-preset="ALL">📋 전체 보기</button>
+  <button class="qf-btn" data-preset="MID_FULL">📊 차트신뢰 높은 것만</button>
   <span class="match-status" id="match-status"></span>
   <button class="adv-toggle" id="adv-toggle">고급 필터 ▾</button>
 </div>
@@ -535,12 +540,12 @@ footer.foot strong { color: #fde68a; }
   <div class="adv-row">
     <div class="adv-group">
       <span class="gname">유형</span>
-      <button class="btn-f" data-tag="CLEAN_VALUE_SETUP">먼저 볼 후보</button>
-      <button class="btn-f" data-tag="VALUE_SURGE_CONFIRM">힘 붙은 후보</button>
-      <button class="btn-f" data-tag="BREAKOUT_MOMENTUM">단기 반응 후보</button>
-      <button class="btn-f" data-tag="VALUE_LOOSE">보조 후보</button>
-      <button class="btn-f" data-tag="HIGH_VOLATILITY">고위험 변동성</button>
-      <button class="btn-f" data-tag="WATCH_ONLY">관찰만</button>
+      <button class="btn-f" data-tag="CLEAN_VALUE_SETUP">안정 관찰</button>
+      <button class="btn-f" data-tag="VALUE_SURGE_CONFIRM">상승 확인</button>
+      <button class="btn-f" data-tag="BREAKOUT_MOMENTUM">단기 반응</button>
+      <button class="btn-f" data-tag="VALUE_LOOSE">보조 유입</button>
+      <button class="btn-f" data-tag="HIGH_VOLATILITY">고위험 단기반응</button>
+      <button class="btn-f" data-tag="WATCH_ONLY">약한 관찰</button>
       <button class="btn-f" data-tag="LOW_SIGNAL">약한 신호</button>
     </div>
   </div>
@@ -639,9 +644,9 @@ footer.foot strong { color: #fde68a; }
     bigRow.appendChild(el);
   });
 
-  // ── 상태
+  // ── 상태 (v3.2 모드 5가지: STABLE / REACTION / HIGH_VOL_ONLY / ALL / MID_FULL)
   const state = {
-    preset: 'CORE',
+    preset: 'STABLE',
     tags: new Set(),
     market: new Set(),
     box: new Set(),
@@ -650,6 +655,92 @@ footer.foot strong { color: #fde68a; }
     sortKey: null,
     sortDir: 'desc',
   };
+
+  // 모드 정의 (rolling 검증 결과 기반)
+  const MODES = {
+    STABLE: {
+      title: '안정 관찰', icon: '🛡️',
+      desc: '거래대금 유입은 있으나 상대적으로 위험이 낮은 후보입니다. 단기 급등보다 관심종목 관찰에 적합합니다. (rolling RR 2.56)',
+      filter: function (c) {
+        if (c.watchTagV3_1 === 'CLEAN_VALUE_SETUP') return true;
+        if (c.watchTagV3_1 === 'VALUE_LOOSE' && !c.riskOverlay && (c.riskScore || 0) < 20) return true;
+        return false;
+      },
+      sortFn: function (a, b) {
+        // 1. CLEAN_VALUE_SETUP 우선
+        const ta = a.watchTagV3_1 === 'CLEAN_VALUE_SETUP' ? 0 : 1;
+        const tb = b.watchTagV3_1 === 'CLEAN_VALUE_SETUP' ? 0 : 1;
+        if (ta !== tb) return ta - tb;
+        const oa = a.riskOverlay ? 1 : 0;
+        const ob = b.riskOverlay ? 1 : 0;
+        if (oa !== ob) return oa - ob;
+        const ha = HISTORY_RANK[a.historyQuality] || 9;
+        const hb = HISTORY_RANK[b.historyQuality] || 9;
+        if (ha !== hb) return ha - hb;
+        if ((a.finalScore || 0) !== (b.finalScore || 0)) return (b.finalScore || 0) - (a.finalScore || 0);
+        return (a.riskScore || 0) - (b.riskScore || 0);
+      },
+    },
+    REACTION: {
+      title: '단기 반응', icon: '⚡',
+      desc: '크게 움직일 가능성이 있는 후보입니다. 실패율도 높으므로 추격주의가 필요합니다. (rolling avg +1.4%, +3% 도달 30.8%)',
+      filter: function (c) {
+        if (c.watchTagV3_1 === 'HIGH_VOLATILITY') return true;
+        if ((c.riskScore || 0) >= 30) return true;
+        if (c.watchTagV3_1 === 'VALUE_SURGE_CONFIRM') return true;
+        if (c.watchTagV3_1 === 'BREAKOUT_MOMENTUM') return true;
+        return false;
+      },
+      sortFn: function (a, b) {
+        const ra = (a.riskScore || 0) >= 30 ? 0 : 1;
+        const rb = (b.riskScore || 0) >= 30 ? 0 : 1;
+        if (ra !== rb) return ra - rb;
+        const ta = a.watchTagV3_1 === 'HIGH_VOLATILITY' ? 0 : 1;
+        const tb = b.watchTagV3_1 === 'HIGH_VOLATILITY' ? 0 : 1;
+        if (ta !== tb) return ta - tb;
+        if ((a.valueRatio20 || 0) !== (b.valueRatio20 || 0)) return (b.valueRatio20 || 0) - (a.valueRatio20 || 0);
+        if ((a.momentumScore || 0) !== (b.momentumScore || 0)) return (b.momentumScore || 0) - (a.momentumScore || 0);
+        return (b.finalScore || 0) - (a.finalScore || 0);
+      },
+    },
+    HIGH_VOL_ONLY: {
+      title: '고위험만', icon: '🔥',
+      desc: '단기 반응은 강하지만 실패율도 높은 후보입니다. 반드시 고변동성 후보로 분리해서 봅니다.',
+      filter: function (c) {
+        if (c.watchTagV3_1 === 'HIGH_VOLATILITY') return true;
+        if (c.riskOverlay === 'HIGH_VOLATILITY') return true;
+        if ((c.riskScore || 0) >= 30) return true;
+        return false;
+      },
+      sortFn: function (a, b) {
+        if ((a.riskScore || 0) !== (b.riskScore || 0)) return (b.riskScore || 0) - (a.riskScore || 0);
+        if ((a.valueRatio20 || 0) !== (b.valueRatio20 || 0)) return (b.valueRatio20 || 0) - (a.valueRatio20 || 0);
+        return (b.dayReturn || 0) - (a.dayReturn || 0);
+      },
+    },
+    ALL: {
+      title: '전체 보기', icon: '📋',
+      desc: '전체 후보. LOW_SIGNAL/약한 관찰은 흐리게 표시.',
+      filter: function () { return true; },
+      sortFn: null,             // 기본 priority 정렬 사용
+    },
+    MID_FULL: {
+      title: '차트신뢰 높은 것만', icon: '📊',
+      desc: 'MID/FULL_HISTORY (120일 이상) 차트가 있는 후보만. LOW_SIGNAL 제외.',
+      filter: function (c) {
+        if (c.watchTagV3_1 === 'LOW_SIGNAL') return false;
+        return c.historyQuality === 'MID_HISTORY' || c.historyQuality === 'FULL_HISTORY';
+      },
+      sortFn: function (a, b) {
+        const ta = TAG_RANK[a.watchTagV3_1] || 99;
+        const tb = TAG_RANK[b.watchTagV3_1] || 99;
+        if (ta !== tb) return ta - tb;
+        if ((a.finalScore || 0) !== (b.finalScore || 0)) return (b.finalScore || 0) - (a.finalScore || 0);
+        return (a.riskScore || 0) - (b.riskScore || 0);
+      },
+    },
+  };
+  const TAG_RANK = { CLEAN_VALUE_SETUP: 1, VALUE_SURGE_CONFIRM: 2, BREAKOUT_MOMENTUM: 3, VALUE_LOOSE: 4, HIGH_VOLATILITY: 5, WATCH_ONLY: 6, LOW_SIGNAL: 7 };
 
   // ── 행 빌드
   const tbody = document.getElementById('list-body');
@@ -798,19 +889,12 @@ footer.foot strong { color: #fde68a; }
     applyFilters();
   }
 
-  // ── 가시성
+  // ── 가시성: 모드 정의의 filter 사용 + 추가 사용자 필터
   function isVisible(c) {
-    if (state.preset === 'CORE' && !c.coreFlag) return false;
-    if (state.preset === 'NO_HIGH_VOL' && (c.watchTagV3_1 === 'HIGH_VOLATILITY' || c.riskOverlay === 'HIGH_VOLATILITY')) return false;
-    if (state.preset === 'MID_FULL' && !(c.historyQuality === 'MID_HISTORY' || c.historyQuality === 'FULL_HISTORY')) return false;
+    const mode = MODES[state.preset];
+    if (!mode || !mode.filter(c)) return false;
 
-    // LOW_SIGNAL은 명시적 opt-in 필요
-    if (c.watchTagV3_1 === 'LOW_SIGNAL') {
-      if (state.preset === 'CORE' || state.preset === 'NO_HIGH_VOL' || state.preset === 'MID_FULL') return false;
-      if (state.preset === 'ALL' && state.tags.size > 0 && !state.tags.has('LOW_SIGNAL')) return false;
-      if (state.preset === 'ALL' && state.tags.size === 0) return false;
-    }
-
+    // 사용자 추가 필터
     if (state.tags.size > 0 && !state.tags.has(c.watchTagV3_1)) return false;
     if (state.market.size > 0 && !state.market.has(c.market)) return false;
     if (state.box.size > 0 && !state.box.has(c.boxQuality)) return false;
@@ -854,37 +938,31 @@ footer.foot strong { color: #fde68a; }
 
     document.getElementById('match-status').innerHTML =
       '<strong style="color:#cbd5e1;">' + visible + '</strong>건 표시 / 전체 ' + total;
+
+    // 모드 설명 갱신
+    const modeDesc = document.getElementById('mode-desc');
+    if (modeDesc) {
+      const mode = MODES[state.preset];
+      if (mode) {
+        modeDesc.innerHTML = '<span style="font-size:14px;">' + (mode.icon || '📊') + '</span> <strong style="color:#67e8f9;">' + mode.title + '</strong> — ' + mode.desc;
+      }
+    }
   }
 
-  // CORE 모드 → 3블록 순차 + 약한 구분 행. 그 외 → 우선순위(rank) 순.
+  // 모드 변경 시 그 모드의 정렬 적용 (group-row는 v3.2에서 사용 안 함, 단일 리스트)
   function reorderForPreset() {
-    // 기존 group-row 떼어내기 (재배치 위해)
     Object.values(groupRows).forEach(tr => { if (tr.parentNode === tbody) tbody.removeChild(tr); });
-
-    if (state.preset === 'CORE') {
-      const core = candidates.filter(c => c.coreFlag).sort((a, b) => (a.coreOrder || 0) - (b.coreOrder || 0));
-      const rest = candidates.filter(c => !c.coreFlag);
-      let lastBlock = null;
-      core.forEach(c => {
-        if (c.block !== lastBlock) {
-          const gr = groupRows[c.block];
-          if (gr) tbody.appendChild(gr);
-          lastBlock = c.block;
-        }
-        const item = rowsByCode[c.code];
-        if (item) { tbody.appendChild(item.row); tbody.appendChild(item.detail); }
-      });
-      rest.forEach(c => {
-        const item = rowsByCode[c.code];
-        if (item) { tbody.appendChild(item.row); tbody.appendChild(item.detail); }
-      });
+    const mode = MODES[state.preset];
+    let ordered;
+    if (mode && mode.sortFn) {
+      ordered = [...candidates].sort(mode.sortFn);
     } else {
-      // 우선순위 정렬 (이미 candidates는 sortCandidates 순)
-      candidates.forEach(c => {
-        const item = rowsByCode[c.code];
-        if (item) { tbody.appendChild(item.row); tbody.appendChild(item.detail); }
-      });
+      ordered = [...candidates];     // priority(rank) 순 — 이미 sortCandidates로 정렬됨
     }
+    ordered.forEach(c => {
+      const item = rowsByCode[c.code];
+      if (item) { tbody.appendChild(item.row); tbody.appendChild(item.detail); }
+    });
   }
 
   // ── 정렬
