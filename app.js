@@ -89,6 +89,47 @@ function safeNextUrl(raw) {
   return raw;
 }
 
+// ─────────── 비공개 토큰 게이트 (PRIVATE_SITE_TOKEN) ───────────
+// SITE_PASSWORD 게이트보다 한 단계 위. 토큰 없으면 /login도 안 보이고 404 응답.
+// 본인은 https://도메인/?k=토큰 으로 한 번 진입 → 쿠키(1년) → 그 후 자동 통과.
+// 환경변수 미설정 시 비활성 (개발 편의).
+const PRIVATE_TOKEN_COOKIE = "private_token";
+function isPrivateAllowed(req) {
+  const expected = process.env.PRIVATE_SITE_TOKEN;
+  if (!expected) return true;
+  if (process.env.NODE_ENV !== "production") return true;     // 개발 환경에서는 비활성
+  const got = getCookie(req, PRIVATE_TOKEN_COOKIE);
+  return got === expected;
+}
+function setPrivateTokenCookie(res, value) {
+  const isProd = process.env.NODE_ENV === "production";
+  const parts = [
+    `${PRIVATE_TOKEN_COOKIE}=${encodeURIComponent(value)}`,
+    "HttpOnly",
+    "SameSite=Lax",
+    `Max-Age=${365 * 24 * 60 * 60}`,
+    "Path=/",
+  ];
+  if (isProd) parts.push("Secure");
+  res.setHeader("Set-Cookie", parts.join("; "));
+}
+
+app.use((req, res, next) => {
+  const expected = process.env.PRIVATE_SITE_TOKEN;
+  if (!expected || process.env.NODE_ENV !== "production") return next();
+
+  // ?k=토큰 으로 진입한 경우 쿠키 설정 후 토큰 제거하고 redirect
+  if (req.query.k && req.query.k === expected) {
+    setPrivateTokenCookie(res, expected);
+    return res.redirect(req.path);
+  }
+  if (isPrivateAllowed(req)) return next();
+
+  // 토큰도 쿠키도 없으면 사이트 자체가 없는 것처럼 응답 (Express 기본 404 톤과 동일)
+  res.status(404).set("Content-Type", "text/html; charset=utf-8");
+  return res.send("Cannot GET " + req.path);
+});
+
 app.use((req, res, next) => {
   if (isSiteAuthed(req)) return next();
   if (SITE_PUBLIC_PATHS.has(req.path)) return next();
@@ -3437,6 +3478,24 @@ app.get("/bms-winner-quality", (req, res) => {
   const filePath = path.join(__dirname, "reports", "bms-winner-quality-filter-result.html");
   if (!fs.existsSync(filePath)) {
     return res.status(404).send("reports/bms-winner-quality-filter-result.html 파일이 없습니다. `node bms-winner-quality-filter-report.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
+// ─────────── BMS Pattern Summary Report ───────────
+app.get("/bms-pattern", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "bms-pattern-summary-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/bms-pattern-summary-result.html 파일이 없습니다. `node bms-pattern-summary-report.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
+// ─────────── BMS Current Similarity Scan ───────────
+app.get("/bms-current", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "bms-current-similarity-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/bms-current-similarity-result.html 파일이 없습니다. `node bms-current-similarity-scan.js`를 먼저 실행하세요.");
   }
   res.sendFile(filePath);
 });
