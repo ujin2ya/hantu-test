@@ -568,11 +568,11 @@ body { -webkit-overflow-scrolling: touch; }
 </style>
 
 <div class="mode-cards">
-  <button type="button" class="mode-card-btn active" data-preset="STABLE">
-    <span class="count-badge" data-count-for="STABLE"></span>
-    <span class="ic">🛡️</span>
-    <div class="title">안정 관찰</div>
-    <div class="desc">거래대금은 들어왔지만 상대적으로 위험이 낮은 후보입니다. 단기 급등보다는 관심종목 관찰에 적합합니다.</div>
+  <button type="button" class="mode-card-btn aggressive" data-preset="HIGH_VOL_ONLY">
+    <span class="count-badge" data-count-for="HIGH_VOL_ONLY"></span>
+    <span class="ic">🔥</span>
+    <div class="title">고위험 공격형 <span class="warn-badge">⚠ 주의</span></div>
+    <div class="desc">공격적으로 단기 변동성을 확인하고 싶다면 고위험 공격형 후보를 볼 수 있습니다. 단, 이 그룹은 크게 움직일 가능성과 실패 가능성이 모두 높으므로 추격주의가 필요합니다. 실제 판단은 차트, 거래대금 유지, 뉴스 흐름을 함께 확인하세요.</div>
   </button>
   <button type="button" class="mode-card-btn" data-preset="REACTION">
     <span class="count-badge" data-count-for="REACTION"></span>
@@ -580,11 +580,11 @@ body { -webkit-overflow-scrolling: touch; }
     <div class="title">단기 반응</div>
     <div class="desc">다음 거래일 크게 움직일 가능성이 있는 후보입니다. 실패율도 높으므로 추격주의가 필요합니다.</div>
   </button>
-  <button type="button" class="mode-card-btn aggressive" data-preset="HIGH_VOL_ONLY">
-    <span class="count-badge" data-count-for="HIGH_VOL_ONLY"></span>
-    <span class="ic">🔥</span>
-    <div class="title">고위험 공격형 <span class="warn-badge">⚠ 주의</span></div>
-    <div class="desc">공격적으로 단기 변동성을 확인하고 싶다면 고위험 공격형 후보를 볼 수 있습니다. 단, 이 그룹은 크게 움직일 가능성과 실패 가능성이 모두 높으므로 추격주의가 필요합니다. 실제 판단은 차트, 거래대금 유지, 뉴스 흐름을 함께 확인하세요.</div>
+  <button type="button" class="mode-card-btn active" data-preset="STABLE">
+    <span class="count-badge" data-count-for="STABLE"></span>
+    <span class="ic">🛡️</span>
+    <div class="title">안정 관찰</div>
+    <div class="desc">거래대금은 들어왔지만 상대적으로 위험이 낮은 후보입니다. 단기 급등보다는 관심종목 관찰에 적합합니다.</div>
   </button>
   <button type="button" class="mode-card-btn" data-preset="ALL">
     <span class="count-badge" data-count-for="ALL"></span>
