@@ -2012,13 +2012,14 @@ function buildStageSection(stage) {
   const eqSummary = DATA.earlyQvaSummary || {};
   const collapsed = (stage === 'EARLY_QVA' && (eqSummary.trackingCount ?? items.length) > 10);
   const sec = document.createElement('div');
-  // 장기 QVA: REACTIVE만 펼침 / INTEREST/BREAKOUT_DONE/ALL 기본 접힘
+  // 장기 QVA: REACTIVE / INTEREST 펼침 (INTEREST는 길어지면 "더보기"로 일부 숨김)
+  //          BREAKOUT_DONE / ALL 은 기본 접힘
   const isLongReactive = stage === 'LONG_QVA_REACTIVE';
   const isLongInterest = stage === 'LONG_QVA_INTEREST';
   const isLongBreakoutDone = stage === 'LONG_QVA_BREAKOUT_DONE';
   const isLongAll = stage === 'LONG_QVA_ALL';
   const isLongAny = isLongReactive || isLongInterest || isLongBreakoutDone || isLongAll;
-  const longCollapseDefault = (isLongInterest || isLongBreakoutDone || isLongAll) && items.length > 0;
+  const longCollapseDefault = (isLongBreakoutDone || isLongAll) && items.length > 0;
   const finalCollapsed = collapsed || longCollapseDefault;
 
   sec.className = 'stage-section'
@@ -2269,6 +2270,48 @@ function buildStageSection(stage) {
     wrap.innerHTML = '<table>' + head + body + '</table>';
   }
   sec.appendChild(wrap);
+
+  // ─── 더보기 패턴: 행이 너무 많으면 처음 N개만 보이고 나머지는 토글로 노출 ───
+  // 적용 대상: LONG_QVA_INTEREST / LONG_QVA_BREAKOUT_DONE / LONG_QVA_ALL
+  //   - INTEREST는 기본 펼침이라 진입 즉시 더보기 버튼 노출
+  //   - BREAKOUT_DONE / ALL은 기본 접힘이라 사용자가 섹션을 펼쳤을 때 더보기 버튼이 보임
+  // 행 수가 SHOW_MORE_LIMIT 이하면 모두 보이고 버튼 없음.
+  // 버튼은 wrap(.table-wrap) 안에 둬서 섹션 collapsed 시 함께 숨겨짐.
+  const SHOW_MORE_LIMIT = 10;
+  const showMoreApply = isLongInterest || isLongBreakoutDone || isLongAll;
+  if (showMoreApply && items.length > SHOW_MORE_LIMIT) {
+    const trs = wrap.querySelectorAll('tbody tr');
+    let hiddenCount = 0;
+    trs.forEach((tr, i) => {
+      if (i >= SHOW_MORE_LIMIT) {
+        tr.classList.add('row-extra');
+        tr.style.display = 'none';
+        hiddenCount++;
+      }
+    });
+    if (hiddenCount > 0) {
+      const showMoreBtn = document.createElement('button');
+      showMoreBtn.type = 'button';
+      showMoreBtn.className = 'show-more-btn';
+      showMoreBtn.dataset.stage = stage;
+      showMoreBtn.style.cssText = 'display:block;width:100%;margin-top:8px;padding:9px 14px;background:#1e293b;border:1px dashed #334155;border-radius:6px;color:#94a3b8;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;';
+      showMoreBtn.textContent = '+ ' + hiddenCount + '개 더 보기 (전체 ' + items.length + '건)';
+      showMoreBtn.addEventListener('mouseenter', () => { showMoreBtn.style.color = '#cbd5e1'; showMoreBtn.style.borderColor = '#475569'; });
+      showMoreBtn.addEventListener('mouseleave', () => { showMoreBtn.style.color = '#94a3b8'; showMoreBtn.style.borderColor = '#334155'; });
+      let expanded = false;
+      showMoreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        expanded = !expanded;
+        wrap.querySelectorAll('tr.row-extra').forEach(tr => {
+          tr.style.display = expanded ? '' : 'none';
+        });
+        showMoreBtn.textContent = expanded
+          ? '− 접기 (상위 ' + SHOW_MORE_LIMIT + '건만 보기)'
+          : '+ ' + hiddenCount + '개 더 보기 (전체 ' + items.length + '건)';
+      });
+      wrap.appendChild(showMoreBtn);
+    }
+  }
 
   // ─── 섹션 하단 주의 문구 ───
   if (stage === 'BREAKOUT_SUCCESS' && items.length > 0) {
