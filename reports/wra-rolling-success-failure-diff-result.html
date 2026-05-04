@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>WRA Rolling Diff Report</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0 auto; padding: 18px 28px 80px; max-width: 1500px;
+  font-family: -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  background: #0f172a; color: #e2e8f0; font-size: 13px;
+}
+h1 { font-size: 22px; margin: 0 0 6px; color: #f1f5f9; font-weight: 700; }
+h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
+.subtitle { font-size: 13px; color: #94a3b8; margin-bottom: 14px; }
+.purpose-box { background: #1e293b; border-left: 4px solid #38bdf8; padding: 12px 16px; border-radius: 6px; margin-bottom: 14px; line-height: 1.7; color: #cbd5e1; }
+.purpose-box strong { color: #67e8f9; }
+.recommend-box { background: #422006; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; color: #fde68a; line-height: 1.7; }
+.recommend-box strong { color: #fef3c7; }
+
+.big-summary { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.big-tile { flex: 1; min-width: 140px; background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 12px 14px; }
+.big-tile.primary { border-color: #0ea5e9; }
+.big-tile .label { font-size: 11px; color: #94a3b8; }
+.big-tile .value { font-size: 22px; font-weight: 700; color: #f1f5f9; line-height: 1.1; margin-top: 4px; }
+.big-tile.primary .value { color: #67e8f9; }
+.big-tile .sub { font-size: 11px; color: #64748b; margin-top: 3px; }
+
+table.cmp { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0 14px; background: #1e293b; border-radius: 8px; overflow: hidden; font-variant-numeric: tabular-nums; }
+table.cmp th, table.cmp td { padding: 8px 10px; text-align: right; border-bottom: 1px solid #334155; }
+table.cmp th:first-child, table.cmp td:first-child { text-align: left; color: #cbd5e1; }
+table.cmp thead th { background: #0f172a; font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px; }
+table.cmp tr:hover td { background: #273549; }
+.cell-pos { color: #6ee7b7; }
+.cell-neg { color: #fca5a5; }
+.cell-mute { color: #64748b; }
+.row-best td { background: #14532d !important; color: #d1fae5; font-weight: 600; }
+
+.answer-list { background: #1e293b; border-radius: 8px; padding: 14px 16px; }
+.answer-item { padding: 10px 0; border-bottom: 1px dashed #334155; }
+.answer-item:last-child { border-bottom: none; }
+.answer-item .q { font-weight: 600; color: #67e8f9; margin-bottom: 4px; }
+.answer-item .a { font-size: 12px; color: #cbd5e1; line-height: 1.6; }
+
+footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<h1 id="page-title">WRA Rolling Success/Failure Diff Report</h1>
+<div class="subtitle" id="subtitle"></div>
+
+<div class="purpose-box" id="purpose-box"></div>
+
+<div class="recommend-box" id="recommend"></div>
+
+<h2>📊 전체 통계</h2>
+<div class="big-summary" id="big-summary"></div>
+
+<h2>🔑 핵심 7개 질문</h2>
+<div class="answer-list" id="answers"></div>
+
+<h2>🏷️ tag별 rolling 성과</h2>
+<div id="tag-table"></div>
+
+<h2>📈 성공 vs 실패 — cutoff 시점 지표 비교 (rolling 평균)</h2>
+<div id="key-diffs"></div>
+
+<h2>🎯 Threshold Sweep — rolling 검증</h2>
+<p style="color:#94a3b8;font-size:12px;line-height:1.6;">avgCloseReturn 기준 정렬. n>=20 조건만 표시 (노이즈 필터).</p>
+<div id="sweep-table"></div>
+
+<h2>📅 cutoff별 시계열</h2>
+<div id="per-cutoff-table"></div>
+
+<footer class="foot">
+  <strong>매수 신호 보고서가 아닙니다.</strong> 분류 모델 검증을 위한 분석 보고서이며 실제 매매 판단은 차트·뉴스·시장 상황을 별도로 확인하세요.
+</footer>
+
+<script id="report-data" type="application/json">{"meta":{"version":"wra-rolling-diff-v1","generatedAt":"2026-05-04T12:35:21.460Z","title":"WRA Rolling Success/Failure Diff Report","purpose":"여러 cutoff 반복 검증으로 단일 cutoff 결과의 우연/패턴 여부 확인","cutoffs":["20260403","20260406","20260407","20260408","20260409","20260410","20260413","20260414","20260415","20260416","20260417","20260420","20260421","20260422","20260423","20260424","20260427","20260428","20260429","20260430"],"cutoffCount":20,"stocksProcessed":2338,"totalEvents":6023},"config":{"DAYS":20,"FROM":null,"TO":null,"MIN_MARKET_CAP":30000000000,"MIN_HISTORY":60},"perCutoff":[{"cutoff":"20260403","validationDate":"20260406","events":121,"success":38,"fail":80,"successRate":31.4,"failureRate":66.1,"avgCloseReturn":-0.54},{"cutoff":"20260406","validationDate":"20260407","events":86,"success":26,"fail":65,"successRate":30.2,"failureRate":75.6,"avgCloseReturn":0.24},{"cutoff":"20260407","validationDate":"20260408","events":63,"success":30,"fail":36,"successRate":47.6,"failureRate":57.1,"avgCloseReturn":1.19},{"cutoff":"20260408","validationDate":"20260409","events":361,"success":91,"fail":244,"successRate":25.2,"failureRate":67.6,"avgCloseReturn":-0.34},{"cutoff":"20260409","validationDate":"20260410","events":189,"success":85,"fail":79,"successRate":45,"failureRate":41.8,"avgCloseReturn":2.16},{"cutoff":"20260410","validationDate":"20260413","events":361,"success":119,"fail":171,"successRate":33,"failureRate":47.4,"avgCloseReturn":1.71},{"cutoff":"20260413","validationDate":"20260414","events":312,"success":133,"fail":162,"successRate":42.6,"failureRate":51.9,"avgCloseReturn":1.56},{"cutoff":"20260414","validationDate":"20260415","events":388,"success":168,"fail":182,"successRate":43.3,"failureRate":46.9,"avgCloseReturn":2.01},{"cutoff":"20260415","validationDate":"20260416","events":440,"success":211,"fail":172,"successRate":48,"failureRate":39.1,"avgCloseReturn":1.99},{"cutoff":"20260416","validationDate":"20260417","events":488,"success":138,"fail":226,"successRate":28.3,"failureRate":46.3,"avgCloseReturn":0.32},{"cutoff":"20260417","validationDate":"20260420","events":414,"success":116,"fail":249,"successRate":28,"failureRate":60.1,"avgCloseReturn":0.28},{"cutoff":"20260420","validationDate":"20260421","events":274,"success":87,"fail":168,"successRate":31.8,"failureRate":61.3,"avgCloseReturn":0.41},{"cutoff":"20260421","validationDate":"20260422","events":319,"success":130,"fail":146,"successRate":40.8,"failureRate":45.8,"avgCloseReturn":1.67},{"cutoff":"20260422","validationDate":"20260423","events":370,"success":91,"fail":233,"successRate":24.6,"failureRate":63,"avgCloseReturn":-0.75},{"cutoff":"20260423","validationDate":"20260424","events":274,"success":113,"fail":102,"successRate":41.2,"failureRate":37.2,"avgCloseReturn":2.55},{"cutoff":"20260424","validationDate":"20260427","events":448,"success":177,"fail":207,"successRate":39.5,"failureRate":46.2,"avgCloseReturn":1.91},{"cutoff":"20260427","validationDate":"20260428","events":394,"success":94,"fail":283,"successRate":23.9,"failureRate":71.8,"avgCloseReturn":-0.69},{"cutoff":"20260428","validationDate":"20260429","events":268,"success":75,"fail":140,"successRate":28,"failureRate":52.2,"avgCloseReturn":0.28},{"cutoff":"20260429","validationDate":"20260430","events":312,"success":70,"fail":238,"successRate":22.4,"failureRate":76.3,"avgCloseReturn":-0.93},{"cutoff":"20260430","validationDate":"20260504","events":141,"success":49,"fail":86,"successRate":34.8,"failureRate":61,"avgCloseReturn":1.83}],"tagStats":{"CLEAN_VALUE_SETUP":{"n":1196,"fromTotal":6023,"coveragePct":19.9,"avgCloseReturn":0.71,"medCloseReturn":0.14,"avgHighReturn":2.47,"closeWin3Rate":13.3,"highOpp5Rate":13.5,"closeLossRate":11,"highThenFadeRate":18.2,"lowDropOver3Rate":4.5,"successRate":28.1,"failureRate":48.2,"riskRewardRatio":2.56},"VALUE_SURGE_CONFIRM":{"n":748,"fromTotal":6023,"coveragePct":12.4,"avgCloseReturn":0.65,"medCloseReturn":-0.22,"avgHighReturn":4.08,"closeWin3Rate":19.1,"highOpp5Rate":26.6,"closeLossRate":28.7,"highThenFadeRate":24.9,"lowDropOver3Rate":17.2,"successRate":32.4,"failureRate":57,"riskRewardRatio":1.13},"BREAKOUT_MOMENTUM":{"n":0,"fromTotal":6023},"VALUE_LOOSE":{"n":1129,"fromTotal":6023,"coveragePct":18.7,"avgCloseReturn":0.75,"medCloseReturn":0,"avgHighReturn":4,"closeWin3Rate":19.7,"highOpp5Rate":24.9,"closeLossRate":23,"highThenFadeRate":17.7,"lowDropOver3Rate":13.8,"successRate":30.4,"failureRate":57.6,"riskRewardRatio":1.32},"HIGH_VOLATILITY":{"n":1345,"fromTotal":6023,"coveragePct":22.3,"avgCloseReturn":1.4,"medCloseReturn":0,"avgHighReturn":7.92,"closeWin3Rate":30.8,"highOpp5Rate":48.9,"closeLossRate":38.2,"highThenFadeRate":24.9,"lowDropOver3Rate":31.7,"successRate":51.4,"failureRate":60.6,"riskRewardRatio":1.34},"WATCH_ONLY":{"n":1323,"fromTotal":6023,"coveragePct":22,"avgCloseReturn":0.5,"medCloseReturn":0.07,"avgHighReturn":2.2,"closeWin3Rate":8.8,"highOpp5Rate":9.2,"closeLossRate":8.2,"highThenFadeRate":19.9,"lowDropOver3Rate":3.3,"successRate":25.2,"failureRate":49.9,"riskRewardRatio":3.09},"LOW_SIGNAL":{"n":282,"fromTotal":6023,"coveragePct":4.7,"avgCloseReturn":1.09,"medCloseReturn":0,"avgHighReturn":3.9,"closeWin3Rate":20.9,"highOpp5Rate":22,"closeLossRate":19.1,"highThenFadeRate":24.8,"lowDropOver3Rate":12.8,"successRate":33.7,"failureRate":50,"riskRewardRatio":1.76}},"keyDiffs":{"finalScore":{"success_mean":17.07,"success_n":2041,"success_median":27.8,"fail_mean":22.38,"fail_n":3269,"fail_median":29.8,"diff":-5.31,"successHigher":false},"setupScore":{"success_mean":19.51,"success_n":2041,"success_median":19,"fail_mean":21.38,"fail_n":3269,"fail_median":23.2,"diff":-1.87,"successHigher":false},"momentumScore":{"success_mean":16.46,"success_n":2041,"success_median":14.1,"fail_mean":15.2,"fail_n":3269,"fail_median":13.8,"diff":1.26,"successHigher":true},"riskScore":{"success_mean":11.33,"success_n":2041,"success_median":3,"fail_mean":8.51,"fail_n":3269,"fail_median":3,"diff":2.82,"successHigher":true},"riskPenalty":{"success_mean":19.51,"success_n":2041,"success_median":3,"fail_mean":14.65,"fail_n":3269,"fail_median":3,"diff":4.86,"successHigher":true},"valueRatio20":{"success_mean":6.81,"success_n":2041,"success_median":2.18,"fail_mean":5.57,"fail_n":3269,"fail_median":2.12,"diff":1.24,"successHigher":true},"volumeRatio20":{"success_mean":5.86,"success_n":2041,"success_median":2,"fail_mean":4.87,"fail_n":3269,"fail_median":1.97,"diff":0.99,"successHigher":true},"valueToMarketCap":{"success_mean":0.08,"success_n":2041,"success_median":0.01,"fail_mean":0.07,"fail_n":3269,"fail_median":0.01,"diff":0.01,"successHigher":true},"closeLocation":{"success_mean":0.76,"success_n":2041,"success_median":0.76,"fail_mean":0.74,"fail_n":3269,"fail_median":0.73,"diff":0.02,"successHigher":true},"closeToMA20":{"success_mean":18.76,"success_n":2041,"success_median":12.09,"fail_mean":15.33,"fail_n":3269,"fail_median":9.91,"diff":3.43,"successHigher":true},"closeFromRecentLow20":{"success_mean":36.77,"success_n":2040,"success_median":24.3,"fail_mean":31.47,"fail_n":3268,"fail_median":20.91,"diff":5.3,"successHigher":true},"closeFrom52WeekHigh":{"success_mean":-11.98,"success_n":2041,"success_median":-10.73,"fail_mean":-13.42,"fail_n":3269,"fail_median":-11.86,"diff":1.44,"successHigher":true},"dayReturn":{"success_mean":7.86,"success_n":2041,"success_median":4.61,"fail_mean":6.21,"fail_n":3269,"fail_median":3.97,"diff":1.65,"successHigher":true},"boxRangePct":{"success_mean":46.69,"success_n":2041,"success_median":28.21,"fail_mean":42.18,"fail_n":3269,"fail_median":24.78,"diff":4.51,"successHigher":true},"dynamicBoxDuration":{"success_mean":33.33,"success_n":2041,"success_median":30,"fail_mean":35.57,"fail_n":3269,"fail_median":30,"diff":-2.24,"successHigher":false}},"sweepResults":[{"name":"valueRatio20 >= 3","eval":{"n":1686,"fromTotal":6023,"coveragePct":28,"avgCloseReturn":1.13,"medCloseReturn":0,"avgHighReturn":6.42,"closeWin3Rate":24.1,"highOpp5Rate":38.4,"closeLossRate":30.7,"highThenFadeRate":22.7,"lowDropOver3Rate":22.7,"successRate":41.3,"failureRate":59.5,"riskRewardRatio":1.34}},{"name":"valueRatio20 >= 5","eval":{"n":883,"fromTotal":6023,"coveragePct":14.7,"avgCloseReturn":1.17,"medCloseReturn":-0.24,"avgHighReturn":7.86,"closeWin3Rate":25.8,"highOpp5Rate":45.3,"closeLossRate":35.7,"highThenFadeRate":25.1,"lowDropOver3Rate":28.3,"successRate":46.8,"failureRate":63.8,"riskRewardRatio":1.31}},{"name":"valueRatio20 >= 7","eval":{"n":569,"fromTotal":6023,"coveragePct":9.4,"avgCloseReturn":0.87,"medCloseReturn":-0.67,"avgHighReturn":8.73,"closeWin3Rate":26.7,"highOpp5Rate":52.7,"closeLossRate":39.4,"highThenFadeRate":30.2,"lowDropOver3Rate":31.5,"successRate":53.6,"failureRate":68.9,"riskRewardRatio":1.36}},{"name":"valueRatio20 >= 10","eval":{"n":393,"fromTotal":6023,"coveragePct":6.5,"avgCloseReturn":1,"medCloseReturn":-0.74,"avgHighReturn":9.57,"closeWin3Rate":29.3,"highOpp5Rate":57.8,"closeLossRate":40.7,"highThenFadeRate":31.6,"lowDropOver3Rate":32.8,"successRate":58.3,"failureRate":68.2,"riskRewardRatio":1.43}},{"name":"riskScore >= 10","eval":{"n":1688,"fromTotal":6023,"coveragePct":28,"avgCloseReturn":1.27,"medCloseReturn":0,"avgHighReturn":7.13,"closeWin3Rate":27.9,"highOpp5Rate":43.4,"closeLossRate":36,"highThenFadeRate":24.1,"lowDropOver3Rate":28.6,"successRate":47.3,"failureRate":59.1,"riskRewardRatio":1.31}},{"name":"riskScore >= 20","eval":{"n":1204,"fromTotal":6023,"coveragePct":20,"avgCloseReturn":1.51,"medCloseReturn":0,"avgHighReturn":8.09,"closeWin3Rate":31.5,"highOpp5Rate":49.1,"closeLossRate":37.9,"highThenFadeRate":25.4,"lowDropOver3Rate":30.6,"successRate":51.8,"failureRate":60,"riskRewardRatio":1.37}},{"name":"riskScore >= 30","eval":{"n":696,"fromTotal":6023,"coveragePct":11.6,"avgCloseReturn":1.91,"medCloseReturn":0.13,"avgHighReturn":9.38,"closeWin3Rate":35.6,"highOpp5Rate":55.3,"closeLossRate":37.8,"highThenFadeRate":29.2,"lowDropOver3Rate":31.6,"successRate":56.6,"failureRate":60.8,"riskRewardRatio":1.5}},{"name":"closeToMA20 <= 8","eval":{"n":2686,"fromTotal":6023,"coveragePct":44.6,"avgCloseReturn":0.54,"medCloseReturn":0.08,"avgHighReturn":2.49,"closeWin3Rate":11.4,"highOpp5Rate":13.2,"closeLossRate":12,"highThenFadeRate":19.7,"lowDropOver3Rate":6,"successRate":26.5,"failureRate":51.4,"riskRewardRatio":2.21}},{"name":"closeToMA20 <= 12","eval":{"n":3635,"fromTotal":6023,"coveragePct":60.4,"avgCloseReturn":0.63,"medCloseReturn":0.07,"avgHighReturn":2.78,"closeWin3Rate":13.4,"highOpp5Rate":15.6,"closeLossRate":14.1,"highThenFadeRate":19.8,"lowDropOver3Rate":7,"successRate":28,"failureRate":51.7,"riskRewardRatio":1.98}},{"name":"closeToMA20 <= 20","eval":{"n":4726,"fromTotal":6023,"coveragePct":78.5,"avgCloseReturn":0.71,"medCloseReturn":0,"avgHighReturn":3.21,"closeWin3Rate":15.3,"highOpp5Rate":18.5,"closeLossRate":16.7,"highThenFadeRate":20.1,"lowDropOver3Rate":9.5,"successRate":29.5,"failureRate":52.6,"riskRewardRatio":1.77}},{"name":"lowDist <= 20","eval":{"n":3095,"fromTotal":6023,"coveragePct":51.4,"avgCloseReturn":0.65,"medCloseReturn":0.11,"avgHighReturn":2.62,"closeWin3Rate":12.2,"highOpp5Rate":13.7,"closeLossRate":12.1,"highThenFadeRate":19.2,"lowDropOver3Rate":5.5,"successRate":27.2,"failureRate":50.3,"riskRewardRatio":2.26}},{"name":"lowDist <= 30","eval":{"n":4241,"fromTotal":6023,"coveragePct":70.4,"avgCloseReturn":0.6,"medCloseReturn":0,"avgHighReturn":2.91,"closeWin3Rate":14.1,"highOpp5Rate":16.6,"closeLossRate":15.5,"highThenFadeRate":19.9,"lowDropOver3Rate":8.3,"successRate":28.4,"failureRate":52.4,"riskRewardRatio":1.83}},{"name":"lowDist <= 40","eval":{"n":4887,"fromTotal":6023,"coveragePct":81.1,"avgCloseReturn":0.68,"medCloseReturn":0,"avgHighReturn":3.27,"closeWin3Rate":15.5,"highOpp5Rate":18.8,"closeLossRate":17.4,"highThenFadeRate":20.2,"lowDropOver3Rate":9.9,"successRate":29.7,"failureRate":52.9,"riskRewardRatio":1.71}},{"name":"dayReturn <= 5","eval":{"n":3749,"fromTotal":6023,"coveragePct":62.2,"avgCloseReturn":0.66,"medCloseReturn":0.07,"avgHighReturn":2.92,"closeWin3Rate":14.4,"highOpp5Rate":16,"closeLossRate":14.3,"highThenFadeRate":19.5,"lowDropOver3Rate":7.8,"successRate":28.7,"failureRate":51.3,"riskRewardRatio":2.01}},{"name":"dayReturn <= 10","eval":{"n":5025,"fromTotal":6023,"coveragePct":83.4,"avgCloseReturn":0.74,"medCloseReturn":0,"avgHighReturn":3.32,"closeWin3Rate":16.3,"highOpp5Rate":19.2,"closeLossRate":17.6,"highThenFadeRate":19.8,"lowDropOver3Rate":10.2,"successRate":30,"failureRate":52.3,"riskRewardRatio":1.71}},{"name":"dayReturn <= 15","eval":{"n":5475,"fromTotal":6023,"coveragePct":90.9,"avgCloseReturn":0.68,"medCloseReturn":0,"avgHighReturn":3.47,"closeWin3Rate":16.8,"highOpp5Rate":20.7,"closeLossRate":19.4,"highThenFadeRate":19.7,"lowDropOver3Rate":11.8,"successRate":30.8,"failureRate":53.2,"riskRewardRatio":1.59}},{"name":"HIGH_VOLATILITY only","eval":{"n":1345,"fromTotal":6023,"coveragePct":22.3,"avgCloseReturn":1.4,"medCloseReturn":0,"avgHighReturn":7.92,"closeWin3Rate":30.8,"highOpp5Rate":48.9,"closeLossRate":38.2,"highThenFadeRate":24.9,"lowDropOver3Rate":31.7,"successRate":51.4,"failureRate":60.6,"riskRewardRatio":1.34}},{"name":"HIGH_VOLATILITY + valueRatio20 >= 5","eval":{"n":525,"fromTotal":6023,"coveragePct":8.7,"avgCloseReturn":1.77,"medCloseReturn":-0.24,"avgHighReturn":10.5,"closeWin3Rate":33,"highOpp5Rate":59.8,"closeLossRate":41,"highThenFadeRate":29.7,"lowDropOver3Rate":35.6,"successRate":60.6,"failureRate":65.3,"riskRewardRatio":1.48}},{"name":"CLEAN_VALUE_SETUP only","eval":{"n":1196,"fromTotal":6023,"coveragePct":19.9,"avgCloseReturn":0.71,"medCloseReturn":0.14,"avgHighReturn":2.47,"closeWin3Rate":13.3,"highOpp5Rate":13.5,"closeLossRate":11,"highThenFadeRate":18.2,"lowDropOver3Rate":4.5,"successRate":28.1,"failureRate":48.2,"riskRewardRatio":2.56}},{"name":"CLEAN_VALUE_SETUP + closeLocation>=0.7","eval":{"n":682,"fromTotal":6023,"coveragePct":11.3,"avgCloseReturn":0.58,"medCloseReturn":0.11,"avgHighReturn":2.38,"closeWin3Rate":11.3,"highOpp5Rate":11.1,"closeLossRate":11.9,"highThenFadeRate":20.4,"lowDropOver3Rate":4.5,"successRate":27.3,"failureRate":45.6,"riskRewardRatio":2.3}},{"name":"VALUE_SURGE_CONFIRM only","eval":{"n":748,"fromTotal":6023,"coveragePct":12.4,"avgCloseReturn":0.65,"medCloseReturn":-0.22,"avgHighReturn":4.08,"closeWin3Rate":19.1,"highOpp5Rate":26.6,"closeLossRate":28.7,"highThenFadeRate":24.9,"lowDropOver3Rate":17.2,"successRate":32.4,"failureRate":57,"riskRewardRatio":1.13}},{"name":"BREAKOUT_MOMENTUM no overlay","eval":{"n":0,"fromTotal":6023}}],"sweepRanked":[{"name":"riskScore >= 30","eval":{"n":696,"fromTotal":6023,"coveragePct":11.6,"avgCloseReturn":1.91,"medCloseReturn":0.13,"avgHighReturn":9.38,"closeWin3Rate":35.6,"highOpp5Rate":55.3,"closeLossRate":37.8,"highThenFadeRate":29.2,"lowDropOver3Rate":31.6,"successRate":56.6,"failureRate":60.8,"riskRewardRatio":1.5}},{"name":"HIGH_VOLATILITY + valueRatio20 >= 5","eval":{"n":525,"fromTotal":6023,"coveragePct":8.7,"avgCloseReturn":1.77,"medCloseReturn":-0.24,"avgHighReturn":10.5,"closeWin3Rate":33,"highOpp5Rate":59.8,"closeLossRate":41,"highThenFadeRate":29.7,"lowDropOver3Rate":35.6,"successRate":60.6,"failureRate":65.3,"riskRewardRatio":1.48}},{"name":"riskScore >= 20","eval":{"n":1204,"fromTotal":6023,"coveragePct":20,"avgCloseReturn":1.51,"medCloseReturn":0,"avgHighReturn":8.09,"closeWin3Rate":31.5,"highOpp5Rate":49.1,"closeLossRate":37.9,"highThenFadeRate":25.4,"lowDropOver3Rate":30.6,"successRate":51.8,"failureRate":60,"riskRewardRatio":1.37}},{"name":"HIGH_VOLATILITY only","eval":{"n":1345,"fromTotal":6023,"coveragePct":22.3,"avgCloseReturn":1.4,"medCloseReturn":0,"avgHighReturn":7.92,"closeWin3Rate":30.8,"highOpp5Rate":48.9,"closeLossRate":38.2,"highThenFadeRate":24.9,"lowDropOver3Rate":31.7,"successRate":51.4,"failureRate":60.6,"riskRewardRatio":1.34}},{"name":"riskScore >= 10","eval":{"n":1688,"fromTotal":6023,"coveragePct":28,"avgCloseReturn":1.27,"medCloseReturn":0,"avgHighReturn":7.13,"closeWin3Rate":27.9,"highOpp5Rate":43.4,"closeLossRate":36,"highThenFadeRate":24.1,"lowDropOver3Rate":28.6,"successRate":47.3,"failureRate":59.1,"riskRewardRatio":1.31}},{"name":"valueRatio20 >= 5","eval":{"n":883,"fromTotal":6023,"coveragePct":14.7,"avgCloseReturn":1.17,"medCloseReturn":-0.24,"avgHighReturn":7.86,"closeWin3Rate":25.8,"highOpp5Rate":45.3,"closeLossRate":35.7,"highThenFadeRate":25.1,"lowDropOver3Rate":28.3,"successRate":46.8,"failureRate":63.8,"riskRewardRatio":1.31}},{"name":"valueRatio20 >= 3","eval":{"n":1686,"fromTotal":6023,"coveragePct":28,"avgCloseReturn":1.13,"medCloseReturn":0,"avgHighReturn":6.42,"closeWin3Rate":24.1,"highOpp5Rate":38.4,"closeLossRate":30.7,"highThenFadeRate":22.7,"lowDropOver3Rate":22.7,"successRate":41.3,"failureRate":59.5,"riskRewardRatio":1.34}},{"name":"valueRatio20 >= 10","eval":{"n":393,"fromTotal":6023,"coveragePct":6.5,"avgCloseReturn":1,"medCloseReturn":-0.74,"avgHighReturn":9.57,"closeWin3Rate":29.3,"highOpp5Rate":57.8,"closeLossRate":40.7,"highThenFadeRate":31.6,"lowDropOver3Rate":32.8,"successRate":58.3,"failureRate":68.2,"riskRewardRatio":1.43}},{"name":"valueRatio20 >= 7","eval":{"n":569,"fromTotal":6023,"coveragePct":9.4,"avgCloseReturn":0.87,"medCloseReturn":-0.67,"avgHighReturn":8.73,"closeWin3Rate":26.7,"highOpp5Rate":52.7,"closeLossRate":39.4,"highThenFadeRate":30.2,"lowDropOver3Rate":31.5,"successRate":53.6,"failureRate":68.9,"riskRewardRatio":1.36}},{"name":"dayReturn <= 10","eval":{"n":5025,"fromTotal":6023,"coveragePct":83.4,"avgCloseReturn":0.74,"medCloseReturn":0,"avgHighReturn":3.32,"closeWin3Rate":16.3,"highOpp5Rate":19.2,"closeLossRate":17.6,"highThenFadeRate":19.8,"lowDropOver3Rate":10.2,"successRate":30,"failureRate":52.3,"riskRewardRatio":1.71}},{"name":"closeToMA20 <= 20","eval":{"n":4726,"fromTotal":6023,"coveragePct":78.5,"avgCloseReturn":0.71,"medCloseReturn":0,"avgHighReturn":3.21,"closeWin3Rate":15.3,"highOpp5Rate":18.5,"closeLossRate":16.7,"highThenFadeRate":20.1,"lowDropOver3Rate":9.5,"successRate":29.5,"failureRate":52.6,"riskRewardRatio":1.77}},{"name":"CLEAN_VALUE_SETUP only","eval":{"n":1196,"fromTotal":6023,"coveragePct":19.9,"avgCloseReturn":0.71,"medCloseReturn":0.14,"avgHighReturn":2.47,"closeWin3Rate":13.3,"highOpp5Rate":13.5,"closeLossRate":11,"highThenFadeRate":18.2,"lowDropOver3Rate":4.5,"successRate":28.1,"failureRate":48.2,"riskRewardRatio":2.56}},{"name":"lowDist <= 40","eval":{"n":4887,"fromTotal":6023,"coveragePct":81.1,"avgCloseReturn":0.68,"medCloseReturn":0,"avgHighReturn":3.27,"closeWin3Rate":15.5,"highOpp5Rate":18.8,"closeLossRate":17.4,"highThenFadeRate":20.2,"lowDropOver3Rate":9.9,"successRate":29.7,"failureRate":52.9,"riskRewardRatio":1.71}},{"name":"dayReturn <= 15","eval":{"n":5475,"fromTotal":6023,"coveragePct":90.9,"avgCloseReturn":0.68,"medCloseReturn":0,"avgHighReturn":3.47,"closeWin3Rate":16.8,"highOpp5Rate":20.7,"closeLossRate":19.4,"highThenFadeRate":19.7,"lowDropOver3Rate":11.8,"successRate":30.8,"failureRate":53.2,"riskRewardRatio":1.59}},{"name":"dayReturn <= 5","eval":{"n":3749,"fromTotal":6023,"coveragePct":62.2,"avgCloseReturn":0.66,"medCloseReturn":0.07,"avgHighReturn":2.92,"closeWin3Rate":14.4,"highOpp5Rate":16,"closeLossRate":14.3,"highThenFadeRate":19.5,"lowDropOver3Rate":7.8,"successRate":28.7,"failureRate":51.3,"riskRewardRatio":2.01}},{"name":"lowDist <= 20","eval":{"n":3095,"fromTotal":6023,"coveragePct":51.4,"avgCloseReturn":0.65,"medCloseReturn":0.11,"avgHighReturn":2.62,"closeWin3Rate":12.2,"highOpp5Rate":13.7,"closeLossRate":12.1,"highThenFadeRate":19.2,"lowDropOver3Rate":5.5,"successRate":27.2,"failureRate":50.3,"riskRewardRatio":2.26}},{"name":"VALUE_SURGE_CONFIRM only","eval":{"n":748,"fromTotal":6023,"coveragePct":12.4,"avgCloseReturn":0.65,"medCloseReturn":-0.22,"avgHighReturn":4.08,"closeWin3Rate":19.1,"highOpp5Rate":26.6,"closeLossRate":28.7,"highThenFadeRate":24.9,"lowDropOver3Rate":17.2,"successRate":32.4,"failureRate":57,"riskRewardRatio":1.13}},{"name":"closeToMA20 <= 12","eval":{"n":3635,"fromTotal":6023,"coveragePct":60.4,"avgCloseReturn":0.63,"medCloseReturn":0.07,"avgHighReturn":2.78,"closeWin3Rate":13.4,"highOpp5Rate":15.6,"closeLossRate":14.1,"highThenFadeRate":19.8,"lowDropOver3Rate":7,"successRate":28,"failureRate":51.7,"riskRewardRatio":1.98}},{"name":"lowDist <= 30","eval":{"n":4241,"fromTotal":6023,"coveragePct":70.4,"avgCloseReturn":0.6,"medCloseReturn":0,"avgHighReturn":2.91,"closeWin3Rate":14.1,"highOpp5Rate":16.6,"closeLossRate":15.5,"highThenFadeRate":19.9,"lowDropOver3Rate":8.3,"successRate":28.4,"failureRate":52.4,"riskRewardRatio":1.83}},{"name":"CLEAN_VALUE_SETUP + closeLocation>=0.7","eval":{"n":682,"fromTotal":6023,"coveragePct":11.3,"avgCloseReturn":0.58,"medCloseReturn":0.11,"avgHighReturn":2.38,"closeWin3Rate":11.3,"highOpp5Rate":11.1,"closeLossRate":11.9,"highThenFadeRate":20.4,"lowDropOver3Rate":4.5,"successRate":27.3,"failureRate":45.6,"riskRewardRatio":2.3}}],"boxAndHistory":{"successBoxFallbackRate":52.5,"failBoxFallbackRate":47.7,"successBoxQ":{"BOX_STABLE":969,"BOX_UNSTABLE":752,"BOX_VOLATILE":320},"failBoxQ":{"BOX_STABLE":1709,"BOX_UNSTABLE":1010,"BOX_VOLATILE":550},"successHistory":{"SHORT_HISTORY":1918,"FULL_HISTORY":123},"failHistory":{"SHORT_HISTORY":3122,"FULL_HISTORY":147}},"conclusion":{"weakness":"CLEAN_VALUE_SETUP은 종가 유지가 약함. 단기 반응 측면에서는 HIGH_VOLATILITY가 가장 강하지만 실패율도 큼. WATCH_ONLY는 사실상 무가치.","proposedDirection":"조건 변경보다 보드 화면 재포지셔닝이 효과적: ① 단기 반응 노리는 사용자 → HIGH_VOLATILITY를 1순위 노출 ② 안정 진입 노리는 사용자 → CLEAN_VALUE_SETUP 1순위 노출 ③ WATCH_ONLY는 LOW_SIGNAL과 함께 기본 숨김 강화.","answers":{"q1_highVolatilityRolling":{"question":"HIGH_VOLATILITY는 rolling에서도 강한가?","answer":"1345개 이벤트, avgClose 1.4%, +3% 도달 30.8%, RR=1.34. 예 — rolling에서도 강함"},"q2_highVolatilityRiskAcceptable":{"question":"HIGH_VOLATILITY 실패율은 감당 가능한가?","answer":"실패율 60.6%, CLOSE_LOSS율 38.2%, RR=1.34. 경계선"},"q3_cleanIsStableObserve":{"question":"CLEAN_VALUE_SETUP은 단기 반응용이 아니라 안정 관찰용인가?","answer":"n=1196, avgClose 0.71%, +3% 도달 13.3%, 실패율 48.2%. 예 — 단기 반응 약하므로 안정 관찰용으로 재포지셔닝 추천"},"q4_watchOnlyShouldHide":{"question":"WATCH_ONLY는 기본 숨김 또는 제거해도 되는가?","answer":"n=1323, avgClose 0.5%, +3% 도달 8.8%. 약하지만 어느 정도 유효"},"q5_valueRatioWorks":{"question":"valueRatio20 높은 조건은 반복적으로 유효한가?","answer":"valueRatio20 >= 5: avgClose 1.17% +3% 25.8% / valueRatio20 >= 3: avgClose 1.13% +3% 24.1% / valueRatio20 >= 10: avgClose 1% +3% 29.3% / valueRatio20 >= 7: avgClose 0.87% +3% 26.7%"},"q6_boardOrder":{"question":"v3.2 보드 기본 노출 순서는?","answer":"HIGH_VOLATILITY (avgClose=1.4%, +3%=30.8%) > LOW_SIGNAL (avgClose=1.09%, +3%=20.9%) > VALUE_LOOSE (avgClose=0.75%, +3%=19.7%) > CLEAN_VALUE_SETUP (avgClose=0.71%, +3%=13.3%) > VALUE_SURGE_CONFIRM (avgClose=0.65%, +3%=19.1%) > WATCH_ONLY (avgClose=0.5%, +3%=8.8%)"},"q7_changeConditionsOrUI":{"question":"v3.2 후보 조건을 바꿀지, 화면 분류만 바꿀지?","answer":"조건 변경보다 화면 분류 변경이 우선. closeLocation 차이는 미미하고, valueRatio20/riskScore 같은 단기 반응 지표가 더 강함. CLEAN을 안정 관찰용으로 재포지셔닝하고 HIGH_VOLATILITY를 단기 반응 핵심으로 노출하는 게 효과적."}}}}</script>
+<script>
+(function () {
+  const data = JSON.parse(document.getElementById('report-data').textContent);
+  const meta = data.meta || {};
+  function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+  function fmtNum(v, d) { if (v == null || !isFinite(v)) return '-'; return Number(v).toFixed(d == null ? 2 : d); }
+
+  document.getElementById('page-title').textContent = meta.title;
+  document.getElementById('subtitle').innerHTML =
+    'cutoff 범위 <strong style="color:#cbd5e1;">' + (meta.cutoffs[0] || '') + ' ~ ' + (meta.cutoffs[meta.cutoffs.length-1] || '') + '</strong> · ' +
+    meta.cutoffCount + '개 cutoff · 처리 종목 ' + meta.stocksProcessed + ' · 전체 이벤트 ' + meta.totalEvents + ' · 생성 ' +
+    new Date(meta.generatedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+  document.getElementById('purpose-box').innerHTML = '<strong>🎯 목적:</strong> ' + escapeHtml(meta.purpose);
+
+  const cn = data.conclusion || {};
+  document.getElementById('recommend').innerHTML =
+    '<strong>⚠️ 약점:</strong> ' + escapeHtml(cn.weakness || '') +
+    '<br><br><strong>🎯 v3.2 추천 방향:</strong> ' + escapeHtml(cn.proposedDirection || '');
+
+  // big tiles
+  const cutoffsArr = meta.cutoffs || [];
+  const tiles = [
+    { label: '전체 이벤트', value: meta.totalEvents, sub: 'cutoff ' + meta.cutoffCount + '개 × 종목', cls: 'primary' },
+    { label: '평균 cutoff당 이벤트', value: meta.cutoffCount > 0 ? Math.round(meta.totalEvents / meta.cutoffCount) : 0, sub: '평일별 후보 풀', cls: '' },
+    { label: '처리 종목', value: meta.stocksProcessed, sub: '시총 300억+ ETF 제외', cls: '' },
+    { label: 'cutoff 범위', value: meta.cutoffCount, sub: (cutoffsArr[0] || '') + ' ~ ' + (cutoffsArr[cutoffsArr.length - 1] || ''), cls: '' },
+  ];
+  const ts = document.getElementById('big-summary');
+  tiles.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'big-tile ' + (t.cls || '');
+    el.innerHTML = '<div class="label">' + t.label + '</div><div class="value">' + t.value + '</div><div class="sub">' + t.sub + '</div>';
+    ts.appendChild(el);
+  });
+
+  // 7 answers
+  const ans = (cn.answers) || {};
+  const ansEl = document.getElementById('answers');
+  ['q1_highVolatilityRolling','q2_highVolatilityRiskAcceptable','q3_cleanIsStableObserve','q4_watchOnlyShouldHide','q5_valueRatioWorks','q6_boardOrder','q7_changeConditionsOrUI'].forEach(k => {
+    const a = ans[k]; if (!a) return;
+    const div = document.createElement('div');
+    div.className = 'answer-item';
+    div.innerHTML = '<div class="q">Q. ' + escapeHtml(a.question) + '</div><div class="a">→ ' + escapeHtml(a.answer) + '</div>';
+    ansEl.appendChild(div);
+  });
+
+  // tag table
+  let tagHtml = '<table class="cmp"><thead><tr><th>tag</th><th>n</th><th>평균 종가%</th><th>중앙 종가%</th><th>평균 고가%</th><th>+3% 도달</th><th>+5% 고가</th><th>실패율</th><th>RR</th></tr></thead><tbody>';
+  Object.entries(data.tagStats).forEach(([t, e]) => {
+    if (e.n === 0) return;
+    const fmt = v => v == null ? '-' : fmtNum(v);
+    const fmtP = v => v == null ? '-' : fmtNum(v, 1) + '%';
+    const rrStr = (e.riskRewardRatio === Infinity || e.riskRewardRatio == null) ? '-' : fmtNum(e.riskRewardRatio);
+    tagHtml += '<tr>' +
+      '<td>' + t + '</td>' +
+      '<td>' + e.n + '</td>' +
+      '<td class="' + ((e.avgCloseReturn || 0) > 0 ? 'cell-pos' : 'cell-neg') + '">' + fmt(e.avgCloseReturn) + '%</td>' +
+      '<td>' + fmt(e.medCloseReturn) + '%</td>' +
+      '<td class="cell-pos">' + fmt(e.avgHighReturn) + '%</td>' +
+      '<td>' + fmtP(e.closeWin3Rate) + '</td>' +
+      '<td>' + fmtP(e.highOpp5Rate) + '</td>' +
+      '<td class="cell-neg">' + fmtP(e.closeLossRate) + '</td>' +
+      '<td>' + rrStr + '</td>' +
+    '</tr>';
+  });
+  tagHtml += '</tbody></table>';
+  document.getElementById('tag-table').innerHTML = tagHtml;
+
+  // key diffs
+  const kd = data.keyDiffs;
+  let kdHtml = '<table class="cmp"><thead><tr><th>지표</th><th>성공 평균</th><th>성공 중앙</th><th>실패 평균</th><th>실패 중앙</th><th>차이</th><th>방향</th></tr></thead><tbody>';
+  ['finalScore','setupScore','momentumScore','riskScore','riskPenalty','valueRatio20','volumeRatio20','valueToMarketCap','closeLocation','closeToMA20','closeFromRecentLow20','closeFrom52WeekHigh','dayReturn','boxRangePct'].forEach(k => {
+    const v = kd[k]; if (!v) return;
+    const cls = (v.diff || 0) > 0 ? 'cell-pos' : ((v.diff || 0) < 0 ? 'cell-neg' : 'cell-mute');
+    const arrow = (v.diff || 0) > 0 ? '↑ 성공이 높음' : ((v.diff || 0) < 0 ? '↓ 실패가 높음' : '–');
+    kdHtml += '<tr>' +
+      '<td>' + k + '</td>' +
+      '<td>' + fmtNum(v.success_mean) + ' <span class="cell-mute">(' + (v.success_n || 0) + ')</span></td>' +
+      '<td>' + fmtNum(v.success_median) + '</td>' +
+      '<td>' + fmtNum(v.fail_mean) + ' <span class="cell-mute">(' + (v.fail_n || 0) + ')</span></td>' +
+      '<td>' + fmtNum(v.fail_median) + '</td>' +
+      '<td class="' + cls + '">' + (v.diff > 0 ? '+' : '') + fmtNum(v.diff) + '</td>' +
+      '<td class="' + cls + '">' + arrow + '</td>' +
+    '</tr>';
+  });
+  kdHtml += '</tbody></table>';
+  document.getElementById('key-diffs').innerHTML = kdHtml;
+
+  // sweep table
+  const sr = data.sweepRanked || [];
+  let swHtml = '<table class="cmp"><thead><tr><th>조건</th><th>n / total</th><th>커버율</th><th>평균 종가%</th><th>중앙 종가%</th><th>평균 고가%</th><th>+3% 도달</th><th>+5% 고가</th><th>실패율</th><th>highThenFade</th><th>RR</th></tr></thead><tbody>';
+  sr.forEach((r, idx) => {
+    const e = r.eval;
+    const cls = idx < 3 ? 'row-best' : '';
+    const fmt = v => v == null ? '-' : fmtNum(v);
+    const fmtP = v => v == null ? '-' : fmtNum(v, 1) + '%';
+    const rrStr = (e.riskRewardRatio === Infinity || e.riskRewardRatio == null) ? '-' : fmtNum(e.riskRewardRatio);
+    swHtml += '<tr class="' + cls + '">' +
+      '<td>' + escapeHtml(r.name) + '</td>' +
+      '<td>' + e.n + ' / ' + e.fromTotal + '</td>' +
+      '<td>' + fmtP(e.coveragePct) + '</td>' +
+      '<td class="' + ((e.avgCloseReturn || 0) > 0 ? 'cell-pos' : 'cell-neg') + '">' + fmt(e.avgCloseReturn) + '%</td>' +
+      '<td>' + fmt(e.medCloseReturn) + '%</td>' +
+      '<td class="cell-pos">' + fmt(e.avgHighReturn) + '%</td>' +
+      '<td>' + fmtP(e.closeWin3Rate) + '</td>' +
+      '<td>' + fmtP(e.highOpp5Rate) + '</td>' +
+      '<td class="cell-neg">' + fmtP(e.closeLossRate) + '</td>' +
+      '<td>' + fmtP(e.highThenFadeRate) + '</td>' +
+      '<td>' + rrStr + '</td>' +
+    '</tr>';
+  });
+  swHtml += '</tbody></table>';
+  document.getElementById('sweep-table').innerHTML = swHtml;
+
+  // per cutoff
+  let pcHtml = '<table class="cmp"><thead><tr><th>cutoff</th><th>validation</th><th>events</th><th>S</th><th>F</th><th>성공률</th><th>실패율</th><th>평균 종가%</th></tr></thead><tbody>';
+  (data.perCutoff || []).forEach(p => {
+    const fmtP = v => v == null ? '-' : fmtNum(v, 1) + '%';
+    const fmt = v => v == null ? '-' : fmtNum(v);
+    pcHtml += '<tr>' +
+      '<td>' + p.cutoff + '</td>' +
+      '<td>' + (p.validationDate || '-') + '</td>' +
+      '<td>' + p.events + '</td>' +
+      '<td class="cell-pos">' + p.success + '</td>' +
+      '<td class="cell-neg">' + p.fail + '</td>' +
+      '<td>' + fmtP(p.successRate) + '</td>' +
+      '<td>' + fmtP(p.failureRate) + '</td>' +
+      '<td class="' + ((p.avgCloseReturn || 0) > 0 ? 'cell-pos' : 'cell-neg') + '">' + fmt(p.avgCloseReturn) + '%</td>' +
+    '</tr>';
+  });
+  pcHtml += '</tbody></table>';
+  document.getElementById('per-cutoff-table').innerHTML = pcHtml;
+})();
+</script>
+</body>
+</html>

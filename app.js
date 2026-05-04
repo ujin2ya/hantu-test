@@ -3414,6 +3414,15 @@ app.get("/wra-diff/:date", (req, res) => {
 });
 app.get("/wra-diff", (req, res) => res.redirect("/wra-diff/20260430"));
 
+// ─────────── WRA Rolling Success/Failure Diff Report ───────────
+app.get("/wra-rolling-diff", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "wra-rolling-success-failure-diff-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/wra-rolling-success-failure-diff-result.html 파일이 없습니다. `node wra-rolling-success-failure-diff-report.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
 // ─────────── 패턴 스크리너 ───────────
 const patternState = {
   seeding: false, seedStartedAt: null, seedFinishedAt: null, seedProgress: null, seedError: null,
