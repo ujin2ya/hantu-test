@@ -1,0 +1,2102 @@
+{
+  "meta": {
+    "version": "bms-pattern-summary-v1",
+    "generatedAt": "2026-05-04T14:42:16.961Z",
+    "title": "BMS 학습용 정상 상승 사례 공통 조건 요약",
+    "purpose": "A/B 등급 정상 상승 사례의 공통 조건을 정리하고, 다음 단계 (현재 후보 탐색) 의 기준값을 자동 제안",
+    "nextStep": "다음 단계: A/B 등급 공통 조건과 비슷한 준비 구간에 있는 현재 종목을 찾는 bms-current-similarity-scan.js (미작성)",
+    "inputFile": "reports/bms-winner-quality-filter-result.json"
+  },
+  "config": {
+    "EXCLUDE_FAST_DAYS": 2,
+    "EXCLUDE_FAST_RETURN": 100,
+    "EXCLUDE_EXTREME_RETURN": 300,
+    "EXCLUDE_PRE_DAYS_MIN": 10,
+    "EXCLUDE_BOX_RANGE_MAX": 80,
+    "EXCLUDE_LOW60_MAX": 150,
+    "EXCLUDE_NEAR_52W_HIGH_THRESHOLD": -3,
+    "NORMAL_HIGH_RETURN_MIN": 40,
+    "NORMAL_HIGH_RETURN_MAX": 150,
+    "NORMAL_CLOSE_RETURN_MIN": 25,
+    "NORMAL_DAYS_TO_PEAK_MIN": 3,
+    "NORMAL_DAYS_TO_PEAK_MAX": 15,
+    "NORMAL_PRE_DAYS_MIN": 15,
+    "NORMAL_BOX_RANGE_MIN": 8,
+    "NORMAL_BOX_RANGE_MAX": 35,
+    "NORMAL_LOW60_MIN": 5,
+    "NORMAL_LOW60_MAX": 80,
+    "NORMAL_HIGH60_MIN": -40,
+    "NORMAL_HIGH60_MAX": 5,
+    "NORMAL_PRE_ACCUM_MIN_PCT": 3,
+    "NORMAL_START_DAY_RATIO_MIN_PCT": 0.3,
+    "A_HIGH_RETURN_MIN": 40,
+    "A_HIGH_RETURN_MAX": 100,
+    "A_DAYS_MIN": 5,
+    "A_DAYS_MAX": 15,
+    "A_BOX_RANGE_MIN": 10,
+    "A_BOX_RANGE_MAX": 25,
+    "A_LOW60_MIN": 10,
+    "A_LOW60_MAX": 60,
+    "A_VALUE_SPIKE_MIN": 1.5,
+    "A_PRE_ACCUM_MIN_PCT": 5,
+    "A_PRE_ACCUM_MAX_PCT": 80
+  },
+  "summary": {
+    "sourceCleanCount": 828,
+    "aCount": 16,
+    "bCount": 254,
+    "abCount": 270
+  },
+  "gradeCompare": {
+    "A": {
+      "count": 16,
+      "avgHighReturn": 48.99,
+      "avgDaysToPeak": 13.44,
+      "avgPreAccum": 12.33,
+      "avgStartDay": 1.56,
+      "avgValueSpike": 2.46,
+      "avgBoxDays": 10,
+      "avgBoxRange": 18.04,
+      "avgBreakoutSpike": 2.4,
+      "avgSupplyAbove": 55.45,
+      "avgCloseFromLow60": 23.73,
+      "avgCloseFromHigh60": -19.18,
+      "aboveMa20Ratio": 43.75,
+      "aboveMa60Ratio": 43.75,
+      "shortRecoveryRatio": 0
+    },
+    "B": {
+      "count": 254,
+      "avgHighReturn": 48.63,
+      "avgDaysToPeak": 13.22,
+      "avgPreAccum": 32.9,
+      "avgStartDay": 1.05,
+      "avgValueSpike": 0.94,
+      "avgBoxDays": 10,
+      "avgBoxRange": 20.11,
+      "avgBreakoutSpike": 1.04,
+      "avgSupplyAbove": 59.03,
+      "avgCloseFromLow60": 25.59,
+      "avgCloseFromHigh60": -21.76,
+      "aboveMa20Ratio": 30.31,
+      "aboveMa60Ratio": 47.64,
+      "shortRecoveryRatio": 0.79
+    },
+    "AB": {
+      "count": 270,
+      "avgHighReturn": 48.66,
+      "avgDaysToPeak": 13.24,
+      "avgPreAccum": 31.68,
+      "avgStartDay": 1.08,
+      "avgValueSpike": 1.03,
+      "avgBoxDays": 10,
+      "avgBoxRange": 19.99,
+      "avgBreakoutSpike": 1.13,
+      "avgSupplyAbove": 58.82,
+      "avgCloseFromLow60": 25.48,
+      "avgCloseFromHigh60": -21.6,
+      "aboveMa20Ratio": 31.11,
+      "aboveMa60Ratio": 47.41,
+      "shortRecoveryRatio": 0.74
+    }
+  },
+  "returnDistribution": [
+    {
+      "label": "+40~50%",
+      "min": 40,
+      "max": 50,
+      "count": 179,
+      "ratio": 66.3
+    },
+    {
+      "label": "+50~70%",
+      "min": 50,
+      "max": 70,
+      "count": 83,
+      "ratio": 30.74
+    },
+    {
+      "label": "+70~100%",
+      "min": 70,
+      "max": 100,
+      "count": 8,
+      "ratio": 2.96
+    },
+    {
+      "label": "+100% 이상",
+      "min": 100,
+      "max": null,
+      "count": 0,
+      "ratio": 0
+    }
+  ],
+  "durationDistribution": [
+    {
+      "label": "3~5일",
+      "min": 3,
+      "max": 6,
+      "count": 14,
+      "ratio": 5.19
+    },
+    {
+      "label": "6~10일",
+      "min": 6,
+      "max": 11,
+      "count": 23,
+      "ratio": 8.52
+    },
+    {
+      "label": "11~15일",
+      "min": 11,
+      "max": 16,
+      "count": 233,
+      "ratio": 86.3
+    }
+  ],
+  "preAccumulationSummary": {
+    "ratio": {
+      "n": 270,
+      "mean": 31.68,
+      "median": 17.55,
+      "q1": 10.78,
+      "q3": 31.4,
+      "p10": 7.27,
+      "p90": 64.12,
+      "min": 3.33,
+      "max": 536.34
+    },
+    "days": {
+      "n": 270,
+      "mean": 20,
+      "median": 20,
+      "q1": 20,
+      "q3": 20,
+      "p10": 20,
+      "p90": 20,
+      "min": 20,
+      "max": 20
+    }
+  },
+  "startDaySummary": {
+    "ratio": {
+      "n": 270,
+      "mean": 1.08,
+      "median": 0.7,
+      "q1": 0.46,
+      "q3": 1.16,
+      "p10": 0.36,
+      "p90": 2.24,
+      "min": 0.3,
+      "max": 16.12
+    },
+    "valueSpike": {
+      "n": 270,
+      "mean": 1.03,
+      "median": 0.76,
+      "q1": 0.54,
+      "q3": 1.21,
+      "p10": 0.39,
+      "p90": 1.63,
+      "min": 0.09,
+      "max": 9.88
+    }
+  },
+  "runValueSummary": {
+    "accumulatedRatio": {
+      "n": 270,
+      "mean": 48.9,
+      "median": 29.83,
+      "q1": 16.65,
+      "q3": 55.22,
+      "p10": 9.68,
+      "p90": 111.29,
+      "min": 3.68,
+      "max": 379.12
+    },
+    "maxValueRatio": {
+      "n": 270,
+      "mean": 22.73,
+      "median": 11.48,
+      "q1": 4.45,
+      "q3": 27.31,
+      "p10": 2.15,
+      "p90": 61.89,
+      "min": 0.56,
+      "max": 229.28
+    },
+    "spikeAvgRatio": {
+      "n": 270,
+      "mean": 3.31,
+      "median": 2.02,
+      "q1": 1.25,
+      "q3": 3.88,
+      "p10": 0.9,
+      "p90": 7.99,
+      "min": 0.35,
+      "max": 22.95
+    },
+    "spikeDaysRatio": {
+      "n": 270,
+      "mean": 30.83,
+      "median": 25,
+      "q1": 14.29,
+      "q3": 43.75,
+      "p10": 7.69,
+      "p90": 56.25,
+      "min": 0,
+      "max": 100
+    }
+  },
+  "boxSummary": {
+    "days": {
+      "n": 270,
+      "mean": 10,
+      "median": 10,
+      "q1": 10,
+      "q3": 10,
+      "p10": 10,
+      "p90": 10,
+      "min": 10,
+      "max": 10
+    },
+    "rangePct": {
+      "n": 270,
+      "mean": 19.99,
+      "median": 18.86,
+      "q1": 14.81,
+      "q3": 24.97,
+      "p10": 11.68,
+      "p90": 30.46,
+      "min": 8.38,
+      "max": 34.83
+    },
+    "breakoutValueRatio": {
+      "n": 270,
+      "mean": 1.13,
+      "median": 0.9,
+      "q1": 0.62,
+      "q3": 1.24,
+      "p10": 0.43,
+      "p90": 1.7,
+      "min": 0.2,
+      "max": 15.39
+    },
+    "lowRisingRatio": {
+      "count": 129,
+      "total": 270,
+      "ratio": 47.78
+    },
+    "touchedHighMultiRatio": {
+      "count": 140,
+      "total": 270,
+      "ratio": 51.85
+    },
+    "valueIncreasingRatio": {
+      "count": 105,
+      "total": 270,
+      "ratio": 38.89
+    }
+  },
+  "movingAverageSummary": {
+    "aboveMa20": {
+      "count": 84,
+      "total": 270,
+      "ratio": 31.11
+    },
+    "aboveMa60": {
+      "count": 128,
+      "total": 270,
+      "ratio": 47.41
+    },
+    "aboveMa120": {
+      "count": 16,
+      "total": 270,
+      "ratio": 5.93
+    },
+    "ma20AboveMa60Below": {
+      "count": 10,
+      "total": 270,
+      "ratio": 3.7
+    },
+    "bothBelowMa20Ma60": {
+      "count": 132,
+      "total": 270,
+      "ratio": 48.89
+    },
+    "fullBull": {
+      "count": 2,
+      "total": 270,
+      "ratio": 0.74
+    },
+    "shortRecovery": {
+      "count": 2,
+      "total": 270,
+      "ratio": 0.74
+    }
+  },
+  "pricePositionSummary": {
+    "closeFromLow60": {
+      "n": 270,
+      "mean": 25.48,
+      "median": 21.52,
+      "q1": 13.2,
+      "q3": 32.76,
+      "p10": 8.19,
+      "p90": 53.43,
+      "min": 5.04,
+      "max": 77.1
+    },
+    "closeFromLow120": {
+      "n": 270,
+      "mean": 32.09,
+      "median": 27.16,
+      "q1": 14.89,
+      "q3": 43.4,
+      "p10": 9.13,
+      "p90": 64.32,
+      "min": 5.04,
+      "max": 196.21
+    },
+    "closeFromHigh60": {
+      "n": 270,
+      "mean": -21.6,
+      "median": -22.23,
+      "q1": -28.57,
+      "q3": -13.83,
+      "p10": -34.71,
+      "p90": -8.62,
+      "min": -40,
+      "max": -3.3
+    },
+    "closeFromHigh120": {
+      "n": 270,
+      "mean": -22.96,
+      "median": -22.99,
+      "q1": -30.03,
+      "q3": -14.25,
+      "p10": -37.3,
+      "p90": -9.37,
+      "min": -52.15,
+      "max": -3.3
+    },
+    "closeFrom52WeekHigh": {
+      "n": 270,
+      "mean": -23.39,
+      "median": -23.75,
+      "q1": -30.52,
+      "q3": -14.93,
+      "p10": -37.79,
+      "p90": -9.37,
+      "min": -52.15,
+      "max": -3.3
+    },
+    "closeFromBoxLow": {
+      "n": 270,
+      "mean": 2.9,
+      "median": 3.72,
+      "q1": -2.17,
+      "q3": 8,
+      "p10": -9.3,
+      "p90": 14.32,
+      "min": -21.52,
+      "max": 29.67
+    },
+    "closeFromBoxHigh": {
+      "n": 270,
+      "mean": -14,
+      "median": -12.32,
+      "q1": -20.29,
+      "q3": -7.7,
+      "p10": -25.43,
+      "p90": -4.24,
+      "min": -38.4,
+      "max": 4.07
+    }
+  },
+  "supplyZoneSummary": {
+    "aboveCloseRatio": {
+      "n": 270,
+      "mean": 58.82,
+      "median": 59.85,
+      "q1": 36.98,
+      "q3": 85.09,
+      "p10": 16.36,
+      "p90": 95.95,
+      "min": 0,
+      "max": 100
+    },
+    "distribution": [
+      {
+        "label": "0~30% (위 매물 적음)",
+        "min": 0,
+        "max": 30,
+        "count": 53,
+        "ratio": 19.63
+      },
+      {
+        "label": "30~60% (보통)",
+        "min": 30,
+        "max": 60,
+        "count": 84,
+        "ratio": 31.11
+      },
+      {
+        "label": "60% 이상 (무거움)",
+        "min": 60,
+        "max": null,
+        "count": 133,
+        "ratio": 49.26
+      }
+    ]
+  },
+  "postPeakSummary": {
+    "drawdownClose": {
+      "n": 267,
+      "mean": 16.63,
+      "median": 16.56,
+      "q1": 9.26,
+      "q3": 22.62,
+      "p10": 1.89,
+      "p90": 30.42,
+      "min": 0,
+      "max": 42.21
+    },
+    "drawdownLow": {
+      "n": 267,
+      "mean": 19.34,
+      "median": 18.65,
+      "q1": 12.48,
+      "q3": 25.47,
+      "p10": 6.97,
+      "p90": 32.29,
+      "min": 0,
+      "max": 100
+    },
+    "downCandleValueRatio": {
+      "n": 267,
+      "mean": 47.28,
+      "median": 44.51,
+      "q1": 29.77,
+      "q3": 63.19,
+      "p10": 18.38,
+      "p90": 80.69,
+      "min": 0,
+      "max": 100
+    },
+    "postValueVsRun": {
+      "n": 267,
+      "mean": 2.21,
+      "median": 1.16,
+      "q1": 0.78,
+      "q3": 2.21,
+      "p10": 0.54,
+      "p90": 4.31,
+      "min": 0.16,
+      "max": 44.23
+    },
+    "postValueLargerThanRunRatio": {
+      "count": 157,
+      "total": 270,
+      "ratio": 58.15
+    }
+  },
+  "suggestedRules": {
+    "preAccumulationRatio": {
+      "label": "시총 대비 상승 전 들어온 돈",
+      "unit": "%",
+      "min": 7.27,
+      "idealMin": 10.78,
+      "idealMax": 31.4,
+      "median": 17.55
+    },
+    "startDayValueRatio": {
+      "label": "시총 대비 상승 시작일 거래대금",
+      "unit": "%",
+      "min": 0.36,
+      "idealMin": 0.46,
+      "median": 0.7
+    },
+    "valueSpikeRatio": {
+      "label": "평소보다 거래가 늘어난 정도",
+      "unit": "배",
+      "min": 0.39,
+      "idealMin": 0.54,
+      "idealMax": 1.21,
+      "median": 0.76
+    },
+    "boxRangePct": {
+      "label": "박스권 폭",
+      "unit": "%",
+      "min": 11.68,
+      "idealMin": 14.81,
+      "idealMax": 24.97,
+      "max": 35,
+      "median": 18.86
+    },
+    "boxDays": {
+      "label": "박스권 기간",
+      "unit": "일",
+      "min": 10,
+      "idealMin": 10,
+      "idealMax": 10,
+      "median": 10
+    },
+    "breakoutValueRatio": {
+      "label": "돌파일 거래대금 (박스 평균 대비)",
+      "unit": "배",
+      "idealMin": 0.62,
+      "idealMax": 1.24,
+      "median": 0.9
+    },
+    "closeFromLow60": {
+      "label": "60일 저점 대비 위치",
+      "unit": "%",
+      "min": 5,
+      "idealMin": 13.2,
+      "idealMax": 32.76,
+      "max": 80,
+      "median": 21.52
+    },
+    "closeFromHigh60": {
+      "label": "60일 고점 대비 위치",
+      "unit": "%",
+      "idealMin": -28.57,
+      "idealMax": -13.83,
+      "median": -22.23
+    },
+    "supplyAboveRatio": {
+      "label": "위쪽 매물 부담",
+      "unit": "%",
+      "idealMax": 36.98,
+      "tolerantMax": 59.85,
+      "max": 85,
+      "median": 59.85
+    }
+  },
+  "detailA": {
+    "count": 16,
+    "return": {
+      "highReturn": {
+        "n": 16,
+        "mean": 48.99,
+        "median": 46.15,
+        "q1": 41.98,
+        "q3": 58.82,
+        "p10": 40.98,
+        "p90": 65.18,
+        "min": 40.07,
+        "max": 66.4
+      },
+      "closeReturn": {
+        "n": 16,
+        "mean": 41.16,
+        "median": 40.85,
+        "q1": 33.81,
+        "q3": 48.2,
+        "p10": 30.6,
+        "p90": 58.09,
+        "min": 23.77,
+        "max": 59.59
+      },
+      "distribution": [
+        {
+          "label": "+40~50%",
+          "min": 40,
+          "max": 50,
+          "count": 10,
+          "ratio": 62.5
+        },
+        {
+          "label": "+50~70%",
+          "min": 50,
+          "max": 70,
+          "count": 6,
+          "ratio": 37.5
+        },
+        {
+          "label": "+70~100%",
+          "min": 70,
+          "max": 100,
+          "count": 0,
+          "ratio": 0
+        },
+        {
+          "label": "+100% 이상",
+          "min": 100,
+          "max": null,
+          "count": 0,
+          "ratio": 0
+        }
+      ]
+    },
+    "duration": {
+      "days": {
+        "n": 16,
+        "mean": 13.44,
+        "median": 15,
+        "q1": 14,
+        "q3": 15,
+        "p10": 6,
+        "p90": 15,
+        "min": 5,
+        "max": 15
+      },
+      "distribution": [
+        {
+          "label": "3~5일",
+          "min": 3,
+          "max": 6,
+          "count": 1,
+          "ratio": 6.25
+        },
+        {
+          "label": "6~10일",
+          "min": 6,
+          "max": 11,
+          "count": 1,
+          "ratio": 6.25
+        },
+        {
+          "label": "11~15일",
+          "min": 11,
+          "max": 16,
+          "count": 14,
+          "ratio": 87.5
+        }
+      ]
+    },
+    "preAccumulation": {
+      "ratio": {
+        "n": 16,
+        "mean": 12.33,
+        "median": 9.97,
+        "q1": 7.95,
+        "q3": 15.14,
+        "p10": 6.56,
+        "p90": 21.33,
+        "min": 6.39,
+        "max": 38.51
+      },
+      "days": {
+        "n": 16,
+        "mean": 20,
+        "median": 20,
+        "q1": 20,
+        "q3": 20,
+        "p10": 20,
+        "p90": 20,
+        "min": 20,
+        "max": 20
+      }
+    },
+    "startDay": {
+      "ratio": {
+        "n": 16,
+        "mean": 1.56,
+        "median": 0.97,
+        "q1": 0.82,
+        "q3": 1.33,
+        "p10": 0.58,
+        "p90": 4.09,
+        "min": 0.51,
+        "max": 7.22
+      },
+      "valueSpike": {
+        "n": 16,
+        "mean": 2.46,
+        "median": 1.86,
+        "q1": 1.62,
+        "q3": 2.64,
+        "p10": 1.58,
+        "p90": 2.89,
+        "min": 1.5,
+        "max": 9.53
+      }
+    },
+    "runValue": {
+      "accumulatedRatio": {
+        "n": 16,
+        "mean": 32.57,
+        "median": 28.31,
+        "q1": 12.19,
+        "q3": 52.96,
+        "p10": 5.48,
+        "p90": 61.91,
+        "min": 4.92,
+        "max": 99.43
+      },
+      "maxValueRatio": {
+        "n": 16,
+        "mean": 12.87,
+        "median": 10.45,
+        "q1": 2.13,
+        "q3": 24.82,
+        "p10": 0.86,
+        "p90": 32.72,
+        "min": 0.68,
+        "max": 44.54
+      },
+      "spikeAvgRatio": {
+        "n": 16,
+        "mean": 3.92,
+        "median": 3.27,
+        "q1": 1.75,
+        "q3": 6.53,
+        "p10": 1.2,
+        "p90": 8.75,
+        "min": 0.96,
+        "max": 8.93
+      },
+      "spikeDaysRatio": {
+        "n": 16,
+        "mean": 46.69,
+        "median": 43.75,
+        "q1": 31.25,
+        "q3": 60,
+        "p10": 18.75,
+        "p90": 85.71,
+        "min": 14.29,
+        "max": 100
+      }
+    },
+    "box": {
+      "days": {
+        "n": 16,
+        "mean": 10,
+        "median": 10,
+        "q1": 10,
+        "q3": 10,
+        "p10": 10,
+        "p90": 10,
+        "min": 10,
+        "max": 10
+      },
+      "rangePct": {
+        "n": 16,
+        "mean": 18.04,
+        "median": 16.98,
+        "q1": 15.94,
+        "q3": 23.9,
+        "p10": 11.47,
+        "p90": 24.6,
+        "min": 10.54,
+        "max": 24.86
+      },
+      "breakoutValueRatio": {
+        "n": 16,
+        "mean": 2.4,
+        "median": 1.91,
+        "q1": 1.53,
+        "q3": 2.4,
+        "p10": 1.37,
+        "p90": 3.63,
+        "min": 1.19,
+        "max": 8.41
+      },
+      "lowRisingRatio": {
+        "count": 10,
+        "total": 16,
+        "ratio": 62.5
+      },
+      "touchedHighMultiRatio": {
+        "count": 6,
+        "total": 16,
+        "ratio": 37.5
+      },
+      "valueIncreasingRatio": {
+        "count": 12,
+        "total": 16,
+        "ratio": 75
+      }
+    },
+    "movingAverage": {
+      "aboveMa20": {
+        "count": 7,
+        "total": 16,
+        "ratio": 43.75
+      },
+      "aboveMa60": {
+        "count": 7,
+        "total": 16,
+        "ratio": 43.75
+      },
+      "aboveMa120": {
+        "count": 1,
+        "total": 16,
+        "ratio": 6.25
+      },
+      "ma20AboveMa60Below": {
+        "count": 1,
+        "total": 16,
+        "ratio": 6.25
+      },
+      "bothBelowMa20Ma60": {
+        "count": 8,
+        "total": 16,
+        "ratio": 50
+      },
+      "fullBull": {
+        "count": 1,
+        "total": 16,
+        "ratio": 6.25
+      },
+      "shortRecovery": {
+        "count": 0,
+        "total": 16,
+        "ratio": 0
+      }
+    },
+    "pricePosition": {
+      "closeFromLow60": {
+        "n": 16,
+        "mean": 23.73,
+        "median": 20.54,
+        "q1": 15.4,
+        "q3": 30.21,
+        "p10": 13.2,
+        "p90": 36.36,
+        "min": 10.33,
+        "max": 57.53
+      },
+      "closeFromLow120": {
+        "n": 16,
+        "mean": 28.85,
+        "median": 25.7,
+        "q1": 19.61,
+        "q3": 32.19,
+        "p10": 13.2,
+        "p90": 57.53,
+        "min": 10.33,
+        "max": 79.87
+      },
+      "closeFromHigh60": {
+        "n": 16,
+        "mean": -19.18,
+        "median": -19.5,
+        "q1": -21.56,
+        "q3": -11.25,
+        "p10": -32.22,
+        "p90": -6.54,
+        "min": -37.79,
+        "max": -3.79
+      },
+      "closeFromHigh120": {
+        "n": 16,
+        "mean": -21.35,
+        "median": -20.69,
+        "q1": -30.82,
+        "q3": -12.61,
+        "p10": -32.87,
+        "p90": -6.54,
+        "min": -37.79,
+        "max": -3.79
+      },
+      "closeFrom52WeekHigh": {
+        "n": 16,
+        "mean": -22.05,
+        "median": -21.35,
+        "q1": -30.82,
+        "q3": -13.83,
+        "p10": -32.87,
+        "p90": -6.54,
+        "min": -37.79,
+        "max": -3.79
+      },
+      "closeFromBoxLow": {
+        "n": 16,
+        "mean": 3.99,
+        "median": 4.62,
+        "q1": -2.55,
+        "q3": 10.23,
+        "p10": -10.83,
+        "p90": 16.7,
+        "min": -11.59,
+        "max": 20.04
+      },
+      "closeFromBoxHigh": {
+        "n": 16,
+        "mean": -11.79,
+        "median": -9.08,
+        "q1": -20.69,
+        "q3": -4.93,
+        "p10": -23.25,
+        "p90": -2.39,
+        "min": -26.51,
+        "max": -0.37
+      }
+    },
+    "supplyZone": {
+      "aboveCloseRatio": {
+        "n": 16,
+        "mean": 55.45,
+        "median": 59.41,
+        "q1": 23.57,
+        "q3": 80.73,
+        "p10": 9.94,
+        "p90": 100,
+        "min": 9.82,
+        "max": 100
+      },
+      "distribution": [
+        {
+          "label": "0~30% (위 매물 적음)",
+          "min": 0,
+          "max": 30,
+          "count": 5,
+          "ratio": 31.25
+        },
+        {
+          "label": "30~60% (보통)",
+          "min": 30,
+          "max": 60,
+          "count": 5,
+          "ratio": 31.25
+        },
+        {
+          "label": "60% 이상 (무거움)",
+          "min": 60,
+          "max": null,
+          "count": 6,
+          "ratio": 37.5
+        }
+      ]
+    },
+    "postPeak": {
+      "drawdownClose": {
+        "n": 16,
+        "mean": 14.43,
+        "median": 17.8,
+        "q1": 6.77,
+        "q3": 22.62,
+        "p10": 0,
+        "p90": 30.81,
+        "min": 0,
+        "max": 33.38
+      },
+      "drawdownLow": {
+        "n": 16,
+        "mean": 16.42,
+        "median": 17.94,
+        "q1": 7.06,
+        "q3": 24.46,
+        "p10": 5.4,
+        "p90": 31.98,
+        "min": 0,
+        "max": 38.24
+      },
+      "downCandleValueRatio": {
+        "n": 16,
+        "mean": 47.12,
+        "median": 47.02,
+        "q1": 40.02,
+        "q3": 60.49,
+        "p10": 31.32,
+        "p90": 70.53,
+        "min": 25.01,
+        "max": 76.3
+      },
+      "postValueVsRun": {
+        "n": 16,
+        "mean": 3.17,
+        "median": 1.36,
+        "q1": 0.82,
+        "q3": 3.2,
+        "p10": 0.61,
+        "p90": 13.57,
+        "min": 0.37,
+        "max": 15.24
+      },
+      "postValueLargerThanRunRatio": {
+        "count": 9,
+        "total": 16,
+        "ratio": 56.25
+      }
+    }
+  },
+  "detailB": {
+    "count": 254,
+    "return": {
+      "highReturn": {
+        "n": 254,
+        "mean": 48.63,
+        "median": 46.56,
+        "q1": 42.24,
+        "q3": 51.77,
+        "p10": 40.87,
+        "p90": 58.9,
+        "min": 40,
+        "max": 98.07
+      },
+      "closeReturn": {
+        "n": 254,
+        "mean": 40.05,
+        "median": 38.49,
+        "q1": 34.62,
+        "q3": 44.72,
+        "p10": 29.47,
+        "p90": 51.67,
+        "min": 12.18,
+        "max": 82.9
+      },
+      "distribution": [
+        {
+          "label": "+40~50%",
+          "min": 40,
+          "max": 50,
+          "count": 169,
+          "ratio": 66.54
+        },
+        {
+          "label": "+50~70%",
+          "min": 50,
+          "max": 70,
+          "count": 77,
+          "ratio": 30.31
+        },
+        {
+          "label": "+70~100%",
+          "min": 70,
+          "max": 100,
+          "count": 8,
+          "ratio": 3.15
+        },
+        {
+          "label": "+100% 이상",
+          "min": 100,
+          "max": null,
+          "count": 0,
+          "ratio": 0
+        }
+      ]
+    },
+    "duration": {
+      "days": {
+        "n": 254,
+        "mean": 13.22,
+        "median": 15,
+        "q1": 13,
+        "q3": 15,
+        "p10": 8,
+        "p90": 15,
+        "min": 3,
+        "max": 15
+      },
+      "distribution": [
+        {
+          "label": "3~5일",
+          "min": 3,
+          "max": 6,
+          "count": 13,
+          "ratio": 5.12
+        },
+        {
+          "label": "6~10일",
+          "min": 6,
+          "max": 11,
+          "count": 22,
+          "ratio": 8.66
+        },
+        {
+          "label": "11~15일",
+          "min": 11,
+          "max": 16,
+          "count": 219,
+          "ratio": 86.22
+        }
+      ]
+    },
+    "preAccumulation": {
+      "ratio": {
+        "n": 254,
+        "mean": 32.9,
+        "median": 18.09,
+        "q1": 11.41,
+        "q3": 33.06,
+        "p10": 7.46,
+        "p90": 67.39,
+        "min": 3.33,
+        "max": 536.34
+      },
+      "days": {
+        "n": 254,
+        "mean": 20,
+        "median": 20,
+        "q1": 20,
+        "q3": 20,
+        "p10": 20,
+        "p90": 20,
+        "min": 20,
+        "max": 20
+      }
+    },
+    "startDay": {
+      "ratio": {
+        "n": 254,
+        "mean": 1.05,
+        "median": 0.69,
+        "q1": 0.44,
+        "q3": 1.13,
+        "p10": 0.36,
+        "p90": 2.18,
+        "min": 0.3,
+        "max": 16.12
+      },
+      "valueSpike": {
+        "n": 254,
+        "mean": 0.94,
+        "median": 0.73,
+        "q1": 0.53,
+        "q3": 1.1,
+        "p10": 0.38,
+        "p90": 1.42,
+        "min": 0.09,
+        "max": 9.88
+      }
+    },
+    "runValue": {
+      "accumulatedRatio": {
+        "n": 254,
+        "mean": 49.93,
+        "median": 30.18,
+        "q1": 16.91,
+        "q3": 55.52,
+        "p10": 9.85,
+        "p90": 111.48,
+        "min": 3.68,
+        "max": 379.12
+      },
+      "maxValueRatio": {
+        "n": 254,
+        "mean": 23.35,
+        "median": 11.52,
+        "q1": 4.58,
+        "q3": 28.38,
+        "p10": 2.26,
+        "p90": 63.77,
+        "min": 0.56,
+        "max": 229.28
+      },
+      "spikeAvgRatio": {
+        "n": 254,
+        "mean": 3.27,
+        "median": 2,
+        "q1": 1.24,
+        "q3": 3.61,
+        "p10": 0.88,
+        "p90": 7.95,
+        "min": 0.35,
+        "max": 22.95
+      },
+      "spikeDaysRatio": {
+        "n": 254,
+        "mean": 29.83,
+        "median": 25,
+        "q1": 14.29,
+        "q3": 42.86,
+        "p10": 7.69,
+        "p90": 56.25,
+        "min": 0,
+        "max": 100
+      }
+    },
+    "box": {
+      "days": {
+        "n": 254,
+        "mean": 10,
+        "median": 10,
+        "q1": 10,
+        "q3": 10,
+        "p10": 10,
+        "p90": 10,
+        "min": 10,
+        "max": 10
+      },
+      "rangePct": {
+        "n": 254,
+        "mean": 20.11,
+        "median": 18.89,
+        "q1": 14.76,
+        "q3": 25.77,
+        "p10": 11.68,
+        "p90": 30.59,
+        "min": 8.38,
+        "max": 34.83
+      },
+      "breakoutValueRatio": {
+        "n": 254,
+        "mean": 1.04,
+        "median": 0.87,
+        "q1": 0.61,
+        "q3": 1.16,
+        "p10": 0.41,
+        "p90": 1.5,
+        "min": 0.2,
+        "max": 15.39
+      },
+      "lowRisingRatio": {
+        "count": 119,
+        "total": 254,
+        "ratio": 46.85
+      },
+      "touchedHighMultiRatio": {
+        "count": 134,
+        "total": 254,
+        "ratio": 52.76
+      },
+      "valueIncreasingRatio": {
+        "count": 93,
+        "total": 254,
+        "ratio": 36.61
+      }
+    },
+    "movingAverage": {
+      "aboveMa20": {
+        "count": 77,
+        "total": 254,
+        "ratio": 30.31
+      },
+      "aboveMa60": {
+        "count": 121,
+        "total": 254,
+        "ratio": 47.64
+      },
+      "aboveMa120": {
+        "count": 15,
+        "total": 254,
+        "ratio": 5.91
+      },
+      "ma20AboveMa60Below": {
+        "count": 9,
+        "total": 254,
+        "ratio": 3.54
+      },
+      "bothBelowMa20Ma60": {
+        "count": 124,
+        "total": 254,
+        "ratio": 48.82
+      },
+      "fullBull": {
+        "count": 1,
+        "total": 254,
+        "ratio": 0.39
+      },
+      "shortRecovery": {
+        "count": 2,
+        "total": 254,
+        "ratio": 0.79
+      }
+    },
+    "pricePosition": {
+      "closeFromLow60": {
+        "n": 254,
+        "mean": 25.59,
+        "median": 21.56,
+        "q1": 12.63,
+        "q3": 33.22,
+        "p10": 8.06,
+        "p90": 53.43,
+        "min": 5.04,
+        "max": 77.1
+      },
+      "closeFromLow120": {
+        "n": 254,
+        "mean": 32.3,
+        "median": 27.3,
+        "q1": 14.63,
+        "q3": 43.76,
+        "p10": 8.76,
+        "p90": 64.32,
+        "min": 5.04,
+        "max": 196.21
+      },
+      "closeFromHigh60": {
+        "n": 254,
+        "mean": -21.76,
+        "median": -22.45,
+        "q1": -28.81,
+        "q3": -14.2,
+        "p10": -34.78,
+        "p90": -8.91,
+        "min": -40,
+        "max": -3.3
+      },
+      "closeFromHigh120": {
+        "n": 254,
+        "mean": -23.06,
+        "median": -23.23,
+        "q1": -30.02,
+        "q3": -14.56,
+        "p10": -37.99,
+        "p90": -9.55,
+        "min": -52.15,
+        "max": -3.3
+      },
+      "closeFrom52WeekHigh": {
+        "n": 254,
+        "mean": -23.47,
+        "median": -23.97,
+        "q1": -30.49,
+        "q3": -14.93,
+        "p10": -38.29,
+        "p90": -9.55,
+        "min": -52.15,
+        "max": -3.3
+      },
+      "closeFromBoxLow": {
+        "n": 254,
+        "mean": 2.83,
+        "median": 3.71,
+        "q1": -2.17,
+        "q3": 7.9,
+        "p10": -9.3,
+        "p90": 14,
+        "min": -21.52,
+        "max": 29.67
+      },
+      "closeFromBoxHigh": {
+        "n": 254,
+        "mean": -14.14,
+        "median": -12.39,
+        "q1": -19.76,
+        "q3": -7.82,
+        "p10": -25.52,
+        "p90": -4.42,
+        "min": -38.4,
+        "max": 4.07
+      }
+    },
+    "supplyZone": {
+      "aboveCloseRatio": {
+        "n": 254,
+        "mean": 59.03,
+        "median": 61.25,
+        "q1": 38.9,
+        "q3": 86.03,
+        "p10": 16.36,
+        "p90": 95.76,
+        "min": 0,
+        "max": 100
+      },
+      "distribution": [
+        {
+          "label": "0~30% (위 매물 적음)",
+          "min": 0,
+          "max": 30,
+          "count": 48,
+          "ratio": 18.9
+        },
+        {
+          "label": "30~60% (보통)",
+          "min": 30,
+          "max": 60,
+          "count": 79,
+          "ratio": 31.1
+        },
+        {
+          "label": "60% 이상 (무거움)",
+          "min": 60,
+          "max": null,
+          "count": 127,
+          "ratio": 50
+        }
+      ]
+    },
+    "postPeak": {
+      "drawdownClose": {
+        "n": 251,
+        "mean": 16.77,
+        "median": 16.56,
+        "q1": 9.93,
+        "q3": 22.8,
+        "p10": 2.15,
+        "p90": 30.14,
+        "min": 0,
+        "max": 42.21
+      },
+      "drawdownLow": {
+        "n": 251,
+        "mean": 19.53,
+        "median": 18.8,
+        "q1": 12.61,
+        "q3": 25.55,
+        "p10": 7.15,
+        "p90": 32.29,
+        "min": 0,
+        "max": 100
+      },
+      "downCandleValueRatio": {
+        "n": 251,
+        "mean": 47.29,
+        "median": 44.51,
+        "q1": 29.34,
+        "q3": 63.94,
+        "p10": 18.3,
+        "p90": 80.93,
+        "min": 0,
+        "max": 100
+      },
+      "postValueVsRun": {
+        "n": 251,
+        "mean": 2.15,
+        "median": 1.16,
+        "q1": 0.76,
+        "q3": 2.17,
+        "p10": 0.54,
+        "p90": 4.12,
+        "min": 0.16,
+        "max": 44.23
+      },
+      "postValueLargerThanRunRatio": {
+        "count": 148,
+        "total": 254,
+        "ratio": 58.27
+      }
+    }
+  },
+  "detailAB": {
+    "count": 270,
+    "return": {
+      "highReturn": {
+        "n": 270,
+        "mean": 48.66,
+        "median": 46.45,
+        "q1": 42.18,
+        "q3": 52.01,
+        "p10": 40.88,
+        "p90": 59.15,
+        "min": 40,
+        "max": 98.07
+      },
+      "closeReturn": {
+        "n": 270,
+        "mean": 40.12,
+        "median": 38.86,
+        "q1": 34.46,
+        "q3": 44.95,
+        "p10": 30,
+        "p90": 52.21,
+        "min": 12.18,
+        "max": 82.9
+      },
+      "distribution": [
+        {
+          "label": "+40~50%",
+          "min": 40,
+          "max": 50,
+          "count": 179,
+          "ratio": 66.3
+        },
+        {
+          "label": "+50~70%",
+          "min": 50,
+          "max": 70,
+          "count": 83,
+          "ratio": 30.74
+        },
+        {
+          "label": "+70~100%",
+          "min": 70,
+          "max": 100,
+          "count": 8,
+          "ratio": 2.96
+        },
+        {
+          "label": "+100% 이상",
+          "min": 100,
+          "max": null,
+          "count": 0,
+          "ratio": 0
+        }
+      ]
+    },
+    "duration": {
+      "days": {
+        "n": 270,
+        "mean": 13.24,
+        "median": 15,
+        "q1": 13,
+        "q3": 15,
+        "p10": 8,
+        "p90": 15,
+        "min": 3,
+        "max": 15
+      },
+      "distribution": [
+        {
+          "label": "3~5일",
+          "min": 3,
+          "max": 6,
+          "count": 14,
+          "ratio": 5.19
+        },
+        {
+          "label": "6~10일",
+          "min": 6,
+          "max": 11,
+          "count": 23,
+          "ratio": 8.52
+        },
+        {
+          "label": "11~15일",
+          "min": 11,
+          "max": 16,
+          "count": 233,
+          "ratio": 86.3
+        }
+      ]
+    },
+    "preAccumulation": {
+      "ratio": {
+        "n": 270,
+        "mean": 31.68,
+        "median": 17.55,
+        "q1": 10.78,
+        "q3": 31.4,
+        "p10": 7.27,
+        "p90": 64.12,
+        "min": 3.33,
+        "max": 536.34
+      },
+      "days": {
+        "n": 270,
+        "mean": 20,
+        "median": 20,
+        "q1": 20,
+        "q3": 20,
+        "p10": 20,
+        "p90": 20,
+        "min": 20,
+        "max": 20
+      }
+    },
+    "startDay": {
+      "ratio": {
+        "n": 270,
+        "mean": 1.08,
+        "median": 0.7,
+        "q1": 0.46,
+        "q3": 1.16,
+        "p10": 0.36,
+        "p90": 2.24,
+        "min": 0.3,
+        "max": 16.12
+      },
+      "valueSpike": {
+        "n": 270,
+        "mean": 1.03,
+        "median": 0.76,
+        "q1": 0.54,
+        "q3": 1.21,
+        "p10": 0.39,
+        "p90": 1.63,
+        "min": 0.09,
+        "max": 9.88
+      }
+    },
+    "runValue": {
+      "accumulatedRatio": {
+        "n": 270,
+        "mean": 48.9,
+        "median": 29.83,
+        "q1": 16.65,
+        "q3": 55.22,
+        "p10": 9.68,
+        "p90": 111.29,
+        "min": 3.68,
+        "max": 379.12
+      },
+      "maxValueRatio": {
+        "n": 270,
+        "mean": 22.73,
+        "median": 11.48,
+        "q1": 4.45,
+        "q3": 27.31,
+        "p10": 2.15,
+        "p90": 61.89,
+        "min": 0.56,
+        "max": 229.28
+      },
+      "spikeAvgRatio": {
+        "n": 270,
+        "mean": 3.31,
+        "median": 2.02,
+        "q1": 1.25,
+        "q3": 3.88,
+        "p10": 0.9,
+        "p90": 7.99,
+        "min": 0.35,
+        "max": 22.95
+      },
+      "spikeDaysRatio": {
+        "n": 270,
+        "mean": 30.83,
+        "median": 25,
+        "q1": 14.29,
+        "q3": 43.75,
+        "p10": 7.69,
+        "p90": 56.25,
+        "min": 0,
+        "max": 100
+      }
+    },
+    "box": {
+      "days": {
+        "n": 270,
+        "mean": 10,
+        "median": 10,
+        "q1": 10,
+        "q3": 10,
+        "p10": 10,
+        "p90": 10,
+        "min": 10,
+        "max": 10
+      },
+      "rangePct": {
+        "n": 270,
+        "mean": 19.99,
+        "median": 18.86,
+        "q1": 14.81,
+        "q3": 24.97,
+        "p10": 11.68,
+        "p90": 30.46,
+        "min": 8.38,
+        "max": 34.83
+      },
+      "breakoutValueRatio": {
+        "n": 270,
+        "mean": 1.13,
+        "median": 0.9,
+        "q1": 0.62,
+        "q3": 1.24,
+        "p10": 0.43,
+        "p90": 1.7,
+        "min": 0.2,
+        "max": 15.39
+      },
+      "lowRisingRatio": {
+        "count": 129,
+        "total": 270,
+        "ratio": 47.78
+      },
+      "touchedHighMultiRatio": {
+        "count": 140,
+        "total": 270,
+        "ratio": 51.85
+      },
+      "valueIncreasingRatio": {
+        "count": 105,
+        "total": 270,
+        "ratio": 38.89
+      }
+    },
+    "movingAverage": {
+      "aboveMa20": {
+        "count": 84,
+        "total": 270,
+        "ratio": 31.11
+      },
+      "aboveMa60": {
+        "count": 128,
+        "total": 270,
+        "ratio": 47.41
+      },
+      "aboveMa120": {
+        "count": 16,
+        "total": 270,
+        "ratio": 5.93
+      },
+      "ma20AboveMa60Below": {
+        "count": 10,
+        "total": 270,
+        "ratio": 3.7
+      },
+      "bothBelowMa20Ma60": {
+        "count": 132,
+        "total": 270,
+        "ratio": 48.89
+      },
+      "fullBull": {
+        "count": 2,
+        "total": 270,
+        "ratio": 0.74
+      },
+      "shortRecovery": {
+        "count": 2,
+        "total": 270,
+        "ratio": 0.74
+      }
+    },
+    "pricePosition": {
+      "closeFromLow60": {
+        "n": 270,
+        "mean": 25.48,
+        "median": 21.52,
+        "q1": 13.2,
+        "q3": 32.76,
+        "p10": 8.19,
+        "p90": 53.43,
+        "min": 5.04,
+        "max": 77.1
+      },
+      "closeFromLow120": {
+        "n": 270,
+        "mean": 32.09,
+        "median": 27.16,
+        "q1": 14.89,
+        "q3": 43.4,
+        "p10": 9.13,
+        "p90": 64.32,
+        "min": 5.04,
+        "max": 196.21
+      },
+      "closeFromHigh60": {
+        "n": 270,
+        "mean": -21.6,
+        "median": -22.23,
+        "q1": -28.57,
+        "q3": -13.83,
+        "p10": -34.71,
+        "p90": -8.62,
+        "min": -40,
+        "max": -3.3
+      },
+      "closeFromHigh120": {
+        "n": 270,
+        "mean": -22.96,
+        "median": -22.99,
+        "q1": -30.03,
+        "q3": -14.25,
+        "p10": -37.3,
+        "p90": -9.37,
+        "min": -52.15,
+        "max": -3.3
+      },
+      "closeFrom52WeekHigh": {
+        "n": 270,
+        "mean": -23.39,
+        "median": -23.75,
+        "q1": -30.52,
+        "q3": -14.93,
+        "p10": -37.79,
+        "p90": -9.37,
+        "min": -52.15,
+        "max": -3.3
+      },
+      "closeFromBoxLow": {
+        "n": 270,
+        "mean": 2.9,
+        "median": 3.72,
+        "q1": -2.17,
+        "q3": 8,
+        "p10": -9.3,
+        "p90": 14.32,
+        "min": -21.52,
+        "max": 29.67
+      },
+      "closeFromBoxHigh": {
+        "n": 270,
+        "mean": -14,
+        "median": -12.32,
+        "q1": -20.29,
+        "q3": -7.7,
+        "p10": -25.43,
+        "p90": -4.24,
+        "min": -38.4,
+        "max": 4.07
+      }
+    },
+    "supplyZone": {
+      "aboveCloseRatio": {
+        "n": 270,
+        "mean": 58.82,
+        "median": 59.85,
+        "q1": 36.98,
+        "q3": 85.09,
+        "p10": 16.36,
+        "p90": 95.95,
+        "min": 0,
+        "max": 100
+      },
+      "distribution": [
+        {
+          "label": "0~30% (위 매물 적음)",
+          "min": 0,
+          "max": 30,
+          "count": 53,
+          "ratio": 19.63
+        },
+        {
+          "label": "30~60% (보통)",
+          "min": 30,
+          "max": 60,
+          "count": 84,
+          "ratio": 31.11
+        },
+        {
+          "label": "60% 이상 (무거움)",
+          "min": 60,
+          "max": null,
+          "count": 133,
+          "ratio": 49.26
+        }
+      ]
+    },
+    "postPeak": {
+      "drawdownClose": {
+        "n": 267,
+        "mean": 16.63,
+        "median": 16.56,
+        "q1": 9.26,
+        "q3": 22.62,
+        "p10": 1.89,
+        "p90": 30.42,
+        "min": 0,
+        "max": 42.21
+      },
+      "drawdownLow": {
+        "n": 267,
+        "mean": 19.34,
+        "median": 18.65,
+        "q1": 12.48,
+        "q3": 25.47,
+        "p10": 6.97,
+        "p90": 32.29,
+        "min": 0,
+        "max": 100
+      },
+      "downCandleValueRatio": {
+        "n": 267,
+        "mean": 47.28,
+        "median": 44.51,
+        "q1": 29.77,
+        "q3": 63.19,
+        "p10": 18.38,
+        "p90": 80.69,
+        "min": 0,
+        "max": 100
+      },
+      "postValueVsRun": {
+        "n": 267,
+        "mean": 2.21,
+        "median": 1.16,
+        "q1": 0.78,
+        "q3": 2.21,
+        "p10": 0.54,
+        "p90": 4.31,
+        "min": 0.16,
+        "max": 44.23
+      },
+      "postValueLargerThanRunRatio": {
+        "count": 157,
+        "total": 270,
+        "ratio": 58.15
+      }
+    }
+  },
+  "examples": {
+    "A": [
+      {
+        "code": "321550",
+        "name": "티움바이오",
+        "market": "KOSDAQ",
+        "startDate": "20260226",
+        "peakDate": "20260318",
+        "daysToPeak": 13,
+        "maxHighReturn": 66.4,
+        "maxCloseReturn": 59.59,
+        "preAccumRatio": 6.56,
+        "startDayRatio": 0.58,
+        "valueSpikeRatio": 1.75,
+        "boxDays": 10,
+        "boxRange": 24.6,
+        "breakoutValueRatio": 1.52,
+        "closeFromLow60": 25.7,
+        "closeFromHigh60": -11.25,
+        "supplyAbove": 59.41,
+        "arrangement": "INSUFFICIENT"
+      },
+      {
+        "code": "042500",
+        "name": "링네트",
+        "market": "KOSDAQ",
+        "startDate": "20260326",
+        "peakDate": "20260416",
+        "daysToPeak": 15,
+        "maxHighReturn": 65.18,
+        "maxCloseReturn": 39.77,
+        "preAccumRatio": 10.13,
+        "startDayRatio": 0.95,
+        "valueSpikeRatio": 1.88,
+        "boxDays": 10,
+        "boxRange": 10.54,
+        "breakoutValueRatio": 1.91,
+        "closeFromLow60": 15.4,
+        "closeFromHigh60": -3.79,
+        "supplyAbove": 18.96,
+        "arrangement": "INSUFFICIENT"
+      },
+      {
+        "code": "217730",
+        "name": "강스템바이오텍",
+        "market": "KOSDAQ",
+        "startDate": "20260304",
+        "peakDate": "20260311",
+        "daysToPeak": 5,
+        "maxHighReturn": 59.15,
+        "maxCloseReturn": 52.56,
+        "preAccumRatio": 7.95,
+        "startDayRatio": 0.64,
+        "valueSpikeRatio": 1.62,
+        "boxDays": 10,
+        "boxRange": 16.18,
+        "breakoutValueRatio": 1.53,
+        "closeFromLow60": 20.54,
+        "closeFromHigh60": -24.52,
+        "supplyAbove": 74.11,
+        "arrangement": "INSUFFICIENT"
+      },
+      {
+        "code": "006400",
+        "name": "삼성SDI",
+        "market": "KOSPI",
+        "startDate": "20260331",
+        "peakDate": "20260421",
+        "daysToPeak": 15,
+        "maxHighReturn": 58.82,
+        "maxCloseReturn": 58.09,
+        "preAccumRatio": 9.57,
+        "startDayRatio": 0.82,
+        "valueSpikeRatio": 1.72,
+        "boxDays": 10,
+        "boxRange": 11.47,
+        "breakoutValueRatio": 2.4,
+        "closeFromLow60": 57.53,
+        "closeFromHigh60": -13.83,
+        "supplyAbove": 9.94,
+        "arrangement": "INSUFFICIENT"
+      },
+      {
+        "code": "006260",
+        "name": "LS",
+        "market": "KOSPI",
+        "startDate": "20260202",
+        "peakDate": "20260224",
+        "daysToPeak": 13,
+        "maxHighReturn": 52.01,
+        "maxCloseReturn": 48.2,
+        "preAccumRatio": 6.96,
+        "startDayRatio": 0.86,
+        "valueSpikeRatio": 2.46,
+        "boxDays": 10,
+        "boxRange": 16.98,
+        "breakoutValueRatio": 2.09,
+        "closeFromLow60": 14.29,
+        "closeFromHigh60": -20.69,
+        "supplyAbove": 59.38,
+        "arrangement": "INSUFFICIENT"
+      }
+    ],
+    "B": [
+      {
+        "code": "388790",
+        "name": "라이콤",
+        "market": "KOSDAQ",
+        "startDate": "20260227",
+        "peakDate": "20260311",
+        "daysToPeak": 7,
+        "maxHighReturn": 98.07,
+        "maxCloseReturn": 74.96,
+        "preAccumRatio": 37.9,
+        "startDayRatio": 1,
+        "valueSpikeRatio": 0.53,
+        "boxDays": 10,
+        "boxRange": 28.52,
+        "breakoutValueRatio": 0.41,
+        "closeFromLow60": 32.55,
+        "closeFromHigh60": -10.23,
+        "supplyAbove": 12.27,
+        "arrangement": "INSUFFICIENT"
+      },
+      {
+        "code": "317120",
+        "name": "라닉스",
+        "market": "KOSDAQ",
+        "startDate": "20260326",
+        "peakDate": "20260415",
+        "daysToPeak": 14,
+        "maxHighReturn": 85.1,
+        "maxCloseReturn": 56.28,
+        "preAccumRatio": 25.66,
+        "startDayRatio": 0.6,
+        "valueSpikeRatio": 0.47,
+        "boxDays": 10,
+        "boxRange": 16.11,
+        "breakoutValueRatio": 1.32,
+        "closeFromLow60": 21.28,
+        "closeFromHigh60": -25.78,
+        "supplyAbove": 91.3,
+        "arrangement": "INSUFFICIENT"
+      },
+      {
+        "code": "168360",
+        "name": "펨트론",
+        "market": "KOSDAQ",
+        "startDate": "20260202",
+        "peakDate": "20260225",
+        "daysToPeak": 14,
+        "maxHighReturn": 82.9,
+        "maxCloseReturn": 82.9,
+        "preAccumRatio": 10.85,
+        "startDayRatio": 0.77,
+        "valueSpikeRatio": 1.42,
+        "boxDays": 10,
+        "boxRange": 33.04,
+        "breakoutValueRatio": 1.41,
+        "closeFromLow60": 18.31,
+        "closeFromHigh60": -19.77,
+        "supplyAbove": 49.55,
+        "arrangement": "INSUFFICIENT"
+      },
+      {
+        "code": "158430",
+        "name": "아톤",
+        "market": "KOSDAQ",
+        "startDate": "20260326",
+        "peakDate": "20260415",
+        "daysToPeak": 14,
+        "maxHighReturn": 81.92,
+        "maxCloseReturn": 42.4,
+        "preAccumRatio": 28.18,
+        "startDayRatio": 0.81,
+        "valueSpikeRatio": 0.58,
+        "boxDays": 10,
+        "boxRange": 14.03,
+        "breakoutValueRatio": 0.96,
+        "closeFromLow60": 11.61,
+        "closeFromHigh60": -26.21,
+        "supplyAbove": 93.35,
+        "arrangement": "INSUFFICIENT"
+      },
+      {
+        "code": "003280",
+        "name": "흥아해운",
+        "market": "KOSPI",
+        "startDate": "20260205",
+        "peakDate": "20260304",
+        "daysToPeak": 15,
+        "maxHighReturn": 78.21,
+        "maxCloseReturn": 72,
+        "preAccumRatio": 18.01,
+        "startDayRatio": 0.57,
+        "valueSpikeRatio": 0.64,
+        "boxDays": 10,
+        "boxRange": 11.81,
+        "breakoutValueRatio": 0.44,
+        "closeFromLow60": 8.76,
+        "closeFromHigh60": -5.11,
+        "supplyAbove": 40.52,
+        "arrangement": "INSUFFICIENT"
+      }
+    ]
+  }
+}
