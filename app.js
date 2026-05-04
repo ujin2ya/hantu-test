@@ -3289,6 +3289,8 @@ app.get("/early-qva-backtest", (req, res) => res.redirect("/early-qva-backtest-r
 
 app.get("/qva-redefined-hgroup-report", serveReport("qva-redefined-hgroup-report.html"));
 app.get("/qva-redefined-hgroup", (req, res) => res.redirect("/qva-redefined-hgroup-report"));
+app.get("/qva-delayed-success-report", serveReport("qva-delayed-success-report.html"));
+app.get("/qva-delayed-success", (req, res) => res.redirect("/qva-delayed-success-report"));
 
 app.get("/qva-watchlist", serveReport("qva-watchlist-board.html"));
 app.get("/qva-watchlist-board", (req, res) => res.redirect("/qva-watchlist"));
