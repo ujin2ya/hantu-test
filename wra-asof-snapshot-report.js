@@ -575,11 +575,11 @@ h1 { font-size: 22px; margin: 0 0 4px; color: #f1f5f9; font-weight: 700; }
 .cutoff-banner strong { color: #93c5fd; }
 
 /* big tiles */
-.big-summary { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
-.big-tile { flex: 1; min-width: 150px; background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 14px 16px; }
-.big-tile .label { font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
-.big-tile .value { font-size: 26px; font-weight: 700; color: #f1f5f9; line-height: 1.1; }
-.big-tile .sub { font-size: 11px; color: #64748b; margin-top: 3px; }
+.big-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.big-tile { flex: 1; min-width: 130px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; }
+.big-tile .label { font-size: 10.5px; color: #94a3b8; margin-bottom: 2px; }
+.big-tile .value { font-size: 18px; font-weight: 700; color: #f1f5f9; line-height: 1.1; }
+.big-tile .sub { font-size: 10px; color: #64748b; margin-top: 2px; }
 .big-tile.primary { background: linear-gradient(135deg, #0c4a6e 0%, #1e293b 100%); border-color: #0ea5e9; }
 .big-tile.primary .value { color: #67e8f9; }
 .big-tile.warning { border-color: #b91c1c; }
@@ -700,20 +700,22 @@ footer.foot strong { color: #fde68a; }
 </head>
 <body>
 
-<h1 id="page-title">WRA 후보 스냅샷 보고서</h1>
-<div class="subtitle" id="subtitle">로딩 중…</div>
+<h1 id="page-title" style="font-size:20px;margin:0 0 4px;">WRA 후보 스냅샷 보고서</h1>
+<div class="subtitle" id="subtitle" style="margin-bottom:6px;">로딩 중…</div>
 
-<div class="background-box" id="background-box">
+<div class="warn-banner" style="padding:6px 12px;font-size:11.5px;margin-bottom:10px;">
+  ⚠️ <strong>매수 신호가 아닙니다.</strong> 다음 거래일(5/4) 종가/고가는 참고용. 실제 판단은 차트·뉴스·시장 상황 확인.
 </div>
 
-<div class="cutoff-banner" id="cutoff-banner">
-</div>
+<div class="big-summary" id="big-summary" style="margin-bottom:10px;"></div>
 
-<div class="warn-banner">
-  ⚠️ <strong>매수 신호가 아닙니다.</strong> 과거 특정 시점 (asOfDate)에서 WRA가 잡았을 후보를 복원해 보여줍니다. 실제 매수 판단은 차트·뉴스·시장 상황을 별도로 확인하세요.
-</div>
-
-<div class="big-summary" id="big-summary"></div>
+<details style="background:#1e293b;border-radius:6px;margin-bottom:10px;font-size:12px;">
+  <summary style="cursor:pointer;padding:7px 12px;color:#94a3b8;list-style:none;">ℹ️ 보고서 배경·데이터 cutoff 설명 (펼치기)</summary>
+  <div style="padding:6px 14px 12px;border-top:1px solid #334155;line-height:1.6;color:#cbd5e1;">
+    <div class="background-box" id="background-box" style="background:transparent;border:none;padding:0;margin:0 0 8px;"></div>
+    <div class="cutoff-banner" id="cutoff-banner" style="background:transparent;border:none;padding:0;margin:0;color:#dbeafe;"></div>
+  </div>
+</details>
 
 <div class="section-tabs">
   <button class="section-tab active" data-tab="core">⭐ 핵심 후보 (3블록)</button>
