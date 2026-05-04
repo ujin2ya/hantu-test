@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "wra-current-similarity-forward-test-v1",
-    "generatedAt": "2026-05-04T09:53:32.003Z",
+    "generatedAt": "2026-05-04T09:55:49.892Z",
     "mode": "backtest",
     "modeNote": "latestTradingDate(2026-05-04)에서 forward 데이터가 없으므로, 각 종목의 latestIdx-undefined 시점을 가상의 evalDate로 가정하여 v2 logic 적용 후 forward 측정. 정확한 forward test는 latestTradingDate 이후 undefined거래일이 지난 후 다시 실행해야 한다.",
     "universeFromV2": 278,

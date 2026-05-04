@@ -2057,11 +2057,13 @@ function renderIndex(res, overrides = {}) {
     chartRows: null,
     patternData: null,
     qvaWatchData: null,
+    wraWatchData: null,
     earlyQvaData: null,
     breakoutData: null,
     priceInfo: null,
     riskChecks: null,
     materialAnalysis: null,
+    aiAnalysisLazy: false,
     qvaEpisodes: null,
     qvaWindows: null,
     high60: null,
@@ -2505,6 +2507,47 @@ const handleSearch = async (req, res) => {
       }
     } catch (_) {}
 
+    // ─── WRA Watchlist 보드 lookup — wraWatchData ───
+    // reports/wra-watchlist-board.json의 candidates에서 code 매칭 후, 상세 페이지에 노출
+    let wraWatchData = null;
+    try {
+      const wraPath = path.join(__dirname, "reports", "wra-watchlist-board.json");
+      if (fs.existsSync(wraPath)) {
+        const wra = JSON.parse(fs.readFileSync(wraPath, "utf-8"));
+        const found = (wra.candidates || []).find((c) => c.code === code);
+        if (found) {
+          // 유형별 상세 설명·체크포인트 (사용자 친화 문구, 매수 표현 금지)
+          const tagDescMap = {
+            CLEAN_VALUE_SETUP: '조용히 거래대금이 들어온 종목입니다. 아직 과열이 낮아 먼저 차트에 넣고 볼 후보입니다.',
+            VALUE_SURGE_CONFIRM: '거래대금과 상승이 같이 확인된 종목입니다. 이미 움직였을 수 있으므로 눌림 또는 종가 유지 확인이 필요합니다.',
+            BREAKOUT_MOMENTUM: '단기 돌파 가능성이 있는 종목입니다. 추격보다는 다음 거래일 반응 확인용입니다.',
+            VALUE_LOOSE: '거래대금은 들어왔지만 조건이 깔끔하지는 않은 보조 후보입니다.',
+            HIGH_VOLATILITY: '크게 튈 수도 있지만 흔들림도 큰 후보입니다.',
+            WATCH_ONLY: '구조 관찰용입니다. 단기 수익성은 약한 후보입니다.',
+            LOW_SIGNAL: '신호가 약해 기본 후보에서는 숨기는 종목입니다.',
+          };
+          const tagCheckpointMap = {
+            CLEAN_VALUE_SETUP: '거래대금 유지와 MA20 위 종가 유지 여부를 봅니다.',
+            VALUE_SURGE_CONFIRM: '갭상승 후 밀리지 않는지, 전일 고가 위 종가 유지 여부를 봅니다.',
+            BREAKOUT_MOMENTUM: '고가 돌파 후 종가가 따라오는지 확인합니다. 고가만 찍고 밀리면 실패 신호입니다.',
+            VALUE_LOOSE: '거래대금 유지 여부를 보고, 추격 진입은 피합니다.',
+            HIGH_VOLATILITY: '급등 가능성은 있지만 변동성이 크므로 추격보다는 손절 기준이 먼저 필요합니다.',
+            WATCH_ONLY: '거래대금이 추가로 붙는지, MA20 이탈이 없는지를 봅니다.',
+            LOW_SIGNAL: '추가 거래대금 유입과 저점 상승이 확인될 때까지 관찰만 합니다.',
+          };
+          wraWatchData = {
+            ...found,
+            typeDesc: tagDescMap[found.watchTagV3_1] || '',
+            typeCheckpoint: tagCheckpointMap[found.watchTagV3_1] || '',
+            meta: wra.meta || {},
+            summary: wra.summary || {},
+          };
+        }
+      }
+    } catch (e) {
+      console.error("[WRA WATCH LOOKUP ERROR]", e.message);
+    }
+
     // ─── QVA 윈도우 상수 ───
     const QVA_CORE_WINDOW = 20;          // 신호 계산 핵심창 (returnFromLow20, ret20 등)
     const QVA_CONTEXT_WINDOW = 60;       // 보조 배경창 (60일 저점, MA60 등 - QVA 내부)
@@ -2862,24 +2905,17 @@ const handleSearch = async (req, res) => {
       };
     });
 
-    // 7) 뉴스·공시 기반 재료 분석 (Gemini Google Search Grounding) — 패턴 데이터 있을 때만
+    // 7) 뉴스·공시 재료 분석은 lazy 로딩 — 페이지 첫 진입 시 Gemini/DART 호출 차단.
+    //    오늘자 캐시(cache/material-analysis/{code}.json)가 있으면 즉시 채워주고,
+    //    없으면 materialAnalysis=null + aiAnalysisLazy=true로 두고 사용자가 버튼 누를 때 /api/stock-ai-analysis로 실행.
     let materialAnalysis = null;
+    let aiAnalysisLazy = true;
     try {
-      const priceData = {
-        closePrice: lastRow?.close,
-        changeRate: stockMeta?.changeRate,
-        ret5d: patternData?.ret5d,
-        ret20d: patternData?.ret20d,
-        dist20pct: patternData?.dist20pct,
-        atrPct: patternData?.atrPct,
-        valueExpansion: patternData?.valueExpansion,
-        regime: patternData?.regime,
-        primaryTag: patternData?.primaryTag,
-      };
-      const disclosures = process.env.DART_API_KEY
-        ? await fetchDartDisclosures(stockMeta.code).catch(() => null)
-        : null;
-      materialAnalysis = await getMaterialAnalysis(stockMeta.code, stockMeta.name, priceData, disclosures);
+      const cached = loadMaterialCache(stockMeta.code);
+      if (cached) {
+        materialAnalysis = { ...cached, cached: true };
+        aiAnalysisLazy = false;
+      }
     } catch (_) {}
 
 
@@ -2898,11 +2934,13 @@ const handleSearch = async (req, res) => {
       chartRows,
       patternData,
       qvaWatchData,
+      wraWatchData,
       earlyQvaData,
       breakoutData,
       priceInfo,
       riskChecks,
       materialAnalysis,
+      aiAnalysisLazy,
       qvaEpisodes,
       qvaWindows,
       high60,
@@ -3294,6 +3332,55 @@ app.get("/qva-delayed-success", (req, res) => res.redirect("/qva-delayed-success
 
 app.get("/qva-watchlist", serveReport("qva-watchlist-board.html"));
 app.get("/qva-watchlist-board", (req, res) => res.redirect("/qva-watchlist"));
+
+// ─────────── AI 재료 분석 lazy API ───────────
+// 상세페이지가 즉시 열릴 수 있도록, AI 분석은 사용자 버튼 클릭 시 이 라우트로 별도 실행.
+// 캐시: getMaterialAnalysis 내부의 loadMaterialCache가 cache/material-analysis/{code}.json (오늘자) 검사.
+app.get("/api/stock-ai-analysis", async (req, res) => {
+  const code = String(req.query.code || "").trim();
+  const name = String(req.query.name || "").trim();
+  if (!code || !name) {
+    return res.status(400).json({ ok: false, message: "code와 name 쿼리 파라미터가 필요합니다." });
+  }
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(503).json({ ok: false, message: "GEMINI_API_KEY가 설정되어 있지 않아 AI 분석을 사용할 수 없습니다." });
+  }
+  try {
+    // 가격/패턴 컨텍스트는 lazy API에서는 단순화 (보드 진입 시점의 chartRows를 다시 못 가져오므로 최소 컨텍스트만)
+    const priceData = { closePrice: null, changeRate: null };
+    const disclosures = process.env.DART_API_KEY
+      ? await fetchDartDisclosures(code).catch(() => null)
+      : null;
+    const result = await getMaterialAnalysis(code, name, priceData, disclosures);
+    if (!result) {
+      return res.status(503).json({ ok: false, message: "AI 분석 결과를 가져오지 못했습니다." });
+    }
+    if (result.error) {
+      return res.status(500).json({ ok: false, message: result.error });
+    }
+    return res.json({
+      ok: true,
+      code,
+      name,
+      generatedAt: result.generatedAt,
+      cached: !!result.cached,
+      result,
+    });
+  } catch (e) {
+    console.error("[AI ANALYSIS API]", e);
+    return res.status(500).json({ ok: false, message: e.message || "분석 호출 중 오류가 발생했습니다." });
+  }
+});
+
+// ─────────── WRA Watchlist Board ───────────
+app.get("/wra-watchlist", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "wra-watchlist-board.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/wra-watchlist-board.html 파일이 없습니다. `node wra-watchlist-board.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+app.get("/wra-watchlist-board", (req, res) => res.redirect("/wra-watchlist"));
 
 // ─────────── 패턴 스크리너 ───────────
 const patternState = {

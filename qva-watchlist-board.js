@@ -1542,16 +1542,33 @@ const htmlTemplate = `<!DOCTYPE html>
     .table-wrap table { font-size: 11px; }
     .table-wrap th, .table-wrap td { padding: 6px 6px; }
   }
+  /* board ↔ board 이동 링크 */
+  .board-switch-row {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px; margin: 4px 0 14px;
+  }
+  .board-switch-row .hint { font-size: 12px; color: #94a3b8; }
+  .board-switch-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 700; text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.08);
+    color: #e5e7eb;
+    transition: background 0.12s, border-color 0.12s, transform 0.06s;
+  }
+  .board-switch-btn:hover { background: rgba(255,255,255,0.14); transform: translateY(-1px); }
+  .board-switch-btn.qva { border-color: rgba(34,197,94,0.45); }
+  .board-switch-btn.wra { border-color: rgba(96,165,250,0.45); }
 </style>
 </head>
 <body>
   <h1>📋 QVA 매일 운영 보드<span class="sub">— 매일 장마감 후 갱신되는 후보 추적 보드 (백테스트 보고서 아님)</span></h1>
-  <div class="subtitle" id="subtitle"></div>
-
-  <div class="nav">
-    <a href="/qva-watchlist" class="active">📋 매일 운영 보드</a>
-    <a href="/qva-review-ok" title="QVA 단독, H그룹, 진입가 근처 후보의 성과를 비교한 검증 보고서">📊 3단계 코호트 비교 보고서</a>
+  <div class="board-switch-row">
+    <span class="hint">단기 반응 후보는 WRA 보드에서 확인하세요.</span>
+    <a class="board-switch-btn wra" href="/wra-watchlist">📈 WRA 단기 반응 후보 보드 보기 →</a>
   </div>
+  <div class="subtitle" id="subtitle"></div>
 
   <div class="info-box" style="background:#0f172a;border-left-color:#34d399;border-left-width:4px;padding:18px 22px;">
     <p>이 화면은 <strong>'살 종목'을 알려주는 곳이 아니라, 관심 있게 지켜볼 종목을 단계별로 정리해주는 화면</strong>입니다.</p>
