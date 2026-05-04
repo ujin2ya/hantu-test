@@ -3214,12 +3214,29 @@ app.get("/admin/logout", (req, res) => {
 
 
 app.get("/admin", requireAdmin, (req, res) => {
+  // BMS 산출물 정보
+  let bmsArtifacts = null;
+  try {
+    const bmsJsonPath = path.join(__dirname, "bms-board.json");
+    const bmsHtmlPath = path.join(__dirname, "bms-board.html");
+    bmsArtifacts = {
+      json: fs.existsSync(bmsJsonPath)
+        ? new Date(fs.statSync(bmsJsonPath).mtime).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })
+        : "없음",
+      html: fs.existsSync(bmsHtmlPath)
+        ? new Date(fs.statSync(bmsHtmlPath).mtime).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })
+        : "없음",
+    };
+  } catch (_) {}
+
   res.render("admin/dashboard", {
     subscribers: loadSubscribers(),
     maxSubscribers: MAX_SUBSCRIBERS,
     flash: req.query.flash || null,
     stocksMaster: getStocksMasterAge(),
     patternState,
+    bmsState,
+    bmsArtifacts,
     seededCount: patternScreener.listSeededStocks().length,
   });
 });
@@ -3295,11 +3312,117 @@ app.get("/qva-delayed-success", (req, res) => res.redirect("/qva-delayed-success
 app.get("/qva-watchlist", serveReport("qva-watchlist-board.html"));
 app.get("/qva-watchlist-board", (req, res) => res.redirect("/qva-watchlist"));
 
+app.get("/big-move-similarity-report", serveReport("big-move-similarity-report.html"));
+app.get("/big-move-similarity", (req, res) => res.redirect("/big-move-similarity-report"));
+
+app.get("/bms-board", serveReport("bms-board.html"));
+app.get("/bms", (req, res) => res.redirect("/bms-board"));
+
+app.get("/bms-forward-performance-report", serveReport("bms-forward-performance-report.html"));
+app.get("/bms-forward-performance", (req, res) => res.redirect("/bms-forward-performance-report"));
+app.get("/bms-forward", (req, res) => res.redirect("/bms-forward-performance-report"));
+
 // ─────────── 패턴 스크리너 ───────────
 const patternState = {
   seeding: false, seedStartedAt: null, seedFinishedAt: null, seedProgress: null, seedError: null,
   analyzing: false, analyzeStartedAt: null, analyzeFinishedAt: null, analyzeError: null,
 };
+
+// ─────────── BMS 보드 갱신 상태 ───────────
+const bmsState = {
+  refreshing: false,
+  refreshStartedAt: null,
+  refreshFinishedAt: null,
+  refreshError: null,
+  step: null,
+};
+
+// 단계별 spawn 헬퍼
+function _bmsSpawnStep(label, scriptName, prefix, onDone) {
+  const { spawn } = require("child_process");
+  const proc = spawn(process.execPath, [scriptName], {
+    cwd: __dirname,
+    env: process.env,
+  });
+  let logTail = "";
+  proc.stdout.on("data", (d) => {
+    const s = d.toString();
+    logTail = (logTail + s).slice(-2000);
+    process.stdout.write(`[${prefix}] ` + s);
+  });
+  proc.stderr.on("data", (d) => {
+    const s = d.toString();
+    logTail = (logTail + s).slice(-2000);
+    process.stderr.write(`[${prefix}] ` + s);
+  });
+  proc.on("close", (code) => onDone(code, logTail));
+}
+
+app.post("/admin/bms/refresh", requireAdmin, (req, res) => {
+  if (bmsState.refreshing) return res.redirect("/admin?flash=bms_refreshing");
+  const includeForward = req.body && req.body.includeForward === "1";
+  bmsState.refreshing = true;
+  bmsState.refreshStartedAt = new Date().toISOString();
+  bmsState.refreshFinishedAt = null;
+  bmsState.refreshError = null;
+  bmsState.step = "1/" + (includeForward ? "3" : "2") + " big-move-similarity-report (보고서)";
+  res.redirect("/admin?flash=bms_refresh_started");
+
+  _bmsSpawnStep("보고서", "big-move-similarity-report.js", "BMS:report", (code, logTail) => {
+    if (code !== 0) {
+      bmsState.refreshError = `보고서 단계 실패 (exit ${code}). 로그: ${logTail.slice(-300)}`;
+      bmsState.refreshing = false;
+      bmsState.refreshFinishedAt = new Date().toISOString();
+      bmsState.step = null;
+      return;
+    }
+    bmsState.step = "2/" + (includeForward ? "3" : "2") + " bms-board (보드)";
+    _bmsSpawnStep("보드", "bms-board.js", "BMS:board", (code2, logTail2) => {
+      if (code2 !== 0) {
+        bmsState.refreshError = `보드 단계 실패 (exit ${code2}). 로그: ${logTail2.slice(-300)}`;
+        bmsState.refreshing = false;
+        bmsState.refreshFinishedAt = new Date().toISOString();
+        bmsState.step = null;
+        return;
+      }
+      if (!includeForward) {
+        bmsState.refreshing = false;
+        bmsState.refreshFinishedAt = new Date().toISOString();
+        bmsState.step = null;
+        return;
+      }
+      bmsState.step = "3/3 bms-forward-performance (성과 백테스트)";
+      _bmsSpawnStep("forward", "bms-forward-performance-report.js", "BMS:forward", (code3, logTail3) => {
+        if (code3 !== 0) {
+          bmsState.refreshError = `성과 백테스트 단계 실패 (exit ${code3}). 로그: ${logTail3.slice(-300)}`;
+        }
+        bmsState.refreshing = false;
+        bmsState.refreshFinishedAt = new Date().toISOString();
+        bmsState.step = null;
+      });
+    });
+  });
+});
+
+// Forward Performance 단독 갱신 (보고서/보드 안 건드리고 백테스트만)
+app.post("/admin/bms/forward-test", requireAdmin, (req, res) => {
+  if (bmsState.refreshing) return res.redirect("/admin?flash=bms_refreshing");
+  bmsState.refreshing = true;
+  bmsState.refreshStartedAt = new Date().toISOString();
+  bmsState.refreshFinishedAt = null;
+  bmsState.refreshError = null;
+  bmsState.step = "1/1 bms-forward-performance (성과 백테스트)";
+  res.redirect("/admin?flash=bms_refresh_started");
+
+  _bmsSpawnStep("forward", "bms-forward-performance-report.js", "BMS:forward", (code, logTail) => {
+    if (code !== 0) {
+      bmsState.refreshError = `성과 백테스트 실패 (exit ${code}). 로그: ${logTail.slice(-300)}`;
+    }
+    bmsState.refreshing = false;
+    bmsState.refreshFinishedAt = new Date().toISOString();
+    bmsState.step = null;
+  });
+});
 
 app.get("/pattern", (req, res) => {
   let result = null;

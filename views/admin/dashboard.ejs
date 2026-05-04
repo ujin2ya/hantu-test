@@ -89,6 +89,8 @@
           mail_sent: { type: "success", msg: "VVI 신호 메일을 발송했습니다." },
           no_result: { type: "danger", msg: "pattern-result.json 파일이 없습니다. 먼저 분석을 실행하세요." },
           mail_error: { type: "danger", msg: "메일 발송 중 오류가 발생했습니다." },
+          bms_refreshing: { type: "warning", msg: "BMS 갱신이 이미 진행 중입니다." },
+          bms_refresh_started: { type: "success", msg: "BMS 갱신을 시작했습니다 (보고서 ~30초 + 보드 ~2분, 총 약 2~3분). 완료 후 /bms-board 에서 확인." },
         };
         const f = flashMap[flash];
       %>
@@ -226,6 +228,80 @@
       </div>
       <div class="small text-secondary mt-2">
         ※ 새 코드 배포 직후엔 <strong>② 분석 실행</strong> 만 누르면 됩니다. 시드는 KRX 일봉 갱신이 필요할 때만.
+      </div>
+    </div>
+
+    <div class="card-soft">
+      <h2><i class="bi bi-bar-chart-line me-1"></i>BMS 보드 갱신</h2>
+      <div class="small text-secondary mb-3">
+        BMS는 과거 +40% 상승 종목의 시작 조건과 현재 종목의 유사도를 점수화하는 <strong>실험 모델</strong>입니다 (QVA 보드와 분리 운영).
+        갱신은 <strong>① BMS 보고서</strong> (episode 검출 + baseline + 전체 후보 점수화, ~30초) → <strong>② BMS 보드</strong> (섹션 분류 + 교차 태그, ~2분) 순으로 자동 진행됩니다.
+        <br>운영 화면: <a href="/bms-board" target="_blank">/bms-board</a> · 분석 보고서: <a href="/big-move-similarity-report" target="_blank">/big-move-similarity-report</a>
+      </div>
+      <% if (typeof bmsState !== 'undefined' && bmsState) { %>
+        <div class="row g-2 mb-3">
+          <div class="col-12 col-md-6">
+            <div class="meta-cell">
+              <div class="label">갱신 상태</div>
+              <div class="value">
+                <% if (bmsState.refreshing) { %>
+                  <span class="badge-soft run">진행 중</span>
+                  <% if (bmsState.step) { %>
+                    <span class="text-secondary small ms-2"><%= bmsState.step %></span>
+                  <% } %>
+                <% } else if (bmsState.refreshFinishedAt) { %>
+                  <span class="badge-soft on">완료</span>
+                  <span class="text-secondary small ms-2"><%= new Date(bmsState.refreshFinishedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) %></span>
+                <% } else { %>
+                  <span class="text-secondary small">미실행 (서버 시작 후)</span>
+                <% } %>
+                <% if (bmsState.refreshError) { %>
+                  <div class="text-danger small mt-1"><%= bmsState.refreshError %></div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="meta-cell">
+              <div class="label">최근 산출물</div>
+              <div class="value">
+                <% if (typeof bmsArtifacts !== 'undefined' && bmsArtifacts) { %>
+                  <span class="text-secondary small">JSON: <%= bmsArtifacts.json || '-' %></span><br>
+                  <span class="text-secondary small">HTML: <%= bmsArtifacts.html || '-' %></span>
+                <% } else { %>
+                  <span class="text-secondary small">-</span>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% } %>
+      <div class="d-flex gap-2 flex-wrap">
+        <form method="post" action="/admin/bms/refresh" class="m-0" onsubmit="return confirm('BMS 보드를 갱신할까요? 보고서 + 보드 두 단계 자동 실행 (~2~3분).');">
+          <button type="submit" class="btn btn-success btn-sm" <%= (typeof bmsState !== 'undefined' && bmsState?.refreshing) ? 'disabled' : '' %>>
+            <i class="bi bi-arrow-clockwise me-1"></i>BMS 갱신 (보고서 + 보드)
+          </button>
+        </form>
+        <form method="post" action="/admin/bms/refresh" class="m-0" onsubmit="return confirm('BMS 전체 갱신 (보고서 + 보드 + 1년치 성과 백테스트)을 실행할까요? ~3~5분 소요.');">
+          <input type="hidden" name="includeForward" value="1">
+          <button type="submit" class="btn btn-warning btn-sm" <%= (typeof bmsState !== 'undefined' && bmsState?.refreshing) ? 'disabled' : '' %>>
+            <i class="bi bi-arrow-clockwise me-1"></i>BMS 전체 갱신 (+ 성과 백테스트)
+          </button>
+        </form>
+        <form method="post" action="/admin/bms/forward-test" class="m-0" onsubmit="return confirm('1년치 BMS 성과 백테스트만 실행할까요? (~10초, big-move-similarity-report.json은 사용하므로 최신 baseline 필요)');">
+          <button type="submit" class="btn btn-outline-warning btn-sm" <%= (typeof bmsState !== 'undefined' && bmsState?.refreshing) ? 'disabled' : '' %>>
+            <i class="bi bi-graph-up me-1"></i>성과 백테스트만
+          </button>
+        </form>
+        <a href="/bms-board" class="btn btn-outline-secondary btn-sm" target="_blank">
+          <i class="bi bi-eye me-1"></i>/bms-board
+        </a>
+        <a href="/big-move-similarity-report" class="btn btn-outline-secondary btn-sm" target="_blank">
+          <i class="bi bi-file-text me-1"></i>분석 보고서
+        </a>
+        <a href="/bms-forward-performance" class="btn btn-outline-secondary btn-sm" target="_blank">
+          <i class="bi bi-bar-chart me-1"></i>성과 백테스트 보고서
+        </a>
       </div>
     </div>
 
