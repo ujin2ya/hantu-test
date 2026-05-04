@@ -155,22 +155,23 @@ const TAG_RANK = {
 const HISTORY_RANK = { FULL_HISTORY: 1, MID_HISTORY: 2, SHORT_HISTORY: 3, INSUFFICIENT: 4 };
 const BOX_RANK = { BOX_STABLE: 1, BOX_VOLATILE: 2, BOX_UNSTABLE: 3 };
 
+// v3.2 라벨 — 보드와 동일
 const DISPLAY_LABEL = {
-  CLEAN_VALUE_SETUP: '먼저 볼 후보',
-  VALUE_SURGE_CONFIRM: '힘 붙은 후보',
-  BREAKOUT_MOMENTUM: '단기 반응 후보',
-  VALUE_LOOSE: '보조 후보',
-  HIGH_VOLATILITY: '고위험 변동성',
-  WATCH_ONLY: '관찰만',
+  CLEAN_VALUE_SETUP: '안정 관찰',
+  VALUE_SURGE_CONFIRM: '상승 확인',
+  BREAKOUT_MOMENTUM: '단기 반응',
+  VALUE_LOOSE: '보조 유입',
+  HIGH_VOLATILITY: '고위험 단기반응',
+  WATCH_ONLY: '약한 관찰',
   LOW_SIGNAL: '약한 신호',
 };
 const SUMMARY_TEXT = {
-  CLEAN_VALUE_SETUP: '거래대금 유입, 과열 낮음',
+  CLEAN_VALUE_SETUP: '거래대금 유입, 상대적으로 위험 낮음',
   VALUE_SURGE_CONFIRM: '거래대금+상승 확인, 눌림/유지 확인',
-  BREAKOUT_MOMENTUM: '돌파 시도, 추격 주의',
+  BREAKOUT_MOMENTUM: '돌파/반응 가능, 추격주의',
   VALUE_LOOSE: '거래대금은 있으나 조건 보통',
-  HIGH_VOLATILITY: '크게 튈 수 있지만 흔들림 큼',
-  WATCH_ONLY: '아직은 관찰 단계',
+  HIGH_VOLATILITY: '크게 움직일 수 있지만 실패율 높음',
+  WATCH_ONLY: '움직임 약함, 기본 후순위',
   LOW_SIGNAL: '신호 약함',
 };
 
@@ -533,8 +534,8 @@ function main() {
   const outJsonPath = path.join(REPORTS_DIR, `wra-asof-${CONFIG.ASOF_DATE}-snapshot-result.json`);
   fs.writeFileSync(outJsonPath, JSON.stringify(out, null, 2));
 
-  // HTML
-  const html = HTML_TEMPLATE.replace('__JSON_DATA__', JSON.stringify(out));
+  // HTML — 보드 HTML_TEMPLATE 재사용 + 5/4 종가/고가 컬럼만 추가
+  const html = buildAsofHtml(out);
   const outHtmlPath = path.join(REPORTS_DIR, `wra-asof-${CONFIG.ASOF_DATE}-snapshot-result.html`);
   fs.writeFileSync(outHtmlPath, html, 'utf-8');
 
@@ -542,452 +543,48 @@ function main() {
   console.log(`✅ HTML: ${outHtmlPath} (${(html.length/1024).toFixed(0)}KB)`);
 }
 
-// ─────────────────────── HTML ───────────────────────
+// ─────────────────────── HTML — WRA 보드 디자인 재사용 + 5/4 컬럼 추가 ───────────────────────
 
-const HTML_TEMPLATE = `<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<title>WRA 후보 스냅샷 보고서</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-* { box-sizing: border-box; }
-body {
-  margin: 0 auto; padding: 18px 28px 80px; max-width: 1640px;
-  font-family: -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-  background: #0f172a; color: #e2e8f0;
-  font-size: 13px;
+const board = require('./wra-watchlist-board');
+
+function buildAsofHtml(json) {
+  let tpl = board.HTML_TEMPLATE;
+
+  // (1) thead: 위험 컬럼 다음에 5/4 종가/고가 컬럼 2개 추가
+  tpl = tpl.replace(
+    '<th data-sort="riskLevel">위험</th>',
+    '<th data-sort="riskLevel">위험</th>\n        <th class="numeric" data-sort="nextDayReturn">5/4 종가</th>\n        <th class="numeric" data-sort="nextHighReturn">5/4 고가</th>'
+  );
+
+  // (2) buildRow: 위험 셀 다음에 5/4 셀 2개 추가
+  const oldRowEnd = "'<td><span class=\"risk-pill ' + riskClass(c.riskLevel) + '\">' + c.riskLevel + '</span></td>';";
+  const newRowEnd = "'<td><span class=\"risk-pill ' + riskClass(c.riskLevel) + '\">' + c.riskLevel + '</span></td>' + nextCellPair(c.nextDay);";
+  tpl = tpl.replace(oldRowEnd, newRowEnd);
+
+  // (3) 헬퍼 함수 nextCellPair를 buildRow 위에 삽입
+  const helperFn = "  function nextCellPair(nd) {\n    if (!nd || nd.nextClose == null) return '<td class=\"numeric\" style=\"color:#64748b;\">—</td><td class=\"numeric\" style=\"color:#64748b;\">—</td>';\n    function fmtRet(r) { if (r == null || !isFinite(r)) return '-'; return (r >= 0 ? '+' : '') + Number(r).toFixed(2) + '%'; }\n    function clsRet(r) { if (r == null || !isFinite(r)) return ''; return r > 0 ? 'tcell-num pos' : (r < 0 ? 'tcell-num neg' : ''); }\n    const closeStr = Number(nd.nextClose).toLocaleString();\n    const highStr = nd.nextHigh != null ? Number(nd.nextHigh).toLocaleString() : '-';\n    return '<td class=\"numeric\" style=\"line-height:1.25;padding-right:14px;\">' +\n      '<div style=\"color:#cbd5e1;\">' + closeStr + '</div>' +\n      '<div class=\"' + clsRet(nd.nextDayReturn) + '\" style=\"font-size:11px;font-weight:600;\">' + fmtRet(nd.nextDayReturn) + '</div>' +\n    '</td>' +\n    '<td class=\"numeric\" style=\"line-height:1.25;padding-right:14px;\">' +\n      '<div style=\"color:#cbd5e1;\">' + highStr + '</div>' +\n      '<div class=\"' + clsRet(nd.nextHighReturn) + '\" style=\"font-size:11px;font-weight:600;\">' + fmtRet(nd.nextHighReturn) + '</div>' +\n    '</td>';\n  }\n";
+  tpl = tpl.replace('  function buildRow(c) {', helperFn + '\n  function buildRow(c) {');
+
+  // (4) 페이지 제목 변경
+  const ymd = json.meta && json.meta.asOfDate ? json.meta.asOfDate : '20260430';
+  const ymdFmt = ymd.slice(0,4) + '-' + ymd.slice(4,6) + '-' + ymd.slice(6,8);
+  tpl = tpl.replace(
+    '<h1 style="font-size:26px;">오늘은 어떤 후보를 볼까요?</h1>',
+    '<h1 style="font-size:24px;">' + ymdFmt + ' 후보 + 5/4 결과 참고</h1>'
+  );
+
+  // (5) 부제(lead-desc) 변경
+  tpl = tpl.replace(
+    /WRA는 매수 신호가 아니라[\s\S]*?그룹을 선택하세요\./,
+    '<strong style="color:#67e8f9;">' + ymdFmt + ' 장 마감 시점</strong>까지의 데이터로만 만든 후보입니다. 우측에 <strong>2026-05-04 종가/고가</strong>를 참고로 함께 표시합니다 (후보 분류·점수에는 사용 안 됨).'
+  );
+
+  // (6) JSON 데이터 주입
+  tpl = tpl.replace('__JSON_DATA__', JSON.stringify(json));
+
+  return tpl;
 }
-h1 { font-size: 22px; margin: 0 0 4px; color: #f1f5f9; font-weight: 700; }
-.subtitle { font-size: 13px; color: #94a3b8; margin-bottom: 14px; }
-.background-box {
-  background: #1e293b; border-left: 4px solid #38bdf8;
-  padding: 12px 16px; border-radius: 6px; margin-bottom: 14px;
-  font-size: 13px; color: #cbd5e1; line-height: 1.7;
-}
-.background-box strong { color: #67e8f9; }
-.warn-banner { background: #422006; border-left: 4px solid #f59e0b; padding: 8px 12px; border-radius: 6px; font-size: 12px; color: #fde68a; margin-bottom: 14px; line-height: 1.6; }
-.cutoff-banner {
-  background: #1e3a8a; border: 1px solid #3b82f6;
-  padding: 10px 14px; border-radius: 6px; margin-bottom: 14px;
-  font-size: 12px; color: #dbeafe; line-height: 1.6;
-}
-.cutoff-banner strong { color: #93c5fd; }
 
-/* big tiles */
-.big-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-.big-tile { flex: 1; min-width: 130px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; }
-.big-tile .label { font-size: 10.5px; color: #94a3b8; margin-bottom: 2px; }
-.big-tile .value { font-size: 18px; font-weight: 700; color: #f1f5f9; line-height: 1.1; }
-.big-tile .sub { font-size: 10px; color: #64748b; margin-top: 2px; }
-.big-tile.primary { background: linear-gradient(135deg, #0c4a6e 0%, #1e293b 100%); border-color: #0ea5e9; }
-.big-tile.primary .value { color: #67e8f9; }
-.big-tile.warning { border-color: #b91c1c; }
-.big-tile.warning .value { color: #fca5a5; }
-.big-tile.success .value { color: #6ee7b7; }
-.big-tile.muted .value { color: #cbd5e1; }
-
-/* table */
-.tbl-wrap { background: #1e293b; border: 1px solid #334155; border-radius: 8px; overflow: hidden; margin-top: 14px; }
-table.list { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
-table.list thead th {
-  background: #0f172a; color: #94a3b8; font-weight: 600; text-align: left;
-  padding: 11px 14px; border-bottom: 1px solid #334155; white-space: nowrap;
-  position: sticky; top: 0; z-index: 5; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px;
-  cursor: pointer; user-select: none;
-}
-table.list thead th:hover { color: #cbd5e1; }
-table.list thead th.numeric { text-align: right; }
-table.list thead th .arrow { color: #38bdf8; margin-left: 3px; }
-table.list tbody tr.row { border-bottom: 1px solid #1e293b; cursor: pointer; transition: background 0.1s; }
-table.list tbody tr.row:hover { background: #273549; }
-table.list tbody tr.row.expanded { background: #1e3a5f; }
-table.list tbody tr.row td { padding: 10px 14px; vertical-align: middle; white-space: nowrap; line-height: 1.35; }
-table.list tbody tr.row td.numeric { text-align: right; }
-table.list tbody tr.row td.col-rank { color: #64748b; font-size: 12px; width: 38px; padding-left: 14px; padding-right: 8px; }
-table.list tbody tr.row td.col-name {
-  font-weight: 600; color: #f1f5f9; min-width: 140px; max-width: 200px;
-  padding-right: 8px;
-}
-/* 코드/시장/시총을 종목명 아래 한 줄로 — 가로 길이 절약 */
-table.list tbody tr.row td.col-name .meta {
-  display: block; font-size: 10.5px; color: #64748b; font-weight: 400;
-  margin-left: 0; margin-top: 3px; letter-spacing: 0.2px;
-}
-table.list tbody tr.row td.col-summary {
-  color: #cbd5e1; max-width: 220px; padding-right: 16px;
-  overflow: hidden; text-overflow: ellipsis;
-}
-/* 우측 컬럼들 폭 가이드 (몰림 방지) */
-table.list tbody tr.row td.col-next { min-width: 140px; padding: 9px 16px 9px 14px; }
-.next-cell { display: flex; flex-direction: column; gap: 3px; line-height: 1.25; align-items: flex-end; }
-.next-row { display: flex; gap: 8px; align-items: baseline; font-size: 12.5px; }
-.next-tag { color: #94a3b8; font-size: 10.5px; font-weight: 700; min-width: 13px; }
-.next-tag.tag-high { color: #fbbf24; }
-.next-num { color: #cbd5e1; font-variant-numeric: tabular-nums; min-width: 48px; text-align: right; }
-.next-pct { font-weight: 600; min-width: 60px; text-align: right; font-variant-numeric: tabular-nums; }
-.next-date { font-size: 10px; color: #64748b; margin-top: 2px; letter-spacing: 0.5px; }
-
-/* group separator */
-table.list tbody tr.group-row { background: #15243a; }
-table.list tbody tr.group-row td {
-  padding: 8px 12px; border-top: 1px solid #1e3a5f; border-bottom: 1px solid #1e3a5f;
-  font-size: 12px; color: #cbd5e1; font-weight: 600; white-space: nowrap;
-}
-table.list tbody tr.group-row .gnum { color: #64748b; margin-right: 6px; font-weight: 400; }
-table.list tbody tr.group-row .gtitle { color: #f1f5f9; }
-table.list tbody tr.group-row .gcount { color: #94a3b8; font-weight: 400; margin-left: 6px; font-size: 11px; }
-table.list tbody tr.group-row .gdesc { color: #94a3b8; font-weight: 400; margin-left: 14px; font-size: 12px; }
-
-/* zebra */
-table.list tbody tr.row:nth-child(4n+1) { background: #1c2942; }
-table.list tbody tr.row:nth-child(4n+1):hover { background: #273549; }
-table.list tbody tr.row.expanded, table.list tbody tr.row.expanded:nth-child(4n+1) { background: #1e3a5f; }
-
-/* type chip */
-.type-chip { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-.type-chip.t-CLEAN_VALUE_SETUP { background: #047857; color: #d1fae5; }
-.type-chip.t-VALUE_SURGE_CONFIRM { background: #0e7490; color: #cffafe; }
-.type-chip.t-BREAKOUT_MOMENTUM { background: #6d28d9; color: #ede9fe; }
-.type-chip.t-VALUE_LOOSE { background: #92400e; color: #fef3c7; }
-.type-chip.t-HIGH_VOLATILITY { background: #991b1b; color: #fee2e2; }
-.type-chip.t-WATCH_ONLY { background: #475569; color: #e2e8f0; }
-.type-chip.t-LOW_SIGNAL { background: #1e293b; color: #94a3b8; border: 1px solid #475569; }
-.overlay-pill { display: inline-block; margin-left: 5px; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 700; background: #b91c1c; color: #fee2e2; }
-
-.risk-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
-.risk-pill.r-low { background: #14532d; color: #86efac; }
-.risk-pill.r-mid { background: #713f12; color: #fde047; }
-.risk-pill.r-high { background: #7f1d1d; color: #fca5a5; }
-.chart-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
-.chart-pill.c-good { background: #14532d; color: #86efac; }
-.chart-pill.c-mid { background: #1e3a8a; color: #93c5fd; }
-.chart-pill.c-short { background: #334155; color: #94a3b8; }
-
-.tcell-num.pos { color: #6ee7b7; }
-.tcell-num.neg { color: #fca5a5; }
-.tcell-num.warm { color: #fde047; }
-.tcell-num.hot { color: #fca5a5; font-weight: 600; }
-.score-cell { font-weight: 700; color: #fbbf24; }
-
-/* expanded detail */
-table.list tbody tr.detail { display: none; background: #0c1729; }
-table.list tbody tr.detail.show { display: table-row; }
-table.list tbody tr.detail td { padding: 14px 18px; border-bottom: 1px solid #1e3a5f; }
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px 24px; font-size: 12px; }
-.detail-block h4 { margin: 0 0 6px; font-size: 11px; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-.detail-block p { margin: 0 0 4px; color: #cbd5e1; line-height: 1.6; }
-.detail-block code { background: #1e293b; padding: 1px 5px; border-radius: 3px; color: #67e8f9; font-size: 11px; }
-.detail-block .interp { color: #fde68a; font-style: italic; }
-.detail-block .warn { color: #fca5a5; }
-.detail-block .label-chip { display: inline-block; padding: 1px 7px; margin: 1px 3px 1px 0; background: #1e293b; color: #93c5fd; border: 1px solid #1e40af; border-radius: 999px; font-size: 10px; }
-
-footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.7; }
-footer.foot strong { color: #fde68a; }
-
-.section-tabs { display: flex; gap: 6px; margin: 18px 0 10px; }
-.section-tab { padding: 7px 14px; background: #1e293b; color: #cbd5e1; border: 1px solid #334155; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 500; }
-.section-tab.active { background: #0369a1; color: #f1f5f9; border-color: #38bdf8; }
-.section-tab:hover { color: #f1f5f9; }
-
-@media (max-width: 900px) {
-  body { padding: 12px; }
-  .detail-grid { grid-template-columns: 1fr; }
-  table.list { font-size: 12px; }
-  .col-summary { display: none; }
-}
-</style>
-</head>
-<body>
-
-<h1 id="page-title" style="font-size:20px;margin:0 0 4px;">WRA 후보 스냅샷 보고서</h1>
-<div class="subtitle" id="subtitle" style="margin-bottom:6px;">로딩 중…</div>
-
-<div class="warn-banner" style="padding:6px 12px;font-size:11.5px;margin-bottom:10px;">
-  ⚠️ <strong>매수 신호가 아닙니다.</strong> 다음 거래일(5/4) 종가/고가는 참고용. 실제 판단은 차트·뉴스·시장 상황 확인.
-</div>
-
-<div class="big-summary" id="big-summary" style="margin-bottom:10px;"></div>
-
-<details style="background:#1e293b;border-radius:6px;margin-bottom:10px;font-size:12px;">
-  <summary style="cursor:pointer;padding:7px 12px;color:#94a3b8;list-style:none;">ℹ️ 보고서 배경·데이터 cutoff 설명 (펼치기)</summary>
-  <div style="padding:6px 14px 12px;border-top:1px solid #334155;line-height:1.6;color:#cbd5e1;">
-    <div class="background-box" id="background-box" style="background:transparent;border:none;padding:0;margin:0 0 8px;"></div>
-    <div class="cutoff-banner" id="cutoff-banner" style="background:transparent;border:none;padding:0;margin:0;color:#dbeafe;"></div>
-  </div>
-</details>
-
-<div class="section-tabs">
-  <button class="section-tab active" data-tab="core">⭐ 핵심 후보 (3블록)</button>
-  <button class="section-tab" data-tab="all">전체 후보</button>
-</div>
-
-<div class="tbl-wrap">
-  <table class="list">
-    <thead>
-      <tr>
-        <th data-sort="rank">#</th>
-        <th data-sort="name">종목</th>
-        <th data-sort="watchTagV3_1">유형</th>
-        <th data-sort="summaryText">한줄판단</th>
-        <th class="numeric" data-sort="finalScore">점수</th>
-        <th class="numeric" data-sort="valueRatio20">거래대금</th>
-        <th class="numeric" data-sort="closeToMA20">과열</th>
-        <th class="numeric" data-sort="closeFromRecentLow20">저점대비</th>
-        <th data-sort="historyQuality">차트</th>
-        <th data-sort="riskLevel">위험</th>
-        <th class="numeric" data-sort="nextDayReturn">다음일 (참고)</th>
-      </tr>
-    </thead>
-    <tbody id="list-body"></tbody>
-  </table>
-</div>
-
-<footer class="foot">
-  <strong>이 보고서는 매수 신호가 아닙니다.</strong> asOfDate 시점에 WRA가 사전에 포착했을 후보 목록을 복원한 스냅샷입니다.
-  asOfDate 이후 데이터는 후보 선정·점수·라벨에 반영되지 않았습니다.
-  <br>
-  <small>
-    내부 우선순위: CLEAN_VALUE_SETUP > VALUE_SURGE_CONFIRM > BREAKOUT_MOMENTUM > VALUE_LOOSE > HIGH_VOLATILITY > WATCH_ONLY > LOW_SIGNAL ·
-    행 클릭 시 상세 펼침.
-  </small>
-</footer>
-
-<script id="board-data" type="application/json">__JSON_DATA__</script>
-<script>
-(function () {
-  const data = JSON.parse(document.getElementById('board-data').textContent);
-  const meta = data.meta || {};
-  const summary = data.summary || {};
-  const displayLabel = data.displayLabel || {};
-  const summaryText = data.summaryText || {};
-  const candidates = data.candidates || [];
-  const blockDef = data.blockDef || [];
-
-  const HISTORY_RANK = { FULL_HISTORY: 1, MID_HISTORY: 2, SHORT_HISTORY: 3, INSUFFICIENT: 4 };
-  const BOX_RANK = { BOX_STABLE: 1, BOX_VOLATILE: 2, BOX_UNSTABLE: 3 };
-  const RISK_RANK = { '낮음': 1, '주의': 2, '높음': 3 };
-
-  function fmtDate(d) { return d && d.length === 8 ? d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8) : (d || '-'); }
-  function fmtNum(v, d) { if (v == null || !isFinite(v)) return '-'; return Number(v).toFixed(d == null ? 1 : d); }
-  function fmtPct(v, d) { if (v == null || !isFinite(v)) return '-'; return (Number(v) >= 0 ? '+' : '') + Number(v).toFixed(d == null ? 1 : d) + '%'; }
-  function fmtMc(v) { if (!v) return '-'; const e = v / 100_000_000; if (e >= 10000) return (e/10000).toFixed(1) + '조'; return Math.round(e) + '억'; }
-  function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
-
-  // 제목/설명 채우기
-  document.getElementById('page-title').textContent = meta.title || 'WRA 후보 스냅샷 보고서';
-  document.getElementById('subtitle').innerHTML =
-    'asOfDate <strong style="color:#cbd5e1;">' + fmtDate(meta.asOfDate) + '</strong> · 처리 ' + summary.totalStocksProcessed + '종목 · 후보 ' + summary.totalCandidates + '건 · 생성 ' +
-    new Date(meta.generatedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
-  document.getElementById('background-box').innerHTML =
-    '<strong>📌 사용자 요청 배경:</strong> ' + escapeHtml(meta.requestBackground || '') +
-    '<br><br><strong>🎯 목적:</strong> ' + escapeHtml(meta.purpose || '');
-  document.getElementById('cutoff-banner').innerHTML =
-    '<strong>🔒 데이터 cutoff:</strong> ' + escapeHtml(meta.dataCutoffRule || '') +
-    '<br><strong>5/4 데이터 사용 여부:</strong> ' + escapeHtml(meta.compareNextNote || '');
-
-  // big tiles
-  const bigTiles = [
-    { label: '핵심 후보', value: meta.coreVisibleCount || (summary.block1Count + summary.block2Count + summary.block3Count), sub: '먼저 볼 ' + summary.block1Count + ' · 힘 붙은 ' + summary.block2Count + ' · 단기 반응 ' + summary.block3Count, cls: 'primary' },
-    { label: '전체 후보', value: summary.totalCandidates, sub: '처리 종목 ' + summary.totalStocksProcessed + '개', cls: 'muted' },
-    { label: '고위험 변동성', value: summary.highVolatilityTotalCount, sub: '단독 ' + summary.highVolatilitySoloCount + ' + overlay ' + summary.highVolatilityOverlayCount, cls: 'warning' },
-    { label: '차트신뢰 높음', value: summary.midfullCount, sub: 'MID/FULL_HISTORY (120일+)', cls: 'success' },
-    { label: '기준일', value: fmtDate(meta.asOfDate), sub: 'UNCLASSIFIED ' + summary.unclassifiedCount + ' ' + (summary.unclassifiedCount === 0 ? '✅' : '⚠️'), cls: 'muted' },
-  ];
-  const bigRow = document.getElementById('big-summary');
-  bigTiles.forEach(t => {
-    const el = document.createElement('div');
-    el.className = 'big-tile ' + (t.cls || '');
-    el.innerHTML = '<div class="label">' + escapeHtml(t.label) + '</div>' +
-      '<div class="value">' + escapeHtml(String(t.value)) + '</div>' +
-      '<div class="sub">' + escapeHtml(t.sub) + '</div>';
-    bigRow.appendChild(el);
-  });
-
-  // 행 빌드
-  const tbody = document.getElementById('list-body');
-  const rowsByCode = {};
-  function riskClass(l) { return l === '높음' ? 'r-high' : (l === '주의' ? 'r-mid' : 'r-low'); }
-  function chartClass(l) { return l === '좋음' ? 'c-good' : (l === '중간' ? 'c-mid' : 'c-short'); }
-  function ma20Class(v) { if (v == null || !isFinite(v)) return ''; if (v >= 20) return 'hot'; if (v >= 12) return 'warm'; return v > 0 ? 'pos' : (v < 0 ? 'neg' : ''); }
-  function lowClass(v) { if (v == null || !isFinite(v)) return ''; if (v >= 40) return 'hot'; if (v >= 25) return 'warm'; return v > 0 ? 'pos' : (v < 0 ? 'neg' : ''); }
-
-  // 다음 거래일 셀 (asOfDate+1 종가/고가 + 등락률)
-  function nextDayCellHtml(nd) {
-    if (!nd || nd.nextClose == null) {
-      return '<span style="color:#64748b;">—</span>';
-    }
-    function fmtRet(r) {
-      if (r == null || !isFinite(r)) return '-';
-      return (r >= 0 ? '+' : '') + Number(r).toFixed(2) + '%';
-    }
-    function clsRet(r) {
-      if (r == null || !isFinite(r)) return '';
-      return r > 0 ? 'pos' : (r < 0 ? 'neg' : '');
-    }
-    const closeStr = Number(nd.nextClose).toLocaleString();
-    const highStr = nd.nextHigh != null ? Number(nd.nextHigh).toLocaleString() : '-';
-    const dateStr = nd.nextDate ? (nd.nextDate.slice(4,6) + '/' + nd.nextDate.slice(6,8)) : '';
-    return '<div class="next-cell">' +
-      '<div class="next-row"><span class="next-tag">종</span>' +
-        '<span class="next-num">' + closeStr + '</span>' +
-        '<span class="next-pct tcell-num ' + clsRet(nd.nextDayReturn) + '">' + fmtRet(nd.nextDayReturn) + '</span>' +
-      '</div>' +
-      '<div class="next-row"><span class="next-tag tag-high">고</span>' +
-        '<span class="next-num">' + highStr + '</span>' +
-        '<span class="next-pct tcell-num ' + clsRet(nd.nextHighReturn) + '">' + fmtRet(nd.nextHighReturn) + '</span>' +
-      '</div>' +
-      (dateStr ? '<div class="next-date">' + dateStr + '</div>' : '') +
-      '</div>';
-  }
-
-  function buildRow(c) {
-    const tr = document.createElement('tr');
-    tr.className = 'row tag-' + c.watchTagV3_1 + (c.riskOverlay ? ' has-overlay' : '');
-    tr.dataset.code = c.code; tr.dataset.tag = c.watchTagV3_1;
-    const overlayPill = c.riskOverlay ? '<span class="overlay-pill">고위험</span>' : '';
-    tr.innerHTML =
-      '<td class="col-rank">' + c.rank + '</td>' +
-      '<td class="col-name">' + escapeHtml(c.name) + '<span class="meta">' + c.code + ' · ' + (c.market || '-') + ' · ' + fmtMc(c.marketCap) + '</span></td>' +
-      '<td><span class="type-chip t-' + c.watchTagV3_1 + '">' + (c.displayLabel || displayLabel[c.watchTagV3_1] || c.watchTagV3_1) + '</span>' + overlayPill + '</td>' +
-      '<td class="col-summary">' + escapeHtml(c.summaryText || '') + '</td>' +
-      '<td class="numeric score-cell">' + fmtNum(c.finalScore) + '</td>' +
-      '<td class="numeric">' + fmtNum(c.valueRatio20, 1) + '배</td>' +
-      '<td class="numeric tcell-num ' + ma20Class(c.closeToMA20) + '">MA20 ' + fmtPct(c.closeToMA20, 1) + '</td>' +
-      '<td class="numeric tcell-num ' + lowClass(c.closeFromRecentLow20) + '">' + fmtPct(c.closeFromRecentLow20, 1) + '</td>' +
-      '<td><span class="chart-pill ' + chartClass(c.chartLevel) + '">' + c.chartLevel + '</span></td>' +
-      '<td><span class="risk-pill ' + riskClass(c.riskLevel) + '">' + c.riskLevel + '</span></td>' +
-      '<td class="numeric col-next">' + nextDayCellHtml(c.nextDay) + '</td>';
-
-    const trd = document.createElement('tr');
-    trd.className = 'detail';
-    trd.dataset.code = c.code;
-    const labelChips = (c.labels || []).map(l => '<span class="label-chip">' + escapeHtml(l) + '</span>').join('');
-    const warnsHtml = (c.warnings && c.warnings.length)
-      ? c.warnings.map(w => '<p class="warn">⚠ ' + escapeHtml(w) + '</p>').join('')
-      : '<p style="color:#64748b;">없음</p>';
-    const nextDayHtml = c.nextDay
-      ? ('<div class="detail-block" style="grid-column: 1 / -1;">' +
-          '<h4>다음 거래일 비교 (점수 미반영, 참고용)</h4>' +
-          '<p>다음 거래일: <code>' + (c.nextDay.nextDate || '-') + '</code></p>' +
-          '<p>OHLC: 시 <code>' + fmtNum(c.nextDay.nextOpen, 0) + '</code> · 고 <code>' + fmtNum(c.nextDay.nextHigh, 0) + '</code> · 저 <code>' + fmtNum(c.nextDay.nextLow, 0) + '</code> · 종 <code>' + fmtNum(c.nextDay.nextClose, 0) + '</code></p>' +
-          '<p>다음거래일 등락률: <code>' + fmtPct(c.nextDay.nextDayReturn, 2) + '</code></p>' +
-          '</div>')
-      : '';
-    trd.innerHTML =
-      '<td colspan="11">' +
-        '<div class="detail-grid">' +
-          '<div class="detail-block">' +
-            '<h4>분류 · 라벨</h4>' +
-            '<p>유형 (화면): <code>' + (c.displayLabel || c.watchTagV3_1) + '</code></p>' +
-            '<p>내부 라벨: <code>' + c.watchTagV3_1 + '</code>' + (c.riskOverlay ? ' + <code style="color:#fca5a5;">' + c.riskOverlay + '</code>' : '') + '</p>' +
-            '<p class="interp">' + escapeHtml(c.interpretation || '') + '</p>' +
-            '<p>BMS 라벨: ' + (labelChips || '<span style="color:#64748b;">없음</span>') + '</p>' +
-            '<p style="color:#64748b; margin-top:4px;">' + escapeHtml(c.metricSummary || '') + '</p>' +
-          '</div>' +
-          '<div class="detail-block">' +
-            '<h4>점수 분해</h4>' +
-            '<p>setupScore <code>' + fmtNum(c.setupScore) + '</code></p>' +
-            '<p>momentumScore <code>' + fmtNum(c.momentumScore) + '</code></p>' +
-            '<p>historyScore <code>' + fmtNum(c.historyScore, 0) + '</code></p>' +
-            '<p>riskPenalty <code style="color:#fca5a5;">−' + fmtNum(c.riskPenalty) + '</code></p>' +
-            '<p>finalScore <code style="color:#fbbf24; font-weight:700;">' + fmtNum(c.finalScore) + '</code> (= setup + mom + hist − risk)</p>' +
-            '<p style="color:#64748b; margin-top:4px;">riskScore=' + (c.riskScore || 0) + '</p>' +
-          '</div>' +
-          '<div class="detail-block">' +
-            '<h4>지표 상세</h4>' +
-            '<p>거래대금 <code>' + fmtNum(c.valueRatio20, 2) + '×</code> · 거래량 <code>' + fmtNum(c.volumeRatio20, 2) + '×</code></p>' +
-            '<p>val/MC <code>' + (c.valueToMarketCap != null ? fmtNum(c.valueToMarketCap * 100, 2) + '%' : '-') + '</code></p>' +
-            '<p>당일 종가 위치 <code>' + fmtNum(c.closeLocation, 2) + '</code> (0=하단, 1=상단)</p>' +
-            '<p>52주 고점 대비 <code>' + fmtPct(c.closeFrom52WeekHigh) + '</code> · 당일 등락률 <code>' + fmtPct(c.dayReturn) + '</code></p>' +
-            '<p>박스 range <code>' + fmtNum(c.boxRangePct, 1) + '%</code> · 기간 <code>' + (c.dynamicBoxDuration || '-') + 'd' + (c.boxFallback ? ' (fallback)' : '') + '</code></p>' +
-          '</div>' +
-          '<div class="detail-block" style="grid-column: 1 / -1;">' +
-            '<h4>경고 (warnings)</h4>' + warnsHtml +
-          '</div>' +
-          nextDayHtml +
-        '</div>' +
-      '</td>';
-
-    return [tr, trd];
-  }
-
-  // 그룹 행
-  const groupRows = {};
-  function buildGroupRows() {
-    const counts = { BLOCK1: summary.block1Count || 0, BLOCK2: summary.block2Count || 0, BLOCK3: summary.block3Count || 0 };
-    const numerals = { BLOCK1: '①', BLOCK2: '②', BLOCK3: '③' };
-    blockDef.forEach(b => {
-      const tr = document.createElement('tr');
-      tr.className = 'group-row';
-      tr.dataset.block = b.id;
-      tr.innerHTML =
-        '<td colspan="11">' +
-          '<span class="gnum">' + numerals[b.id] + '</span>' +
-          '<span class="gtitle">' + escapeHtml(b.title) + '</span>' +
-          '<span class="gcount">(' + counts[b.id] + '건)</span>' +
-          '<span class="gdesc">' + escapeHtml(b.desc) + '</span>' +
-        '</td>';
-      groupRows[b.id] = tr;
-    });
-  }
-
-  // 초기 렌더 (모든 행 생성)
-  buildGroupRows();
-  candidates.forEach(c => {
-    const [tr, trd] = buildRow(c);
-    rowsByCode[c.code] = { row: tr, detail: trd, data: c };
-    tr.addEventListener('click', () => {
-      tr.classList.toggle('expanded');
-      trd.classList.toggle('show');
-    });
-  });
-
-  // 탭 전환
-  let activeTab = 'core';
-  function reorder() {
-    tbody.innerHTML = '';
-    Object.values(groupRows).forEach(tr => { if (tr.parentNode === tbody) tbody.removeChild(tr); });
-    if (activeTab === 'core') {
-      const core = candidates.filter(c => c.coreFlag).sort((a, b) => (a.coreOrder || 0) - (b.coreOrder || 0));
-      let lastBlock = null;
-      core.forEach(c => {
-        if (c.block !== lastBlock) {
-          const gr = groupRows[c.block];
-          if (gr) tbody.appendChild(gr);
-          lastBlock = c.block;
-        }
-        const item = rowsByCode[c.code];
-        if (item) { tbody.appendChild(item.row); tbody.appendChild(item.detail); }
-      });
-    } else {
-      candidates.forEach(c => {
-        const item = rowsByCode[c.code];
-        if (item) { tbody.appendChild(item.row); tbody.appendChild(item.detail); }
-      });
-    }
-    // 행 번호 재계산
-    let n = 1;
-    Array.from(tbody.querySelectorAll('tr.row')).forEach(tr => {
-      const c = tr.querySelector('.col-rank');
-      if (c) c.textContent = n++;
-    });
-  }
-  document.querySelectorAll('.section-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.section-tab').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeTab = btn.dataset.tab;
-      reorder();
-    });
-  });
-
-  reorder();
-})();
-</script>
-</body>
-</html>
-`;
 
 if (require.main === module) {
   try { main(); }

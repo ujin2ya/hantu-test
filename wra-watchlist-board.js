@@ -512,12 +512,6 @@ footer.foot strong { color: #fde68a; }
   <span class="hint">20거래일 추적 후보는 QVA 보드에서 확인하세요.</span>
   <a class="board-switch-btn qva" href="/qva-watchlist">📋 QVA 20거래일 추적 후보 보드 보기 →</a>
 </div>
-<div class="report-link-row" style="display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 12px;">
-  <a class="report-link-btn" href="/wra-asof/20260430" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.35);color:#67e8f9;font-size:12px;font-weight:600;text-decoration:none;transition:background 0.12s;">📅 4/30 → 5/4 종목 결과 보기</a>
-  <a class="report-link-btn" href="/wra-mode" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.35);color:#67e8f9;font-size:12px;font-weight:600;text-decoration:none;transition:background 0.12s;">📊 모드 검증 보기</a>
-  <a class="report-link-btn" href="/wra-rolling-diff" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.35);color:#c4b5fd;font-size:12px;font-weight:600;text-decoration:none;transition:background 0.12s;">🔄 Rolling 검증 보기</a>
-  <span style="font-size:11px;color:#64748b;align-self:center;">— 종목별 결과/모드별 성과/장기 검증 근거</span>
-</div>
 <div class="subtitle" id="subtitle">로딩 중…</div>
 
 <div class="warn-banner">
@@ -1229,4 +1223,4 @@ if (require.main === module) {
   catch (e) { console.error('오류:', e); console.error(e.stack); process.exit(1); }
 }
 
-module.exports = { main, buildJson, sortCandidates, buildBlockList };
+module.exports = { main, buildJson, sortCandidates, buildBlockList, HTML_TEMPLATE };
