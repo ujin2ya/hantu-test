@@ -499,6 +499,69 @@ table.sweep tr:hover:not(.top) td { background: #273549; }
 .recommend-box ul { margin: 8px 0 0; padding-left: 20px; }
 .recommend-box li { margin-bottom: 6px; }
 
+/* 종목 리스트 */
+.list-filter { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
+.list-filter .filter-btn {
+  background: #1e293b; color: #cbd5e1; border: 1px solid #334155;
+  border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; font-weight: 500;
+}
+.list-filter .filter-btn:hover { color: #f1f5f9; border-color: #64748b; }
+.list-filter .filter-btn.active { background: #0369a1; color: #f1f5f9; border-color: #38bdf8; }
+.list-filter .filter-btn.success.active { background: #047857; border-color: #10b981; }
+.list-filter .filter-btn.fail.active { background: #991b1b; border-color: #ef4444; }
+.list-filter .filter-input {
+  background: #0f172a; color: #e2e8f0; border: 1px solid #334155;
+  border-radius: 6px; padding: 6px 10px; font-size: 12px; height: 30px; min-width: 160px;
+}
+.list-status { font-size: 12px; color: #94a3b8; margin-left: auto; }
+
+table.cand { width: 100%; border-collapse: collapse; font-size: 12px; background: #1e293b; border-radius: 8px; overflow: hidden; font-variant-numeric: tabular-nums; }
+table.cand thead th {
+  background: #0f172a; color: #94a3b8; font-weight: 600;
+  padding: 9px 10px; border-bottom: 1px solid #334155;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; text-align: left;
+  position: sticky; top: 0;
+}
+table.cand thead th.numeric { text-align: right; }
+table.cand tbody tr { border-bottom: 1px solid #1e293b; }
+table.cand tbody tr:nth-child(odd) { background: #1c2942; }
+table.cand tbody tr:hover { background: #273549; }
+table.cand tbody td { padding: 7px 10px; vertical-align: middle; white-space: nowrap; line-height: 1.3; }
+table.cand tbody td.numeric { text-align: right; }
+table.cand tbody td.col-name { font-weight: 600; color: #f1f5f9; min-width: 130px; max-width: 180px; }
+table.cand tbody td.col-name .meta { display: block; font-size: 10px; color: #64748b; font-weight: 400; margin-top: 2px; }
+
+/* 결과 마커 (좌측 컬러바) */
+table.cand tbody tr.row-success td.col-name { box-shadow: inset 3px 0 0 #10b981; padding-left: 14px; }
+table.cand tbody tr.row-fail td.col-name { box-shadow: inset 3px 0 0 #ef4444; padding-left: 14px; }
+table.cand tbody tr.row-neutral td.col-name { box-shadow: inset 3px 0 0 #64748b; padding-left: 14px; }
+table.cand tbody tr.row-mixed td.col-name { box-shadow: inset 3px 0 0 #fbbf24; padding-left: 14px; }
+
+.tag-pill { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 600; }
+.tag-pill.t-CLEAN_VALUE_SETUP { background: #047857; color: #d1fae5; }
+.tag-pill.t-VALUE_SURGE_CONFIRM { background: #0e7490; color: #cffafe; }
+.tag-pill.t-BREAKOUT_MOMENTUM { background: #6d28d9; color: #ede9fe; }
+.tag-pill.t-VALUE_LOOSE { background: #92400e; color: #fef3c7; }
+.tag-pill.t-HIGH_VOLATILITY { background: #991b1b; color: #fee2e2; }
+.tag-pill.t-WATCH_ONLY { background: #475569; color: #e2e8f0; }
+.tag-pill.t-LOW_SIGNAL { background: #1e293b; color: #94a3b8; border: 1px solid #475569; }
+
+.result-pills { display: flex; gap: 3px; flex-wrap: wrap; }
+.result-pill {
+  display: inline-block; padding: 1px 6px; border-radius: 4px;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.3px;
+}
+.result-pill.STRONG_CONFIRM { background: #14532d; color: #6ee7b7; }
+.result-pill.CLOSE_WIN { background: #064e3b; color: #86efac; }
+.result-pill.HIGH_OPPORTUNITY { background: #134e4a; color: #5eead4; }
+.result-pill.FAILED_CONFIRM { background: #7f1d1d; color: #fca5a5; }
+.result-pill.HIGH_THEN_FADE { background: #713f12; color: #fde047; }
+.result-pill.CLOSE_LOSS { background: #581c87; color: #d8b4fe; }
+.result-pill.SUCCESS_ALL, .result-pill.FAIL_ALL { display: none; }
+
+.cell-pos { color: #6ee7b7; }
+.cell-neg { color: #fca5a5; }
+
 footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.7; }
 footer.foot strong { color: #fde68a; }
 </style>
@@ -528,6 +591,49 @@ footer.foot strong { color: #fde68a; }
 
 <h2>💡 결론 및 v3.2 추천 조건</h2>
 <div class="recommend-box" id="conclusion"></div>
+
+<h2>📋 종목별 4/30 → 5/4 결과 (전체 후보)</h2>
+<p style="color:#94a3b8;font-size:12px;line-height:1.6;margin-bottom:8px;">
+  좌측 컬러바: <span style="color:#10b981;">초록=성공</span> / <span style="color:#ef4444;">빨강=실패</span> / <span style="color:#fbbf24;">노랑=성공+실패 둘 다</span> / <span style="color:#64748b;">회색=중립</span>.
+  결과 알약(STRONG_CONFIRM/CLOSE_WIN/HIGH_THEN_FADE 등)을 보면 어떤 패턴인지 한눈에 보입니다.
+</p>
+<div class="list-filter" id="list-filter">
+  <button class="filter-btn active" data-filter="ALL">전체</button>
+  <button class="filter-btn success" data-filter="SUCCESS">성공만</button>
+  <button class="filter-btn fail" data-filter="FAIL">실패만</button>
+  <button class="filter-btn" data-filter="NEUTRAL">중립만</button>
+  <button class="filter-btn" data-tag="CLEAN_VALUE_SETUP">먼저 볼</button>
+  <button class="filter-btn" data-tag="VALUE_SURGE_CONFIRM">힘 붙은</button>
+  <button class="filter-btn" data-tag="BREAKOUT_MOMENTUM">단기 반응</button>
+  <button class="filter-btn" data-tag="VALUE_LOOSE">보조</button>
+  <button class="filter-btn" data-tag="HIGH_VOLATILITY">고변동</button>
+  <button class="filter-btn" data-tag="WATCH_ONLY">관찰</button>
+  <button class="filter-btn" data-tag="LOW_SIGNAL">약함</button>
+  <input type="search" class="filter-input" id="cand-search" placeholder="🔍 종목명 / 코드">
+  <span class="list-status" id="cand-status"></span>
+</div>
+<div style="overflow-x:auto;">
+  <table class="cand" id="cand-table">
+    <thead>
+      <tr>
+        <th data-sort="name">종목</th>
+        <th data-sort="watchTagV3_1">유형</th>
+        <th class="numeric" data-sort="finalScore">점수</th>
+        <th class="numeric" data-sort="closeLocation">closeLoc</th>
+        <th class="numeric" data-sort="closeToMA20">MA20</th>
+        <th class="numeric" data-sort="closeFromRecentLow20">저점대비</th>
+        <th class="numeric" data-sort="valueRatio20">거래대금</th>
+        <th class="numeric" data-sort="riskScore">risk</th>
+        <th data-sort="boxQuality">box</th>
+        <th data-sort="historyQuality">차트</th>
+        <th class="numeric" data-sort="closeReturn">5/4 종가%</th>
+        <th class="numeric" data-sort="highReturn">5/4 고가%</th>
+        <th>결과</th>
+      </tr>
+    </thead>
+    <tbody id="cand-body"></tbody>
+  </table>
+</div>
 
 <footer class="foot">
   <strong>매수 신호 보고서가 아닙니다.</strong> 단일 cutoff(4/30 → 5/4) 표본 분석으로, 통계적 유의성 검증을 위해서는 여러 cutoff에서 같은 패턴이 나오는지 추가 확인이 필요합니다.
@@ -668,6 +774,145 @@ footer.foot strong { color: #fde68a; }
   }
   cnHtml += '<strong>🎯 최종 제안:</strong> ' + escapeHtml(cn.finalProposal || '');
   document.getElementById('conclusion').innerHTML = cnHtml;
+
+  // ────────── 종목 테이블 ──────────
+  const cands = data.candidatesDetailed || [];
+  const candBody = document.getElementById('cand-body');
+  const candStatus = document.getElementById('cand-status');
+
+  function fmtPct(v, d) { if (v == null || !isFinite(v)) return '-'; return (v >= 0 ? '+' : '') + Number(v).toFixed(d == null ? 1 : d) + '%'; }
+  function fmtMc(v) { if (!v) return '-'; const e = v / 1e8; if (e >= 10000) return (e/10000).toFixed(1) + '조'; return Math.round(e) + '억'; }
+  function clsRet(v) { if (v == null || !isFinite(v)) return ''; return v > 0 ? 'cell-pos' : (v < 0 ? 'cell-neg' : ''); }
+
+  // 결과 분류 (행 색깔용)
+  function rowKind(c) {
+    const isS = !!c.isSuccess;
+    const isF = !!c.isFail;
+    if (isS && isF) return 'mixed';     // 둘 다 (예: HIGH_OPPORTUNITY + HIGH_THEN_FADE)
+    if (isS) return 'success';
+    if (isF) return 'fail';
+    return 'neutral';
+  }
+
+  function renderCands(list) {
+    candBody.innerHTML = '';
+    list.forEach(c => {
+      const kind = rowKind(c);
+      const tr = document.createElement('tr');
+      tr.className = 'row-' + kind;
+      tr.dataset.tag = c.watchTagV3_1;
+      tr.dataset.kind = kind;
+      tr.dataset.name = c.name; tr.dataset.code = c.code;
+
+      const groupPills = (c.groups || [])
+        .filter(g => g !== 'SUCCESS_ALL' && g !== 'FAIL_ALL')
+        .map(g => '<span class="result-pill ' + g + '">' + g.replace(/_/g, ' ') + '</span>')
+        .join('');
+
+      tr.innerHTML =
+        '<td class="col-name">' + escapeHtml(c.name) +
+          '<span class="meta">' + c.code + ' · ' + (c.market || '-') + ' · ' + fmtMc(c.marketCap) + '</span></td>' +
+        '<td><span class="tag-pill t-' + c.watchTagV3_1 + '">' + escapeHtml(c.displayLabel || c.watchTagV3_1) + '</span></td>' +
+        '<td class="numeric" style="font-weight:600;color:#fbbf24;">' + fmtNum(c.finalScore) + '</td>' +
+        '<td class="numeric">' + fmtNum(c.closeLocation, 2) + '</td>' +
+        '<td class="numeric">' + fmtPct(c.closeToMA20, 1) + '</td>' +
+        '<td class="numeric">' + fmtPct(c.closeFromRecentLow20, 1) + '</td>' +
+        '<td class="numeric">' + fmtNum(c.valueRatio20, 1) + '×</td>' +
+        '<td class="numeric">' + (c.riskScore || 0) + '</td>' +
+        '<td>' + (c.boxQuality || '').replace('BOX_','') + '</td>' +
+        '<td>' + (c.historyQuality || '').replace('_HISTORY','') + '</td>' +
+        '<td class="numeric ' + clsRet(c.next?.closeReturn) + '">' + fmtPct(c.next?.closeReturn, 2) + '</td>' +
+        '<td class="numeric ' + clsRet(c.next?.highReturn) + '">' + fmtPct(c.next?.highReturn, 2) + '</td>' +
+        '<td><div class="result-pills">' + (groupPills || '<span style="color:#64748b;font-size:10px;">—</span>') + '</div></td>';
+      candBody.appendChild(tr);
+    });
+  }
+
+  // 정렬: 기본 = 결과 그룹 (성공 먼저) → 그 안에서 finalScore 내림차순
+  function defaultSort(arr) {
+    const order = { success: 1, mixed: 2, fail: 3, neutral: 4 };
+    return [...arr].sort((a, b) => {
+      const oa = order[rowKind(a)] || 9;
+      const ob = order[rowKind(b)] || 9;
+      if (oa !== ob) return oa - ob;
+      return (b.finalScore || 0) - (a.finalScore || 0);
+    });
+  }
+
+  // 필터 상태
+  const fState = { kind: 'ALL', tags: new Set(), q: '' };
+
+  function applyCandFilter() {
+    let visible = 0, total = 0;
+    candBody.querySelectorAll('tr').forEach(tr => {
+      total++;
+      let show = true;
+      if (fState.kind === 'SUCCESS' && tr.dataset.kind !== 'success' && tr.dataset.kind !== 'mixed') show = false;
+      if (fState.kind === 'FAIL' && tr.dataset.kind !== 'fail' && tr.dataset.kind !== 'mixed') show = false;
+      if (fState.kind === 'NEUTRAL' && tr.dataset.kind !== 'neutral') show = false;
+      if (show && fState.tags.size > 0 && !fState.tags.has(tr.dataset.tag)) show = false;
+      if (show && fState.q) {
+        const q = fState.q.toLowerCase();
+        const n = (tr.dataset.name || '').toLowerCase();
+        const c = (tr.dataset.code || '').toLowerCase();
+        if (!n.includes(q) && !c.includes(q)) show = false;
+      }
+      tr.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    candStatus.innerHTML = '<strong style="color:#cbd5e1;">' + visible + '</strong> / ' + total + '건';
+  }
+
+  // 초기 렌더
+  renderCands(defaultSort(cands));
+  applyCandFilter();
+
+  // 필터 버튼
+  document.querySelectorAll('.list-filter [data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.list-filter [data-filter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      fState.kind = btn.dataset.filter;
+      applyCandFilter();
+    });
+  });
+  document.querySelectorAll('.list-filter [data-tag]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('active');
+      const t = btn.dataset.tag;
+      if (fState.tags.has(t)) fState.tags.delete(t);
+      else fState.tags.add(t);
+      applyCandFilter();
+    });
+  });
+  document.getElementById('cand-search').addEventListener('input', e => {
+    fState.q = e.target.value.trim();
+    applyCandFilter();
+  });
+
+  // 헤더 클릭 정렬
+  let sortKey = null, sortDir = 'desc';
+  document.querySelectorAll('#cand-table thead th[data-sort]').forEach(th => {
+    th.style.cursor = 'pointer';
+    th.addEventListener('click', () => {
+      const key = th.dataset.sort;
+      if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      else { sortKey = key; sortDir = 'desc'; }
+      const dir = sortDir === 'asc' ? 1 : -1;
+      const sorted = [...cands].sort((a, b) => {
+        let va, vb;
+        if (key === 'closeReturn') { va = a.next?.closeReturn; vb = b.next?.closeReturn; }
+        else if (key === 'highReturn') { va = a.next?.highReturn; vb = b.next?.highReturn; }
+        else { va = a[key]; vb = b[key]; }
+        if (va == null) va = (typeof vb === 'number') ? -Infinity : '';
+        if (vb == null) vb = -Infinity;
+        if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir;
+        return String(va).localeCompare(String(vb)) * dir;
+      });
+      renderCands(sorted);
+      applyCandFilter();
+    });
+  });
 })();
 </script>
 </body>
