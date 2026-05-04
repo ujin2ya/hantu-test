@@ -807,20 +807,24 @@ for (let fi = 0; fi < files.length; fi++) {
     const dropFromMfeHigh = mfeHigh > 0 ? (todayRow.close / mfeHigh - 1) * 100 : 0;
     const daysSinceMfeHigh = todayIdx - mfeHighIdx;
 
-    // ─── 새 분류 (사용자 spec 2026-05) ───
-    //   REACTIVE      : qvaReturnPct ≤ 20 AND score ≥ 80
-    //   INTEREST      : qvaReturnPct ≤ 20 AND score 60~79
-    //   BREAKOUT_DONE : qvaReturnPct ≥ 25 OR (mfeFromSignal ≥ 30 AND qvaReturnPct ≥ 20)
-    //   ALL_OTHER     : 그 외 (점수 낮거나 +20~+25 사이 등)
+    // ─── 강화된 분류 (사용자 spec 2026-05 v2) ───
+    //   BREAKOUT_DONE : qvaReturnPct > 20  OR  mfeFromSignal > 20
+    //                   (현재가가 안 올라 보여도 한 번이라도 +20% 찍었으면 분리)
+    //   REACTIVE      : qvaReturnPct ≤ 12  AND  mfeFromSignal ≤ 20  AND  score ≥ 80
+    //                   (정말 아직 안 오른 신규 후보)
+    //   INTEREST      : qvaReturnPct ≤ 20  AND  mfeFromSignal ≤ 25  AND  score ≥ 60
+    //                   (점수 80+여도 +12% 초과면 자연스럽게 INTEREST로 강등)
+    //   WATCH         : score 40~59
+    //   TRACKING      : 그 외
     const qvaReturnPct = longCurrentReturn;
     let tier, label;
-    if (qvaReturnPct >= 25 || (mfeFromSignal >= 30 && qvaReturnPct >= 20)) {
+    if (qvaReturnPct > 20 || mfeFromSignal > 20) {
       tier = 'BREAKOUT_DONE';
-      label = 'QVA 성공 후 급등';
-    } else if (qvaReturnPct <= 20 && reactScore.score >= 80) {
+      label = 'QVA 성공 후 상승';
+    } else if (qvaReturnPct <= 12 && mfeFromSignal <= 20 && reactScore.score >= 80) {
       tier = 'REACTIVE';
       label = '장기 QVA 재점화';
-    } else if (qvaReturnPct <= 20 && reactScore.score >= 60) {
+    } else if (qvaReturnPct <= 20 && mfeFromSignal <= 25 && reactScore.score >= 60) {
       tier = 'INTEREST';
       label = '장기 QVA 관심';
     } else if (reactScore.score >= 40) {
@@ -831,13 +835,14 @@ for (let fi = 0; fi < files.length; fi++) {
       label = '장기 추적 유지';
     }
 
-    // 눌림 대기 태그 — BREAKOUT_DONE 안에서 추가 조건 충족 시
+    // 눌림 대기 태그 — BREAKOUT_DONE 안에서 다음 조건 충족 시 (사용자 spec v2)
+    //   maxGainSinceQva ≥ 20 AND  -15 ≤ dropFromMfeHigh ≤ -7  AND  close ≥ ma20 × 0.98
     let pullbackWait = false;
     if (tier === 'BREAKOUT_DONE') {
       const ma20 = reactScore.metrics?.ma20;
-      const dropOk = dropFromMfeHigh <= -5 && dropFromMfeHigh >= -15;
-      const ma20Ok = ma20 != null && todayRow.close >= ma20;
-      pullbackWait = qvaReturnPct >= 25 && dropOk && ma20Ok;
+      const dropOk = dropFromMfeHigh <= -7 && dropFromMfeHigh >= -15;
+      const ma20Ok = ma20 != null && todayRow.close >= ma20 * 0.98;
+      pullbackWait = mfeFromSignal >= 20 && dropOk && ma20Ok;
     }
 
     const auxTags = ['LONG_QVA_' + tier];
@@ -929,7 +934,7 @@ const stageLabels = {
   EARLY_QVA: 'QVA 추적 중',
   LONG_QVA_REACTIVE: '장기 QVA 재점화',
   LONG_QVA_INTEREST: '장기 QVA 관심',
-  LONG_QVA_BREAKOUT_DONE: 'QVA 성공 후 급등',
+  LONG_QVA_BREAKOUT_DONE: 'QVA 성공 후 상승',
   LONG_QVA_ALL: '장기 QVA 전체',
   FAILED: '실패/이탈',
 };
@@ -947,11 +952,11 @@ const stageDescriptions = {
   EARLY_QVA:
     '최근 20거래일 안에 QVA가 발생했고, 오늘은 통과 못했지만 아직 VVI 확인 전인 관심 후보입니다. QVA → VVI 전환률은 1년 검증에서 약 11%이므로 대부분의 추적 후보는 VVI까지 진행되지 않지만, 일부는 VVI/돌파 성공으로 진화합니다. 매수 신호가 아니라 관찰 후보입니다.',
   LONG_QVA_REACTIVE:
-    '장기 QVA 재점화는 QVA 발생 후 21~40거래일 구간에서 아직 크게 오르지 않은(QVA 대비 +20% 이내) 상태로 다시 거래대금/가격 흐름이 살아나는 종목입니다 (재점화 점수 80+). 매수 추천이 아니라, 뒤늦게 반응하는 신규 관심 후보를 골라주는 보조 관찰 영역입니다.',
+    '장기 QVA 재점화는 D+21~D+40 구간에서 아직 크게 오르지 않은 종목 중, 거래대금과 가격 흐름이 다시 살아나는 후보입니다. QVA 대비 현재 수익률(+12% 이내)과 최고 상승률(+20% 이내)이 모두 과하지 않은 종목만 표시합니다 (재점화 점수 80+).',
   LONG_QVA_INTEREST:
-    '장기 QVA 관심은 QVA 대비 +20% 이내이고 재점화 점수 60~79인 후보입니다. 재점화보다는 약하지만 추적 가치가 있는 보조 관찰군입니다.',
+    '장기 QVA 관심은 D+21~D+40 구간, QVA 대비 +20% 이내 + 최고 상승률 +25% 이내, 재점화 점수 60~79인 후보입니다. 점수 80+여도 현재 수익률이 +12% 초과면 이 섹션으로 내려옵니다.',
   LONG_QVA_BREAKOUT_DONE:
-    'QVA 이후 이미 큰 상승이 나온 종목입니다 (QVA 대비 +25% 이상 또는 MFE +30% AND 현재가 +20% 이상). 신규 진입 후보라기보다 성과 확인 또는 눌림 관찰 대상으로 봅니다. "눌림 대기" 태그가 붙은 종목은 고점 대비 -5~-15% 조정 + MA20 위 유지 — 눌림 확인용 후보입니다.',
+    'QVA 이후 이미 +20% 이상 상승 구간이 나온 종목입니다 (현재가 +20% 초과 OR 최고 상승 +20% 초과). 신규 진입 후보라기보다 성과 확인 또는 눌림 관찰 대상으로 봅니다. "눌림 대기" 태그는 최고 상승 +20% 이상 + 고점 대비 -7~-15% 조정 + MA20 × 0.98 위 유지 — 눌림 확인용 후보입니다.',
   LONG_QVA_ALL:
     '장기 QVA 전체는 D+21~D+40 구간에 머물러 있는 모든 추적 후보입니다 (분류 무관). 위쪽 섹션에 노출되지 않은 종목까지 포함합니다. 기본 접힘.',
   FAILED:
@@ -979,12 +984,12 @@ const auxTagDescriptions = {
   CONFIRMED_QVA_PASS: 'QVA 이후 가격 유지·저점 상승·거래대금 흐름이 한 번 더 확인된 상태입니다.',
   NEW_TODAY: '오늘 처음 QVA로 감지된 종목입니다 (firstSignalDate === 오늘).',
   TODAY_RECONFIRMED: '과거에 QVA로 잡혔고 오늘도 조건을 다시 만족한 종목입니다 (같은 흐름의 연속 발화).',
-  LONG_QVA_REACTIVE: 'D+21~D+40, QVA 대비 ≤ +20%, 재점화 점수 80+',
-  LONG_QVA_INTEREST: 'D+21~D+40, QVA 대비 ≤ +20%, 재점화 점수 60~79',
-  LONG_QVA_BREAKOUT_DONE: 'QVA 이후 이미 +25% 이상 상승 — 신규 진입보다는 성과/눌림 관찰',
+  LONG_QVA_REACTIVE: 'D+21~D+40, QVA 대비 ≤ +12% AND 최고 ≤ +20%, 재점화 점수 80+',
+  LONG_QVA_INTEREST: 'D+21~D+40, QVA 대비 ≤ +20% AND 최고 ≤ +25%, 점수 60+',
+  LONG_QVA_BREAKOUT_DONE: 'QVA 이후 +20% 이상 상승 구간 발생 — 신규 진입보다는 성과/눌림 관찰',
   LONG_QVA_WATCH: 'D+21~D+40, 재점화 점수 40~59',
   LONG_QVA_TRACKING: 'D+21~D+40, 재점화 점수 40 미만',
-  PULLBACK_WAIT: '이미 급등한 후 고점 대비 -5~-15% 조정 + MA20 위 유지 — 눌림 확인용 후보',
+  PULLBACK_WAIT: '최고 상승 +20% 이상 + 고점 대비 -7~-15% 조정 + MA20 × 0.98 위 유지 — 눌림 확인용 후보',
 };
 
 // 진입 판단 상태 — BREAKOUT_SUCCESS 그룹 내 분류
@@ -2084,9 +2089,9 @@ function buildStageSection(stage) {
     const noteEl = document.createElement('div');
     noteEl.style.cssText = 'background:#0f172a;border-left:3px solid #c4b5fd;padding:10px 14px;border-radius:6px;margin-bottom:12px;color:#cbd5e1;font-size:12px;line-height:1.7;';
     noteEl.innerHTML =
-      '<strong style="color:#c4b5fd;">장기 QVA 재점화</strong>는 D+21~D+40 구간에서 <strong>아직 크게 오르지 않은 (QVA 대비 +20% 이내)</strong> 종목 중 ' +
-      '재점화 점수 80+로 다시 살아나는 후보입니다. 이미 큰 상승이 나온 종목은 <strong style="color:#fbbf24;">"QVA 성공 후 급등"</strong> 섹션으로 분리됩니다.<br>' +
-      '체크: ● 거래대금 재활성 / ● 신호가 위 유지 / ● 고점 돌파 재시도 / ● 저점 상승 / ● MA20 회복.<br>' +
+      '<strong style="color:#c4b5fd;">장기 QVA 재점화</strong>는 D+21~D+40 구간에서 <strong>아직 크게 오르지 않은 종목</strong> 중 거래대금과 가격 흐름이 다시 살아나는 후보입니다.<br>' +
+      'QVA 대비 현재 수익률 ≤ <strong>+12%</strong> AND 최고 상승률 ≤ <strong>+20%</strong> AND 재점화 점수 80+ — 모두 과하지 않은 종목만 표시.<br>' +
+      'QVA 이후 이미 +20% 이상 상승 구간이 나온 종목은 <strong style="color:#fbbf24;">"QVA 성공 후 상승"</strong> 섹션으로 분리됩니다.<br>' +
       '<strong style="color:#fbbf24;">매수 추천이 아니라 뒤늦게 반응하는 신규 관심 후보를 골라주는 보조 관찰 영역입니다.</strong>';
     sec.appendChild(noteEl);
   }
@@ -2094,16 +2099,16 @@ function buildStageSection(stage) {
     const noteEl = document.createElement('div');
     noteEl.style.cssText = 'background:#0f172a;border-left:3px solid #818cf8;padding:8px 14px;border-radius:6px;margin-bottom:12px;color:#cbd5e1;font-size:11px;line-height:1.6;';
     noteEl.innerHTML =
-      '<strong style="color:#a5b4fc;">장기 QVA 관심</strong>: D+21~D+40, QVA 대비 +20% 이내, 재점화 점수 60~79. 재점화군보다 한 단계 약함.';
+      '<strong style="color:#a5b4fc;">장기 QVA 관심</strong>: QVA 대비 ≤ +20% AND 최고 ≤ +25% AND 점수 60+. 점수 80+여도 현재 +12% 초과면 자연스럽게 이 섹션으로 강등됩니다.';
     sec.appendChild(noteEl);
   }
   if (isLongBreakoutDone && items.length > 0) {
     const noteEl = document.createElement('div');
     noteEl.style.cssText = 'background:#0f172a;border-left:3px solid #f59e0b;padding:10px 14px;border-radius:6px;margin-bottom:12px;color:#cbd5e1;font-size:12px;line-height:1.7;';
     noteEl.innerHTML =
-      '<strong style="color:#fbbf24;">QVA 성공 후 급등</strong>은 QVA 이후 이미 +25% 이상 상승한 종목입니다.<br>' +
+      '<strong style="color:#fbbf24;">QVA 성공 후 상승</strong>은 QVA 이후 이미 +20% 이상 상승 구간이 나온 종목입니다 (현재가 +20% 초과 OR 최고 +20% 초과).<br>' +
       '<strong style="color:#fb923c;">신규 진입 후보가 아니라 성과 확인 또는 눌림 관찰 대상</strong>으로 봅니다. ' +
-      '<span class="badge tag-PULLBACK_WAIT" style="font-size:10px;padding:1px 6px;border-radius:3px;">눌림 대기</span> 태그가 붙은 종목은 고점 대비 -5~-15% 조정 + MA20 위 유지 상태 — 눌림 확인용 후보입니다.';
+      '<span class="badge tag-PULLBACK_WAIT" style="font-size:10px;padding:1px 6px;border-radius:3px;">눌림 대기</span> 태그: 최고 +20% 이상 + 고점 대비 -7~-15% 조정 + MA20 × 0.98 위 유지 — 눌림 확인용 후보.';
     sec.appendChild(noteEl);
   }
   if (isLongAll && items.length > 0) {
