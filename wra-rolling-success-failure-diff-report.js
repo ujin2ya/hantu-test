@@ -471,8 +471,25 @@ function main() {
       successBoxQ, failBoxQ, successHistory, failHistory,
     },
     conclusion,
-    // 종목 리스트는 너무 무거워서 cutoff 별로 압축 (top 50 success / top 50 fail per cutoff 정도?)
-    // 일단 다 포함하지 않고 메타와 통계만
+    // 모든 이벤트 압축 — cutoff별 필터로 한 번에 한 날짜씩 보면 가벼움
+    events: allEvents.map(e => ({
+      cutoff: e.cutoff, validationDate: e.validationDate,
+      code: e.code, name: e.name, market: e.market, marketCap: e.marketCap,
+      tag: e.watchTagV3_1, riskOverlay: e.riskOverlay,
+      finalScore: round(e.finalScore, 1),
+      valueRatio20: round(e.valueRatio20, 2),
+      closeLocation: round(e.closeLocation, 2),
+      closeToMA20: round(e.closeToMA20, 1),
+      closeFromRecentLow20: round(e.closeFromRecentLow20, 1),
+      riskScore: e.riskScore,
+      historyQuality: e.historyQuality,
+      boxQuality: e.boxQuality,
+      closeReturn: e.nextDay?.nextDayReturn,
+      highReturn: e.nextDay?.nextHighReturn,
+      groups: [...e._tags].filter(g => g !== 'SUCCESS_ALL' && g !== 'FAIL_ALL'),
+      isSuccess: e._tags.has('SUCCESS_ALL'),
+      isFail: e._tags.has('FAIL_ALL'),
+    })),
   };
 
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
@@ -589,6 +606,54 @@ table.cmp tr:hover td { background: #273549; }
 .cell-mute { color: #64748b; }
 .row-best td { background: #14532d !important; color: #d1fae5; font-weight: 600; }
 
+/* 이벤트 테이블 */
+.event-filter { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
+.ef-btn {
+  background: #1e293b; color: #cbd5e1; border: 1px solid #334155;
+  border-radius: 6px; padding: 6px 11px; font-size: 12px; cursor: pointer; font-weight: 500;
+}
+.ef-btn:hover { color: #f1f5f9; border-color: #64748b; }
+.ef-btn.active { background: #0369a1; color: #f1f5f9; border-color: #38bdf8; }
+.ef-btn.success.active { background: #047857; border-color: #10b981; }
+.ef-btn.fail.active { background: #991b1b; border-color: #ef4444; }
+.ef-input { background: #0f172a; color: #e2e8f0; border: 1px solid #334155; border-radius: 6px; padding: 6px 10px; font-size: 12px; height: 30px; min-width: 160px; }
+.ef-status { font-size: 12px; color: #94a3b8; margin-left: auto; }
+table.evt { width: 100%; border-collapse: collapse; font-size: 12px; background: #1e293b; border-radius: 8px; overflow: hidden; font-variant-numeric: tabular-nums; }
+table.evt thead th {
+  background: #0f172a; color: #94a3b8; font-weight: 600;
+  padding: 9px 10px; border-bottom: 1px solid #334155;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; text-align: left;
+  cursor: pointer; user-select: none;
+}
+table.evt thead th.numeric { text-align: right; }
+table.evt tbody tr { border-bottom: 1px solid #1e293b; }
+table.evt tbody tr:nth-child(odd) { background: #1c2942; }
+table.evt tbody tr:hover { background: #273549; }
+table.evt tbody td { padding: 7px 10px; vertical-align: middle; white-space: nowrap; line-height: 1.3; }
+table.evt tbody td.numeric { text-align: right; }
+table.evt tbody td.col-name { font-weight: 600; color: #f1f5f9; min-width: 130px; max-width: 180px; }
+table.evt tbody td.col-name .meta { display: block; font-size: 10px; color: #64748b; font-weight: 400; margin-top: 2px; }
+table.evt tbody tr.row-success td.col-name { box-shadow: inset 3px 0 0 #10b981; padding-left: 14px; }
+table.evt tbody tr.row-fail td.col-name { box-shadow: inset 3px 0 0 #ef4444; padding-left: 14px; }
+table.evt tbody tr.row-neutral td.col-name { box-shadow: inset 3px 0 0 #64748b; padding-left: 14px; }
+table.evt tbody tr.row-mixed td.col-name { box-shadow: inset 3px 0 0 #fbbf24; padding-left: 14px; }
+.tag-pill { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 600; }
+.tag-pill.t-CLEAN_VALUE_SETUP { background: #047857; color: #d1fae5; }
+.tag-pill.t-VALUE_SURGE_CONFIRM { background: #0e7490; color: #cffafe; }
+.tag-pill.t-BREAKOUT_MOMENTUM { background: #6d28d9; color: #ede9fe; }
+.tag-pill.t-VALUE_LOOSE { background: #92400e; color: #fef3c7; }
+.tag-pill.t-HIGH_VOLATILITY { background: #991b1b; color: #fee2e2; }
+.tag-pill.t-WATCH_ONLY { background: #475569; color: #e2e8f0; }
+.tag-pill.t-LOW_SIGNAL { background: #1e293b; color: #94a3b8; border: 1px solid #475569; }
+.result-pills { display: flex; gap: 3px; flex-wrap: wrap; }
+.result-pill { display: inline-block; padding: 1px 5px; border-radius: 4px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.3px; }
+.result-pill.STRONG_CONFIRM { background: #14532d; color: #6ee7b7; }
+.result-pill.CLOSE_WIN { background: #064e3b; color: #86efac; }
+.result-pill.HIGH_OPPORTUNITY { background: #134e4a; color: #5eead4; }
+.result-pill.FAILED_CONFIRM { background: #7f1d1d; color: #fca5a5; }
+.result-pill.HIGH_THEN_FADE { background: #713f12; color: #fde047; }
+.result-pill.CLOSE_LOSS { background: #581c87; color: #d8b4fe; }
+
 .answer-list { background: #1e293b; border-radius: 8px; padding: 14px 16px; }
 .answer-item { padding: 10px 0; border-bottom: 1px dashed #334155; }
 .answer-item:last-child { border-bottom: none; }
@@ -625,6 +690,52 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 
 <h2>📅 cutoff별 시계열</h2>
 <div id="per-cutoff-table"></div>
+
+<h2>📋 종목별 이벤트 — cutoff별로 필터해서 보세요</h2>
+<p style="color:#94a3b8;font-size:12px;line-height:1.6;margin-bottom:8px;">
+  6,000+ 이벤트를 모두 한 번에 띄우면 무거우므로 <strong>cutoff 단위 필터</strong>가 기본입니다 (가장 최근 cutoff 자동 선택).
+  좌측 컬러바: <span style="color:#10b981;">초록=성공</span> / <span style="color:#ef4444;">빨강=실패</span> / <span style="color:#fbbf24;">노랑=둘 다</span> / <span style="color:#64748b;">회색=중립</span>.
+</p>
+<div class="event-filter" id="event-filter">
+  <label style="font-size:11px;color:#94a3b8;">cutoff:
+    <select id="cutoff-select" style="background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px;padding:6px 10px;font-size:12px;margin-left:6px;"></select>
+  </label>
+  <button class="ef-btn active" data-filter="ALL">전체</button>
+  <button class="ef-btn success" data-filter="SUCCESS">성공만</button>
+  <button class="ef-btn fail" data-filter="FAIL">실패만</button>
+  <button class="ef-btn" data-filter="NEUTRAL">중립만</button>
+  <button class="ef-btn" data-tag="CLEAN_VALUE_SETUP">먼저 볼</button>
+  <button class="ef-btn" data-tag="VALUE_SURGE_CONFIRM">힘 붙은</button>
+  <button class="ef-btn" data-tag="BREAKOUT_MOMENTUM">단기 반응</button>
+  <button class="ef-btn" data-tag="VALUE_LOOSE">보조</button>
+  <button class="ef-btn" data-tag="HIGH_VOLATILITY">고변동</button>
+  <button class="ef-btn" data-tag="WATCH_ONLY">관찰</button>
+  <button class="ef-btn" data-tag="LOW_SIGNAL">약함</button>
+  <input type="search" class="ef-input" id="event-search" placeholder="🔍 종목명 / 코드">
+  <span class="ef-status" id="event-status"></span>
+</div>
+<div style="overflow-x:auto;">
+  <table class="evt" id="evt-table">
+    <thead>
+      <tr>
+        <th data-sort="name">종목</th>
+        <th data-sort="tag">유형</th>
+        <th class="numeric" data-sort="finalScore">점수</th>
+        <th class="numeric" data-sort="closeLocation">closeLoc</th>
+        <th class="numeric" data-sort="closeToMA20">MA20</th>
+        <th class="numeric" data-sort="closeFromRecentLow20">저점대비</th>
+        <th class="numeric" data-sort="valueRatio20">거래대금</th>
+        <th class="numeric" data-sort="riskScore">risk</th>
+        <th data-sort="boxQuality">box</th>
+        <th data-sort="historyQuality">차트</th>
+        <th class="numeric" data-sort="closeReturn">D+1 종가%</th>
+        <th class="numeric" data-sort="highReturn">D+1 고가%</th>
+        <th>결과</th>
+      </tr>
+    </thead>
+    <tbody id="evt-body"></tbody>
+  </table>
+</div>
 
 <footer class="foot">
   <strong>매수 신호 보고서가 아닙니다.</strong> 분류 모델 검증을 위한 분석 보고서이며 실제 매매 판단은 차트·뉴스·시장 상황을 별도로 확인하세요.
@@ -763,6 +874,131 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
   });
   pcHtml += '</tbody></table>';
   document.getElementById('per-cutoff-table').innerHTML = pcHtml;
+
+  // ────────── 종목 이벤트 테이블 ──────────
+  const events = data.events || [];
+  const evtBody = document.getElementById('evt-body');
+  const evtStatus = document.getElementById('event-status');
+  const cutoffSelect = document.getElementById('cutoff-select');
+
+  // cutoff 드롭다운 채우기 (가장 최근부터)
+  const sortedCutoffs = [...(meta.cutoffs || [])].sort().reverse();
+  cutoffSelect.innerHTML = sortedCutoffs.map((d, i) => '<option value="' + d + '"' + (i === 0 ? ' selected' : '') + '>' + d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8) + ' (D+1)</option>').join('');
+
+  function fmtPct(v, d) { if (v == null || !isFinite(v)) return '-'; return (v >= 0 ? '+' : '') + Number(v).toFixed(d == null ? 1 : d) + '%'; }
+  function fmtMc(v) { if (!v) return '-'; const e = v / 1e8; if (e >= 10000) return (e/10000).toFixed(1) + '조'; return Math.round(e) + '억'; }
+  function clsRet(v) { if (v == null || !isFinite(v)) return ''; return v > 0 ? 'cell-pos' : (v < 0 ? 'cell-neg' : ''); }
+  function rowKind(e) {
+    if (e.isSuccess && e.isFail) return 'mixed';
+    if (e.isSuccess) return 'success';
+    if (e.isFail) return 'fail';
+    return 'neutral';
+  }
+
+  function renderEvts(list) {
+    evtBody.innerHTML = '';
+    list.forEach(e => {
+      const kind = rowKind(e);
+      const tr = document.createElement('tr');
+      tr.className = 'row-' + kind;
+      tr.dataset.tag = e.tag; tr.dataset.kind = kind;
+      tr.dataset.name = e.name; tr.dataset.code = e.code;
+      const pills = (e.groups || []).map(g => '<span class="result-pill ' + g + '">' + g.replace(/_/g, ' ') + '</span>').join('');
+      tr.innerHTML =
+        '<td class="col-name">' + escapeHtml(e.name) +
+          '<span class="meta">' + e.code + ' · ' + (e.market || '-') + ' · ' + fmtMc(e.marketCap) + '</span></td>' +
+        '<td><span class="tag-pill t-' + e.tag + '">' + e.tag.replace(/_/g, ' ') + '</span></td>' +
+        '<td class="numeric" style="font-weight:600;color:#fbbf24;">' + fmtNum(e.finalScore, 1) + '</td>' +
+        '<td class="numeric">' + fmtNum(e.closeLocation, 2) + '</td>' +
+        '<td class="numeric">' + fmtPct(e.closeToMA20, 1) + '</td>' +
+        '<td class="numeric">' + fmtPct(e.closeFromRecentLow20, 1) + '</td>' +
+        '<td class="numeric">' + fmtNum(e.valueRatio20, 1) + '×</td>' +
+        '<td class="numeric">' + (e.riskScore || 0) + '</td>' +
+        '<td>' + (e.boxQuality || '').replace('BOX_','') + '</td>' +
+        '<td>' + (e.historyQuality || '').replace('_HISTORY','') + '</td>' +
+        '<td class="numeric ' + clsRet(e.closeReturn) + '">' + fmtPct(e.closeReturn, 2) + '</td>' +
+        '<td class="numeric ' + clsRet(e.highReturn) + '">' + fmtPct(e.highReturn, 2) + '</td>' +
+        '<td><div class="result-pills">' + (pills || '<span style="color:#64748b;font-size:10px;">—</span>') + '</div></td>';
+      evtBody.appendChild(tr);
+    });
+  }
+
+  // 필터 상태
+  const evState = { cutoff: sortedCutoffs[0] || '', kind: 'ALL', tags: new Set(), q: '' };
+  let evSortKey = null, evSortDir = 'desc';
+
+  function applyEvFilter() {
+    const filtered = events.filter(e => {
+      if (evState.cutoff && e.cutoff !== evState.cutoff) return false;
+      const k = rowKind(e);
+      if (evState.kind === 'SUCCESS' && k !== 'success' && k !== 'mixed') return false;
+      if (evState.kind === 'FAIL' && k !== 'fail' && k !== 'mixed') return false;
+      if (evState.kind === 'NEUTRAL' && k !== 'neutral') return false;
+      if (evState.tags.size > 0 && !evState.tags.has(e.tag)) return false;
+      if (evState.q) {
+        const q = evState.q.toLowerCase();
+        if (!String(e.name||'').toLowerCase().includes(q) && !String(e.code||'').toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+
+    // 정렬
+    let sorted = filtered;
+    if (evSortKey) {
+      const dir = evSortDir === 'asc' ? 1 : -1;
+      sorted = [...filtered].sort((a, b) => {
+        let va = a[evSortKey], vb = b[evSortKey];
+        if (va == null) va = (typeof vb === 'number') ? -Infinity : '';
+        if (vb == null) vb = -Infinity;
+        if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir;
+        return String(va).localeCompare(String(vb)) * dir;
+      });
+    } else {
+      // 기본: 성공 먼저, 그 안에서 finalScore 내림차순
+      const order = { success: 1, mixed: 2, fail: 3, neutral: 4 };
+      sorted = [...filtered].sort((a, b) => {
+        const oa = order[rowKind(a)] || 9;
+        const ob = order[rowKind(b)] || 9;
+        if (oa !== ob) return oa - ob;
+        return (b.finalScore || 0) - (a.finalScore || 0);
+      });
+    }
+
+    renderEvts(sorted);
+    evtStatus.innerHTML = '<strong style="color:#cbd5e1;">' + sorted.length + '</strong>건 (전체 ' + events.length + ')';
+  }
+
+  cutoffSelect.addEventListener('change', e => { evState.cutoff = e.target.value; applyEvFilter(); });
+  document.querySelectorAll('.event-filter [data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.event-filter [data-filter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      evState.kind = btn.dataset.filter;
+      applyEvFilter();
+    });
+  });
+  document.querySelectorAll('.event-filter [data-tag]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('active');
+      const t = btn.dataset.tag;
+      if (evState.tags.has(t)) evState.tags.delete(t); else evState.tags.add(t);
+      applyEvFilter();
+    });
+  });
+  document.getElementById('event-search').addEventListener('input', e => {
+    evState.q = e.target.value.trim();
+    applyEvFilter();
+  });
+  document.querySelectorAll('#evt-table thead th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sort;
+      if (evSortKey === key) evSortDir = evSortDir === 'asc' ? 'desc' : 'asc';
+      else { evSortKey = key; evSortDir = 'desc'; }
+      applyEvFilter();
+    });
+  });
+
+  applyEvFilter();
 })();
 </script>
 </body>
