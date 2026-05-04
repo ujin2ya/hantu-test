@@ -3382,6 +3382,22 @@ app.get("/wra-watchlist", (req, res) => {
 });
 app.get("/wra-watchlist-board", (req, res) => res.redirect("/wra-watchlist"));
 
+// ─────────── WRA As-Of Snapshot Report (4/30 기준) ───────────
+app.get("/wra-asof/:date", (req, res) => {
+  const date = String(req.params.date || '').trim();
+  if (!/^\d{8}$/.test(date)) {
+    return res.status(400).send("잘못된 날짜 형식입니다 (YYYYMMDD).");
+  }
+  const filePath = path.join(__dirname, "reports", `wra-asof-${date}-snapshot-result.html`);
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send(
+      `reports/wra-asof-${date}-snapshot-result.html 파일이 없습니다. \`node wra-asof-snapshot-report.js --date=${date}\`를 먼저 실행하세요.`
+    );
+  }
+  res.sendFile(filePath);
+});
+app.get("/wra-asof", (req, res) => res.redirect("/wra-asof/20260430"));
+
 // ─────────── 패턴 스크리너 ───────────
 const patternState = {
   seeding: false, seedStartedAt: null, seedFinishedAt: null, seedProgress: null, seedError: null,
