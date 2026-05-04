@@ -288,7 +288,10 @@ function readNextDayValuesIfRequested(rows, asOfIdx, asOfDate) {
   if (!next || !next.date || next.date <= asOfDate) return null;
   const cur = rows[asOfIdx];
   const dr = (cur.close > 0) ? ((next.close - cur.close) / cur.close * 100) : null;
+  // 고가 등락률 (asOfDate 종가 대비 다음 거래일 장중 고가)
+  const hr = (cur.close > 0 && next.high != null) ? ((next.high - cur.close) / cur.close * 100) : null;
   return {
+    prevClose: cur.close,                          // asOfDate 종가 (4/30)
     nextDate: next.date,
     nextOpen: next.open,
     nextHigh: next.high,
@@ -296,6 +299,7 @@ function readNextDayValuesIfRequested(rows, asOfIdx, asOfDate) {
     nextClose: next.close,
     nextVolume: next.volume,
     nextDayReturn: dr != null ? Math.round(dr * 100) / 100 : null,
+    nextHighReturn: hr != null ? Math.round(hr * 100) / 100 : null,
   };
 }
 
@@ -598,12 +602,31 @@ table.list thead th .arrow { color: #38bdf8; margin-left: 3px; }
 table.list tbody tr.row { border-bottom: 1px solid #1e293b; cursor: pointer; transition: background 0.1s; }
 table.list tbody tr.row:hover { background: #273549; }
 table.list tbody tr.row.expanded { background: #1e3a5f; }
-table.list tbody tr.row td { padding: 10px 8px; vertical-align: middle; white-space: nowrap; }
+table.list tbody tr.row td { padding: 8px 6px; vertical-align: middle; white-space: nowrap; }
 table.list tbody tr.row td.numeric { text-align: right; }
-table.list tbody tr.row td.col-rank { color: #64748b; font-size: 12px; width: 40px; }
-table.list tbody tr.row td.col-name { font-weight: 600; color: #f1f5f9; min-width: 160px; }
-table.list tbody tr.row td.col-name .meta { font-size: 11px; color: #64748b; font-weight: 400; margin-left: 6px; }
-table.list tbody tr.row td.col-summary { color: #cbd5e1; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+table.list tbody tr.row td.col-rank { color: #64748b; font-size: 12px; width: 36px; padding-left: 10px; }
+table.list tbody tr.row td.col-name {
+  font-weight: 600; color: #f1f5f9; min-width: 130px; max-width: 200px;
+  line-height: 1.25;
+}
+/* 코드/시장/시총을 종목명 아래 한 줄로 — 가로 길이 절약 */
+table.list tbody tr.row td.col-name .meta {
+  display: block; font-size: 10px; color: #64748b; font-weight: 400;
+  margin-left: 0; margin-top: 2px;
+}
+table.list tbody tr.row td.col-summary {
+  color: #cbd5e1; max-width: 200px;
+  overflow: hidden; text-overflow: ellipsis;
+}
+/* 우측 컬럼들 폭 가이드 (몰림 방지) */
+table.list tbody tr.row td.col-next { min-width: 110px; padding: 6px 10px; }
+.next-cell { display: flex; flex-direction: column; gap: 2px; line-height: 1.2; align-items: flex-end; }
+.next-row { display: flex; gap: 6px; align-items: baseline; font-size: 12px; }
+.next-tag { color: #94a3b8; font-size: 10px; font-weight: 700; min-width: 12px; }
+.next-tag.tag-high { color: #fbbf24; }
+.next-num { color: #cbd5e1; font-variant-numeric: tabular-nums; }
+.next-pct { font-weight: 600; min-width: 56px; text-align: right; font-variant-numeric: tabular-nums; }
+.next-date { font-size: 9px; color: #64748b; margin-top: 1px; }
 
 /* group separator */
 table.list tbody tr.group-row { background: #15243a; }
@@ -787,20 +810,32 @@ footer.foot strong { color: #fde68a; }
   function ma20Class(v) { if (v == null || !isFinite(v)) return ''; if (v >= 20) return 'hot'; if (v >= 12) return 'warm'; return v > 0 ? 'pos' : (v < 0 ? 'neg' : ''); }
   function lowClass(v) { if (v == null || !isFinite(v)) return ''; if (v >= 40) return 'hot'; if (v >= 25) return 'warm'; return v > 0 ? 'pos' : (v < 0 ? 'neg' : ''); }
 
-  // 다음 거래일 셀 (asOfDate+1 종가 + D+1 등락률)
+  // 다음 거래일 셀 (asOfDate+1 종가/고가 + 등락률)
   function nextDayCellHtml(nd) {
     if (!nd || nd.nextClose == null) {
       return '<span style="color:#64748b;">—</span>';
     }
-    const ret = nd.nextDayReturn;
-    const cls = (ret == null || !isFinite(ret)) ? '' : (ret >= 5 ? 'pos' : (ret > 0 ? 'pos' : (ret < -5 ? 'neg' : (ret < 0 ? 'neg' : ''))));
+    function fmtRet(r) {
+      if (r == null || !isFinite(r)) return '-';
+      return (r >= 0 ? '+' : '') + Number(r).toFixed(2) + '%';
+    }
+    function clsRet(r) {
+      if (r == null || !isFinite(r)) return '';
+      return r > 0 ? 'pos' : (r < 0 ? 'neg' : '');
+    }
     const closeStr = Number(nd.nextClose).toLocaleString();
+    const highStr = nd.nextHigh != null ? Number(nd.nextHigh).toLocaleString() : '-';
     const dateStr = nd.nextDate ? (nd.nextDate.slice(4,6) + '/' + nd.nextDate.slice(6,8)) : '';
-    const retStr = (ret == null || !isFinite(ret)) ? '-' : ((ret >= 0 ? '+' : '') + Number(ret).toFixed(2) + '%');
-    return '<div style="line-height:1.25;">' +
-      '<span style="color:#cbd5e1;">' + closeStr + '</span> ' +
-      '<span class="tcell-num ' + cls + '" style="font-weight:600;">' + retStr + '</span>' +
-      '<div style="font-size:10px;color:#64748b;">' + dateStr + '</div>' +
+    return '<div class="next-cell">' +
+      '<div class="next-row"><span class="next-tag">종</span>' +
+        '<span class="next-num">' + closeStr + '</span>' +
+        '<span class="next-pct tcell-num ' + clsRet(nd.nextDayReturn) + '">' + fmtRet(nd.nextDayReturn) + '</span>' +
+      '</div>' +
+      '<div class="next-row"><span class="next-tag tag-high">고</span>' +
+        '<span class="next-num">' + highStr + '</span>' +
+        '<span class="next-pct tcell-num ' + clsRet(nd.nextHighReturn) + '">' + fmtRet(nd.nextHighReturn) + '</span>' +
+      '</div>' +
+      (dateStr ? '<div class="next-date">' + dateStr + '</div>' : '') +
       '</div>';
   }
 

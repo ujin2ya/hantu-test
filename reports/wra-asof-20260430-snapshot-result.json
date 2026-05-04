@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "wra-asof-snapshot-v1",
-    "generatedAt": "2026-05-04T12:11:09.872Z",
+    "generatedAt": "2026-05-04T12:15:13.367Z",
     "asOfDate": "20260430",
     "mode": "as-of-snapshot",
     "title": "2026-04-30 장 마감 기준 WRA 후보 스냅샷 보고서",
@@ -155,13 +155,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 1100,
         "nextDate": "20260504",
         "nextOpen": 1101,
         "nextHigh": 1209,
         "nextLow": 1101,
         "nextClose": 1168,
         "nextVolume": 1074779,
-        "nextDayReturn": 6.18
+        "nextDayReturn": 6.18,
+        "nextHighReturn": 9.91
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -216,13 +218,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 4590,
         "nextDate": "20260504",
         "nextOpen": 4600,
         "nextHigh": 4720,
         "nextLow": 4545,
         "nextClose": 4610,
         "nextVolume": 174486,
-        "nextDayReturn": 0.44
+        "nextDayReturn": 0.44,
+        "nextHighReturn": 2.83
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -330,13 +334,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 5640,
         "nextDate": "20260504",
         "nextOpen": 5640,
         "nextHigh": 5660,
         "nextLow": 5440,
         "nextClose": 5450,
         "nextVolume": 48287,
-        "nextDayReturn": -3.37
+        "nextDayReturn": -3.37,
+        "nextHighReturn": 0.35
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -391,13 +397,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 11520,
         "nextDate": "20260504",
         "nextOpen": 11650,
         "nextHigh": 11660,
         "nextLow": 11210,
         "nextClose": 11310,
         "nextVolume": 58923,
-        "nextDayReturn": -1.82
+        "nextDayReturn": -1.82,
+        "nextHighReturn": 1.22
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -452,13 +460,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 7910,
         "nextDate": "20260504",
         "nextOpen": 8030,
         "nextHigh": 8030,
         "nextLow": 7800,
         "nextClose": 7820,
         "nextVolume": 32823,
-        "nextDayReturn": -1.14
+        "nextDayReturn": -1.14,
+        "nextHighReturn": 1.52
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -566,13 +576,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 1966,
         "nextDate": "20260504",
         "nextOpen": 1966,
         "nextHigh": 1973,
         "nextLow": 1883,
         "nextClose": 1922,
         "nextVolume": 76412,
-        "nextDayReturn": -2.24
+        "nextDayReturn": -2.24,
+        "nextHighReturn": 0.36
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -627,13 +639,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 19800,
         "nextDate": "20260504",
         "nextOpen": 19900,
         "nextHigh": 19910,
         "nextLow": 19420,
         "nextClose": 19600,
         "nextVolume": 105859,
-        "nextDayReturn": -1.01
+        "nextDayReturn": -1.01,
+        "nextHighReturn": 0.56
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -688,13 +702,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 9650,
         "nextDate": "20260504",
         "nextOpen": 9650,
         "nextHigh": 9850,
         "nextLow": 9380,
         "nextClose": 9500,
         "nextVolume": 17348,
-        "nextDayReturn": -1.55
+        "nextDayReturn": -1.55,
+        "nextHighReturn": 2.07
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -749,13 +765,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 75500,
         "nextDate": "20260504",
         "nextOpen": 77000,
         "nextHigh": 77400,
         "nextLow": 71500,
         "nextClose": 71800,
         "nextVolume": 310596,
-        "nextDayReturn": -4.9
+        "nextDayReturn": -4.9,
+        "nextHighReturn": 2.52
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -810,13 +828,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 2540,
         "nextDate": "20260504",
         "nextOpen": 2570,
         "nextHigh": 2650,
         "nextLow": 2550,
         "nextClose": 2625,
         "nextVolume": 158931,
-        "nextDayReturn": 3.35
+        "nextDayReturn": 3.35,
+        "nextHighReturn": 4.33
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -924,13 +944,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 39100,
         "nextDate": "20260504",
         "nextOpen": 39150,
         "nextHigh": 39150,
         "nextLow": 38500,
         "nextClose": 38600,
         "nextVolume": 267505,
-        "nextDayReturn": -1.28
+        "nextDayReturn": -1.28,
+        "nextHighReturn": 0.13
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -985,13 +1007,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 20050,
         "nextDate": "20260504",
         "nextOpen": 20200,
         "nextHigh": 20200,
         "nextLow": 19700,
         "nextClose": 19750,
         "nextVolume": 488231,
-        "nextDayReturn": -1.5
+        "nextDayReturn": -1.5,
+        "nextHighReturn": 0.75
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -1046,13 +1070,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 10090,
         "nextDate": "20260504",
         "nextOpen": 10090,
         "nextHigh": 10150,
         "nextLow": 9970,
         "nextClose": 10040,
         "nextVolume": 27640,
-        "nextDayReturn": -0.5
+        "nextDayReturn": -0.5,
+        "nextHighReturn": 0.59
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -1107,13 +1133,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 2180,
         "nextDate": "20260504",
         "nextOpen": 2180,
         "nextHigh": 2230,
         "nextLow": 2135,
         "nextClose": 2155,
         "nextVolume": 330322,
-        "nextDayReturn": -1.15
+        "nextDayReturn": -1.15,
+        "nextHighReturn": 2.29
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -1168,13 +1196,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 108300,
         "nextDate": "20260504",
         "nextOpen": 109000,
         "nextHigh": 109000,
         "nextLow": 103500,
         "nextClose": 104400,
         "nextVolume": 15170,
-        "nextDayReturn": -3.6
+        "nextDayReturn": -3.6,
+        "nextHighReturn": 0.65
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -1229,13 +1259,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 1951,
         "nextDate": "20260504",
         "nextOpen": 1960,
         "nextHigh": 1967,
         "nextLow": 1912,
         "nextClose": 1927,
         "nextVolume": 127763,
-        "nextDayReturn": -1.23
+        "nextDayReturn": -1.23,
+        "nextHighReturn": 0.82
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -1290,13 +1322,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 7310,
         "nextDate": "20260504",
         "nextOpen": 7310,
         "nextHigh": 7390,
         "nextLow": 7160,
         "nextClose": 7190,
         "nextVolume": 180886,
-        "nextDayReturn": -1.64
+        "nextDayReturn": -1.64,
+        "nextHighReturn": 1.09
       },
       "coreFlag": true,
       "block": "BLOCK1",
@@ -1351,13 +1385,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 7090,
         "nextDate": "20260504",
         "nextOpen": 7200,
         "nextHigh": 7330,
         "nextLow": 7170,
         "nextClose": 7300,
         "nextVolume": 194047,
-        "nextDayReturn": 2.96
+        "nextDayReturn": 2.96,
+        "nextHighReturn": 3.39
       },
       "coreFlag": false,
       "block": null,
@@ -1412,13 +1448,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 1579000,
         "nextDate": "20260504",
         "nextOpen": 1600000,
         "nextHigh": 1642000,
         "nextLow": 1600000,
         "nextClose": 1629000,
         "nextVolume": 34582,
-        "nextDayReturn": 3.17
+        "nextDayReturn": 3.17,
+        "nextHighReturn": 3.99
       },
       "coreFlag": false,
       "block": null,
@@ -1473,13 +1511,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 814,
         "nextDate": "20260504",
         "nextOpen": 814,
         "nextHigh": 939,
         "nextLow": 814,
         "nextClose": 919,
         "nextVolume": 1090076,
-        "nextDayReturn": 12.9
+        "nextDayReturn": 12.9,
+        "nextHighReturn": 15.36
       },
       "coreFlag": false,
       "block": null,
@@ -1534,13 +1574,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 406,
         "nextDate": "20260504",
         "nextOpen": 406,
         "nextHigh": 438,
         "nextLow": 406,
         "nextClose": 424,
         "nextVolume": 367195,
-        "nextDayReturn": 4.43
+        "nextDayReturn": 4.43,
+        "nextHighReturn": 7.88
       },
       "coreFlag": false,
       "block": null,
@@ -1597,13 +1639,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 87300,
         "nextDate": "20260504",
         "nextOpen": 88000,
         "nextHigh": 91200,
         "nextLow": 84700,
         "nextClose": 87300,
         "nextVolume": 1175425,
-        "nextDayReturn": 0
+        "nextDayReturn": 0,
+        "nextHighReturn": 4.47
       },
       "coreFlag": false,
       "block": null,
@@ -1659,13 +1703,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 5680,
         "nextDate": "20260504",
         "nextOpen": 5680,
         "nextHigh": 5810,
         "nextLow": 5600,
         "nextClose": 5730,
         "nextVolume": 73436,
-        "nextDayReturn": 0.88
+        "nextDayReturn": 0.88,
+        "nextHighReturn": 2.29
       },
       "coreFlag": true,
       "block": "BLOCK2",
@@ -1721,13 +1767,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 23850,
         "nextDate": "20260504",
         "nextOpen": 24350,
         "nextHigh": 28000,
         "nextLow": 24350,
         "nextClose": 27550,
         "nextVolume": 255999,
-        "nextDayReturn": 15.51
+        "nextDayReturn": 15.51,
+        "nextHighReturn": 17.4
       },
       "coreFlag": true,
       "block": "BLOCK2",
@@ -1894,13 +1942,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 45200,
         "nextDate": "20260504",
         "nextOpen": 45000,
         "nextHigh": 45050,
         "nextLow": 41350,
         "nextClose": 41850,
         "nextVolume": 108623,
-        "nextDayReturn": -7.41
+        "nextDayReturn": -7.41,
+        "nextHighReturn": -0.33
       },
       "coreFlag": false,
       "block": null,
@@ -1957,13 +2007,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 2760,
         "nextDate": "20260504",
         "nextOpen": 2760,
         "nextHigh": 2815,
         "nextLow": 2630,
         "nextClose": 2720,
         "nextVolume": 112196,
-        "nextDayReturn": -1.45
+        "nextDayReturn": -1.45,
+        "nextHighReturn": 1.99
       },
       "coreFlag": false,
       "block": null,
@@ -2018,13 +2070,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 2655,
         "nextDate": "20260504",
         "nextOpen": 2605,
         "nextHigh": 2675,
         "nextLow": 2515,
         "nextClose": 2545,
         "nextVolume": 563894,
-        "nextDayReturn": -4.14
+        "nextDayReturn": -4.14,
+        "nextHighReturn": 0.75
       },
       "coreFlag": false,
       "block": null,
@@ -2081,13 +2135,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 119300,
         "nextDate": "20260504",
         "nextOpen": 122500,
         "nextHigh": 122600,
         "nextLow": 116000,
         "nextClose": 120800,
         "nextVolume": 1476444,
-        "nextDayReturn": 1.26
+        "nextDayReturn": 1.26,
+        "nextHighReturn": 2.77
       },
       "coreFlag": false,
       "block": null,
@@ -2142,13 +2198,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 10480,
         "nextDate": "20260504",
         "nextOpen": 10540,
         "nextHigh": 10700,
         "nextLow": 10340,
         "nextClose": 10600,
         "nextVolume": 327674,
-        "nextDayReturn": 1.15
+        "nextDayReturn": 1.15,
+        "nextHighReturn": 2.1
       },
       "coreFlag": false,
       "block": null,
@@ -2203,13 +2261,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 1040,
         "nextDate": "20260504",
         "nextOpen": 1046,
         "nextHigh": 1085,
         "nextLow": 1029,
         "nextClose": 1080,
         "nextVolume": 525591,
-        "nextDayReturn": 3.85
+        "nextDayReturn": 3.85,
+        "nextHighReturn": 4.33
       },
       "coreFlag": false,
       "block": null,
@@ -2266,13 +2326,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 680,
         "nextDate": "20260504",
         "nextOpen": 680,
         "nextHigh": 680,
         "nextLow": 680,
         "nextClose": 680,
         "nextVolume": 0,
-        "nextDayReturn": 0
+        "nextDayReturn": 0,
+        "nextHighReturn": 0
       },
       "coreFlag": false,
       "block": null,
@@ -2327,13 +2389,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 7520,
         "nextDate": "20260504",
         "nextOpen": 7510,
         "nextHigh": 7540,
         "nextLow": 7060,
         "nextClose": 7110,
         "nextVolume": 147589,
-        "nextDayReturn": -5.45
+        "nextDayReturn": -5.45,
+        "nextHighReturn": 0.27
       },
       "coreFlag": false,
       "block": null,
@@ -2390,13 +2454,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 1382,
         "nextDate": "20260504",
         "nextOpen": 1382,
         "nextHigh": 1410,
         "nextLow": 1351,
         "nextClose": 1357,
         "nextVolume": 676685,
-        "nextDayReturn": -1.81
+        "nextDayReturn": -1.81,
+        "nextHighReturn": 2.03
       },
       "coreFlag": false,
       "block": null,
@@ -2453,13 +2519,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 998,
         "nextDate": "20260504",
         "nextOpen": 998,
         "nextHigh": 998,
         "nextLow": 965,
         "nextClose": 974,
         "nextVolume": 260227,
-        "nextDayReturn": -2.4
+        "nextDayReturn": -2.4,
+        "nextHighReturn": 0
       },
       "coreFlag": false,
       "block": null,
@@ -2516,13 +2584,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 88700,
         "nextDate": "20260504",
         "nextOpen": 90400,
         "nextHigh": 91200,
         "nextLow": 88000,
         "nextClose": 88700,
         "nextVolume": 164345,
-        "nextDayReturn": 0
+        "nextDayReturn": 0,
+        "nextHighReturn": 2.82
       },
       "coreFlag": false,
       "block": null,
@@ -2579,13 +2649,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 59800,
         "nextDate": "20260504",
         "nextOpen": 59800,
         "nextHigh": 60200,
         "nextLow": 57100,
         "nextClose": 59300,
         "nextVolume": 73741,
-        "nextDayReturn": -0.84
+        "nextDayReturn": -0.84,
+        "nextHighReturn": 0.67
       },
       "coreFlag": false,
       "block": null,
@@ -2642,13 +2714,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 9120,
         "nextDate": "20260504",
         "nextOpen": 9140,
         "nextHigh": 9380,
         "nextLow": 9040,
         "nextClose": 9230,
         "nextVolume": 107916,
-        "nextDayReturn": 1.21
+        "nextDayReturn": 1.21,
+        "nextHighReturn": 2.85
       },
       "coreFlag": false,
       "block": null,
@@ -2813,13 +2887,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 146600,
         "nextDate": "20260504",
         "nextOpen": 149400,
         "nextHigh": 149500,
         "nextLow": 142800,
         "nextClose": 144400,
         "nextVolume": 99316,
-        "nextDayReturn": -1.5
+        "nextDayReturn": -1.5,
+        "nextHighReturn": 1.98
       },
       "coreFlag": false,
       "block": null,
@@ -2876,13 +2952,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 6750,
         "nextDate": "20260504",
         "nextOpen": 6760,
         "nextHigh": 7000,
         "nextLow": 6400,
         "nextClose": 6830,
         "nextVolume": 573080,
-        "nextDayReturn": 1.19
+        "nextDayReturn": 1.19,
+        "nextHighReturn": 3.7
       },
       "coreFlag": false,
       "block": null,
@@ -2939,13 +3017,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 72900,
         "nextDate": "20260504",
         "nextOpen": 74400,
         "nextHigh": 74500,
         "nextLow": 71600,
         "nextClose": 71600,
         "nextVolume": 80705,
-        "nextDayReturn": -1.78
+        "nextDayReturn": -1.78,
+        "nextHighReturn": 2.19
       },
       "coreFlag": false,
       "block": null,
@@ -3002,13 +3082,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 8470,
         "nextDate": "20260504",
         "nextOpen": 8600,
         "nextHigh": 8670,
         "nextLow": 8180,
         "nextClose": 8370,
         "nextVolume": 161128,
-        "nextDayReturn": -1.18
+        "nextDayReturn": -1.18,
+        "nextHighReturn": 2.36
       },
       "coreFlag": false,
       "block": null,
@@ -3065,13 +3147,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 1650,
         "nextDate": "20260504",
         "nextOpen": 1674,
         "nextHigh": 1862,
         "nextLow": 1674,
         "nextClose": 1761,
         "nextVolume": 17346796,
-        "nextDayReturn": 6.73
+        "nextDayReturn": 6.73,
+        "nextHighReturn": 12.85
       },
       "coreFlag": false,
       "block": null,
@@ -3128,13 +3212,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 25800,
         "nextDate": "20260504",
         "nextOpen": 26300,
         "nextHigh": 26300,
         "nextLow": 25500,
         "nextClose": 25950,
         "nextVolume": 171145,
-        "nextDayReturn": 0.58
+        "nextDayReturn": 0.58,
+        "nextHighReturn": 1.94
       },
       "coreFlag": false,
       "block": null,
@@ -3191,13 +3277,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 19450,
         "nextDate": "20260504",
         "nextOpen": 19930,
         "nextHigh": 19950,
         "nextLow": 19160,
         "nextClose": 19830,
         "nextVolume": 258593,
-        "nextDayReturn": 1.95
+        "nextDayReturn": 1.95,
+        "nextHighReturn": 2.57
       },
       "coreFlag": false,
       "block": null,
@@ -3254,13 +3342,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 146200,
         "nextDate": "20260504",
         "nextOpen": 149500,
         "nextHigh": 155400,
         "nextLow": 144600,
         "nextClose": 145700,
         "nextVolume": 1202954,
-        "nextDayReturn": -0.34
+        "nextDayReturn": -0.34,
+        "nextHighReturn": 6.29
       },
       "coreFlag": false,
       "block": null,
@@ -3318,13 +3408,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 1372,
         "nextDate": "20260504",
         "nextOpen": 1375,
         "nextHigh": 1463,
         "nextLow": 1360,
         "nextClose": 1433,
         "nextVolume": 1180621,
-        "nextDayReturn": 4.45
+        "nextDayReturn": 4.45,
+        "nextHighReturn": 6.63
       },
       "coreFlag": false,
       "block": null,
@@ -3381,13 +3473,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 36100,
         "nextDate": "20260504",
         "nextOpen": 41500,
         "nextHigh": 43000,
         "nextLow": 40400,
         "nextClose": 42500,
         "nextVolume": 284582,
-        "nextDayReturn": 17.73
+        "nextDayReturn": 17.73,
+        "nextHighReturn": 19.11
       },
       "coreFlag": false,
       "block": null,
@@ -3444,13 +3538,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 2740,
         "nextDate": "20260504",
         "nextOpen": 2740,
         "nextHigh": 2800,
         "nextLow": 2605,
         "nextClose": 2630,
         "nextVolume": 2580544,
-        "nextDayReturn": -4.01
+        "nextDayReturn": -4.01,
+        "nextHighReturn": 2.19
       },
       "coreFlag": false,
       "block": null,
@@ -3567,13 +3663,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 5960,
         "nextDate": "20260504",
         "nextOpen": 6000,
         "nextHigh": 6050,
         "nextLow": 5730,
         "nextClose": 5840,
         "nextVolume": 143451,
-        "nextDayReturn": -2.01
+        "nextDayReturn": -2.01,
+        "nextHighReturn": 1.51
       },
       "coreFlag": false,
       "block": null,
@@ -3632,13 +3730,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 3880,
         "nextDate": "20260504",
         "nextOpen": 4000,
         "nextHigh": 4070,
         "nextLow": 3685,
         "nextClose": 3690,
         "nextVolume": 298483,
-        "nextDayReturn": -4.9
+        "nextDayReturn": -4.9,
+        "nextHighReturn": 4.9
       },
       "coreFlag": false,
       "block": null,
@@ -3696,13 +3796,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 37400,
         "nextDate": "20260504",
         "nextOpen": 37450,
         "nextHigh": 39300,
         "nextLow": 35500,
         "nextClose": 35950,
         "nextVolume": 326321,
-        "nextDayReturn": -3.88
+        "nextDayReturn": -3.88,
+        "nextHighReturn": 5.08
       },
       "coreFlag": false,
       "block": null,
@@ -3761,13 +3863,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 7030,
         "nextDate": "20260504",
         "nextOpen": 7120,
         "nextHigh": 7400,
         "nextLow": 6880,
         "nextClose": 6990,
         "nextVolume": 1827324,
-        "nextDayReturn": -0.57
+        "nextDayReturn": -0.57,
+        "nextHighReturn": 5.26
       },
       "coreFlag": false,
       "block": null,
@@ -3827,13 +3931,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 80200,
         "nextDate": "20260504",
         "nextOpen": 80000,
         "nextHigh": 81400,
         "nextLow": 77400,
         "nextClose": 79500,
         "nextVolume": 327495,
-        "nextDayReturn": -0.87
+        "nextDayReturn": -0.87,
+        "nextHighReturn": 1.5
       },
       "coreFlag": false,
       "block": null,
@@ -3893,13 +3999,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 13140,
         "nextDate": "20260504",
         "nextOpen": 13140,
         "nextHigh": 13165,
         "nextLow": 12460,
         "nextClose": 12550,
         "nextVolume": 402636,
-        "nextDayReturn": -4.49
+        "nextDayReturn": -4.49,
+        "nextHighReturn": 0.19
       },
       "coreFlag": false,
       "block": null,
@@ -3960,13 +4068,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 48050,
         "nextDate": "20260504",
         "nextOpen": 48000,
         "nextHigh": 52700,
         "nextLow": 45950,
         "nextClose": 51100,
         "nextVolume": 553340,
-        "nextDayReturn": 6.35
+        "nextDayReturn": 6.35,
+        "nextHighReturn": 9.68
       },
       "coreFlag": false,
       "block": null,
@@ -4082,13 +4192,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 17850,
         "nextDate": "20260504",
         "nextOpen": 18220,
         "nextHigh": 18720,
         "nextLow": 17500,
         "nextClose": 18150,
         "nextVolume": 97029,
-        "nextDayReturn": 1.68
+        "nextDayReturn": 1.68,
+        "nextHighReturn": 4.87
       },
       "coreFlag": false,
       "block": null,
@@ -4145,13 +4257,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 1739,
         "nextDate": "20260504",
         "nextOpen": 1825,
         "nextHigh": 2060,
         "nextLow": 1825,
         "nextClose": 1885,
         "nextVolume": 17715166,
-        "nextDayReturn": 8.4
+        "nextDayReturn": 8.4,
+        "nextHighReturn": 18.46
       },
       "coreFlag": false,
       "block": null,
@@ -4212,13 +4326,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 51400,
         "nextDate": "20260504",
         "nextOpen": 53000,
         "nextHigh": 55000,
         "nextLow": 48550,
         "nextClose": 48650,
         "nextVolume": 298140,
-        "nextDayReturn": -5.35
+        "nextDayReturn": -5.35,
+        "nextHighReturn": 7
       },
       "coreFlag": false,
       "block": null,
@@ -4278,13 +4394,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 9370,
         "nextDate": "20260504",
         "nextOpen": 10020,
         "nextHigh": 10700,
         "nextLow": 8690,
         "nextClose": 8760,
         "nextVolume": 1604296,
-        "nextDayReturn": -6.51
+        "nextDayReturn": -6.51,
+        "nextHighReturn": 14.19
       },
       "coreFlag": false,
       "block": null,
@@ -4345,13 +4463,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 7070,
         "nextDate": "20260504",
         "nextOpen": 7090,
         "nextHigh": 7100,
         "nextLow": 6500,
         "nextClose": 6550,
         "nextVolume": 2450805,
-        "nextDayReturn": -7.36
+        "nextDayReturn": -7.36,
+        "nextHighReturn": 0.42
       },
       "coreFlag": false,
       "block": null,
@@ -4412,13 +4532,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 241500,
         "nextDate": "20260504",
         "nextOpen": 241500,
         "nextHigh": 310000,
         "nextLow": 241500,
         "nextClose": 288500,
         "nextVolume": 225217,
-        "nextDayReturn": 19.46
+        "nextDayReturn": 19.46,
+        "nextHighReturn": 28.36
       },
       "coreFlag": false,
       "block": null,
@@ -4477,13 +4599,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 10890,
         "nextDate": "20260504",
         "nextOpen": 10990,
         "nextHigh": 11410,
         "nextLow": 10100,
         "nextClose": 10330,
         "nextVolume": 1218661,
-        "nextDayReturn": -5.14
+        "nextDayReturn": -5.14,
+        "nextHighReturn": 4.78
       },
       "coreFlag": false,
       "block": null,
@@ -4542,13 +4666,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 175600,
         "nextDate": "20260504",
         "nextOpen": 179700,
         "nextHigh": 187400,
         "nextLow": 169000,
         "nextClose": 184700,
         "nextVolume": 226232,
-        "nextDayReturn": 5.18
+        "nextDayReturn": 5.18,
+        "nextHighReturn": 6.72
       },
       "coreFlag": false,
       "block": null,
@@ -4607,13 +4733,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 228000,
         "nextDate": "20260504",
         "nextOpen": 231000,
         "nextHigh": 232000,
         "nextLow": 218000,
         "nextClose": 221000,
         "nextVolume": 101373,
-        "nextDayReturn": -3.07
+        "nextDayReturn": -3.07,
+        "nextHighReturn": 1.75
       },
       "coreFlag": false,
       "block": null,
@@ -4672,13 +4800,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 150000,
         "nextDate": "20260504",
         "nextOpen": 148100,
         "nextHigh": 149000,
         "nextLow": 141600,
         "nextClose": 144300,
         "nextVolume": 103103,
-        "nextDayReturn": -3.8
+        "nextDayReturn": -3.8,
+        "nextHighReturn": -0.67
       },
       "coreFlag": false,
       "block": null,
@@ -4796,13 +4926,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 10100,
         "nextDate": "20260504",
         "nextOpen": 10500,
         "nextHigh": 11130,
         "nextLow": 10250,
         "nextClose": 10320,
         "nextVolume": 280575,
-        "nextDayReturn": 2.18
+        "nextDayReturn": 2.18,
+        "nextHighReturn": 10.2
       },
       "coreFlag": false,
       "block": null,
@@ -4861,13 +4993,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 8910,
         "nextDate": "20260504",
         "nextOpen": 9290,
         "nextHigh": 11580,
         "nextLow": 9280,
         "nextClose": 11580,
         "nextVolume": 14203256,
-        "nextDayReturn": 29.97
+        "nextDayReturn": 29.97,
+        "nextHighReturn": 29.97
       },
       "coreFlag": false,
       "block": null,
@@ -4929,13 +5063,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 17810,
         "nextDate": "20260504",
         "nextOpen": 20700,
         "nextHigh": 20700,
         "nextLow": 16000,
         "nextClose": 16460,
         "nextVolume": 1055213,
-        "nextDayReturn": -7.58
+        "nextDayReturn": -7.58,
+        "nextHighReturn": 16.23
       },
       "coreFlag": false,
       "block": null,
@@ -4995,13 +5131,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 56300,
         "nextDate": "20260504",
         "nextOpen": 59700,
         "nextHigh": 63200,
         "nextLow": 58200,
         "nextClose": 60700,
         "nextVolume": 20086270,
-        "nextDayReturn": 7.82
+        "nextDayReturn": 7.82,
+        "nextHighReturn": 12.26
       },
       "coreFlag": false,
       "block": null,
@@ -5062,13 +5200,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 30550,
         "nextDate": "20260504",
         "nextOpen": 31500,
         "nextHigh": 31750,
         "nextLow": 29450,
         "nextClose": 30300,
         "nextVolume": 898518,
-        "nextDayReturn": -0.82
+        "nextDayReturn": -0.82,
+        "nextHighReturn": 3.93
       },
       "coreFlag": false,
       "block": null,
@@ -5128,13 +5268,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 122500,
         "nextDate": "20260504",
         "nextOpen": 131200,
         "nextHigh": 147900,
         "nextLow": 129000,
         "nextClose": 144100,
         "nextVolume": 2215806,
-        "nextDayReturn": 17.63
+        "nextDayReturn": 17.63,
+        "nextHighReturn": 20.73
       },
       "coreFlag": false,
       "block": null,
@@ -5194,13 +5336,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 453000,
         "nextDate": "20260504",
         "nextOpen": 502000,
         "nextHigh": 515000,
         "nextLow": 485500,
         "nextClose": 509000,
         "nextVolume": 369776,
-        "nextDayReturn": 12.36
+        "nextDayReturn": 12.36,
+        "nextHighReturn": 13.69
       },
       "coreFlag": false,
       "block": null,
@@ -5262,13 +5406,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 8450,
         "nextDate": "20260504",
         "nextOpen": 10980,
         "nextHigh": 10980,
         "nextLow": 10980,
         "nextClose": 10980,
         "nextVolume": 552758,
-        "nextDayReturn": 29.94
+        "nextDayReturn": 29.94,
+        "nextHighReturn": 29.94
       },
       "coreFlag": false,
       "block": null,
@@ -5330,13 +5476,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 11740,
         "nextDate": "20260504",
         "nextOpen": 11760,
         "nextHigh": 12820,
         "nextLow": 11320,
         "nextClose": 11610,
         "nextVolume": 16439450,
-        "nextDayReturn": -1.11
+        "nextDayReturn": -1.11,
+        "nextHighReturn": 9.2
       },
       "coreFlag": false,
       "block": null,
@@ -5394,13 +5542,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 51000,
         "nextDate": "20260504",
         "nextOpen": 50900,
         "nextHigh": 53300,
         "nextLow": 48000,
         "nextClose": 51100,
         "nextVolume": 236038,
-        "nextDayReturn": 0.2
+        "nextDayReturn": 0.2,
+        "nextHighReturn": 4.51
       },
       "coreFlag": false,
       "block": null,
@@ -5458,13 +5608,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 231000,
         "nextDate": "20260504",
         "nextOpen": 233000,
         "nextHigh": 233000,
         "nextLow": 218500,
         "nextClose": 221000,
         "nextVolume": 627773,
-        "nextDayReturn": -4.33
+        "nextDayReturn": -4.33,
+        "nextHighReturn": 0.87
       },
       "coreFlag": false,
       "block": null,
@@ -5522,13 +5674,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 25450,
         "nextDate": "20260504",
         "nextOpen": 25450,
         "nextHigh": 26250,
         "nextLow": 24100,
         "nextClose": 26250,
         "nextVolume": 468176,
-        "nextDayReturn": 3.14
+        "nextDayReturn": 3.14,
+        "nextHighReturn": 3.14
       },
       "coreFlag": false,
       "block": null,
@@ -5588,13 +5742,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 15850,
         "nextDate": "20260504",
         "nextOpen": 15850,
         "nextHigh": 15850,
         "nextLow": 15290,
         "nextClose": 15750,
         "nextVolume": 332026,
-        "nextDayReturn": -0.63
+        "nextDayReturn": -0.63,
+        "nextHighReturn": 0
       },
       "coreFlag": false,
       "block": null,
@@ -5654,13 +5810,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 25050,
         "nextDate": "20260504",
         "nextOpen": 26050,
         "nextHigh": 31350,
         "nextLow": 26050,
         "nextClose": 29500,
         "nextVolume": 7022540,
-        "nextDayReturn": 17.76
+        "nextDayReturn": 17.76,
+        "nextHighReturn": 25.15
       },
       "coreFlag": false,
       "block": null,
@@ -5722,13 +5880,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 8640,
         "nextDate": "20260504",
         "nextOpen": 10340,
         "nextHigh": 11230,
         "nextLow": 9310,
         "nextClose": 11230,
         "nextVolume": 1874993,
-        "nextDayReturn": 29.98
+        "nextDayReturn": 29.98,
+        "nextHighReturn": 29.98
       },
       "coreFlag": false,
       "block": null,
@@ -5790,13 +5950,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 5100,
         "nextDate": "20260504",
         "nextOpen": 5770,
         "nextHigh": 6630,
         "nextLow": 5750,
         "nextClose": 6630,
         "nextVolume": 6393191,
-        "nextDayReturn": 30
+        "nextDayReturn": 30,
+        "nextHighReturn": 30
       },
       "coreFlag": false,
       "block": null,
@@ -5858,13 +6020,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 266000,
         "nextDate": "20260504",
         "nextOpen": 279000,
         "nextHigh": 341000,
         "nextLow": 277000,
         "nextClose": 333500,
         "nextVolume": 2108306,
-        "nextDayReturn": 25.38
+        "nextDayReturn": 25.38,
+        "nextHighReturn": 28.2
       },
       "coreFlag": false,
       "block": null,
@@ -5923,13 +6087,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 59500,
         "nextDate": "20260504",
         "nextOpen": 60600,
         "nextHigh": 63600,
         "nextLow": 59300,
         "nextClose": 61300,
         "nextVolume": 2075617,
-        "nextDayReturn": 3.03
+        "nextDayReturn": 3.03,
+        "nextHighReturn": 6.89
       },
       "coreFlag": false,
       "block": null,
@@ -5989,13 +6155,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 7010,
         "nextDate": "20260504",
         "nextOpen": 7010,
         "nextHigh": 7220,
         "nextLow": 6750,
         "nextClose": 6760,
         "nextVolume": 339205,
-        "nextDayReturn": -3.57
+        "nextDayReturn": -3.57,
+        "nextHighReturn": 3
       },
       "coreFlag": false,
       "block": null,
@@ -6054,13 +6222,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 70400,
         "nextDate": "20260504",
         "nextOpen": 79500,
         "nextHigh": 91500,
         "nextLow": 79000,
         "nextClose": 91500,
         "nextVolume": 2662605,
-        "nextDayReturn": 29.97
+        "nextDayReturn": 29.97,
+        "nextHighReturn": 29.97
       },
       "coreFlag": false,
       "block": null,
@@ -6121,13 +6291,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 2660,
         "nextDate": "20260504",
         "nextOpen": 2750,
         "nextHigh": 2830,
         "nextLow": 2490,
         "nextClose": 2670,
         "nextVolume": 4979642,
-        "nextDayReturn": 0.38
+        "nextDayReturn": 0.38,
+        "nextHighReturn": 6.39
       },
       "coreFlag": false,
       "block": null,
@@ -6186,13 +6358,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 7890,
         "nextDate": "20260504",
         "nextOpen": 7960,
         "nextHigh": 9580,
         "nextLow": 7960,
         "nextClose": 9180,
         "nextVolume": 1189524,
-        "nextDayReturn": 16.35
+        "nextDayReturn": 16.35,
+        "nextHighReturn": 21.42
       },
       "coreFlag": false,
       "block": null,
@@ -6251,13 +6425,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 13520,
         "nextDate": "20260504",
         "nextOpen": 17000,
         "nextHigh": 17000,
         "nextLow": 14210,
         "nextClose": 15140,
         "nextVolume": 522326,
-        "nextDayReturn": 11.98
+        "nextDayReturn": 11.98,
+        "nextHighReturn": 25.74
       },
       "coreFlag": false,
       "block": null,
@@ -6318,13 +6494,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 16510,
         "nextDate": "20260504",
         "nextOpen": 18680,
         "nextHigh": 18960,
         "nextLow": 17530,
         "nextClose": 17930,
         "nextVolume": 6131416,
-        "nextDayReturn": 8.6
+        "nextDayReturn": 8.6,
+        "nextHighReturn": 14.84
       },
       "coreFlag": false,
       "block": null,
@@ -6482,13 +6660,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 16600,
         "nextDate": "20260504",
         "nextOpen": 16600,
         "nextHigh": 16650,
         "nextLow": 16460,
         "nextClose": 16580,
         "nextVolume": 3781,
-        "nextDayReturn": -0.12
+        "nextDayReturn": -0.12,
+        "nextHighReturn": 0.3
       },
       "coreFlag": false,
       "block": null,
@@ -6542,13 +6722,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 16310,
         "nextDate": "20260504",
         "nextOpen": 16310,
         "nextHigh": 16430,
         "nextLow": 15720,
         "nextClose": 15960,
         "nextVolume": 18892,
-        "nextDayReturn": -2.15
+        "nextDayReturn": -2.15,
+        "nextHighReturn": 0.74
       },
       "coreFlag": false,
       "block": null,
@@ -6602,13 +6784,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 4200,
         "nextDate": "20260504",
         "nextOpen": 4205,
         "nextHigh": 4280,
         "nextLow": 4150,
         "nextClose": 4180,
         "nextVolume": 5998,
-        "nextDayReturn": -0.48
+        "nextDayReturn": -0.48,
+        "nextHighReturn": 1.9
       },
       "coreFlag": false,
       "block": null,
@@ -6662,13 +6846,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 125100,
         "nextDate": "20260504",
         "nextOpen": 125600,
         "nextHigh": 125600,
         "nextLow": 121600,
         "nextClose": 121800,
         "nextVolume": 3145,
-        "nextDayReturn": -2.64
+        "nextDayReturn": -2.64,
+        "nextHighReturn": 0.4
       },
       "coreFlag": false,
       "block": null,
@@ -6722,13 +6908,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 65400,
         "nextDate": "20260504",
         "nextOpen": 65500,
         "nextHigh": 65600,
         "nextLow": 64000,
         "nextClose": 64300,
         "nextVolume": 10105,
-        "nextDayReturn": -1.68
+        "nextDayReturn": -1.68,
+        "nextHighReturn": 0.31
       },
       "coreFlag": false,
       "block": null,
@@ -6782,13 +6970,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 16540,
         "nextDate": "20260504",
         "nextOpen": 16500,
         "nextHigh": 16640,
         "nextLow": 16270,
         "nextClose": 16350,
         "nextVolume": 23639,
-        "nextDayReturn": -1.15
+        "nextDayReturn": -1.15,
+        "nextHighReturn": 0.6
       },
       "coreFlag": false,
       "block": null,
@@ -6842,13 +7032,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 27000,
         "nextDate": "20260504",
         "nextOpen": 27100,
         "nextHigh": 27400,
         "nextLow": 26600,
         "nextClose": 26600,
         "nextVolume": 4755,
-        "nextDayReturn": -1.48
+        "nextDayReturn": -1.48,
+        "nextHighReturn": 1.48
       },
       "coreFlag": false,
       "block": null,
@@ -6954,13 +7146,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 2840,
         "nextDate": "20260504",
         "nextOpen": 2840,
         "nextHigh": 2845,
         "nextLow": 2790,
         "nextClose": 2820,
         "nextVolume": 4705,
-        "nextDayReturn": -0.7
+        "nextDayReturn": -0.7,
+        "nextHighReturn": 0.18
       },
       "coreFlag": false,
       "block": null,
@@ -7066,13 +7260,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 2380,
         "nextDate": "20260504",
         "nextOpen": 2375,
         "nextHigh": 2420,
         "nextLow": 2375,
         "nextClose": 2410,
         "nextVolume": 97946,
-        "nextDayReturn": 1.26
+        "nextDayReturn": 1.26,
+        "nextHighReturn": 1.68
       },
       "coreFlag": false,
       "block": null,
@@ -7126,13 +7322,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 151800,
         "nextDate": "20260504",
         "nextOpen": 152400,
         "nextHigh": 152700,
         "nextLow": 147300,
         "nextClose": 151900,
         "nextVolume": 5871,
-        "nextDayReturn": 0.07
+        "nextDayReturn": 0.07,
+        "nextHighReturn": 0.59
       },
       "coreFlag": false,
       "block": null,
@@ -7186,13 +7384,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 162300,
         "nextDate": "20260504",
         "nextOpen": 164000,
         "nextHigh": 166500,
         "nextLow": 158000,
         "nextClose": 160900,
         "nextVolume": 4950,
-        "nextDayReturn": -0.86
+        "nextDayReturn": -0.86,
+        "nextHighReturn": 2.59
       },
       "coreFlag": false,
       "block": null,
@@ -7246,13 +7446,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 106300,
         "nextDate": "20260504",
         "nextOpen": 107400,
         "nextHigh": 107900,
         "nextLow": 106000,
         "nextClose": 107200,
         "nextVolume": 16323,
-        "nextDayReturn": 0.85
+        "nextDayReturn": 0.85,
+        "nextHighReturn": 1.51
       },
       "coreFlag": false,
       "block": null,
@@ -7306,13 +7508,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 13310,
         "nextDate": "20260504",
         "nextOpen": 13310,
         "nextHigh": 14140,
         "nextLow": 13310,
         "nextClose": 14000,
         "nextVolume": 51006,
-        "nextDayReturn": 5.18
+        "nextDayReturn": 5.18,
+        "nextHighReturn": 6.24
       },
       "coreFlag": false,
       "block": null,
@@ -7366,13 +7570,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 36300,
         "nextDate": "20260504",
         "nextOpen": 36350,
         "nextHigh": 36600,
         "nextLow": 36200,
         "nextClose": 36400,
         "nextVolume": 6950,
-        "nextDayReturn": 0.28
+        "nextDayReturn": 0.28,
+        "nextHighReturn": 0.83
       },
       "coreFlag": false,
       "block": null,
@@ -7426,13 +7632,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 80400,
         "nextDate": "20260504",
         "nextOpen": 80400,
         "nextHigh": 80900,
         "nextLow": 78900,
         "nextClose": 80200,
         "nextVolume": 1493,
-        "nextDayReturn": -0.25
+        "nextDayReturn": -0.25,
+        "nextHighReturn": 0.62
       },
       "coreFlag": false,
       "block": null,
@@ -7486,13 +7694,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 4295,
         "nextDate": "20260504",
         "nextOpen": 4320,
         "nextHigh": 4335,
         "nextLow": 4210,
         "nextClose": 4290,
         "nextVolume": 29272,
-        "nextDayReturn": -0.12
+        "nextDayReturn": -0.12,
+        "nextHighReturn": 0.93
       },
       "coreFlag": false,
       "block": null,
@@ -7546,13 +7756,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 271000,
         "nextDate": "20260504",
         "nextOpen": 275000,
         "nextHigh": 275000,
         "nextLow": 268500,
         "nextClose": 275000,
         "nextVolume": 1350,
-        "nextDayReturn": 1.48
+        "nextDayReturn": 1.48,
+        "nextHighReturn": 1.48
       },
       "coreFlag": false,
       "block": null,
@@ -7658,13 +7870,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 12070,
         "nextDate": "20260504",
         "nextOpen": 12000,
         "nextHigh": 12090,
         "nextLow": 11660,
         "nextClose": 11660,
         "nextVolume": 9823,
-        "nextDayReturn": -3.4
+        "nextDayReturn": -3.4,
+        "nextHighReturn": 0.17
       },
       "coreFlag": false,
       "block": null,
@@ -7822,13 +8036,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 1503,
         "nextDate": "20260504",
         "nextOpen": 1504,
         "nextHigh": 1508,
         "nextLow": 1484,
         "nextClose": 1500,
         "nextVolume": 3789,
-        "nextDayReturn": -0.2
+        "nextDayReturn": -0.2,
+        "nextHighReturn": 0.33
       },
       "coreFlag": false,
       "block": null,
@@ -7882,13 +8098,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 15600,
         "nextDate": "20260504",
         "nextOpen": 15600,
         "nextHigh": 16100,
         "nextLow": 15600,
         "nextClose": 16060,
         "nextVolume": 22236,
-        "nextDayReturn": 2.95
+        "nextDayReturn": 2.95,
+        "nextHighReturn": 3.21
       },
       "coreFlag": false,
       "block": null,
@@ -7942,13 +8160,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 5660,
         "nextDate": "20260504",
         "nextOpen": 5680,
         "nextHigh": 5680,
         "nextLow": 5470,
         "nextClose": 5550,
         "nextVolume": 50594,
-        "nextDayReturn": -1.94
+        "nextDayReturn": -1.94,
+        "nextHighReturn": 0.35
       },
       "coreFlag": false,
       "block": null,
@@ -8002,13 +8222,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 106700,
         "nextDate": "20260504",
         "nextOpen": 108000,
         "nextHigh": 108600,
         "nextLow": 104600,
         "nextClose": 105900,
         "nextVolume": 204604,
-        "nextDayReturn": -0.75
+        "nextDayReturn": -0.75,
+        "nextHighReturn": 1.78
       },
       "coreFlag": false,
       "block": null,
@@ -8062,13 +8284,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 25850,
         "nextDate": "20260504",
         "nextOpen": 26500,
         "nextHigh": 26600,
         "nextLow": 24550,
         "nextClose": 24900,
         "nextVolume": 155091,
-        "nextDayReturn": -3.68
+        "nextDayReturn": -3.68,
+        "nextHighReturn": 2.9
       },
       "coreFlag": false,
       "block": null,
@@ -8122,13 +8346,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 63300,
         "nextDate": "20260504",
         "nextOpen": 63300,
         "nextHigh": 63300,
         "nextLow": 62500,
         "nextClose": 62500,
         "nextVolume": 1181,
-        "nextDayReturn": -1.26
+        "nextDayReturn": -1.26,
+        "nextHighReturn": 0
       },
       "coreFlag": false,
       "block": null,
@@ -8182,13 +8408,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 17450,
         "nextDate": "20260504",
         "nextOpen": 17650,
         "nextHigh": 17650,
         "nextLow": 17200,
         "nextClose": 17300,
         "nextVolume": 109586,
-        "nextDayReturn": -0.86
+        "nextDayReturn": -0.86,
+        "nextHighReturn": 1.15
       },
       "coreFlag": false,
       "block": null,
@@ -8242,13 +8470,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 13900,
         "nextDate": "20260504",
         "nextOpen": 13920,
         "nextHigh": 14440,
         "nextLow": 13920,
         "nextClose": 14190,
         "nextVolume": 49302,
-        "nextDayReturn": 2.09
+        "nextDayReturn": 2.09,
+        "nextHighReturn": 3.88
       },
       "coreFlag": false,
       "block": null,
@@ -8302,13 +8532,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 32750,
         "nextDate": "20260504",
         "nextOpen": 32900,
         "nextHigh": 32900,
         "nextLow": 32150,
         "nextClose": 32250,
         "nextVolume": 26335,
-        "nextDayReturn": -1.53
+        "nextDayReturn": -1.53,
+        "nextHighReturn": 0.46
       },
       "coreFlag": false,
       "block": null,
@@ -8362,13 +8594,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 1341000,
         "nextDate": "20260504",
         "nextOpen": 1390000,
         "nextHigh": 1398000,
         "nextLow": 1310000,
         "nextClose": 1316000,
         "nextVolume": 70046,
-        "nextDayReturn": -1.86
+        "nextDayReturn": -1.86,
+        "nextHighReturn": 4.25
       },
       "coreFlag": false,
       "block": null,
@@ -8422,13 +8656,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 33650,
         "nextDate": "20260504",
         "nextOpen": 33700,
         "nextHigh": 34000,
         "nextLow": 32750,
         "nextClose": 33000,
         "nextVolume": 37846,
-        "nextDayReturn": -1.93
+        "nextDayReturn": -1.93,
+        "nextHighReturn": 1.04
       },
       "coreFlag": false,
       "block": null,
@@ -8482,13 +8718,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 18920,
         "nextDate": "20260504",
         "nextOpen": 19200,
         "nextHigh": 19200,
         "nextLow": 18610,
         "nextClose": 18890,
         "nextVolume": 7253,
-        "nextDayReturn": -0.16
+        "nextDayReturn": -0.16,
+        "nextHighReturn": 1.48
       },
       "coreFlag": false,
       "block": null,
@@ -8542,13 +8780,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 1384,
         "nextDate": "20260504",
         "nextOpen": 1437,
         "nextHigh": 1482,
         "nextLow": 1392,
         "nextClose": 1418,
         "nextVolume": 1857159,
-        "nextDayReturn": 2.46
+        "nextDayReturn": 2.46,
+        "nextHighReturn": 7.08
       },
       "coreFlag": false,
       "block": null,
@@ -8654,13 +8894,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 6480,
         "nextDate": "20260504",
         "nextOpen": 6500,
         "nextHigh": 6500,
         "nextLow": 6300,
         "nextClose": 6450,
         "nextVolume": 26768,
-        "nextDayReturn": -0.46
+        "nextDayReturn": -0.46,
+        "nextHighReturn": 0.31
       },
       "coreFlag": false,
       "block": null,
@@ -8714,13 +8956,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 10100,
         "nextDate": "20260504",
         "nextOpen": 10140,
         "nextHigh": 10140,
         "nextLow": 9940,
         "nextClose": 9990,
         "nextVolume": 128441,
-        "nextDayReturn": -1.09
+        "nextDayReturn": -1.09,
+        "nextHighReturn": 0.4
       },
       "coreFlag": false,
       "block": null,
@@ -8774,13 +9018,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 122500,
         "nextDate": "20260504",
         "nextOpen": 123200,
         "nextHigh": 123200,
         "nextLow": 120200,
         "nextClose": 120300,
         "nextVolume": 1732,
-        "nextDayReturn": -1.8
+        "nextDayReturn": -1.8,
+        "nextHighReturn": 0.57
       },
       "coreFlag": false,
       "block": null,
@@ -8834,13 +9080,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 9040,
         "nextDate": "20260504",
         "nextOpen": 9080,
         "nextHigh": 9080,
         "nextLow": 8800,
         "nextClose": 8920,
         "nextVolume": 172135,
-        "nextDayReturn": -1.33
+        "nextDayReturn": -1.33,
+        "nextHighReturn": 0.44
       },
       "coreFlag": false,
       "block": null,
@@ -8894,13 +9142,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 53300,
         "nextDate": "20260504",
         "nextOpen": 53700,
         "nextHigh": 54000,
         "nextLow": 52200,
         "nextClose": 52500,
         "nextVolume": 120715,
-        "nextDayReturn": -1.5
+        "nextDayReturn": -1.5,
+        "nextHighReturn": 1.31
       },
       "coreFlag": false,
       "block": null,
@@ -8954,13 +9204,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 13990,
         "nextDate": "20260504",
         "nextOpen": 13990,
         "nextHigh": 14030,
         "nextLow": 13810,
         "nextClose": 13970,
         "nextVolume": 13483,
-        "nextDayReturn": -0.14
+        "nextDayReturn": -0.14,
+        "nextHighReturn": 0.29
       },
       "coreFlag": false,
       "block": null,
@@ -9014,13 +9266,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 37700,
         "nextDate": "20260504",
         "nextOpen": 38100,
         "nextHigh": 38500,
         "nextLow": 37850,
         "nextClose": 38050,
         "nextVolume": 68375,
-        "nextDayReturn": 0.93
+        "nextDayReturn": 0.93,
+        "nextHighReturn": 2.12
       },
       "coreFlag": false,
       "block": null,
@@ -9126,13 +9380,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 772,
         "nextDate": "20260504",
         "nextOpen": 803,
         "nextHigh": 812,
         "nextLow": 758,
         "nextClose": 773,
         "nextVolume": 193984,
-        "nextDayReturn": 0.13
+        "nextDayReturn": 0.13,
+        "nextHighReturn": 5.18
       },
       "coreFlag": false,
       "block": null,
@@ -9188,13 +9444,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 2150,
         "nextDate": "20260504",
         "nextOpen": 2120,
         "nextHigh": 2170,
         "nextLow": 2100,
         "nextClose": 2110,
         "nextVolume": 62179,
-        "nextDayReturn": -1.86
+        "nextDayReturn": -1.86,
+        "nextHighReturn": 0.93
       },
       "coreFlag": false,
       "block": null,
@@ -9250,13 +9508,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 11770,
         "nextDate": "20260504",
         "nextOpen": 11770,
         "nextHigh": 11850,
         "nextLow": 11640,
         "nextClose": 11850,
         "nextVolume": 21228,
-        "nextDayReturn": 0.68
+        "nextDayReturn": 0.68,
+        "nextHighReturn": 0.68
       },
       "coreFlag": false,
       "block": null,
@@ -9310,13 +9570,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 11990,
         "nextDate": "20260504",
         "nextOpen": 12000,
         "nextHigh": 12070,
         "nextLow": 11300,
         "nextClose": 11410,
         "nextVolume": 271816,
-        "nextDayReturn": -4.84
+        "nextDayReturn": -4.84,
+        "nextHighReturn": 0.67
       },
       "coreFlag": false,
       "block": null,
@@ -9370,13 +9632,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 8990,
         "nextDate": "20260504",
         "nextOpen": 8990,
         "nextHigh": 9060,
         "nextLow": 8830,
         "nextClose": 8990,
         "nextVolume": 20556,
-        "nextDayReturn": 0
+        "nextDayReturn": 0,
+        "nextHighReturn": 0.78
       },
       "coreFlag": false,
       "block": null,
@@ -9430,13 +9694,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 1631,
         "nextDate": "20260504",
         "nextOpen": 1668,
         "nextHigh": 1668,
         "nextLow": 1585,
         "nextClose": 1607,
         "nextVolume": 191218,
-        "nextDayReturn": -1.47
+        "nextDayReturn": -1.47,
+        "nextHighReturn": 2.27
       },
       "coreFlag": false,
       "block": null,
@@ -9490,13 +9756,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 6060,
         "nextDate": "20260504",
         "nextOpen": 6060,
         "nextHigh": 6130,
         "nextLow": 6030,
         "nextClose": 6060,
         "nextVolume": 19257,
-        "nextDayReturn": 0
+        "nextDayReturn": 0,
+        "nextHighReturn": 1.16
       },
       "coreFlag": false,
       "block": null,
@@ -9550,13 +9818,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 249500,
         "nextDate": "20260504",
         "nextOpen": 256000,
         "nextHigh": 270000,
         "nextLow": 251500,
         "nextClose": 265000,
         "nextVolume": 339366,
-        "nextDayReturn": 6.21
+        "nextDayReturn": 6.21,
+        "nextHighReturn": 8.22
       },
       "coreFlag": false,
       "block": null,
@@ -9613,13 +9883,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 2110,
         "nextDate": "20260504",
         "nextOpen": 2110,
         "nextHigh": 2110,
         "nextLow": 2110,
         "nextClose": 2110,
         "nextVolume": 0,
-        "nextDayReturn": 0
+        "nextDayReturn": 0,
+        "nextHighReturn": 0
       },
       "coreFlag": false,
       "block": null,
@@ -9673,13 +9945,15 @@
       "chartLevel": "짧음",
       "boxLevel": "안정",
       "nextDay": {
+        "prevClose": 289000,
         "nextDate": "20260504",
         "nextOpen": 289000,
         "nextHigh": 289000,
         "nextLow": 264500,
         "nextClose": 266500,
         "nextVolume": 51469,
-        "nextDayReturn": -7.79
+        "nextDayReturn": -7.79,
+        "nextHighReturn": 0
       },
       "coreFlag": false,
       "block": null,
@@ -9735,13 +10009,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 65500,
         "nextDate": "20260504",
         "nextOpen": 67000,
         "nextHigh": 68400,
         "nextLow": 65800,
         "nextClose": 66600,
         "nextVolume": 61949,
-        "nextDayReturn": 1.68
+        "nextDayReturn": 1.68,
+        "nextHighReturn": 4.43
       },
       "coreFlag": false,
       "block": null,
@@ -9798,13 +10074,15 @@
       "chartLevel": "짧음",
       "boxLevel": "변동",
       "nextDay": {
+        "prevClose": 8250,
         "nextDate": "20260504",
         "nextOpen": 8270,
         "nextHigh": 8460,
         "nextLow": 8150,
         "nextClose": 8390,
         "nextVolume": 133669,
-        "nextDayReturn": 1.7
+        "nextDayReturn": 1.7,
+        "nextHighReturn": 2.55
       },
       "coreFlag": false,
       "block": null,
@@ -9860,13 +10138,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 26200,
         "nextDate": "20260504",
         "nextOpen": 26800,
         "nextHigh": 26850,
         "nextLow": 25800,
         "nextClose": 26050,
         "nextVolume": 164990,
-        "nextDayReturn": -0.57
+        "nextDayReturn": -0.57,
+        "nextHighReturn": 2.48
       },
       "coreFlag": false,
       "block": null,
@@ -9922,13 +10202,15 @@
       "chartLevel": "짧음",
       "boxLevel": "불안정",
       "nextDay": {
+        "prevClose": 20749,
         "nextDate": "20260504",
         "nextOpen": 23850,
         "nextHigh": 24050,
         "nextLow": 20500,
         "nextClose": 20800,
         "nextVolume": 1091457,
-        "nextDayReturn": 0.25
+        "nextDayReturn": 0.25,
+        "nextHighReturn": 15.91
       },
       "coreFlag": false,
       "block": null,
