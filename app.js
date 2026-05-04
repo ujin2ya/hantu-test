@@ -3423,6 +3423,15 @@ app.get("/wra-rolling-diff", (req, res) => {
   res.sendFile(filePath);
 });
 
+// ─────────── WRA 운영 모드별 4/30 → 5/4 검증 보고서 ───────────
+app.get("/wra-mode", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "wra-mode-20260430-to-20260504-validation-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/wra-mode-20260430-to-20260504-validation-result.html 파일이 없습니다. `node wra-mode-20260430-to-20260504-validation-report.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
 // ─────────── 패턴 스크리너 ───────────
 const patternState = {
   seeding: false, seedStartedAt: null, seedFinishedAt: null, seedProgress: null, seedError: null,

@@ -512,6 +512,11 @@ footer.foot strong { color: #fde68a; }
   <span class="hint">20거래일 추적 후보는 QVA 보드에서 확인하세요.</span>
   <a class="board-switch-btn qva" href="/qva-watchlist">📋 QVA 20거래일 추적 후보 보드 보기 →</a>
 </div>
+<div class="report-link-row" style="display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 12px;">
+  <a class="report-link-btn" href="/wra-mode" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.35);color:#67e8f9;font-size:12px;font-weight:600;text-decoration:none;transition:background 0.12s;">📊 4/30 → 5/4 모드 검증 보기</a>
+  <a class="report-link-btn" href="/wra-rolling-diff" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.35);color:#c4b5fd;font-size:12px;font-weight:600;text-decoration:none;transition:background 0.12s;">🔄 Rolling 검증 보기</a>
+  <span style="font-size:11px;color:#64748b;align-self:center;">— 모드별 성과 근거가 궁금할 때 참고하세요</span>
+</div>
 <div class="subtitle" id="subtitle">로딩 중…</div>
 
 <div class="warn-banner">
@@ -576,7 +581,7 @@ footer.foot strong { color: #fde68a; }
     <span class="count-badge" data-count-for="HIGH_VOL_ONLY"></span>
     <span class="ic">🔥</span>
     <div class="title">고위험 공격형 <span class="warn-badge">⚠ 주의</span></div>
-    <div class="desc">공격적으로 단기 변동성을 확인하고 싶을 때 보는 후보입니다. 크게 움직일 가능성과 실패 가능성이 모두 높습니다.</div>
+    <div class="desc">공격적으로 단기 변동성을 확인하고 싶다면 고위험 공격형 후보를 볼 수 있습니다. 단, 이 그룹은 크게 움직일 가능성과 실패 가능성이 모두 높으므로 추격주의가 필요합니다. 실제 판단은 차트, 거래대금 유지, 뉴스 흐름을 함께 확인하세요.</div>
   </button>
   <button type="button" class="mode-card-btn" data-preset="ALL">
     <span class="count-badge" data-count-for="ALL"></span>
