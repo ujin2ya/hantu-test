@@ -969,7 +969,7 @@ const stageLabels = {
 };
 const stageDescriptions = {
   BREAKOUT_SUCCESS:
-    '돌파 성공 확인 종목은 QVA → VVI → +1% 돌파 → 종가 유지까지 통과한 후보입니다. 1년 검증에서 20일 뒤 플러스 마감 비율 71.0%, 평균 수익률 +15.1%를 기록했습니다 (QVA 단독 약 60% 대비 큰 폭 개선). 단, 매수 추천이 아니며 현재가가 기준 가격에서 많이 멀어진 경우에는 눌림 확인 또는 관리 구간으로 봐야 합니다.',
+    '돌파 성공 확인 종목은 QVA → VVI → +1% 돌파 → 종가 유지까지 통과한 후보입니다. 3년+flow 백테스트(이벤트 448건)에서 D+10 시점 분류별 H+10 성과가 명확히 분리됐습니다 — 강한 VPR 성공(+16.72% 고가) / 눌림 없이 상승(+20.69% 고가) 양호, 구조 훼손(-8.80% 종가) / VPR 재돌파 약함(회복률 3%) 위험. 매수 추천이 아니며 VPR 후속 태그를 함께 보고 판단합니다.',
   VVI_FIRED:
     'VVI는 QVA 후보 중 실제 거래대금 초동이 더 강하게 확인된 상태입니다. VVI 다음 거래일에 vviHigh × 1.01 돌파 여부를 기다리는 후보입니다.',
   QVA_TRACKING:
@@ -990,6 +990,24 @@ const stageDescriptions = {
     '장기 QVA 전체는 D+21~D+40 구간에 머물러 있는 모든 추적 후보입니다 (분류 무관). 위쪽 섹션에 노출되지 않은 종목까지 포함합니다. 기본 접힘.',
   FAILED:
     'QVA 이후 가격이 크게 무너졌거나, 20거래일 안에 VVI가 발생하지 않았거나, 돌파에 실패한 종목입니다.',
+};
+
+// 섹션 상단 안내 박스 (백테스트 요약) — 작은 톤
+// 객체 형태: 1줄 summary + VPR 정의 + 7개 라벨 짧은 설명 (펼침형)
+const stageBacktestNotes = {
+  BREAKOUT_SUCCESS: {
+    summary: '3년+flow 백테스트 기준, H그룹 이후 눌림 없이 상승과 강한 VPR 성공은 후속 상승 흐름이 강했고, 구조 훼손과 VPR 재돌파 약함은 약세/위험 신호로 확인됐습니다.',
+    vprIntro: 'VPR (Volume Pullback Rebound) = 돌파 성공(H그룹) 이후 눌림과 재돌파 흐름을 분류하는 후속 관리 태그입니다. 매수 확정 신호가 아닙니다.',
+    vprLabelsBrief: [
+      { key: 'NO_PULLBACK_RUNAWAY', label: '눌림 없이 상승', brief: '눌림 없이 상승이 이어지는 강한 흐름. 추격 주의' },
+      { key: 'STRONG_VPR_SUCCESS', label: '강한 VPR 성공', brief: '정상 눌림 후 H돌파일 고가 재돌파 + 종가 유지 + 거래대금 회복' },
+      { key: 'CLASSIC_VPR_SUCCESS', label: 'VPR 성공', brief: '눌림 후 기준 가격을 재회복하고 종가 유지' },
+      { key: 'PULLBACK_PENDING', label: 'VPR 대기', brief: '정상 눌림 범위에 있으나 아직 재돌파 전 (성공/구조 훼손 갈림길)' },
+      { key: 'WEAK_VPR_REBOUND', label: 'VPR 재돌파 약함', brief: '장중 재돌파했지만 종가 유지 약함 (회복률 3%)' },
+      { key: 'STRUCTURAL_BREAK', label: '구조 훼손', brief: '기준 가격을 의미 있게 이탈한 위험 상태' },
+      { key: 'REBOUND_FAIL', label: 'VPR 실패', brief: '눌림 후 10거래일 안에 재돌파 안 나온 약세' },
+    ],
+  },
 };
 
 const auxTagLabels = {
@@ -1030,12 +1048,13 @@ const judgmentLabels = {
   MANAGEMENT: '관리 구간',
   BREAKDOWN_WEAK: '돌파 약화',
 };
+// 문구는 3년+flow 백테스트(이벤트 448건) 운영 해석 기준 (2026-05-05).
 const judgmentDescriptions = {
   REVIEW_OK: '기준 진입가에서 크게 멀어지지 않은 상태입니다. 매수 추천이 아니라 추격을 피하기 위한 가격 위치 확인 기준입니다.',
   CHASE_CAUTION: '진입가 대비 +3% ~ +7% — 추격 시 주의가 필요한 구간.',
   PULLBACK_WAIT: '진입가 대비 +7% 초과 또는 돌파 후 3일 경과 — 눌림 확인 후 재검토 권장.',
-  MANAGEMENT: '진입가 대비 +15% 이상 — 이미 관리 영역. 신규 진입보다 보유/익절 관점.',
-  BREAKDOWN_WEAK: '현재가가 진입가 또는 VVI 고가 아래로 밀림 — 돌파 약화 신호.',
+  MANAGEMENT: '이미 상승이 진행된 상태입니다. 단기 흔들림은 있을 수 있지만, H+10 기준으로는 강한 추세가 이어진 경우가 많았습니다. 신규 진입은 기준가와의 거리 확인이 필요하고, 보유자는 관리 관점으로 볼 수 있습니다 (n=66, H+10 고가 +35.96% / 종가 +17.50% / 구조 훼손 전환율 1.52%).',
+  BREAKDOWN_WEAK: '돌파 이후 흐름이 약해진 상태입니다. 구조 훼손으로 이어질 가능성이 높아 주의가 필요합니다 (n=194, D+10 구조 훼손 전환율 59.28% / 평균 H+10 종가 -5.40%).',
 };
 
 function groupBy(items, fn) {
@@ -1063,16 +1082,41 @@ stageCounts.LONG_QVA_ALL = longQvaCandidates.length;
 function sortStage(stage, items) {
   const arr = items.slice();
   switch (stage) {
-    case 'BREAKOUT_SUCCESS':
-      // 가장 최근 돌파부터, 같으면 신호가 대비 수익률 높은 순
-      // 진입 판단 상태 순 (검토 → 추격 → 눌림 → 관리 → 약화) → 같은 상태 내 돌파 후 경과일 짧은 순
+    case 'BREAKOUT_SUCCESS': {
+      // 3년+flow 백테스트 운영 해석 기반 정렬 (강세→위험 순):
+      // 1. 눌림 없이 상승 (NO_PULLBACK_RUNAWAY) — H+10 +20.69% 주력 강세 흐름
+      // 2. 강한 VPR 성공 — H+10 +16.72%, -5% 종가 2.44%
+      // 3. VPR 성공 — H+10 +11.95%
+      // 4. 관리 구간 (judgmentStatus=MANAGEMENT) — H+10 +35.96% 추세
+      // 5. VPR 대기 — D+10 성공 20% / 손상 45% 갈림길
+      // 6. VPR 재돌파 약함 — 회복률 3.13%
+      // 7. 돌파 악화 (judgmentStatus=BREAKDOWN_WEAK) — 구조 훼손 전환율 59.28%
+      // 8. 구조 훼손 / VPR 실패 — H+10 종가 -8.80%, -5% 종가 72.18%
+      // 9. 데이터 부족
+      function bsRank(c) {
+        const vpr = c.vprStatus;
+        const judg = c.judgmentStatus;
+        if (vpr === 'NO_PULLBACK_RUNAWAY') return 1;
+        if (vpr === 'STRONG_VPR_SUCCESS') return 2;
+        if (vpr === 'CLASSIC_VPR_SUCCESS') return 3;
+        if (judg === 'MANAGEMENT') return 4;
+        if (vpr === 'PULLBACK_PENDING') return 5;
+        if (vpr === 'WEAK_VPR_REBOUND') return 6;
+        if (judg === 'BREAKDOWN_WEAK') return 7;
+        if (vpr === 'STRUCTURAL_BREAK' || vpr === 'REBOUND_FAIL') return 8;
+        if (vpr === 'DATA_INSUFFICIENT' || !vpr) return 9;
+        return 5;
+      }
       arr.sort((a, b) => {
-        const ai = judgmentOrder.indexOf(a.judgmentStatus);
-        const bi = judgmentOrder.indexOf(b.judgmentStatus);
-        if (ai !== bi) return ai - bi;
-        return (a.daysFromBreakout ?? 0) - (b.daysFromBreakout ?? 0);
+        const ra = bsRank(a), rb = bsRank(b);
+        if (ra !== rb) return ra - rb;
+        // 같은 그룹 내: 돌파 후 경과일 짧은 순 → 신호가 대비 수익률 높은 순
+        const da = a.daysFromBreakout ?? 0, db = b.daysFromBreakout ?? 0;
+        if (da !== db) return da - db;
+        return (b.currentReturnFromSignal ?? -Infinity) - (a.currentReturnFromSignal ?? -Infinity);
       });
       break;
+    }
     case 'VVI_FIRED':
       // 신호가 대비 수익률 높은 순 (= 돌파 가능성 높을 가능성)
       arr.sort((a, b) => (b.currentReturnFromSignal ?? -Infinity) - (a.currentReturnFromSignal ?? -Infinity));
@@ -1390,6 +1434,7 @@ const jsonOut = {
     stageOrder,
     stageLabels,
     stageDescriptions,
+    stageBacktestNotes,
     auxTagLabels,
     auxTagDescriptions,
     judgmentOrder,
@@ -2161,6 +2206,43 @@ function buildStageSection(stage) {
     ' data-expanded-text="' + toggleExpandedText + '">' +
     (finalCollapsed ? toggleCollapsedText : toggleExpandedText) + '</span>';
   sec.appendChild(title);
+
+  // ─── stageBacktestNotes (3년+flow 백테스트 운영 해석 요약 + VPR 도움말) ───
+  // BREAKOUT_SUCCESS 등 백테스트 통계 운영 해석이 부착된 섹션 상단에 표시.
+  if (DATA.meta.stageBacktestNotes && DATA.meta.stageBacktestNotes[stage] && items.length > 0) {
+    const noteData = DATA.meta.stageBacktestNotes[stage];
+    const btNote = document.createElement('div');
+    btNote.style.cssText = 'background:#0c1729;border-left:3px solid #14b8a6;padding:10px 14px;border-radius:6px;margin-bottom:10px;color:#cbd5e1;font-size:11.5px;line-height:1.65;';
+    // 객체 형태(summary + vprIntro + vprLabelsBrief) 또는 string (구버전)
+    if (typeof noteData === 'string') {
+      btNote.innerHTML = '📊 ' + noteData;
+    } else {
+      let html = '📊 ' + (noteData.summary || '');
+      if (noteData.vprIntro) {
+        html += '<div style="margin-top:6px;color:#94a3b8;">💡 ' + noteData.vprIntro + '</div>';
+      }
+      if (noteData.vprLabelsBrief && noteData.vprLabelsBrief.length > 0) {
+        html += '<details style="margin-top:6px;">';
+        html += '<summary style="cursor:pointer;color:#5eead4;font-size:11px;">▸ VPR 7개 후속 태그 의미 보기</summary>';
+        html += '<div style="margin-top:6px;padding-left:8px;border-left:2px solid #1e293b;">';
+        const colorMap = {
+          NO_PULLBACK_RUNAWAY: '#93c5fd', STRONG_VPR_SUCCESS: '#6ee7b7',
+          CLASSIC_VPR_SUCCESS: '#5eead4', PULLBACK_PENDING: '#c7d2fe',
+          WEAK_VPR_REBOUND: '#fde047', STRUCTURAL_BREAK: '#fdba74',
+          REBOUND_FAIL: '#fca5a5',
+        };
+        for (const lab of noteData.vprLabelsBrief) {
+          const c = colorMap[lab.key] || '#cbd5e1';
+          html += '<div style="margin:3px 0;font-size:11px;line-height:1.55;">' +
+                  '<strong style="color:' + c + ';">' + lab.label + '</strong>' +
+                  ' <span style="color:#94a3b8;">— ' + lab.brief + '</span></div>';
+        }
+        html += '</div></details>';
+      }
+      btNote.innerHTML = html;
+    }
+    sec.appendChild(btNote);
+  }
 
   // ─── LONG_QVA_REACTIVE: 안내문 ───
   if (isLongReactive && items.length > 0) {

@@ -216,6 +216,20 @@
             <% if (qvaWatchData && qvaWatchData.positionStatusLabel) { %>
             <div>현재 위치 <strong style="color:#1e40af;"><%= qvaWatchData.positionStatusLabel %></strong></div>
             <% } %>
+            <% if (qvaWatchData && qvaWatchData.vprLabel) {
+              var _vprColor = ({
+                STRONG_VPR_SUCCESS: '#047857',
+                CLASSIC_VPR_SUCCESS: '#0d9488',
+                WEAK_VPR_REBOUND: '#b45309',
+                PULLBACK_PENDING: '#4338ca',
+                NO_PULLBACK_RUNAWAY: '#1d4ed8',
+                STRUCTURAL_BREAK: '#b91c1c',
+                REBOUND_FAIL: '#b91c1c',
+                DATA_INSUFFICIENT: '#64748b',
+              })[qvaWatchData.vprStatus] || '#0d9488';
+            %>
+            <div>VPR 상태 <strong style="color:<%= _vprColor %>;"><%= qvaWatchData.vprLabel %></strong></div>
+            <% } %>
           </div>
         </div>
         <% } %>
@@ -346,10 +360,12 @@
         <!-- 단계 타임라인 -->
         <% if (latestEp && (latestEp.convertedToVvi || latestEp.convertedToBreakout)) {
           function fmtD2(d) { return d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8); }
-          function daysBetween(a, b) {
-            const ai = chartData ? null : null; // not available server-side easily
-            return null;
-          }
+          var _vprIconMap = {
+            STRONG_VPR_SUCCESS: '✅', CLASSIC_VPR_SUCCESS: '✅',
+            WEAK_VPR_REBOUND: '⚠️', PULLBACK_PENDING: '⏳',
+            NO_PULLBACK_RUNAWAY: '🚀', STRUCTURAL_BREAK: '❌',
+            REBOUND_FAIL: '❌', DATA_INSUFFICIENT: '·',
+          };
         %>
         <div class="why-section" style="background:#fff;border:1px solid #e2e8f0;border-left:3px solid #94a3b8;">
           <div class="why-section-title">🛤️ 단계 타임라인</div>
@@ -362,8 +378,29 @@
             <% } %>
             <% if (latestEp.breakoutDate) { %>
             🔥 돌파 성공 &nbsp;&nbsp;&nbsp;<%= fmtD2(latestEp.breakoutDate) %><br>
+            <% if (qvaWatchData && qvaWatchData.vprLabel && qvaWatchData.vprStatus !== 'DATA_INSUFFICIENT') { %>
+            &nbsp;&nbsp;↓<br>
+            <%= _vprIconMap[qvaWatchData.vprStatus] || '·' %> VPR <%= qvaWatchData.vprLabel %>
+            <% if (qvaWatchData.vpr && qvaWatchData.vpr.rebound && qvaWatchData.vpr.rebound.reboundDate) { %>
+              &nbsp;&nbsp;<span style="color:#64748b;">(재돌파 <%= fmtD2(qvaWatchData.vpr.rebound.reboundDate) %>)</span>
+            <% } %><br>
+            <% } %>
             <% } %>
           </div>
+          <% if (qvaWatchData && qvaWatchData.vprLabel && qvaWatchData.vprStatus !== 'DATA_INSUFFICIENT') { %>
+          <div style="margin-top:8px;padding:8px 10px;background:#f8fafc;border-radius:4px;font-size:11px;line-height:1.6;color:#475569;">
+            <strong style="color:#0f172a;">VPR 후속 태그:</strong>
+            <% if (qvaWatchData.vpr && qvaWatchData.vpr.oneLineSummary) { %>
+              <%= qvaWatchData.vpr.oneLineSummary %>
+            <% } %>
+            <% if (qvaWatchData.vprConflictNote) { %>
+            <div style="margin-top:4px;color:#92400e;">⚠ <%= qvaWatchData.vprConflictNote %></div>
+            <% } %>
+            <div style="margin-top:6px;color:#64748b;font-size:10.5px;">
+              VPR(Volume Pullback Rebound) = QVA→VVI→돌파 성공 이후 눌림/재돌파 후속 흐름 분류. 매수 확정 신호가 아니라 후속 관리 태그.
+            </div>
+          </div>
+          <% } %>
         </div>
         <% } %>
 
