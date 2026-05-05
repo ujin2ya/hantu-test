@@ -3581,6 +3581,24 @@ app.get("/vpr-hgroup-one-year-backtest", (req, res) => {
   res.sendFile(filePath);
 });
 
+// ─────────── VPR H그룹 3년 캐시 백테스트 (chart only, flow 부재 시점) ───────────
+app.get("/vpr-hgroup-three-year-backtest", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "vpr-hgroup-three-year-cache-backtest-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/vpr-hgroup-three-year-cache-backtest-result.html 파일이 없습니다. `node vpr-hgroup-long-period-maturity-backtest.js --from=20230101 --to=20260420 --label=three-year-cache`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
+// ─────────── VPR H그룹 3년 캐시 + 3년 flow 백테스트 (운영 기준 표본 통과) ───────────
+app.get("/vpr-hgroup-three-year-with-flow-backtest", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "vpr-hgroup-three-year-with-flow-backtest-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/vpr-hgroup-three-year-with-flow-backtest-result.html 파일이 없습니다. `node vpr-hgroup-long-period-maturity-backtest.js --from=20230101 --to=20260420 --label=three-year-with-flow`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
 // ─────────── WRA 운영 모드별 4/30 → 5/4 검증 보고서 ───────────
 app.get("/wra-mode", (req, res) => {
   const filePath = path.join(__dirname, "reports", "wra-mode-20260430-to-20260504-validation-result.html");
