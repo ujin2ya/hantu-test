@@ -993,20 +993,10 @@ const stageDescriptions = {
 };
 
 // 섹션 상단 안내 박스 (백테스트 요약) — 작은 톤
-// 객체 형태: 1줄 summary + VPR 정의 + 7개 라벨 짧은 설명 (펼침형)
+// 헤더에 VPR 정의 + 7개 라벨 펼침 도움말이 이미 있으므로, 섹션은 백테스트 요약 1줄만.
 const stageBacktestNotes = {
   BREAKOUT_SUCCESS: {
-    summary: '3년+flow 백테스트 기준, H그룹 이후 눌림 없이 상승과 강한 VPR 성공은 후속 상승 흐름이 강했고, 구조 훼손과 VPR 재돌파 약함은 약세/위험 신호로 확인됐습니다.',
-    vprIntro: 'VPR (Volume Pullback Rebound) = 돌파 성공(H그룹) 이후 눌림과 재돌파 흐름을 분류하는 후속 관리 태그입니다. 매수 확정 신호가 아닙니다.',
-    vprLabelsBrief: [
-      { key: 'NO_PULLBACK_RUNAWAY', label: '눌림 없이 상승', brief: '눌림 없이 상승이 이어지는 강한 흐름. 추격 주의' },
-      { key: 'STRONG_VPR_SUCCESS', label: '강한 VPR 성공', brief: '정상 눌림 후 H돌파일 고가 재돌파 + 종가 유지 + 거래대금 회복' },
-      { key: 'CLASSIC_VPR_SUCCESS', label: 'VPR 성공', brief: '눌림 후 기준 가격을 재회복하고 종가 유지' },
-      { key: 'PULLBACK_PENDING', label: 'VPR 대기', brief: '정상 눌림 범위에 있으나 아직 재돌파 전 (성공/구조 훼손 갈림길)' },
-      { key: 'WEAK_VPR_REBOUND', label: 'VPR 재돌파 약함', brief: '장중 재돌파했지만 종가 유지 약함 (회복률 3%)' },
-      { key: 'STRUCTURAL_BREAK', label: '구조 훼손', brief: '기준 가격을 의미 있게 이탈한 위험 상태' },
-      { key: 'REBOUND_FAIL', label: 'VPR 실패', brief: '눌림 후 10거래일 안에 재돌파 안 나온 약세' },
-    ],
+    summary: '3년+flow 백테스트(이벤트 448건) 기준, H그룹 이후 눌림 없이 상승(+20.69% 고가)과 강한 VPR 성공(+16.72%)은 후속 상승 흐름이 강했고, 구조 훼손(-8.80% 종가) / VPR 재돌파 약함은 약세·위험 신호로 확인됐습니다. ↑ 화면 상단 도움말에 VPR 7개 태그 의미 설명이 있습니다.',
   },
 };
 
@@ -1628,73 +1618,73 @@ const htmlTemplate = `<!DOCTYPE html>
     .table-wrap table { font-size: 11px; }
     .table-wrap th, .table-wrap td { padding: 6px 6px; }
   }
-  /* board ↔ board 이동 링크 */
-  .board-switch-row {
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 10px; margin: 4px 0 14px;
-  }
-  .board-switch-row .hint { font-size: 12px; color: #94a3b8; }
-  .board-switch-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 14px; border-radius: 999px;
-    font-size: 13px; font-weight: 700; text-decoration: none;
-    border: 1px solid rgba(255,255,255,0.14);
-    background: rgba(255,255,255,0.08);
-    color: #e5e7eb;
-    transition: background 0.12s, border-color 0.12s, transform 0.06s;
-  }
-  .board-switch-btn:hover { background: rgba(255,255,255,0.14); transform: translateY(-1px); }
-  .board-switch-btn.qva { border-color: rgba(34,197,94,0.45); }
-  .board-switch-btn.wra { border-color: rgba(96,165,250,0.45); }
 </style>
 </head>
 <body>
   <h1>📋 QVA 매일 운영 보드<span class="sub">— 매일 장마감 후 갱신되는 후보 추적 보드 (백테스트 보고서 아님)</span></h1>
-  <div class="board-switch-row">
-    <span class="hint">단기 반응 후보는 WRA 보드에서 확인하세요.</span>
-    <a class="board-switch-btn wra" href="/wra-watchlist">📈 WRA 단기 반응 후보 보드 보기 →</a>
-  </div>
   <div class="subtitle" id="subtitle"></div>
 
   <div class="info-box" style="background:#0f172a;border-left-color:#34d399;border-left-width:4px;padding:18px 22px;">
     <p>이 화면은 <strong>'살 종목'을 알려주는 곳이 아니라, 관심 있게 지켜볼 종목을 단계별로 정리해주는 화면</strong>입니다.</p>
     <p style="margin-top:10px;">흐름은 단순합니다.</p>
-    <p style="margin-top:6px;font-size:15px;text-align:center;background:#1e293b;padding:10px 12px;border-radius:6px;">
+    <p style="margin-top:6px;font-size:14px;text-align:center;background:#1e293b;padding:10px 12px;border-radius:6px;line-height:1.8;">
       <strong style="color:#34d399;">🟢 QVA</strong>
       <span style="color:#64748b;">→</span>
       <strong style="color:#3b82f6;">⏳ VVI</strong>
       <span style="color:#64748b;">→</span>
-      <strong style="color:#10b981;">🔥 돌파 성공</strong>
+      <strong style="color:#10b981;">🔥 돌파 성공 (H그룹)</strong>
+      <span style="color:#64748b;">→</span>
+      <strong style="color:#5eead4;">📊 VPR 후속 태그</strong>
     </p>
     <p style="margin-top:10px;"><strong style="color:#34d399;">QVA</strong>는 저점권에서 기존 거래량·거래대금을 확실히 뛰어넘는 수급 흔적이 나타난 관심 후보입니다 (저점권 거래대금 돌파).<br>
     <strong style="color:#3b82f6;">VVI</strong>는 거래대금이 더 강하게 확인되고 종가가 고가권에서 양호하게 마감한 단계입니다.<br>
-    <strong style="color:#10b981;">돌파 성공</strong>은 VVI 다음 거래일에 vviHigh × 1.01 돌파 + 종가 유지가 확인된 후속 단계입니다.</p>
-    <p style="margin-top:10px;">과거 1년 검증에서 QVA의 20일 뒤 플러스 마감 비율은 <strong style="color:#34d399;">60% 내외</strong>, 평균 수익률 <strong style="color:#34d399;">+8% 내외</strong>였고, QVA가 돌파 성공까지 진행된 경우 플러스 마감 비율은 <strong style="color:#6ee7b7;">71%</strong>까지 올라갔습니다.</p>
-    <p style="margin-top:8px;">즉, 단계가 진행될수록 과거 데이터상 좋은 흐름을 보인 비율이 높아졌습니다.</p>
+    <strong style="color:#10b981;">돌파 성공(H그룹)</strong>은 VVI 다음 거래일에 vviHigh × 1.01 돌파 + 종가 유지가 확인된 후속 단계입니다.<br>
+    <strong style="color:#5eead4;">VPR (Volume Pullback Rebound)</strong>은 H그룹 이후 눌림과 재돌파 흐름을 분류하는 후속 관리 태그입니다 — 정상 눌림 후 재돌파에 성공했는지, 구조가 훼손됐는지 등을 보여줍니다. <strong>매수 확정 신호가 아닙니다.</strong></p>
+
+    <details style="margin-top:10px;background:#1e293b;border-radius:6px;padding:8px 12px;">
+      <summary style="cursor:pointer;color:#5eead4;font-size:13px;font-weight:600;">▸ VPR 7개 후속 태그 의미 보기</summary>
+      <div style="margin-top:8px;padding-left:8px;border-left:2px solid #334155;font-size:12px;line-height:1.7;">
+        <div style="margin:4px 0;"><strong style="color:#93c5fd;">눌림 없이 상승</strong> <span style="color:#94a3b8;">— 눌림 없이 상승이 이어지는 강한 흐름. 추격 주의</span></div>
+        <div style="margin:4px 0;"><strong style="color:#6ee7b7;">강한 VPR 성공</strong> <span style="color:#94a3b8;">— 정상 눌림 후 H돌파일 고가 재돌파 + 종가 유지 + 거래대금 회복</span></div>
+        <div style="margin:4px 0;"><strong style="color:#5eead4;">VPR 성공</strong> <span style="color:#94a3b8;">— 눌림 후 기준 가격을 재회복하고 종가 유지</span></div>
+        <div style="margin:4px 0;"><strong style="color:#c7d2fe;">VPR 대기</strong> <span style="color:#94a3b8;">— 정상 눌림 범위에 있으나 아직 재돌파 전 (성공/구조 훼손 갈림길)</span></div>
+        <div style="margin:4px 0;"><strong style="color:#fde047;">VPR 재돌파 약함</strong> <span style="color:#94a3b8;">— 장중 재돌파했지만 종가 유지 약함 (회복률 3%)</span></div>
+        <div style="margin:4px 0;"><strong style="color:#fdba74;">구조 훼손</strong> <span style="color:#94a3b8;">— 기준 가격을 의미 있게 이탈한 위험 상태</span></div>
+        <div style="margin:4px 0;"><strong style="color:#fca5a5;">VPR 실패</strong> <span style="color:#94a3b8;">— 눌림 후 10거래일 안에 재돌파 안 나온 약세</span></div>
+      </div>
+    </details>
+
+    <p style="margin-top:10px;"><strong>3년+flow 백테스트(이벤트 448건)</strong> 결과 — H그룹 이후 D+10 시점 분류별 H+10 성과:</p>
+    <p style="margin-top:4px;color:#cbd5e1;font-size:13px;line-height:1.7;">
+      ✅ <strong style="color:#6ee7b7;">강한 VPR 성공</strong> (n=41): H+10 평균 고가 +16.72% / 종가 +5.86% / -5% 종가 2.44%<br>
+      🚀 <strong style="color:#93c5fd;">눌림 없이 상승</strong> (n=162): H+10 평균 고가 +20.69% / 종가 +9.49% / +20% 도달률 33.95%<br>
+      ❌ <strong style="color:#fdba74;">구조 훼손</strong> (n=133): H+10 평균 종가 -8.80% / -5% 종가 72.18%<br>
+      ⚠️ <strong style="color:#fde047;">VPR 재돌파 약함</strong> (n=40): 회복률 3.13%로 약세 지속
+    </p>
+    <p style="margin-top:8px;color:#cbd5e1;font-size:12px;">즉 단계가 진행될수록(특히 강한 VPR 성공) 좋은 흐름이 통계적으로 분리됐고, 구조 훼손/재돌파 약함은 위험 시그널로 확인됐습니다.</p>
     <p style="margin-top:10px;color:#fbbf24;">다만 이 결과는 과거 통계일 뿐이며, 매수 추천이 아닙니다. <strong>실제 판단은 현재 가격, 차트, 뉴스, 거래대금, 시장 상황을 함께 보고 사용자가 직접 해야 합니다.</strong></p>
   </div>
 
-  <h2 style="font-size:14px;color:#cbd5e1;margin:0 0 8px 0;border:none;padding:0;">📊 1년 검증 요약</h2>
+  <h2 style="font-size:14px;color:#cbd5e1;margin:0 0 8px 0;border:none;padding:0;">📊 단계별 분리력 요약 (3년+flow 검증)</h2>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:16px;">
-    <div style="background:#1e293b;border-left:3px solid #34d399;padding:14px 16px;border-radius:6px;">
-      <div style="color:#94a3b8;font-size:12px;">🟢 QVA 단독</div>
-      <div style="color:#34d399;font-size:24px;font-weight:700;margin-top:4px;">60.3%</div>
-      <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">20일 뒤 플러스 마감 비율 (평균 +8.2%)</div>
+    <div style="background:#1e293b;border-left:3px solid #6ee7b7;padding:14px 16px;border-radius:6px;">
+      <div style="color:#94a3b8;font-size:12px;">✅ D+10 강한 VPR 성공</div>
+      <div style="color:#6ee7b7;font-size:24px;font-weight:700;margin-top:4px;">+16.72%</div>
+      <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">H+10 평균 고가 (n=41, +20% 도달률 24.39%)</div>
     </div>
-    <div style="background:#1e293b;border-left:3px solid #10b981;padding:14px 16px;border-radius:6px;">
-      <div style="color:#94a3b8;font-size:12px;">🔥 QVA → 돌파 성공 (H그룹)</div>
-      <div style="color:#6ee7b7;font-size:24px;font-weight:700;margin-top:4px;">71.0%</div>
-      <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">20일 뒤 플러스 마감 비율</div>
-      <div style="color:#94a3b8;font-size:10px;margin-top:4px;">단, 표본이 적어 참고 지표입니다.</div>
+    <div style="background:#1e293b;border-left:3px solid #93c5fd;padding:14px 16px;border-radius:6px;">
+      <div style="color:#94a3b8;font-size:12px;">🚀 D+10 눌림 없이 상승</div>
+      <div style="color:#93c5fd;font-size:24px;font-weight:700;margin-top:4px;">+20.69%</div>
+      <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">H+10 평균 고가 (n=162, 주력 강세 흐름)</div>
     </div>
-    <div style="background:#1e293b;border-left:3px solid #60a5fa;padding:14px 16px;border-radius:6px;">
-      <div style="color:#94a3b8;font-size:12px;">최종 QVA 모델</div>
-      <div style="color:#93c5fd;font-size:18px;font-weight:700;margin-top:4px;">REDEFINED_TIGHT</div>
-      <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">저점권 거래대금 돌파형 QVA</div>
+    <div style="background:#1e293b;border-left:3px solid #fdba74;padding:14px 16px;border-radius:6px;">
+      <div style="color:#94a3b8;font-size:12px;">❌ D+10 구조 훼손</div>
+      <div style="color:#fdba74;font-size:24px;font-weight:700;margin-top:4px;">-8.80%</div>
+      <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">H+10 평균 종가 (n=133, -5% 종가 72.18%)</div>
     </div>
     <div style="background:#1e293b;border-left:3px solid #94a3b8;padding:14px 16px;border-radius:6px;">
       <div style="color:#94a3b8;font-size:12px;">해석</div>
-      <div style="color:#cbd5e1;font-size:12px;line-height:1.5;margin-top:4px;">QVA는 관심 후보 시작점입니다. VVI와 돌파 성공까지 진행될수록 과거 데이터상 좋은 흐름을 보인 비율이 높아졌습니다. 매수 신호는 아닙니다.</div>
+      <div style="color:#cbd5e1;font-size:12px;line-height:1.5;margin-top:4px;">VPR 후속 태그가 H그룹 이후 흐름의 양극단(강한 성공 vs 구조 훼손)을 통계적으로 분리합니다. 매수 신호는 아닙니다.</div>
     </div>
   </div>
 

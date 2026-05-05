@@ -55,45 +55,7 @@
     },
     "stageBacktestNotes": {
       "BREAKOUT_SUCCESS": {
-        "summary": "3년+flow 백테스트 기준, H그룹 이후 눌림 없이 상승과 강한 VPR 성공은 후속 상승 흐름이 강했고, 구조 훼손과 VPR 재돌파 약함은 약세/위험 신호로 확인됐습니다.",
-        "vprIntro": "VPR (Volume Pullback Rebound) = 돌파 성공(H그룹) 이후 눌림과 재돌파 흐름을 분류하는 후속 관리 태그입니다. 매수 확정 신호가 아닙니다.",
-        "vprLabelsBrief": [
-          {
-            "key": "NO_PULLBACK_RUNAWAY",
-            "label": "눌림 없이 상승",
-            "brief": "눌림 없이 상승이 이어지는 강한 흐름. 추격 주의"
-          },
-          {
-            "key": "STRONG_VPR_SUCCESS",
-            "label": "강한 VPR 성공",
-            "brief": "정상 눌림 후 H돌파일 고가 재돌파 + 종가 유지 + 거래대금 회복"
-          },
-          {
-            "key": "CLASSIC_VPR_SUCCESS",
-            "label": "VPR 성공",
-            "brief": "눌림 후 기준 가격을 재회복하고 종가 유지"
-          },
-          {
-            "key": "PULLBACK_PENDING",
-            "label": "VPR 대기",
-            "brief": "정상 눌림 범위에 있으나 아직 재돌파 전 (성공/구조 훼손 갈림길)"
-          },
-          {
-            "key": "WEAK_VPR_REBOUND",
-            "label": "VPR 재돌파 약함",
-            "brief": "장중 재돌파했지만 종가 유지 약함 (회복률 3%)"
-          },
-          {
-            "key": "STRUCTURAL_BREAK",
-            "label": "구조 훼손",
-            "brief": "기준 가격을 의미 있게 이탈한 위험 상태"
-          },
-          {
-            "key": "REBOUND_FAIL",
-            "label": "VPR 실패",
-            "brief": "눌림 후 10거래일 안에 재돌파 안 나온 약세"
-          }
-        ]
+        "summary": "3년+flow 백테스트(이벤트 448건) 기준, H그룹 이후 눌림 없이 상승(+20.69% 고가)과 강한 VPR 성공(+16.72%)은 후속 상승 흐름이 강했고, 구조 훼손(-8.80% 종가) / VPR 재돌파 약함은 약세·위험 신호로 확인됐습니다. ↑ 화면 상단 도움말에 VPR 7개 태그 의미 설명이 있습니다."
       }
     },
     "auxTagLabels": {
@@ -176,7 +138,7 @@
       "DATA_INSUFFICIENT": "돌파일 이후 거래일이 부족해 VPR 분석이 어려운 상태입니다."
     },
     "vprManagementNote": "이미 상승이 진행된 상태로, 신규 진입보다는 관리 관점입니다.",
-    "generatedAt": "2026-05-05T12:03:43.071Z"
+    "generatedAt": "2026-05-05T12:15:12.770Z"
   },
   "summary": {
     "today": "20260504",
@@ -207,7 +169,7 @@
       "LONG_QVA_ALL": 29,
       "FAILED": 30
     },
-    "generatedAt": "2026-05-05T12:03:43.070Z"
+    "generatedAt": "2026-05-05T12:15:12.770Z"
   },
   "earlyQvaSummary": {
     "todayCount": 10,
