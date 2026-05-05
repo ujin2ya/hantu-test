@@ -3435,6 +3435,15 @@ app.get("/vpr-hgroup-three-year-with-flow-backtest", (req, res) => {
 // 짧은 별칭 — 메인 VPR 3년 백테스트
 app.get("/vpr-3y", (req, res) => res.redirect("/vpr-hgroup-three-year-with-flow-backtest"));
 
+// ─────────── VPR 매매 승률 백테스트 (실제 매수/매도 시뮬레이션) ───────────
+app.get("/vpr-trade-winrate", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "vpr-trade-winrate-backtest-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/vpr-trade-winrate-backtest-result.html 파일이 없습니다. `node vpr-trade-winrate-backtest.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
 // ─────────── 패턴 스크리너 ───────────
 const patternState = {
   seeding: false, seedStartedAt: null, seedFinishedAt: null, seedProgress: null, seedError: null,
