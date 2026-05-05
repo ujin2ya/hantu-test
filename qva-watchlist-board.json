@@ -176,7 +176,7 @@
       "DATA_INSUFFICIENT": "돌파일 이후 거래일이 부족해 VPR 분석이 어려운 상태입니다."
     },
     "vprManagementNote": "이미 상승이 진행된 상태로, 신규 진입보다는 관리 관점입니다.",
-    "generatedAt": "2026-05-05T11:54:29.565Z"
+    "generatedAt": "2026-05-05T12:03:43.071Z"
   },
   "summary": {
     "today": "20260504",
@@ -207,7 +207,7 @@
       "LONG_QVA_ALL": 29,
       "FAILED": 30
     },
-    "generatedAt": "2026-05-05T11:54:29.565Z"
+    "generatedAt": "2026-05-05T12:03:43.070Z"
   },
   "earlyQvaSummary": {
     "todayCount": 10,

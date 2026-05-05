@@ -2098,7 +2098,6 @@ function renderIndex(res, overrides = {}) {
     chartRows: null,
     patternData: null,
     qvaWatchData: null,
-    wraWatchData: null,
     earlyQvaData: null,
     breakoutData: null,
     priceInfo: null,
@@ -2548,47 +2547,6 @@ const handleSearch = async (req, res) => {
       }
     } catch (_) {}
 
-    // ─── WRA Watchlist 보드 lookup — wraWatchData ───
-    // reports/wra-watchlist-board.json의 candidates에서 code 매칭 후, 상세 페이지에 노출
-    let wraWatchData = null;
-    try {
-      const wraPath = path.join(__dirname, "reports", "wra-watchlist-board.json");
-      if (fs.existsSync(wraPath)) {
-        const wra = JSON.parse(fs.readFileSync(wraPath, "utf-8"));
-        const found = (wra.candidates || []).find((c) => c.code === code);
-        if (found) {
-          // 유형별 상세 설명·체크포인트 (사용자 친화 문구, 매수 표현 금지)
-          const tagDescMap = {
-            CLEAN_VALUE_SETUP: '조용히 거래대금이 들어온 종목입니다. 아직 과열이 낮아 먼저 차트에 넣고 볼 후보입니다.',
-            VALUE_SURGE_CONFIRM: '거래대금과 상승이 같이 확인된 종목입니다. 이미 움직였을 수 있으므로 눌림 또는 종가 유지 확인이 필요합니다.',
-            BREAKOUT_MOMENTUM: '단기 돌파 가능성이 있는 종목입니다. 추격보다는 다음 거래일 반응 확인용입니다.',
-            VALUE_LOOSE: '거래대금은 들어왔지만 조건이 깔끔하지는 않은 보조 후보입니다.',
-            HIGH_VOLATILITY: '크게 튈 수도 있지만 흔들림도 큰 후보입니다.',
-            WATCH_ONLY: '구조 관찰용입니다. 단기 수익성은 약한 후보입니다.',
-            LOW_SIGNAL: '신호가 약해 기본 후보에서는 숨기는 종목입니다.',
-          };
-          const tagCheckpointMap = {
-            CLEAN_VALUE_SETUP: '거래대금 유지와 MA20 위 종가 유지 여부를 봅니다.',
-            VALUE_SURGE_CONFIRM: '갭상승 후 밀리지 않는지, 전일 고가 위 종가 유지 여부를 봅니다.',
-            BREAKOUT_MOMENTUM: '고가 돌파 후 종가가 따라오는지 확인합니다. 고가만 찍고 밀리면 실패 신호입니다.',
-            VALUE_LOOSE: '거래대금 유지 여부를 보고, 추격 진입은 피합니다.',
-            HIGH_VOLATILITY: '급등 가능성은 있지만 변동성이 크므로 추격보다는 손절 기준이 먼저 필요합니다.',
-            WATCH_ONLY: '거래대금이 추가로 붙는지, MA20 이탈이 없는지를 봅니다.',
-            LOW_SIGNAL: '추가 거래대금 유입과 저점 상승이 확인될 때까지 관찰만 합니다.',
-          };
-          wraWatchData = {
-            ...found,
-            typeDesc: tagDescMap[found.watchTagV3_1] || '',
-            typeCheckpoint: tagCheckpointMap[found.watchTagV3_1] || '',
-            meta: wra.meta || {},
-            summary: wra.summary || {},
-          };
-        }
-      }
-    } catch (e) {
-      console.error("[WRA WATCH LOOKUP ERROR]", e.message);
-    }
-
     // ─── QVA 윈도우 상수 ───
     const QVA_CORE_WINDOW = 20;          // 신호 계산 핵심창 (returnFromLow20, ret20 등)
     const QVA_CONTEXT_WINDOW = 60;       // 보조 배경창 (60일 저점, MA60 등 - QVA 내부)
@@ -2975,7 +2933,6 @@ const handleSearch = async (req, res) => {
       chartRows,
       patternData,
       qvaWatchData,
-      wraWatchData,
       earlyQvaData,
       breakoutData,
       priceInfo,
@@ -3413,57 +3370,6 @@ app.get("/api/stock-ai-analysis", async (req, res) => {
   }
 });
 
-// ─────────── WRA Watchlist Board ───────────
-app.get("/wra-watchlist", (req, res) => {
-  const filePath = path.join(__dirname, "reports", "wra-watchlist-board.html");
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send("reports/wra-watchlist-board.html 파일이 없습니다. `node wra-watchlist-board.js`를 먼저 실행하세요.");
-  }
-  res.sendFile(filePath);
-});
-app.get("/wra-watchlist-board", (req, res) => res.redirect("/wra-watchlist"));
-
-// ─────────── WRA As-Of Snapshot Report (4/30 기준) ───────────
-app.get("/wra-asof/:date", (req, res) => {
-  const date = String(req.params.date || '').trim();
-  if (!/^\d{8}$/.test(date)) {
-    return res.status(400).send("잘못된 날짜 형식입니다 (YYYYMMDD).");
-  }
-  const filePath = path.join(__dirname, "reports", `wra-asof-${date}-snapshot-result.html`);
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send(
-      `reports/wra-asof-${date}-snapshot-result.html 파일이 없습니다. \`node wra-asof-snapshot-report.js --date=${date}\`를 먼저 실행하세요.`
-    );
-  }
-  res.sendFile(filePath);
-});
-app.get("/wra-asof", (req, res) => res.redirect("/wra-asof/20260430"));
-
-// ─────────── WRA Success/Failure Diff Report (4/30 → 5/4) ───────────
-app.get("/wra-diff/:date", (req, res) => {
-  const date = String(req.params.date || '').trim();
-  if (!/^\d{8}$/.test(date)) {
-    return res.status(400).send("잘못된 날짜 형식입니다 (YYYYMMDD).");
-  }
-  const filePath = path.join(__dirname, "reports", `wra-${date}-success-failure-diff-result.html`);
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send(
-      `reports/wra-${date}-success-failure-diff-result.html 파일이 없습니다. \`node wra-success-failure-diff-report.js\`를 먼저 실행하세요.`
-    );
-  }
-  res.sendFile(filePath);
-});
-app.get("/wra-diff", (req, res) => res.redirect("/wra-diff/20260430"));
-
-// ─────────── WRA Rolling Success/Failure Diff Report ───────────
-app.get("/wra-rolling-diff", (req, res) => {
-  const filePath = path.join(__dirname, "reports", "wra-rolling-success-failure-diff-result.html");
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send("reports/wra-rolling-success-failure-diff-result.html 파일이 없습니다. `node wra-rolling-success-failure-diff-report.js`를 먼저 실행하세요.");
-  }
-  res.sendFile(filePath);
-});
-
 // ─────────── BMS Winner Scan Report ───────────
 app.get("/bms-winner", (req, res) => {
   const filePath = path.join(__dirname, "reports", "bms-winner-scan-result.html");
@@ -3595,15 +3501,6 @@ app.get("/vpr-hgroup-three-year-with-flow-backtest", (req, res) => {
   const filePath = path.join(__dirname, "reports", "vpr-hgroup-three-year-with-flow-backtest-result.html");
   if (!fs.existsSync(filePath)) {
     return res.status(404).send("reports/vpr-hgroup-three-year-with-flow-backtest-result.html 파일이 없습니다. `node vpr-hgroup-long-period-maturity-backtest.js --from=20230101 --to=20260420 --label=three-year-with-flow`를 먼저 실행하세요.");
-  }
-  res.sendFile(filePath);
-});
-
-// ─────────── WRA 운영 모드별 4/30 → 5/4 검증 보고서 ───────────
-app.get("/wra-mode", (req, res) => {
-  const filePath = path.join(__dirname, "reports", "wra-mode-20260430-to-20260504-validation-result.html");
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send("reports/wra-mode-20260430-to-20260504-validation-result.html 파일이 없습니다. `node wra-mode-20260430-to-20260504-validation-report.js`를 먼저 실행하세요.");
   }
   res.sendFile(filePath);
 });
