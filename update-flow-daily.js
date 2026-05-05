@@ -9,6 +9,10 @@
  *   2. 각 종목별로 KIS API에서 수급 데이터 조회
  *   3. flow-history/{code}.json과 merge
  *   4. 같은 date: replace, 새 date: append, 정렬, 중복 제거
+ *   5. 보존 행 수: env FLOW_KEEP_ROWS (기본 1000, 약 4년치) 까지만 유지
+ *      QVA/VVI/H/VPR 장기 백테스트는 과거 cutoff에서도 VVI 검출(flow≥10)이
+ *      필요하므로 기본값 1000을 둔다. 120으로 자르면 1년 이전 cutoff에서 VVI
+ *      검출이 불가능해 H그룹/구조 훼손 등 검출이 모두 막힌다.
  *
  * 실행:
  *   node update-flow-daily.js
@@ -24,7 +28,10 @@ const axios = require('axios');
 // ─── Config ───
 const STOCKS_LIST_PATH = path.join(ROOT, 'cache', 'naver-stocks-list.json');
 const FLOW_DIR = path.join(ROOT, 'cache', 'flow-history');
-const MIN_ROWS = 120;
+// QVA/VVI/H/VPR 장기 백테스트를 위해 flow-history도 장기 보존이 필요하다.
+// 120 row로 자르면 과거 cutoff에서 VVI 검출(flow≥10)이 불가능해진다.
+// 기본 1000 row를 보존하되, FLOW_KEEP_ROWS 환경변수로 조정 가능하게 한다.
+const FLOW_KEEP_ROWS = parseInt(process.env.FLOW_KEEP_ROWS || '1000', 10);
 
 // KIS API Config
 const KIS_APP_KEY = process.env.KIS_APP_KEY;
@@ -151,8 +158,8 @@ function mergeFlowData(cached, newRows) {
     return true;
   });
 
-  if (sorted.length > MIN_ROWS) {
-    sorted = sorted.slice(-MIN_ROWS);
+  if (sorted.length > FLOW_KEEP_ROWS) {
+    sorted = sorted.slice(-FLOW_KEEP_ROWS);
   }
 
   cached.rows = sorted;
