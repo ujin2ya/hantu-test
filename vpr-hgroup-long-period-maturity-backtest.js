@@ -1091,6 +1091,19 @@ footer.foot strong { color: #fde68a; }
   html, body { overflow-x: hidden; overflow-y: auto; }
   .tbl-wrap { overflow-x: auto !important; }
   .col-mobile-hide, table.list thead th.col-mobile-hide { display: none; }
+  /* 그룹별 성과/매트릭스/월별/baseline-compare 모든 cmp/matrix 표가 모바일에서 가로 스크롤 되도록 */
+  table.cmp, table.matrix {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  table.cmp thead, table.cmp tbody, table.matrix thead, table.matrix tbody {
+    display: table;
+    width: max-content;
+    min-width: 100%;
+  }
 }
 </style>
 </head>

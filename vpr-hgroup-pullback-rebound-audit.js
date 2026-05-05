@@ -509,6 +509,18 @@ footer.foot strong { color: #fde68a; }
   .tbl-wrap { overflow-x: auto !important; }
   .col-mobile-hide,
   table.list thead th.col-mobile-hide { display: none; }
+  table.cmp {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  table.cmp thead, table.cmp tbody {
+    display: table;
+    width: max-content;
+    min-width: 100%;
+  }
 }
 </style>
 </head>
