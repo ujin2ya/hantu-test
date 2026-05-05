@@ -23,6 +23,7 @@ require('dotenv').config({ quiet: true });
 const fs = require('fs');
 const path = require('path');
 const ps = require('./pattern-screener');
+const vprAnalyzer = require('./vpr-analyzer');
 
 const ROOT = __dirname;
 const LONG_CACHE_DIR = path.join(ROOT, 'cache', 'stock-charts-long');
@@ -429,6 +430,28 @@ for (let fi = 0; fi < files.length; fi++) {
     }
   }
 
+  // ─── VPR (Volume Pullback Rebound) 후속 태그 — BREAKOUT_SUCCESS 전용 보조 ───
+  // QVA/VVI/H그룹 정의를 변경하지 않고, 돌파 성공 후보에 한해 VPR 후속 상태만 참고 태그로 부착.
+  // VPR은 매수확정 신호가 아님. 데이터 부족(daysFromBreakout=0)이면 DATA_INSUFFICIENT.
+  let vpr = null;
+  let vprConflictNote = null;
+  if (mainStage === 'BREAKOUT_SUCCESS' && breakoutInfo && breakoutIdx != null) {
+    try {
+      vpr = vprAnalyzer.analyzeVPR({
+        entryIdx: breakoutIdx,
+        vviHigh: breakoutInfo.vviHigh,
+        vviClose: breakoutInfo.vviClose,
+        vviLow: breakoutInfo.vviLow,
+        qvaSignalPrice: signalPrice,
+        entryPrice: breakoutInfo.entryPrice1Pct,
+      }, rows);
+      // 화면 상태와 VPR이 충돌하면 보충 한 줄 해석을 만든다.
+      vprConflictNote = vprAnalyzer.buildConflictNote(judgmentStatus, vpr);
+    } catch (e) {
+      vpr = null;
+    }
+  }
+
   // ─── 보조 태그 ───
   const auxTags = [];
   const currentClose = todayRow.close;
@@ -507,6 +530,12 @@ for (let fi = 0; fi < files.length; fi++) {
     daysFromBreakout,
     currentReturnFromEntry: round2(currentReturnFromEntry),
     judgmentStatus,
+
+    // VPR 후속 태그 (BREAKOUT_SUCCESS 전용 보조 — 매수확정 신호 아님)
+    vprStatus: vpr?.result?.vprStatus || null,
+    vprLabel: vpr?.result?.vprLabel || null,
+    vprConflictNote,
+    vpr,
 
     mainStage,
     stageReason,
@@ -1366,6 +1395,10 @@ const jsonOut = {
     judgmentOrder,
     judgmentLabels,
     judgmentDescriptions,
+    vprOrder: ['STRONG_VPR_SUCCESS', 'CLASSIC_VPR_SUCCESS', 'WEAK_VPR_REBOUND', 'PULLBACK_PENDING', 'NO_PULLBACK_RUNAWAY', 'REBOUND_FAIL', 'STRUCTURAL_BREAK', 'DATA_INSUFFICIENT'],
+    vprLabels: vprAnalyzer.VPR_LABELS,
+    vprDescriptions: vprAnalyzer.VPR_DESCRIPTIONS,
+    vprManagementNote: vprAnalyzer.MANAGEMENT_NOTE,
     generatedAt: new Date().toISOString(),
   },
   summary,
@@ -1502,6 +1535,14 @@ const htmlTemplate = `<!DOCTYPE html>
   .badge.j-PULLBACK_WAIT { background: #5c2c0f; color: #fb923c; }
   .badge.j-MANAGEMENT    { background: #4c1d95; color: #c4b5fd; }
   .badge.j-BREAKDOWN_WEAK{ background: #4c1d1d; color: #fca5a5; }
+  .badge.vpr-STRONG_VPR_SUCCESS  { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; font-weight: 600; }
+  .badge.vpr-CLASSIC_VPR_SUCCESS { background: #134e4a; color: #5eead4; }
+  .badge.vpr-WEAK_VPR_REBOUND    { background: #422006; color: #fde047; border: 1px solid #ca8a04; }
+  .badge.vpr-PULLBACK_PENDING    { background: #312e81; color: #c7d2fe; }
+  .badge.vpr-NO_PULLBACK_RUNAWAY { background: #1e3a8a; color: #93c5fd; }
+  .badge.vpr-REBOUND_FAIL        { background: #7f1d1d; color: #fca5a5; }
+  .badge.vpr-STRUCTURAL_BREAK    { background: #7c2d12; color: #fdba74; border: 1px solid #f97316; font-weight: 600; }
+  .badge.vpr-DATA_INSUFFICIENT   { background: #475569; color: #cbd5e1; }
   .section-footer { color: #94a3b8; font-size: 12px; line-height: 1.6; padding: 10px 14px; background: #1e293b; border-radius: 6px; border-left: 3px solid #f59e0b; margin-top: -8px; margin-bottom: 14px; }
   .badge.tag-LOW_RISING { background: #14532d; color: #6ee7b7; }
   .badge.tag-VALUE_REACTIVATION { background: #422006; color: #fbbf24; }
@@ -1865,6 +1906,25 @@ const COLS_BY_STAGE = {
       const lbl = DATA.meta.judgmentLabels[j] || j;
       const desc = DATA.meta.judgmentDescriptions[j] || '';
       return '<span class="badge j-' + j + '" title="' + desc.replace(/"/g, '&quot;') + '">' + lbl + '</span>';
+    }},
+    { key: 'vprStatus', label: 'VPR 후속 태그', txt: true, render: c => {
+      const v = c.vprStatus;
+      if (!v) return '<span class="muted">-</span>';
+      const lbl = (DATA.meta.vprLabels && DATA.meta.vprLabels[v]) || v;
+      let desc = (DATA.meta.vprDescriptions && DATA.meta.vprDescriptions[v]) || '';
+      // 관리 구간이면 추가 안내 메모 부착
+      if (c.judgmentStatus === 'MANAGEMENT' && DATA.meta.vprManagementNote) {
+        desc = (desc ? desc + ' ' : '') + DATA.meta.vprManagementNote;
+      }
+      // 화면 상태와 충돌하면 보충 한 줄을 tooltip + 셀 보조 텍스트로 표시
+      if (c.vprConflictNote) {
+        desc = (desc ? desc + ' ' : '') + c.vprConflictNote;
+      }
+      const badge = '<span class="badge vpr-' + v + '" title="' + desc.replace(/"/g, '&quot;') + '">' + lbl + '</span>';
+      const conflictHtml = c.vprConflictNote
+        ? '<div style="font-size:10px;color:#94a3b8;margin-top:2px;line-height:1.3;white-space:normal;max-width:240px;">' + c.vprConflictNote + '</div>'
+        : '';
+      return badge + conflictHtml;
     }},
     { key: 'name', label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기 (AI 뉴스 분석 포함, 첫 조회 10~30초 소요)"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
     { key: 'breakoutDate', label: '돌파일', txt: true, render: c => fmtDate(c.breakoutDate) + ' <span class="muted">D+' + (c.daysFromBreakout ?? 0) + '</span>' },

@@ -22,12 +22,13 @@ jobs:
           KIS_APP_KEY: ${{ secrets.KIS_APP_KEY }}
           KIS_APP_SECRET: ${{ secrets.KIS_APP_SECRET }}
           KIS_BASE_URL: ${{ secrets.KIS_BASE_URL }}
+          PRIVATE_SITE_TOKEN: ${{ secrets.PRIVATE_SITE_TOKEN }}
         with:
           host: ${{ secrets.SSH_HOST }}
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: GEMINI_API_KEY,DART_API_KEY,KIS_APP_KEY,KIS_APP_SECRET,KIS_BASE_URL
+          envs: GEMINI_API_KEY,DART_API_KEY,KIS_APP_KEY,KIS_APP_SECRET,KIS_BASE_URL,PRIVATE_SITE_TOKEN
           script_stop: true
           script: |
             set -ex
@@ -58,6 +59,11 @@ jobs:
             upsert_env KIS_BASE_URL "$KIS_BASE_URL"
             # 시드 시총 상한 9천억 (서울반도체 등 8천억대 종목 포함)
             upsert_env PATTERN_MAX_MARKETCAP "900000000000"
+            # 비공개 토큰 게이트 — secret 미설정 시 upsert_env 가 빈 값이라 case "" 로 skip,
+            # 기존 .env 의 PRIVATE_SITE_TOKEN 은 그대로 유지됨.
+            upsert_env PRIVATE_SITE_TOKEN "$PRIVATE_SITE_TOKEN"
+            # 운영 환경 명시 — PRIVATE_SITE_TOKEN 게이트는 NODE_ENV=production 일 때만 활성.
+            upsert_env NODE_ENV "production"
             # PM2 강제 재시작 — restart 가 부분 fail 해서 옛 process 가 살아남는 경우 방지.
             # delete 후 start 하면 어떤 상태든 깨끗하게 새 코드 로딩 (1~2초 downtime, 폐쇄형이라 OK).
             pm2 delete hantu-test 2>/dev/null || true

@@ -92,6 +92,195 @@ const CONFIG = {
 if (args['high-min']) CONFIG.NORMAL_HIGH_RETURN_MIN = parseFloat(args['high-min']);
 if (args['high-max']) CONFIG.NORMAL_HIGH_RETURN_MAX = parseFloat(args['high-max']);
 
+// ─────────────────────── 시총 대비 들어온 돈 구간 ───────────────────────
+// bms-value-ratio-bucket-audit 결과를 단순 6구간으로 정리한 BMS 기본 해석.
+// 등급(A/B/C) 로직은 그대로 유지하되, 0~5%/80%+ 구간만 A 강등 적용.
+const VALUE_RATIO_GROUPS = [
+  {
+    key: 'insufficient_0_5', min: 0, max: 5,
+    label: '유입 부족', role: 'BMS 제외/약함',
+    explanation: '상승 전 들어온 돈이 시총 대비 5% 미만으로 매우 적은 사례입니다. BMS 정제 사례 중에서도 드물게 나타난 예외 구간으로, BMS 핵심으로 보기 어렵습니다.',
+  },
+  {
+    key: 'support_5_10', min: 5, max: 10,
+    label: '초기 유입 참고', role: 'BMS 보조',
+    explanation: '상승 전 들어온 돈은 많지 않지만, 정석 사례가 일부 나온 초기 유입 구간입니다. 보조 참고용으로 둡니다.',
+  },
+  {
+    key: 'core_10_20', min: 10, max: 20,
+    label: '핵심 구간', role: 'BMS 핵심',
+    explanation: '상승 전 20거래일 동안 시총 대비 10~20%의 거래대금이 지나간, BMS 정제 사례가 가장 많이 몰린 중심 구간입니다.',
+  },
+  {
+    key: 'core_20_40', min: 20, max: 40,
+    label: '강한 핵심 구간', role: 'BMS 핵심',
+    explanation: '시총 대비 20~40%의 거래대금이 지나간 강한 유입 구간입니다. 평균 상승률이 가장 좋게 나타난 구간입니다.',
+  },
+  {
+    key: 'caution_40_80', min: 40, max: 80,
+    label: '거래 과다 주의', role: '주의',
+    explanation: '상승 전 거래대금이 매우 많이 지나간 구간입니다. 움직임은 빠를 수 있지만 오른 뒤 흔들림도 커질 수 있습니다.',
+  },
+  {
+    key: 'overheat_80_plus', min: 80, max: Infinity,
+    label: '과열 가능', role: '강한 주의',
+    explanation: '시총을 넘는 수준의 거래대금이 지나간 과열 가능 구간입니다. 빠르게 오를 수 있지만 흔들림이 크고 BMS 핵심으로 보기 어렵습니다.',
+  },
+];
+const VALUE_RATIO_NO_DATA = {
+  key: 'no_data',
+  label: '데이터 없음', role: '판정 불가',
+  explanation: '시총 또는 거래대금 데이터가 부족해 구간 판정이 불가능합니다.',
+};
+
+function assignValueRatioGroup(w) {
+  const r = w.analysis?.preAccumulation?.accumulatedValueRatio;
+  if (r == null || !isFinite(r)) {
+    return {
+      preAccumulationRatio: null,
+      groupKey: VALUE_RATIO_NO_DATA.key,
+      groupLabel: VALUE_RATIO_NO_DATA.label,
+      groupRole: VALUE_RATIO_NO_DATA.role,
+      explanation: VALUE_RATIO_NO_DATA.explanation,
+    };
+  }
+  for (const g of VALUE_RATIO_GROUPS) {
+    if (r >= g.min && r < g.max) {
+      return {
+        preAccumulationRatio: r,
+        groupKey: g.key, groupLabel: g.label, groupRole: g.role,
+        explanation: g.explanation,
+      };
+    }
+  }
+  return {
+    preAccumulationRatio: r,
+    groupKey: VALUE_RATIO_NO_DATA.key,
+    groupLabel: VALUE_RATIO_NO_DATA.label,
+    groupRole: VALUE_RATIO_NO_DATA.role,
+    explanation: VALUE_RATIO_NO_DATA.explanation,
+  };
+}
+
+// ─────────────────────── 정석/강한 BMS 핵심 조건 ───────────────────────
+// bms-core-condition-overlap-audit 결과: 들어온 돈 + 가격 위치 두 조건만으로
+// A+B(47%)와 C(13%) 사이에 3.65× 차별력을 확인. 단순 핵심 태그로 정제 보고서에 추가.
+const CORE_CONDITION = {
+  CLASSIC: {
+    label: '정석 BMS 조건',
+    description: '상승 전 거래대금이 적당히 지나갔고, 주가는 저점에서 어느 정도 회복했지만 아직 고점까지 공간이 남아 있는 조건입니다.',
+    valueRatioMin: 5,  valueRatioMax: 40,
+    low60Min: 10,      low60Max: 45,
+    high60Min: -40,    high60Max: -10,
+  },
+  STRONG: {
+    label: '강한 BMS 조건',
+    description: '상승 전 거래대금이 BMS 중심 구간에 있고, 가격 위치도 저점 회복·고점 여유 조건에 들어오는 더 엄격한 조건입니다.',
+    valueRatioMin: 10, valueRatioMax: 40,
+    low60Min: 10,      low60Max: 45,
+    high60Min: -40,    high60Max: -10,
+  },
+};
+
+function checkRule(rule, vRatio, lf, hf) {
+  const valueRatio = vRatio != null && isFinite(vRatio) && vRatio >= rule.valueRatioMin && vRatio <= rule.valueRatioMax;
+  const lowPosition = lf != null && isFinite(lf) && lf >= rule.low60Min && lf <= rule.low60Max;
+  const highPosition = hf != null && isFinite(hf) && hf >= rule.high60Min && hf <= rule.high60Max;
+  return { valueRatio, lowPosition, highPosition, matches: valueRatio && lowPosition && highPosition };
+}
+
+function getFailedReasons(rule, vRatio, lf, hf) {
+  const reasons = [];
+  if (vRatio == null || !isFinite(vRatio)) reasons.push('데이터 부족 (들어온 돈)');
+  else if (vRatio < rule.valueRatioMin) reasons.push(`들어온 돈 부족 (${vRatio}% < ${rule.valueRatioMin}%)`);
+  else if (vRatio > rule.valueRatioMax) reasons.push(`들어온 돈 과다 (${vRatio}% > ${rule.valueRatioMax}%)`);
+
+  if (lf == null || !isFinite(lf)) reasons.push('데이터 부족 (저점 대비)');
+  else if (lf < rule.low60Min) reasons.push(`저점 대비 너무 낮음 (+${lf}% < +${rule.low60Min}%)`);
+  else if (lf > rule.low60Max) reasons.push(`저점 대비 너무 높음 (+${lf}% > +${rule.low60Max}%)`);
+
+  if (hf == null || !isFinite(hf)) reasons.push('데이터 부족 (고점 대비)');
+  else if (hf < rule.high60Min) reasons.push(`고점과 너무 멂 (${hf}% < ${rule.high60Min}%)`);
+  else if (hf > rule.high60Max) reasons.push(`고점 근처 (${hf}% > ${rule.high60Max}%)`);
+  return reasons;
+}
+
+// 라벨/역할 (사용자 요구 우선순위)
+function buildCoreLabel(c) {
+  if (c.matchesStrongBms) {
+    return { label: '강한 BMS 조건 만족', role: '강한 핵심 조건', explanation: '시총 대비 들어온 돈과 가격 위치가 모두 강한 BMS 조건에 들어온 사례입니다.' };
+  }
+  if (c.matchesClassicBms) {
+    return { label: '정석 BMS 조건 만족', role: '핵심 조건', explanation: '상승 전 거래대금과 가격 위치가 정석 BMS 조건에 들어온 사례입니다.' };
+  }
+  const v = c.classicPass.valueRatio;
+  const l = c.classicPass.lowPosition;
+  const h = c.classicPass.highPosition;
+  const vR = c.preAccumulationRatio;
+  const lf = c.closeFromLow60;
+  const hf = c.closeFromHigh60;
+
+  // 가격 위치 둘 다 통과 + 들어온 돈만 부족 (5% 미만)
+  if (l && h && vR != null && vR < CORE_CONDITION.CLASSIC.valueRatioMin) {
+    return { label: '가격은 좋지만 들어온 돈 부족', role: '일부 조건만 만족', explanation: '저점 회복과 고점까지의 공간은 좋지만, 상승 전 시총 대비 거래대금이 부족했던 사례입니다.' };
+  }
+  // 들어온 돈은 정석 안에 있는데 가격 위치 일부 이탈
+  if (v && (!l || !h)) {
+    return { label: '들어온 돈은 좋지만 가격 위치 이탈', role: '일부 조건만 만족', explanation: '상승 전 거래대금은 적당히 지나갔지만, 가격 위치가 정석 BMS 조건에서 벗어난 사례입니다.' };
+  }
+  // 거래 과다 주의 (40% 초과)
+  if (vR != null && vR > CORE_CONDITION.CLASSIC.valueRatioMax) {
+    return { label: '거래 과다 주의', role: '주의', explanation: '상승 전 거래대금이 너무 많이 지나간 구간입니다. 빠르게 움직일 수 있지만 오른 뒤 흔들림이 커질 수 있습니다.' };
+  }
+  // 저점 근처 힘 확인 부족 (저점 대비 < 10)
+  if (lf != null && lf < CORE_CONDITION.CLASSIC.low60Min) {
+    return { label: '저점 근처 힘 확인 부족', role: '주의', explanation: '상승 시작점이 아직 저점 근처라 힘이 충분히 확인되지 않은 사례입니다.' };
+  }
+  // 고점 근처 주의 (고점 대비 > -10)
+  if (hf != null && hf > CORE_CONDITION.CLASSIC.high60Max) {
+    return { label: '고점 근처 주의', role: '주의', explanation: '상승 시작점이 최근 고점에 가까워 추격 위험이나 흔들림이 커질 수 있는 사례입니다.' };
+  }
+  return { label: '조건 미충족', role: '조건 외', explanation: '정석 BMS 조건에는 들어오지 않는 사례입니다.' };
+}
+
+// 라벨 → labelSummary key 매핑
+function labelKeyOf(label) {
+  if (label === '강한 BMS 조건 만족') return 'strongCore';
+  if (label === '정석 BMS 조건 만족') return 'classicCore';
+  if (label === '가격은 좋지만 들어온 돈 부족') return 'goodPriceLowValue';
+  if (label === '들어온 돈은 좋지만 가격 위치 이탈') return 'goodValueBadPrice';
+  if (label === '거래 과다 주의') return 'overValueCaution';
+  if (label === '저점 근처 힘 확인 부족') return 'lowBaseWeak';
+  if (label === '고점 근처 주의') return 'nearHighCaution';
+  return 'noMatch';
+}
+
+function computeCoreCondition(w) {
+  const a = w.analysis || {};
+  const vRatio = a.preAccumulation?.accumulatedValueRatio;
+  const lf = a.pricePosition?.closeFromLow60;
+  const hf = a.pricePosition?.closeFromHigh60;
+  const classicPass = checkRule(CORE_CONDITION.CLASSIC, vRatio, lf, hf);
+  const strongPass = checkRule(CORE_CONDITION.STRONG, vRatio, lf, hf);
+  const c = {
+    preAccumulationRatio: vRatio,
+    closeFromLow60: lf,
+    closeFromHigh60: hf,
+    matchesClassicBms: classicPass.matches,
+    matchesStrongBms: strongPass.matches,
+    classicPass: { valueRatio: classicPass.valueRatio, lowPosition: classicPass.lowPosition, highPosition: classicPass.highPosition },
+    strongPass: { valueRatio: strongPass.valueRatio, lowPosition: strongPass.lowPosition, highPosition: strongPass.highPosition },
+    failedClassicReasons: classicPass.matches ? [] : getFailedReasons(CORE_CONDITION.CLASSIC, vRatio, lf, hf),
+    failedStrongReasons: strongPass.matches ? [] : getFailedReasons(CORE_CONDITION.STRONG, vRatio, lf, hf),
+  };
+  const lbl = buildCoreLabel(c);
+  c.conditionLabel = lbl.label;
+  c.conditionRole = lbl.role;
+  c.explanation = lbl.explanation;
+  c.labelKey = labelKeyOf(lbl.label);
+  return c;
+}
+
 // ─────────────────────── 헬퍼 ───────────────────────
 
 function round(v, d) { if (v == null || !isFinite(v)) return null; return Math.round(v * Math.pow(10, d)) / Math.pow(10, d); }
@@ -305,6 +494,21 @@ function main() {
     }
   });
 
+  // 3-1) 시총 대비 상승 전 들어온 돈 구간 태그
+  // bms-value-ratio-bucket-audit 결과 기준: 10~40% = BMS 핵심, 5~10% = 보조, 40%+ = 주의, 0~5% = 약함
+  // 등급 로직은 그대로 두되 0~5% / 80%+ 만 A 등급에서 B로 강등 (핵심 구간 밖이라).
+  let demotedFromA = 0;
+  cleanWinners.forEach(w => {
+    w.valueRatioGroup = assignValueRatioGroup(w);
+    if (w._grade === 'A' && (w.valueRatioGroup.groupKey === 'insufficient_0_5' || w.valueRatioGroup.groupKey === 'overheat_80_plus')) {
+      w._grade = 'B';
+      w._gradeAdjustReason = '시총 대비 상승 전 들어온 돈이 BMS 핵심 구간 밖(' + w.valueRatioGroup.groupLabel + ')이라 B등급으로 조정';
+      demotedFromA++;
+    }
+    // BMS 핵심 조건 태그 — 등급/점수에 영향 주지 않고 분류 라벨만 추가
+    w.coreCondition = computeCoreCondition(w);
+  });
+
   // 정렬: cleanWinners는 grade(A>B>C) → maxHighReturn 내림차순
   const gradeOrder = { A: 1, B: 2, C: 3 };
   cleanWinners.sort((a, b) => {
@@ -378,15 +582,156 @@ function main() {
     console.log(`  ${k.padEnd(36)} ${JSON.stringify(v)}`);
   });
 
+  // 4-1) 시총 대비 들어온 돈 구간 요약
+  const valueRatioGroupSummary = {};
+  [...VALUE_RATIO_GROUPS, VALUE_RATIO_NO_DATA].forEach(g => {
+    const items = cleanWinners.filter(w => w.valueRatioGroup?.groupKey === g.key);
+    const high = items.map(w => w.maxHighReturn);
+    const close = items.map(w => w.maxCloseReturn);
+    const days = items.map(w => w.daysToPeak);
+    const drawdown = items.map(w => w.analysis?.postAnalysis?.drawdownFromPeakClose);
+    const aCount = items.filter(w => w._grade === 'A').length;
+    const bCount = items.filter(w => w._grade === 'B').length;
+    const cCount = items.filter(w => w._grade === 'C').length;
+    valueRatioGroupSummary[g.key] = {
+      label: g.label,
+      role: g.role,
+      explanation: g.explanation,
+      count: items.length,
+      rate: pct(items.length, cleanWinners.length),
+      avgHighReturn: avg(high),
+      medHighReturn: round(median(high.filter(v => v != null)), 2),
+      avgCloseReturn: avg(close),
+      avgDaysToPeak: avg(days),
+      avgDrawdown: avg(drawdown),
+      gradeACount: aCount,
+      gradeBCount: bCount,
+      gradeCCount: cCount,
+    };
+  });
+
+  // 화면 단순 카운트 (타일용)
+  const valueRatioRoleCount = {
+    core: cleanWinners.filter(w => w.valueRatioGroup?.groupRole === 'BMS 핵심').length,
+    support: cleanWinners.filter(w => w.valueRatioGroup?.groupRole === 'BMS 보조').length,
+    caution: cleanWinners.filter(w => w.valueRatioGroup?.groupRole === '주의').length,
+    overheat: cleanWinners.filter(w => w.valueRatioGroup?.groupRole === '강한 주의').length,
+    insufficient: cleanWinners.filter(w => w.valueRatioGroup?.groupRole === 'BMS 제외/약함').length,
+    noData: cleanWinners.filter(w => w.valueRatioGroup?.groupRole === '판정 불가').length,
+  };
+
+  console.log(`\n💰 시총 대비 상승 전 들어온 돈 구간 분포:`);
+  Object.entries(valueRatioGroupSummary).forEach(([k, v]) => {
+    if (!v.count) return;
+    console.log(`  ${v.label.padEnd(14)} (${k.padEnd(18)}) n=${String(v.count).padStart(4)} ${String(v.rate + '%').padStart(7)} 평균 +${v.avgHighReturn}% / 종가 +${v.avgCloseReturn}% / 소요 ${v.avgDaysToPeak}일 / 하락 ${v.avgDrawdown}% / A=${v.gradeACount} B=${v.gradeBCount} C=${v.gradeCCount}`);
+  });
+  if (demotedFromA > 0) {
+    console.log(`  (참고) 0~5% / 80%+ 구간이라 A→B 강등된 사례: ${demotedFromA}건`);
+  }
+
+  // 4-2) BMS 핵심 조건 (정석/강한) 태그 요약
+  function summarizeCondition(items) {
+    if (!items || items.length === 0) {
+      return { count: 0, rate: null, avgHighReturn: null, avgCloseReturn: null, avgDaysToPeak: null, avgDrawdown: null };
+    }
+    return {
+      count: items.length,
+      rate: pct(items.length, cleanWinners.length),
+      avgHighReturn: avg(items.map(w => w.maxHighReturn)),
+      avgCloseReturn: avg(items.map(w => w.maxCloseReturn)),
+      avgDaysToPeak: avg(items.map(w => w.daysToPeak)),
+      avgDrawdown: avg(items.map(w => w.analysis?.postAnalysis?.drawdownFromPeakClose)),
+    };
+  }
+
+  const classicMatchAll = cleanWinners.filter(w => w.coreCondition.matchesClassicBms);
+  const classicMissAll = cleanWinners.filter(w => !w.coreCondition.matchesClassicBms);
+  const strongMatchAll = cleanWinners.filter(w => w.coreCondition.matchesStrongBms);
+  const strongMissAll = cleanWinners.filter(w => !w.coreCondition.matchesStrongBms);
+
+  function gradeBlock(grade) {
+    const g = cleanWinners.filter(w => w._grade === grade);
+    const cm = g.filter(w => w.coreCondition.matchesClassicBms);
+    const sm = g.filter(w => w.coreCondition.matchesStrongBms);
+    return {
+      count: g.length,
+      classicMatchCount: cm.length,
+      classicMatchRate: pct(cm.length, g.length),
+      strongMatchCount: sm.length,
+      strongMatchRate: pct(sm.length, g.length),
+    };
+  }
+
+  const labelKeys = ['strongCore', 'classicCore', 'goodPriceLowValue', 'goodValueBadPrice', 'overValueCaution', 'lowBaseWeak', 'nearHighCaution', 'noMatch'];
+  const labelMeta = {
+    strongCore: { label: '강한 BMS 조건 만족', role: '강한 핵심 조건' },
+    classicCore: { label: '정석 BMS 조건 만족', role: '핵심 조건' },
+    goodPriceLowValue: { label: '가격은 좋지만 들어온 돈 부족', role: '일부 조건만 만족' },
+    goodValueBadPrice: { label: '들어온 돈은 좋지만 가격 위치 이탈', role: '일부 조건만 만족' },
+    overValueCaution: { label: '거래 과다 주의', role: '주의' },
+    lowBaseWeak: { label: '저점 근처 힘 확인 부족', role: '주의' },
+    nearHighCaution: { label: '고점 근처 주의', role: '주의' },
+    noMatch: { label: '조건 미충족', role: '조건 외' },
+  };
+  const labelSummary = {};
+  labelKeys.forEach(k => {
+    const items = cleanWinners.filter(w => w.coreCondition.labelKey === k);
+    labelSummary[k] = { ...labelMeta[k], ...summarizeCondition(items) };
+  });
+
+  const coreConditionSummary = {
+    classic: {
+      total: cleanWinners.length,
+      ...summarizeCondition(classicMatchAll),
+      missSummary: summarizeCondition(classicMissAll),
+    },
+    strong: {
+      total: cleanWinners.length,
+      ...summarizeCondition(strongMatchAll),
+      missSummary: summarizeCondition(strongMissAll),
+    },
+    byGrade: {
+      A: gradeBlock('A'),
+      B: gradeBlock('B'),
+      C: gradeBlock('C'),
+    },
+    labelSummary,
+    definitions: {
+      classic: {
+        label: CORE_CONDITION.CLASSIC.label,
+        description: CORE_CONDITION.CLASSIC.description,
+        rule: '들어온 돈 ' + CORE_CONDITION.CLASSIC.valueRatioMin + '~' + CORE_CONDITION.CLASSIC.valueRatioMax + '% AND 저점 +' + CORE_CONDITION.CLASSIC.low60Min + '~+' + CORE_CONDITION.CLASSIC.low60Max + '% AND 고점 ' + CORE_CONDITION.CLASSIC.high60Min + '~' + CORE_CONDITION.CLASSIC.high60Max + '%',
+      },
+      strong: {
+        label: CORE_CONDITION.STRONG.label,
+        description: CORE_CONDITION.STRONG.description,
+        rule: '들어온 돈 ' + CORE_CONDITION.STRONG.valueRatioMin + '~' + CORE_CONDITION.STRONG.valueRatioMax + '% AND 저점 +' + CORE_CONDITION.STRONG.low60Min + '~+' + CORE_CONDITION.STRONG.low60Max + '% AND 고점 ' + CORE_CONDITION.STRONG.high60Min + '~' + CORE_CONDITION.STRONG.high60Max + '%',
+      },
+    },
+  };
+
+  console.log(`\n🎯 BMS 핵심 조건 태그:`);
+  console.log(`  정석 BMS 조건 만족: ${classicMatchAll.length}건 (${coreConditionSummary.classic.rate}%) — 평균 +${coreConditionSummary.classic.avgHighReturn}% / 흔들림 ${coreConditionSummary.classic.avgDrawdown}%`);
+  console.log(`  강한 BMS 조건 만족: ${strongMatchAll.length}건 (${coreConditionSummary.strong.rate}%) — 평균 +${coreConditionSummary.strong.avgHighReturn}% / 흔들림 ${coreConditionSummary.strong.avgDrawdown}%`);
+  console.log(`  등급별 정석 만족률: A=${coreConditionSummary.byGrade.A.classicMatchRate}% / B=${coreConditionSummary.byGrade.B.classicMatchRate}% / C=${coreConditionSummary.byGrade.C.classicMatchRate}%`);
+  console.log(`  등급별 강한 만족률: A=${coreConditionSummary.byGrade.A.strongMatchRate}% / B=${coreConditionSummary.byGrade.B.strongMatchRate}% / C=${coreConditionSummary.byGrade.C.strongMatchRate}%`);
+  console.log(`  라벨 분포:`);
+  labelKeys.forEach(k => {
+    const v = labelSummary[k];
+    if (!v.count) return;
+    console.log(`    ${v.label.padEnd(28)} ${String(v.count).padStart(4)}건 (${v.rate}%) 평균 +${v.avgHighReturn}% / 흔들림 ${v.avgDrawdown}%`);
+  });
+
   // 5) 출력
   const out = {
     meta: {
       version: 'bms-winner-quality-filter-v1',
       generatedAt: new Date().toISOString(),
       title: 'BMS 학습용 정상 상승 사례 정리 보고서',
-      purpose: '과거 +40% 사례 중 BMS가 배울 만한 정상 상승 사례만 추려낸다. 너무 빠른 폭등·신고가 근처·데이터 부족·박스권 너무 넓음 등 특수 케이스를 제외.',
-      nextStep: '다음 단계에서는 A/B 등급 정상 사례의 공통 조건을 기준으로 현재 종목 중 비슷한 준비 구간에 있는 종목을 찾는다 (bms-current-similarity-scan.js, 미작성).',
+      purpose: '과거 +40% 사례 중 BMS가 배울 만한 정상 상승 사례만 추려낸다. 너무 빠른 폭등·신고가 근처·데이터 부족·박스권 너무 넓음 등 특수 케이스를 제외. 각 사례의 시총 대비 상승 전 들어온 돈을 6구간(유입 부족/초기 유입/핵심/강한 핵심/거래 과다/과열)으로 태그한다.',
+      nextStep: 'BMS 본체는 winner-scan + winner-quality-filter 2단계로 단순하게 유지. 시총 대비 들어온 돈 구간별 성격은 별도 감사 보고서(/bms-value-ratio-audit)에서 확인.',
       inputFile: 'reports/bms-winner-scan-result.json',
+      valueRatioBuckets: 'BMS 핵심: 10~40% / 보조: 5~10% / 주의: 40% 이상 / 약함: 5% 미만',
     },
     config: CONFIG,
     summary,
@@ -397,6 +742,13 @@ function main() {
       excluded: { count: excludedWinners.length, label: '학습에 쓰면 안 되는 사례' },
     },
     exclusionReasonSummary,
+    valueRatioGroupSummary,
+    valueRatioRoleCount,
+    valueRatioGradeAdjustment: {
+      demotedFromA,
+      reason: '0~5% (유입 부족) 또는 80%+ (과열 가능) 구간은 BMS 핵심 구간 밖이라 A 등급에서 B로 조정',
+    },
+    coreConditionSummary,
     cleanWinners,
     excludedWinners,
     duplicateSummary: {
@@ -406,6 +758,13 @@ function main() {
     },
     patternSummary,
     allCleanSummary,
+    dataLimit: [
+      '시총 대비 상승 전 들어온 돈은 순매수금액이 아니라 거래대금 기준입니다. 실제 매수금액과 매도금액이 분리된 데이터가 없으므로, 이 값은 매집 확정 지표가 아니라 상승 전 시장에서 돈이 얼마나 지나갔는지를 보는 참고 지표입니다.',
+      '가격 위치는 최근 60거래일 고점/저점 기준입니다.',
+      '정석 BMS 조건은 과거 상승 사례에서 의미 있게 나타난 조건 조합입니다. 다만 현재 후보 선별 조건으로 바로 확정한 것은 아니며, 매수 신호가 아닙니다.',
+      '시총 데이터가 없거나 0인 종목은 구간 판정이 불가능해 "데이터 없음"으로 분류됩니다.',
+      '이 보고서는 매수 신호가 아니라 BMS 학습용 정상 상승 사례를 추리는 정제 보고서입니다.',
+    ],
   };
 
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
@@ -521,6 +880,60 @@ table.list tbody tr.row td.col-name .grade-A { background: #047857; color: #d1fa
 table.list tbody tr.row td.col-name .grade-B { background: #1e40af; color: #dbeafe; }
 table.list tbody tr.row td.col-name .grade-C { background: #92400e; color: #fef3c7; }
 table.list tbody tr.row td.col-name .grade-X { background: #7f1d1d; color: #fee2e2; }
+
+/* 시총 대비 들어온 돈 구간 pill */
+.vr-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.vr-insufficient_0_5 { background: #475569; color: #cbd5e1; }
+.vr-support_5_10     { background: #1e3a8a; color: #93c5fd; }
+.vr-core_10_20       { background: #14532d; color: #a7f3d0; }
+.vr-core_20_40       { background: #064e3b; color: #6ee7b7; }
+.vr-caution_40_80    { background: #6d28d9; color: #ddd6fe; }
+.vr-overheat_80_plus { background: #7f1d1d; color: #fca5a5; }
+.vr-no_data          { background: #334155; color: #94a3b8; }
+.vr-role { font-size: 10px; color: #94a3b8; margin-left: 6px; }
+.big-tile.vr-core { border-left: 4px solid #10b981; }
+.big-tile.vr-core .value { color: #6ee7b7; }
+.big-tile.vr-support { border-left: 4px solid #3b82f6; }
+.big-tile.vr-support .value { color: #93c5fd; }
+.big-tile.vr-caution { border-left: 4px solid #a78bfa; }
+.big-tile.vr-caution .value { color: #ddd6fe; }
+.big-tile.vr-overheat { border-left: 4px solid #ef4444; }
+.big-tile.vr-overheat .value { color: #fca5a5; }
+.big-tile.vr-insufficient { border-left: 4px solid #64748b; }
+.big-tile.vr-insufficient .value { color: #cbd5e1; }
+table.cmp-vr { width: 100%; border-collapse: collapse; font-size: 12px; background: #1e293b; border-radius: 8px; overflow: hidden; font-variant-numeric: tabular-nums; margin-bottom: 14px; }
+table.cmp-vr thead th { background: #0f172a; color: #94a3b8; font-weight: 600; padding: 9px 12px; border-bottom: 1px solid #334155; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; text-align: right; }
+table.cmp-vr thead th:first-child, table.cmp-vr thead th:nth-child(2) { text-align: left; }
+table.cmp-vr tbody td { padding: 8px 12px; border-bottom: 1px solid #334155; text-align: right; font-variant-numeric: tabular-nums; }
+table.cmp-vr tbody td:first-child, table.cmp-vr tbody td:nth-child(2) { text-align: left; color: #cbd5e1; }
+table.cmp-vr tbody tr:hover td { background: #273549; }
+.row-vr-core td { background: rgba(16, 185, 129, 0.10) !important; }
+.row-vr-overheat td { background: rgba(239, 68, 68, 0.10) !important; }
+
+/* BMS 핵심 조건 태그 */
+.cond-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.cond-strong { background: #115e59; color: #99f6e4; }
+.cond-classic { background: #14532d; color: #a7f3d0; }
+.cond-partial { background: #1e40af; color: #dbeafe; }
+.cond-warn { background: #92400e; color: #fde047; }
+.cond-out { background: #475569; color: #cbd5e1; }
+.pass-yes { color: #6ee7b7; font-weight: 700; }
+.pass-no  { color: #fca5a5; font-weight: 700; }
+.big-tile.cc-strong { border-left: 4px solid #14b8a6; }
+.big-tile.cc-strong .value { color: #5eead4; }
+.big-tile.cc-classic { border-left: 4px solid #10b981; }
+.big-tile.cc-classic .value { color: #6ee7b7; }
+.big-tile.cc-warn { border-left: 4px solid #ef4444; }
+.big-tile.cc-warn .value { color: #fca5a5; }
+table.cmp-cc { width: 100%; border-collapse: collapse; font-size: 12px; background: #1e293b; border-radius: 8px; overflow: hidden; font-variant-numeric: tabular-nums; margin-bottom: 14px; }
+table.cmp-cc thead th { background: #0f172a; color: #94a3b8; font-weight: 600; padding: 9px 12px; border-bottom: 1px solid #334155; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; text-align: right; }
+table.cmp-cc thead th:first-child, table.cmp-cc thead th:nth-child(2) { text-align: left; }
+table.cmp-cc tbody td { padding: 8px 12px; border-bottom: 1px solid #334155; text-align: right; font-variant-numeric: tabular-nums; }
+table.cmp-cc tbody td:first-child, table.cmp-cc tbody td:nth-child(2) { text-align: left; color: #cbd5e1; }
+table.cmp-cc tbody tr:hover td { background: #273549; }
+.row-cc-core td { background: rgba(16, 185, 129, 0.18) !important; }
+.row-cc-strong td { background: rgba(20, 184, 166, 0.18) !important; }
+.row-cc-warn td { background: rgba(239, 68, 68, 0.10) !important; }
 table.list tbody tr.row:nth-child(odd) { background: #1c2942; }
 table.list tbody tr.row:nth-child(odd):hover { background: #273549; }
 table.list tbody tr.row.expanded, table.list tbody tr.row.expanded:nth-child(odd) { background: #1e3a5f; }
@@ -579,6 +992,23 @@ footer.foot strong { color: #fde68a; }
 <h2>📊 정리 요약</h2>
 <div class="big-summary" id="big-summary"></div>
 
+<h2>💰 시총 대비 상승 전 들어온 돈 구간</h2>
+<p style="color:#94a3b8;font-size:12px;line-height:1.6;">
+  이 구간은 BMS 정제 상승 사례들이 크게 오르기 전 20거래일 동안 시총 대비 어느 정도 거래대금이 지나갔는지를 보여줍니다.
+  BMS는 <strong style="color:#6ee7b7;">10~40% 구간을 핵심</strong>으로 보고, <strong style="color:#93c5fd;">5~10%는 초기 유입 참고</strong>, <strong style="color:#fca5a5;">40% 이상은 거래 과다 주의</strong>로 봅니다.
+  <span style="color:#fde68a;">단순 분류 태그이며 BMS 본체 필터로는 사용하지 않습니다.</span>
+</p>
+<div id="value-ratio-section"></div>
+
+<h2>🎯 BMS 핵심 조건 태그</h2>
+<p style="color:#94a3b8;font-size:12px;line-height:1.6;">
+  정석 BMS 조건은 <strong style="color:#a7f3d0;">시총 대비 상승 전 들어온 돈</strong>과 <strong style="color:#a7f3d0;">상승 시작점 가격 위치</strong>를 함께 보는 단순 조건입니다.
+  A+B 정상 상승 사례에서는 C등급보다 약 <strong style="color:#fde68a;">3.65배 더 자주</strong> 나타났습니다.
+  <span style="color:#fde68a;">조건 태그일 뿐 BMS 본체 필터가 아닙니다 — 매수 신호도 아닙니다.</span>
+</p>
+<div id="core-cond-def"></div>
+<div id="core-cond-section"></div>
+
 <h2>🚫 제외 사유 TOP</h2>
 <div class="exclusion-reason-list" id="exclusion-reason-list"></div>
 
@@ -599,6 +1029,10 @@ footer.foot strong { color: #fde68a; }
         <th class="col-mobile-hide">정점일</th>
         <th class="numeric col-mobile-hide">시총</th>
         <th class="numeric">시총 대비 들어온 돈</th>
+        <th>들어온 돈 구간</th>
+        <th class="col-mobile-hide">BMS 구간 역할</th>
+        <th>BMS 핵심 조건</th>
+        <th class="col-mobile-hide">조건 역할</th>
         <th class="numeric col-mobile-hide">박스권 폭</th>
         <th class="numeric col-mobile-hide">저점 대비 위치</th>
         <th class="col-mobile-hide">이평선 정렬</th>
@@ -609,8 +1043,11 @@ footer.foot strong { color: #fde68a; }
 </div>
 
 <footer class="foot">
-  <strong>다음 단계 예고:</strong> A등급/B등급 상승 사례들의 공통 조건을 기준으로
-  현재 종목 중 비슷한 준비 구간에 있는 종목을 찾습니다 (별도 파일에서 진행).
+  <strong>BMS 본체 범위:</strong> winner-scan + winner-quality-filter 2단계로만 단순하게 유지합니다.
+  시총 대비 들어온 돈은 거래대금 기준이며 실제 순매수금액이 아닙니다 — 매집 확정 지표가 아니라 상승 전 시장에서 돈이 얼마나 지나갔는지를 보는 참고 지표입니다.
+  구간별 성격은 별도 감사 보고서(<code>/bms-value-ratio-audit</code>)에서 깊이 있게 확인하세요.
+  <br><br>
+  <small style="color:#64748b;" id="data-limit-text"></small>
 </footer>
 
 <script id="report-data" type="application/json">__JSON_DATA__</script>
@@ -627,6 +1064,7 @@ footer.foot strong { color: #fde68a; }
   function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
   function fmtNum(v, d) { if (v == null || !isFinite(v)) return '-'; return Number(v).toFixed(d == null ? 1 : d); }
   function fmtPct(v, d) { if (v == null || !isFinite(v)) return '-'; return (v >= 0 ? '+' : '') + Number(v).toFixed(d == null ? 1 : d) + '%'; }
+  function fmtPctRaw(v, d) { if (v == null || !isFinite(v)) return '-'; return Number(v).toFixed(d == null ? 1 : d) + '%'; }
   function fmtMc(v) { if (!v) return '-'; const e = v / 1e8; if (e >= 10000) return (e/10000).toFixed(1) + '조'; return Math.round(e) + '억'; }
   function fmtValue(v) { if (!v || !isFinite(v)) return '-'; const e = v / 1e8; if (e >= 10000) return (e/10000).toFixed(1) + '조'; if (e >= 1) return e.toFixed(0) + '억'; return Math.round(v / 1e6) + '백만'; }
   function fmtDate(d) { return d && d.length === 8 ? d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8) : (d || '-'); }
@@ -639,9 +1077,17 @@ footer.foot strong { color: #fde68a; }
 
   document.getElementById('purpose-box').innerHTML =
     '<strong>🎯 목적:</strong> ' + escapeHtml(meta.purpose) +
-    '<br><br><strong>📌 다음 단계:</strong> ' + escapeHtml(meta.nextStep);
+    '<br><br><strong>📌 다음 단계:</strong> ' + escapeHtml(meta.nextStep) +
+    (meta.valueRatioBuckets ? '<br><strong>💰 들어온 돈 구간:</strong> ' + escapeHtml(meta.valueRatioBuckets) : '');
+
+  const dlEl = document.getElementById('data-limit-text');
+  if (dlEl && data.dataLimit) {
+    dlEl.innerHTML = '데이터 한계: ' + (data.dataLimit || []).map(l => '<br>&nbsp;&bull; ' + escapeHtml(l)).join('');
+  }
 
   // big tiles
+  const vrCount = data.valueRatioRoleCount || {};
+  const cc = data.coreConditionSummary || {};
   const tiles = [
     { label: '원본 상승 사례', value: summary.sourceTotalCount + '건', sub: '중복 포함', cls: '' },
     { label: '중복 제거 후 종목', value: summary.uniqueStockCount + '개', sub: '대표 사례 1개씩', cls: 'primary' },
@@ -649,6 +1095,15 @@ footer.foot strong { color: #fde68a; }
     { label: 'A등급', value: summary.gradeACount + '건', sub: '가장 참고하기 좋은', cls: 'A' },
     { label: 'B등급', value: summary.gradeBCount + '건', sub: '참고 가능', cls: 'B' },
     { label: 'C등급', value: summary.gradeCCount + '건', sub: '참고만', cls: 'C' },
+    { label: '🎯 정석 BMS 조건 만족', value: (cc.classic?.count || 0) + '건', sub: fmtPctRaw(cc.classic?.rate) + ' (전체 중)', cls: 'cc-classic' },
+    { label: '🎯 강한 BMS 조건 만족', value: (cc.strong?.count || 0) + '건', sub: fmtPctRaw(cc.strong?.rate) + ' (전체 중)', cls: 'cc-strong' },
+    { label: '정석 조건 평균 상승률', value: fmtPct(cc.classic?.avgHighReturn), sub: '미만족 ' + fmtPct(cc.classic?.missSummary?.avgHighReturn), cls: 'cc-classic' },
+    { label: '정석 조건 흔들림', value: fmtPctRaw(cc.classic?.avgDrawdown), sub: '미만족 ' + fmtPctRaw(cc.classic?.missSummary?.avgDrawdown), cls: 'cc-classic' },
+    { label: 'BMS 핵심 (10~40%)', value: (vrCount.core || 0) + '건', sub: '들어온 돈 핵심 구간', cls: 'vr-core' },
+    { label: 'BMS 보조 (5~10%)', value: (vrCount.support || 0) + '건', sub: '초기 유입 참고', cls: 'vr-support' },
+    { label: '주의 (40~80%)', value: (vrCount.caution || 0) + '건', sub: '거래 과다 주의', cls: 'vr-caution' },
+    { label: '과열 가능 (80%+)', value: (vrCount.overheat || 0) + '건', sub: '강한 주의', cls: 'vr-overheat' },
+    { label: '유입 부족 (0~5%)', value: (vrCount.insufficient || 0) + '건', sub: '핵심에서 제외', cls: 'vr-insufficient' },
     { label: '제외 사례', value: summary.excludedCount + '건', sub: '제외율 ' + summary.excludedRate + '%', cls: 'excluded' },
     { label: '정상 평균 상승률', value: fmtPct(summary.avgMaxHighReturn), sub: '중앙값 ' + fmtPct(summary.medMaxHighReturn), cls: '' },
     { label: '정상 평균 도달 소요', value: fmtNum(summary.avgDaysToPeak, 1) + '거래일', sub: '', cls: '' },
@@ -662,6 +1117,112 @@ footer.foot strong { color: #fde68a; }
     el.innerHTML = '<div class="label">' + t.label + '</div><div class="value">' + t.value + '</div>' + (t.sub ? '<div class="sub">' + t.sub + '</div>' : '');
     ts.appendChild(el);
   });
+
+  // 시총 대비 들어온 돈 구간 분포 (표)
+  const vrSummary = data.valueRatioGroupSummary || {};
+  const vrOrder = ['insufficient_0_5', 'support_5_10', 'core_10_20', 'core_20_40', 'caution_40_80', 'overheat_80_plus', 'no_data'];
+  let vrHtml = '<table class="cmp-vr"><thead><tr>' +
+    '<th>구간</th><th>의미</th><th>사례 수</th><th>비율</th><th>평균 상승률</th><th>평균 종가</th><th>평균 소요</th><th>오른뒤 흔들림</th><th>A/B/C</th>' +
+    '</tr></thead><tbody>';
+  vrOrder.forEach(k => {
+    const g = vrSummary[k];
+    if (!g || !g.count) return;
+    let cls = '';
+    if (k === 'core_10_20' || k === 'core_20_40') cls = 'row-vr-core';
+    if (k === 'overheat_80_plus') cls = 'row-vr-overheat';
+    vrHtml += '<tr class="' + cls + '">' +
+      '<td><span class="vr-pill vr-' + k + '">' + escapeHtml(g.label) + '</span></td>' +
+      '<td><span class="vr-role">' + escapeHtml(g.role) + '</span> · <span style="color:#94a3b8;font-size:11px;">' + escapeHtml(g.explanation) + '</span></td>' +
+      '<td>' + g.count + '건</td>' +
+      '<td>' + fmtNum(g.rate) + '%</td>' +
+      '<td class="cell-pos">' + fmtPct(g.avgHighReturn) + '</td>' +
+      '<td>' + fmtPct(g.avgCloseReturn) + '</td>' +
+      '<td>' + (g.avgDaysToPeak != null ? fmtNum(g.avgDaysToPeak, 1) + '일' : '-') + '</td>' +
+      '<td>' + (g.avgDrawdown != null ? fmtNum(g.avgDrawdown, 1) + '%' : '-') + '</td>' +
+      '<td>A=' + g.gradeACount + ' / B=' + g.gradeBCount + ' / C=' + g.gradeCCount + '</td>' +
+    '</tr>';
+  });
+  vrHtml += '</tbody></table>';
+  const adj = data.valueRatioGradeAdjustment || {};
+  if (adj.demotedFromA > 0) {
+    vrHtml += '<p style="color:#fde68a;font-size:11.5px;line-height:1.5;margin-top:6px;">📌 0~5% / 80%+ 구간이라 A등급에서 B등급으로 조정된 사례: <strong>' + adj.demotedFromA + '건</strong> · ' + escapeHtml(adj.reason) + '</p>';
+  }
+  document.getElementById('value-ratio-section').innerHTML = vrHtml;
+
+  // BMS 핵심 조건 섹션 (정의 + 라벨 분포 표 + 등급별 만족률)
+  const ccDef = (cc.definitions) || {};
+  document.getElementById('core-cond-def').innerHTML =
+    '<div style="background:#1e293b;border-left:4px solid #10b981;padding:10px 14px;border-radius:6px;margin-bottom:8px;line-height:1.6;">' +
+      '<strong style="color:#a7f3d0;">' + escapeHtml(ccDef.classic?.label || '정석 BMS 조건') + '</strong>' +
+      ' <span style="color:#94a3b8;">— ' + escapeHtml(ccDef.classic?.description || '') + '</span>' +
+      '<br><code style="background:#0f172a;color:#fde047;padding:2px 6px;border-radius:3px;font-size:11.5px;">' + escapeHtml(ccDef.classic?.rule || '') + '</code>' +
+    '</div>' +
+    '<div style="background:#1e293b;border-left:4px solid #14b8a6;padding:10px 14px;border-radius:6px;margin-bottom:14px;line-height:1.6;">' +
+      '<strong style="color:#99f6e4;">' + escapeHtml(ccDef.strong?.label || '강한 BMS 조건') + '</strong>' +
+      ' <span style="color:#94a3b8;">— ' + escapeHtml(ccDef.strong?.description || '') + '</span>' +
+      '<br><code style="background:#0f172a;color:#fde047;padding:2px 6px;border-radius:3px;font-size:11.5px;">' + escapeHtml(ccDef.strong?.rule || '') + '</code>' +
+    '</div>';
+
+  const labelOrder = ['strongCore', 'classicCore', 'goodPriceLowValue', 'goodValueBadPrice', 'overValueCaution', 'lowBaseWeak', 'nearHighCaution', 'noMatch'];
+  const labelExplain = {
+    strongCore: '시총 대비 들어온 돈도 BMS 중심 구간이고 가격 위치도 저점 회복·고점 여유 조건에 들어옴',
+    classicCore: '들어온 돈과 가격 위치가 정석 BMS 조건 안',
+    goodPriceLowValue: '가격 위치는 좋지만 상승 전 들어온 돈이 5% 미만',
+    goodValueBadPrice: '들어온 돈은 5~40% 안이지만 가격 위치 일부가 정석 범위 밖',
+    overValueCaution: '상승 전 거래대금 40% 초과 — 빠르지만 흔들림 큼',
+    lowBaseWeak: '저점 대비 +10% 미만 — 힘이 충분히 확인되지 않음',
+    nearHighCaution: '고점 대비 -10% 이내 — 고점 근처 추격 위험',
+    noMatch: '위 기준에 모두 들어가지 않음',
+  };
+  const lbls = (cc.labelSummary) || {};
+  let ccHtml = '<table class="cmp-cc"><thead><tr>' +
+    '<th>조건 태그</th><th>의미</th><th>사례 수</th><th>비율</th><th>평균 상승률</th><th>평균 종가 상승률</th><th>오른뒤 흔들림</th><th>해석</th>' +
+    '</tr></thead><tbody>';
+  labelOrder.forEach(k => {
+    const l = lbls[k];
+    if (!l || !l.count) return;
+    let cls = '';
+    if (k === 'strongCore') cls = 'row-cc-strong';
+    else if (k === 'classicCore') cls = 'row-cc-core';
+    else if (l.role === '주의') cls = 'row-cc-warn';
+    let condCls = 'cond-out';
+    if (l.role === '강한 핵심 조건') condCls = 'cond-strong';
+    else if (l.role === '핵심 조건') condCls = 'cond-classic';
+    else if (l.role === '주의') condCls = 'cond-warn';
+    else if (l.role === '일부 조건만 만족') condCls = 'cond-partial';
+    ccHtml += '<tr class="' + cls + '">' +
+      '<td><span class="cond-pill ' + condCls + '">' + escapeHtml(l.label) + '</span></td>' +
+      '<td style="font-size:11px;color:#94a3b8;">' + escapeHtml(labelExplain[k] || '') + '</td>' +
+      '<td>' + l.count + '건</td>' +
+      '<td>' + fmtPctRaw(l.rate) + '</td>' +
+      '<td class="cell-pos">' + fmtPct(l.avgHighReturn) + '</td>' +
+      '<td>' + fmtPct(l.avgCloseReturn) + '</td>' +
+      '<td class="cell-neg">' + fmtPctRaw(l.avgDrawdown) + '</td>' +
+      '<td style="font-size:11px;color:#cbd5e1;">' + escapeHtml(l.role) + '</td>' +
+    '</tr>';
+  });
+  ccHtml += '</tbody></table>';
+
+  // 등급별 만족률 보조 표
+  const bg = cc.byGrade || {};
+  ccHtml += '<table class="cmp-cc" style="margin-top:8px;"><thead><tr>' +
+    '<th>등급</th><th>n</th><th>정석 만족 수</th><th>정석 만족률</th><th>강한 만족 수</th><th>강한 만족률</th>' +
+    '</tr></thead><tbody>';
+  ['A', 'B', 'C'].forEach(k => {
+    const g = bg[k];
+    if (!g || !g.count) return;
+    ccHtml += '<tr>' +
+      '<td><span class="grade-badge grade-' + k + '" style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;">' + k + '</span></td>' +
+      '<td>' + g.count + '</td>' +
+      '<td>' + g.classicMatchCount + '건</td>' +
+      '<td class="cell-pos">' + fmtPctRaw(g.classicMatchRate) + '</td>' +
+      '<td>' + g.strongMatchCount + '건</td>' +
+      '<td class="cell-pos">' + fmtPctRaw(g.strongMatchRate) + '</td>' +
+    '</tr>';
+  });
+  ccHtml += '</tbody></table>';
+  ccHtml += '<p style="color:#fde68a;font-size:11.5px;line-height:1.5;margin-top:6px;">📌 A등급 정석 만족률이 C등급보다 높을수록 조건이 BMS 정상 사례를 잘 설명한다는 뜻입니다. 자세한 차별력 분석은 별도 감사 보고서(/bms-core-condition-audit)에서 확인.</p>';
+  document.getElementById('core-cond-section').innerHTML = ccHtml;
 
   // 제외 사유
   const erEl = document.getElementById('exclusion-reason-list');
@@ -747,6 +1308,18 @@ footer.foot strong { color: #fde68a; }
       const grade = w._grade || 'X';
       const tr = document.createElement('tr');
       tr.className = 'row';
+      const vrg = w.valueRatioGroup || {};
+      const vrKey = vrg.groupKey || 'no_data';
+      const vrLabel = vrg.groupLabel || '데이터 없음';
+      const vrRole = vrg.groupRole || '-';
+      const cc = w.coreCondition || {};
+      const ccLabel = cc.conditionLabel || '-';
+      const ccRole = cc.conditionRole || '-';
+      let ccCls = 'cond-out';
+      if (ccRole === '강한 핵심 조건') ccCls = 'cond-strong';
+      else if (ccRole === '핵심 조건') ccCls = 'cond-classic';
+      else if (ccRole === '주의') ccCls = 'cond-warn';
+      else if (ccRole === '일부 조건만 만족') ccCls = 'cond-partial';
       tr.innerHTML =
         '<td class="col-name">' +
           '<span class="grade-badge grade-' + grade + '">' + grade + '</span>' +
@@ -759,12 +1332,16 @@ footer.foot strong { color: #fde68a; }
         '<td class="col-mobile-hide">' + fmtDate(w.peakDate) + '</td>' +
         '<td class="numeric col-mobile-hide">' + fmtMc(w.marketCap) + '</td>' +
         '<td class="numeric">' + fmtPct(a.preAccumulation?.accumulatedValueRatio) + '</td>' +
+        '<td><span class="vr-pill vr-' + vrKey + '">' + escapeHtml(vrLabel) + '</span></td>' +
+        '<td class="col-mobile-hide" style="font-size:11px;color:#cbd5e1;">' + escapeHtml(vrRole) + '</td>' +
+        '<td><span class="cond-pill ' + ccCls + '">' + escapeHtml(ccLabel) + '</span></td>' +
+        '<td class="col-mobile-hide" style="font-size:11px;color:#cbd5e1;">' + escapeHtml(ccRole) + '</td>' +
         '<td class="numeric col-mobile-hide">' + fmtPct(a.boxAnalysis?.boxRangePct) + '</td>' +
         '<td class="numeric col-mobile-hide">' + fmtPct(a.pricePosition?.closeFromLow60) + '</td>' +
         '<td class="col-mobile-hide">' + (a.movingAverage?.arrangement || '-') + '</td>';
       const trd = document.createElement('tr');
       trd.className = 'detail';
-      trd.innerHTML = '<td colspan="10">' + buildDetailHtml(w) + '</td>';
+      trd.innerHTML = '<td colspan="14">' + buildDetailHtml(w) + '</td>';
       tr.addEventListener('click', () => {
         tr.classList.toggle('expanded');
         trd.classList.toggle('show');
@@ -784,13 +1361,55 @@ footer.foot strong { color: #fde68a; }
     const sz = a.supplyZone || {};
     const flagsHtml = (w._exclusionFlags || []).map(f => '<span class="flag-pill">' + escapeHtml(f) + '</span>').join('');
 
+    const vrg = w.valueRatioGroup || {};
+    const vrKey = vrg.groupKey || 'no_data';
+    const adjustNote = w._gradeAdjustReason ? '<p style="color:#fde68a;font-size:11px;">⚠️ ' + escapeHtml(w._gradeAdjustReason) + '</p>' : '';
+
     return '<div class="detail-grid">' +
       '<div class="detail-block">' +
         '<h4>판정 결과</h4>' +
         '<p>등급: <strong style="color:#67e8f9;">' + (w._grade || '제외') + '</strong></p>' +
         '<p>대표 사례 선택 사유: ' + escapeHtml(w._chosenReason || '-') + '</p>' +
         (flagsHtml ? '<p>제외 사유: ' + flagsHtml + '</p>' : '') +
+        adjustNote +
       '</div>' +
+      '<div class="detail-block">' +
+        '<h4>💰 시총 대비 상승 전 들어온 돈</h4>' +
+        '<div class="kv">' +
+          '<div class="k">시총 대비 들어온 돈</div><div class="v">' + fmtPct(vrg.preAccumulationRatio) + '</div>' +
+          '<div class="k">구간</div><div class="v"><span class="vr-pill vr-' + vrKey + '">' + escapeHtml(vrg.groupLabel || '-') + '</span></div>' +
+          '<div class="k">BMS 역할</div><div class="v">' + escapeHtml(vrg.groupRole || '-') + '</div>' +
+        '</div>' +
+        '<p style="color:#cbd5e1;font-size:11.5px;line-height:1.5;margin-top:6px;">' + escapeHtml(vrg.explanation || '') + '</p>' +
+      '</div>' +
+      (function(){
+        const c = w.coreCondition || {};
+        let cls2 = 'cond-out';
+        if (c.conditionRole === '강한 핵심 조건') cls2 = 'cond-strong';
+        else if (c.conditionRole === '핵심 조건') cls2 = 'cond-classic';
+        else if (c.conditionRole === '주의') cls2 = 'cond-warn';
+        else if (c.conditionRole === '일부 조건만 만족') cls2 = 'cond-partial';
+        const yes = '<span class="pass-yes">통과 ✓</span>';
+        const no  = '<span class="pass-no">미통과 ✗</span>';
+        const reasonsHtml = (arr) => (arr && arr.length > 0)
+          ? '<ul style="margin:4px 0 0 16px;color:#fca5a5;font-size:11px;">' + arr.map(r => '<li>' + escapeHtml(r) + '</li>').join('') + '</ul>'
+          : '<p style="color:#6ee7b7;font-size:11px;">실패 사유 없음 (조건 통과)</p>';
+        return '<div class="detail-block">' +
+          '<h4>🎯 BMS 핵심 조건</h4>' +
+          '<div class="kv">' +
+            '<div class="k">조건 라벨</div><div class="v"><span class="cond-pill ' + cls2 + '">' + escapeHtml(c.conditionLabel || '-') + '</span></div>' +
+            '<div class="k">조건 역할</div><div class="v">' + escapeHtml(c.conditionRole || '-') + '</div>' +
+            '<div class="k">정석 BMS 조건</div><div class="v">' + (c.matchesClassicBms ? yes : no) + '</div>' +
+            '<div class="k">강한 BMS 조건</div><div class="v">' + (c.matchesStrongBms ? yes : no) + '</div>' +
+            '<div class="k">시총 대비 들어온 돈</div><div class="v">' + fmtPct(c.preAccumulationRatio) + '</div>' +
+            '<div class="k">저점 대비 위치</div><div class="v">' + fmtPct(c.closeFromLow60) + '</div>' +
+            '<div class="k">고점까지 남은 공간</div><div class="v">' + fmtPct(c.closeFromHigh60) + '</div>' +
+          '</div>' +
+          '<p style="color:#cbd5e1;font-size:11.5px;line-height:1.5;margin-top:6px;">' + escapeHtml(c.explanation || '') + '</p>' +
+          '<p style="color:#94a3b8;font-size:11px;margin-top:6px;"><strong>정석 미충족 사유:</strong></p>' + reasonsHtml(c.failedClassicReasons) +
+          '<p style="color:#94a3b8;font-size:11px;margin-top:6px;"><strong>강한 미충족 사유:</strong></p>' + reasonsHtml(c.failedStrongReasons) +
+        '</div>';
+      })() +
       '<div class="detail-block">' +
         '<h4>① 상승 전 거래대금</h4>' +
         '<div class="kv">' +

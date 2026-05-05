@@ -1,0 +1,4707 @@
+{
+  "meta": {
+    "generatedAt": "2026-05-05T08:17:37.881Z",
+    "title": "VPR H그룹 장기 성숙 백테스트",
+    "purpose": "2026-01-01 ~ 2026-04-20 매일 QVA 보드를 재현해서 BREAKOUT_SUCCESS(H그룹)의 D+5 보드 상태와 D+10 성숙 상태가 H+5/H+10 성과와 어떤 관계인지 검증.",
+    "notice": "실시간 보드의 H그룹 노출 기간은 D+0~D+5로 유지하며, D+10은 VPR 성숙 검증에만 사용했습니다.",
+    "from": "20260101",
+    "to": "20260420",
+    "vprSource": "vpr-analyzer.js 재사용 (정의 변경 없음)",
+    "judgmentLabels": {
+      "REVIEW_OK": "진입가 근처",
+      "CHASE_CAUTION": "추격 주의",
+      "PULLBACK_WAIT": "눌림 대기",
+      "MANAGEMENT": "관리 구간",
+      "BREAKDOWN_WEAK": "돌파 악화"
+    },
+    "vprLabels": {
+      "STRONG_VPR_SUCCESS": "강한 VPR 성공",
+      "CLASSIC_VPR_SUCCESS": "VPR 성공",
+      "WEAK_VPR_REBOUND": "VPR 재돌파 약함",
+      "PULLBACK_PENDING": "VPR 대기",
+      "REBOUND_FAIL": "VPR 실패",
+      "STRUCTURAL_BREAK": "구조 훼손",
+      "NO_PULLBACK_RUNAWAY": "눌림 없이 상승",
+      "DATA_INSUFFICIENT": "데이터 부족"
+    },
+    "vprDescriptions": {
+      "STRONG_VPR_SUCCESS": "정상 눌림 후 돌파일 고가를 재돌파하고 종가가 유지된 강한 후속 확인 상태입니다.",
+      "CLASSIC_VPR_SUCCESS": "정상 눌림 후 기준 가격을 다시 회복하고 종가가 유지된 상태입니다.",
+      "WEAK_VPR_REBOUND": "눌림 후 기준 가격을 장중 재돌파했지만 종가 유지가 약한 상태입니다.",
+      "PULLBACK_PENDING": "돌파 성공 후 정상 눌림을 만들고 재돌파를 기다리는 상태입니다. 강한 신호 아님.",
+      "REBOUND_FAIL": "눌림 후 10거래일 안에 재돌파가 나오지 않은 상태입니다.",
+      "STRUCTURAL_BREAK": "기준 가격을 의미 있게 이탈해 돌파 구조가 약해진 상태입니다.",
+      "NO_PULLBACK_RUNAWAY": "돌파 성공 후 눌림 없이 상승이 이어진 상태입니다. 신규 진입은 추격 주의입니다.",
+      "DATA_INSUFFICIENT": "돌파일 이후 거래일이 부족해 VPR 분석이 어려운 상태입니다."
+    }
+  },
+  "config": {
+    "from": "20260101",
+    "to": "20260420",
+    "trackingDays": 20,
+    "recentBreakoutDays": 5,
+    "matureDays": 10,
+    "exitThresholdPct": -15,
+    "tradingDatesInRange": [
+      "20260102",
+      "20260105",
+      "20260106",
+      "20260107",
+      "20260108",
+      "20260109",
+      "20260112",
+      "20260113",
+      "20260114",
+      "20260115",
+      "20260116",
+      "20260119",
+      "20260120",
+      "20260121",
+      "20260122",
+      "20260123",
+      "20260126",
+      "20260127",
+      "20260128",
+      "20260129",
+      "20260130",
+      "20260202",
+      "20260203",
+      "20260204",
+      "20260205",
+      "20260206",
+      "20260209",
+      "20260210",
+      "20260211",
+      "20260212",
+      "20260213",
+      "20260219",
+      "20260220",
+      "20260223",
+      "20260224",
+      "20260225",
+      "20260226",
+      "20260227",
+      "20260303",
+      "20260304",
+      "20260305",
+      "20260306",
+      "20260309",
+      "20260310",
+      "20260311",
+      "20260312",
+      "20260313",
+      "20260316",
+      "20260317",
+      "20260318",
+      "20260319",
+      "20260320",
+      "20260323",
+      "20260324",
+      "20260325",
+      "20260326",
+      "20260327",
+      "20260330",
+      "20260331",
+      "20260401",
+      "20260402",
+      "20260403",
+      "20260406",
+      "20260407",
+      "20260408",
+      "20260409",
+      "20260410",
+      "20260413",
+      "20260414",
+      "20260415",
+      "20260416",
+      "20260417",
+      "20260420"
+    ]
+  },
+  "summary": {
+    "cutoffDays": 73,
+    "pendingAtD5Total": 3,
+    "pendingAtD5_toSuccessRate": 33.33,
+    "pendingAtD5_toStructuralRate": 66.67,
+    "d10StrongHPlus10AvgHigh": 55.53,
+    "d10StrongCount": 2,
+    "d10StructHPlus10AvgClose": -13.08,
+    "d10StructCount": 4
+  },
+  "boardExposureSummary": {
+    "totalCandidates": 53,
+    "verifiedCount": 53
+  },
+  "eventBasedSummary": {
+    "totalEvents": 11,
+    "eventsWithD10": 11,
+    "dedupRate": 79.25,
+    "avgExposureDays": 4.82
+  },
+  "d5Distribution": [
+    {
+      "status": "NO_PULLBACK_RUNAWAY",
+      "count": 6
+    },
+    {
+      "status": "PULLBACK_PENDING",
+      "count": 3
+    },
+    {
+      "status": "STRONG_VPR_SUCCESS",
+      "count": 1
+    },
+    {
+      "status": "STRUCTURAL_BREAK",
+      "count": 1
+    }
+  ],
+  "d10Distribution": [
+    {
+      "status": "NO_PULLBACK_RUNAWAY",
+      "count": 5
+    },
+    {
+      "status": "STRUCTURAL_BREAK",
+      "count": 4
+    },
+    {
+      "status": "STRONG_VPR_SUCCESS",
+      "count": 2
+    }
+  ],
+  "d5JudgmentDistribution": [
+    {
+      "status": "PULLBACK_WAIT",
+      "count": 4
+    },
+    {
+      "status": "BREAKDOWN_WEAK",
+      "count": 4
+    },
+    {
+      "status": "MANAGEMENT",
+      "count": 3
+    }
+  ],
+  "d10JudgmentDistribution": [
+    {
+      "status": "BREAKDOWN_WEAK",
+      "count": 5
+    },
+    {
+      "status": "PULLBACK_WAIT",
+      "count": 3
+    },
+    {
+      "status": "MANAGEMENT",
+      "count": 3
+    }
+  ],
+  "transitionMatrix": [
+    {
+      "from": "NO_PULLBACK_RUNAWAY",
+      "fromLabel": "눌림 없이 상승",
+      "to": "NO_PULLBACK_RUNAWAY",
+      "toLabel": "눌림 없이 상승",
+      "count": 5
+    },
+    {
+      "from": "PULLBACK_PENDING",
+      "fromLabel": "VPR 대기",
+      "to": "STRUCTURAL_BREAK",
+      "toLabel": "구조 훼손",
+      "count": 2
+    },
+    {
+      "from": "NO_PULLBACK_RUNAWAY",
+      "fromLabel": "눌림 없이 상승",
+      "to": "STRUCTURAL_BREAK",
+      "toLabel": "구조 훼손",
+      "count": 1
+    },
+    {
+      "from": "STRONG_VPR_SUCCESS",
+      "fromLabel": "강한 VPR 성공",
+      "to": "STRONG_VPR_SUCCESS",
+      "toLabel": "강한 VPR 성공",
+      "count": 1
+    },
+    {
+      "from": "PULLBACK_PENDING",
+      "fromLabel": "VPR 대기",
+      "to": "STRONG_VPR_SUCCESS",
+      "toLabel": "강한 VPR 성공",
+      "count": 1
+    },
+    {
+      "from": "STRUCTURAL_BREAK",
+      "fromLabel": "구조 훼손",
+      "to": "STRUCTURAL_BREAK",
+      "toLabel": "구조 훼손",
+      "count": 1
+    }
+  ],
+  "judgmentTransitionMatrix": [
+    {
+      "from": "MANAGEMENT",
+      "fromLabel": "관리 구간",
+      "to": "NO_PULLBACK_RUNAWAY",
+      "toLabel": "눌림 없이 상승",
+      "count": 3
+    },
+    {
+      "from": "BREAKDOWN_WEAK",
+      "fromLabel": "돌파 악화",
+      "to": "STRUCTURAL_BREAK",
+      "toLabel": "구조 훼손",
+      "count": 3
+    },
+    {
+      "from": "PULLBACK_WAIT",
+      "fromLabel": "눌림 대기",
+      "to": "NO_PULLBACK_RUNAWAY",
+      "toLabel": "눌림 없이 상승",
+      "count": 2
+    },
+    {
+      "from": "PULLBACK_WAIT",
+      "fromLabel": "눌림 대기",
+      "to": "STRUCTURAL_BREAK",
+      "toLabel": "구조 훼손",
+      "count": 1
+    },
+    {
+      "from": "PULLBACK_WAIT",
+      "fromLabel": "눌림 대기",
+      "to": "STRONG_VPR_SUCCESS",
+      "toLabel": "강한 VPR 성공",
+      "count": 1
+    },
+    {
+      "from": "BREAKDOWN_WEAK",
+      "fromLabel": "돌파 악화",
+      "to": "STRONG_VPR_SUCCESS",
+      "toLabel": "강한 VPR 성공",
+      "count": 1
+    }
+  ],
+  "transitionStats": {
+    "pendingAtD5Total": 3,
+    "pendingAtD5_toSuccess": 1,
+    "pendingAtD5_toStructural": 2,
+    "weakAtD5Total": 0,
+    "weakAtD5_toSuccess": 0,
+    "runawayAtD5Total": 6,
+    "runawayAtD5_stayRunaway": 5,
+    "structuralAtD5Total": 1,
+    "structuralAtD5_toSuccess": 0
+  },
+  "d10VprPerformance": [
+    {
+      "status": "STRONG_VPR_SUCCESS",
+      "label": "강한 VPR 성공",
+      "hPlus5": {
+        "count": 2,
+        "verifiedCount": 2,
+        "avgMaxHigh": 18.24,
+        "medianMaxHigh": 18.24,
+        "avgCloseN": 3.6,
+        "medianCloseN": 3.6,
+        "avgMinLow": -7.2,
+        "plus3CloseRate": 50,
+        "plus5HighRate": 100,
+        "plus10HighRate": 50,
+        "plus20HighRate": 50,
+        "minus3CloseRate": 50,
+        "minus5CloseRate": 50,
+        "minus10CloseRate": 0
+      },
+      "hPlus10": {
+        "count": 2,
+        "verifiedCount": 2,
+        "avgMaxHigh": 55.53,
+        "medianMaxHigh": 55.53,
+        "avgCloseN": 13.12,
+        "medianCloseN": 13.12,
+        "avgMinLow": -7.2,
+        "plus3CloseRate": 50,
+        "plus5HighRate": 100,
+        "plus10HighRate": 100,
+        "plus20HighRate": 100,
+        "minus3CloseRate": 0,
+        "minus5CloseRate": 0,
+        "minus10CloseRate": 0
+      }
+    },
+    {
+      "status": "NO_PULLBACK_RUNAWAY",
+      "label": "눌림 없이 상승",
+      "hPlus5": {
+        "count": 5,
+        "verifiedCount": 5,
+        "avgMaxHigh": 29.7,
+        "medianMaxHigh": 19.65,
+        "avgCloseN": 17.46,
+        "medianCloseN": 15.52,
+        "avgMinLow": -1.94,
+        "plus3CloseRate": 100,
+        "plus5HighRate": 100,
+        "plus10HighRate": 80,
+        "plus20HighRate": 40,
+        "minus3CloseRate": 0,
+        "minus5CloseRate": 0,
+        "minus10CloseRate": 0
+      },
+      "hPlus10": {
+        "count": 5,
+        "verifiedCount": 5,
+        "avgMaxHigh": 37.86,
+        "medianMaxHigh": 37.28,
+        "avgCloseN": 16.71,
+        "medianCloseN": 12.93,
+        "avgMinLow": -1.94,
+        "plus3CloseRate": 100,
+        "plus5HighRate": 100,
+        "plus10HighRate": 100,
+        "plus20HighRate": 60,
+        "minus3CloseRate": 0,
+        "minus5CloseRate": 0,
+        "minus10CloseRate": 0
+      }
+    },
+    {
+      "status": "STRUCTURAL_BREAK",
+      "label": "구조 훼손",
+      "hPlus5": {
+        "count": 4,
+        "verifiedCount": 4,
+        "avgMaxHigh": 5.69,
+        "medianMaxHigh": 2.34,
+        "avgCloseN": -9.76,
+        "medianCloseN": -11.1,
+        "avgMinLow": -11.79,
+        "plus3CloseRate": 0,
+        "plus5HighRate": 25,
+        "plus10HighRate": 25,
+        "plus20HighRate": 0,
+        "minus3CloseRate": 75,
+        "minus5CloseRate": 75,
+        "minus10CloseRate": 75
+      },
+      "hPlus10": {
+        "count": 4,
+        "verifiedCount": 4,
+        "avgMaxHigh": 5.69,
+        "medianMaxHigh": 2.34,
+        "avgCloseN": -13.08,
+        "medianCloseN": -13.28,
+        "avgMinLow": -16.55,
+        "plus3CloseRate": 0,
+        "plus5HighRate": 25,
+        "plus10HighRate": 25,
+        "plus20HighRate": 0,
+        "minus3CloseRate": 100,
+        "minus5CloseRate": 75,
+        "minus10CloseRate": 50
+      }
+    }
+  ],
+  "judgmentStatusPerformance": [
+    {
+      "status": "PULLBACK_WAIT",
+      "label": "눌림 대기",
+      "hPlus5": {
+        "count": 4,
+        "verifiedCount": 4,
+        "avgMaxHigh": 17.95,
+        "medianMaxHigh": 18.77,
+        "avgCloseN": 7.66,
+        "medianCloseN": 7.93,
+        "avgMinLow": -4.18,
+        "plus3CloseRate": 75,
+        "plus5HighRate": 100,
+        "plus10HighRate": 75,
+        "plus20HighRate": 25,
+        "minus3CloseRate": 0,
+        "minus5CloseRate": 0,
+        "minus10CloseRate": 0
+      },
+      "hPlus10": {
+        "count": 4,
+        "verifiedCount": 4,
+        "avgMaxHigh": 22.63,
+        "medianMaxHigh": 18.77,
+        "avgCloseN": 1.4,
+        "medianCloseN": 2.14,
+        "avgMinLow": -5.86,
+        "plus3CloseRate": 50,
+        "plus5HighRate": 100,
+        "plus10HighRate": 100,
+        "plus20HighRate": 25,
+        "minus3CloseRate": 25,
+        "minus5CloseRate": 0,
+        "minus10CloseRate": 0
+      },
+      "successAtD10Count": 1,
+      "successAtD10Rate": 25,
+      "structuralAtD10Count": 1,
+      "structuralAtD10Rate": 25
+    },
+    {
+      "status": "MANAGEMENT",
+      "label": "관리 구간",
+      "hPlus5": {
+        "count": 3,
+        "verifiedCount": 3,
+        "avgMaxHigh": 40.93,
+        "medianMaxHigh": 25.48,
+        "avgCloseN": 23.81,
+        "medianCloseN": 15.61,
+        "avgMinLow": -1.1,
+        "plus3CloseRate": 100,
+        "plus5HighRate": 100,
+        "plus10HighRate": 100,
+        "plus20HighRate": 66.67,
+        "minus3CloseRate": 0,
+        "minus5CloseRate": 0,
+        "minus10CloseRate": 0
+      },
+      "hPlus10": {
+        "count": 3,
+        "verifiedCount": 3,
+        "avgMaxHigh": 52.68,
+        "medianMaxHigh": 43.1,
+        "avgCloseN": 24.32,
+        "medianCloseN": 26.88,
+        "avgMinLow": -1.1,
+        "plus3CloseRate": 100,
+        "plus5HighRate": 100,
+        "plus10HighRate": 100,
+        "plus20HighRate": 100,
+        "minus3CloseRate": 0,
+        "minus5CloseRate": 0,
+        "minus10CloseRate": 0
+      },
+      "successAtD10Count": 0,
+      "successAtD10Rate": 0,
+      "structuralAtD10Count": 0,
+      "structuralAtD10Rate": 0
+    },
+    {
+      "status": "BREAKDOWN_WEAK",
+      "label": "돌파 악화",
+      "hPlus5": {
+        "count": 4,
+        "verifiedCount": 4,
+        "avgMaxHigh": 3.28,
+        "medianMaxHigh": 2.34,
+        "avgCloseN": -11.65,
+        "medianCloseN": -11.1,
+        "avgMinLow": -12.81,
+        "plus3CloseRate": 0,
+        "plus5HighRate": 25,
+        "plus10HighRate": 0,
+        "plus20HighRate": 0,
+        "minus3CloseRate": 100,
+        "minus5CloseRate": 100,
+        "minus10CloseRate": 75
+      },
+      "hPlus10": {
+        "count": 4,
+        "verifiedCount": 4,
+        "avgMaxHigh": 18.63,
+        "medianMaxHigh": 2.34,
+        "avgCloseN": -5.28,
+        "medianCloseN": -13.28,
+        "avgMinLow": -15.89,
+        "plus3CloseRate": 25,
+        "plus5HighRate": 25,
+        "plus10HighRate": 25,
+        "plus20HighRate": 25,
+        "minus3CloseRate": 75,
+        "minus5CloseRate": 75,
+        "minus10CloseRate": 50
+      },
+      "successAtD10Count": 1,
+      "successAtD10Rate": 25,
+      "structuralAtD10Count": 3,
+      "structuralAtD10Rate": 75
+    }
+  ],
+  "combinedStatusPerformance": [
+    {
+      "key": "PWAIT_PEND",
+      "j": "PULLBACK_WAIT",
+      "v": "PULLBACK_PENDING",
+      "label": "눌림 대기 + VPR 대기",
+      "hPlus5": {
+        "count": 0
+      },
+      "hPlus10": {
+        "count": 0
+      },
+      "successAtD10Count": 0,
+      "successAtD10Rate": null,
+      "structuralAtD10Count": 0,
+      "structuralAtD10Rate": null
+    },
+    {
+      "key": "PWAIT_NORUN",
+      "j": "PULLBACK_WAIT",
+      "v": "NO_PULLBACK_RUNAWAY",
+      "label": "눌림 대기 + 눌림 없이 상승",
+      "hPlus5": {
+        "count": 3,
+        "verifiedCount": 3,
+        "avgMaxHigh": 14.55,
+        "medianMaxHigh": 17.98,
+        "avgCloseN": 5.37,
+        "medianCloseN": 3.84,
+        "avgMinLow": -3.23,
+        "plus3CloseRate": 66.67,
+        "plus5HighRate": 100,
+        "plus10HighRate": 66.67,
+        "plus20HighRate": 0,
+        "minus3CloseRate": 0,
+        "minus5CloseRate": 0,
+        "minus10CloseRate": 0
+      },
+      "hPlus10": {
+        "count": 3,
+        "verifiedCount": 3,
+        "avgMaxHigh": 16.41,
+        "medianMaxHigh": 17.98,
+        "avgCloseN": 1.93,
+        "medianCloseN": 4.47,
+        "avgMinLow": -5.48,
+        "plus3CloseRate": 66.67,
+        "plus5HighRate": 100,
+        "plus10HighRate": 100,
+        "plus20HighRate": 0,
+        "minus3CloseRate": 33.33,
+        "minus5CloseRate": 0,
+        "minus10CloseRate": 0
+      },
+      "successAtD10Count": 0,
+      "successAtD10Rate": 0,
+      "structuralAtD10Count": 1,
+      "structuralAtD10Rate": 33.33
+    },
+    {
+      "key": "PWAIT_CLASSIC",
+      "j": "PULLBACK_WAIT",
+      "v": "CLASSIC_VPR_SUCCESS",
+      "label": "눌림 대기 + VPR 성공",
+      "hPlus5": {
+        "count": 0
+      },
+      "hPlus10": {
+        "count": 0
+      },
+      "successAtD10Count": 0,
+      "successAtD10Rate": null,
+      "structuralAtD10Count": 0,
+      "structuralAtD10Rate": null
+    },
+    {
+      "key": "PWAIT_STRONG",
+      "j": "PULLBACK_WAIT",
+      "v": "STRONG_VPR_SUCCESS",
+      "label": "눌림 대기 + 강한 VPR 성공",
+      "hPlus5": {
+        "count": 1,
+        "verifiedCount": 1,
+        "avgMaxHigh": 28.13,
+        "medianMaxHigh": 28.13,
+        "avgCloseN": 14.54,
+        "medianCloseN": 14.54,
+        "avgMinLow": -7.02,
+        "plus3CloseRate": 100,
+        "plus5HighRate": 100,
+        "plus10HighRate": 100,
+        "plus20HighRate": 100,
+        "minus3CloseRate": 0,
+        "minus5CloseRate": 0,
+        "minus10CloseRate": 0
+      },
+      "hPlus10": {
+        "count": 1,
+        "verifiedCount": 1,
+        "avgMaxHigh": 41.29,
+        "medianMaxHigh": 41.29,
+        "avgCloseN": -0.19,
+        "medianCloseN": -0.19,
+        "avgMinLow": -7.02,
+        "plus3CloseRate": 0,
+        "plus5HighRate": 100,
+        "plus10HighRate": 100,
+        "plus20HighRate": 100,
+        "minus3CloseRate": 0,
+        "minus5CloseRate": 0,
+        "minus10CloseRate": 0
+      },
+      "successAtD10Count": 1,
+      "successAtD10Rate": 100,
+      "structuralAtD10Count": 0,
+      "structuralAtD10Rate": 0
+    },
+    {
+      "key": "PWAIT_WEAK",
+      "j": "PULLBACK_WAIT",
+      "v": "WEAK_VPR_REBOUND",
+      "label": "눌림 대기 + VPR 재돌파 약함",
+      "hPlus5": {
+        "count": 0
+      },
+      "hPlus10": {
+        "count": 0
+      },
+      "successAtD10Count": 0,
+      "successAtD10Rate": null,
+      "structuralAtD10Count": 0,
+      "structuralAtD10Rate": null
+    },
+    {
+      "key": "MGMT_NORUN",
+      "j": "MANAGEMENT",
+      "v": "NO_PULLBACK_RUNAWAY",
+      "label": "관리 구간 + 눌림 없이 상승",
+      "hPlus5": {
+        "count": 3,
+        "verifiedCount": 3,
+        "avgMaxHigh": 40.93,
+        "medianMaxHigh": 25.48,
+        "avgCloseN": 23.81,
+        "medianCloseN": 15.61,
+        "avgMinLow": -1.1,
+        "plus3CloseRate": 100,
+        "plus5HighRate": 100,
+        "plus10HighRate": 100,
+        "plus20HighRate": 66.67,
+        "minus3CloseRate": 0,
+        "minus5CloseRate": 0,
+        "minus10CloseRate": 0
+      },
+      "hPlus10": {
+        "count": 3,
+        "verifiedCount": 3,
+        "avgMaxHigh": 52.68,
+        "medianMaxHigh": 43.1,
+        "avgCloseN": 24.32,
+        "medianCloseN": 26.88,
+        "avgMinLow": -1.1,
+        "plus3CloseRate": 100,
+        "plus5HighRate": 100,
+        "plus10HighRate": 100,
+        "plus20HighRate": 100,
+        "minus3CloseRate": 0,
+        "minus5CloseRate": 0,
+        "minus10CloseRate": 0
+      },
+      "successAtD10Count": 0,
+      "successAtD10Rate": 0,
+      "structuralAtD10Count": 0,
+      "structuralAtD10Rate": 0
+    },
+    {
+      "key": "MGMT_STRUCT",
+      "j": "MANAGEMENT",
+      "v": "STRUCTURAL_BREAK",
+      "label": "관리 구간 + 구조 훼손",
+      "hPlus5": {
+        "count": 0
+      },
+      "hPlus10": {
+        "count": 0
+      },
+      "successAtD10Count": 0,
+      "successAtD10Rate": null,
+      "structuralAtD10Count": 0,
+      "structuralAtD10Rate": null
+    },
+    {
+      "key": "BWEAK_PEND",
+      "j": "BREAKDOWN_WEAK",
+      "v": "PULLBACK_PENDING",
+      "label": "돌파 악화 + VPR 대기",
+      "hPlus5": {
+        "count": 3,
+        "verifiedCount": 3,
+        "avgMaxHigh": 4.34,
+        "medianMaxHigh": 3.09,
+        "avgCloseN": -9.84,
+        "medianCloseN": -10.5,
+        "avgMinLow": -10.68,
+        "plus3CloseRate": 0,
+        "plus5HighRate": 33.33,
+        "plus10HighRate": 0,
+        "plus20HighRate": 0,
+        "minus3CloseRate": 100,
+        "minus5CloseRate": 100,
+        "minus10CloseRate": 66.67
+      },
+      "hPlus10": {
+        "count": 3,
+        "verifiedCount": 3,
+        "avgMaxHigh": 24.81,
+        "medianMaxHigh": 3.09,
+        "avgCloseN": -1.13,
+        "medianCloseN": -8.83,
+        "avgMinLow": -14.78,
+        "plus3CloseRate": 33.33,
+        "plus5HighRate": 33.33,
+        "plus10HighRate": 33.33,
+        "plus20HighRate": 33.33,
+        "minus3CloseRate": 66.67,
+        "minus5CloseRate": 66.67,
+        "minus10CloseRate": 33.33
+      },
+      "successAtD10Count": 1,
+      "successAtD10Rate": 33.33,
+      "structuralAtD10Count": 2,
+      "structuralAtD10Rate": 66.67
+    },
+    {
+      "key": "BWEAK_WEAK",
+      "j": "BREAKDOWN_WEAK",
+      "v": "WEAK_VPR_REBOUND",
+      "label": "돌파 악화 + VPR 재돌파 약함",
+      "hPlus5": {
+        "count": 0
+      },
+      "hPlus10": {
+        "count": 0
+      },
+      "successAtD10Count": 0,
+      "successAtD10Rate": null,
+      "structuralAtD10Count": 0,
+      "structuralAtD10Rate": null
+    },
+    {
+      "key": "BWEAK_STRUCT",
+      "j": "BREAKDOWN_WEAK",
+      "v": "STRUCTURAL_BREAK",
+      "label": "돌파 악화 + 구조 훼손",
+      "hPlus5": {
+        "count": 1,
+        "verifiedCount": 1,
+        "avgMaxHigh": 0.09,
+        "medianMaxHigh": 0.09,
+        "avgCloseN": -17.08,
+        "medianCloseN": -17.08,
+        "avgMinLow": -19.22,
+        "plus3CloseRate": 0,
+        "plus5HighRate": 0,
+        "plus10HighRate": 0,
+        "plus20HighRate": 0,
+        "minus3CloseRate": 100,
+        "minus5CloseRate": 100,
+        "minus10CloseRate": 100
+      },
+      "hPlus10": {
+        "count": 1,
+        "verifiedCount": 1,
+        "avgMaxHigh": 0.09,
+        "medianMaxHigh": 0.09,
+        "avgCloseN": -17.73,
+        "medianCloseN": -17.73,
+        "avgMinLow": -19.22,
+        "plus3CloseRate": 0,
+        "plus5HighRate": 0,
+        "plus10HighRate": 0,
+        "plus20HighRate": 0,
+        "minus3CloseRate": 100,
+        "minus5CloseRate": 100,
+        "minus10CloseRate": 100
+      },
+      "successAtD10Count": 0,
+      "successAtD10Rate": 0,
+      "structuralAtD10Count": 1,
+      "structuralAtD10Rate": 100
+    }
+  ],
+  "dailyResults": [
+    {
+      "date": "20260102",
+      "count": 0
+    },
+    {
+      "date": "20260105",
+      "count": 0
+    },
+    {
+      "date": "20260106",
+      "count": 0
+    },
+    {
+      "date": "20260107",
+      "count": 0
+    },
+    {
+      "date": "20260108",
+      "count": 0
+    },
+    {
+      "date": "20260109",
+      "count": 1,
+      "avgClose": -1.75,
+      "avgHigh": -0.52,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260112",
+      "count": 0
+    },
+    {
+      "date": "20260113",
+      "count": 0
+    },
+    {
+      "date": "20260114",
+      "count": 0
+    },
+    {
+      "date": "20260115",
+      "count": 0
+    },
+    {
+      "date": "20260116",
+      "count": 0
+    },
+    {
+      "date": "20260119",
+      "count": 0
+    },
+    {
+      "date": "20260120",
+      "count": 0
+    },
+    {
+      "date": "20260121",
+      "count": 0
+    },
+    {
+      "date": "20260122",
+      "count": 0
+    },
+    {
+      "date": "20260123",
+      "count": 0
+    },
+    {
+      "date": "20260126",
+      "count": 1,
+      "avgClose": -1.54,
+      "avgHigh": 3.08,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260127",
+      "count": 2,
+      "avgClose": 8.65,
+      "avgHigh": 8.99,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260128",
+      "count": 2,
+      "avgClose": 4.18,
+      "avgHigh": 8.79,
+      "pwaitCount": 1,
+      "mgmtCount": 1
+    },
+    {
+      "date": "20260129",
+      "count": 2,
+      "avgClose": 2.07,
+      "avgHigh": 6.78,
+      "pwaitCount": 1,
+      "mgmtCount": 1
+    },
+    {
+      "date": "20260130",
+      "count": 2,
+      "avgClose": -5.53,
+      "avgHigh": 0.45,
+      "pwaitCount": 0,
+      "mgmtCount": 2
+    },
+    {
+      "date": "20260202",
+      "count": 2,
+      "avgClose": 6.96,
+      "avgHigh": 8.2,
+      "pwaitCount": 2,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260203",
+      "count": 1,
+      "avgClose": -3.55,
+      "avgHigh": -0.7,
+      "pwaitCount": 0,
+      "mgmtCount": 1
+    },
+    {
+      "date": "20260204",
+      "count": 0
+    },
+    {
+      "date": "20260205",
+      "count": 0
+    },
+    {
+      "date": "20260206",
+      "count": 0
+    },
+    {
+      "date": "20260209",
+      "count": 0
+    },
+    {
+      "date": "20260210",
+      "count": 1,
+      "avgClose": 3.7,
+      "avgHigh": 7.53,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260211",
+      "count": 2,
+      "avgClose": 4.52,
+      "avgHigh": 14.58,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260212",
+      "count": 3,
+      "avgClose": -1.16,
+      "avgHigh": 4.16,
+      "pwaitCount": 2,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260213",
+      "count": 3,
+      "avgClose": 1.75,
+      "avgHigh": 5.51,
+      "pwaitCount": 1,
+      "mgmtCount": 1
+    },
+    {
+      "date": "20260219",
+      "count": 3,
+      "avgClose": 11.8,
+      "avgHigh": 13.12,
+      "pwaitCount": 1,
+      "mgmtCount": 1
+    },
+    {
+      "date": "20260220",
+      "count": 4,
+      "avgClose": -0.17,
+      "avgHigh": 9.89,
+      "pwaitCount": 2,
+      "mgmtCount": 1
+    },
+    {
+      "date": "20260223",
+      "count": 3,
+      "avgClose": -3.81,
+      "avgHigh": 6.63,
+      "pwaitCount": 1,
+      "mgmtCount": 1
+    },
+    {
+      "date": "20260224",
+      "count": 2,
+      "avgClose": -3.91,
+      "avgHigh": 1.31,
+      "pwaitCount": 1,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260225",
+      "count": 1,
+      "avgClose": -3.14,
+      "avgHigh": 0.21,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260226",
+      "count": 1,
+      "avgClose": -1.43,
+      "avgHigh": 1.54,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260227",
+      "count": 2,
+      "avgClose": 12.45,
+      "avgHigh": 14.91,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260303",
+      "count": 1,
+      "avgClose": -10.93,
+      "avgHigh": -3.02,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260304",
+      "count": 0
+    },
+    {
+      "date": "20260305",
+      "count": 0
+    },
+    {
+      "date": "20260306",
+      "count": 0
+    },
+    {
+      "date": "20260309",
+      "count": 0
+    },
+    {
+      "date": "20260310",
+      "count": 0
+    },
+    {
+      "date": "20260311",
+      "count": 0
+    },
+    {
+      "date": "20260312",
+      "count": 0
+    },
+    {
+      "date": "20260313",
+      "count": 1,
+      "avgClose": 7.28,
+      "avgHigh": 9.96,
+      "pwaitCount": 1,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260316",
+      "count": 1,
+      "avgClose": -10,
+      "avgHigh": -1.96,
+      "pwaitCount": 0,
+      "mgmtCount": 1
+    },
+    {
+      "date": "20260317",
+      "count": 1,
+      "avgClose": 10.71,
+      "avgHigh": 29.96,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260318",
+      "count": 1,
+      "avgClose": 10.93,
+      "avgHigh": 12.72,
+      "pwaitCount": 0,
+      "mgmtCount": 1
+    },
+    {
+      "date": "20260319",
+      "count": 2,
+      "avgClose": -1.77,
+      "avgHigh": -0.01,
+      "pwaitCount": 0,
+      "mgmtCount": 1
+    },
+    {
+      "date": "20260320",
+      "count": 2,
+      "avgClose": -3.61,
+      "avgHigh": 3.88,
+      "pwaitCount": 0,
+      "mgmtCount": 1
+    },
+    {
+      "date": "20260323",
+      "count": 1,
+      "avgClose": -0.91,
+      "avgHigh": 4.27,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260324",
+      "count": 1,
+      "avgClose": 2.05,
+      "avgHigh": 5.03,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260325",
+      "count": 1,
+      "avgClose": -8.24,
+      "avgHigh": -1.51,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260326",
+      "count": 1,
+      "avgClose": -1.1,
+      "avgHigh": 2.3,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260327",
+      "count": 0
+    },
+    {
+      "date": "20260330",
+      "count": 0
+    },
+    {
+      "date": "20260331",
+      "count": 0
+    },
+    {
+      "date": "20260401",
+      "count": 0
+    },
+    {
+      "date": "20260402",
+      "count": 0
+    },
+    {
+      "date": "20260403",
+      "count": 0
+    },
+    {
+      "date": "20260406",
+      "count": 0
+    },
+    {
+      "date": "20260407",
+      "count": 0
+    },
+    {
+      "date": "20260408",
+      "count": 0
+    },
+    {
+      "date": "20260409",
+      "count": 0
+    },
+    {
+      "date": "20260410",
+      "count": 0
+    },
+    {
+      "date": "20260413",
+      "count": 0
+    },
+    {
+      "date": "20260414",
+      "count": 0
+    },
+    {
+      "date": "20260415",
+      "count": 0
+    },
+    {
+      "date": "20260416",
+      "count": 0
+    },
+    {
+      "date": "20260417",
+      "count": 1,
+      "avgClose": -2.75,
+      "avgHigh": 1.58,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    },
+    {
+      "date": "20260420",
+      "count": 1,
+      "avgClose": -0.94,
+      "avgHigh": 2.06,
+      "pwaitCount": 0,
+      "mgmtCount": 0
+    }
+  ],
+  "candidates": [
+    {
+      "cutoffDate": "20260220",
+      "targetDate": "20260223",
+      "code": "003280",
+      "name": "흥아해운",
+      "market": "KOSPI",
+      "qvaDate": "20260210",
+      "vviDate": "20260219",
+      "hDate": "20260220",
+      "eventKey": "003280|20260219|20260220",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "REVIEW_OK",
+      "judgmentLabel": "진입가 근처",
+      "vprStatusAtCutoff": "DATA_INSUFFICIENT",
+      "vprLabelAtCutoff": "데이터 부족",
+      "vprConflictNote": null,
+      "cutoffClose": 1938,
+      "entryPrice": 1896.78,
+      "vviHigh": 1878,
+      "daysFromBreakout": 0,
+      "targetClose": 1964,
+      "targetHigh": 2100,
+      "targetLow": 1835,
+      "returns": {
+        "closeFromCutoff": 1.34,
+        "highFromCutoff": 8.36,
+        "lowFromCutoff": -5.31
+      },
+      "exposureIndex": 1,
+      "d5VprStatus": "PULLBACK_PENDING",
+      "d5VprLabel": "VPR 대기",
+      "d10VprStatus": "STRONG_VPR_SUCCESS",
+      "d10VprLabel": "강한 VPR 성공",
+      "transition": "PULLBACK_PENDING → STRONG_VPR_SUCCESS",
+      "hPlus5": {
+        "maxHigh": 8.36,
+        "minLow": -7.38,
+        "closeN": -7.33
+      },
+      "hPlus10": {
+        "maxHigh": 69.76,
+        "minLow": -7.38,
+        "closeN": 26.42
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+5 기준 VPR 대기였으나 D+10에는 강한 VPR 성공으로 전환된 사례 (H+10 고가 +69.76% / 종가 +26.42%)."
+    },
+    {
+      "cutoffDate": "20260223",
+      "targetDate": "20260224",
+      "code": "003280",
+      "name": "흥아해운",
+      "market": "KOSPI",
+      "qvaDate": "20260210",
+      "vviDate": "20260219",
+      "hDate": "20260220",
+      "eventKey": "003280|20260219|20260220",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "CHASE_CAUTION",
+      "judgmentLabel": "추격 주의",
+      "vprStatusAtCutoff": "PULLBACK_PENDING",
+      "vprLabelAtCutoff": "VPR 대기",
+      "vprConflictNote": null,
+      "cutoffClose": 1964,
+      "entryPrice": 1896.78,
+      "vviHigh": 1878,
+      "daysFromBreakout": 1,
+      "targetClose": 1934,
+      "targetHigh": 2060,
+      "targetLow": 1886,
+      "returns": {
+        "closeFromCutoff": -1.53,
+        "highFromCutoff": 4.89,
+        "lowFromCutoff": -3.97
+      },
+      "exposureIndex": 2,
+      "d5VprStatus": "PULLBACK_PENDING",
+      "d5VprLabel": "VPR 대기",
+      "d10VprStatus": "STRONG_VPR_SUCCESS",
+      "d10VprLabel": "강한 VPR 성공",
+      "transition": "PULLBACK_PENDING → STRONG_VPR_SUCCESS",
+      "hPlus5": {
+        "maxHigh": 8.36,
+        "minLow": -7.38,
+        "closeN": -7.33
+      },
+      "hPlus10": {
+        "maxHigh": 69.76,
+        "minLow": -7.38,
+        "closeN": 26.42
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+5 기준 VPR 대기였으나 D+10에는 강한 VPR 성공으로 전환된 사례 (H+10 고가 +69.76% / 종가 +26.42%)."
+    },
+    {
+      "cutoffDate": "20260224",
+      "targetDate": "20260225",
+      "code": "003280",
+      "name": "흥아해운",
+      "market": "KOSPI",
+      "qvaDate": "20260210",
+      "vviDate": "20260219",
+      "hDate": "20260220",
+      "eventKey": "003280|20260219|20260220",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "REVIEW_OK",
+      "judgmentLabel": "진입가 근처",
+      "vprStatusAtCutoff": "CLASSIC_VPR_SUCCESS",
+      "vprLabelAtCutoff": "VPR 성공",
+      "vprConflictNote": null,
+      "cutoffClose": 1934,
+      "entryPrice": 1896.78,
+      "vviHigh": 1878,
+      "daysFromBreakout": 2,
+      "targetClose": 1881,
+      "targetHigh": 1958,
+      "targetLow": 1880,
+      "returns": {
+        "closeFromCutoff": -2.74,
+        "highFromCutoff": 1.24,
+        "lowFromCutoff": -2.79
+      },
+      "exposureIndex": 3,
+      "d5VprStatus": "PULLBACK_PENDING",
+      "d5VprLabel": "VPR 대기",
+      "d10VprStatus": "STRONG_VPR_SUCCESS",
+      "d10VprLabel": "강한 VPR 성공",
+      "transition": "PULLBACK_PENDING → STRONG_VPR_SUCCESS",
+      "hPlus5": {
+        "maxHigh": 8.36,
+        "minLow": -7.38,
+        "closeN": -7.33
+      },
+      "hPlus10": {
+        "maxHigh": 69.76,
+        "minLow": -7.38,
+        "closeN": 26.42
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+5 기준 VPR 대기였으나 D+10에는 강한 VPR 성공으로 전환된 사례 (H+10 고가 +69.76% / 종가 +26.42%)."
+    },
+    {
+      "cutoffDate": "20260225",
+      "targetDate": "20260226",
+      "code": "003280",
+      "name": "흥아해운",
+      "market": "KOSPI",
+      "qvaDate": "20260210",
+      "vviDate": "20260219",
+      "hDate": "20260220",
+      "eventKey": "003280|20260219|20260220",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "BREAKDOWN_WEAK",
+      "judgmentLabel": "돌파 악화",
+      "vprStatusAtCutoff": "CLASSIC_VPR_SUCCESS",
+      "vprLabelAtCutoff": "VPR 성공",
+      "vprConflictNote": "기존 기준으로는 돌파 악화이나, VPR 기준으로는 정상 눌림 후 기준 가격을 재돌파한 상태입니다.",
+      "cutoffClose": 1881,
+      "entryPrice": 1896.78,
+      "vviHigh": 1878,
+      "daysFromBreakout": 3,
+      "targetClose": 1822,
+      "targetHigh": 1885,
+      "targetLow": 1800,
+      "returns": {
+        "closeFromCutoff": -3.14,
+        "highFromCutoff": 0.21,
+        "lowFromCutoff": -4.31
+      },
+      "exposureIndex": 4,
+      "d5VprStatus": "PULLBACK_PENDING",
+      "d5VprLabel": "VPR 대기",
+      "d10VprStatus": "STRONG_VPR_SUCCESS",
+      "d10VprLabel": "강한 VPR 성공",
+      "transition": "PULLBACK_PENDING → STRONG_VPR_SUCCESS",
+      "hPlus5": {
+        "maxHigh": 8.36,
+        "minLow": -7.38,
+        "closeN": -7.33
+      },
+      "hPlus10": {
+        "maxHigh": 69.76,
+        "minLow": -7.38,
+        "closeN": 26.42
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+5 기준 VPR 대기였으나 D+10에는 강한 VPR 성공으로 전환된 사례 (H+10 고가 +69.76% / 종가 +26.42%)."
+    },
+    {
+      "cutoffDate": "20260226",
+      "targetDate": "20260227",
+      "code": "003280",
+      "name": "흥아해운",
+      "market": "KOSPI",
+      "qvaDate": "20260210",
+      "vviDate": "20260219",
+      "hDate": "20260220",
+      "eventKey": "003280|20260219|20260220",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "BREAKDOWN_WEAK",
+      "judgmentLabel": "돌파 악화",
+      "vprStatusAtCutoff": "PULLBACK_PENDING",
+      "vprLabelAtCutoff": "VPR 대기",
+      "vprConflictNote": "기존 기준으로는 돌파 악화이나, VPR 기준으로는 정상 눌림 범위에서 재돌파 대기 중입니다.",
+      "cutoffClose": 1822,
+      "entryPrice": 1896.78,
+      "vviHigh": 1878,
+      "daysFromBreakout": 4,
+      "targetClose": 1796,
+      "targetHigh": 1850,
+      "targetLow": 1795,
+      "returns": {
+        "closeFromCutoff": -1.43,
+        "highFromCutoff": 1.54,
+        "lowFromCutoff": -1.48
+      },
+      "exposureIndex": 5,
+      "d5VprStatus": "PULLBACK_PENDING",
+      "d5VprLabel": "VPR 대기",
+      "d10VprStatus": "STRONG_VPR_SUCCESS",
+      "d10VprLabel": "강한 VPR 성공",
+      "transition": "PULLBACK_PENDING → STRONG_VPR_SUCCESS",
+      "hPlus5": {
+        "maxHigh": 8.36,
+        "minLow": -7.38,
+        "closeN": -7.33
+      },
+      "hPlus10": {
+        "maxHigh": 69.76,
+        "minLow": -7.38,
+        "closeN": 26.42
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+5 기준 VPR 대기였으나 D+10에는 강한 VPR 성공으로 전환된 사례 (H+10 고가 +69.76% / 종가 +26.42%)."
+    },
+    {
+      "cutoffDate": "20260227",
+      "targetDate": "20260303",
+      "code": "003280",
+      "name": "흥아해운",
+      "market": "KOSPI",
+      "qvaDate": "20260210",
+      "vviDate": "20260219",
+      "hDate": "20260220",
+      "eventKey": "003280|20260219|20260220",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "BREAKDOWN_WEAK",
+      "judgmentLabel": "돌파 악화",
+      "vprStatusAtCutoff": "PULLBACK_PENDING",
+      "vprLabelAtCutoff": "VPR 대기",
+      "vprConflictNote": "기존 기준으로는 돌파 악화이나, VPR 기준으로는 정상 눌림 범위에서 재돌파 대기 중입니다.",
+      "cutoffClose": 1796,
+      "entryPrice": 1896.78,
+      "vviHigh": 1878,
+      "daysFromBreakout": 5,
+      "targetClose": 2330,
+      "targetHigh": 2330,
+      "targetLow": 2255,
+      "returns": {
+        "closeFromCutoff": 29.73,
+        "highFromCutoff": 29.73,
+        "lowFromCutoff": 25.56
+      },
+      "exposureIndex": 6,
+      "d5VprStatus": "PULLBACK_PENDING",
+      "d5VprLabel": "VPR 대기",
+      "d10VprStatus": "STRONG_VPR_SUCCESS",
+      "d10VprLabel": "강한 VPR 성공",
+      "transition": "PULLBACK_PENDING → STRONG_VPR_SUCCESS",
+      "hPlus5": {
+        "maxHigh": 8.36,
+        "minLow": -7.38,
+        "closeN": -7.33
+      },
+      "hPlus10": {
+        "maxHigh": 69.76,
+        "minLow": -7.38,
+        "closeN": 26.42
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+5 기준 VPR 대기였으나 D+10에는 강한 VPR 성공으로 전환된 사례 (H+10 고가 +69.76% / 종가 +26.42%)."
+    },
+    {
+      "cutoffDate": "20260227",
+      "targetDate": "20260303",
+      "code": "003550",
+      "name": "LG",
+      "market": "KOSPI",
+      "qvaDate": "20260130",
+      "vviDate": "20260226",
+      "hDate": "20260227",
+      "eventKey": "003550|20260226|20260227",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "REVIEW_OK",
+      "judgmentLabel": "진입가 근처",
+      "vprStatusAtCutoff": "DATA_INSUFFICIENT",
+      "vprLabelAtCutoff": "데이터 부족",
+      "vprConflictNote": null,
+      "cutoffClose": 107700,
+      "entryPrice": 105242,
+      "vviHigh": 104200,
+      "daysFromBreakout": 0,
+      "targetClose": 102500,
+      "targetHigh": 107800,
+      "targetLow": 100300,
+      "returns": {
+        "closeFromCutoff": -4.83,
+        "highFromCutoff": 0.09,
+        "lowFromCutoff": -6.87
+      },
+      "exposureIndex": 1,
+      "d5VprStatus": "STRUCTURAL_BREAK",
+      "d5VprLabel": "구조 훼손",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "STRUCTURAL_BREAK → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 0.09,
+        "minLow": -19.22,
+        "closeN": -17.08
+      },
+      "hPlus10": {
+        "maxHigh": 0.09,
+        "minLow": -19.22,
+        "closeN": -17.73
+      },
+      "exposureTotal": 2,
+      "oneLineSummary": "D+10 시점 구조 훼손으로 분류되어 하락 위험이 컸던 사례 (종가 -17.73%)."
+    },
+    {
+      "cutoffDate": "20260303",
+      "targetDate": "20260304",
+      "code": "003550",
+      "name": "LG",
+      "market": "KOSPI",
+      "qvaDate": "20260130",
+      "vviDate": "20260226",
+      "hDate": "20260227",
+      "eventKey": "003550|20260226|20260227",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "BREAKDOWN_WEAK",
+      "judgmentLabel": "돌파 악화",
+      "vprStatusAtCutoff": "PULLBACK_PENDING",
+      "vprLabelAtCutoff": "VPR 대기",
+      "vprConflictNote": "기존 기준으로는 돌파 악화이나, VPR 기준으로는 정상 눌림 범위에서 재돌파 대기 중입니다.",
+      "cutoffClose": 102500,
+      "entryPrice": 105242,
+      "vviHigh": 104200,
+      "daysFromBreakout": 1,
+      "targetClose": 91300,
+      "targetHigh": 99400,
+      "targetLow": 89300,
+      "returns": {
+        "closeFromCutoff": -10.93,
+        "highFromCutoff": -3.02,
+        "lowFromCutoff": -12.88
+      },
+      "exposureIndex": 2,
+      "d5VprStatus": "STRUCTURAL_BREAK",
+      "d5VprLabel": "구조 훼손",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "STRUCTURAL_BREAK → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 0.09,
+        "minLow": -19.22,
+        "closeN": -17.08
+      },
+      "hPlus10": {
+        "maxHigh": 0.09,
+        "minLow": -19.22,
+        "closeN": -17.73
+      },
+      "exposureTotal": 2,
+      "oneLineSummary": "D+10 시점 구조 훼손으로 분류되어 하락 위험이 컸던 사례 (종가 -17.73%)."
+    },
+    {
+      "cutoffDate": "20260109",
+      "targetDate": "20260112",
+      "code": "010140",
+      "name": "삼성중공업",
+      "market": "KOSPI",
+      "qvaDate": "20251209",
+      "vviDate": "20260108",
+      "hDate": "20260109",
+      "eventKey": "010140|20260108|20260109",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "CHASE_CAUTION",
+      "judgmentLabel": "추격 주의",
+      "vprStatusAtCutoff": "DATA_INSUFFICIENT",
+      "vprLabelAtCutoff": "데이터 부족",
+      "vprConflictNote": null,
+      "cutoffClose": 28650,
+      "entryPrice": 26866,
+      "vviHigh": 26600,
+      "daysFromBreakout": 0,
+      "targetClose": 28150,
+      "targetHigh": 28500,
+      "targetLow": 27700,
+      "returns": {
+        "closeFromCutoff": -1.75,
+        "highFromCutoff": -0.52,
+        "lowFromCutoff": -3.32
+      },
+      "exposureIndex": 1,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 6.11,
+        "minLow": -3.32,
+        "closeN": 3.84
+      },
+      "hPlus10": {
+        "maxHigh": 11.69,
+        "minLow": -3.32,
+        "closeN": 6.11
+      },
+      "exposureTotal": 1,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +11.69% / 종가 +6.11%)."
+    },
+    {
+      "cutoffDate": "20260313",
+      "targetDate": "20260316",
+      "code": "082920",
+      "name": "비츠로셀",
+      "market": "KOSDAQ",
+      "qvaDate": "20260227",
+      "vviDate": "20260312",
+      "hDate": "20260313",
+      "eventKey": "082920|20260312|20260313",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "PULLBACK_WAIT",
+      "judgmentLabel": "눌림 대기",
+      "vprStatusAtCutoff": "DATA_INSUFFICIENT",
+      "vprLabelAtCutoff": "데이터 부족",
+      "vprConflictNote": null,
+      "cutoffClose": 26100,
+      "entryPrice": 24240,
+      "vviHigh": 24000,
+      "daysFromBreakout": 0,
+      "targetClose": 28000,
+      "targetHigh": 28700,
+      "targetLow": 26400,
+      "returns": {
+        "closeFromCutoff": 7.28,
+        "highFromCutoff": 9.96,
+        "lowFromCutoff": 1.15
+      },
+      "exposureIndex": 1,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 25.48,
+        "minLow": -3.45,
+        "closeN": 15.52
+      },
+      "hPlus10": {
+        "maxHigh": 43.1,
+        "minLow": -3.45,
+        "closeN": 33.14
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +43.10% / 종가 +33.14%)."
+    },
+    {
+      "cutoffDate": "20260316",
+      "targetDate": "20260317",
+      "code": "082920",
+      "name": "비츠로셀",
+      "market": "KOSDAQ",
+      "qvaDate": "20260227",
+      "vviDate": "20260312",
+      "hDate": "20260313",
+      "eventKey": "082920|20260312|20260313",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "MANAGEMENT",
+      "judgmentLabel": "관리 구간",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 28000,
+      "entryPrice": 24240,
+      "vviHigh": 24000,
+      "daysFromBreakout": 1,
+      "targetClose": 25200,
+      "targetHigh": 27450,
+      "targetLow": 25200,
+      "returns": {
+        "closeFromCutoff": -10,
+        "highFromCutoff": -1.96,
+        "lowFromCutoff": -10
+      },
+      "exposureIndex": 2,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 25.48,
+        "minLow": -3.45,
+        "closeN": 15.52
+      },
+      "hPlus10": {
+        "maxHigh": 43.1,
+        "minLow": -3.45,
+        "closeN": 33.14
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +43.10% / 종가 +33.14%)."
+    },
+    {
+      "cutoffDate": "20260317",
+      "targetDate": "20260318",
+      "code": "082920",
+      "name": "비츠로셀",
+      "market": "KOSDAQ",
+      "qvaDate": "20260227",
+      "vviDate": "20260312",
+      "hDate": "20260313",
+      "eventKey": "082920|20260312|20260313",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "CHASE_CAUTION",
+      "judgmentLabel": "추격 주의",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 25200,
+      "entryPrice": 24240,
+      "vviHigh": 24000,
+      "daysFromBreakout": 2,
+      "targetClose": 27900,
+      "targetHigh": 32750,
+      "targetLow": 26950,
+      "returns": {
+        "closeFromCutoff": 10.71,
+        "highFromCutoff": 29.96,
+        "lowFromCutoff": 6.94
+      },
+      "exposureIndex": 3,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 25.48,
+        "minLow": -3.45,
+        "closeN": 15.52
+      },
+      "hPlus10": {
+        "maxHigh": 43.1,
+        "minLow": -3.45,
+        "closeN": 33.14
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +43.10% / 종가 +33.14%)."
+    },
+    {
+      "cutoffDate": "20260318",
+      "targetDate": "20260319",
+      "code": "082920",
+      "name": "비츠로셀",
+      "market": "KOSDAQ",
+      "qvaDate": "20260227",
+      "vviDate": "20260312",
+      "hDate": "20260313",
+      "eventKey": "082920|20260312|20260313",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "MANAGEMENT",
+      "judgmentLabel": "관리 구간",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 27900,
+      "entryPrice": 24240,
+      "vviHigh": 24000,
+      "daysFromBreakout": 3,
+      "targetClose": 30950,
+      "targetHigh": 31450,
+      "targetLow": 28550,
+      "returns": {
+        "closeFromCutoff": 10.93,
+        "highFromCutoff": 12.72,
+        "lowFromCutoff": 2.33
+      },
+      "exposureIndex": 4,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 25.48,
+        "minLow": -3.45,
+        "closeN": 15.52
+      },
+      "hPlus10": {
+        "maxHigh": 43.1,
+        "minLow": -3.45,
+        "closeN": 33.14
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +43.10% / 종가 +33.14%)."
+    },
+    {
+      "cutoffDate": "20260319",
+      "targetDate": "20260320",
+      "code": "082920",
+      "name": "비츠로셀",
+      "market": "KOSDAQ",
+      "qvaDate": "20260227",
+      "vviDate": "20260312",
+      "hDate": "20260313",
+      "eventKey": "082920|20260312|20260313",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "MANAGEMENT",
+      "judgmentLabel": "관리 구간",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 30950,
+      "entryPrice": 24240,
+      "vviHigh": 24000,
+      "daysFromBreakout": 4,
+      "targetClose": 30150,
+      "targetHigh": 30350,
+      "targetLow": 28600,
+      "returns": {
+        "closeFromCutoff": -2.58,
+        "highFromCutoff": -1.94,
+        "lowFromCutoff": -7.59
+      },
+      "exposureIndex": 5,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 25.48,
+        "minLow": -3.45,
+        "closeN": 15.52
+      },
+      "hPlus10": {
+        "maxHigh": 43.1,
+        "minLow": -3.45,
+        "closeN": 33.14
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +43.10% / 종가 +33.14%)."
+    },
+    {
+      "cutoffDate": "20260320",
+      "targetDate": "20260323",
+      "code": "082920",
+      "name": "비츠로셀",
+      "market": "KOSDAQ",
+      "qvaDate": "20260227",
+      "vviDate": "20260312",
+      "hDate": "20260313",
+      "eventKey": "082920|20260312|20260313",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "MANAGEMENT",
+      "judgmentLabel": "관리 구간",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 30150,
+      "entryPrice": 24240,
+      "vviHigh": 24000,
+      "daysFromBreakout": 5,
+      "targetClose": 29150,
+      "targetHigh": 31250,
+      "targetLow": 28650,
+      "returns": {
+        "closeFromCutoff": -3.32,
+        "highFromCutoff": 3.65,
+        "lowFromCutoff": -4.98
+      },
+      "exposureIndex": 6,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 25.48,
+        "minLow": -3.45,
+        "closeN": 15.52
+      },
+      "hPlus10": {
+        "maxHigh": 43.1,
+        "minLow": -3.45,
+        "closeN": 33.14
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +43.10% / 종가 +33.14%)."
+    },
+    {
+      "cutoffDate": "20260211",
+      "targetDate": "20260212",
+      "code": "088350",
+      "name": "한화생명",
+      "market": "KOSPI",
+      "qvaDate": "20260126",
+      "vviDate": "20260210",
+      "hDate": "20260211",
+      "eventKey": "088350|20260210|20260211",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "REVIEW_OK",
+      "judgmentLabel": "진입가 근처",
+      "vprStatusAtCutoff": "DATA_INSUFFICIENT",
+      "vprLabelAtCutoff": "데이터 부족",
+      "vprConflictNote": null,
+      "cutoffClose": 4255,
+      "entryPrice": 4196.55,
+      "vviHigh": 4155,
+      "daysFromBreakout": 0,
+      "targetClose": 4495,
+      "targetHigh": 4910,
+      "targetLow": 4305,
+      "returns": {
+        "closeFromCutoff": 5.64,
+        "highFromCutoff": 15.39,
+        "lowFromCutoff": 1.18
+      },
+      "exposureIndex": 1,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 77.67,
+        "minLow": 1.18,
+        "closeN": 40.31
+      },
+      "hPlus10": {
+        "maxHigh": 77.67,
+        "minLow": 1.18,
+        "closeN": 12.93
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +77.67% / 종가 +12.93%)."
+    },
+    {
+      "cutoffDate": "20260212",
+      "targetDate": "20260213",
+      "code": "088350",
+      "name": "한화생명",
+      "market": "KOSPI",
+      "qvaDate": "20260126",
+      "vviDate": "20260210",
+      "hDate": "20260211",
+      "eventKey": "088350|20260210|20260211",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "PULLBACK_WAIT",
+      "judgmentLabel": "눌림 대기",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 4495,
+      "entryPrice": 4196.55,
+      "vviHigh": 4155,
+      "daysFromBreakout": 1,
+      "targetClose": 4830,
+      "targetHigh": 5200,
+      "targetLow": 4495,
+      "returns": {
+        "closeFromCutoff": 7.45,
+        "highFromCutoff": 15.68,
+        "lowFromCutoff": 0
+      },
+      "exposureIndex": 2,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 77.67,
+        "minLow": 1.18,
+        "closeN": 40.31
+      },
+      "hPlus10": {
+        "maxHigh": 77.67,
+        "minLow": 1.18,
+        "closeN": 12.93
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +77.67% / 종가 +12.93%)."
+    },
+    {
+      "cutoffDate": "20260213",
+      "targetDate": "20260219",
+      "code": "088350",
+      "name": "한화생명",
+      "market": "KOSPI",
+      "qvaDate": "20260126",
+      "vviDate": "20260210",
+      "hDate": "20260211",
+      "eventKey": "088350|20260210|20260211",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "MANAGEMENT",
+      "judgmentLabel": "관리 구간",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 4830,
+      "entryPrice": 4196.55,
+      "vviHigh": 4155,
+      "daysFromBreakout": 2,
+      "targetClose": 5080,
+      "targetHigh": 5260,
+      "targetLow": 4940,
+      "returns": {
+        "closeFromCutoff": 5.18,
+        "highFromCutoff": 8.9,
+        "lowFromCutoff": 2.28
+      },
+      "exposureIndex": 3,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 77.67,
+        "minLow": 1.18,
+        "closeN": 40.31
+      },
+      "hPlus10": {
+        "maxHigh": 77.67,
+        "minLow": 1.18,
+        "closeN": 12.93
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +77.67% / 종가 +12.93%)."
+    },
+    {
+      "cutoffDate": "20260219",
+      "targetDate": "20260220",
+      "code": "088350",
+      "name": "한화생명",
+      "market": "KOSPI",
+      "qvaDate": "20260126",
+      "vviDate": "20260210",
+      "hDate": "20260211",
+      "eventKey": "088350|20260210|20260211",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "MANAGEMENT",
+      "judgmentLabel": "관리 구간",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 5080,
+      "entryPrice": 4196.55,
+      "vviHigh": 4155,
+      "daysFromBreakout": 3,
+      "targetClose": 6600,
+      "targetHigh": 6600,
+      "targetLow": 5050,
+      "returns": {
+        "closeFromCutoff": 29.92,
+        "highFromCutoff": 29.92,
+        "lowFromCutoff": -0.59
+      },
+      "exposureIndex": 4,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 77.67,
+        "minLow": 1.18,
+        "closeN": 40.31
+      },
+      "hPlus10": {
+        "maxHigh": 77.67,
+        "minLow": 1.18,
+        "closeN": 12.93
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +77.67% / 종가 +12.93%)."
+    },
+    {
+      "cutoffDate": "20260220",
+      "targetDate": "20260223",
+      "code": "088350",
+      "name": "한화생명",
+      "market": "KOSPI",
+      "qvaDate": "20260126",
+      "vviDate": "20260210",
+      "hDate": "20260211",
+      "eventKey": "088350|20260210|20260211",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "MANAGEMENT",
+      "judgmentLabel": "관리 구간",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 6600,
+      "entryPrice": 4196.55,
+      "vviHigh": 4155,
+      "daysFromBreakout": 4,
+      "targetClose": 5970,
+      "targetHigh": 7560,
+      "targetLow": 5800,
+      "returns": {
+        "closeFromCutoff": -9.55,
+        "highFromCutoff": 14.55,
+        "lowFromCutoff": -12.12
+      },
+      "exposureIndex": 5,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 77.67,
+        "minLow": 1.18,
+        "closeN": 40.31
+      },
+      "hPlus10": {
+        "maxHigh": 77.67,
+        "minLow": 1.18,
+        "closeN": 12.93
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +77.67% / 종가 +12.93%)."
+    },
+    {
+      "cutoffDate": "20260223",
+      "targetDate": "20260224",
+      "code": "088350",
+      "name": "한화생명",
+      "market": "KOSPI",
+      "qvaDate": "20260126",
+      "vviDate": "20260210",
+      "hDate": "20260211",
+      "eventKey": "088350|20260210|20260211",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "MANAGEMENT",
+      "judgmentLabel": "관리 구간",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 5970,
+      "entryPrice": 4196.55,
+      "vviHigh": 4155,
+      "daysFromBreakout": 5,
+      "targetClose": 5320,
+      "targetHigh": 6090,
+      "targetLow": 5240,
+      "returns": {
+        "closeFromCutoff": -10.89,
+        "highFromCutoff": 2.01,
+        "lowFromCutoff": -12.23
+      },
+      "exposureIndex": 6,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 77.67,
+        "minLow": 1.18,
+        "closeN": 40.31
+      },
+      "hPlus10": {
+        "maxHigh": 77.67,
+        "minLow": 1.18,
+        "closeN": 12.93
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +77.67% / 종가 +12.93%)."
+    },
+    {
+      "cutoffDate": "20260126",
+      "targetDate": "20260127",
+      "code": "214150",
+      "name": "클래시스",
+      "market": "KOSDAQ",
+      "qvaDate": "20260122",
+      "vviDate": "20260123",
+      "hDate": "20260126",
+      "eventKey": "214150|20260123|20260126",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "REVIEW_OK",
+      "judgmentLabel": "진입가 근처",
+      "vprStatusAtCutoff": "DATA_INSUFFICIENT",
+      "vprLabelAtCutoff": "데이터 부족",
+      "vprConflictNote": null,
+      "cutoffClose": 64900,
+      "entryPrice": 63428,
+      "vviHigh": 62800,
+      "daysFromBreakout": 0,
+      "targetClose": 63900,
+      "targetHigh": 66900,
+      "targetLow": 62900,
+      "returns": {
+        "closeFromCutoff": -1.54,
+        "highFromCutoff": 3.08,
+        "lowFromCutoff": -3.08
+      },
+      "exposureIndex": 1,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 19.57,
+        "minLow": -3.08,
+        "closeN": 12.02
+      },
+      "hPlus10": {
+        "maxHigh": 19.57,
+        "minLow": -3.08,
+        "closeN": 4.47
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +19.57% / 종가 +4.47%)."
+    },
+    {
+      "cutoffDate": "20260127",
+      "targetDate": "20260128",
+      "code": "214150",
+      "name": "클래시스",
+      "market": "KOSDAQ",
+      "qvaDate": "20260122",
+      "vviDate": "20260123",
+      "hDate": "20260126",
+      "eventKey": "214150|20260123|20260126",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "REVIEW_OK",
+      "judgmentLabel": "진입가 근처",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 63900,
+      "entryPrice": 63428,
+      "vviHigh": 62800,
+      "daysFromBreakout": 1,
+      "targetClose": 67900,
+      "targetHigh": 68000,
+      "targetLow": 64800,
+      "returns": {
+        "closeFromCutoff": 6.26,
+        "highFromCutoff": 6.42,
+        "lowFromCutoff": 1.41
+      },
+      "exposureIndex": 2,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 19.57,
+        "minLow": -3.08,
+        "closeN": 12.02
+      },
+      "hPlus10": {
+        "maxHigh": 19.57,
+        "minLow": -3.08,
+        "closeN": 4.47
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +19.57% / 종가 +4.47%)."
+    },
+    {
+      "cutoffDate": "20260128",
+      "targetDate": "20260129",
+      "code": "214150",
+      "name": "클래시스",
+      "market": "KOSDAQ",
+      "qvaDate": "20260122",
+      "vviDate": "20260123",
+      "hDate": "20260126",
+      "eventKey": "214150|20260123|20260126",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "PULLBACK_WAIT",
+      "judgmentLabel": "눌림 대기",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 67900,
+      "entryPrice": 63428,
+      "vviHigh": 62800,
+      "daysFromBreakout": 2,
+      "targetClose": 75600,
+      "targetHigh": 77600,
+      "targetLow": 70500,
+      "returns": {
+        "closeFromCutoff": 11.34,
+        "highFromCutoff": 14.29,
+        "lowFromCutoff": 3.83
+      },
+      "exposureIndex": 3,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 19.57,
+        "minLow": -3.08,
+        "closeN": 12.02
+      },
+      "hPlus10": {
+        "maxHigh": 19.57,
+        "minLow": -3.08,
+        "closeN": 4.47
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +19.57% / 종가 +4.47%)."
+    },
+    {
+      "cutoffDate": "20260129",
+      "targetDate": "20260130",
+      "code": "214150",
+      "name": "클래시스",
+      "market": "KOSDAQ",
+      "qvaDate": "20260122",
+      "vviDate": "20260123",
+      "hDate": "20260126",
+      "eventKey": "214150|20260123|20260126",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "MANAGEMENT",
+      "judgmentLabel": "관리 구간",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 75600,
+      "entryPrice": 63428,
+      "vviHigh": 62800,
+      "daysFromBreakout": 3,
+      "targetClose": 74300,
+      "targetHigh": 77500,
+      "targetLow": 74000,
+      "returns": {
+        "closeFromCutoff": -1.72,
+        "highFromCutoff": 2.51,
+        "lowFromCutoff": -2.12
+      },
+      "exposureIndex": 4,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 19.57,
+        "minLow": -3.08,
+        "closeN": 12.02
+      },
+      "hPlus10": {
+        "maxHigh": 19.57,
+        "minLow": -3.08,
+        "closeN": 4.47
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +19.57% / 종가 +4.47%)."
+    },
+    {
+      "cutoffDate": "20260130",
+      "targetDate": "20260202",
+      "code": "214150",
+      "name": "클래시스",
+      "market": "KOSDAQ",
+      "qvaDate": "20260122",
+      "vviDate": "20260123",
+      "hDate": "20260126",
+      "eventKey": "214150|20260123|20260126",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "MANAGEMENT",
+      "judgmentLabel": "관리 구간",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 74300,
+      "entryPrice": 63428,
+      "vviHigh": 62800,
+      "daysFromBreakout": 4,
+      "targetClose": 72700,
+      "targetHigh": 76200,
+      "targetLow": 71600,
+      "returns": {
+        "closeFromCutoff": -2.15,
+        "highFromCutoff": 2.56,
+        "lowFromCutoff": -3.63
+      },
+      "exposureIndex": 5,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 19.57,
+        "minLow": -3.08,
+        "closeN": 12.02
+      },
+      "hPlus10": {
+        "maxHigh": 19.57,
+        "minLow": -3.08,
+        "closeN": 4.47
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +19.57% / 종가 +4.47%)."
+    },
+    {
+      "cutoffDate": "20260202",
+      "targetDate": "20260203",
+      "code": "214150",
+      "name": "클래시스",
+      "market": "KOSDAQ",
+      "qvaDate": "20260122",
+      "vviDate": "20260123",
+      "hDate": "20260126",
+      "eventKey": "214150|20260123|20260126",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "PULLBACK_WAIT",
+      "judgmentLabel": "눌림 대기",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 72700,
+      "entryPrice": 63428,
+      "vviHigh": 62800,
+      "daysFromBreakout": 5,
+      "targetClose": 74600,
+      "targetHigh": 76400,
+      "targetLow": 72800,
+      "returns": {
+        "closeFromCutoff": 2.61,
+        "highFromCutoff": 5.09,
+        "lowFromCutoff": 0.14
+      },
+      "exposureIndex": 6,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 19.57,
+        "minLow": -3.08,
+        "closeN": 12.02
+      },
+      "hPlus10": {
+        "maxHigh": 19.57,
+        "minLow": -3.08,
+        "closeN": 4.47
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +19.57% / 종가 +4.47%)."
+    },
+    {
+      "cutoffDate": "20260127",
+      "targetDate": "20260128",
+      "code": "232140",
+      "name": "와이씨",
+      "market": "KOSDAQ",
+      "qvaDate": "20260107",
+      "vviDate": "20260126",
+      "hDate": "20260127",
+      "eventKey": "232140|20260126|20260127",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "CHASE_CAUTION",
+      "judgmentLabel": "추격 주의",
+      "vprStatusAtCutoff": "DATA_INSUFFICIENT",
+      "vprLabelAtCutoff": "데이터 부족",
+      "vprConflictNote": null,
+      "cutoffClose": 17300,
+      "entryPrice": 16564,
+      "vviHigh": 16400,
+      "daysFromBreakout": 0,
+      "targetClose": 19210,
+      "targetHigh": 19300,
+      "targetLow": 17680,
+      "returns": {
+        "closeFromCutoff": 11.04,
+        "highFromCutoff": 11.56,
+        "lowFromCutoff": 2.2
+      },
+      "exposureIndex": 1,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 19.65,
+        "minLow": -1.04,
+        "closeN": 15.61
+      },
+      "hPlus10": {
+        "maxHigh": 37.28,
+        "minLow": -1.04,
+        "closeN": 26.88
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +37.28% / 종가 +26.88%)."
+    },
+    {
+      "cutoffDate": "20260128",
+      "targetDate": "20260129",
+      "code": "232140",
+      "name": "와이씨",
+      "market": "KOSDAQ",
+      "qvaDate": "20260107",
+      "vviDate": "20260126",
+      "hDate": "20260127",
+      "eventKey": "232140|20260126|20260127",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "MANAGEMENT",
+      "judgmentLabel": "관리 구간",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 19210,
+      "entryPrice": 16564,
+      "vviHigh": 16400,
+      "daysFromBreakout": 1,
+      "targetClose": 18640,
+      "targetHigh": 19840,
+      "targetLow": 17120,
+      "returns": {
+        "closeFromCutoff": -2.97,
+        "highFromCutoff": 3.28,
+        "lowFromCutoff": -10.88
+      },
+      "exposureIndex": 2,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 19.65,
+        "minLow": -1.04,
+        "closeN": 15.61
+      },
+      "hPlus10": {
+        "maxHigh": 37.28,
+        "minLow": -1.04,
+        "closeN": 26.88
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +37.28% / 종가 +26.88%)."
+    },
+    {
+      "cutoffDate": "20260129",
+      "targetDate": "20260130",
+      "code": "232140",
+      "name": "와이씨",
+      "market": "KOSDAQ",
+      "qvaDate": "20260107",
+      "vviDate": "20260126",
+      "hDate": "20260127",
+      "eventKey": "232140|20260126|20260127",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "PULLBACK_WAIT",
+      "judgmentLabel": "눌림 대기",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 18640,
+      "entryPrice": 16564,
+      "vviHigh": 16400,
+      "daysFromBreakout": 2,
+      "targetClose": 19730,
+      "targetHigh": 20700,
+      "targetLow": 18450,
+      "returns": {
+        "closeFromCutoff": 5.85,
+        "highFromCutoff": 11.05,
+        "lowFromCutoff": -1.02
+      },
+      "exposureIndex": 3,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 19.65,
+        "minLow": -1.04,
+        "closeN": 15.61
+      },
+      "hPlus10": {
+        "maxHigh": 37.28,
+        "minLow": -1.04,
+        "closeN": 26.88
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +37.28% / 종가 +26.88%)."
+    },
+    {
+      "cutoffDate": "20260130",
+      "targetDate": "20260202",
+      "code": "232140",
+      "name": "와이씨",
+      "market": "KOSDAQ",
+      "qvaDate": "20260107",
+      "vviDate": "20260126",
+      "hDate": "20260127",
+      "eventKey": "232140|20260126|20260127",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "MANAGEMENT",
+      "judgmentLabel": "관리 구간",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 19730,
+      "entryPrice": 16564,
+      "vviHigh": 16400,
+      "daysFromBreakout": 3,
+      "targetClose": 17970,
+      "targetHigh": 19400,
+      "targetLow": 17800,
+      "returns": {
+        "closeFromCutoff": -8.92,
+        "highFromCutoff": -1.67,
+        "lowFromCutoff": -9.78
+      },
+      "exposureIndex": 4,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 19.65,
+        "minLow": -1.04,
+        "closeN": 15.61
+      },
+      "hPlus10": {
+        "maxHigh": 37.28,
+        "minLow": -1.04,
+        "closeN": 26.88
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +37.28% / 종가 +26.88%)."
+    },
+    {
+      "cutoffDate": "20260202",
+      "targetDate": "20260203",
+      "code": "232140",
+      "name": "와이씨",
+      "market": "KOSDAQ",
+      "qvaDate": "20260107",
+      "vviDate": "20260126",
+      "hDate": "20260127",
+      "eventKey": "232140|20260126|20260127",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "PULLBACK_WAIT",
+      "judgmentLabel": "눌림 대기",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 17970,
+      "entryPrice": 16564,
+      "vviHigh": 16400,
+      "daysFromBreakout": 4,
+      "targetClose": 20000,
+      "targetHigh": 20000,
+      "targetLow": 18620,
+      "returns": {
+        "closeFromCutoff": 11.3,
+        "highFromCutoff": 11.3,
+        "lowFromCutoff": 3.62
+      },
+      "exposureIndex": 5,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 19.65,
+        "minLow": -1.04,
+        "closeN": 15.61
+      },
+      "hPlus10": {
+        "maxHigh": 37.28,
+        "minLow": -1.04,
+        "closeN": 26.88
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +37.28% / 종가 +26.88%)."
+    },
+    {
+      "cutoffDate": "20260203",
+      "targetDate": "20260204",
+      "code": "232140",
+      "name": "와이씨",
+      "market": "KOSDAQ",
+      "qvaDate": "20260107",
+      "vviDate": "20260126",
+      "hDate": "20260127",
+      "eventKey": "232140|20260126|20260127",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "MANAGEMENT",
+      "judgmentLabel": "관리 구간",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 20000,
+      "entryPrice": 16564,
+      "vviHigh": 16400,
+      "daysFromBreakout": 5,
+      "targetClose": 19290,
+      "targetHigh": 19860,
+      "targetLow": 18900,
+      "returns": {
+        "closeFromCutoff": -3.55,
+        "highFromCutoff": -0.7,
+        "lowFromCutoff": -5.5
+      },
+      "exposureIndex": 6,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d10VprLabel": "눌림 없이 상승",
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY",
+      "hPlus5": {
+        "maxHigh": 19.65,
+        "minLow": -1.04,
+        "closeN": 15.61
+      },
+      "hPlus10": {
+        "maxHigh": 37.28,
+        "minLow": -1.04,
+        "closeN": 26.88
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "눌림 없이 상승 상태가 D+10까지 유지되며 강한 흐름을 보인 사례 (H+10 고가 +37.28% / 종가 +26.88%)."
+    },
+    {
+      "cutoffDate": "20260212",
+      "targetDate": "20260213",
+      "code": "355150",
+      "name": "코스텍시스",
+      "market": "KOSDAQ",
+      "qvaDate": "20260206",
+      "vviDate": "20260211",
+      "hDate": "20260212",
+      "eventKey": "355150|20260211|20260212",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "BREAKDOWN_WEAK",
+      "judgmentLabel": "돌파 악화",
+      "vprStatusAtCutoff": "DATA_INSUFFICIENT",
+      "vprLabelAtCutoff": "데이터 부족",
+      "vprConflictNote": null,
+      "cutoffClose": 15960,
+      "entryPrice": 16079.2,
+      "vviHigh": 15920,
+      "daysFromBreakout": 0,
+      "targetClose": 15200,
+      "targetHigh": 15980,
+      "targetLow": 15130,
+      "returns": {
+        "closeFromCutoff": -4.76,
+        "highFromCutoff": 0.13,
+        "lowFromCutoff": -5.2
+      },
+      "exposureIndex": 1,
+      "d5VprStatus": "STRONG_VPR_SUCCESS",
+      "d5VprLabel": "강한 VPR 성공",
+      "d10VprStatus": "STRONG_VPR_SUCCESS",
+      "d10VprLabel": "강한 VPR 성공",
+      "transition": "STRONG_VPR_SUCCESS → STRONG_VPR_SUCCESS",
+      "hPlus5": {
+        "maxHigh": 28.13,
+        "minLow": -7.02,
+        "closeN": 14.54
+      },
+      "hPlus10": {
+        "maxHigh": 41.29,
+        "minLow": -7.02,
+        "closeN": -0.19
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+10 시점 강한 VPR 성공으로 정상 눌림 후 H돌파일 고가까지 재돌파한 사례 (H+10 고가 +41.29% / 종가 -0.19%)."
+    },
+    {
+      "cutoffDate": "20260213",
+      "targetDate": "20260219",
+      "code": "355150",
+      "name": "코스텍시스",
+      "market": "KOSDAQ",
+      "qvaDate": "20260206",
+      "vviDate": "20260211",
+      "hDate": "20260212",
+      "eventKey": "355150|20260211|20260212",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "BREAKDOWN_WEAK",
+      "judgmentLabel": "돌파 악화",
+      "vprStatusAtCutoff": "PULLBACK_PENDING",
+      "vprLabelAtCutoff": "VPR 대기",
+      "vprConflictNote": "기존 기준으로는 돌파 악화이나, VPR 기준으로는 정상 눌림 범위에서 재돌파 대기 중입니다.",
+      "cutoffClose": 15200,
+      "entryPrice": 16079.2,
+      "vviHigh": 15920,
+      "daysFromBreakout": 1,
+      "targetClose": 15110,
+      "targetHigh": 15990,
+      "targetLow": 14980,
+      "returns": {
+        "closeFromCutoff": -0.59,
+        "highFromCutoff": 5.2,
+        "lowFromCutoff": -1.45
+      },
+      "exposureIndex": 2,
+      "d5VprStatus": "STRONG_VPR_SUCCESS",
+      "d5VprLabel": "강한 VPR 성공",
+      "d10VprStatus": "STRONG_VPR_SUCCESS",
+      "d10VprLabel": "강한 VPR 성공",
+      "transition": "STRONG_VPR_SUCCESS → STRONG_VPR_SUCCESS",
+      "hPlus5": {
+        "maxHigh": 28.13,
+        "minLow": -7.02,
+        "closeN": 14.54
+      },
+      "hPlus10": {
+        "maxHigh": 41.29,
+        "minLow": -7.02,
+        "closeN": -0.19
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+10 시점 강한 VPR 성공으로 정상 눌림 후 H돌파일 고가까지 재돌파한 사례 (H+10 고가 +41.29% / 종가 -0.19%)."
+    },
+    {
+      "cutoffDate": "20260219",
+      "targetDate": "20260220",
+      "code": "355150",
+      "name": "코스텍시스",
+      "market": "KOSDAQ",
+      "qvaDate": "20260206",
+      "vviDate": "20260211",
+      "hDate": "20260212",
+      "eventKey": "355150|20260211|20260212",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "BREAKDOWN_WEAK",
+      "judgmentLabel": "돌파 악화",
+      "vprStatusAtCutoff": "PULLBACK_PENDING",
+      "vprLabelAtCutoff": "VPR 대기",
+      "vprConflictNote": "기존 기준으로는 돌파 악화이나, VPR 기준으로는 정상 눌림 범위에서 재돌파 대기 중입니다.",
+      "cutoffClose": 15110,
+      "entryPrice": 16079.2,
+      "vviHigh": 15920,
+      "daysFromBreakout": 2,
+      "targetClose": 16090,
+      "targetHigh": 16350,
+      "targetLow": 14840,
+      "returns": {
+        "closeFromCutoff": 6.49,
+        "highFromCutoff": 8.21,
+        "lowFromCutoff": -1.79
+      },
+      "exposureIndex": 3,
+      "d5VprStatus": "STRONG_VPR_SUCCESS",
+      "d5VprLabel": "강한 VPR 성공",
+      "d10VprStatus": "STRONG_VPR_SUCCESS",
+      "d10VprLabel": "강한 VPR 성공",
+      "transition": "STRONG_VPR_SUCCESS → STRONG_VPR_SUCCESS",
+      "hPlus5": {
+        "maxHigh": 28.13,
+        "minLow": -7.02,
+        "closeN": 14.54
+      },
+      "hPlus10": {
+        "maxHigh": 41.29,
+        "minLow": -7.02,
+        "closeN": -0.19
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+10 시점 강한 VPR 성공으로 정상 눌림 후 H돌파일 고가까지 재돌파한 사례 (H+10 고가 +41.29% / 종가 -0.19%)."
+    },
+    {
+      "cutoffDate": "20260220",
+      "targetDate": "20260223",
+      "code": "355150",
+      "name": "코스텍시스",
+      "market": "KOSDAQ",
+      "qvaDate": "20260206",
+      "vviDate": "20260211",
+      "hDate": "20260212",
+      "eventKey": "355150|20260211|20260212",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "PULLBACK_WAIT",
+      "judgmentLabel": "눌림 대기",
+      "vprStatusAtCutoff": "PULLBACK_PENDING",
+      "vprLabelAtCutoff": "VPR 대기",
+      "vprConflictNote": null,
+      "cutoffClose": 16090,
+      "entryPrice": 16079.2,
+      "vviHigh": 15920,
+      "daysFromBreakout": 3,
+      "targetClose": 18100,
+      "targetHigh": 18800,
+      "targetLow": 16000,
+      "returns": {
+        "closeFromCutoff": 12.49,
+        "highFromCutoff": 16.84,
+        "lowFromCutoff": -0.56
+      },
+      "exposureIndex": 4,
+      "d5VprStatus": "STRONG_VPR_SUCCESS",
+      "d5VprLabel": "강한 VPR 성공",
+      "d10VprStatus": "STRONG_VPR_SUCCESS",
+      "d10VprLabel": "강한 VPR 성공",
+      "transition": "STRONG_VPR_SUCCESS → STRONG_VPR_SUCCESS",
+      "hPlus5": {
+        "maxHigh": 28.13,
+        "minLow": -7.02,
+        "closeN": 14.54
+      },
+      "hPlus10": {
+        "maxHigh": 41.29,
+        "minLow": -7.02,
+        "closeN": -0.19
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+10 시점 강한 VPR 성공으로 정상 눌림 후 H돌파일 고가까지 재돌파한 사례 (H+10 고가 +41.29% / 종가 -0.19%)."
+    },
+    {
+      "cutoffDate": "20260223",
+      "targetDate": "20260224",
+      "code": "355150",
+      "name": "코스텍시스",
+      "market": "KOSDAQ",
+      "qvaDate": "20260206",
+      "vviDate": "20260211",
+      "hDate": "20260212",
+      "eventKey": "355150|20260211|20260212",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "PULLBACK_WAIT",
+      "judgmentLabel": "눌림 대기",
+      "vprStatusAtCutoff": "STRONG_VPR_SUCCESS",
+      "vprLabelAtCutoff": "강한 VPR 성공",
+      "vprConflictNote": null,
+      "cutoffClose": 18100,
+      "entryPrice": 16079.2,
+      "vviHigh": 15920,
+      "daysFromBreakout": 4,
+      "targetClose": 18280,
+      "targetHigh": 20450,
+      "targetLow": 18280,
+      "returns": {
+        "closeFromCutoff": 0.99,
+        "highFromCutoff": 12.98,
+        "lowFromCutoff": 0.99
+      },
+      "exposureIndex": 5,
+      "d5VprStatus": "STRONG_VPR_SUCCESS",
+      "d5VprLabel": "강한 VPR 성공",
+      "d10VprStatus": "STRONG_VPR_SUCCESS",
+      "d10VprLabel": "강한 VPR 성공",
+      "transition": "STRONG_VPR_SUCCESS → STRONG_VPR_SUCCESS",
+      "hPlus5": {
+        "maxHigh": 28.13,
+        "minLow": -7.02,
+        "closeN": 14.54
+      },
+      "hPlus10": {
+        "maxHigh": 41.29,
+        "minLow": -7.02,
+        "closeN": -0.19
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+10 시점 강한 VPR 성공으로 정상 눌림 후 H돌파일 고가까지 재돌파한 사례 (H+10 고가 +41.29% / 종가 -0.19%)."
+    },
+    {
+      "cutoffDate": "20260224",
+      "targetDate": "20260225",
+      "code": "355150",
+      "name": "코스텍시스",
+      "market": "KOSDAQ",
+      "qvaDate": "20260206",
+      "vviDate": "20260211",
+      "hDate": "20260212",
+      "eventKey": "355150|20260211|20260212",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "PULLBACK_WAIT",
+      "judgmentLabel": "눌림 대기",
+      "vprStatusAtCutoff": "STRONG_VPR_SUCCESS",
+      "vprLabelAtCutoff": "강한 VPR 성공",
+      "vprConflictNote": null,
+      "cutoffClose": 18280,
+      "entryPrice": 16079.2,
+      "vviHigh": 15920,
+      "daysFromBreakout": 5,
+      "targetClose": 17350,
+      "targetHigh": 18530,
+      "targetLow": 17200,
+      "returns": {
+        "closeFromCutoff": -5.09,
+        "highFromCutoff": 1.37,
+        "lowFromCutoff": -5.91
+      },
+      "exposureIndex": 6,
+      "d5VprStatus": "STRONG_VPR_SUCCESS",
+      "d5VprLabel": "강한 VPR 성공",
+      "d10VprStatus": "STRONG_VPR_SUCCESS",
+      "d10VprLabel": "강한 VPR 성공",
+      "transition": "STRONG_VPR_SUCCESS → STRONG_VPR_SUCCESS",
+      "hPlus5": {
+        "maxHigh": 28.13,
+        "minLow": -7.02,
+        "closeN": 14.54
+      },
+      "hPlus10": {
+        "maxHigh": 41.29,
+        "minLow": -7.02,
+        "closeN": -0.19
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+10 시점 강한 VPR 성공으로 정상 눌림 후 H돌파일 고가까지 재돌파한 사례 (H+10 고가 +41.29% / 종가 -0.19%)."
+    },
+    {
+      "cutoffDate": "20260210",
+      "targetDate": "20260211",
+      "code": "394280",
+      "name": "오픈엣지테크놀로지",
+      "market": "KOSDAQ",
+      "qvaDate": "20260130",
+      "vviDate": "20260209",
+      "hDate": "20260210",
+      "eventKey": "394280|20260209|20260210",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "REVIEW_OK",
+      "judgmentLabel": "진입가 근처",
+      "vprStatusAtCutoff": "DATA_INSUFFICIENT",
+      "vprLabelAtCutoff": "데이터 부족",
+      "vprConflictNote": null,
+      "cutoffClose": 16740,
+      "entryPrice": 16564,
+      "vviHigh": 16400,
+      "daysFromBreakout": 0,
+      "targetClose": 17360,
+      "targetHigh": 18000,
+      "targetLow": 16190,
+      "returns": {
+        "closeFromCutoff": 3.7,
+        "highFromCutoff": 7.53,
+        "lowFromCutoff": -3.29
+      },
+      "exposureIndex": 1,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "NO_PULLBACK_RUNAWAY → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 17.98,
+        "minLow": -3.29,
+        "closeN": 0.24
+      },
+      "hPlus10": {
+        "maxHigh": 17.98,
+        "minLow": -10.04,
+        "closeN": -4.78
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+10 시점 구조 훼손으로 분류되어 하락 위험이 컸던 사례 (종가 -4.78%)."
+    },
+    {
+      "cutoffDate": "20260211",
+      "targetDate": "20260212",
+      "code": "394280",
+      "name": "오픈엣지테크놀로지",
+      "market": "KOSDAQ",
+      "qvaDate": "20260130",
+      "vviDate": "20260209",
+      "hDate": "20260210",
+      "eventKey": "394280|20260209|20260210",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "CHASE_CAUTION",
+      "judgmentLabel": "추격 주의",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 17360,
+      "entryPrice": 16564,
+      "vviHigh": 16400,
+      "daysFromBreakout": 1,
+      "targetClose": 17950,
+      "targetHigh": 19750,
+      "targetLow": 17470,
+      "returns": {
+        "closeFromCutoff": 3.4,
+        "highFromCutoff": 13.77,
+        "lowFromCutoff": 0.63
+      },
+      "exposureIndex": 2,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "NO_PULLBACK_RUNAWAY → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 17.98,
+        "minLow": -3.29,
+        "closeN": 0.24
+      },
+      "hPlus10": {
+        "maxHigh": 17.98,
+        "minLow": -10.04,
+        "closeN": -4.78
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+10 시점 구조 훼손으로 분류되어 하락 위험이 컸던 사례 (종가 -4.78%)."
+    },
+    {
+      "cutoffDate": "20260212",
+      "targetDate": "20260213",
+      "code": "394280",
+      "name": "오픈엣지테크놀로지",
+      "market": "KOSDAQ",
+      "qvaDate": "20260130",
+      "vviDate": "20260209",
+      "hDate": "20260210",
+      "eventKey": "394280|20260209|20260210",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "PULLBACK_WAIT",
+      "judgmentLabel": "눌림 대기",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 17950,
+      "entryPrice": 16564,
+      "vviHigh": 16400,
+      "daysFromBreakout": 2,
+      "targetClose": 16840,
+      "targetHigh": 17350,
+      "targetLow": 16830,
+      "returns": {
+        "closeFromCutoff": -6.18,
+        "highFromCutoff": -3.34,
+        "lowFromCutoff": -6.24
+      },
+      "exposureIndex": 3,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "NO_PULLBACK_RUNAWAY → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 17.98,
+        "minLow": -3.29,
+        "closeN": 0.24
+      },
+      "hPlus10": {
+        "maxHigh": 17.98,
+        "minLow": -10.04,
+        "closeN": -4.78
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+10 시점 구조 훼손으로 분류되어 하락 위험이 컸던 사례 (종가 -4.78%)."
+    },
+    {
+      "cutoffDate": "20260213",
+      "targetDate": "20260219",
+      "code": "394280",
+      "name": "오픈엣지테크놀로지",
+      "market": "KOSDAQ",
+      "qvaDate": "20260130",
+      "vviDate": "20260209",
+      "hDate": "20260210",
+      "eventKey": "394280|20260209|20260210",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "PULLBACK_WAIT",
+      "judgmentLabel": "눌림 대기",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 16840,
+      "entryPrice": 16564,
+      "vviHigh": 16400,
+      "daysFromBreakout": 3,
+      "targetClose": 16950,
+      "targetHigh": 17250,
+      "targetLow": 16240,
+      "returns": {
+        "closeFromCutoff": 0.65,
+        "highFromCutoff": 2.43,
+        "lowFromCutoff": -3.56
+      },
+      "exposureIndex": 4,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "NO_PULLBACK_RUNAWAY → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 17.98,
+        "minLow": -3.29,
+        "closeN": 0.24
+      },
+      "hPlus10": {
+        "maxHigh": 17.98,
+        "minLow": -10.04,
+        "closeN": -4.78
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+10 시점 구조 훼손으로 분류되어 하락 위험이 컸던 사례 (종가 -4.78%)."
+    },
+    {
+      "cutoffDate": "20260219",
+      "targetDate": "20260220",
+      "code": "394280",
+      "name": "오픈엣지테크놀로지",
+      "market": "KOSDAQ",
+      "qvaDate": "20260130",
+      "vviDate": "20260209",
+      "hDate": "20260210",
+      "eventKey": "394280|20260209|20260210",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "PULLBACK_WAIT",
+      "judgmentLabel": "눌림 대기",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 16950,
+      "entryPrice": 16564,
+      "vviHigh": 16400,
+      "daysFromBreakout": 4,
+      "targetClose": 16780,
+      "targetHigh": 17160,
+      "targetLow": 16500,
+      "returns": {
+        "closeFromCutoff": -1,
+        "highFromCutoff": 1.24,
+        "lowFromCutoff": -2.65
+      },
+      "exposureIndex": 5,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "NO_PULLBACK_RUNAWAY → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 17.98,
+        "minLow": -3.29,
+        "closeN": 0.24
+      },
+      "hPlus10": {
+        "maxHigh": 17.98,
+        "minLow": -10.04,
+        "closeN": -4.78
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+10 시점 구조 훼손으로 분류되어 하락 위험이 컸던 사례 (종가 -4.78%)."
+    },
+    {
+      "cutoffDate": "20260220",
+      "targetDate": "20260223",
+      "code": "394280",
+      "name": "오픈엣지테크놀로지",
+      "market": "KOSDAQ",
+      "qvaDate": "20260130",
+      "vviDate": "20260209",
+      "hDate": "20260210",
+      "eventKey": "394280|20260209|20260210",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "PULLBACK_WAIT",
+      "judgmentLabel": "눌림 대기",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 16780,
+      "entryPrice": 16564,
+      "vviHigh": 16400,
+      "daysFromBreakout": 5,
+      "targetClose": 15950,
+      "targetHigh": 16750,
+      "targetLow": 15840,
+      "returns": {
+        "closeFromCutoff": -4.95,
+        "highFromCutoff": -0.18,
+        "lowFromCutoff": -5.6
+      },
+      "exposureIndex": 6,
+      "d5VprStatus": "NO_PULLBACK_RUNAWAY",
+      "d5VprLabel": "눌림 없이 상승",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "NO_PULLBACK_RUNAWAY → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 17.98,
+        "minLow": -3.29,
+        "closeN": 0.24
+      },
+      "hPlus10": {
+        "maxHigh": 17.98,
+        "minLow": -10.04,
+        "closeN": -4.78
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+10 시점 구조 훼손으로 분류되어 하락 위험이 컸던 사례 (종가 -4.78%)."
+    },
+    {
+      "cutoffDate": "20260319",
+      "targetDate": "20260320",
+      "code": "403870",
+      "name": "HPSP",
+      "market": "KOSDAQ",
+      "qvaDate": "20260303",
+      "vviDate": "20260318",
+      "hDate": "20260319",
+      "eventKey": "403870|20260318|20260319",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "BREAKDOWN_WEAK",
+      "judgmentLabel": "돌파 악화",
+      "vprStatusAtCutoff": "DATA_INSUFFICIENT",
+      "vprLabelAtCutoff": "데이터 부족",
+      "vprConflictNote": null,
+      "cutoffClose": 51700,
+      "entryPrice": 51914,
+      "vviHigh": 51400,
+      "daysFromBreakout": 0,
+      "targetClose": 51200,
+      "targetHigh": 52700,
+      "targetLow": 49250,
+      "returns": {
+        "closeFromCutoff": -0.97,
+        "highFromCutoff": 1.93,
+        "lowFromCutoff": -4.74
+      },
+      "exposureIndex": 1,
+      "d5VprStatus": "PULLBACK_PENDING",
+      "d5VprLabel": "VPR 대기",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "PULLBACK_PENDING → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 3.09,
+        "minLow": -11.99,
+        "closeN": -11.7
+      },
+      "hPlus10": {
+        "maxHigh": 3.09,
+        "minLow": -21.95,
+        "closeN": -20.99
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+5 기준 VPR 대기였으나 D+10에는 구조 훼손으로 전환되어 하락 위험이 커진 사례 (종가 -20.99%)."
+    },
+    {
+      "cutoffDate": "20260320",
+      "targetDate": "20260323",
+      "code": "403870",
+      "name": "HPSP",
+      "market": "KOSDAQ",
+      "qvaDate": "20260303",
+      "vviDate": "20260318",
+      "hDate": "20260319",
+      "eventKey": "403870|20260318|20260319",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "BREAKDOWN_WEAK",
+      "judgmentLabel": "돌파 악화",
+      "vprStatusAtCutoff": "PULLBACK_PENDING",
+      "vprLabelAtCutoff": "VPR 대기",
+      "vprConflictNote": "기존 기준으로는 돌파 악화이나, VPR 기준으로는 정상 눌림 범위에서 재돌파 대기 중입니다.",
+      "cutoffClose": 51200,
+      "entryPrice": 51914,
+      "vviHigh": 51400,
+      "daysFromBreakout": 1,
+      "targetClose": 49200,
+      "targetHigh": 53300,
+      "targetLow": 49200,
+      "returns": {
+        "closeFromCutoff": -3.91,
+        "highFromCutoff": 4.1,
+        "lowFromCutoff": -3.91
+      },
+      "exposureIndex": 2,
+      "d5VprStatus": "PULLBACK_PENDING",
+      "d5VprLabel": "VPR 대기",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "PULLBACK_PENDING → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 3.09,
+        "minLow": -11.99,
+        "closeN": -11.7
+      },
+      "hPlus10": {
+        "maxHigh": 3.09,
+        "minLow": -21.95,
+        "closeN": -20.99
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+5 기준 VPR 대기였으나 D+10에는 구조 훼손으로 전환되어 하락 위험이 커진 사례 (종가 -20.99%)."
+    },
+    {
+      "cutoffDate": "20260323",
+      "targetDate": "20260324",
+      "code": "403870",
+      "name": "HPSP",
+      "market": "KOSDAQ",
+      "qvaDate": "20260303",
+      "vviDate": "20260318",
+      "hDate": "20260319",
+      "eventKey": "403870|20260318|20260319",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "BREAKDOWN_WEAK",
+      "judgmentLabel": "돌파 악화",
+      "vprStatusAtCutoff": "PULLBACK_PENDING",
+      "vprLabelAtCutoff": "VPR 대기",
+      "vprConflictNote": "기존 기준으로는 돌파 악화이나, VPR 기준으로는 정상 눌림 범위에서 재돌파 대기 중입니다.",
+      "cutoffClose": 49200,
+      "entryPrice": 51914,
+      "vviHigh": 51400,
+      "daysFromBreakout": 2,
+      "targetClose": 48750,
+      "targetHigh": 51300,
+      "targetLow": 47000,
+      "returns": {
+        "closeFromCutoff": -0.91,
+        "highFromCutoff": 4.27,
+        "lowFromCutoff": -4.47
+      },
+      "exposureIndex": 3,
+      "d5VprStatus": "PULLBACK_PENDING",
+      "d5VprLabel": "VPR 대기",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "PULLBACK_PENDING → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 3.09,
+        "minLow": -11.99,
+        "closeN": -11.7
+      },
+      "hPlus10": {
+        "maxHigh": 3.09,
+        "minLow": -21.95,
+        "closeN": -20.99
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+5 기준 VPR 대기였으나 D+10에는 구조 훼손으로 전환되어 하락 위험이 커진 사례 (종가 -20.99%)."
+    },
+    {
+      "cutoffDate": "20260324",
+      "targetDate": "20260325",
+      "code": "403870",
+      "name": "HPSP",
+      "market": "KOSDAQ",
+      "qvaDate": "20260303",
+      "vviDate": "20260318",
+      "hDate": "20260319",
+      "eventKey": "403870|20260318|20260319",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "BREAKDOWN_WEAK",
+      "judgmentLabel": "돌파 악화",
+      "vprStatusAtCutoff": "PULLBACK_PENDING",
+      "vprLabelAtCutoff": "VPR 대기",
+      "vprConflictNote": "기존 기준으로는 돌파 악화이나, VPR 기준으로는 정상 눌림 범위에서 재돌파 대기 중입니다.",
+      "cutoffClose": 48750,
+      "entryPrice": 51914,
+      "vviHigh": 51400,
+      "daysFromBreakout": 3,
+      "targetClose": 49750,
+      "targetHigh": 51200,
+      "targetLow": 48900,
+      "returns": {
+        "closeFromCutoff": 2.05,
+        "highFromCutoff": 5.03,
+        "lowFromCutoff": 0.31
+      },
+      "exposureIndex": 4,
+      "d5VprStatus": "PULLBACK_PENDING",
+      "d5VprLabel": "VPR 대기",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "PULLBACK_PENDING → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 3.09,
+        "minLow": -11.99,
+        "closeN": -11.7
+      },
+      "hPlus10": {
+        "maxHigh": 3.09,
+        "minLow": -21.95,
+        "closeN": -20.99
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+5 기준 VPR 대기였으나 D+10에는 구조 훼손으로 전환되어 하락 위험이 커진 사례 (종가 -20.99%)."
+    },
+    {
+      "cutoffDate": "20260325",
+      "targetDate": "20260326",
+      "code": "403870",
+      "name": "HPSP",
+      "market": "KOSDAQ",
+      "qvaDate": "20260303",
+      "vviDate": "20260318",
+      "hDate": "20260319",
+      "eventKey": "403870|20260318|20260319",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "BREAKDOWN_WEAK",
+      "judgmentLabel": "돌파 악화",
+      "vprStatusAtCutoff": "PULLBACK_PENDING",
+      "vprLabelAtCutoff": "VPR 대기",
+      "vprConflictNote": "기존 기준으로는 돌파 악화이나, VPR 기준으로는 정상 눌림 범위에서 재돌파 대기 중입니다.",
+      "cutoffClose": 49750,
+      "entryPrice": 51914,
+      "vviHigh": 51400,
+      "daysFromBreakout": 4,
+      "targetClose": 45650,
+      "targetHigh": 49000,
+      "targetLow": 45500,
+      "returns": {
+        "closeFromCutoff": -8.24,
+        "highFromCutoff": -1.51,
+        "lowFromCutoff": -8.54
+      },
+      "exposureIndex": 5,
+      "d5VprStatus": "PULLBACK_PENDING",
+      "d5VprLabel": "VPR 대기",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "PULLBACK_PENDING → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 3.09,
+        "minLow": -11.99,
+        "closeN": -11.7
+      },
+      "hPlus10": {
+        "maxHigh": 3.09,
+        "minLow": -21.95,
+        "closeN": -20.99
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+5 기준 VPR 대기였으나 D+10에는 구조 훼손으로 전환되어 하락 위험이 커진 사례 (종가 -20.99%)."
+    },
+    {
+      "cutoffDate": "20260326",
+      "targetDate": "20260327",
+      "code": "403870",
+      "name": "HPSP",
+      "market": "KOSDAQ",
+      "qvaDate": "20260303",
+      "vviDate": "20260318",
+      "hDate": "20260319",
+      "eventKey": "403870|20260318|20260319",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "BREAKDOWN_WEAK",
+      "judgmentLabel": "돌파 악화",
+      "vprStatusAtCutoff": "PULLBACK_PENDING",
+      "vprLabelAtCutoff": "VPR 대기",
+      "vprConflictNote": "기존 기준으로는 돌파 악화이나, VPR 기준으로는 정상 눌림 범위에서 재돌파 대기 중입니다.",
+      "cutoffClose": 45650,
+      "entryPrice": 51914,
+      "vviHigh": 51400,
+      "daysFromBreakout": 5,
+      "targetClose": 45150,
+      "targetHigh": 46700,
+      "targetLow": 43800,
+      "returns": {
+        "closeFromCutoff": -1.1,
+        "highFromCutoff": 2.3,
+        "lowFromCutoff": -4.05
+      },
+      "exposureIndex": 6,
+      "d5VprStatus": "PULLBACK_PENDING",
+      "d5VprLabel": "VPR 대기",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "PULLBACK_PENDING → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 3.09,
+        "minLow": -11.99,
+        "closeN": -11.7
+      },
+      "hPlus10": {
+        "maxHigh": 3.09,
+        "minLow": -21.95,
+        "closeN": -20.99
+      },
+      "exposureTotal": 6,
+      "oneLineSummary": "D+5 기준 VPR 대기였으나 D+10에는 구조 훼손으로 전환되어 하락 위험이 커진 사례 (종가 -20.99%)."
+    },
+    {
+      "cutoffDate": "20260417",
+      "targetDate": "20260420",
+      "code": "441270",
+      "name": "파인엠텍",
+      "market": "KOSDAQ",
+      "qvaDate": "20260415",
+      "vviDate": "20260416",
+      "hDate": "20260417",
+      "eventKey": "441270|20260416|20260417",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "CHASE_CAUTION",
+      "judgmentLabel": "추격 주의",
+      "vprStatusAtCutoff": "DATA_INSUFFICIENT",
+      "vprLabelAtCutoff": "데이터 부족",
+      "vprConflictNote": null,
+      "cutoffClose": 12000,
+      "entryPrice": 11453.4,
+      "vviHigh": 11340,
+      "daysFromBreakout": 0,
+      "targetClose": 11670,
+      "targetHigh": 12190,
+      "targetLow": 11610,
+      "returns": {
+        "closeFromCutoff": -2.75,
+        "highFromCutoff": 1.58,
+        "lowFromCutoff": -3.25
+      },
+      "exposureIndex": 1,
+      "d5VprStatus": "PULLBACK_PENDING",
+      "d5VprLabel": "VPR 대기",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "PULLBACK_PENDING → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 1.58,
+        "minLow": -12.67,
+        "closeN": -10.5
+      },
+      "hPlus10": {
+        "maxHigh": 1.58,
+        "minLow": -15,
+        "closeN": -8.83
+      },
+      "exposureTotal": 2,
+      "oneLineSummary": "D+5 기준 VPR 대기였으나 D+10에는 구조 훼손으로 전환되어 하락 위험이 커진 사례 (종가 -8.83%)."
+    },
+    {
+      "cutoffDate": "20260420",
+      "targetDate": "20260421",
+      "code": "441270",
+      "name": "파인엠텍",
+      "market": "KOSDAQ",
+      "qvaDate": "20260415",
+      "vviDate": "20260416",
+      "hDate": "20260417",
+      "eventKey": "441270|20260416|20260417",
+      "mainStage": "BREAKOUT_SUCCESS",
+      "judgmentStatus": "REVIEW_OK",
+      "judgmentLabel": "진입가 근처",
+      "vprStatusAtCutoff": "NO_PULLBACK_RUNAWAY",
+      "vprLabelAtCutoff": "눌림 없이 상승",
+      "vprConflictNote": null,
+      "cutoffClose": 11670,
+      "entryPrice": 11453.4,
+      "vviHigh": 11340,
+      "daysFromBreakout": 1,
+      "targetClose": 11560,
+      "targetHigh": 11910,
+      "targetLow": 11520,
+      "returns": {
+        "closeFromCutoff": -0.94,
+        "highFromCutoff": 2.06,
+        "lowFromCutoff": -1.29
+      },
+      "exposureIndex": 2,
+      "d5VprStatus": "PULLBACK_PENDING",
+      "d5VprLabel": "VPR 대기",
+      "d10VprStatus": "STRUCTURAL_BREAK",
+      "d10VprLabel": "구조 훼손",
+      "transition": "PULLBACK_PENDING → STRUCTURAL_BREAK",
+      "hPlus5": {
+        "maxHigh": 1.58,
+        "minLow": -12.67,
+        "closeN": -10.5
+      },
+      "hPlus10": {
+        "maxHigh": 1.58,
+        "minLow": -15,
+        "closeN": -8.83
+      },
+      "exposureTotal": 2,
+      "oneLineSummary": "D+5 기준 VPR 대기였으나 D+10에는 구조 훼손으로 전환되어 하락 위험이 커진 사례 (종가 -8.83%)."
+    }
+  ],
+  "events": [
+    {
+      "eventKey": "010140|20260108|20260109",
+      "code": "010140",
+      "name": "삼성중공업",
+      "market": "KOSPI",
+      "qvaDates": [
+        "20251209"
+      ],
+      "vviDate": "20260108",
+      "hDate": "20260109",
+      "firstSeenDate": "20260109",
+      "lastSeenDate": "20260109",
+      "seenCount": 1,
+      "firstSeenNextDayResult": {
+        "closeFromCutoff": -1.75,
+        "highFromCutoff": -0.52,
+        "lowFromCutoff": -3.32
+      },
+      "lastSeenNextDayResult": {
+        "closeFromCutoff": -1.75,
+        "highFromCutoff": -0.52,
+        "lowFromCutoff": -3.32
+      },
+      "d5Snapshot": {
+        "cutoffDate": "20260116",
+        "daysFromBreakout": 5,
+        "cutoffClose": 29750,
+        "judgmentStatus": "PULLBACK_WAIT",
+        "judgmentLabel": "눌림 대기",
+        "vprStatus": "NO_PULLBACK_RUNAWAY",
+        "vprLabel": "눌림 없이 상승"
+      },
+      "d10Snapshot": {
+        "cutoffDate": "20260123",
+        "daysFromBreakout": 10,
+        "cutoffClose": 30400,
+        "judgmentStatus": "PULLBACK_WAIT",
+        "judgmentLabel": "눌림 대기",
+        "vprStatus": "NO_PULLBACK_RUNAWAY",
+        "vprLabel": "눌림 없이 상승"
+      },
+      "hPlus5": {
+        "maxHigh": 6.11,
+        "minLow": -3.32,
+        "closeN": 3.84
+      },
+      "hPlus10": {
+        "maxHigh": 11.69,
+        "minLow": -3.32,
+        "closeN": 6.11
+      },
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY"
+    },
+    {
+      "eventKey": "214150|20260123|20260126",
+      "code": "214150",
+      "name": "클래시스",
+      "market": "KOSDAQ",
+      "qvaDates": [
+        "20260122"
+      ],
+      "vviDate": "20260123",
+      "hDate": "20260126",
+      "firstSeenDate": "20260126",
+      "lastSeenDate": "20260202",
+      "seenCount": 6,
+      "firstSeenNextDayResult": {
+        "closeFromCutoff": -1.54,
+        "highFromCutoff": 3.08,
+        "lowFromCutoff": -3.08
+      },
+      "lastSeenNextDayResult": {
+        "closeFromCutoff": 2.61,
+        "highFromCutoff": 5.09,
+        "lowFromCutoff": 0.14
+      },
+      "d5Snapshot": {
+        "cutoffDate": "20260202",
+        "daysFromBreakout": 5,
+        "cutoffClose": 72700,
+        "judgmentStatus": "PULLBACK_WAIT",
+        "judgmentLabel": "눌림 대기",
+        "vprStatus": "NO_PULLBACK_RUNAWAY",
+        "vprLabel": "눌림 없이 상승"
+      },
+      "d10Snapshot": {
+        "cutoffDate": "20260209",
+        "daysFromBreakout": 10,
+        "cutoffClose": 67800,
+        "judgmentStatus": "PULLBACK_WAIT",
+        "judgmentLabel": "눌림 대기",
+        "vprStatus": "NO_PULLBACK_RUNAWAY",
+        "vprLabel": "눌림 없이 상승"
+      },
+      "hPlus5": {
+        "maxHigh": 19.57,
+        "minLow": -3.08,
+        "closeN": 12.02
+      },
+      "hPlus10": {
+        "maxHigh": 19.57,
+        "minLow": -3.08,
+        "closeN": 4.47
+      },
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY"
+    },
+    {
+      "eventKey": "232140|20260126|20260127",
+      "code": "232140",
+      "name": "와이씨",
+      "market": "KOSDAQ",
+      "qvaDates": [
+        "20260107"
+      ],
+      "vviDate": "20260126",
+      "hDate": "20260127",
+      "firstSeenDate": "20260127",
+      "lastSeenDate": "20260203",
+      "seenCount": 6,
+      "firstSeenNextDayResult": {
+        "closeFromCutoff": 11.04,
+        "highFromCutoff": 11.56,
+        "lowFromCutoff": 2.2
+      },
+      "lastSeenNextDayResult": {
+        "closeFromCutoff": -3.55,
+        "highFromCutoff": -0.7,
+        "lowFromCutoff": -5.5
+      },
+      "d5Snapshot": {
+        "cutoffDate": "20260203",
+        "daysFromBreakout": 5,
+        "cutoffClose": 20000,
+        "judgmentStatus": "MANAGEMENT",
+        "judgmentLabel": "관리 구간",
+        "vprStatus": "NO_PULLBACK_RUNAWAY",
+        "vprLabel": "눌림 없이 상승"
+      },
+      "d10Snapshot": {
+        "cutoffDate": "20260210",
+        "daysFromBreakout": 10,
+        "cutoffClose": 21950,
+        "judgmentStatus": "MANAGEMENT",
+        "judgmentLabel": "관리 구간",
+        "vprStatus": "NO_PULLBACK_RUNAWAY",
+        "vprLabel": "눌림 없이 상승"
+      },
+      "hPlus5": {
+        "maxHigh": 19.65,
+        "minLow": -1.04,
+        "closeN": 15.61
+      },
+      "hPlus10": {
+        "maxHigh": 37.28,
+        "minLow": -1.04,
+        "closeN": 26.88
+      },
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY"
+    },
+    {
+      "eventKey": "394280|20260209|20260210",
+      "code": "394280",
+      "name": "오픈엣지테크놀로지",
+      "market": "KOSDAQ",
+      "qvaDates": [
+        "20260130"
+      ],
+      "vviDate": "20260209",
+      "hDate": "20260210",
+      "firstSeenDate": "20260210",
+      "lastSeenDate": "20260220",
+      "seenCount": 6,
+      "firstSeenNextDayResult": {
+        "closeFromCutoff": 3.7,
+        "highFromCutoff": 7.53,
+        "lowFromCutoff": -3.29
+      },
+      "lastSeenNextDayResult": {
+        "closeFromCutoff": -4.95,
+        "highFromCutoff": -0.18,
+        "lowFromCutoff": -5.6
+      },
+      "d5Snapshot": {
+        "cutoffDate": "20260220",
+        "daysFromBreakout": 5,
+        "cutoffClose": 16780,
+        "judgmentStatus": "PULLBACK_WAIT",
+        "judgmentLabel": "눌림 대기",
+        "vprStatus": "NO_PULLBACK_RUNAWAY",
+        "vprLabel": "눌림 없이 상승"
+      },
+      "d10Snapshot": {
+        "cutoffDate": "20260227",
+        "daysFromBreakout": 10,
+        "cutoffClose": 15940,
+        "judgmentStatus": "BREAKDOWN_WEAK",
+        "judgmentLabel": "돌파 악화",
+        "vprStatus": "STRUCTURAL_BREAK",
+        "vprLabel": "구조 훼손"
+      },
+      "hPlus5": {
+        "maxHigh": 17.98,
+        "minLow": -3.29,
+        "closeN": 0.24
+      },
+      "hPlus10": {
+        "maxHigh": 17.98,
+        "minLow": -10.04,
+        "closeN": -4.78
+      },
+      "transition": "NO_PULLBACK_RUNAWAY → STRUCTURAL_BREAK"
+    },
+    {
+      "eventKey": "088350|20260210|20260211",
+      "code": "088350",
+      "name": "한화생명",
+      "market": "KOSPI",
+      "qvaDates": [
+        "20260126"
+      ],
+      "vviDate": "20260210",
+      "hDate": "20260211",
+      "firstSeenDate": "20260211",
+      "lastSeenDate": "20260223",
+      "seenCount": 6,
+      "firstSeenNextDayResult": {
+        "closeFromCutoff": 5.64,
+        "highFromCutoff": 15.39,
+        "lowFromCutoff": 1.18
+      },
+      "lastSeenNextDayResult": {
+        "closeFromCutoff": -10.89,
+        "highFromCutoff": 2.01,
+        "lowFromCutoff": -12.23
+      },
+      "d5Snapshot": {
+        "cutoffDate": "20260223",
+        "daysFromBreakout": 5,
+        "cutoffClose": 5970,
+        "judgmentStatus": "MANAGEMENT",
+        "judgmentLabel": "관리 구간",
+        "vprStatus": "NO_PULLBACK_RUNAWAY",
+        "vprLabel": "눌림 없이 상승"
+      },
+      "d10Snapshot": {
+        "cutoffDate": "20260303",
+        "daysFromBreakout": 10,
+        "cutoffClose": 4805,
+        "judgmentStatus": "PULLBACK_WAIT",
+        "judgmentLabel": "눌림 대기",
+        "vprStatus": "NO_PULLBACK_RUNAWAY",
+        "vprLabel": "눌림 없이 상승"
+      },
+      "hPlus5": {
+        "maxHigh": 77.67,
+        "minLow": 1.18,
+        "closeN": 40.31
+      },
+      "hPlus10": {
+        "maxHigh": 77.67,
+        "minLow": 1.18,
+        "closeN": 12.93
+      },
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY"
+    },
+    {
+      "eventKey": "355150|20260211|20260212",
+      "code": "355150",
+      "name": "코스텍시스",
+      "market": "KOSDAQ",
+      "qvaDates": [
+        "20260206"
+      ],
+      "vviDate": "20260211",
+      "hDate": "20260212",
+      "firstSeenDate": "20260212",
+      "lastSeenDate": "20260224",
+      "seenCount": 6,
+      "firstSeenNextDayResult": {
+        "closeFromCutoff": -4.76,
+        "highFromCutoff": 0.13,
+        "lowFromCutoff": -5.2
+      },
+      "lastSeenNextDayResult": {
+        "closeFromCutoff": -5.09,
+        "highFromCutoff": 1.37,
+        "lowFromCutoff": -5.91
+      },
+      "d5Snapshot": {
+        "cutoffDate": "20260224",
+        "daysFromBreakout": 5,
+        "cutoffClose": 18280,
+        "judgmentStatus": "PULLBACK_WAIT",
+        "judgmentLabel": "눌림 대기",
+        "vprStatus": "STRONG_VPR_SUCCESS",
+        "vprLabel": "강한 VPR 성공"
+      },
+      "d10Snapshot": {
+        "cutoffDate": "20260304",
+        "daysFromBreakout": 10,
+        "cutoffClose": 15930,
+        "judgmentStatus": "BREAKDOWN_WEAK",
+        "judgmentLabel": "돌파 악화",
+        "vprStatus": "STRONG_VPR_SUCCESS",
+        "vprLabel": "강한 VPR 성공"
+      },
+      "hPlus5": {
+        "maxHigh": 28.13,
+        "minLow": -7.02,
+        "closeN": 14.54
+      },
+      "hPlus10": {
+        "maxHigh": 41.29,
+        "minLow": -7.02,
+        "closeN": -0.19
+      },
+      "transition": "STRONG_VPR_SUCCESS → STRONG_VPR_SUCCESS"
+    },
+    {
+      "eventKey": "003280|20260219|20260220",
+      "code": "003280",
+      "name": "흥아해운",
+      "market": "KOSPI",
+      "qvaDates": [
+        "20260210"
+      ],
+      "vviDate": "20260219",
+      "hDate": "20260220",
+      "firstSeenDate": "20260220",
+      "lastSeenDate": "20260227",
+      "seenCount": 6,
+      "firstSeenNextDayResult": {
+        "closeFromCutoff": 1.34,
+        "highFromCutoff": 8.36,
+        "lowFromCutoff": -5.31
+      },
+      "lastSeenNextDayResult": {
+        "closeFromCutoff": 29.73,
+        "highFromCutoff": 29.73,
+        "lowFromCutoff": 25.56
+      },
+      "d5Snapshot": {
+        "cutoffDate": "20260227",
+        "daysFromBreakout": 5,
+        "cutoffClose": 1796,
+        "judgmentStatus": "BREAKDOWN_WEAK",
+        "judgmentLabel": "돌파 악화",
+        "vprStatus": "PULLBACK_PENDING",
+        "vprLabel": "VPR 대기"
+      },
+      "d10Snapshot": {
+        "cutoffDate": "20260309",
+        "daysFromBreakout": 10,
+        "cutoffClose": 2450,
+        "judgmentStatus": "MANAGEMENT",
+        "judgmentLabel": "관리 구간",
+        "vprStatus": "STRONG_VPR_SUCCESS",
+        "vprLabel": "강한 VPR 성공"
+      },
+      "hPlus5": {
+        "maxHigh": 8.36,
+        "minLow": -7.38,
+        "closeN": -7.33
+      },
+      "hPlus10": {
+        "maxHigh": 69.76,
+        "minLow": -7.38,
+        "closeN": 26.42
+      },
+      "transition": "PULLBACK_PENDING → STRONG_VPR_SUCCESS"
+    },
+    {
+      "eventKey": "003550|20260226|20260227",
+      "code": "003550",
+      "name": "LG",
+      "market": "KOSPI",
+      "qvaDates": [
+        "20260130"
+      ],
+      "vviDate": "20260226",
+      "hDate": "20260227",
+      "firstSeenDate": "20260227",
+      "lastSeenDate": "20260303",
+      "seenCount": 2,
+      "firstSeenNextDayResult": {
+        "closeFromCutoff": -4.83,
+        "highFromCutoff": 0.09,
+        "lowFromCutoff": -6.87
+      },
+      "lastSeenNextDayResult": {
+        "closeFromCutoff": -10.93,
+        "highFromCutoff": -3.02,
+        "lowFromCutoff": -12.88
+      },
+      "d5Snapshot": {
+        "cutoffDate": "20260309",
+        "daysFromBreakout": 5,
+        "cutoffClose": 89300,
+        "judgmentStatus": "BREAKDOWN_WEAK",
+        "judgmentLabel": "돌파 악화",
+        "vprStatus": "STRUCTURAL_BREAK",
+        "vprLabel": "구조 훼손"
+      },
+      "d10Snapshot": {
+        "cutoffDate": "20260316",
+        "daysFromBreakout": 10,
+        "cutoffClose": 88600,
+        "judgmentStatus": "BREAKDOWN_WEAK",
+        "judgmentLabel": "돌파 악화",
+        "vprStatus": "STRUCTURAL_BREAK",
+        "vprLabel": "구조 훼손"
+      },
+      "hPlus5": {
+        "maxHigh": 0.09,
+        "minLow": -19.22,
+        "closeN": -17.08
+      },
+      "hPlus10": {
+        "maxHigh": 0.09,
+        "minLow": -19.22,
+        "closeN": -17.73
+      },
+      "transition": "STRUCTURAL_BREAK → STRUCTURAL_BREAK"
+    },
+    {
+      "eventKey": "082920|20260312|20260313",
+      "code": "082920",
+      "name": "비츠로셀",
+      "market": "KOSDAQ",
+      "qvaDates": [
+        "20260227"
+      ],
+      "vviDate": "20260312",
+      "hDate": "20260313",
+      "firstSeenDate": "20260313",
+      "lastSeenDate": "20260320",
+      "seenCount": 6,
+      "firstSeenNextDayResult": {
+        "closeFromCutoff": 7.28,
+        "highFromCutoff": 9.96,
+        "lowFromCutoff": 1.15
+      },
+      "lastSeenNextDayResult": {
+        "closeFromCutoff": -3.32,
+        "highFromCutoff": 3.65,
+        "lowFromCutoff": -4.98
+      },
+      "d5Snapshot": {
+        "cutoffDate": "20260320",
+        "daysFromBreakout": 5,
+        "cutoffClose": 30150,
+        "judgmentStatus": "MANAGEMENT",
+        "judgmentLabel": "관리 구간",
+        "vprStatus": "NO_PULLBACK_RUNAWAY",
+        "vprLabel": "눌림 없이 상승"
+      },
+      "d10Snapshot": {
+        "cutoffDate": "20260327",
+        "daysFromBreakout": 10,
+        "cutoffClose": 34750,
+        "judgmentStatus": "MANAGEMENT",
+        "judgmentLabel": "관리 구간",
+        "vprStatus": "NO_PULLBACK_RUNAWAY",
+        "vprLabel": "눌림 없이 상승"
+      },
+      "hPlus5": {
+        "maxHigh": 25.48,
+        "minLow": -3.45,
+        "closeN": 15.52
+      },
+      "hPlus10": {
+        "maxHigh": 43.1,
+        "minLow": -3.45,
+        "closeN": 33.14
+      },
+      "transition": "NO_PULLBACK_RUNAWAY → NO_PULLBACK_RUNAWAY"
+    },
+    {
+      "eventKey": "403870|20260318|20260319",
+      "code": "403870",
+      "name": "HPSP",
+      "market": "KOSDAQ",
+      "qvaDates": [
+        "20260303"
+      ],
+      "vviDate": "20260318",
+      "hDate": "20260319",
+      "firstSeenDate": "20260319",
+      "lastSeenDate": "20260326",
+      "seenCount": 6,
+      "firstSeenNextDayResult": {
+        "closeFromCutoff": -0.97,
+        "highFromCutoff": 1.93,
+        "lowFromCutoff": -4.74
+      },
+      "lastSeenNextDayResult": {
+        "closeFromCutoff": -1.1,
+        "highFromCutoff": 2.3,
+        "lowFromCutoff": -4.05
+      },
+      "d5Snapshot": {
+        "cutoffDate": "20260326",
+        "daysFromBreakout": 5,
+        "cutoffClose": 45650,
+        "judgmentStatus": "BREAKDOWN_WEAK",
+        "judgmentLabel": "돌파 악화",
+        "vprStatus": "PULLBACK_PENDING",
+        "vprLabel": "VPR 대기"
+      },
+      "d10Snapshot": {
+        "cutoffDate": "20260402",
+        "daysFromBreakout": 10,
+        "cutoffClose": 40850,
+        "judgmentStatus": "BREAKDOWN_WEAK",
+        "judgmentLabel": "돌파 악화",
+        "vprStatus": "STRUCTURAL_BREAK",
+        "vprLabel": "구조 훼손"
+      },
+      "hPlus5": {
+        "maxHigh": 3.09,
+        "minLow": -11.99,
+        "closeN": -11.7
+      },
+      "hPlus10": {
+        "maxHigh": 3.09,
+        "minLow": -21.95,
+        "closeN": -20.99
+      },
+      "transition": "PULLBACK_PENDING → STRUCTURAL_BREAK"
+    },
+    {
+      "eventKey": "441270|20260416|20260417",
+      "code": "441270",
+      "name": "파인엠텍",
+      "market": "KOSDAQ",
+      "qvaDates": [
+        "20260415"
+      ],
+      "vviDate": "20260416",
+      "hDate": "20260417",
+      "firstSeenDate": "20260417",
+      "lastSeenDate": "20260420",
+      "seenCount": 2,
+      "firstSeenNextDayResult": {
+        "closeFromCutoff": -2.75,
+        "highFromCutoff": 1.58,
+        "lowFromCutoff": -3.25
+      },
+      "lastSeenNextDayResult": {
+        "closeFromCutoff": -0.94,
+        "highFromCutoff": 2.06,
+        "lowFromCutoff": -1.29
+      },
+      "d5Snapshot": {
+        "cutoffDate": "20260424",
+        "daysFromBreakout": 5,
+        "cutoffClose": 10740,
+        "judgmentStatus": "BREAKDOWN_WEAK",
+        "judgmentLabel": "돌파 악화",
+        "vprStatus": "PULLBACK_PENDING",
+        "vprLabel": "VPR 대기"
+      },
+      "d10Snapshot": {
+        "cutoffDate": "20260504",
+        "daysFromBreakout": 10,
+        "cutoffClose": 10940,
+        "judgmentStatus": "BREAKDOWN_WEAK",
+        "judgmentLabel": "돌파 악화",
+        "vprStatus": "STRUCTURAL_BREAK",
+        "vprLabel": "구조 훼손"
+      },
+      "hPlus5": {
+        "maxHigh": 1.58,
+        "minLow": -12.67,
+        "closeN": -10.5
+      },
+      "hPlus10": {
+        "maxHigh": 1.58,
+        "minLow": -15,
+        "closeN": -8.83
+      },
+      "transition": "PULLBACK_PENDING → STRUCTURAL_BREAK"
+    }
+  ],
+  "examples": {
+    "successExamples": [
+      {
+        "eventKey": "003280|20260219|20260220",
+        "code": "003280",
+        "name": "흥아해운",
+        "market": "KOSPI",
+        "qvaDates": [
+          "20260210"
+        ],
+        "vviDate": "20260219",
+        "hDate": "20260220",
+        "firstSeenDate": "20260220",
+        "lastSeenDate": "20260227",
+        "seenCount": 6,
+        "firstSeenNextDayResult": {
+          "closeFromCutoff": 1.34,
+          "highFromCutoff": 8.36,
+          "lowFromCutoff": -5.31
+        },
+        "lastSeenNextDayResult": {
+          "closeFromCutoff": 29.73,
+          "highFromCutoff": 29.73,
+          "lowFromCutoff": 25.56
+        },
+        "d5Snapshot": {
+          "cutoffDate": "20260227",
+          "daysFromBreakout": 5,
+          "cutoffClose": 1796,
+          "judgmentStatus": "BREAKDOWN_WEAK",
+          "judgmentLabel": "돌파 악화",
+          "vprStatus": "PULLBACK_PENDING",
+          "vprLabel": "VPR 대기"
+        },
+        "d10Snapshot": {
+          "cutoffDate": "20260309",
+          "daysFromBreakout": 10,
+          "cutoffClose": 2450,
+          "judgmentStatus": "MANAGEMENT",
+          "judgmentLabel": "관리 구간",
+          "vprStatus": "STRONG_VPR_SUCCESS",
+          "vprLabel": "강한 VPR 성공"
+        },
+        "hPlus5": {
+          "maxHigh": 8.36,
+          "minLow": -7.38,
+          "closeN": -7.33
+        },
+        "hPlus10": {
+          "maxHigh": 69.76,
+          "minLow": -7.38,
+          "closeN": 26.42
+        },
+        "transition": "PULLBACK_PENDING → STRONG_VPR_SUCCESS"
+      },
+      {
+        "eventKey": "355150|20260211|20260212",
+        "code": "355150",
+        "name": "코스텍시스",
+        "market": "KOSDAQ",
+        "qvaDates": [
+          "20260206"
+        ],
+        "vviDate": "20260211",
+        "hDate": "20260212",
+        "firstSeenDate": "20260212",
+        "lastSeenDate": "20260224",
+        "seenCount": 6,
+        "firstSeenNextDayResult": {
+          "closeFromCutoff": -4.76,
+          "highFromCutoff": 0.13,
+          "lowFromCutoff": -5.2
+        },
+        "lastSeenNextDayResult": {
+          "closeFromCutoff": -5.09,
+          "highFromCutoff": 1.37,
+          "lowFromCutoff": -5.91
+        },
+        "d5Snapshot": {
+          "cutoffDate": "20260224",
+          "daysFromBreakout": 5,
+          "cutoffClose": 18280,
+          "judgmentStatus": "PULLBACK_WAIT",
+          "judgmentLabel": "눌림 대기",
+          "vprStatus": "STRONG_VPR_SUCCESS",
+          "vprLabel": "강한 VPR 성공"
+        },
+        "d10Snapshot": {
+          "cutoffDate": "20260304",
+          "daysFromBreakout": 10,
+          "cutoffClose": 15930,
+          "judgmentStatus": "BREAKDOWN_WEAK",
+          "judgmentLabel": "돌파 악화",
+          "vprStatus": "STRONG_VPR_SUCCESS",
+          "vprLabel": "강한 VPR 성공"
+        },
+        "hPlus5": {
+          "maxHigh": 28.13,
+          "minLow": -7.02,
+          "closeN": 14.54
+        },
+        "hPlus10": {
+          "maxHigh": 41.29,
+          "minLow": -7.02,
+          "closeN": -0.19
+        },
+        "transition": "STRONG_VPR_SUCCESS → STRONG_VPR_SUCCESS"
+      }
+    ],
+    "failureExamples": [
+      {
+        "eventKey": "403870|20260318|20260319",
+        "code": "403870",
+        "name": "HPSP",
+        "market": "KOSDAQ",
+        "qvaDates": [
+          "20260303"
+        ],
+        "vviDate": "20260318",
+        "hDate": "20260319",
+        "firstSeenDate": "20260319",
+        "lastSeenDate": "20260326",
+        "seenCount": 6,
+        "firstSeenNextDayResult": {
+          "closeFromCutoff": -0.97,
+          "highFromCutoff": 1.93,
+          "lowFromCutoff": -4.74
+        },
+        "lastSeenNextDayResult": {
+          "closeFromCutoff": -1.1,
+          "highFromCutoff": 2.3,
+          "lowFromCutoff": -4.05
+        },
+        "d5Snapshot": {
+          "cutoffDate": "20260326",
+          "daysFromBreakout": 5,
+          "cutoffClose": 45650,
+          "judgmentStatus": "BREAKDOWN_WEAK",
+          "judgmentLabel": "돌파 악화",
+          "vprStatus": "PULLBACK_PENDING",
+          "vprLabel": "VPR 대기"
+        },
+        "d10Snapshot": {
+          "cutoffDate": "20260402",
+          "daysFromBreakout": 10,
+          "cutoffClose": 40850,
+          "judgmentStatus": "BREAKDOWN_WEAK",
+          "judgmentLabel": "돌파 악화",
+          "vprStatus": "STRUCTURAL_BREAK",
+          "vprLabel": "구조 훼손"
+        },
+        "hPlus5": {
+          "maxHigh": 3.09,
+          "minLow": -11.99,
+          "closeN": -11.7
+        },
+        "hPlus10": {
+          "maxHigh": 3.09,
+          "minLow": -21.95,
+          "closeN": -20.99
+        },
+        "transition": "PULLBACK_PENDING → STRUCTURAL_BREAK"
+      },
+      {
+        "eventKey": "003550|20260226|20260227",
+        "code": "003550",
+        "name": "LG",
+        "market": "KOSPI",
+        "qvaDates": [
+          "20260130"
+        ],
+        "vviDate": "20260226",
+        "hDate": "20260227",
+        "firstSeenDate": "20260227",
+        "lastSeenDate": "20260303",
+        "seenCount": 2,
+        "firstSeenNextDayResult": {
+          "closeFromCutoff": -4.83,
+          "highFromCutoff": 0.09,
+          "lowFromCutoff": -6.87
+        },
+        "lastSeenNextDayResult": {
+          "closeFromCutoff": -10.93,
+          "highFromCutoff": -3.02,
+          "lowFromCutoff": -12.88
+        },
+        "d5Snapshot": {
+          "cutoffDate": "20260309",
+          "daysFromBreakout": 5,
+          "cutoffClose": 89300,
+          "judgmentStatus": "BREAKDOWN_WEAK",
+          "judgmentLabel": "돌파 악화",
+          "vprStatus": "STRUCTURAL_BREAK",
+          "vprLabel": "구조 훼손"
+        },
+        "d10Snapshot": {
+          "cutoffDate": "20260316",
+          "daysFromBreakout": 10,
+          "cutoffClose": 88600,
+          "judgmentStatus": "BREAKDOWN_WEAK",
+          "judgmentLabel": "돌파 악화",
+          "vprStatus": "STRUCTURAL_BREAK",
+          "vprLabel": "구조 훼손"
+        },
+        "hPlus5": {
+          "maxHigh": 0.09,
+          "minLow": -19.22,
+          "closeN": -17.08
+        },
+        "hPlus10": {
+          "maxHigh": 0.09,
+          "minLow": -19.22,
+          "closeN": -17.73
+        },
+        "transition": "STRUCTURAL_BREAK → STRUCTURAL_BREAK"
+      },
+      {
+        "eventKey": "441270|20260416|20260417",
+        "code": "441270",
+        "name": "파인엠텍",
+        "market": "KOSDAQ",
+        "qvaDates": [
+          "20260415"
+        ],
+        "vviDate": "20260416",
+        "hDate": "20260417",
+        "firstSeenDate": "20260417",
+        "lastSeenDate": "20260420",
+        "seenCount": 2,
+        "firstSeenNextDayResult": {
+          "closeFromCutoff": -2.75,
+          "highFromCutoff": 1.58,
+          "lowFromCutoff": -3.25
+        },
+        "lastSeenNextDayResult": {
+          "closeFromCutoff": -0.94,
+          "highFromCutoff": 2.06,
+          "lowFromCutoff": -1.29
+        },
+        "d5Snapshot": {
+          "cutoffDate": "20260424",
+          "daysFromBreakout": 5,
+          "cutoffClose": 10740,
+          "judgmentStatus": "BREAKDOWN_WEAK",
+          "judgmentLabel": "돌파 악화",
+          "vprStatus": "PULLBACK_PENDING",
+          "vprLabel": "VPR 대기"
+        },
+        "d10Snapshot": {
+          "cutoffDate": "20260504",
+          "daysFromBreakout": 10,
+          "cutoffClose": 10940,
+          "judgmentStatus": "BREAKDOWN_WEAK",
+          "judgmentLabel": "돌파 악화",
+          "vprStatus": "STRUCTURAL_BREAK",
+          "vprLabel": "구조 훼손"
+        },
+        "hPlus5": {
+          "maxHigh": 1.58,
+          "minLow": -12.67,
+          "closeN": -10.5
+        },
+        "hPlus10": {
+          "maxHigh": 1.58,
+          "minLow": -15,
+          "closeN": -8.83
+        },
+        "transition": "PULLBACK_PENDING → STRUCTURAL_BREAK"
+      },
+      {
+        "eventKey": "394280|20260209|20260210",
+        "code": "394280",
+        "name": "오픈엣지테크놀로지",
+        "market": "KOSDAQ",
+        "qvaDates": [
+          "20260130"
+        ],
+        "vviDate": "20260209",
+        "hDate": "20260210",
+        "firstSeenDate": "20260210",
+        "lastSeenDate": "20260220",
+        "seenCount": 6,
+        "firstSeenNextDayResult": {
+          "closeFromCutoff": 3.7,
+          "highFromCutoff": 7.53,
+          "lowFromCutoff": -3.29
+        },
+        "lastSeenNextDayResult": {
+          "closeFromCutoff": -4.95,
+          "highFromCutoff": -0.18,
+          "lowFromCutoff": -5.6
+        },
+        "d5Snapshot": {
+          "cutoffDate": "20260220",
+          "daysFromBreakout": 5,
+          "cutoffClose": 16780,
+          "judgmentStatus": "PULLBACK_WAIT",
+          "judgmentLabel": "눌림 대기",
+          "vprStatus": "NO_PULLBACK_RUNAWAY",
+          "vprLabel": "눌림 없이 상승"
+        },
+        "d10Snapshot": {
+          "cutoffDate": "20260227",
+          "daysFromBreakout": 10,
+          "cutoffClose": 15940,
+          "judgmentStatus": "BREAKDOWN_WEAK",
+          "judgmentLabel": "돌파 악화",
+          "vprStatus": "STRUCTURAL_BREAK",
+          "vprLabel": "구조 훼손"
+        },
+        "hPlus5": {
+          "maxHigh": 17.98,
+          "minLow": -3.29,
+          "closeN": 0.24
+        },
+        "hPlus10": {
+          "maxHigh": 17.98,
+          "minLow": -10.04,
+          "closeN": -4.78
+        },
+        "transition": "NO_PULLBACK_RUNAWAY → STRUCTURAL_BREAK"
+      }
+    ]
+  },
+  "keyQuestions": [
+    {
+      "q": "1. D+5 VPR 대기는 D+10에 성공으로 전환되는가, 구조 훼손으로 빠지는가?",
+      "a": "D+5 VPR 대기 3건 중 D+10에 VPR 성공 = 1건 (33.33%) / 구조 훼손 = 2건 (66.67%)."
+    },
+    {
+      "q": "2. D+10 강한 VPR 성공은 H+10 성과가 확실히 좋은가?",
+      "a": "강한 VPR 성공(n=2): H+10 평균 고가 +55.53% / 종가 +13.12% / +20% 도달률 100%."
+    },
+    {
+      "q": "3. D+10 구조 훼손은 실제로 하락 위험이 높은가?",
+      "a": "구조 훼손(n=4): H+10 평균 종가 -13.08% / 평균 최저 저가 -16.55% / -5% 종가 75% / -10% 종가 50%."
+    },
+    {
+      "q": "4. VPR 재돌파 약함은 이후 회복되는가, 계속 약한가?",
+      "a": "D+5 재돌파 약함 사례 없음."
+    },
+    {
+      "q": "5. 눌림 없이 상승은 계속 강한 흐름인가, 추격 위험이 큰가?",
+      "a": "눌림 없이 상승(n=5): H+10 평균 고가 +37.86% / 종가 +16.71% / 평균 저가 -1.94% / -3% 종가 0%. D+5→D+10 유지율 83.33%."
+    },
+    {
+      "q": "6. 눌림 대기 화면 상태는 실제로 좋은 상태인가?",
+      "a": "눌림 대기(n=4): H+10 평균 고가 +22.63% / 종가 +1.40% / D+10 VPR 성공 전환율 25% / 구조 훼손 전환율 25%."
+    },
+    {
+      "q": "7. 관리 구간은 신규 매수보다 보유 관리용으로 보는 것이 맞는가?",
+      "a": "관리 구간(n=3): H+10 평균 종가 +24.32% / 평균 저가 -1.10% / -3% 종가 0% / -5% 종가 0%. 신규 진입 위험은 큰 편 아님."
+    },
+    {
+      "q": "8. 돌파 악화는 실제 위험 상태인가?",
+      "a": "돌파 악화(n=4): H+10 평균 종가 -5.28% / D+10 구조 훼손 전환율 75% / D+10 VPR 성공 전환율 25%."
+    },
+    {
+      "q": "9. 보드 노출 기준과 이벤트 기준에서 같은 결론이 유지되는가?",
+      "a": "보드 노출 53건 → 이벤트 11건 (중복 제거율 79.25%, 평균 노출 4.8일). 핵심 분류 분포는 두 기준 모두 D+10 강한 VPR 성공이 H+10 가장 높음 / 구조 훼손이 가장 약함이라는 방향성으로 일관됨."
+    },
+    {
+      "q": "10. VPR을 H그룹 후속 관리 태그로 유지할 가치가 있는가?",
+      "a": "유지 가치 있음. 강한 VPR 성공 H+10 평균 고가 +55.53% (전체 평균 대비 분리력 명확) / 구조 훼손 H+10 평균 종가 -13.08% (위험 시그널 명확)."
+    }
+  ],
+  "conclusion": [
+    "D+10 강한 VPR 성공 그룹 H+10 평균 고가 +55.53% / 종가 +13.12% (n=2) — 가장 강한 분리 신호.",
+    "D+10 구조 훼손 그룹 H+10 평균 종가 -13.08% / -5% 종가 75% (n=4) — 위험 시그널 통계적 확인.",
+    "D+5 VPR 대기는 D+10 시점에 성공 33.33% / 구조 훼손 66.67%로 갈라짐 — 중간 상태로 봐야 하며 구조 훼손 위험이 더 큼.",
+    "관리 구간(n=3): H+10 -3% 종가 0% — 신규 진입 위험은 크지 않음.",
+    "눌림 대기(n=4): D+10 VPR 성공 전환율 25% / 구조 훼손 전환율 25% — 갈리는 중간 상태.",
+    "VPR은 H그룹 후속 관리 태그로만 사용하고, 매수 확정 신호로 해석하지 마세요."
+  ],
+  "dataLimit": [
+    "분석 기간은 2026-01-01 ~ 2026-04-20 (cutoff 거래일 73일)입니다.",
+    "대상은 각 날짜 기준 BREAKOUT_SUCCESS(H그룹)만이며, 다른 단계는 분석에서 제외합니다.",
+    "실시간 보드 노출 기준은 D+0 ~ D+5거래일이며, D+10은 VPR 성숙 분석용입니다 (보드 노출용 아님).",
+    "VPR은 H그룹 후속 관리 태그이며 독립 매수 신호가 아닙니다.",
+    "같은 종목이 여러 날짜 반복 노출될 수 있어 보드 노출 기준과 이벤트 기준(eventKey = code+vviDate+hDate)을 모두 제공합니다.",
+    "차트 캐시 끝에 가까운 이벤트는 D+10 데이터가 부족할 수 있습니다 (이번 분석에서 D+10 검증 가능 11/11건).",
+    "하루 뒤(다음 거래일) 성과는 보드 노출 기준 cutoff 종가 대비입니다. H+5/H+10 성과는 H돌파일 종가 기준입니다."
+  ]
+}
