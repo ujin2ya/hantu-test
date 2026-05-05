@@ -1697,64 +1697,6 @@ const htmlTemplate = `<!DOCTYPE html>
     <p id="trading-date-meta" style="font-family:monospace;font-size:12px;color:#94a3b8;"></p>
   </div>
 
-  <details id="backtest-reports-details" style="margin-bottom:16px;">
-    <summary style="cursor:pointer;padding:10px 14px;background:#1e293b;border-radius:8px;border-left:3px solid #94a3b8;color:#cbd5e1;font-size:13px;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px;">
-      <span>📑 백테스팅 보고서 보기/숨기기</span>
-      <span style="color:#94a3b8;font-size:11px;font-weight:400;margin-left:auto;">5개 보고서 (모델 검증/분석용)</span>
-    </summary>
-    <div style="background:#1e293b;border-radius:8px;padding:14px 16px;margin-top:8px;border-left:3px solid #94a3b8;">
-    <p style="font-size:12px;color:#94a3b8;margin:0 0 10px 0;line-height:1.6;">
-      QVA → VVI → 돌파 성공 funnel의 각 단계가 과거 데이터에서 어떤 흐름을 보였는지 검증한 1년치 백테스팅 보고서들입니다.
-      매수 추천이 아니라 모델 검증/분석 목적입니다.
-    </p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;">
-
-      <a href="/qva-surge-day-report" style="display:block;background:#0f172a;padding:10px 14px;border-radius:6px;border:1px solid #334155;text-decoration:none;color:#cbd5e1;transition:border 0.15s;" onmouseover="this.style.borderColor='#60a5fa'" onmouseout="this.style.borderColor='#334155'">
-        <div style="color:#fbbf24;font-size:13px;font-weight:700;">📈 QVA 단일일 급등 분석</div>
-        <div style="font-size:11px;margin-top:4px;color:#94a3b8;line-height:1.5;">QVA 신호 후 20거래일 안에 +10/+15/+20/+30% 단일일 급등이 얼마나 자주 발생했는지 분석.</div>
-        <div style="font-size:10px;margin-top:5px;color:#64748b;font-family:monospace;">/qva-surge</div>
-      </a>
-
-      <a href="/qva-to-vvi-report" style="display:block;background:#0f172a;padding:10px 14px;border-radius:6px;border:1px solid #334155;text-decoration:none;color:#cbd5e1;transition:border 0.15s;" onmouseover="this.style.borderColor='#60a5fa'" onmouseout="this.style.borderColor='#334155'">
-        <div style="color:#93c5fd;font-size:13px;font-weight:700;">🔄 QVA → VVI 전환 검증</div>
-        <div style="font-size:11px;margin-top:4px;color:#94a3b8;line-height:1.5;">QVA 신호 이후 20거래일 안에 VVI(거래대금 초동 확인)로 전환된 종목의 성과 검증.</div>
-        <div style="font-size:10px;margin-top:5px;color:#64748b;font-family:monospace;">/qva-to-vvi</div>
-      </a>
-
-      <a href="/qva-vvi-breakout-entry-report" style="display:block;background:#0f172a;padding:10px 14px;border-radius:6px;border:1px solid #334155;text-decoration:none;color:#cbd5e1;transition:border 0.15s;" onmouseover="this.style.borderColor='#60a5fa'" onmouseout="this.style.borderColor='#334155'">
-        <div style="color:#a5b4fc;font-size:13px;font-weight:700;">🚀 돌파 진입 검증 + 손절 시나리오</div>
-        <div style="font-size:11px;margin-top:4px;color:#94a3b8;line-height:1.5;">QVA → VVI → 다음 거래일 +1% 돌파 진입 후 성과와 손절 시나리오 (A~E) 비교.</div>
-        <div style="font-size:10px;margin-top:5px;color:#64748b;font-family:monospace;">/qva-vvi-breakout-entry</div>
-      </a>
-
-      <a href="/qva-vvi-breakout-exit-report" style="display:block;background:#0f172a;padding:10px 14px;border-radius:6px;border:1px solid #334155;text-decoration:none;color:#cbd5e1;transition:border 0.15s;" onmouseover="this.style.borderColor='#60a5fa'" onmouseout="this.style.borderColor='#334155'">
-        <div style="color:#f9a8d4;font-size:13px;font-weight:700;">💰 익절/청산 시나리오 비교</div>
-        <div style="font-size:11px;margin-top:4px;color:#94a3b8;line-height:1.5;">돌파 성공(H그룹) 진입 후 14개 익절/청산 규칙(TP/Trail/Stop) 조합의 성과 비교.</div>
-        <div style="font-size:10px;margin-top:5px;color:#64748b;font-family:monospace;">/qva-vvi-breakout-exit</div>
-      </a>
-
-      <a href="/early-qva-backtest" style="display:block;background:#0f172a;padding:10px 14px;border-radius:6px;border:1px solid #334155;text-decoration:none;color:#cbd5e1;transition:border 0.15s;" onmouseover="this.style.borderColor='#34d399'" onmouseout="this.style.borderColor='#334155'">
-        <div style="color:#34d399;font-size:13px;font-weight:700;">🟢 QVA 백테스트 (참고)</div>
-        <div style="font-size:11px;margin-top:4px;color:#94a3b8;line-height:1.5;">최종 채택 모델 REDEFINED_TIGHT (저점권 거래대금 돌파형 QVA) 의 1년치 신호 분포·전환율·성과 분석. 모델 검증 참고용.</div>
-        <div style="font-size:10px;margin-top:5px;color:#64748b;font-family:monospace;">/early-qva-backtest</div>
-      </a>
-
-      <a href="/qva-redefined-hgroup" style="display:block;background:#0f172a;padding:10px 14px;border-radius:6px;border:2px solid #34d399;text-decoration:none;color:#cbd5e1;transition:border 0.15s;grid-column:1/-1;" onmouseover="this.style.borderColor='#6ee7b7'" onmouseout="this.style.borderColor='#34d399'">
-        <div style="color:#34d399;font-size:13px;font-weight:700;">⭐ REDEFINED_TIGHT QVA → VVI → H그룹 재검증 (NEW)</div>
-        <div style="font-size:11px;margin-top:4px;color:#94a3b8;line-height:1.5;">새 QVA 정의 채택 후 funnel 4코호트 재검증 보고서. 새 QVA 단독 / VVI / H그룹 / 구 H그룹 비교 + 이노션 4/10 사례 + 자동 결론(ADOPT_REDEFINED_QVA 등).</div>
-        <div style="font-size:10px;margin-top:5px;color:#64748b;font-family:monospace;">/qva-redefined-hgroup</div>
-      </a>
-
-      <a href="/qva-review-ok-backtest-report" style="display:block;background:#0f172a;padding:10px 14px;border-radius:6px;border:1px solid #10b981;text-decoration:none;color:#cbd5e1;transition:border 0.15s;grid-column:1/-1;" onmouseover="this.style.borderColor='#34d399'" onmouseout="this.style.borderColor='#10b981'">
-        <div style="color:#6ee7b7;font-size:13px;font-weight:700;">⭐ 3단계 코호트 비교 (요약본)</div>
-        <div style="font-size:11px;margin-top:4px;color:#94a3b8;line-height:1.5;">QVA 단독 / H그룹 / 진입가 근처 — 세 코호트의 같은 기간 20일 뒤 플러스 마감 비율 비교.<br>QVA 단독 56.2% → H그룹 71.0% → 진입가 근처 71.4%로 funnel 단계가 진행될수록 좋은 흐름을 보인 비율이 높아짐을 정량 확인.</div>
-        <div style="font-size:10px;margin-top:5px;color:#64748b;font-family:monospace;">/qva-review-ok</div>
-      </a>
-
-    </div>
-    </div>
-  </details>
-
 
   <div class="help-wrap">
     <button class="help-btn open" id="help-btn">
