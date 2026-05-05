@@ -503,23 +503,25 @@ table.list tbody tr.row:nth-child(odd):hover { background: #273549; }
 footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.7; }
 footer.foot strong { color: #fde68a; }
 
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  margin-bottom: 14px;
+  border-radius: 8px;
+}
+.scroll-x table.cmp { margin-bottom: 0; }
+
 @media (max-width: 900px) {
   body { padding: 12px 12px 60px; max-width: 100%; }
   html, body { overflow-x: hidden; overflow-y: auto; }
   .tbl-wrap { overflow-x: auto !important; }
   .col-mobile-hide,
   table.list thead th.col-mobile-hide { display: none; }
-  table.cmp {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
-    max-width: 100%;
-  }
-  table.cmp thead, table.cmp tbody {
-    display: table;
+  .scroll-x table.cmp {
     width: max-content;
     min-width: 100%;
+    white-space: nowrap;
   }
 }
 </style>
@@ -629,7 +631,7 @@ document.getElementById('big-summary').innerHTML = tiles.map(t =>
 ).join('');
 
 function perfTable(rows, highlightKeys = []) {
-  const html = ['<table class="cmp"><thead><tr>',
+  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
     '<th>그룹</th>',
     '<th>사례 수</th>',
     '<th>VPR 성공률</th>',
@@ -662,7 +664,7 @@ function perfTable(rows, highlightKeys = []) {
       '<td>' + (r.avgReboundValueRatio != null ? r.avgReboundValueRatio.toFixed(2) + '×' : '-') + '</td>' +
       '</tr>');
   }
-  html.push('</tbody></table>');
+  html.push('</tbody></table></div>');
   return html.join('');
 }
 document.getElementById('vpr-perf-table').innerHTML = perfTable(DATA.summaryGroups, ['CLASSIC_VPR_SUCCESS', 'STRONG_VPR_SUCCESS']);

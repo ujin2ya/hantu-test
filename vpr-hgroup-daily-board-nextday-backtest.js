@@ -1114,23 +1114,25 @@ table.list tbody tr.row:nth-child(odd):hover { background: #273549; }
 footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.7; }
 footer.foot strong { color: #fde68a; }
 
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  margin-bottom: 14px;
+  border-radius: 8px;
+}
+.scroll-x table.cmp { margin-bottom: 0; }
+
 @media (max-width: 900px) {
   body { padding: 12px 12px 60px; max-width: 100%; }
   html, body { overflow-x: hidden; overflow-y: auto; }
   .tbl-wrap { overflow-x: auto !important; }
   .col-mobile-hide,
   table.list thead th.col-mobile-hide { display: none; }
-  table.cmp {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
-    max-width: 100%;
-  }
-  table.cmp thead, table.cmp tbody {
-    display: table;
+  .scroll-x table.cmp {
     width: max-content;
     min-width: 100%;
+    white-space: nowrap;
   }
 }
 </style>
@@ -1271,7 +1273,7 @@ document.getElementById('big-summary').innerHTML = tiles.map(t =>
 
 // ─── 일자별 ───
 function dailyTable(rows) {
-  const html = ['<table class="cmp"><thead><tr>',
+  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
     '<th>날짜</th>', '<th>H그룹 수</th>', '<th>눌림 대기</th>', '<th>구조 훼손</th>',
     '<th>다음날 평균 종가↑</th>', '<th>다음날 평균 고가↑</th>',
     '</tr></thead><tbody>'];
@@ -1285,14 +1287,14 @@ function dailyTable(rows) {
       '<td>' + fmtPct(r.avgHigh) + '</td>' +
       '</tr>');
   }
-  html.push('</tbody></table>');
+  html.push('</tbody></table></div>');
   return html.join('');
 }
 document.getElementById('daily-results-table').innerHTML = dailyTable(DATA.dailyResults);
 
 function perfTable(rows, highlightKeys = []) {
   if (!rows || rows.length === 0) return '<p style="color:#64748b;">사례 없음.</p>';
-  const html = ['<table class="cmp"><thead><tr>',
+  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
     '<th>그룹</th>', '<th>n</th>', '<th>평균 종가↑</th>', '<th>중앙 종가↑</th>',
     '<th>평균 고가↑</th>', '<th>중앙 고가↑</th>', '<th>평균 저가↓</th>',
     '<th>+3% 종가</th>', '<th>+5% 고가</th>', '<th>+10% 고가</th>',
@@ -1315,7 +1317,7 @@ function perfTable(rows, highlightKeys = []) {
       '<td>' + (r.minus5LowRate != null ? r.minus5LowRate + '%' : '-') + '</td>' +
       '</tr>');
   }
-  html.push('</tbody></table>');
+  html.push('</tbody></table></div>');
   return html.join('');
 }
 document.getElementById('judgment-perf-table').innerHTML = perfTable(DATA.judgmentStatusPerformance, ['PULLBACK_WAIT']);
@@ -1334,7 +1336,7 @@ function distTable(d5, d10, labels) {
   const allKeys = new Set([...d5.map(x => x.status), ...d10.map(x => x.status)]);
   const d5Map = new Map(d5.map(x => [x.status, x.count]));
   const d10Map = new Map(d10.map(x => [x.status, x.count]));
-  const html = ['<table class="cmp"><thead><tr>',
+  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
     '<th>분류</th><th>D+5 시점</th><th>D+10 시점 (성숙)</th><th>변화</th>',
     '</tr></thead><tbody>'];
   for (const k of Array.from(allKeys).sort()) {
@@ -1345,7 +1347,7 @@ function distTable(d5, d10, labels) {
     const cls = diff > 0 ? 'cell-pos' : (diff < 0 ? 'cell-neg' : '');
     html.push('<tr><td>' + (labels[k] || k) + '</td><td>' + a + '건</td><td>' + b + '건</td><td><span class="' + cls + '">' + diffStr + '</span></td></tr>');
   }
-  html.push('</tbody></table>');
+  html.push('</tbody></table></div>');
   return html.join('');
 }
 document.getElementById('d5-d10-distribution').innerHTML =
@@ -1357,13 +1359,13 @@ document.getElementById('d5-d10-distribution').innerHTML =
 // 전환 매트릭스
 function transitionTable(rows, fromLabel, toLabel) {
   if (!rows || rows.length === 0) return '<p style="color:#64748b;">전환 사례 없음.</p>';
-  const html = ['<table class="cmp"><thead><tr>',
+  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
     '<th>D+5 ' + fromLabel + '</th><th>→ D+10 ' + toLabel + '</th><th>건수</th>',
     '</tr></thead><tbody>'];
   for (const r of rows) {
     html.push('<tr><td>' + r.fromLabel + '</td><td>' + r.toLabel + '</td><td>' + r.count + '건</td></tr>');
   }
-  html.push('</tbody></table>');
+  html.push('</tbody></table></div>');
   return html.join('');
 }
 document.getElementById('d5-d10-vpr-transition').innerHTML = transitionTable(DATA.d5ToD10VprTransition, 'VPR', 'VPR');
@@ -1374,7 +1376,7 @@ const h10Perf = DATA.d10H10Performance;
 function h10PerfTable(perf) {
   const order = ['all', 'strong', 'classic', 'weak', 'pending', 'runaway', 'structural', 'reboundFail'];
   const highlight = new Set(['strong', 'classic', 'structural']);
-  const html = ['<table class="cmp"><thead><tr>',
+  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
     '<th>그룹</th><th>n</th>', '<th>평균 H+10 고가↑</th>', '<th>중앙 H+10 고가↑</th>',
     '<th>평균 H+10 종가↑</th>', '<th>평균 최저 저가↓</th>',
     '<th>+10% 고가</th>', '<th>+20% 고가</th>',
@@ -1396,7 +1398,7 @@ function h10PerfTable(perf) {
       '<td>' + (g.minus10CloseRate != null ? g.minus10CloseRate + '%' : '-') + '</td>' +
       '</tr>');
   }
-  html.push('</tbody></table>');
+  html.push('</tbody></table></div>');
   return html.join('');
 }
 document.getElementById('d10-h10-perf').innerHTML = h10PerfTable(h10Perf);

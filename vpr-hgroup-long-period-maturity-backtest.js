@@ -1086,23 +1086,26 @@ table.list tbody tr.row:nth-child(odd):hover { background: #273549; }
 footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.7; }
 footer.foot strong { color: #fde68a; }
 
+/* cmp/matrix 표 wrapper — 부모 div가 가로 스크롤, table 자체는 정상 table 유지 (정렬 보장) */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  margin-bottom: 14px;
+  border-radius: 8px;
+}
+.scroll-x table.cmp, .scroll-x table.matrix { margin-bottom: 0; }
+
 @media (max-width: 900px) {
   body { padding: 12px 12px 60px; max-width: 100%; }
   html, body { overflow-x: hidden; overflow-y: auto; }
   .tbl-wrap { overflow-x: auto !important; }
   .col-mobile-hide, table.list thead th.col-mobile-hide { display: none; }
-  /* 그룹별 성과/매트릭스/월별/baseline-compare 모든 cmp/matrix 표가 모바일에서 가로 스크롤 되도록 */
-  table.cmp, table.matrix {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
-    max-width: 100%;
-  }
-  table.cmp thead, table.cmp tbody, table.matrix thead, table.matrix tbody {
-    display: table;
+  /* 모바일에서 표가 부모 폭에 짜부라지지 않도록 자체 너비 유지 */
+  .scroll-x table.cmp, .scroll-x table.matrix {
     width: max-content;
     min-width: 100%;
+    white-space: nowrap;
   }
 }
 </style>
@@ -1241,14 +1244,14 @@ if (DATA.baselineMode && DATA.baselineBanner) {
 (function renderCacheInfo() {
   const ci = DATA.cacheInfo || {};
   document.getElementById('cache-info-box').innerHTML =
-    '<table class="cmp"><tbody>' +
+    '<div class="scroll-x"><table class="cmp"><tbody>' +
     '<tr><td>요청 분석 기간</td><td>' + fmtDate(ci.requestedFrom) + ' ~ ' + fmtDate(ci.requestedTo) + ' (' + ci.cutoffsRequested + '일)</td></tr>' +
     '<tr><td>실제 유효 분석 시작/종료</td><td>' + fmtDate(ci.effectiveStart) + ' ~ ' + fmtDate(ci.effectiveEnd) + ' (후보 발생 ' + ci.cutoffsWithCandidates + '일)</td></tr>' +
     '<tr><td>차트 캐시 시작/종료</td><td>' + fmtDate(ci.cacheStart) + ' ~ ' + fmtDate(ci.cacheEnd) + ' (' + ci.cacheTotalDates + '일)</td></tr>' +
     '<tr><td>보드 노출 기준 사례</td><td>' + DATA.boardExposureSummary.totalCandidates + '건</td></tr>' +
     '<tr><td>이벤트 기준 사례</td><td>' + DATA.eventBasedSummary.totalEvents + '건 (D+10 검증 가능 ' + DATA.eventBasedSummary.eventsWithD10 + '건)</td></tr>' +
     '<tr><td>중복 제거율</td><td>' + (DATA.eventBasedSummary.dedupRate ?? 0) + '% (평균 노출 ' + DATA.eventBasedSummary.avgExposureDays + '일)</td></tr>' +
-    '</tbody></table>';
+    '</tbody></table></div>';
 })();
 
 // 표본 충분성 박스
@@ -1263,13 +1266,13 @@ if (DATA.baselineMode && DATA.baselineBanner) {
     return '<tr><td>' + label + '</td><td><strong>' + t.count + '건</strong> ' + sym + ' (기준 ' + threshold + '건 — ' + (t.sufficient ? '충분' : '부족') + ')</td></tr>';
   };
   document.getElementById('sample-sufficiency-box').innerHTML =
-    '<table class="cmp"><tbody>' +
+    '<div class="scroll-x"><table class="cmp"><tbody>' +
     '<tr><td>전체 표본 라벨</td><td><strong style="color:' + labelColor + ';font-size:14px;">' + (ss.label || '-') + '</strong> (이벤트 ' + (ss.eventsWithD10 ?? '-') + '건)</td></tr>' +
     '<tr><td>판정 기준</td><td>참고 &lt;30 / 방향성 30~49 / 운영 50~99 / 신뢰도 높음 ≥100</td></tr>' +
     tagRow('strongVprSuccess', '강한 VPR 성공 (운영 판단 기준)', '20') +
     tagRow('structuralBreak', '구조 훼손 (위험 신뢰도 기준)', '20') +
     tagRow('pullbackPending', 'VPR 대기 (전환율 판단 기준)', '20') +
-    '</tbody></table>';
+    '</tbody></table></div>';
 })();
 
 // baseline compare 표
@@ -1277,7 +1280,7 @@ if (DATA.baselineMode && DATA.baselineBanner) {
   const bc = DATA.baselineCompare || {};
   document.getElementById('baseline-ref-label').textContent = '비교 기준: ' + (bc.referenceLabel || '-');
   const rows = bc.rows || [];
-  const html = ['<table class="cmp"><thead><tr>',
+  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
     '<th>지표</th><th>현재 (1년 캐시)</th><th>baseline 참조</th><th>변화</th>',
     '</tr></thead><tbody>'];
   for (const r of rows) {
@@ -1290,7 +1293,7 @@ if (DATA.baselineMode && DATA.baselineBanner) {
     }
     html.push('<tr><td>' + r.metric + '</td><td>' + curStr + '</td><td>' + refStr + '</td><td>' + diffCell + '</td></tr>');
   }
-  html.push('</tbody></table>');
+  html.push('</tbody></table></div>');
   document.getElementById('baseline-compare-table').innerHTML = html.join('');
 })();
 
@@ -1301,14 +1304,14 @@ if (DATA.baselineMode && DATA.baselineBanner) {
     document.getElementById('monthly-summary-table').innerHTML = '<p style="color:#64748b;">월별 데이터 없음.</p>';
     return;
   }
-  const html = ['<table class="cmp"><thead><tr>',
+  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
     '<th>월</th><th>보드 노출</th><th>이벤트</th><th>눌림 대기</th><th>관리 구간</th><th>돌파 악화</th>',
     '</tr></thead><tbody>'];
   for (const r of rows) {
     const ym = r.month.slice(0, 4) + '-' + r.month.slice(4, 6);
     html.push('<tr><td>' + ym + '</td><td>' + r.candidates + '</td><td>' + r.events + '</td><td>' + r.pwaitCount + '</td><td>' + r.mgmtCount + '</td><td>' + r.bweakCount + '</td></tr>');
   }
-  html.push('</tbody></table>');
+  html.push('</tbody></table></div>');
   document.getElementById('monthly-summary-table').innerHTML = html.join('');
 })();
 
@@ -1336,7 +1339,7 @@ function distTable(d5, d10, labels, title) {
   const allKeys = new Set([...d5.map(x => x.status), ...d10.map(x => x.status)]);
   const d5Map = new Map(d5.map(x => [x.status, x.count]));
   const d10Map = new Map(d10.map(x => [x.status, x.count]));
-  const html = ['<table class="cmp"><thead><tr>',
+  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
     '<th>' + (title || '분류') + '</th><th>D+5</th><th>D+10 (성숙)</th><th>변화</th>',
     '</tr></thead><tbody>'];
   for (const k of Array.from(allKeys).sort()) {
@@ -1347,7 +1350,7 @@ function distTable(d5, d10, labels, title) {
     const cls = diff > 0 ? 'cell-pos' : (diff < 0 ? 'cell-neg' : '');
     html.push('<tr><td>' + (labels[k] || k) + '</td><td>' + a + '건</td><td>' + b + '건</td><td><span class="' + cls + '">' + diffStr + '</span></td></tr>');
   }
-  html.push('</tbody></table>');
+  html.push('</tbody></table></div>');
   return html.join('');
 }
 document.getElementById('d5-d10-distribution').innerHTML =
@@ -1362,7 +1365,7 @@ function matrixTable(transitions, fromKeys, toKeys, fromLabels, toLabels, fromTi
   for (const t of transitions) m.set(t.from + '::' + t.to, t.count);
   const fromSet = Array.from(new Set([...transitions.map(t => t.from), ...fromKeys])).filter(k => fromKeys.includes(k) || transitions.some(t => t.from === k));
   const toSet = Array.from(new Set([...transitions.map(t => t.to), ...toKeys])).filter(k => toKeys.includes(k) || transitions.some(t => t.to === k));
-  const html = ['<table class="matrix"><thead><tr><th>' + fromTitle + ' \\\\ ' + toTitle + '</th>'];
+  const html = ['<div class="scroll-x"><table class="matrix"><thead><tr><th>' + fromTitle + ' \\\\ ' + toTitle + '</th>'];
   for (const t of toSet) html.push('<th>' + (toLabels[t] || t) + '</th>');
   html.push('<th>합계</th></tr></thead><tbody>');
   for (const f of fromSet) {
@@ -1377,7 +1380,7 @@ function matrixTable(transitions, fromKeys, toKeys, fromLabels, toLabels, fromTi
     if (rowSum === 0) continue;
     html.push('<tr><td class="from-cell">' + (fromLabels[f] || f) + '</td>' + cells.join('') + '<td>' + rowSum + '</td></tr>');
   }
-  html.push('</tbody></table>');
+  html.push('</tbody></table></div>');
   return html.join('');
 }
 document.getElementById('vpr-transition-matrix').innerHTML =
@@ -1388,7 +1391,7 @@ document.getElementById('judgment-transition-matrix').innerHTML =
 // D+10 VPR × H+5/H+10 성과
 function perfTable(rows, key, labelKey, highlightKeys = []) {
   if (!rows || rows.length === 0) return '<p style="color:#64748b;">사례 없음.</p>';
-  const html = ['<table class="cmp"><thead><tr>',
+  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
     '<th>' + (labelKey || '그룹') + '</th><th>n</th>',
     '<th>평균 고가↑</th><th>중앙 고가↑</th>',
     '<th>평균 종가↑</th><th>중앙 종가↑</th>',
@@ -1413,7 +1416,7 @@ function perfTable(rows, key, labelKey, highlightKeys = []) {
       '<td>' + (p.minus10CloseRate != null ? p.minus10CloseRate + '%' : '-') + '</td>' +
       '</tr>');
   }
-  html.push('</tbody></table>');
+  html.push('</tbody></table></div>');
   return html.join('');
 }
 document.getElementById('d10-h10-perf').innerHTML = perfTable(DATA.d10VprPerformance, 'hPlus10', 'D+10 VPR 그룹', ['STRONG_VPR_SUCCESS', 'CLASSIC_VPR_SUCCESS', 'STRUCTURAL_BREAK']);
@@ -1422,7 +1425,7 @@ document.getElementById('d10-h5-perf').innerHTML = perfTable(DATA.d10VprPerforma
 // 화면 상태별 (D+5) H+10 + D+10 전환율
 function judgmentPerfTable(rows) {
   if (!rows || rows.length === 0) return '<p style="color:#64748b;">사례 없음.</p>';
-  const html = ['<table class="cmp"><thead><tr>',
+  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
     '<th>화면 상태 (D+5)</th><th>n</th>',
     '<th>H+10 평균 고가↑</th><th>H+10 평균 종가↑</th><th>H+10 평균 저가↓</th>',
     '<th>+10% 고가</th><th>-3% 종가</th><th>-5% 종가</th>',
@@ -1440,7 +1443,7 @@ function judgmentPerfTable(rows) {
       '<td>' + (r.structuralAtD10Rate != null ? r.structuralAtD10Rate + '% (' + r.structuralAtD10Count + '건)' : '-') + '</td>' +
       '</tr>');
   }
-  html.push('</tbody></table>');
+  html.push('</tbody></table></div>');
   return html.join('');
 }
 document.getElementById('judgment-perf-table').innerHTML = judgmentPerfTable(DATA.judgmentStatusPerformance);
@@ -1449,7 +1452,7 @@ document.getElementById('judgment-perf-table').innerHTML = judgmentPerfTable(DAT
 function comboTable(rows) {
   const filtered = (rows || []).filter(r => r.hPlus10.count > 0);
   if (filtered.length === 0) return '<p style="color:#64748b;">사례 없음.</p>';
-  const html = ['<table class="cmp"><thead><tr>',
+  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
     '<th>조합</th><th>n</th>',
     '<th>다음날 평균 고가↑</th>',
     '<th>H+10 평균 고가↑</th><th>H+10 평균 종가↑</th>',
@@ -1466,14 +1469,14 @@ function comboTable(rows) {
       '<td>' + (p.minus5CloseRate != null ? p.minus5CloseRate + '%' : '-') + '</td>' +
       '</tr>');
   }
-  html.push('</tbody></table>');
+  html.push('</tbody></table></div>');
   return html.join('');
 }
 document.getElementById('combined-perf-table').innerHTML = comboTable(DATA.combinedStatusPerformance);
 
 // 일자별
 function dailyTable(rows) {
-  const html = ['<table class="cmp"><thead><tr>',
+  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
     '<th>날짜</th><th>H그룹 수</th><th>눌림 대기</th><th>관리 구간</th>',
     '<th>다음날 평균 종가↑</th><th>다음날 평균 고가↑</th>',
     '</tr></thead><tbody>'];
@@ -1488,7 +1491,7 @@ function dailyTable(rows) {
       '<td>' + fmtPct(r.avgHigh) + '</td>' +
       '</tr>');
   }
-  html.push('</tbody></table>');
+  html.push('</tbody></table></div>');
   return html.join('');
 }
 document.getElementById('daily-results-table').innerHTML = dailyTable(DATA.dailyResults);
