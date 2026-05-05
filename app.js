@@ -3432,6 +3432,8 @@ app.get("/vpr-hgroup-three-year-with-flow-backtest", (req, res) => {
   }
   res.sendFile(filePath);
 });
+// 짧은 별칭 — 메인 VPR 3년 백테스트
+app.get("/vpr-3y", (req, res) => res.redirect("/vpr-hgroup-three-year-with-flow-backtest"));
 
 // ─────────── 패턴 스크리너 ───────────
 const patternState = {
