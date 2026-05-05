@@ -3563,6 +3563,24 @@ app.get("/vpr-hgroup-long-backtest", (req, res) => {
   res.sendFile(filePath);
 });
 
+// ─────────── VPR H그룹 baseline (현재 캐시 기준) ───────────
+app.get("/vpr-hgroup-current-cache-baseline", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "vpr-hgroup-current-cache-baseline-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/vpr-hgroup-current-cache-baseline-result.html 파일이 없습니다. `node vpr-hgroup-long-period-maturity-backtest.js --from=20250101 --to=20260420 --baseline`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
+// ─────────── VPR H그룹 1년 캐시 백테스트 (baseline 비교 포함) ───────────
+app.get("/vpr-hgroup-one-year-backtest", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "vpr-hgroup-one-year-cache-backtest-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/vpr-hgroup-one-year-cache-backtest-result.html 파일이 없습니다. `node vpr-hgroup-long-period-maturity-backtest.js --from=20250101 --to=20260420 --label=one-year-cache`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
 // ─────────── WRA 운영 모드별 4/30 → 5/4 검증 보고서 ───────────
 app.get("/wra-mode", (req, res) => {
   const filePath = path.join(__dirname, "reports", "wra-mode-20260430-to-20260504-validation-result.html");

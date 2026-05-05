@@ -13,7 +13,10 @@ Daily chart update — KIS API 기반 최근 5거래일 갱신 (병렬 처리)
    - 같은 date: replace
    - 새 date: append
    - 정렬, 중복 제거
-   - 최소 120일 보존
+   - 보존 행 수: env CHART_KEEP_ROWS (기본 1000, 약 4년치) 까지만 유지
+     QVA/VVI/H/VPR 장기 백테스트를 위해 최소 3년치 일봉이 필요하므로
+     기본값을 1000으로 둔다. 120으로 자르면 QVA 검출(idx>=60) 및 장기 백테스트
+     표본이 크게 부족해진다.
 4. ThreadPoolExecutor로 병렬 처리 (8개 워커, 5-10배 성능 향상)
 
 실행:
@@ -37,7 +40,10 @@ ROOT = Path(__file__).parent
 load_dotenv(ROOT / '.env')  # 명시적 경로 지정
 STOCKS_LIST_PATH = ROOT / "cache" / "naver-stocks-list.json"
 CHART_LONG_DIR = ROOT / "cache" / "stock-charts-long"
-MIN_ROWS = 120
+# 장기 캐시 보존 행 수 — QVA/VVI/H/VPR 장기 백테스트용으로 기본 1000(약 4년치) 유지.
+# 120으로 자르면 QVA 검출 및 장기 백테스트 표본이 부족해진다.
+# env CHART_KEEP_ROWS로 운영 환경에서 오버라이드 가능.
+MIN_ROWS = int(os.getenv("CHART_KEEP_ROWS", "1000"))
 
 # KIS API Config
 KIS_APP_KEY = os.getenv("KIS_APP_KEY")

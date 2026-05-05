@@ -45,9 +45,41 @@ const args = (() => {
 const FROM = String(args.from || '20260101').trim();
 const TO = String(args.to || '20260420').trim();
 const MATURE_DAYS = parseInt(args['mature-days'] || '10', 10);
+const BASELINE_MODE = !!args.baseline;
+const LABEL = args.label ? String(args.label).trim() : null;
 
-const OUT_JSON = path.join(REPORTS_DIR, 'vpr-hgroup-long-period-maturity-backtest-result.json');
-const OUT_HTML = path.join(REPORTS_DIR, 'vpr-hgroup-long-period-maturity-backtest-result.html');
+// 출력 경로 결정 (--label 우선, 없으면 --baseline, 그것도 없으면 기본)
+let OUT_JSON, OUT_HTML;
+if (LABEL) {
+  OUT_JSON = path.join(REPORTS_DIR, `vpr-hgroup-${LABEL}-backtest-result.json`);
+  OUT_HTML = path.join(REPORTS_DIR, `vpr-hgroup-${LABEL}-backtest-result.html`);
+} else if (BASELINE_MODE) {
+  OUT_JSON = path.join(REPORTS_DIR, 'vpr-hgroup-current-cache-baseline-result.json');
+  OUT_HTML = path.join(REPORTS_DIR, 'vpr-hgroup-current-cache-baseline-result.html');
+} else {
+  OUT_JSON = path.join(REPORTS_DIR, 'vpr-hgroup-long-period-maturity-backtest-result.json');
+  OUT_HTML = path.join(REPORTS_DIR, 'vpr-hgroup-long-period-maturity-backtest-result.html');
+}
+const BASELINE_BANNER = '이 보고서는 현재 로컬 캐시만 사용한 baseline 결과이며, 1년치 캐시 업데이트 후 재검증이 필요합니다.';
+
+// 기존 baseline 참조값 (사용자가 이전 baseline 결과로 명시한 수치 — 비교용 고정값)
+const BASELINE_REFERENCE = {
+  label: '캐시 sync 전 baseline (97종목 분석 가능)',
+  totalCandidates: 59,
+  totalEvents: 12,
+  eventsWithD10: 12,
+  dedupRate: 79.66,
+  effectiveStart: '20251208',
+  effectiveEnd: '20260420',
+  d10StrongCount: 2,
+  d10StrongHPlus10AvgHigh: 55.53,
+  d10StrongHPlus10AvgClose: 13.12,
+  d10StructCount: 5,
+  d10StructHPlus10AvgClose: -11.95,
+  d10StructMinus5CloseRate: 80,
+  pendingD5ToSuccessRate: 33.33,
+  pendingD5ToStructuralRate: 66.67,
+};
 
 const TRACKING_DAYS = 20;
 const RECENT_BREAKOUT_DAYS = 5;     // 실시간 보드 노출 (변경 금지)
@@ -681,6 +713,67 @@ function main() {
     .slice(0, 15);
 
   // 11) summary
+  // 차트 캐시의 실제 유효 기간 (전체 종목 union)
+  const cacheStart = tradingDatesAll[0] || null;
+  const cacheEnd = tradingDatesAll[tradingDatesAll.length - 1] || null;
+
+  // 실효 cutoff 범위 = 후보가 1건이라도 발생한 cutoff 일자 (지정 from~to 안에서)
+  const cutoffsWithCandidates = Array.from(new Set(candidates.map(c => c.cutoffDate))).sort();
+  const effectiveStart = cutoffsWithCandidates[0] || null;
+  const effectiveEnd = cutoffsWithCandidates[cutoffsWithCandidates.length - 1] || null;
+
+  // 월별 요약 (보드 노출 기준 + 이벤트 기준)
+  const monthlyMap = new Map();
+  for (const c of candidates) {
+    const ym = c.cutoffDate.slice(0, 6);
+    if (!monthlyMap.has(ym)) monthlyMap.set(ym, { month: ym, candidates: 0, eventKeys: new Set(), pwait: 0, mgmt: 0, bweak: 0 });
+    const m = monthlyMap.get(ym);
+    m.candidates++;
+    m.eventKeys.add(c.eventKey);
+    if (c.judgmentStatus === 'PULLBACK_WAIT') m.pwait++;
+    if (c.judgmentStatus === 'MANAGEMENT') m.mgmt++;
+    if (c.judgmentStatus === 'BREAKDOWN_WEAK') m.bweak++;
+  }
+  const monthlySummary = Array.from(monthlyMap.values())
+    .map(m => ({ month: m.month, candidates: m.candidates, events: m.eventKeys.size, pwaitCount: m.pwait, mgmtCount: m.mgmt, bweakCount: m.bweak }))
+    .sort((a, b) => a.month.localeCompare(b.month));
+
+  // 표본 충분성 4단계 라벨 (사용자 spec)
+  const eventsCount = eventsWithD10.length;
+  let sampleLabel, sampleLabelKey;
+  if (eventsCount >= 100) { sampleLabelKey = 'HIGH'; sampleLabel = '신뢰도 높음'; }
+  else if (eventsCount >= 50) { sampleLabelKey = 'OPERATIONAL'; sampleLabel = '운영 기준 검토 가능'; }
+  else if (eventsCount >= 30) { sampleLabelKey = 'DIRECTIONAL'; sampleLabel = '방향성 확인'; }
+  else { sampleLabelKey = 'REFERENCE'; sampleLabel = '참고 수준'; }
+
+  // 핵심 태그별 충분성 (≥20 = 운영 판단 가능)
+  const strongCount = events.filter(e => e.d10Snapshot?.vprStatus === 'STRONG_VPR_SUCCESS').length;
+  const structCount = events.filter(e => e.d10Snapshot?.vprStatus === 'STRUCTURAL_BREAK').length;
+  const pendingCount = events.filter(e => e.d5Snapshot?.vprStatus === 'PULLBACK_PENDING').length;
+  const tagSufficiency = {
+    strongVprSuccess: { count: strongCount, sufficient: strongCount >= 20, threshold: 20 },
+    structuralBreak: { count: structCount, sufficient: structCount >= 20, threshold: 20 },
+    pullbackPending: { count: pendingCount, sufficient: pendingCount >= 20, threshold: 20 },
+  };
+  const sampleSufficiency = {
+    eventsWithD10: eventsCount,
+    label: sampleLabel,
+    labelKey: sampleLabelKey,
+    thresholds: { reference: 30, directional: 50, operational: 100 },
+    tags: tagSufficiency,
+  };
+
+  const cacheInfo = {
+    cacheStart, cacheEnd,
+    cacheTotalDates: tradingDatesAll.length,
+    requestedFrom: FROM, requestedTo: TO,
+    effectiveStart, effectiveEnd,
+    cutoffsRequested: tradingDatesInRange.length,
+    cutoffsWithCandidates: cutoffsWithCandidates.length,
+    sampleSufficient: eventsCount >= 30,
+    sampleSufficientThreshold: 30,
+  };
+
   const boardExposureSummary = {
     totalCandidates: candidates.length,
     verifiedCount: verified.length,
@@ -697,9 +790,43 @@ function main() {
     pendingAtD5_toSuccessRate: rate(transitionStats.pendingAtD5_toSuccess, transitionStats.pendingAtD5Total),
     pendingAtD5_toStructuralRate: rate(transitionStats.pendingAtD5_toStructural, transitionStats.pendingAtD5Total),
     d10StrongHPlus10AvgHigh: d10StrongPerf?.hPlus10.avgMaxHigh ?? null,
+    d10StrongHPlus10AvgClose: d10StrongPerf?.hPlus10.avgCloseN ?? null,
     d10StrongCount: d10StrongPerf?.hPlus10.count ?? 0,
     d10StructHPlus10AvgClose: d10StructPerf?.hPlus10.avgCloseN ?? null,
+    d10StructHPlus10AvgHigh: d10StructPerf?.hPlus10.avgMaxHigh ?? null,
+    d10StructMinus5CloseRate: d10StructPerf?.hPlus10.minus5CloseRate ?? null,
     d10StructCount: d10StructPerf?.hPlus10.count ?? 0,
+  };
+
+  // baseline 비교 (이번 결과 vs 이전 baseline 고정값)
+  const cur = summary;
+  const ref = BASELINE_REFERENCE;
+  function diff(curV, refV, suffix = '') {
+    if (curV == null || refV == null) return { current: curV, reference: refV, diff: null, diffText: '-' };
+    const d = curV - refV;
+    return {
+      current: curV, reference: refV, diff: round(d, 2),
+      diffText: (d >= 0 ? '+' : '') + round(d, 2) + suffix,
+    };
+  }
+  const baselineCompare = {
+    referenceLabel: BASELINE_REFERENCE.label,
+    rows: [
+      { metric: '실효 분석 시작일',   current: effectiveStart, reference: ref.effectiveStart },
+      { metric: '실효 분석 종료일',   current: effectiveEnd,   reference: ref.effectiveEnd },
+      { metric: '보드 노출 사례 수',  ...diff(candidates.length, ref.totalCandidates, '건') },
+      { metric: '이벤트 사례 수',     ...diff(events.length, ref.totalEvents, '건') },
+      { metric: 'D+10 검증 가능',    ...diff(eventsWithD10.length, ref.eventsWithD10, '건') },
+      { metric: '중복 제거율',       ...diff(round(rate(candidates.length - events.length, candidates.length), 2), ref.dedupRate, '%p') },
+      { metric: 'D+10 강한 VPR 수',  ...diff(cur.d10StrongCount, ref.d10StrongCount, '건') },
+      { metric: 'D+10 강한 H+10 고가↑', ...diff(cur.d10StrongHPlus10AvgHigh, ref.d10StrongHPlus10AvgHigh, '%p') },
+      { metric: 'D+10 강한 H+10 종가↑', ...diff(cur.d10StrongHPlus10AvgClose, ref.d10StrongHPlus10AvgClose, '%p') },
+      { metric: 'D+10 구조 훼손 수', ...diff(cur.d10StructCount, ref.d10StructCount, '건') },
+      { metric: 'D+10 구조 훼손 H+10 종가', ...diff(cur.d10StructHPlus10AvgClose, ref.d10StructHPlus10AvgClose, '%p') },
+      { metric: 'D+10 구조 훼손 -5% 종가율', ...diff(cur.d10StructMinus5CloseRate, ref.d10StructMinus5CloseRate, '%p') },
+      { metric: 'D+5 대기 → 성공 전환', ...diff(cur.pendingAtD5_toSuccessRate, ref.pendingD5ToSuccessRate, '%p') },
+      { metric: 'D+5 대기 → 구조 훼손', ...diff(cur.pendingAtD5_toStructuralRate, ref.pendingD5ToStructuralRate, '%p') },
+    ],
   };
 
   // ─── 출력 ───
@@ -723,6 +850,13 @@ function main() {
       exitThresholdPct: EXIT_THRESHOLD_PCT,
       tradingDatesInRange,
     },
+    baselineMode: BASELINE_MODE,
+    baselineBanner: BASELINE_MODE ? BASELINE_BANNER : null,
+    label: LABEL,
+    cacheInfo,
+    sampleSufficiency,
+    baselineCompare,
+    monthlySummary,
     summary,
     boardExposureSummary,
     eventBasedSummary,
@@ -754,6 +888,33 @@ function main() {
   };
 
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
+
+  if (BASELINE_MODE) {
+    console.log(`\n⚠️  ${BASELINE_BANNER}`);
+  }
+  console.log(`\n📅 캐시 / 분석 기간 정보:`);
+  console.log(`  요청 분석 기간:        ${fmtDate(FROM)} ~ ${fmtDate(TO)}`);
+  console.log(`  실효 분석 시작/종료:   ${fmtDate(effectiveStart)} ~ ${fmtDate(effectiveEnd)}`);
+  console.log(`  차트 캐시 시작/종료:   ${fmtDate(cacheStart)} ~ ${fmtDate(cacheEnd)} (${tradingDatesAll.length}일)`);
+  console.log(`  cutoff 거래일 수:      요청 ${tradingDatesInRange.length}일 / 후보 발생 ${cutoffsWithCandidates.length}일`);
+  console.log(`  표본 충분성:           [${sampleSufficiency.labelKey}] ${sampleSufficiency.label} (D+10 검증 ${eventsCount}건)`);
+  console.log(`    └ 강한 VPR 성공: ${strongCount}건 ${tagSufficiency.strongVprSuccess.sufficient ? '✅' : '⚠️ '} (운영 판단 기준 20건)`);
+  console.log(`    └ 구조 훼손:    ${structCount}건 ${tagSufficiency.structuralBreak.sufficient ? '✅' : '⚠️ '} (위험 신뢰도 기준 20건)`);
+  console.log(`    └ VPR 대기:     ${pendingCount}건 ${tagSufficiency.pullbackPending.sufficient ? '✅' : '⚠️ '} (전환율 판단 기준 20건)`);
+
+  console.log(`\n📊 baseline 대비 변화 (${BASELINE_REFERENCE.label}):`);
+  for (const r of baselineCompare.rows) {
+    const cur = r.current === null || r.current === undefined ? '-' : r.current;
+    const ref = r.reference === null || r.reference === undefined ? '-' : r.reference;
+    const diffStr = r.diffText || (typeof r.current === 'string' ? '' : '-');
+    console.log(`  ${r.metric.padEnd(25)} 현재 ${String(cur).padStart(10)}  vs  ref ${String(ref).padStart(10)}  ${diffStr}`);
+  }
+
+  console.log(`\n📅 월별 요약:`);
+  for (const m of monthlySummary) {
+    const ymLabel = m.month.slice(0, 4) + '-' + m.month.slice(4, 6);
+    console.log(`  ${ymLabel}  보드 노출 ${String(m.candidates).padStart(4)} / 이벤트 ${String(m.events).padStart(3)} (눌림 대기 ${m.pwaitCount} / 관리 ${m.mgmtCount} / 돌파 악화 ${m.bweakCount})`);
+  }
 
   console.log(`\n📊 D+5 분포 (전체 이벤트 ${events.filter(e => e.d5Snapshot).length}건):`);
   for (const d of d5Distribution) console.log(`  ${(vprAnalyzer.VPR_LABELS[d.status] || d.status).padEnd(16)} ${String(d.count).padStart(4)}건`);
@@ -938,11 +1099,26 @@ footer.foot strong { color: #fde68a; }
 <h1>VPR H그룹 장기 성숙 백테스트</h1>
 <div class="subtitle" id="subtitle"></div>
 
+<div id="baseline-banner-box" style="display:none; background:#451a03; border-left:4px solid #f97316; padding:14px 18px; border-radius:8px; margin-bottom:14px; line-height:1.7;">
+  <strong style="color:#fdba74; font-size:14px;">⚠️ Baseline 보고서</strong><br>
+  <span id="baseline-banner-text" style="color:#fed7aa;"></span>
+</div>
+
 <div class="purpose-box">
   이 보고서는 <strong id="period-banner"></strong> 기간 동안 매일 QVA 보드에 나타난
   <strong>돌파 성공(H그룹)</strong> 종목을 대상으로, <strong>D+5 보드 상태</strong>가
   <strong>D+10 시점</strong>에 어떻게 성숙되는지와 그 이후 H+5/H+10 성과를 확인하는 장기 백테스트입니다.
 </div>
+
+<h2>📅 캐시 / 분석 기간 정보</h2>
+<div id="cache-info-box"></div>
+
+<h2>📊 표본 충분성</h2>
+<div id="sample-sufficiency-box"></div>
+
+<h2>📊 baseline 대비 변화</h2>
+<p class="subtitle" id="baseline-ref-label"></p>
+<div id="baseline-compare-table"></div>
 
 <div class="warn-banner">
   ⚠️ 실시간 보드의 H그룹 노출 기간은 D+0~D+5로 유지하며, <strong>D+10은 VPR 성숙 검증에만 사용</strong>했습니다.
@@ -977,6 +1153,9 @@ footer.foot strong { color: #fde68a; }
 
 <h2>📊 화면 상태 + D+5 VPR 조합 검증</h2>
 <div id="combined-perf-table"></div>
+
+<h2>📅 월별 요약</h2>
+<div id="monthly-summary-table"></div>
 
 <h2>📅 날짜별 후보 수와 평균 성과 (보드 노출 기준)</h2>
 <div id="daily-results-table"></div>
@@ -1038,6 +1217,87 @@ document.getElementById('subtitle').textContent =
   ' · 중복 제거율 ' + (DATA.eventBasedSummary.dedupRate ?? 0) + '%' +
   ' · 평균 노출 ' + DATA.eventBasedSummary.avgExposureDays + '일';
 document.getElementById('period-banner').textContent = fmtDate(DATA.meta.from) + ' ~ ' + fmtDate(DATA.meta.to);
+
+// Baseline 배너
+if (DATA.baselineMode && DATA.baselineBanner) {
+  document.getElementById('baseline-banner-box').style.display = 'block';
+  document.getElementById('baseline-banner-text').textContent = DATA.baselineBanner;
+}
+
+// 캐시 / 분석 기간 정보 박스
+(function renderCacheInfo() {
+  const ci = DATA.cacheInfo || {};
+  document.getElementById('cache-info-box').innerHTML =
+    '<table class="cmp"><tbody>' +
+    '<tr><td>요청 분석 기간</td><td>' + fmtDate(ci.requestedFrom) + ' ~ ' + fmtDate(ci.requestedTo) + ' (' + ci.cutoffsRequested + '일)</td></tr>' +
+    '<tr><td>실제 유효 분석 시작/종료</td><td>' + fmtDate(ci.effectiveStart) + ' ~ ' + fmtDate(ci.effectiveEnd) + ' (후보 발생 ' + ci.cutoffsWithCandidates + '일)</td></tr>' +
+    '<tr><td>차트 캐시 시작/종료</td><td>' + fmtDate(ci.cacheStart) + ' ~ ' + fmtDate(ci.cacheEnd) + ' (' + ci.cacheTotalDates + '일)</td></tr>' +
+    '<tr><td>보드 노출 기준 사례</td><td>' + DATA.boardExposureSummary.totalCandidates + '건</td></tr>' +
+    '<tr><td>이벤트 기준 사례</td><td>' + DATA.eventBasedSummary.totalEvents + '건 (D+10 검증 가능 ' + DATA.eventBasedSummary.eventsWithD10 + '건)</td></tr>' +
+    '<tr><td>중복 제거율</td><td>' + (DATA.eventBasedSummary.dedupRate ?? 0) + '% (평균 노출 ' + DATA.eventBasedSummary.avgExposureDays + '일)</td></tr>' +
+    '</tbody></table>';
+})();
+
+// 표본 충분성 박스
+(function renderSampleSufficiency() {
+  const ss = DATA.sampleSufficiency || {};
+  const colorMap = { HIGH: '#10b981', OPERATIONAL: '#14b8a6', DIRECTIONAL: '#f59e0b', REFERENCE: '#94a3b8' };
+  const labelColor = colorMap[ss.labelKey] || '#94a3b8';
+  const tagRow = (key, label, threshold) => {
+    const t = ss.tags?.[key];
+    if (!t) return '';
+    const sym = t.sufficient ? '✅' : '⚠️';
+    return '<tr><td>' + label + '</td><td><strong>' + t.count + '건</strong> ' + sym + ' (기준 ' + threshold + '건 — ' + (t.sufficient ? '충분' : '부족') + ')</td></tr>';
+  };
+  document.getElementById('sample-sufficiency-box').innerHTML =
+    '<table class="cmp"><tbody>' +
+    '<tr><td>전체 표본 라벨</td><td><strong style="color:' + labelColor + ';font-size:14px;">' + (ss.label || '-') + '</strong> (이벤트 ' + (ss.eventsWithD10 ?? '-') + '건)</td></tr>' +
+    '<tr><td>판정 기준</td><td>참고 &lt;30 / 방향성 30~49 / 운영 50~99 / 신뢰도 높음 ≥100</td></tr>' +
+    tagRow('strongVprSuccess', '강한 VPR 성공 (운영 판단 기준)', '20') +
+    tagRow('structuralBreak', '구조 훼손 (위험 신뢰도 기준)', '20') +
+    tagRow('pullbackPending', 'VPR 대기 (전환율 판단 기준)', '20') +
+    '</tbody></table>';
+})();
+
+// baseline compare 표
+(function renderBaselineCompare() {
+  const bc = DATA.baselineCompare || {};
+  document.getElementById('baseline-ref-label').textContent = '비교 기준: ' + (bc.referenceLabel || '-');
+  const rows = bc.rows || [];
+  const html = ['<table class="cmp"><thead><tr>',
+    '<th>지표</th><th>현재 (1년 캐시)</th><th>baseline 참조</th><th>변화</th>',
+    '</tr></thead><tbody>'];
+  for (const r of rows) {
+    const curStr = r.current === null || r.current === undefined ? '-' : (typeof r.current === 'number' ? r.current : fmtDate(r.current));
+    const refStr = r.reference === null || r.reference === undefined ? '-' : (typeof r.reference === 'number' ? r.reference : fmtDate(r.reference));
+    let diffCell = r.diffText || '-';
+    if (r.diff != null) {
+      const cls = r.diff > 0 ? 'cell-pos' : (r.diff < 0 ? 'cell-neg' : '');
+      diffCell = '<span class="' + cls + '">' + diffCell + '</span>';
+    }
+    html.push('<tr><td>' + r.metric + '</td><td>' + curStr + '</td><td>' + refStr + '</td><td>' + diffCell + '</td></tr>');
+  }
+  html.push('</tbody></table>');
+  document.getElementById('baseline-compare-table').innerHTML = html.join('');
+})();
+
+// 월별 요약 표
+(function renderMonthly() {
+  const rows = DATA.monthlySummary || [];
+  if (rows.length === 0) {
+    document.getElementById('monthly-summary-table').innerHTML = '<p style="color:#64748b;">월별 데이터 없음.</p>';
+    return;
+  }
+  const html = ['<table class="cmp"><thead><tr>',
+    '<th>월</th><th>보드 노출</th><th>이벤트</th><th>눌림 대기</th><th>관리 구간</th><th>돌파 악화</th>',
+    '</tr></thead><tbody>'];
+  for (const r of rows) {
+    const ym = r.month.slice(0, 4) + '-' + r.month.slice(4, 6);
+    html.push('<tr><td>' + ym + '</td><td>' + r.candidates + '</td><td>' + r.events + '</td><td>' + r.pwaitCount + '</td><td>' + r.mgmtCount + '</td><td>' + r.bweakCount + '</td></tr>');
+  }
+  html.push('</tbody></table>');
+  document.getElementById('monthly-summary-table').innerHTML = html.join('');
+})();
 
 const tiles = [
   { cls: 'primary', label: '분석 기간', value: fmtDate(DATA.meta.from).slice(5) + '~' + fmtDate(DATA.meta.to).slice(5), sub: DATA.config.tradingDatesInRange.length + '일' },
