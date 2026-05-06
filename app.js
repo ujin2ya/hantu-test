@@ -3497,6 +3497,27 @@ app.get("/vpr-market-breadth", (req, res) => {
   res.sendFile(filePath);
 });
 
+// ─────────── D+5 실전 운용 보드 (가격 기준 안내, 별도 화면) ───────────
+app.get("/hgroup-live-operation", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "hgroup-live-operation-board-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/hgroup-live-operation-board-result.html 파일이 없습니다. `node hgroup-live-operation-board.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+// 짧은 별칭
+app.get("/d5", (req, res) => res.redirect("/hgroup-live-operation"));
+
+// ─────────── D+5 실전 운용 가설 검증 보고서 ───────────
+app.get("/hgroup-live-operation-hypothesis", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "hgroup-live-operation-hypothesis-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/hgroup-live-operation-hypothesis-result.html 파일이 없습니다. `node hgroup-live-operation-hypothesis-report.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+app.get("/d5-hyp", (req, res) => res.redirect("/hgroup-live-operation-hypothesis"));
+
 // ─────────── 패턴 스크리너 ───────────
 const patternState = {
   seeding: false, seedStartedAt: null, seedFinishedAt: null, seedProgress: null, seedError: null,
