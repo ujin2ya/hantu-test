@@ -282,20 +282,21 @@ function computeMarketBreadthScore({ kospi, kosdaq, breadth, hgroup }) {
     score -= 10; factors.push('KP 일간 ≫ KQ 일간 (-10)');
   }
 
-  // 등급 분류
+  // 등급 분류 — 검증 결과(2026-05-06) 반영: 점수 높을수록 후보 희석 + 추격 위험 ↑.
+  // 따라서 "양호/주의" 같은 단정적 라벨 대신 시장 환경을 중립적으로 묘사한다.
   let grade;
-  if (score >= 75) grade = 'STRONG_INDIVIDUAL';      // 개별주 장세 양호
-  else if (score >= 55) grade = 'NORMAL';            // 보통
-  else if (score >= 35) grade = 'SELECTIVE';         // 선별 필요
-  else grade = 'CAUTION';                            // 신규 진입 주의
+  if (score >= 75) grade = 'STRONG_DILUTION_RISK';   // 시장 강세 / 후보 희석 주의
+  else if (score >= 55) grade = 'NEUTRAL';           // 중립 장세
+  else if (score >= 35) grade = 'SELECTIVE';         // 선별 장세
+  else grade = 'CONTRARIAN';                         // 약세장 속 역세 후보 구간
 
   return { score: Math.max(0, score), grade, factors };
 }
 const GRADE_LABELS = {
-  STRONG_INDIVIDUAL: '개별주 장세 양호',
-  NORMAL: '보통',
-  SELECTIVE: '선별 필요',
-  CAUTION: '신규 진입 주의',
+  STRONG_DILUTION_RISK: '시장 강세 / 후보 희석 주의',
+  NEUTRAL: '중립 장세',
+  SELECTIVE: '선별 장세',
+  CONTRARIAN: '약세장 속 역세 후보 구간',
 };
 
 // ─── 통계 요약 ───
@@ -399,17 +400,18 @@ function main() {
   }
   console.log(`  실효 trade: ${trades.length}건 (skip: chart ${skipNoChart}, entry ${skipNoEntry}, vpr ${skipNoVpr})`);
 
-  // ─── 비교 조건 9종 (사용자 spec) ───
+  // ─── 비교 조건 (검증용 — 모두 "참고", 운영 필터 아님) ───
+  // 결론: 시장 레짐 필터는 모두 무효 또는 역효과. 매수 후보 제거에 사용 금지.
   const FILTERS = [
-    { key: 'NONE', label: '필터 없음', match: () => true },
-    { key: 'KP200', label: 'KOSPI 200일선 위', match: t => t.kospi && t.kospi.ma200 != null && t.kospi.close > t.kospi.ma200 },
-    { key: 'KQ200', label: 'KOSDAQ 200일선 위', match: t => t.kosdaq && t.kosdaq.ma200 != null && t.kosdaq.close > t.kosdaq.ma200 },
-    { key: 'KQ60', label: 'KOSDAQ 60일선 위', match: t => t.kosdaq && t.kosdaq.ma60 != null && t.kosdaq.close > t.kosdaq.ma60 },
-    { key: 'BREADTH50', label: '상승종목 비율 ≥ 50%', match: t => t.breadth && t.breadth.advanceRatio >= 0.5 },
-    { key: 'SCORE55', label: 'marketBreadthScore ≥ 55', match: t => t.breadthScore >= 55 },
-    { key: 'SCORE75', label: 'marketBreadthScore ≥ 75', match: t => t.breadthScore >= 75 },
-    { key: 'SCORE55_D10', label: 'Score ≥ 55 + 거리 ≤ 10%', match: t => t.breadthScore >= 55 && t.entryDistancePct <= 10 },
-    { key: 'SCORE75_D10', label: 'Score ≥ 75 + 거리 ≤ 10%', match: t => t.breadthScore >= 75 && t.entryDistancePct <= 10 },
+    { key: 'NONE', label: '필터 없음 (베이스)', match: () => true },
+    { key: 'KP200', label: '[참고] KOSPI 200일선 위', match: t => t.kospi && t.kospi.ma200 != null && t.kospi.close > t.kospi.ma200 },
+    { key: 'KQ200', label: '[참고] KOSDAQ 200일선 위', match: t => t.kosdaq && t.kosdaq.ma200 != null && t.kosdaq.close > t.kosdaq.ma200 },
+    { key: 'KQ60', label: '[참고] KOSDAQ 60일선 위', match: t => t.kosdaq && t.kosdaq.ma60 != null && t.kosdaq.close > t.kosdaq.ma60 },
+    { key: 'BREADTH50', label: '[참고] 상승종목 비율 ≥ 50%', match: t => t.breadth && t.breadth.advanceRatio >= 0.5 },
+    { key: 'SCORE55', label: '[참고] Score ≥ 55', match: t => t.breadthScore >= 55 },
+    { key: 'SCORE75', label: '[참고] Score ≥ 75 (시장 강세, 후보 희석)', match: t => t.breadthScore >= 75 },
+    { key: 'SCORE_LT35', label: '[참고] Score < 35 (역세 후보 구간)', match: t => t.breadthScore < 35 },
+    { key: 'D10', label: '✅ 운영 필터: 거리 ≤ 10%', match: t => t.entryDistancePct <= 10 },
   ];
 
   // 베이스라인 (NONE)
@@ -420,11 +422,48 @@ function main() {
     return { key: f.key, label: f.label, ...stat };
   });
 
-  // ─── 등급별 분포 + 성과 ───
-  const grades = ['STRONG_INDIVIDUAL', 'NORMAL', 'SELECTIVE', 'CAUTION'];
+  // ─── 등급별 분포 + 성과 (참고용 — 시장 환경 해석에만 사용) ───
+  const grades = ['STRONG_DILUTION_RISK', 'NEUTRAL', 'SELECTIVE', 'CONTRARIAN'];
   const byGrade = grades.map(g => {
     const subset = trades.filter(t => t.breadthGrade === g);
     return { grade: g, label: GRADE_LABELS[g], ...summarize(subset.map(t => t.sim), baseStat) };
+  });
+
+  // ─── 추천 운영안 (시장 레짐 필터 사용 안 함, 거리 + VPR 조합 중심) ───
+  function vprMainIs(t, ...keys) { return keys.includes(t.vprMain); }
+  function hasTag(t, ...tags) { return tags.some(tag => (t.vprTags || []).includes(tag)); }
+  const PRESETS = [
+    {
+      key: 'BASIC',
+      label: '기본형',
+      description: 'H그룹 + 진입가 거리 ≤ 10% + 분할청산. 가장 단순한 운영안.',
+      match: t => t.entryDistancePct <= 10,
+    },
+    {
+      key: 'PRECISE',
+      label: '정예형',
+      description: 'H그룹 + 거리 ≤ 10% + VPR 고가권 유지 + 위꼬리 적음 + 분할청산. 가장 안정적인 조합.',
+      match: t => t.entryDistancePct <= 10 && t.vprMain === 'HIGH_ZONE_HOLD' && hasTag(t, 'UPPER_WICK_SMALL'),
+    },
+    {
+      key: 'AGGRESSIVE',
+      label: '공격형',
+      description: 'H그룹 + 거리 ≤ 12% + VPR 기준선 위 마감 이상 + 거래대금 동반 + 분할청산. 표본 충분, 통계 양호.',
+      match: t => t.entryDistancePct <= 12 && vprMainIs(t, 'HIGH_ZONE_HOLD', 'ABOVE_BREAKOUT_LINE') && hasTag(t, 'VOLUME_SUPPORT', 'VOLUME_EXPLOSION'),
+    },
+    {
+      key: 'CONSERVATIVE',
+      label: '보수형',
+      description: 'H그룹 + 거리 ≤ 8% + 위꼬리 적음 + 분할청산. 표본 적지만 안정성 우선.',
+      match: t => t.entryDistancePct <= 8 && hasTag(t, 'UPPER_WICK_SMALL'),
+    },
+  ];
+  const presetResults = PRESETS.map(ps => {
+    const sub = trades.filter(ps.match);
+    return {
+      ...ps,
+      ...summarize(sub.map(t => t.sim), baseStat),
+    };
   });
 
   // ─── VPR 메인 태그별 + Score ≥ 55 적용 시 ───
@@ -458,11 +497,12 @@ function main() {
   const out = {
     meta: {
       generatedAt: new Date().toISOString(),
-      title: 'VPR 시장 레짐 비교 — KOSPI 단독 vs marketBreadthScore',
-      purpose: 'KOSPI 단독 필터는 대형주 영향이 크다. KOSDAQ + 시장 breadth + 쏠림 패널티 + H그룹 후보군 흐름을 종합한 marketBreadthScore가 H그룹/VPR 후보 매수 시 더 나은 필터인지 검증.',
+      title: 'VPR 시장 환경 참고값 (필터 아님) + 추천 운영안',
+      purpose: '이번 검증에서는 KOSPI/KOSDAQ 단독 필터와 marketBreadthScore가 H그룹/VPR 성과를 개선하지 못했습니다. 특히 marketBreadthScore가 높은 구간에서는 후보가 많아지며 신호가 희석되고, 이미 가격이 멀어진 종목이 섞여 성과가 악화되었습니다. 따라서 시장 점수는 매수 가능/불가 필터가 아니라, 현재 후보가 시장 강세 속 일반 반응인지 약세장 속 역세 반응인지 이해하기 위한 참고값으로만 사용합니다.',
       noFutureInfo: '모든 필터는 매수 시점(D+5)에 알 수 있는 정보만. 사후 정보 없음.',
       buySource: `D+${ENTRY_DAY} ${ENTRY_PRICE_KIND === 'open' ? '시가' : '종가'}`,
       holdPattern: `분할 청산 (50% +6 / 30% +12 / 20% +16, 손절 -5%, 본전 ratchet, 최대 ${HOLD_DAYS}일)`,
+      operationalRule: '운영 본체 = entryDistancePct ≤ 10% (또는 8/12% 변형). 시장 점수 + KOSPI/KOSDAQ MA는 모두 참고용, 운영 필터로 사용 금지.',
     },
     config: {
       entryDay: ENTRY_DAY, entryPriceKind: ENTRY_PRICE_KIND, holdDays: HOLD_DAYS,
@@ -492,6 +532,7 @@ function main() {
     byGrade,
     vprByFilter,
     scoreBuckets,
+    presetResults,
     trades: trades.map(t => ({
       code: t.code, name: t.name, hDate: t.hDate, buyDate: t.buyDate,
       vprMainLabel: t.vprMainLabel, entryDistancePct: t.entryDistancePct,
@@ -537,6 +578,14 @@ function main() {
     if (c.n) console.log(`    + Score≥55+D10  n=${c.n} 승률 ${c.winRate}% 매번 ${c.expectancy}% (ΔE ${c.deltaExpectancy})`);
   }
 
+  console.log(`\n📊 추천 운영안 (시장 레짐 필터 사용 안 함):`);
+  for (const ps of presetResults) {
+    if (!ps.n) continue;
+    const ok = (ps.deltaWinRate >= 0 && ps.deltaExpectancy >= 0) ? '🟢' : (ps.deltaExpectancy < -0.2 ? '🔴' : '⚪');
+    console.log(`  ${ok} [${ps.label}] n=${ps.n}, 승률 ${ps.winRate}%, 매번 ${ps.expectancy}%, ΔWR ${ps.deltaWinRate}, ΔE ${ps.deltaExpectancy}`);
+    console.log(`     ${ps.description}`);
+  }
+
   // HTML
   const html = HTML_TEMPLATE.replace('__JSON_DATA__', JSON.stringify(out));
   fs.writeFileSync(OUT_HTML, html, 'utf-8');
@@ -549,7 +598,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>VPR 시장 레짐 비교 — marketBreadthScore</title>
+<title>VPR 시장 환경 참고값 + 추천 운영안</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 * { box-sizing: border-box; }
@@ -607,31 +656,38 @@ footer.foot strong { color: #fde68a; }
 </head>
 <body>
 
-<h1>VPR 시장 레짐 비교 — marketBreadthScore</h1>
+<h1>VPR 시장 환경 참고값 + 추천 운영안</h1>
 <div class="subtitle" id="subtitle"></div>
 
 <div class="purpose-box">
-  KOSPI 단독 필터는 삼성전자/SK하이닉스 같은 초대형 반도체주의 영향이 커서 중소형 H그룹/VPR 후보 판단에 왜곡 가능.
-  대안으로 <strong>KOSDAQ + 시장 breadth(상승종목 비율) + 쏠림 패널티 + H그룹 후보군 최근 흐름</strong>을 종합한
-  <strong>marketBreadthScore (100점 만점)</strong>를 만들고 비교합니다. 모든 필터는 매수 시점(D+5)에 알 수 있는 정보만 사용.
+  <strong>이번 검증에서는 KOSPI/KOSDAQ 단독 필터와 marketBreadthScore가 H그룹/VPR 성과를 개선하지 못했습니다.</strong>
+  특히 marketBreadthScore가 높은 구간에서는 후보가 많아지며 신호가 희석되고, 이미 가격이 멀어진 종목이 섞여 성과가 악화되었습니다.
+  따라서 <strong>시장 점수는 매수 가능/불가 필터가 아니라, 현재 후보가 시장 강세 속 일반 반응인지 약세장 속 역세 반응인지 이해하기 위한 참고값으로만 사용합니다.</strong>
+  운영 본체는 <strong style="color:#6ee7b7;">entryDistancePct ≤ 10%</strong> 같은 진입가 거리 필터를 중심으로 두고, VPR 메인/보조 태그로 정예화합니다.
 </div>
 
 <div class="warn-banner">
-  ⚠️ <strong>승률만 높이는 게 좋은 게 아닙니다.</strong> n이 작거나 매번 평균이 떨어지는 조건은 추천에서 제외합니다.
+  ⚠️ <strong>시장 점수로 후보를 제거하지 마세요. 점수가 높다는 이유로 우선순위 올리지도, 낮다는 이유로 제외하지도 마세요.</strong>
+  점수는 현재 장세 해석용 텍스트일 뿐입니다.
 </div>
 
-<h2>📐 marketBreadthScore 산식</h2>
-<div class="formula-box" id="formula-box"></div>
+<h2>🎯 추천 운영안 (시장 레짐 필터 사용 안 함)</h2>
+<p class="subtitle">진입가 거리 필터 + VPR 조합 중심. 시장 점수는 적용하지 않습니다.</p>
+<div id="preset-grid" class="score-grid"></div>
 
-<h2>🎯 점수 등급별 분포 + 성과 (분할청산)</h2>
+<h2>📊 시장 환경 참고값 — 점수 등급별 분포 (필터 아님)</h2>
+<p class="subtitle">아래 등급은 매수 가능/불가 판정이 아니라, 현재 발견되는 H그룹 후보가 어떤 시장 환경에서 나왔는지 해석하는 참고 라벨입니다.</p>
 <div class="score-grid" id="grade-grid"></div>
 
-<h2>📊 9개 필터 비교 (분할청산)</h2>
-<p class="subtitle">필터 적용 전(베이스) 대비 변화 비교. 🟢 = 승률·매번 평균 동시 개선 / ⚪ = 한쪽만 / 🔴 = 매번 평균 악화.</p>
+<h2>📐 marketBreadthScore 산식 (참고용)</h2>
+<div class="formula-box" id="formula-box"></div>
+
+<h2>📊 필터별 검증 결과 — 모두 [참고], 운영 사용 금지 (분할청산)</h2>
+<p class="subtitle">베이스(필터 없음) 대비 변화. 🟢 = 동시 개선 / ⚪ = 미세/한쪽만 / 🔴 = 매번 평균 악화. 표 결과를 보면 시장 레짐 필터는 거의 다 미세하거나 악화 — 운영 필터로 사용 금지.</p>
 <div id="filter-table"></div>
 
-<h2>📊 VPR 메인 태그별 — 새 점수 필터 효과</h2>
-<p class="subtitle">베이스 = VPR 분류별 필터 없음. 비교 = + Score≥55, + Score≥55 & 거리≤10%.</p>
+<h2>📊 VPR 메인 태그별 — 점수 필터 적용 시 변화 (참고)</h2>
+<p class="subtitle">일부 약한 VPR 분류에서만 Score+거리 조합이 효과 있음. 운영 디폴트는 거리 필터만 단독 사용.</p>
 <div id="vpr-table"></div>
 
 <h2>📈 점수 분포</h2>
@@ -669,7 +725,13 @@ function fmtN(n) {
 }
 function fmtDate(d) { if (!d || d.length !== 8) return d || '-'; return d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8); }
 function gradeBadge(g) {
-  const map = { STRONG_INDIVIDUAL: ['sb-strong', '양호'], NORMAL: ['sb-normal', '보통'], SELECTIVE: ['sb-select', '선별'], CAUTION: ['sb-caution', '주의'] };
+  // 새 라벨 (검증 후 변경): 단정적 양호/주의 → 시장 환경 묘사
+  const map = {
+    STRONG_DILUTION_RISK: ['sb-caution', '시장 강세 / 후보 희석 주의'],
+    NEUTRAL: ['sb-normal', '중립 장세'],
+    SELECTIVE: ['sb-select', '선별 장세'],
+    CONTRARIAN: ['sb-strong', '약세장 속 역세 후보'],
+  };
   const [cls, lbl] = map[g] || ['', g];
   return '<span class="score-badge ' + cls + '">' + lbl + '</span>';
 }
@@ -685,15 +747,37 @@ function renderFormula() {
   for (const s of cfg.scoreFormula.plus) html.push('<li>' + s + '</li>');
   html.push('</ul><strong style="color:#fca5a5;">쏠림 패널티 (감산):</strong><ul style="margin:4px 0 8px 18px;padding:0;">');
   for (const s of cfg.scoreFormula.minus) html.push('<li>' + s + '</li>');
-  html.push('</ul><strong>등급:</strong> 75↑ ' + gradeBadge('STRONG_INDIVIDUAL') + ' · 55~74 ' + gradeBadge('NORMAL') + ' · 35~54 ' + gradeBadge('SELECTIVE') + ' · &lt;35 ' + gradeBadge('CAUTION'));
+  html.push('</ul><strong>등급:</strong> 75↑ ' + gradeBadge('STRONG_DILUTION_RISK') + ' · 55~74 ' + gradeBadge('NEUTRAL') + ' · 35~54 ' + gradeBadge('SELECTIVE') + ' · &lt;35 ' + gradeBadge('CONTRARIAN'));
+  html.push('<div style="margin-top:8px;color:#fbbf24;font-size:11px;">⚠️ 등급은 매수 가능/불가 판정이 아닌 시장 환경 해석 라벨입니다. 운영 필터로 사용 금지.</div>');
   document.getElementById('formula-box').innerHTML = html.join('');
 }
 renderFormula();
 
-// 등급 카드
+// 추천 운영안 카드
+function renderPresets() {
+  const html = [];
+  const clsMap = { BASIC: 'normal', PRECISE: 'strong', AGGRESSIVE: 'select', CONSERVATIVE: 'caution' };
+  for (const ps of (DATA.presetResults || [])) {
+    if (!ps.n) continue;
+    const cls = clsMap[ps.key] || '';
+    const tag = (ps.deltaWinRate > 0 && ps.deltaExpectancy > 0) ? '🟢' : (ps.deltaExpectancy < -0.2 ? '🔴' : '⚪');
+    html.push('<div class="score-card ' + cls + '">' +
+      '<h3>' + tag + ' ' + ps.label + '</h3>' +
+      '<div class="nums" style="color:#94a3b8;font-size:11px;line-height:1.6;">' + ps.description + '</div>' +
+      '<div class="nums" style="margin-top:6px;">표본 <strong>' + ps.n + '건</strong> (제거 ' + (ps.removed || 0) + '건)</div>' +
+      '<div class="nums">승률 <span class="num-big">' + ps.winRate + '%</span> ' + fmtDelta(ps.deltaWinRate) + '</div>' +
+      '<div class="nums">매번 평균 <span class="num-big">' + fmtPct(ps.expectancy) + '</span> ' + fmtDelta(ps.deltaExpectancy) + '</div>' +
+      '<div class="nums" style="font-size:11px;color:#94a3b8;">손절률 ' + ps.slRate + '% · 평균 MAE ' + fmtPct(ps.avgMAE) + '</div>' +
+      '</div>');
+  }
+  document.getElementById('preset-grid').innerHTML = html.join('');
+}
+renderPresets();
+
+// 등급 카드 (참고용 — 매수 필터 아님)
 function renderGradeCards() {
   const html = [];
-  const clsMap = { STRONG_INDIVIDUAL: 'strong', NORMAL: 'normal', SELECTIVE: 'select', CAUTION: 'caution' };
+  const clsMap = { STRONG_DILUTION_RISK: 'caution', NEUTRAL: 'normal', SELECTIVE: 'select', CONTRARIAN: 'strong' };
   for (const g of DATA.byGrade) {
     if (!g.n) continue;
     const cls = clsMap[g.grade] || '';

@@ -532,6 +532,8 @@ for (let fi = 0; fi < files.length; fi++) {
     vprDistanceFromBasePct: vpr?.vprDistanceFromBasePct ?? null,
     vprDistanceFromBreakoutPct: vpr?.vprDistanceFromBreakoutPct ?? null,
     vprClosePosition: vpr?.vprClosePosition ?? null,
+    // 라이브 거리 — 오늘 종가가 기준 종가에서 얼마나 떨어졌는지 (운영 태그 판정용)
+    liveDistanceFromBasePct: (vpr?.vprBaseClose && currentClose) ? round2((currentClose / vpr.vprBaseClose - 1) * 100) : null,
 
     mainStage,
     stageReason,
@@ -992,7 +994,7 @@ const stageDescriptions = {
 // 헤더에 VPR 정의 + 7개 라벨 펼침 도움말이 이미 있으므로, 섹션은 백테스트 요약 1줄만.
 const stageBacktestNotes = {
   BREAKOUT_SUCCESS: {
-    summary: '⚠️ <strong>먼저 "돌파일(기준일)" 컬럼을 꼭 확인하세요.</strong> H그룹은 돌파일 후 <strong>최대 5거래일(D+0~D+5)간 계속 노출</strong>되므로 어제 돌파한 종목과 5일 전 돌파한 종목이 같이 표시됩니다. <strong>정렬 기준: 돌파일 최신순 → VPR 메인 태그 → 수익률.</strong> 오늘 종가가 하락했어도 5일 안이면 정상 관찰 구간이고, D+5가 지나면 자동으로 목록에서 빠집니다. VPR은 돌파 이후 반응 분류일 뿐 성공/실패 판정도, 매수 추천도 아닙니다.',
+    summary: '⚠️ <strong>먼저 "돌파일(기준일)" 컬럼을 꼭 확인하세요.</strong> H그룹은 돌파일 후 <strong>최대 5거래일(D+0~D+5)간 계속 노출</strong>되므로 어제 돌파한 종목과 5일 전 돌파한 종목이 같이 표시됩니다. <strong>정렬 기준: 돌파일 최신순 → VPR 메인 태그 → 수익률.</strong> 오늘 종가가 하락했어도 5일 안이면 정상 관찰 구간이고, D+5가 지나면 자동으로 목록에서 빠집니다. 종목별 매수 등급 태그는 붙이지 않습니다 — VPR · 거리 · 위꼬리 · 거래대금 정보를 직접 보고 판단하세요. (조건 조합별 성과 참고는 화면 상단의 "D+5 백테스트 조합별 성과표" 펼쳐 보기.)',
   },
 };
 
@@ -1123,6 +1125,10 @@ function sortStage(stage, items) {
   }
   return arr;
 }
+
+// 사용자 spec(2026-05-06): 정예형/보수형/공격형/기본형 같은 운영 태그는 종목 행에 부착하지 않는다.
+// 분류는 헤더의 "D+5 백테스트 조합별 성과표"에서만 노출. 개별 종목은 사용자가 VPR·거리·위꼬리·거래대금을
+// 직접 보고 판단하도록 단순하게 유지한다.
 
 const stagedItems = {};
 // 내부 로직용 — 모든 단계를 stagedItems에 저장 (qvaTracking 미리보기, 백테스트 등)
@@ -1553,7 +1559,42 @@ const htmlTemplate = `<!DOCTYPE html>
   th.txt, td.txt { text-align: left; }
   th { background: #283447; color: #cbd5e1; font-weight: 600; cursor: pointer; user-select: none; }
   tr:hover { background: #283447; }
-  th .help { display: inline-block; margin-left: 4px; color: #60a5fa; cursor: help; font-size: 10px; }
+  th .help { display: inline-block; margin-left: 4px; color: #60a5fa; cursor: help; font-size: 10px; position: relative; }
+  /* 커스텀 툴팁 — th 안 있는 .help[data-tip]에 호버 시 즉시 표시 (브라우저 기본 title 대체) */
+  th .help[data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0b1322;
+    color: #e2e8f0;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.55;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    text-align: left;
+    white-space: normal;
+    width: max-content;
+    max-width: 320px;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    pointer-events: none;
+  }
+  th .help[data-tip]:hover::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-bottom-color: #475569;
+    z-index: 100;
+  }
 
   .table-wrap { background: #1e293b; padding: 8px; border-radius: 8px; margin-bottom: 14px; overflow-x: auto; }
   .empty { color: #64748b; padding: 16px; text-align: center; font-size: 13px; }
@@ -1877,16 +1918,26 @@ const COLS_BY_STAGE = {
       return '<span class="badge vpr-' + m + '" title="' + mainDesc.replace(/"/g, '&quot;') + '">' + mainLbl + '</span>';
     }},
     { key: 'name', label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기 (AI 뉴스 분석 포함, 첫 조회 10~30초 소요)"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
-    { key: 'breakoutDate', label: '돌파일(기준일)<span class="help" title="기준일 확인 필수. D+0이 오늘 돌파, D+5는 5거래일 전 돌파. 5일 노출 윈도우.">ⓘ</span>', txt: true, render: c => {
+    { key: 'breakoutDate', label: '돌파일(기준일)<span class="help" data-tip="기준일 확인 필수. D+0이 오늘 돌파, D+5는 5거래일 전 돌파. 5일 노출 윈도우.">ⓘ</span>', txt: true, render: c => {
       const d = c.daysFromBreakout ?? 0;
       const dCls = d === 0 ? 'color:#10b981;font-weight:700;' : (d <= 2 ? 'color:#34d399;font-weight:600;' : (d >= 5 ? 'color:#fbbf24;' : 'color:#94a3b8;'));
       return '<strong style="color:#f1f5f9;">' + fmtDate(c.breakoutDate) + '</strong> <span style="' + dCls + '">D+' + d + '</span>';
     } },
-    { key: 'vprBaseClose', label: '기준 종가<span class="help" title="VVI 돌파대기일 종가">ⓘ</span>', render: c => c.vprBaseClose != null ? fmtNum(c.vprBaseClose) + '원' : '-' },
-    { key: 'vprBreakoutLine', label: '기준선<span class="help" title="기준 종가 × 1.01">ⓘ</span>', render: c => c.vprBreakoutLine != null ? fmtNum(c.vprBreakoutLine) + '원' : '-' },
+    { key: 'vprBaseClose', label: '기준 종가<span class="help" data-tip="VVI 돌파대기일 종가">ⓘ</span>', render: c => c.vprBaseClose != null ? fmtNum(c.vprBaseClose) + '원' : '-' },
+    { key: 'vprBreakoutLine', label: '기준선<span class="help" data-tip="기준 종가 × 1.01">ⓘ</span>', render: c => c.vprBreakoutLine != null ? fmtNum(c.vprBreakoutLine) + '원' : '-' },
     { key: 'currentClose', label: '현재가', render: c => fmtNum(c.currentClose) + '원' },
-    { key: 'vprDistanceFromBasePct', label: '기준 종가 대비%<span class="help" title="(다음날 종가 / 기준 종가 - 1) × 100">ⓘ</span>', render: c => c.vprDistanceFromBasePct != null ? fmtPct(c.vprDistanceFromBasePct, true) : '-' },
-    { key: 'vprClosePosition', label: '종가 위치<span class="help" title="다음날 종가가 당일 가격 범위에서 차지하는 위치 (100%=고가)">ⓘ</span>', render: c => c.vprClosePosition != null ? c.vprClosePosition + '%' : '-' },
+    { key: 'liveDistanceFromBasePct', label: '거리<span class="help" data-tip="현재가가 기준 종가(VVI 돌파대기일 종가)에서 얼마나 떨어졌는지 %. 아래 백테스트 성과표의 &quot;거리&quot;와 같은 개념. 작을수록 추격 위험 작음.">ⓘ</span>', render: c => {
+      const d = c.liveDistanceFromBasePct;
+      if (d == null) return '-';
+      // 거리에 따라 색상 — 백테스트 운영 기준 (≤8 보수, ≤10 기본/정예, ≤12 공격)과 일치
+      let cls = 'color:#94a3b8;';
+      if (d <= 8) cls = 'color:#6ee7b7;font-weight:600;';
+      else if (d <= 10) cls = 'color:#5eead4;';
+      else if (d <= 12) cls = 'color:#c7d2fe;';
+      else cls = 'color:#fdba74;';
+      return '<span style="' + cls + '">' + fmtPct(d, true) + '</span>';
+    } },
+    { key: 'vprClosePosition', label: '종가 위치<span class="help" data-tip="다음날 종가가 당일 가격 범위에서 차지하는 위치 (100%=고가)">ⓘ</span>', render: c => c.vprClosePosition != null ? c.vprClosePosition + '%' : '-' },
     { key: 'currentReturnFromSignal', label: '신호가 대비%', render: c => fmtPct(c.currentReturnFromSignal, true) },
     { key: 'qvaSignalDate', label: 'QVA일', txt: true, render: c => fmtDate(c.qvaSignalDate) + ' <span class="muted">D+' + c.daysSinceQva + '</span>' },
     { key: 'vviDate', label: 'VVI일', txt: true, render: c => fmtDate(c.vviDate) },
@@ -1898,7 +1949,7 @@ const COLS_BY_STAGE = {
     { key: 'qvaSignalPrice', label: 'QVA 신호가', render: c => fmtNum(c.qvaSignalPrice) + '원' },
     { key: 'vviHigh', label: 'VVI 고가', render: c => fmtNum(c.vviHigh) + '원' },
     { key: 'vviClose', label: 'VVI 종가', render: c => fmtNum(c.vviClose) + '원' },
-    { key: 'breakoutEntryPrice1Pct', label: '내일 진입가 (×1.01)<span class="help" title="vviHigh × 1.01">ⓘ</span>', render: c => fmtNum(c.vviHigh * 1.01) + '원' },
+    { key: 'breakoutEntryPrice1Pct', label: '내일 진입가 (×1.01)<span class="help" data-tip="vviHigh × 1.01">ⓘ</span>', render: c => fmtNum(c.vviHigh * 1.01) + '원' },
     { key: 'currentReturnFromSignal', label: '신호가 대비%', render: c => fmtPct(c.currentReturnFromSignal, true) },
   ],
   QVA_TRACKING: [
@@ -2349,6 +2400,97 @@ function buildStageSection(stage) {
     footer.innerHTML =
       '⚠️ 현재가가 기준 진입가에서 많이 멀어진 경우에는 <strong>추격보다 눌림 확인</strong>이 필요합니다.';
     sec.appendChild(footer);
+
+    // ─── D+5 백테스트 조합별 성과표 (H그룹 리스트 바로 아래) ───
+    const btBox = document.createElement('div');
+    btBox.style.cssText = 'background:#0f172a;border:1px solid #334155;border-left:3px solid #94a3b8;border-radius:8px;padding:12px 16px;margin-bottom:14px;';
+    btBox.innerHTML =
+      '<p style="margin:0;color:#cbd5e1;font-size:13px;line-height:1.7;">' +
+        '📊 <strong style="color:#cbd5e1;">D+5 백테스트 기준</strong>, 가장 성과가 좋았던 조합은 ' +
+        '<span style="color:#a7f3d0;font-weight:600;">거리 ≤10% + VPR 고가권 유지 + 위꼬리 적음</span>이었고, ' +
+        '<strong>승률 59.38%, 매번 평균 +1.18%</strong>였습니다. ' +
+        '이 표는 <em>개별 종목의 매수 등급이 아니라, 과거 조건 조합별 성과 참고표</em>입니다.' +
+      '</p>' +
+      '<p style="margin:6px 0 0 0;color:#94a3b8;font-size:11px;line-height:1.6;">' +
+        '💡 <strong>거리</strong> = 매수 시점 가격이 기준 종가(VVI 돌파대기일 종가)에서 얼마나 떨어졌는지 %. ' +
+        'H그룹 표의 "거리" 컬럼과 같은 개념. 작을수록 추격 위험이 작습니다.' +
+      '</p>' +
+      '<details open style="margin-top:8px;">' +
+        '<summary style="cursor:pointer;color:#94a3b8;font-size:12px;">조합별 성과표 (클릭으로 접기)</summary>' +
+        '<div style="margin-top:10px;overflow-x:auto;">' +
+        '<table style="width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;">' +
+          '<thead><tr style="background:#1e293b;color:#94a3b8;">' +
+            '<th style="text-align:left;padding:8px 10px;border-bottom:1px solid #334155;font-weight:600;">조합명</th>' +
+            '<th style="text-align:left;padding:8px 10px;border-bottom:1px solid #334155;font-weight:600;">조건</th>' +
+            '<th style="text-align:right;padding:8px 10px;border-bottom:1px solid #334155;font-weight:600;">n</th>' +
+            '<th style="text-align:right;padding:8px 10px;border-bottom:1px solid #334155;font-weight:600;">승률</th>' +
+            '<th style="text-align:right;padding:8px 10px;border-bottom:1px solid #334155;font-weight:600;">매번 평균</th>' +
+            '<th style="text-align:right;padding:8px 10px;border-bottom:1px solid #334155;font-weight:600;">ΔWR</th>' +
+            '<th style="text-align:right;padding:8px 10px;border-bottom:1px solid #334155;font-weight:600;">ΔE</th>' +
+            '<th style="text-align:left;padding:8px 10px;border-bottom:1px solid #334155;font-weight:600;">해석</th>' +
+          '</tr></thead>' +
+          '<tbody style="color:#cbd5e1;">' +
+            '<tr style="background:rgba(99,102,241,0.10);">' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;font-weight:600;">전체 H그룹</td>' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;color:#94a3b8;">전체</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;">448</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;">49.11%</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;">+0.26%</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;color:#94a3b8;">—</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;color:#94a3b8;">—</td>' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;color:#94a3b8;">기준값</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;font-weight:600;">기본 조합</td>' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;color:#94a3b8;">거리 ≤10%</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;">334</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;">50.60%</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;">+0.40%</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;color:#cbd5e1;">+1.49</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;color:#cbd5e1;">+0.14</td>' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;color:#94a3b8;">가장 넓은 기본 필터</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;font-weight:600;">공격 조합</td>' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;color:#94a3b8;">거리 ≤12% + VPR 기준선 위 이상 + 거래대금 동반</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;">252</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;">51.98%</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;">+0.68%</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;color:#cbd5e1;">+2.87</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;color:#cbd5e1;">+0.42</td>' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;color:#94a3b8;">표본을 넓게 유지하면서 거래대금 동반을 보는 조합</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;font-weight:600;">보수 조합</td>' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;color:#94a3b8;">거리 ≤8% + 위꼬리 적음</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;">64</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;">59.38%</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;">+0.98%</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;color:#cbd5e1;">+10.27</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;color:#cbd5e1;">+0.72</td>' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;color:#94a3b8;">거리와 위꼬리를 엄격하게 본 조합</td>' +
+            '</tr>' +
+            '<tr style="background:rgba(110,231,183,0.06);">' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;font-weight:600;color:#a7f3d0;">최상위 조합</td>' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;color:#cbd5e1;">거리 ≤10% + VPR 고가권 유지 + 위꼬리 적음</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;">64</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;color:#a7f3d0;">59.38%</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;color:#a7f3d0;">+1.18%</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;color:#a7f3d0;">+10.27</td>' +
+              '<td style="padding:7px 10px;text-align:right;border-bottom:1px solid #334155;color:#a7f3d0;">+0.92</td>' +
+              '<td style="padding:7px 10px;border-bottom:1px solid #334155;color:#94a3b8;">검증상 가장 균형이 좋았던 조합</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>' +
+        '<p style="margin-top:8px;color:#94a3b8;font-size:11px;line-height:1.6;">' +
+          '이 보드는 H그룹 종목의 D+5 단기 반응을 보는 화면입니다. <strong>종목별 운영 태그는 붙이지 않고</strong>, ' +
+          '사용자가 VPR · 거리 · 위꼬리 · 거래대금 정보를 직접 확인해 판단할 수 있도록 구성합니다. ' +
+          '위 조합별 성과표는 과거 백테스트에서 어떤 조건 조합이 더 좋은 결과를 보였는지 참고하기 위한 자료입니다.<br>' +
+          '※ n이 50 이상인 조합은 의미 있는 통계로 보고, 그 미만은 참고용입니다. 보수 조합과 최상위 조합은 n=64로 경계선상.' +
+        '</p>' +
+        '</div>' +
+      '</details>';
+    sec.appendChild(btBox);
   } else if (stage === 'QVA_TRACKING') {
     const footer = document.createElement('div');
     footer.className = 'section-footer';

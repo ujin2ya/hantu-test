@@ -404,11 +404,12 @@ function main() {
     }
   }
 
-  // ─── 추천 운영안 ───
+  // ─── 추천 운영안 (시장 레짐 필터 제외 — 검증 결과 효과 없음) ───
+  // 사용자 spec(2026-05-06): 시장 점수 필터는 후보 제거에 사용하지 않음. 거리 + VPR 조합 중심.
   const PRESETS = [
-    { key: 'AGGR', label: '공격형', distMax: 12, regimeKey: 'EITHER60' },
-    { key: 'BAL', label: '균형형', distMax: 10, regimeKey: 'KQ60' },
-    { key: 'CONS', label: '보수형', distMax: 8, regimeKey: 'BOTH200' },
+    { key: 'AGGR', label: '공격형', distMax: 12, regimeKey: 'NONE' },
+    { key: 'BAL', label: '균형형', distMax: 10, regimeKey: 'NONE' },
+    { key: 'CONS', label: '보수형', distMax: 8, regimeKey: 'NONE' },
   ];
   const presetResults = {};
   for (const sc of SCENARIOS) {

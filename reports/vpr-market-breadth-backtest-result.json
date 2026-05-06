@@ -1,11 +1,12 @@
 {
   "meta": {
-    "generatedAt": "2026-05-06T07:25:29.822Z",
-    "title": "VPR 시장 레짐 비교 — KOSPI 단독 vs marketBreadthScore",
-    "purpose": "KOSPI 단독 필터는 대형주 영향이 크다. KOSDAQ + 시장 breadth + 쏠림 패널티 + H그룹 후보군 흐름을 종합한 marketBreadthScore가 H그룹/VPR 후보 매수 시 더 나은 필터인지 검증.",
+    "generatedAt": "2026-05-06T08:45:29.588Z",
+    "title": "VPR 시장 환경 참고값 (필터 아님) + 추천 운영안",
+    "purpose": "이번 검증에서는 KOSPI/KOSDAQ 단독 필터와 marketBreadthScore가 H그룹/VPR 성과를 개선하지 못했습니다. 특히 marketBreadthScore가 높은 구간에서는 후보가 많아지며 신호가 희석되고, 이미 가격이 멀어진 종목이 섞여 성과가 악화되었습니다. 따라서 시장 점수는 매수 가능/불가 필터가 아니라, 현재 후보가 시장 강세 속 일반 반응인지 약세장 속 역세 반응인지 이해하기 위한 참고값으로만 사용합니다.",
     "noFutureInfo": "모든 필터는 매수 시점(D+5)에 알 수 있는 정보만. 사후 정보 없음.",
     "buySource": "D+5 시가",
-    "holdPattern": "분할 청산 (50% +6 / 30% +12 / 20% +16, 손절 -5%, 본전 ratchet, 최대 10일)"
+    "holdPattern": "분할 청산 (50% +6 / 30% +12 / 20% +16, 손절 -5%, 본전 ratchet, 최대 10일)",
+    "operationalRule": "운영 본체 = entryDistancePct ≤ 10% (또는 8/12% 변형). 시장 점수 + KOSPI/KOSDAQ MA는 모두 참고용, 운영 필터로 사용 금지."
   },
   "config": {
     "entryDay": 5,
@@ -14,46 +15,46 @@
     "filters": [
       {
         "key": "NONE",
-        "label": "필터 없음"
+        "label": "필터 없음 (베이스)"
       },
       {
         "key": "KP200",
-        "label": "KOSPI 200일선 위"
+        "label": "[참고] KOSPI 200일선 위"
       },
       {
         "key": "KQ200",
-        "label": "KOSDAQ 200일선 위"
+        "label": "[참고] KOSDAQ 200일선 위"
       },
       {
         "key": "KQ60",
-        "label": "KOSDAQ 60일선 위"
+        "label": "[참고] KOSDAQ 60일선 위"
       },
       {
         "key": "BREADTH50",
-        "label": "상승종목 비율 ≥ 50%"
+        "label": "[참고] 상승종목 비율 ≥ 50%"
       },
       {
         "key": "SCORE55",
-        "label": "marketBreadthScore ≥ 55"
+        "label": "[참고] Score ≥ 55"
       },
       {
         "key": "SCORE75",
-        "label": "marketBreadthScore ≥ 75"
+        "label": "[참고] Score ≥ 75 (시장 강세, 후보 희석)"
       },
       {
-        "key": "SCORE55_D10",
-        "label": "Score ≥ 55 + 거리 ≤ 10%"
+        "key": "SCORE_LT35",
+        "label": "[참고] Score < 35 (역세 후보 구간)"
       },
       {
-        "key": "SCORE75_D10",
-        "label": "Score ≥ 75 + 거리 ≤ 10%"
+        "key": "D10",
+        "label": "✅ 운영 필터: 거리 ≤ 10%"
       }
     ],
     "grades": {
-      "STRONG_INDIVIDUAL": "개별주 장세 양호",
-      "NORMAL": "보통",
-      "SELECTIVE": "선별 필요",
-      "CAUTION": "신규 진입 주의"
+      "STRONG_DILUTION_RISK": "시장 강세 / 후보 희석 주의",
+      "NEUTRAL": "중립 장세",
+      "SELECTIVE": "선별 장세",
+      "CONTRARIAN": "약세장 속 역세 후보 구간"
     },
     "scoreFormula": {
       "plus": [
@@ -94,7 +95,7 @@
   "summary": [
     {
       "key": "NONE",
-      "label": "필터 없음",
+      "label": "필터 없음 (베이스)",
       "n": 448,
       "winRate": 49.11,
       "avgReturn": 0.26,
@@ -111,7 +112,7 @@
     },
     {
       "key": "KP200",
-      "label": "KOSPI 200일선 위",
+      "label": "[참고] KOSPI 200일선 위",
       "n": 307,
       "winRate": 49.19,
       "avgReturn": 0.3,
@@ -128,7 +129,7 @@
     },
     {
       "key": "KQ200",
-      "label": "KOSDAQ 200일선 위",
+      "label": "[참고] KOSDAQ 200일선 위",
       "n": 235,
       "winRate": 47.66,
       "avgReturn": 0.11,
@@ -145,7 +146,7 @@
     },
     {
       "key": "KQ60",
-      "label": "KOSDAQ 60일선 위",
+      "label": "[참고] KOSDAQ 60일선 위",
       "n": 318,
       "winRate": 47.8,
       "avgReturn": 0.14,
@@ -162,7 +163,7 @@
     },
     {
       "key": "BREADTH50",
-      "label": "상승종목 비율 ≥ 50%",
+      "label": "[참고] 상승종목 비율 ≥ 50%",
       "n": 149,
       "winRate": 45.64,
       "avgReturn": -0.23,
@@ -179,7 +180,7 @@
     },
     {
       "key": "SCORE55",
-      "label": "marketBreadthScore ≥ 55",
+      "label": "[참고] Score ≥ 55",
       "n": 214,
       "winRate": 45.79,
       "avgReturn": 0.04,
@@ -196,7 +197,7 @@
     },
     {
       "key": "SCORE75",
-      "label": "marketBreadthScore ≥ 75",
+      "label": "[참고] Score ≥ 75 (시장 강세, 후보 희석)",
       "n": 102,
       "winRate": 42.16,
       "avgReturn": -0.54,
@@ -212,44 +213,44 @@
       "deltaExpectancy": -0.8
     },
     {
-      "key": "SCORE55_D10",
-      "label": "Score ≥ 55 + 거리 ≤ 10%",
-      "n": 152,
-      "winRate": 48.68,
-      "avgReturn": 0.3,
-      "avgWin": 6,
-      "avgLoss": -5.1,
-      "expectancy": 0.3,
-      "slRate": 50,
-      "tpRate": 16.45,
-      "avgMFE": 7.25,
-      "avgMAE": -4.83,
-      "removed": 296,
-      "deltaWinRate": -0.43,
-      "deltaExpectancy": 0.04
+      "key": "SCORE_LT35",
+      "label": "[참고] Score < 35 (역세 후보 구간)",
+      "n": 140,
+      "winRate": 52.14,
+      "avgReturn": 0.7,
+      "avgWin": 5.96,
+      "avgLoss": -5.03,
+      "expectancy": 0.7,
+      "slRate": 47.86,
+      "tpRate": 10.71,
+      "avgMFE": 7.47,
+      "avgMAE": -5.08,
+      "removed": 308,
+      "deltaWinRate": 3.03,
+      "deltaExpectancy": 0.44
     },
     {
-      "key": "SCORE75_D10",
-      "label": "Score ≥ 75 + 거리 ≤ 10%",
-      "n": 69,
-      "winRate": 47.83,
-      "avgReturn": -0.01,
-      "avgWin": 5.86,
-      "avgLoss": -5.4,
-      "expectancy": -0.01,
-      "slRate": 52.17,
-      "tpRate": 14.49,
-      "avgMFE": 6.8,
-      "avgMAE": -5.2,
-      "removed": 379,
-      "deltaWinRate": -1.28,
-      "deltaExpectancy": -0.27
+      "key": "D10",
+      "label": "✅ 운영 필터: 거리 ≤ 10%",
+      "n": 334,
+      "winRate": 50.6,
+      "avgReturn": 0.4,
+      "avgWin": 5.75,
+      "avgLoss": -5.08,
+      "expectancy": 0.4,
+      "slRate": 48.8,
+      "tpRate": 13.47,
+      "avgMFE": 7.2,
+      "avgMAE": -4.72,
+      "removed": 114,
+      "deltaWinRate": 1.49,
+      "deltaExpectancy": 0.14
     }
   ],
   "byGrade": [
     {
-      "grade": "STRONG_INDIVIDUAL",
-      "label": "개별주 장세 양호",
+      "grade": "STRONG_DILUTION_RISK",
+      "label": "시장 강세 / 후보 희석 주의",
       "n": 102,
       "winRate": 42.16,
       "avgReturn": -0.54,
@@ -265,8 +266,8 @@
       "deltaExpectancy": -0.8
     },
     {
-      "grade": "NORMAL",
-      "label": "보통",
+      "grade": "NEUTRAL",
+      "label": "중립 장세",
       "n": 112,
       "winRate": 49.11,
       "avgReturn": 0.57,
@@ -283,7 +284,7 @@
     },
     {
       "grade": "SELECTIVE",
-      "label": "선별 필요",
+      "label": "선별 장세",
       "n": 94,
       "winRate": 52.13,
       "avgReturn": 0.09,
@@ -299,8 +300,8 @@
       "deltaExpectancy": -0.17
     },
     {
-      "grade": "CAUTION",
-      "label": "신규 진입 주의",
+      "grade": "CONTRARIAN",
+      "label": "약세장 속 역세 후보 구간",
       "n": 140,
       "winRate": 52.14,
       "avgReturn": 0.7,
@@ -554,6 +555,80 @@
     "55~74": 112,
     "75~100": 102
   },
+  "presetResults": [
+    {
+      "key": "BASIC",
+      "label": "기본형",
+      "description": "H그룹 + 진입가 거리 ≤ 10% + 분할청산. 가장 단순한 운영안.",
+      "n": 334,
+      "winRate": 50.6,
+      "avgReturn": 0.4,
+      "avgWin": 5.75,
+      "avgLoss": -5.08,
+      "expectancy": 0.4,
+      "slRate": 48.8,
+      "tpRate": 13.47,
+      "avgMFE": 7.2,
+      "avgMAE": -4.72,
+      "removed": 114,
+      "deltaWinRate": 1.49,
+      "deltaExpectancy": 0.14
+    },
+    {
+      "key": "PRECISE",
+      "label": "정예형",
+      "description": "H그룹 + 거리 ≤ 10% + VPR 고가권 유지 + 위꼬리 적음 + 분할청산. 가장 안정적인 조합.",
+      "n": 64,
+      "winRate": 59.38,
+      "avgReturn": 1.18,
+      "avgWin": 5.42,
+      "avgLoss": -5,
+      "expectancy": 1.18,
+      "slRate": 40.63,
+      "tpRate": 15.63,
+      "avgMFE": 7.41,
+      "avgMAE": -4.14,
+      "removed": 384,
+      "deltaWinRate": 10.27,
+      "deltaExpectancy": 0.92
+    },
+    {
+      "key": "AGGRESSIVE",
+      "label": "공격형",
+      "description": "H그룹 + 거리 ≤ 12% + VPR 기준선 위 마감 이상 + 거래대금 동반 + 분할청산. 표본 충분, 통계 양호.",
+      "n": 252,
+      "winRate": 51.98,
+      "avgReturn": 0.68,
+      "avgWin": 5.95,
+      "avgLoss": -5.02,
+      "expectancy": 0.68,
+      "slRate": 47.22,
+      "tpRate": 14.68,
+      "avgMFE": 7.55,
+      "avgMAE": -4.59,
+      "removed": 196,
+      "deltaWinRate": 2.87,
+      "deltaExpectancy": 0.42
+    },
+    {
+      "key": "CONSERVATIVE",
+      "label": "보수형",
+      "description": "H그룹 + 거리 ≤ 8% + 위꼬리 적음 + 분할청산. 표본 적지만 안정성 우선.",
+      "n": 64,
+      "winRate": 59.38,
+      "avgReturn": 0.98,
+      "avgWin": 5.29,
+      "avgLoss": -5.31,
+      "expectancy": 0.98,
+      "slRate": 40.63,
+      "tpRate": 15.63,
+      "avgMFE": 7.32,
+      "avgMAE": -4.55,
+      "removed": 384,
+      "deltaWinRate": 10.27,
+      "deltaExpectancy": 0.72
+    }
+  ],
   "trades": [
     {
       "code": "382840",
@@ -584,7 +659,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 1.62,
       "breadthScore": 60,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 60% (+20)",
@@ -606,7 +681,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 3.25,
       "breadthScore": 60,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 60% (+20)",
@@ -628,7 +703,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 9.08,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)",
@@ -649,7 +724,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 10.23,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)",
@@ -670,7 +745,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -4.36,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)",
@@ -691,7 +766,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -14.55,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -711,7 +786,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": -5.33,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -731,7 +806,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -25,
       "breadthScore": 60,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 74% (+20)",
@@ -753,7 +828,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -11.4,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "상승비율 52% (+20)",
         "상승 > 하락 (+15)",
@@ -775,7 +850,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -0.3,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI 강 / KOSDAQ 약 디버전스 (-15)"
@@ -816,7 +891,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -3.59,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -836,7 +911,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 0.06,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -856,7 +931,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 2.64,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -876,7 +951,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 5.85,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -896,7 +971,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 1.55,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)",
@@ -917,7 +992,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 5.42,
       "breadthScore": 60,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 61% (+20)",
@@ -939,7 +1014,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -1.65,
       "breadthScore": 60,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 61% (+20)",
@@ -961,7 +1036,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 5.85,
       "breadthScore": 55,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승 > 하락 (+15)",
@@ -983,7 +1058,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 6.16,
       "breadthScore": 55,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승 > 하락 (+15)",
@@ -1005,7 +1080,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -6.54,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -1025,7 +1100,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 0.81,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -1045,7 +1120,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -8.74,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -1065,7 +1140,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -4.2,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -1085,7 +1160,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 0.74,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -1105,7 +1180,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -1.81,
       "breadthScore": 60,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 51% (+20)",
@@ -1127,7 +1202,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 19.24,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -1147,7 +1222,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 9.57,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -1167,7 +1242,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 4.28,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -1208,7 +1283,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 9.76,
       "breadthScore": 75,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 59% (+20)",
@@ -1273,7 +1348,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 8.19,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +3.61% (+15)"
       ],
@@ -1292,7 +1367,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 5.4,
       "breadthScore": 75,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 52% (+20)",
@@ -1357,7 +1432,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 31,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "H그룹 최근 +3.79% (+15)",
@@ -1379,7 +1454,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 22.37,
       "breadthScore": 75,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 78% (+20)",
@@ -1402,7 +1477,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -5.32,
       "breadthScore": 75,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 78% (+20)",
@@ -1425,7 +1500,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 8.02,
       "breadthScore": 75,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 73% (+20)",
@@ -1448,7 +1523,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -0.47,
       "breadthScore": 75,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 56% (+20)",
@@ -1511,7 +1586,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 2.44,
       "breadthScore": 75,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 69% (+20)",
@@ -1574,7 +1649,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 105.87,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +11.59% (+15)"
       ],
@@ -1593,7 +1668,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 11.41,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +11.59% (+15)"
       ],
@@ -1612,7 +1687,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -3.4,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +9.93% (+15)"
       ],
@@ -1671,7 +1746,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": -5.24,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +2.91% (+15)"
       ],
@@ -1690,7 +1765,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -3.52,
       "breadthScore": 70,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 57% (+20)",
@@ -1712,7 +1787,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 20.52,
       "breadthScore": 55,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 58% (+20)",
@@ -1733,7 +1808,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 2.33,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI 강 / KOSDAQ 약 디버전스 (-15)"
@@ -1753,7 +1828,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -6.85,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": null,
       "kosdaqAbove60": false,
@@ -1770,7 +1845,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -9.09,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": null,
       "kosdaqAbove60": false,
@@ -1787,7 +1862,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -10.3,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": null,
       "kosdaqAbove60": false,
@@ -1804,7 +1879,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 0.36,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": null,
       "kosdaqAbove60": false,
@@ -1821,7 +1896,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 0.86,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": null,
       "kosdaqAbove60": false,
@@ -1838,7 +1913,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 0.69,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "상승비율 79% (+20)",
         "상승 > 하락 (+15)",
@@ -1860,7 +1935,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 7.53,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": false,
       "kosdaqAbove60": false,
@@ -1877,7 +1952,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 7.37,
       "breadthScore": 10,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +0.21% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -1899,7 +1974,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 4.83,
       "breadthScore": 10,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +0.21% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -1921,7 +1996,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 10.46,
       "breadthScore": 10,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +2.78% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -1943,7 +2018,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 15.1,
       "breadthScore": 10,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +2.78% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -1965,7 +2040,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 11.1,
       "breadthScore": 20,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "상승 > 하락 (+15)",
         "H그룹 최근 +2.69% (+15)",
@@ -1987,7 +2062,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 8.24,
       "breadthScore": 20,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "상승 > 하락 (+15)",
         "H그룹 최근 +2.69% (+15)",
@@ -2009,7 +2084,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -1.81,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +3.12% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -2032,7 +2107,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 0.42,
       "breadthScore": 10,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +2.14% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -2075,7 +2150,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -1.51,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI 강 / KOSDAQ 약 디버전스 (-15)"
@@ -2095,7 +2170,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -3.88,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI 강 / KOSDAQ 약 디버전스 (-15)"
@@ -2115,7 +2190,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -2.1,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "상승비율 59% (+20)",
         "상승 > 하락 (+15)",
@@ -2137,7 +2212,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 0.8,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "상승비율 59% (+20)",
         "상승 > 하락 (+15)",
@@ -2159,7 +2234,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -1.7,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "상승비율 59% (+20)",
         "상승 > 하락 (+15)",
@@ -2181,7 +2256,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -2.35,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI 강 / KOSDAQ 약 디버전스 (-15)"
@@ -2201,7 +2276,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 0.38,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI 강 / KOSDAQ 약 디버전스 (-15)"
@@ -2221,7 +2296,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 4.23,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 64% (+20)",
@@ -2244,7 +2319,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 3.08,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 54% (+20)",
@@ -2267,7 +2342,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 9.28,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 54% (+20)",
@@ -2290,7 +2365,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -5.18,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 50% (+20)",
@@ -2313,7 +2388,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 4.62,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 50% (+20)",
@@ -2336,7 +2411,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 9.97,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 50% (+20)",
@@ -2359,7 +2434,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 30.67,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 56% (+20)",
@@ -2404,7 +2479,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 10.26,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -2428,7 +2503,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 4.65,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -2453,7 +2528,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 1.72,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -2478,7 +2553,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 0.13,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -2503,7 +2578,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 13.13,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -2526,7 +2601,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 2.64,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -2549,7 +2624,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 2.64,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -2573,7 +2648,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 0.55,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -2597,7 +2672,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 13.59,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -2622,7 +2697,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 20.22,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -2647,7 +2722,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -1.6,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -2670,7 +2745,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -5.63,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -2693,7 +2768,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 5.74,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -2737,7 +2812,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 20.37,
       "breadthScore": 55,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 56% (+20)",
@@ -2758,7 +2833,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 46.71,
       "breadthScore": 55,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 60% (+20)",
@@ -2779,7 +2854,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -0.47,
       "breadthScore": 55,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 59% (+20)",
@@ -2800,7 +2875,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 0.66,
       "breadthScore": 55,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 59% (+20)",
@@ -2821,7 +2896,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -2.23,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KP 일간 ≫ KQ 일간 (-10)"
       ],
@@ -2840,7 +2915,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -6.57,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KP 일간 ≫ KQ 일간 (-10)"
       ],
@@ -2859,7 +2934,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -2.6,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KP 일간 ≫ KQ 일간 (-10)"
       ],
@@ -2878,7 +2953,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -4.88,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KP 일간 ≫ KQ 일간 (-10)"
       ],
@@ -2897,7 +2972,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 1.54,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI > 200일선 (+5)",
@@ -2918,7 +2993,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 19.27,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI > 200일선 (+5)",
@@ -3035,7 +3110,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 20.67,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 69% (+20)",
@@ -3059,7 +3134,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 4.46,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 69% (+20)",
@@ -3083,7 +3158,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 2.71,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 69% (+20)",
@@ -3107,7 +3182,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 14.36,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 69% (+20)",
@@ -3131,7 +3206,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 20.83,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 69% (+20)",
@@ -3155,7 +3230,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 2.57,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 69% (+20)",
@@ -3179,7 +3254,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 11.91,
       "breadthScore": 90,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3205,7 +3280,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -5.61,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3228,7 +3303,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -0.12,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3251,7 +3326,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 1.37,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3276,7 +3351,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -4.73,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3299,7 +3374,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -3.61,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3322,7 +3397,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 11.61,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3345,7 +3420,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 5.96,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3368,7 +3443,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 3.97,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3391,7 +3466,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 28,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3414,7 +3489,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 5.98,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3459,7 +3534,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -6.74,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3527,7 +3602,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 9.79,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3551,7 +3626,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 1.84,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3576,7 +3651,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 36.53,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3599,7 +3674,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 9.97,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3622,7 +3697,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 2.38,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3645,7 +3720,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 2.61,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3670,7 +3745,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 20.43,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3693,7 +3768,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 2.69,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 200일선 (+20)",
         "H그룹 최근 +4.79% (+15)",
@@ -3716,7 +3791,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": -1.43,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 200일선 (+20)",
         "H그룹 최근 +4.79% (+15)",
@@ -3739,7 +3814,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -2.79,
       "breadthScore": 10,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +3.62% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -3761,7 +3836,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 18.21,
       "breadthScore": 10,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +5.75% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -3783,7 +3858,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 50.65,
       "breadthScore": 10,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +5.75% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -3805,7 +3880,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -1.17,
       "breadthScore": 10,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +5.75% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -3827,7 +3902,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 8.86,
       "breadthScore": 20,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +5.08% (+15)",
         "KOSPI > 200일선 (+5)"
@@ -3847,7 +3922,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 11.25,
       "breadthScore": 5,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 200일선 (+5)"
       ],
@@ -3866,7 +3941,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 1.94,
       "breadthScore": 5,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 200일선 (+5)"
       ],
@@ -3906,7 +3981,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -1.35,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -3930,7 +4005,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 9.81,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 200일선 (+20)",
         "H그룹 최근 +1.34% (+15)",
@@ -3953,7 +4028,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 12.29,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 200일선 (+20)",
         "H그룹 최근 +1.34% (+15)",
@@ -4024,7 +4099,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 21.16,
       "breadthScore": 10,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +2.18% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -4046,7 +4121,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 3.44,
       "breadthScore": 10,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +2.59% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -4068,7 +4143,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 2.06,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +2.66% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -4091,7 +4166,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -7.69,
       "breadthScore": 20,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +3.48% (+15)",
         "KOSPI > 200일선 (+5)"
@@ -4111,7 +4186,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 23.35,
       "breadthScore": 20,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +3.48% (+15)",
         "KOSPI > 200일선 (+5)"
@@ -4173,7 +4248,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 5.76,
       "breadthScore": 55,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "상승비율 65% (+20)",
         "상승 > 하락 (+15)",
@@ -4195,7 +4270,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -4.05,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +2.33% (+15)",
         "KOSPI > 200일선 (+5)",
@@ -4216,7 +4291,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -6.81,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +2.33% (+15)",
         "KOSPI > 200일선 (+5)",
@@ -4237,7 +4312,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 0.53,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 200일선 (+20)",
         "H그룹 최근 +3.00% (+15)",
@@ -4260,7 +4335,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -0.11,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -4283,7 +4358,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 4.08,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -4306,7 +4381,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -4.62,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -4329,7 +4404,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -3.07,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -4352,7 +4427,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 0.8,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -4375,7 +4450,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -1.33,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 200일선 (+20)",
         "H그룹 최근 +0.80% (+15)",
@@ -4398,7 +4473,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -3.24,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 200일선 (+20)",
         "H그룹 최근 +0.09% (+15)",
@@ -4421,7 +4496,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -0.15,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI > 200일선 (+5)",
@@ -4442,7 +4517,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -8.88,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI > 200일선 (+5)",
@@ -4463,7 +4538,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -3.91,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI > 200일선 (+5)",
@@ -4484,7 +4559,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 10.37,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI > 200일선 (+5)",
@@ -4505,7 +4580,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -0.39,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -4552,7 +4627,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 0.95,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI > 200일선 (+5)",
@@ -4573,7 +4648,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -1.88,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI > 200일선 (+5)",
@@ -4594,7 +4669,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 2.03,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI > 200일선 (+5)",
@@ -4615,7 +4690,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 0,
       "breadthScore": 5,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 200일선 (+5)"
       ],
@@ -4634,7 +4709,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 36.44,
       "breadthScore": 55,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "상승비율 55% (+20)",
         "상승 > 하락 (+15)",
@@ -4704,7 +4779,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -4.11,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KP 일간 ≫ KQ 일간 (-10)"
       ],
@@ -4723,7 +4798,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -7.2,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KP 일간 ≫ KQ 일간 (-10)"
       ],
@@ -4742,7 +4817,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -7.24,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KP 일간 ≫ KQ 일간 (-10)"
       ],
@@ -4761,7 +4836,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -8.07,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": false,
       "kosdaqAbove60": false,
@@ -4862,7 +4937,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 5.63,
       "breadthScore": 5,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 200일선 (+5)"
       ],
@@ -4881,7 +4956,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 3.9,
       "breadthScore": 5,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 200일선 (+5)"
       ],
@@ -4900,7 +4975,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 4.17,
       "breadthScore": 5,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 200일선 (+5)"
       ],
@@ -4919,7 +4994,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 10.23,
       "breadthScore": 55,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "상승비율 66% (+20)",
         "상승 > 하락 (+15)",
@@ -4941,7 +5016,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 0.83,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +0.55% (+15)"
       ],
@@ -4960,7 +5035,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -4.86,
       "breadthScore": 20,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)"
       ],
@@ -4979,7 +5054,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 2.77,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": false,
       "kosdaqAbove60": false,
@@ -4996,7 +5071,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -2.47,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "상승 > 하락 (+15)"
       ],
@@ -5015,7 +5090,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 4.95,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KP 일간 ≫ KQ 일간 (-10)"
       ],
@@ -5074,7 +5149,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -7.58,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": false,
       "kosdaqAbove60": false,
@@ -5091,7 +5166,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -9.32,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": false,
       "kosdaqAbove60": false,
@@ -5108,7 +5183,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -2.29,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": false,
       "kosdaqAbove60": false,
@@ -5125,7 +5200,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 0.74,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": false,
       "kosdaqAbove60": false,
@@ -5142,7 +5217,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 2.29,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": false,
       "kosdaqAbove60": false,
@@ -5159,7 +5234,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 6.8,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +1.40% (+15)"
       ],
@@ -5178,7 +5253,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 42.41,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +1.40% (+15)"
       ],
@@ -5218,7 +5293,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 7.66,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +2.70% (+15)"
       ],
@@ -5237,7 +5312,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -7.06,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "상승 > 하락 (+15)",
         "H그룹 최근 +1.42% (+15)"
@@ -5257,7 +5332,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 4.3,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "상승 > 하락 (+15)",
         "H그룹 최근 +1.42% (+15)"
@@ -5277,7 +5352,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 17.98,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "상승 > 하락 (+15)",
         "H그룹 최근 +2.77% (+15)"
@@ -5297,7 +5372,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 8.38,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "상승 > 하락 (+15)",
         "H그룹 최근 +2.77% (+15)"
@@ -5317,7 +5392,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -2.77,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +3.06% (+15)"
       ],
@@ -5336,7 +5411,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -1.64,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KP 일간 ≫ KQ 일간 (-10)"
       ],
@@ -5415,7 +5490,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 0.13,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": false,
       "kosdaqAbove60": false,
@@ -5432,7 +5507,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -0.83,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": false,
       "kosdaqAbove60": false,
@@ -5449,7 +5524,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -1.18,
       "breadthScore": 20,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)"
       ],
@@ -5468,7 +5543,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 8.36,
       "breadthScore": 20,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)"
       ],
@@ -5487,7 +5562,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 4.93,
       "breadthScore": 60,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 65% (+20)",
@@ -5509,7 +5584,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -2.18,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -5529,7 +5604,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -5.18,
       "breadthScore": 60,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 54% (+20)",
@@ -5551,7 +5626,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -4.19,
       "breadthScore": 60,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 54% (+20)",
@@ -5573,7 +5648,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 2.03,
       "breadthScore": 60,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 54% (+20)",
@@ -5595,7 +5670,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 0.18,
       "breadthScore": 60,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 54% (+20)",
@@ -5617,7 +5692,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 0.89,
       "breadthScore": 20,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)"
       ],
@@ -5636,7 +5711,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -5.62,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -5656,7 +5731,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -2,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -5676,7 +5751,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 3.53,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -5696,7 +5771,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 25.01,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -5716,7 +5791,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 2.09,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -5799,7 +5874,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 22.34,
       "breadthScore": 60,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 64% (+20)",
@@ -5821,7 +5896,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 9.68,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -5845,7 +5920,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 7.96,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)",
@@ -5866,7 +5941,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -6.52,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)",
@@ -6019,7 +6094,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 3.33,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -6039,7 +6114,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -8.23,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -6059,7 +6134,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -8.33,
       "breadthScore": 25,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSPI > 60일선 (+5)"
@@ -6079,7 +6154,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -4.02,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI 강 / KOSDAQ 약 디버전스 (-15)"
@@ -6099,7 +6174,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -0.62,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": false,
       "kosdaqAbove60": false,
@@ -6136,7 +6211,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 2.45,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": false,
       "kosdaqAbove60": false,
@@ -6153,7 +6228,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 9.71,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [],
       "kospiAbove200": false,
       "kosdaqAbove60": false,
@@ -6170,7 +6245,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 0.92,
       "breadthScore": 5,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +2.31% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -6191,7 +6266,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 9.46,
       "breadthScore": 10,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +1.69% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -6213,7 +6288,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 10.3,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 65% (+20)",
@@ -6237,7 +6312,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 2.7,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 65% (+20)",
@@ -6261,7 +6336,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 16.85,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6306,7 +6381,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 2.5,
       "breadthScore": 10,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +0.76% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -6328,7 +6403,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 11.58,
       "breadthScore": 10,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "H그룹 최근 +0.76% (+15)",
         "KOSPI > 60일선 (+5)",
@@ -6374,7 +6449,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 8.76,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "상승비율 56% (+20)",
@@ -6397,7 +6472,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 10.03,
       "breadthScore": 0,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSPI > 60일선 (+5)",
         "KOSPI > 200일선 (+5)",
@@ -6418,7 +6493,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 3.18,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6442,7 +6517,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -10.12,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6466,7 +6541,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 0.35,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6534,7 +6609,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 7.49,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6558,7 +6633,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 2.68,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6626,7 +6701,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 11.56,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6650,7 +6725,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -10.77,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6674,7 +6749,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 7.63,
       "breadthScore": 55,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6698,7 +6773,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 8.49,
       "breadthScore": 55,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6722,7 +6797,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 15.8,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6747,7 +6822,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -1.42,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6770,7 +6845,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 16.99,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6793,7 +6868,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 1.43,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6816,7 +6891,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -0.69,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6839,7 +6914,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 3.44,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6862,7 +6937,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 1.45,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6887,7 +6962,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 2.13,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6956,7 +7031,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -4.19,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -6980,7 +7055,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -5.33,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7004,7 +7079,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -6.75,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7028,7 +7103,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 5.08,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7052,7 +7127,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 3.91,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7120,7 +7195,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 5.94,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7165,7 +7240,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 9.94,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7188,7 +7263,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -0.22,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7211,7 +7286,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 15.75,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7234,7 +7309,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 3.98,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7257,7 +7332,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -0.39,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7280,7 +7355,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 6.07,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7304,7 +7379,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -9.08,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7329,7 +7404,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -1.11,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7353,7 +7428,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": -17.22,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7443,7 +7518,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -2.73,
       "breadthScore": 15,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 200일선 (+20)",
         "KOSPI > 60일선 (+5)",
@@ -7489,7 +7564,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 5.41,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7513,7 +7588,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -4.07,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7537,7 +7612,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 14.68,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7562,7 +7637,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 11.11,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7587,7 +7662,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -1.33,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7610,7 +7685,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 27.91,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7635,7 +7710,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 2.73,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7660,7 +7735,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 31.29,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7683,7 +7758,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 27.45,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7706,7 +7781,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 12.52,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7729,7 +7804,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -0.67,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7754,7 +7829,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 7.47,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7777,7 +7852,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 29.39,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7800,7 +7875,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -0.44,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7823,7 +7898,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -1.48,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7846,7 +7921,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 18.97,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7869,7 +7944,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 13.88,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7892,7 +7967,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -4.59,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7915,7 +7990,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 5.87,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7938,7 +8013,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 12.33,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7961,7 +8036,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -0.98,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -7984,7 +8059,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 7.35,
       "breadthScore": 90,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8059,7 +8134,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 23.84,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8082,7 +8157,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 1.24,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8105,7 +8180,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 18.13,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8128,7 +8203,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 7.16,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8271,7 +8346,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -0.55,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8319,7 +8394,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 0.55,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8342,7 +8417,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 16.62,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8413,7 +8488,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 4.25,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8436,7 +8511,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 0.19,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8459,7 +8534,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 4.27,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8484,7 +8559,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 8.19,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8507,7 +8582,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -2.09,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8531,7 +8606,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": -2.98,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8555,7 +8630,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 0.8,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8601,7 +8676,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 12.8,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8671,7 +8746,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 5.47,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8695,7 +8770,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 4.17,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8785,7 +8860,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 16.55,
       "breadthScore": 75,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8810,7 +8885,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 32.37,
       "breadthScore": 75,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8857,7 +8932,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -5.83,
       "breadthScore": 30,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8946,7 +9021,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -9.09,
       "breadthScore": 20,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8970,7 +9045,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 45.06,
       "breadthScore": 20,
-      "breadthGrade": "CAUTION",
+      "breadthGrade": "CONTRARIAN",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -8994,7 +9069,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 5.94,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9019,7 +9094,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 20.12,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9043,7 +9118,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -9.21,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9067,7 +9142,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 12.3,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9135,7 +9210,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 2.8,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9182,7 +9257,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 0.17,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9206,7 +9281,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 3.28,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9230,7 +9305,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 6.93,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9254,7 +9329,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 4.23,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9278,7 +9353,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 17.85,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9301,7 +9376,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 22.51,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9326,7 +9401,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 35.73,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9351,7 +9426,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 9.55,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9374,7 +9449,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 21.42,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9397,7 +9472,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 5.86,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9420,7 +9495,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -0.17,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9443,7 +9518,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 1.5,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9466,7 +9541,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -10.43,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9489,7 +9564,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 1.61,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9512,7 +9587,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 16.24,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9535,7 +9610,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 1.69,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9558,7 +9633,7 @@
       "vprMainLabel": "과열 돌파",
       "entryDistancePct": 79.49,
       "breadthScore": 90,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9584,7 +9659,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 29.48,
       "breadthScore": 90,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9610,7 +9685,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 30.07,
       "breadthScore": 90,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9636,7 +9711,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 4.73,
       "breadthScore": 90,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9662,7 +9737,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 3.33,
       "breadthScore": 90,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9688,7 +9763,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -1.07,
       "breadthScore": 90,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9714,7 +9789,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 6.94,
       "breadthScore": 90,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9740,7 +9815,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 15.13,
       "breadthScore": 90,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9766,7 +9841,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 18.79,
       "breadthScore": 90,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9792,7 +9867,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 9.54,
       "breadthScore": 90,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9818,7 +9893,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 5.74,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9843,7 +9918,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 26.68,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9868,7 +9943,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -3.05,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9893,7 +9968,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -4.63,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9918,7 +9993,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 9.8,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9943,7 +10018,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 8.4,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9966,7 +10041,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 39.89,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -9989,7 +10064,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -0.62,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10012,7 +10087,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 3.42,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10035,7 +10110,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 5.17,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10058,7 +10133,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 3.31,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10081,7 +10156,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 14.29,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10105,7 +10180,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 6.26,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10129,7 +10204,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 25.11,
       "breadthScore": 90,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10155,7 +10230,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 16.69,
       "breadthScore": 90,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10181,7 +10256,7 @@
       "vprMainLabel": "기준 종가 위 유지",
       "entryDistancePct": 8.3,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10204,7 +10279,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -1.98,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10304,7 +10379,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 76.9,
       "breadthScore": 100,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10329,7 +10404,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": 18.71,
       "breadthScore": 80,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10378,7 +10453,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -2.42,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10401,7 +10476,7 @@
       "vprMainLabel": "기준선 위 마감",
       "entryDistancePct": -8.77,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10424,7 +10499,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -14.51,
       "breadthScore": 65,
-      "breadthGrade": "NORMAL",
+      "breadthGrade": "NEUTRAL",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10447,7 +10522,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": 28.94,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
@@ -10493,7 +10568,7 @@
       "vprMainLabel": "고가권 유지",
       "entryDistancePct": -3.66,
       "breadthScore": 85,
-      "breadthGrade": "STRONG_INDIVIDUAL",
+      "breadthGrade": "STRONG_DILUTION_RISK",
       "breadthFactors": [
         "KOSDAQ > 60일선 (+20)",
         "KOSDAQ > 200일선 (+20)",
