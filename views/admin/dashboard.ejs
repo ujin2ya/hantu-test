@@ -274,15 +274,17 @@
       if (!confirm(msg)) return;
 
       try {
-        const resp = await fetch('/admin/run-daily-update', { method: 'POST' });
-        if (resp.ok) {
-          // 서버 상태 업데이트 대기 후 페이지 새로고침 (300ms)
-          setTimeout(() => {
-            location.reload();
-          }, 300);
-        } else {
+        const resp = await fetch('/admin/run-daily-update', { method: 'POST', credentials: 'same-origin' });
+        if (!resp.ok) {
+          if (resp.status === 401 || resp.redirected) {
+            alert('인증이 만료됐습니다. 페이지를 새로고침해서 다시 로그인하세요.');
+            return;
+          }
           alert('요청 실패: ' + resp.status);
+          return;
         }
+        // 서버 상태 업데이트 대기 후 페이지 새로고침 (300ms)
+        setTimeout(() => { location.reload(); }, 300);
       } catch (e) {
         alert('오류: ' + e.message);
       }
@@ -294,7 +296,11 @@
         '※ cache 데이터가 새로 sync된 뒤 보드 화면이 안 바뀔 때 사용하세요.';
       if (!confirm(msg)) return;
       try {
-        const resp = await fetch('/admin/refresh-watchlist-board', { method: 'POST' });
+        const resp = await fetch('/admin/refresh-watchlist-board', { method: 'POST', credentials: 'same-origin' });
+        if (!resp.ok || resp.redirected) {
+          alert('인증이 만료됐거나 요청 실패. 페이지를 새로고침해서 다시 로그인하세요.\nstatus=' + resp.status);
+          return;
+        }
         const data = await resp.json();
         if (data.success) {
           alert('보드 갱신 시작됨. ~10초 후 /qva-watchlist 새로고침해서 확인하세요.');

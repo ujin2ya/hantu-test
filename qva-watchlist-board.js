@@ -992,7 +992,7 @@ const stageDescriptions = {
 // 헤더에 VPR 정의 + 7개 라벨 펼침 도움말이 이미 있으므로, 섹션은 백테스트 요약 1줄만.
 const stageBacktestNotes = {
   BREAKOUT_SUCCESS: {
-    summary: 'H그룹은 VVI 돌파대기일 종가 × 1.01(=기준선)을 다음 거래일 고가가 돌파한 종목군입니다. 아래 종목들의 VPR은 그 돌파 이후 반응을 분류한 해석 라벨일 뿐, 성공/실패 판정도 아니고 매수 추천도 아닙니다. ↑ 화면 상단 도움말에 VPR 메인 5종 + 보조 10종 태그 의미 설명이 있습니다.',
+    summary: '⚠️ <strong>먼저 "돌파일(기준일)" 컬럼을 꼭 확인하세요.</strong> H그룹은 돌파일 후 <strong>최대 5거래일(D+0~D+5)간 계속 노출</strong>되므로 어제 돌파한 종목과 5일 전 돌파한 종목이 같이 표시됩니다. <strong>정렬 기준: 돌파일 최신순 → VPR 메인 태그 → 수익률.</strong> 오늘 종가가 하락했어도 5일 안이면 정상 관찰 구간이고, D+5가 지나면 자동으로 목록에서 빠집니다. VPR은 돌파 이후 반응 분류일 뿐 성공/실패 판정도, 매수 추천도 아닙니다.',
   },
 };
 
@@ -1085,12 +1085,17 @@ function sortStage(stage, items) {
         if (m === 'OVERHEATED_BREAKOUT') return 5;
         return 6;
       }
+      // 사용자 요청(2026-05-06): 기준일(돌파일) 최신순 우선 정렬.
+      // D+5 노출 윈도우 안에서 같은 종목이 5일간 계속 보이는데 새 돌파 종목이 위에 와야 인지 쉬움.
       arr.sort((a, b) => {
+        // 1차: 기준일(돌파일) 최신순 — 오늘 돌파한 게 맨 위
+        const da = a.breakoutDate || '00000000';
+        const db = b.breakoutDate || '00000000';
+        if (da !== db) return db.localeCompare(da);
+        // 2차: VPR 메인 태그 우선순위
         const ra = bsRank(a), rb = bsRank(b);
         if (ra !== rb) return ra - rb;
-        // 같은 그룹 내: 돌파 후 경과일 짧은 순 → 신호가 대비 수익률 높은 순
-        const da = a.daysFromBreakout ?? 0, db = b.daysFromBreakout ?? 0;
-        if (da !== db) return da - db;
+        // 3차: 신호가 대비 수익률
         return (b.currentReturnFromSignal ?? -Infinity) - (a.currentReturnFromSignal ?? -Infinity);
       });
       break;
@@ -1872,7 +1877,11 @@ const COLS_BY_STAGE = {
       return '<span class="badge vpr-' + m + '" title="' + mainDesc.replace(/"/g, '&quot;') + '">' + mainLbl + '</span>';
     }},
     { key: 'name', label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기 (AI 뉴스 분석 포함, 첫 조회 10~30초 소요)"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
-    { key: 'breakoutDate', label: '돌파일', txt: true, render: c => fmtDate(c.breakoutDate) + ' <span class="muted">D+' + (c.daysFromBreakout ?? 0) + '</span>' },
+    { key: 'breakoutDate', label: '돌파일(기준일)<span class="help" title="기준일 확인 필수. D+0이 오늘 돌파, D+5는 5거래일 전 돌파. 5일 노출 윈도우.">ⓘ</span>', txt: true, render: c => {
+      const d = c.daysFromBreakout ?? 0;
+      const dCls = d === 0 ? 'color:#10b981;font-weight:700;' : (d <= 2 ? 'color:#34d399;font-weight:600;' : (d >= 5 ? 'color:#fbbf24;' : 'color:#94a3b8;'));
+      return '<strong style="color:#f1f5f9;">' + fmtDate(c.breakoutDate) + '</strong> <span style="' + dCls + '">D+' + d + '</span>';
+    } },
     { key: 'vprBaseClose', label: '기준 종가<span class="help" title="VVI 돌파대기일 종가">ⓘ</span>', render: c => c.vprBaseClose != null ? fmtNum(c.vprBaseClose) + '원' : '-' },
     { key: 'vprBreakoutLine', label: '기준선<span class="help" title="기준 종가 × 1.01">ⓘ</span>', render: c => c.vprBreakoutLine != null ? fmtNum(c.vprBreakoutLine) + '원' : '-' },
     { key: 'currentClose', label: '현재가', render: c => fmtNum(c.currentClose) + '원' },
