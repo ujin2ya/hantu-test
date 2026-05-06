@@ -3527,6 +3527,7 @@ app.get("/hgroup-rebreak-operation", (req, res) => {
   res.sendFile(filePath);
 });
 app.get("/d5-rebreak-board", (req, res) => res.redirect("/hgroup-rebreak-operation"));
+app.get("/rebreak", (req, res) => res.redirect("/hgroup-rebreak-operation"));
 
 // ─────────── H그룹 재돌파 심층 검증 보고서 ───────────
 app.get("/hgroup-rebreak-deep-dive", (req, res) => {
@@ -3537,6 +3538,7 @@ app.get("/hgroup-rebreak-deep-dive", (req, res) => {
   res.sendFile(filePath);
 });
 app.get("/d5-rebreak-deep-dive", (req, res) => res.redirect("/hgroup-rebreak-deep-dive"));
+app.get("/rebreak-deep", (req, res) => res.redirect("/hgroup-rebreak-deep-dive"));
 
 // ─────────── D+5 재돌파 종목 상세 페이지 ───────────
 app.get("/d5-rebreak/:code", async (req, res) => {
