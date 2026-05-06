@@ -430,23 +430,13 @@ for (let fi = 0; fi < files.length; fi++) {
     }
   }
 
-  // ─── VPR (Volume Pullback Rebound) 후속 태그 — BREAKOUT_SUCCESS 전용 보조 ───
-  // QVA/VVI/H그룹 정의를 변경하지 않고, 돌파 성공 후보에 한해 VPR 후속 상태만 참고 태그로 부착.
-  // VPR은 매수확정 신호가 아님. 데이터 부족(daysFromBreakout=0)이면 DATA_INSUFFICIENT.
+  // ─── VPR — H그룹 내부에서만 적용하는 "돌파 이후 반응 분류" ───
+  // 사용자 spec(2026-05): 성공/실패 판정이 아니라 돌파 이후 단일 거래일 반응을 5개 메인 + 10개 보조 태그로 분류.
+  // 기준선 = VVI 돌파대기일 종가 × 1.01. H그룹이 아닌 종목에는 적용하지 않음.
   let vpr = null;
-  let vprConflictNote = null;
-  if (mainStage === 'BREAKOUT_SUCCESS' && breakoutInfo && breakoutIdx != null) {
+  if (mainStage === 'BREAKOUT_SUCCESS' && breakoutInfo && breakoutIdx != null && vviIdx != null) {
     try {
-      vpr = vprAnalyzer.analyzeVPR({
-        entryIdx: breakoutIdx,
-        vviHigh: breakoutInfo.vviHigh,
-        vviClose: breakoutInfo.vviClose,
-        vviLow: breakoutInfo.vviLow,
-        qvaSignalPrice: signalPrice,
-        entryPrice: breakoutInfo.entryPrice1Pct,
-      }, rows);
-      // 화면 상태와 VPR이 충돌하면 보충 한 줄 해석을 만든다.
-      vprConflictNote = vprAnalyzer.buildConflictNote(judgmentStatus, vpr);
+      vpr = vprAnalyzer.analyzeBreakoutReaction({ vviIdx, breakoutIdx }, rows);
     } catch (e) {
       vpr = null;
     }
@@ -531,11 +521,17 @@ for (let fi = 0; fi < files.length; fi++) {
     currentReturnFromEntry: round2(currentReturnFromEntry),
     judgmentStatus,
 
-    // VPR 후속 태그 (BREAKOUT_SUCCESS 전용 보조 — 매수확정 신호 아님)
-    vprStatus: vpr?.result?.vprStatus || null,
-    vprLabel: vpr?.result?.vprLabel || null,
-    vprConflictNote,
-    vpr,
+    // VPR 돌파 이후 반응 분류 (H그룹 전용 — 매수확정 신호 아님)
+    vprMain: vpr?.vprMain || null,
+    vprMainLabel: vpr?.vprMainLabel || null,
+    vprTags: vpr?.vprTags || [],
+    vprTagLabels: vpr?.vprTagLabels || [],
+    vprDescription: vpr?.vprDescription || null,
+    vprBaseClose: vpr?.vprBaseClose ?? null,
+    vprBreakoutLine: vpr?.vprBreakoutLine ?? null,
+    vprDistanceFromBasePct: vpr?.vprDistanceFromBasePct ?? null,
+    vprDistanceFromBreakoutPct: vpr?.vprDistanceFromBreakoutPct ?? null,
+    vprClosePosition: vpr?.vprClosePosition ?? null,
 
     mainStage,
     stageReason,
@@ -969,7 +965,7 @@ const stageLabels = {
 };
 const stageDescriptions = {
   BREAKOUT_SUCCESS:
-    '돌파 성공 확인 종목은 QVA → VVI → +1% 돌파 → 종가 유지까지 통과한 후보입니다. 3년+flow 백테스트(이벤트 448건)에서 D+10 시점 분류별 H+10 성과가 명확히 분리됐습니다 — 강한 VPR 성공(+16.72% 고가) / 눌림 없이 상승(+20.69% 고가) 양호, 구조 훼손(-8.80% 종가) / VPR 재돌파 약함(회복률 3%) 위험. 매수 추천이 아니며 VPR 후속 태그를 함께 보고 판단합니다.',
+    '돌파 성공(H그룹) 종목은 VVI 돌파대기일 종가 × 1.01(=기준선)을 다음 거래일 고가가 돌파한 후보입니다. 각 종목의 VPR 태그는 그 돌파 이후 반응(고가권 유지/기준선 위 마감/기준 종가 위 유지/장중 돌파 후 밀림/과열 돌파)을 분류한 해석 라벨이며, 성공/실패 판정이나 매수 추천이 아닙니다.',
   VVI_FIRED:
     'VVI는 QVA 후보 중 실제 거래대금 초동이 더 강하게 확인된 상태입니다. VVI 다음 거래일에 vviHigh × 1.01 돌파 여부를 기다리는 후보입니다.',
   QVA_TRACKING:
@@ -996,7 +992,7 @@ const stageDescriptions = {
 // 헤더에 VPR 정의 + 7개 라벨 펼침 도움말이 이미 있으므로, 섹션은 백테스트 요약 1줄만.
 const stageBacktestNotes = {
   BREAKOUT_SUCCESS: {
-    summary: '3년+flow 백테스트(이벤트 448건) 기준, H그룹 이후 눌림 없이 상승(+20.69% 고가)과 강한 VPR 성공(+16.72%)은 후속 상승 흐름이 강했고, 구조 훼손(-8.80% 종가) / VPR 재돌파 약함은 약세·위험 신호로 확인됐습니다. ↑ 화면 상단 도움말에 VPR 7개 태그 의미 설명이 있습니다.',
+    summary: 'H그룹은 VVI 돌파대기일 종가 × 1.01(=기준선)을 다음 거래일 고가가 돌파한 종목군입니다. 아래 종목들의 VPR은 그 돌파 이후 반응을 분류한 해석 라벨일 뿐, 성공/실패 판정도 아니고 매수 추천도 아닙니다. ↑ 화면 상단 도움말에 VPR 메인 5종 + 보조 10종 태그 의미 설명이 있습니다.',
   },
 };
 
@@ -1043,8 +1039,8 @@ const judgmentDescriptions = {
   REVIEW_OK: '기준 진입가에서 크게 멀어지지 않은 상태입니다. 매수 추천이 아니라 추격을 피하기 위한 가격 위치 확인 기준입니다.',
   CHASE_CAUTION: '진입가 대비 +3% ~ +7% — 추격 시 주의가 필요한 구간.',
   PULLBACK_WAIT: '진입가 대비 +7% 초과 또는 돌파 후 3일 경과 — 눌림 확인 후 재검토 권장.',
-  MANAGEMENT: '이미 상승이 진행된 상태입니다. 단기 흔들림은 있을 수 있지만, H+10 기준으로는 강한 추세가 이어진 경우가 많았습니다. 신규 진입은 기준가와의 거리 확인이 필요하고, 보유자는 관리 관점으로 볼 수 있습니다 (n=66, H+10 고가 +35.96% / 종가 +17.50% / 구조 훼손 전환율 1.52%).',
-  BREAKDOWN_WEAK: '돌파 이후 흐름이 약해진 상태입니다. 구조 훼손으로 이어질 가능성이 높아 주의가 필요합니다 (n=194, D+10 구조 훼손 전환율 59.28% / 평균 H+10 종가 -5.40%).',
+  MANAGEMENT: '이미 상승이 진행된 상태입니다. 단기 흔들림은 있을 수 있지만, H+10 기준으로는 강한 추세가 이어진 경우가 많았습니다. 신규 진입은 기준가와의 거리 확인이 필요하고, 보유자는 관리 관점으로 볼 수 있습니다.',
+  BREAKDOWN_WEAK: '돌파 이후 흐름이 약해진 상태입니다 (기준선 또는 기준 진입가 아래로 마감). 신규 진입은 피하는 것이 안전한 구간입니다.',
 };
 
 function groupBy(items, fn) {
@@ -1073,29 +1069,21 @@ function sortStage(stage, items) {
   const arr = items.slice();
   switch (stage) {
     case 'BREAKOUT_SUCCESS': {
-      // 3년+flow 백테스트 운영 해석 기반 정렬 (강세→위험 순):
-      // 1. 눌림 없이 상승 (NO_PULLBACK_RUNAWAY) — H+10 +20.69% 주력 강세 흐름
-      // 2. 강한 VPR 성공 — H+10 +16.72%, -5% 종가 2.44%
-      // 3. VPR 성공 — H+10 +11.95%
-      // 4. 관리 구간 (judgmentStatus=MANAGEMENT) — H+10 +35.96% 추세
-      // 5. VPR 대기 — D+10 성공 20% / 손상 45% 갈림길
-      // 6. VPR 재돌파 약함 — 회복률 3.13%
-      // 7. 돌파 악화 (judgmentStatus=BREAKDOWN_WEAK) — 구조 훼손 전환율 59.28%
-      // 8. 구조 훼손 / VPR 실패 — H+10 종가 -8.80%, -5% 종가 72.18%
-      // 9. 데이터 부족
+      // VPR 메인 태그 기반 정렬 (안정적 반응 → 밀림 → 과열은 별도 그룹):
+      // 1. 고가권 유지        HIGH_ZONE_HOLD
+      // 2. 기준선 위 마감     ABOVE_BREAKOUT_LINE
+      // 3. 기준 종가 위 유지  ABOVE_BASE_CLOSE
+      // 4. 장중 돌파 후 밀림   INTRADAY_PUSHBACK
+      // 5. 과열 돌파          OVERHEATED_BREAKOUT (별도 주의 — 좋은 신호 아님)
+      // 6. 미분류 (vprMain 없음)
       function bsRank(c) {
-        const vpr = c.vprStatus;
-        const judg = c.judgmentStatus;
-        if (vpr === 'NO_PULLBACK_RUNAWAY') return 1;
-        if (vpr === 'STRONG_VPR_SUCCESS') return 2;
-        if (vpr === 'CLASSIC_VPR_SUCCESS') return 3;
-        if (judg === 'MANAGEMENT') return 4;
-        if (vpr === 'PULLBACK_PENDING') return 5;
-        if (vpr === 'WEAK_VPR_REBOUND') return 6;
-        if (judg === 'BREAKDOWN_WEAK') return 7;
-        if (vpr === 'STRUCTURAL_BREAK' || vpr === 'REBOUND_FAIL') return 8;
-        if (vpr === 'DATA_INSUFFICIENT' || !vpr) return 9;
-        return 5;
+        const m = c.vprMain;
+        if (m === 'HIGH_ZONE_HOLD') return 1;
+        if (m === 'ABOVE_BREAKOUT_LINE') return 2;
+        if (m === 'ABOVE_BASE_CLOSE') return 3;
+        if (m === 'INTRADAY_PUSHBACK') return 4;
+        if (m === 'OVERHEATED_BREAKOUT') return 5;
+        return 6;
       }
       arr.sort((a, b) => {
         const ra = bsRank(a), rb = bsRank(b);
@@ -1430,10 +1418,12 @@ const jsonOut = {
     judgmentOrder,
     judgmentLabels,
     judgmentDescriptions,
-    vprOrder: ['STRONG_VPR_SUCCESS', 'CLASSIC_VPR_SUCCESS', 'WEAK_VPR_REBOUND', 'PULLBACK_PENDING', 'NO_PULLBACK_RUNAWAY', 'REBOUND_FAIL', 'STRUCTURAL_BREAK', 'DATA_INSUFFICIENT'],
-    vprLabels: vprAnalyzer.VPR_LABELS,
-    vprDescriptions: vprAnalyzer.VPR_DESCRIPTIONS,
-    vprManagementNote: vprAnalyzer.MANAGEMENT_NOTE,
+    // 신규 VPR (돌파 이후 반응 분류) — H그룹 내부 전용
+    vprMainOrder: ['HIGH_ZONE_HOLD', 'ABOVE_BREAKOUT_LINE', 'ABOVE_BASE_CLOSE', 'INTRADAY_PUSHBACK', 'OVERHEATED_BREAKOUT'],
+    vprMainLabels: vprAnalyzer.VPR_MAIN_LABELS,
+    vprMainDescriptions: vprAnalyzer.VPR_MAIN_DESCRIPTIONS,
+    vprAuxLabels: vprAnalyzer.VPR_AUX_LABELS,
+    vprAuxDescriptions: vprAnalyzer.VPR_AUX_DESCRIPTIONS,
     generatedAt: new Date().toISOString(),
   },
   summary,
@@ -1570,14 +1560,14 @@ const htmlTemplate = `<!DOCTYPE html>
   .badge.j-PULLBACK_WAIT { background: #5c2c0f; color: #fb923c; }
   .badge.j-MANAGEMENT    { background: #4c1d95; color: #c4b5fd; }
   .badge.j-BREAKDOWN_WEAK{ background: #4c1d1d; color: #fca5a5; }
-  .badge.vpr-STRONG_VPR_SUCCESS  { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; font-weight: 600; }
-  .badge.vpr-CLASSIC_VPR_SUCCESS { background: #134e4a; color: #5eead4; }
-  .badge.vpr-WEAK_VPR_REBOUND    { background: #422006; color: #fde047; border: 1px solid #ca8a04; }
-  .badge.vpr-PULLBACK_PENDING    { background: #312e81; color: #c7d2fe; }
-  .badge.vpr-NO_PULLBACK_RUNAWAY { background: #1e3a8a; color: #93c5fd; }
-  .badge.vpr-REBOUND_FAIL        { background: #7f1d1d; color: #fca5a5; }
-  .badge.vpr-STRUCTURAL_BREAK    { background: #7c2d12; color: #fdba74; border: 1px solid #f97316; font-weight: 600; }
-  .badge.vpr-DATA_INSUFFICIENT   { background: #475569; color: #cbd5e1; }
+  /* VPR 메인 태그 (5종) — 안정적 반응 → 밀림 → 과열 (과열은 좋은 신호 아님, 주의 색상) */
+  .badge.vpr-HIGH_ZONE_HOLD       { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; font-weight: 600; }
+  .badge.vpr-ABOVE_BREAKOUT_LINE  { background: #134e4a; color: #5eead4; }
+  .badge.vpr-ABOVE_BASE_CLOSE     { background: #312e81; color: #c7d2fe; }
+  .badge.vpr-INTRADAY_PUSHBACK    { background: #422006; color: #fde047; border: 1px solid #ca8a04; }
+  .badge.vpr-OVERHEATED_BREAKOUT  { background: #7c2d12; color: #fdba74; border: 1px solid #f97316; font-weight: 600; }
+  /* VPR 보조 태그 (10종) — 한 가지 스타일로 통일 */
+  .badge.vpr-aux                  { display: inline-block; background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 1px 6px; border-radius: 3px; font-size: 10px; margin-right: 3px; margin-bottom: 2px; }
   .section-footer { color: #94a3b8; font-size: 12px; line-height: 1.6; padding: 10px 14px; background: #1e293b; border-radius: 6px; border-left: 3px solid #f59e0b; margin-top: -8px; margin-bottom: 14px; }
   .badge.tag-LOW_RISING { background: #14532d; color: #6ee7b7; }
   .badge.tag-VALUE_REACTIVATION { background: #422006; color: #fbbf24; }
@@ -1634,58 +1624,55 @@ const htmlTemplate = `<!DOCTYPE html>
       <span style="color:#64748b;">→</span>
       <strong style="color:#10b981;">🔥 돌파 성공 (H그룹)</strong>
       <span style="color:#64748b;">→</span>
-      <strong style="color:#5eead4;">📊 VPR 후속 태그</strong>
+      <strong style="color:#5eead4;">📊 VPR 반응 분류</strong>
     </p>
     <p style="margin-top:10px;"><strong style="color:#34d399;">QVA</strong>는 저점권에서 기존 거래량·거래대금을 확실히 뛰어넘는 수급 흔적이 나타난 관심 후보입니다 (저점권 거래대금 돌파).<br>
     <strong style="color:#3b82f6;">VVI</strong>는 거래대금이 더 강하게 확인되고 종가가 고가권에서 양호하게 마감한 단계입니다.<br>
-    <strong style="color:#10b981;">돌파 성공(H그룹)</strong>은 VVI 다음 거래일에 vviHigh × 1.01 돌파 + 종가 유지가 확인된 후속 단계입니다.<br>
-    <strong style="color:#5eead4;">VPR (Volume Pullback Rebound)</strong>은 H그룹 이후 눌림과 재돌파 흐름을 분류하는 후속 관리 태그입니다 — 정상 눌림 후 재돌파에 성공했는지, 구조가 훼손됐는지 등을 보여줍니다. <strong>매수 확정 신호가 아닙니다.</strong></p>
+    <strong style="color:#10b981;">돌파 성공(H그룹)</strong>은 VVI 다음 거래일 고가가 <span style="color:#fbbf24;font-family:monospace;">기준선(= VVI 돌파대기일 종가 × 1.01)</span>을 넘은 종목군입니다.</p>
+
+    <div style="background:#0f172a;border:1px dashed #475569;border-radius:6px;padding:10px 14px;margin-top:10px;font-size:12px;line-height:1.75;color:#cbd5e1;">
+      💡 <strong style="color:#fde68a;">H그룹과 VPR — 같은 기준, 다른 표현</strong><br>
+      두 개념은 같은 가격 기준을 사용하지만 결과 표현이 다릅니다.<br>
+      핵심 기준은 한 가격: <span style="color:#fbbf24;font-family:monospace;">VVI 돌파대기일 종가 × 1.01 (= 기준선)</span>
+      <ul style="list-style:none;padding-left:0;margin:6px 0 0 0;">
+        <li style="margin:3px 0;"><strong style="color:#10b981;">H그룹</strong> — <em>"돌파했냐? 예 / 아니오"</em> 검증 결과 이름.</li>
+        <li style="margin:3px 0;"><strong style="color:#5eead4;">VPR</strong> — <em>"돌파했는데 강한가? 밀렸나? 눌림인가? 너무 멀리 갔나?"</em> H그룹 내부에서만 표시되는 돌파 이후 반응 분류.</li>
+      </ul>
+    </div>
+
+    <p style="margin-top:10px;"><strong style="color:#5eead4;">VPR</strong>은 H그룹 내부에서만 표시되는 돌파 이후 반응 분류입니다.
+    H그룹은 VVI 돌파대기일 종가 × 1.01을 다음 거래일 고가가 돌파한 종목군이므로, <strong>VPR은 성공/실패를 다시 판정하는 값이 아닙니다.</strong>
+    이미 기준선을 돌파한 종목이 종가를 고가권에서 유지했는지, 기준선 위에서 마감했는지, 기준 종가를 지켰는지, 장중 밀렸는지, 과열 상태인지 등을 나눠 보여주는 해석 라벨입니다.
+    <strong style="color:#fbbf24;">매수 확정 신호도, H그룹보다 더 좋은 조건도 아닙니다.</strong></p>
 
     <details style="margin-top:10px;background:#1e293b;border-radius:6px;padding:8px 12px;">
-      <summary style="cursor:pointer;color:#5eead4;font-size:13px;font-weight:600;">▸ VPR 7개 후속 태그 의미 보기</summary>
+      <summary style="cursor:pointer;color:#5eead4;font-size:13px;font-weight:600;">▸ VPR 메인 태그 5종 의미 보기</summary>
       <div style="margin-top:8px;padding-left:8px;border-left:2px solid #334155;font-size:12px;line-height:1.7;">
-        <div style="margin:4px 0;"><strong style="color:#93c5fd;">눌림 없이 상승</strong> <span style="color:#94a3b8;">— 눌림 없이 상승이 이어지는 강한 흐름. 추격 주의</span></div>
-        <div style="margin:4px 0;"><strong style="color:#6ee7b7;">강한 VPR 성공</strong> <span style="color:#94a3b8;">— 정상 눌림 후 H돌파일 고가 재돌파 + 종가 유지 + 거래대금 회복</span></div>
-        <div style="margin:4px 0;"><strong style="color:#5eead4;">VPR 성공</strong> <span style="color:#94a3b8;">— 눌림 후 기준 가격을 재회복하고 종가 유지</span></div>
-        <div style="margin:4px 0;"><strong style="color:#c7d2fe;">VPR 대기</strong> <span style="color:#94a3b8;">— 정상 눌림 범위에 있으나 아직 재돌파 전 (성공/구조 훼손 갈림길)</span></div>
-        <div style="margin:4px 0;"><strong style="color:#fde047;">VPR 재돌파 약함</strong> <span style="color:#94a3b8;">— 장중 재돌파했지만 종가 유지 약함 (회복률 3%)</span></div>
-        <div style="margin:4px 0;"><strong style="color:#fdba74;">구조 훼손</strong> <span style="color:#94a3b8;">— 기준 가격을 의미 있게 이탈한 위험 상태</span></div>
-        <div style="margin:4px 0;"><strong style="color:#fca5a5;">VPR 실패</strong> <span style="color:#94a3b8;">— 눌림 후 10거래일 안에 재돌파 안 나온 약세</span></div>
+        <div style="margin:4px 0;"><strong style="color:#6ee7b7;">고가권 유지</strong> <span style="color:#94a3b8;">— 기준선을 돌파한 뒤 종가가 고가권(종가 위치 70% 이상)에서 유지되었습니다.</span></div>
+        <div style="margin:4px 0;"><strong style="color:#5eead4;">기준선 위 마감</strong> <span style="color:#94a3b8;">— 기준선 위에서 마감했지만 장중 고점 대비 일부 밀림이 있었습니다.</span></div>
+        <div style="margin:4px 0;"><strong style="color:#c7d2fe;">기준 종가 위 유지</strong> <span style="color:#94a3b8;">— 장중 기준선을 돌파했지만 종가는 돌파 기준가 아래로 내려왔고, 기준 종가는 지켰습니다.</span></div>
+        <div style="margin:4px 0;"><strong style="color:#fde047;">장중 돌파 후 밀림</strong> <span style="color:#94a3b8;">— 장중 기준선을 돌파했지만 종가가 기준 종가 아래로 내려와 밀림이 있었습니다.</span></div>
+        <div style="margin:4px 0;"><strong style="color:#fdba74;">과열 돌파</strong> <span style="color:#94a3b8;">— 기준선은 돌파했지만 기준 종가 대비 +12% 이상 떠 있어 추격 위험이 큽니다 (좋은 신호 아님, 주의).</span></div>
       </div>
     </details>
 
-    <p style="margin-top:10px;"><strong>3년+flow 백테스트(이벤트 448건)</strong> 결과 — H그룹 이후 D+10 시점 분류별 H+10 성과:</p>
-    <p style="margin-top:4px;color:#cbd5e1;font-size:13px;line-height:1.7;">
-      ✅ <strong style="color:#6ee7b7;">강한 VPR 성공</strong> (n=41): H+10 평균 고가 +16.72% / 종가 +5.86% / -5% 종가 2.44%<br>
-      🚀 <strong style="color:#93c5fd;">눌림 없이 상승</strong> (n=162): H+10 평균 고가 +20.69% / 종가 +9.49% / +20% 도달률 33.95%<br>
-      ❌ <strong style="color:#fdba74;">구조 훼손</strong> (n=133): H+10 평균 종가 -8.80% / -5% 종가 72.18%<br>
-      ⚠️ <strong style="color:#fde047;">VPR 재돌파 약함</strong> (n=40): 회복률 3.13%로 약세 지속
-    </p>
-    <p style="margin-top:8px;color:#cbd5e1;font-size:12px;">즉 단계가 진행될수록(특히 강한 VPR 성공) 좋은 흐름이 통계적으로 분리됐고, 구조 훼손/재돌파 약함은 위험 시그널로 확인됐습니다.</p>
-    <p style="margin-top:10px;color:#fbbf24;">다만 이 결과는 과거 통계일 뿐이며, 매수 추천이 아닙니다. <strong>실제 판단은 현재 가격, 차트, 뉴스, 거래대금, 시장 상황을 함께 보고 사용자가 직접 해야 합니다.</strong></p>
-  </div>
+    <details style="margin-top:6px;background:#1e293b;border-radius:6px;padding:8px 12px;">
+      <summary style="cursor:pointer;color:#5eead4;font-size:13px;font-weight:600;">▸ VPR 보조 태그 10종 의미 보기</summary>
+      <div style="margin-top:8px;padding-left:8px;border-left:2px solid #334155;font-size:12px;line-height:1.7;">
+        <div style="margin:4px 0;"><strong style="color:#cbd5e1;">거래대금 폭발</strong> <span style="color:#94a3b8;">— 거래대금이 평소(20일 평균) 대비 3배 이상 증가했습니다.</span></div>
+        <div style="margin:4px 0;"><strong style="color:#cbd5e1;">거래대금 동반</strong> <span style="color:#94a3b8;">— 기준선 돌파와 함께 거래대금도 평소 대비 2배 이상 늘었습니다.</span></div>
+        <div style="margin:4px 0;"><strong style="color:#cbd5e1;">거래대금 약함</strong> <span style="color:#94a3b8;">— 기준선은 돌파했지만 거래대금은 평소보다 약했습니다.</span></div>
+        <div style="margin:4px 0;"><strong style="color:#cbd5e1;">갭상승 출발</strong> <span style="color:#94a3b8;">— 시가부터 기준선 위에서 출발했습니다.</span></div>
+        <div style="margin:4px 0;"><strong style="color:#cbd5e1;">갭상승 후 흔들림</strong> <span style="color:#94a3b8;">— 시가부터 기준선 위에서 출발했지만 종가는 시가보다 낮게 마감했습니다.</span></div>
+        <div style="margin:4px 0;"><strong style="color:#cbd5e1;">위꼬리 주의</strong> <span style="color:#94a3b8;">— 장중 고점 대비 종가가 5% 이상 내려왔습니다.</span></div>
+        <div style="margin:4px 0;"><strong style="color:#cbd5e1;">위꼬리 적음</strong> <span style="color:#94a3b8;">— 종가가 당일 고가에 가깝게(85% 이상) 마감했습니다.</span></div>
+        <div style="margin:4px 0;"><strong style="color:#cbd5e1;">아래꼬리 회복</strong> <span style="color:#94a3b8;">— 장중 기준 종가 아래로 밀렸지만 종가가 회복되었습니다.</span></div>
+        <div style="margin:4px 0;"><strong style="color:#cbd5e1;">기준가 대비 거리 큼</strong> <span style="color:#94a3b8;">— 기준 종가 대비 +12% 이상 떠 있어 추격 위험이 있습니다.</span></div>
+        <div style="margin:4px 0;"><strong style="color:#cbd5e1;">조용한 돌파</strong> <span style="color:#94a3b8;">— 기준선은 돌파했지만 거래대금 증가는 보통 수준(평균 1~2배)입니다.</span></div>
+      </div>
+    </details>
 
-  <h2 style="font-size:14px;color:#cbd5e1;margin:0 0 8px 0;border:none;padding:0;">📊 단계별 분리력 요약 (3년+flow 검증)</h2>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:16px;">
-    <div style="background:#1e293b;border-left:3px solid #6ee7b7;padding:14px 16px;border-radius:6px;">
-      <div style="color:#94a3b8;font-size:12px;">✅ D+10 강한 VPR 성공</div>
-      <div style="color:#6ee7b7;font-size:24px;font-weight:700;margin-top:4px;">+16.72%</div>
-      <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">H+10 평균 고가 (n=41, +20% 도달률 24.39%)</div>
-    </div>
-    <div style="background:#1e293b;border-left:3px solid #93c5fd;padding:14px 16px;border-radius:6px;">
-      <div style="color:#94a3b8;font-size:12px;">🚀 D+10 눌림 없이 상승</div>
-      <div style="color:#93c5fd;font-size:24px;font-weight:700;margin-top:4px;">+20.69%</div>
-      <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">H+10 평균 고가 (n=162, 주력 강세 흐름)</div>
-    </div>
-    <div style="background:#1e293b;border-left:3px solid #fdba74;padding:14px 16px;border-radius:6px;">
-      <div style="color:#94a3b8;font-size:12px;">❌ D+10 구조 훼손</div>
-      <div style="color:#fdba74;font-size:24px;font-weight:700;margin-top:4px;">-8.80%</div>
-      <div style="color:#cbd5e1;font-size:11px;margin-top:2px;">H+10 평균 종가 (n=133, -5% 종가 72.18%)</div>
-    </div>
-    <div style="background:#1e293b;border-left:3px solid #94a3b8;padding:14px 16px;border-radius:6px;">
-      <div style="color:#94a3b8;font-size:12px;">해석</div>
-      <div style="color:#cbd5e1;font-size:12px;line-height:1.5;margin-top:4px;">VPR 후속 태그가 H그룹 이후 흐름의 양극단(강한 성공 vs 구조 훼손)을 통계적으로 분리합니다. 매수 신호는 아닙니다.</div>
-    </div>
+    <p style="margin-top:10px;color:#fbbf24;font-size:12px;">⚠️ VPR은 매수 추천이 아닙니다. <strong>실제 판단은 현재 가격, 차트, 뉴스, 거래대금, 시장 상황을 함께 보고 사용자가 직접 해야 합니다.</strong></p>
   </div>
 
   <div class="info-box">
@@ -1884,31 +1871,28 @@ const COLS_BY_STAGE = {
       const desc = DATA.meta.judgmentDescriptions[j] || '';
       return '<span class="badge j-' + j + '" title="' + desc.replace(/"/g, '&quot;') + '">' + lbl + '</span>';
     }},
-    { key: 'vprStatus', label: 'VPR 후속 태그', txt: true, render: c => {
-      const v = c.vprStatus;
-      if (!v) return '<span class="muted">-</span>';
-      const lbl = (DATA.meta.vprLabels && DATA.meta.vprLabels[v]) || v;
-      let desc = (DATA.meta.vprDescriptions && DATA.meta.vprDescriptions[v]) || '';
-      // 관리 구간이면 추가 안내 메모 부착
-      if (c.judgmentStatus === 'MANAGEMENT' && DATA.meta.vprManagementNote) {
-        desc = (desc ? desc + ' ' : '') + DATA.meta.vprManagementNote;
-      }
-      // 화면 상태와 충돌하면 보충 한 줄을 tooltip + 셀 보조 텍스트로 표시
-      if (c.vprConflictNote) {
-        desc = (desc ? desc + ' ' : '') + c.vprConflictNote;
-      }
-      const badge = '<span class="badge vpr-' + v + '" title="' + desc.replace(/"/g, '&quot;') + '">' + lbl + '</span>';
-      const conflictHtml = c.vprConflictNote
-        ? '<div style="font-size:10px;color:#94a3b8;margin-top:2px;line-height:1.3;white-space:normal;max-width:240px;">' + c.vprConflictNote + '</div>'
+    { key: 'vprMain', label: 'VPR', txt: true, render: c => {
+      const m = c.vprMain;
+      if (!m) return '<span class="muted">-</span>';
+      const mainLbl = (DATA.meta.vprMainLabels && DATA.meta.vprMainLabels[m]) || m;
+      const mainDesc = (DATA.meta.vprMainDescriptions && DATA.meta.vprMainDescriptions[m]) || '';
+      const tags = c.vprTags || [];
+      const tagLabels = (DATA.meta.vprAuxLabels || {});
+      const tagDescs = (DATA.meta.vprAuxDescriptions || {});
+      const tagsHtml = tags.length
+        ? '<div style="font-size:10px;color:#94a3b8;margin-top:3px;line-height:1.4;white-space:normal;max-width:240px;">' +
+            tags.map(t => '<span class="badge vpr-aux" title="' + (tagDescs[t] || '').replace(/"/g, '&quot;') + '">' + (tagLabels[t] || t) + '</span>').join(' ') +
+          '</div>'
         : '';
-      return badge + conflictHtml;
+      return '<span class="badge vpr-' + m + '" title="' + mainDesc.replace(/"/g, '&quot;') + '">' + mainLbl + '</span>' + tagsHtml;
     }},
     { key: 'name', label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기 (AI 뉴스 분석 포함, 첫 조회 10~30초 소요)"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
     { key: 'breakoutDate', label: '돌파일', txt: true, render: c => fmtDate(c.breakoutDate) + ' <span class="muted">D+' + (c.daysFromBreakout ?? 0) + '</span>' },
-    { key: 'breakoutEntryPrice1Pct', label: '기준 진입가', render: c => fmtNum(c.breakoutEntryPrice1Pct) + '원' },
+    { key: 'vprBaseClose', label: '기준 종가<span class="help" title="VVI 돌파대기일 종가">ⓘ</span>', render: c => c.vprBaseClose != null ? fmtNum(c.vprBaseClose) + '원' : '-' },
+    { key: 'vprBreakoutLine', label: '기준선<span class="help" title="기준 종가 × 1.01">ⓘ</span>', render: c => c.vprBreakoutLine != null ? fmtNum(c.vprBreakoutLine) + '원' : '-' },
     { key: 'currentClose', label: '현재가', render: c => fmtNum(c.currentClose) + '원' },
-    { key: 'currentReturnFromEntry', label: '진입가 대비%', render: c => fmtPct(c.currentReturnFromEntry, true) },
-    { key: 'qvaSignalPrice', label: 'QVA 신호가', render: c => fmtNum(c.qvaSignalPrice) + '원' },
+    { key: 'vprDistanceFromBasePct', label: '기준 종가 대비%<span class="help" title="(다음날 종가 / 기준 종가 - 1) × 100">ⓘ</span>', render: c => c.vprDistanceFromBasePct != null ? fmtPct(c.vprDistanceFromBasePct, true) : '-' },
+    { key: 'vprClosePosition', label: '종가 위치<span class="help" title="다음날 종가가 당일 가격 범위에서 차지하는 위치 (100%=고가)">ⓘ</span>', render: c => c.vprClosePosition != null ? c.vprClosePosition + '%' : '-' },
     { key: 'currentReturnFromSignal', label: '신호가 대비%', render: c => fmtPct(c.currentReturnFromSignal, true) },
     { key: 'qvaSignalDate', label: 'QVA일', txt: true, render: c => fmtDate(c.qvaSignalDate) + ' <span class="muted">D+' + c.daysSinceQva + '</span>' },
     { key: 'vviDate', label: 'VVI일', txt: true, render: c => fmtDate(c.vviDate) },
@@ -2145,33 +2129,10 @@ function buildStageSection(stage) {
     const noteData = DATA.meta.stageBacktestNotes[stage];
     const btNote = document.createElement('div');
     btNote.style.cssText = 'background:#0c1729;border-left:3px solid #14b8a6;padding:10px 14px;border-radius:6px;margin-bottom:10px;color:#cbd5e1;font-size:11.5px;line-height:1.65;';
-    // 객체 형태(summary + vprIntro + vprLabelsBrief) 또는 string (구버전)
     if (typeof noteData === 'string') {
       btNote.innerHTML = '📊 ' + noteData;
     } else {
-      let html = '📊 ' + (noteData.summary || '');
-      if (noteData.vprIntro) {
-        html += '<div style="margin-top:6px;color:#94a3b8;">💡 ' + noteData.vprIntro + '</div>';
-      }
-      if (noteData.vprLabelsBrief && noteData.vprLabelsBrief.length > 0) {
-        html += '<details style="margin-top:6px;">';
-        html += '<summary style="cursor:pointer;color:#5eead4;font-size:11px;">▸ VPR 7개 후속 태그 의미 보기</summary>';
-        html += '<div style="margin-top:6px;padding-left:8px;border-left:2px solid #1e293b;">';
-        const colorMap = {
-          NO_PULLBACK_RUNAWAY: '#93c5fd', STRONG_VPR_SUCCESS: '#6ee7b7',
-          CLASSIC_VPR_SUCCESS: '#5eead4', PULLBACK_PENDING: '#c7d2fe',
-          WEAK_VPR_REBOUND: '#fde047', STRUCTURAL_BREAK: '#fdba74',
-          REBOUND_FAIL: '#fca5a5',
-        };
-        for (const lab of noteData.vprLabelsBrief) {
-          const c = colorMap[lab.key] || '#cbd5e1';
-          html += '<div style="margin:3px 0;font-size:11px;line-height:1.55;">' +
-                  '<strong style="color:' + c + ';">' + lab.label + '</strong>' +
-                  ' <span style="color:#94a3b8;">— ' + lab.brief + '</span></div>';
-        }
-        html += '</div></details>';
-      }
-      btNote.innerHTML = html;
+      btNote.innerHTML = '📊 ' + (noteData.summary || '');
     }
     sec.appendChild(btNote);
   }

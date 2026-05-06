@@ -415,6 +415,178 @@ function buildConflictNote(judgmentStatus, vprResult) {
   return null;
 }
 
+// ─────────────────────── 신규 VPR (돌파 이후 반응 분류) ───────────────────────
+//
+// 사용자 spec(2026-05): VPR을 "성공/실패" 판정에서 "돌파 이후 반응 분류"로 재정의.
+// H그룹(이미 기준선을 돌파한 종목군) 내부에서만 적용한다.
+//
+// 기준값:
+//   baseClose       = VVI 돌파대기일 종가
+//   breakoutLine    = baseClose × 1.01
+//   nextOpen/High/Low/Close = 다음 거래일(=H돌파일) 시/고/저/종가
+//   nextValue       = 다음 거래일 거래대금
+//   prevValueAvg    = VVI일 이전 20거래일 평균 거래대금
+//
+// 메인 태그(우선순위 순):
+//   1. 과열 돌파      OVERHEATED_BREAKOUT
+//   2. 고가권 유지    HIGH_ZONE_HOLD
+//   3. 기준선 위 마감  ABOVE_BREAKOUT_LINE
+//   4. 기준 종가 위 유지 ABOVE_BASE_CLOSE
+//   5. 장중 돌파 후 밀림 INTRADAY_PUSHBACK
+//
+// 화면에서는 "성공/실패/미돌파/대기" 표현을 쓰지 않는다.
+
+const VPR_MAIN_LABELS = {
+  OVERHEATED_BREAKOUT: '과열 돌파',
+  HIGH_ZONE_HOLD: '고가권 유지',
+  ABOVE_BREAKOUT_LINE: '기준선 위 마감',
+  ABOVE_BASE_CLOSE: '기준 종가 위 유지',
+  INTRADAY_PUSHBACK: '장중 돌파 후 밀림',
+};
+
+const VPR_MAIN_DESCRIPTIONS = {
+  OVERHEATED_BREAKOUT: '기준선은 돌파했지만 기준 종가 대비 많이 떠 있어 추격 위험이 큽니다.',
+  HIGH_ZONE_HOLD: '기준선을 돌파한 뒤 종가가 고가권에서 유지되었습니다.',
+  ABOVE_BREAKOUT_LINE: '기준선 위에서 마감했지만 장중 고점 대비 일부 밀림이 있었습니다.',
+  ABOVE_BASE_CLOSE: '장중 기준선을 돌파했지만 종가는 돌파 기준가 아래로 내려왔고, 기준 종가는 지켰습니다.',
+  INTRADAY_PUSHBACK: '장중 기준선을 돌파했지만 종가가 기준 종가 아래로 내려와 밀림이 있었습니다.',
+};
+
+const VPR_AUX_LABELS = {
+  VOLUME_EXPLOSION: '거래대금 폭발',
+  VOLUME_SUPPORT: '거래대금 동반',
+  VOLUME_WEAK: '거래대금 약함',
+  GAP_UP_START: '갭상승 출발',
+  GAP_UP_WOBBLE: '갭상승 후 흔들림',
+  UPPER_WICK_WARN: '위꼬리 주의',
+  UPPER_WICK_SMALL: '위꼬리 적음',
+  LOWER_WICK_RECOVER: '아래꼬리 회복',
+  FAR_FROM_BASE: '기준가 대비 거리 큼',
+  QUIET_BREAKOUT: '조용한 돌파',
+};
+
+const VPR_AUX_DESCRIPTIONS = {
+  VOLUME_EXPLOSION: '거래대금이 평소보다 매우 크게 증가했습니다.',
+  VOLUME_SUPPORT: '기준선 돌파와 함께 거래대금도 평소보다 크게 늘었습니다.',
+  VOLUME_WEAK: '기준선은 돌파했지만 거래대금은 평소보다 약했습니다.',
+  GAP_UP_START: '시가부터 기준선 위에서 출발했습니다.',
+  GAP_UP_WOBBLE: '시가부터 기준선 위에서 출발했지만 종가는 시가보다 낮게 마감했습니다.',
+  UPPER_WICK_WARN: '장중 고점 대비 종가가 많이 내려왔습니다.',
+  UPPER_WICK_SMALL: '종가가 당일 고가에 가깝게 마감했습니다.',
+  LOWER_WICK_RECOVER: '장중 기준 종가 아래로 밀렸지만 종가가 회복되었습니다.',
+  FAR_FROM_BASE: '기준 종가 대비 많이 떠 있어 추격 위험이 있습니다.',
+  QUIET_BREAKOUT: '기준선은 돌파했지만 거래대금 증가는 보통 수준입니다.',
+};
+
+/**
+ * H그룹 종목의 돌파 이후 반응을 분류한다 (단일 거래일 기반).
+ *
+ * @param {object} input - { vviIdx, breakoutIdx }  (둘 다 rows 배열의 index)
+ * @param {Array} rows - chart rows ascending by date (각 row: open/high/low/close/volume/valueApprox/date)
+ * @returns {object|null} { vprMain, vprTags, vprDescription, vprBaseClose, vprBreakoutLine,
+ *                          vprDistanceFromBasePct, vprDistanceFromBreakoutPct, vprClosePosition } 또는 null
+ */
+function analyzeBreakoutReaction(input, rows) {
+  const { vviIdx, breakoutIdx } = input || {};
+  if (!Number.isFinite(vviIdx) || !Number.isFinite(breakoutIdx)) return null;
+  if (vviIdx < 0 || breakoutIdx <= vviIdx || breakoutIdx >= rows.length) return null;
+
+  const vviRow = rows[vviIdx];
+  const breakoutRow = rows[breakoutIdx];
+  if (!vviRow || !breakoutRow || !vviRow.close || !breakoutRow.close) return null;
+
+  const baseClose = vviRow.close;
+  const breakoutLine = baseClose * 1.01;
+  const nextOpen = breakoutRow.open;
+  const nextHigh = breakoutRow.high;
+  const nextLow = breakoutRow.low;
+  const nextClose = breakoutRow.close;
+  const nextValue = breakoutRow.valueApprox || (breakoutRow.close * breakoutRow.volume) || 0;
+
+  // VVI일 이전 20거래일 평균 거래대금
+  const prevStart = Math.max(0, vviIdx - 20);
+  const prevRows = rows.slice(prevStart, vviIdx);
+  const prevValueAvg = prevRows.length > 0
+    ? prevRows.reduce((s, r) => s + (r.valueApprox || (r.close * r.volume) || 0), 0) / prevRows.length
+    : 0;
+
+  // 안전장치: H그룹이 아니면 (다음날 고가 < 기준선) null 반환
+  if (nextHigh < breakoutLine) return null;
+
+  // closePosition (당일 가격 범위 내 종가 위치)
+  const closePosition = (nextHigh === nextLow) ? 1 : (nextClose - nextLow) / (nextHigh - nextLow);
+  const vprDistanceFromBasePct = (nextClose / baseClose - 1) * 100;
+  const vprDistanceFromBreakoutPct = (nextClose / breakoutLine - 1) * 100;
+
+  // ─── 메인 태그 결정 (우선순위 순) ───
+  let vprMain;
+  if (nextClose >= baseClose * 1.12) {
+    vprMain = 'OVERHEATED_BREAKOUT';
+  } else if (nextClose >= breakoutLine && closePosition >= 0.7) {
+    vprMain = 'HIGH_ZONE_HOLD';
+  } else if (nextClose >= breakoutLine) {
+    vprMain = 'ABOVE_BREAKOUT_LINE';
+  } else if (nextClose >= baseClose) {
+    vprMain = 'ABOVE_BASE_CLOSE';
+  } else {
+    vprMain = 'INTRADAY_PUSHBACK';
+  }
+
+  // ─── 보조 태그 ───
+  const vprTags = [];
+
+  // 거래대금 폭발 / 동반 / 약함 — 상호배타 (폭발 > 동반)
+  if (prevValueAvg > 0) {
+    if (nextValue >= prevValueAvg * 3) vprTags.push('VOLUME_EXPLOSION');
+    else if (nextValue >= prevValueAvg * 2) vprTags.push('VOLUME_SUPPORT');
+    else if (nextValue < prevValueAvg) vprTags.push('VOLUME_WEAK');
+  }
+
+  // 갭상승 출발
+  const isGapUp = nextOpen >= breakoutLine;
+  if (isGapUp) {
+    vprTags.push('GAP_UP_START');
+    if (nextClose < nextOpen && nextClose >= baseClose) {
+      vprTags.push('GAP_UP_WOBBLE');
+    }
+  }
+
+  // 위꼬리 주의 — 장중 고점 대비 종가가 많이 내려옴
+  if (nextHigh > nextClose * 1.05) vprTags.push('UPPER_WICK_WARN');
+
+  // 위꼬리 적음
+  if (closePosition >= 0.85) vprTags.push('UPPER_WICK_SMALL');
+
+  // 아래꼬리 회복
+  if (closePosition >= 0.7 && nextLow < baseClose) vprTags.push('LOWER_WICK_RECOVER');
+
+  // 기준가 대비 거리 큼 (메인이 OVERHEATED인 경우 중복 의미이지만 보조 태그로도 부착 — spec 준수)
+  if (nextClose >= baseClose * 1.12) vprTags.push('FAR_FROM_BASE');
+
+  // 조용한 돌파 — 거래대금이 평균 이상이지만 2배 미만
+  if (prevValueAvg > 0 && nextValue >= prevValueAvg && nextValue < prevValueAvg * 2) {
+    vprTags.push('QUIET_BREAKOUT');
+  }
+
+  // ─── description 조합 ───
+  const mainDesc = VPR_MAIN_DESCRIPTIONS[vprMain] || '';
+  const tagDescs = vprTags.map(t => VPR_AUX_DESCRIPTIONS[t]).filter(Boolean);
+  const description = [mainDesc, ...tagDescs].join(' ').trim();
+
+  return {
+    vprMain,
+    vprMainLabel: VPR_MAIN_LABELS[vprMain],
+    vprTags,
+    vprTagLabels: vprTags.map(t => VPR_AUX_LABELS[t]),
+    vprDescription: description,
+    vprBaseClose: baseClose,
+    vprBreakoutLine: round(breakoutLine, 2),
+    vprDistanceFromBasePct: round(vprDistanceFromBasePct, 2),
+    vprDistanceFromBreakoutPct: round(vprDistanceFromBreakoutPct, 2),
+    vprClosePosition: round(closePosition * 100, 1),
+  };
+}
+
 module.exports = {
   analyzeVPR,
   buildOneLineSummary,
@@ -423,4 +595,10 @@ module.exports = {
   VPR_LABELS,
   VPR_DESCRIPTIONS,
   MANAGEMENT_NOTE,
+  // 신규 (돌파 이후 반응 분류)
+  analyzeBreakoutReaction,
+  VPR_MAIN_LABELS,
+  VPR_MAIN_DESCRIPTIONS,
+  VPR_AUX_LABELS,
+  VPR_AUX_DESCRIPTIONS,
 };

@@ -3444,6 +3444,15 @@ app.get("/vpr-trade-winrate", (req, res) => {
   res.sendFile(filePath);
 });
 
+// ─────────── VVI돌파대기 매매 승률 백테스트 ───────────
+app.get("/vvi-pending-winrate", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "vvi-pending-winrate-backtest-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/vvi-pending-winrate-backtest-result.html 파일이 없습니다. `node vvi-pending-winrate-backtest.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
 // ─────────── 패턴 스크리너 ───────────
 const patternState = {
   seeding: false, seedStartedAt: null, seedFinishedAt: null, seedProgress: null, seedError: null,
