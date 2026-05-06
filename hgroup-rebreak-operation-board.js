@@ -31,18 +31,62 @@ const OUT_JSON = path.join(REPORTS_DIR, 'hgroup-rebreak-operation-board-result.j
 const OUT_HTML = path.join(REPORTS_DIR, 'hgroup-rebreak-operation-board-result.html');
 
 const MAX_DAYS = 5;
-const NEAR_REBREAK_PCT = -3;  // 재돌파 근접 = -3% 이내
 
+// 사용자 spec 2026-05-06: rebreak deep-dive 결과 반영. 상태 체계 8종.
+// 종가 재돌파 = 가장 강한 시그널 / 장중만 = 부정 / 이탈 후 당일 회복 = 착시 (실제 약함).
 const STATUS_LABELS = {
   TODAY_INITIAL_BREAKOUT: '오늘 H돌파일 (D+0)',
-  CLOSE_REBREAK_HOLD: '재돌파 후 위 유지',
-  CLOSE_REBREAK_PULLBACK: '재돌파 후 눌림',
-  INTRADAY_REBREAK: '장중 재돌파 (오늘)',
-  NEAR_REBREAK: '재돌파 근접',
-  WAITING: '재돌파 대기',
-  BELOW_BASE: '기준 종가 이탈 주의',
-  BREAKDOWN_NO_RECOVER: '이탈 후 회복 실패',
+  CLOSE_REBREAK_NO_BREACH: '종가 재돌파 · 이탈 없음',
+  CLOSE_REBREAK_VOL_EXPLOSION: '종가 재돌파 · 거래대금 폭발',
+  CLOSE_REBREAK_HOLD_NEXTDAY: '종가 재돌파 · 다음날 유지',
+  CLOSE_REBREAK_BREACH_RECOVER: '종가 재돌파 · 이탈 후 회복',
+  INTRADAY_PUSHBACK: '장중만 돌파 후 밀림',
+  BREACH_RECOVER_ILLUSION: '이탈 후 회복 착시',
+  NO_REBREAK: '재돌파 없음',
+  BREACH_NO_RECOVER: '이탈 후 회복 실패',
 };
+const STATUS_INTERPRETATIONS = {
+  CLOSE_REBREAK_NO_BREACH: '검증상 가장 강했던 핵심 조건입니다 (n=126, 승률 89%, 매번 +9.41%).',
+  CLOSE_REBREAK_VOL_EXPLOSION: '재돌파와 함께 거래대금이 크게 붙은 강한 모멘텀 구간입니다 (n=91, 승률 87%, 매번 +11%).',
+  CLOSE_REBREAK_HOLD_NEXTDAY: '재돌파 이후에도 가격이 유지된 강한 후속 확인입니다 (n=165, 승률 88%, 매번 +9.08%).',
+  CLOSE_REBREAK_BREACH_RECOVER: '이탈이 있었지만 재돌파까지 회복한 예외적 회복형입니다 (n=77, 승률 79%, 매번 +6.18%).',
+  INTRADAY_PUSHBACK: '검증상 재돌파 없음과 비슷하게 약했던 구간입니다 (n=106, 승률 8.5%, 매번 -5.02%). 종가 재돌파 전까지는 재돌파로 인정하지 않습니다.',
+  BREACH_RECOVER_ILLUSION: '겉으로는 회복처럼 보이지만 검증상 성과가 매우 약했던 구간입니다 (이탈 후 당일 회복 n=95, 승률 7.4%, 매번 -4.74%).',
+  NO_REBREAK: '검증상 성과가 매우 약했던 구간입니다 (n=220, 승률 7%, 매번 -5.81%).',
+  BREACH_NO_RECOVER: '검증상 가장 나빴던 제외 우선 구간입니다 (n=76, 승률 0%, 매번 -10.2%).',
+  TODAY_INITIAL_BREAKOUT: '오늘이 H돌파일(D+0) 자체. 재돌파 추적은 D+1부터 시작.',
+};
+// 거래대금 강도 (재돌파일 valueRatio 기준)
+const VOLUME_STRENGTH_LABELS = {
+  EXPLOSION: '거래대금 폭발 (×5↑)',
+  STRONG: '거래대금 강함 (×3↑)',
+  SUPPORT: '거래대금 동반 (×2↑)',
+  MILD: '거래대금 보통 이하',
+};
+function classifyVolumeStrength(valueRatio) {
+  if (valueRatio == null) return null;
+  if (valueRatio >= 5) return 'EXPLOSION';
+  if (valueRatio >= 3) return 'STRONG';
+  if (valueRatio >= 2) return 'SUPPORT';
+  return 'MILD';
+}
+// 재돌파 후 거리 라벨 (사용자 spec 2026-05-06)
+const REBREAK_DIST_LABELS = {
+  POST_0_2: { label: '재돌파 직후', note: null },
+  POST_2_5: { label: '재돌파 후 상승', note: null },
+  POST_5_8: { label: '강한 모멘텀', note: '(참고: 표본 n<50)' },
+  POST_8_12: { label: '강한 모멘텀 지속', note: '(참고: 표본 n<50)' },
+  POST_12P: { label: '급등 모멘텀', note: '(참고: 표본 n<50)' },
+};
+function classifyRebreakDistance(distPct) {
+  if (distPct == null) return null;
+  if (distPct >= 12) return 'POST_12P';
+  if (distPct >= 8) return 'POST_8_12';
+  if (distPct >= 5) return 'POST_5_8';
+  if (distPct >= 2) return 'POST_2_5';
+  if (distPct >= 0) return 'POST_0_2';
+  return null;  // 음수면 아직 재돌파 못 함
+}
 
 function round(v, d = 2) { if (v == null || !Number.isFinite(v)) return null; return Math.round(v * Math.pow(10, d)) / Math.pow(10, d); }
 function fmtNum(v) { return v != null ? Math.round(v).toLocaleString() : '-'; }
@@ -55,14 +99,22 @@ function loadChart(code) {
 }
 
 // ─── 재돌파 상태 산출 ───
+// 사용자 spec(2026-05-06): rebreak deep-dive 결과 반영 8단계 + D+0 분리.
+// 우선순위:
+//   D+0 → BREACH_NO_RECOVER → BREACH_RECOVER_ILLUSION → CLOSE_REBREAK_NO_BREACH
+//   → CLOSE_REBREAK_VOL_EXPLOSION → CLOSE_REBREAK_HOLD_NEXTDAY
+//   → CLOSE_REBREAK_BREACH_RECOVER → INTRADAY_PUSHBACK → NO_REBREAK
 function computeRebreakStatus({ rows, hIdx, baseClose, hDayHigh, breakoutLine, latestIdx }) {
   let everClosedAboveHHigh = false;
   let everIntradayAboveHHigh = false;
   let everLowBelowBaseClose = false;
+  let breakdownEverRecovered = false;  // 이탈 후 종가가 baseClose 이상으로 회복했는가
   let recoveredAboveBreakoutLine = false;
   let everPullbackToBreakoutLine = false;
   let firstRebreakDayOffset = null;
   let firstRebreakDate = null;
+  let firstRebreakIdx = null;
+  let seenBreach = false;
 
   for (let k = 1; hIdx + k <= latestIdx; k++) {
     const r = rows[hIdx + k];
@@ -72,12 +124,43 @@ function computeRebreakStatus({ rows, hIdx, baseClose, hDayHigh, breakoutLine, l
       if (firstRebreakDayOffset == null) {
         firstRebreakDayOffset = k;
         firstRebreakDate = r.date;
+        firstRebreakIdx = hIdx + k;
       }
     }
     if (r.high >= hDayHigh) everIntradayAboveHHigh = true;
-    if (r.low < baseClose) everLowBelowBaseClose = true;
+    if (r.low < baseClose) {
+      everLowBelowBaseClose = true;
+      seenBreach = true;
+      if (r.close >= baseClose) breakdownEverRecovered = true;
+    } else if (seenBreach && r.close >= baseClose) {
+      breakdownEverRecovered = true;
+    }
     if (r.low <= breakoutLine) everPullbackToBreakoutLine = true;
     if (r.close >= breakoutLine) recoveredAboveBreakoutLine = true;
+  }
+
+  // 재돌파일 거래대금 비율 (재돌파일 valueApprox / 직전 20거래일 평균)
+  let rebreakValueRatio = null;
+  if (firstRebreakIdx != null) {
+    const todayVal = rows[firstRebreakIdx]?.valueApprox;
+    if (todayVal && firstRebreakIdx >= 20) {
+      let sum = 0, n = 0;
+      for (let i = firstRebreakIdx - 20; i < firstRebreakIdx; i++) {
+        const r = rows[i];
+        if (r?.valueApprox) { sum += r.valueApprox; n++; }
+      }
+      const avg = n > 0 ? sum / n : null;
+      if (avg && avg > 0) rebreakValueRatio = todayVal / avg;
+    }
+  }
+
+  // 재돌파 다음날 종가 유지 여부 (재돌파일 다음날 종가 ≥ hDayHigh)
+  let nextDayHoldAfterRebreak = null;
+  if (firstRebreakIdx != null && firstRebreakIdx + 1 <= latestIdx) {
+    const next = rows[firstRebreakIdx + 1];
+    if (next && next.close != null) {
+      nextDayHoldAfterRebreak = next.close >= hDayHigh;
+    }
   }
 
   const lastRow = rows[latestIdx];
@@ -99,26 +182,37 @@ function computeRebreakStatus({ rows, hIdx, baseClose, hDayHigh, breakoutLine, l
   const isTodayInitialBreakout = latestIdx === hIdx;
 
   // 상태 결정 — 우선순위 순으로 첫 매칭
-  // 사용자 spec(2026-05-06): D+0 종목은 "재돌파 대기"가 아닌 "오늘 H돌파일" 별도 라벨.
-  // 재돌파 추적은 D+1부터 시작.
   let status;
   if (isTodayInitialBreakout) {
     status = 'TODAY_INITIAL_BREAKOUT';
-  } else if (everLowBelowBaseClose && !everClosedAboveHHigh && currentClose < breakoutLine) {
-    status = 'BREAKDOWN_NO_RECOVER';
-  } else if (currentClose != null && currentClose < baseClose) {
-    status = 'BELOW_BASE';
-  } else if (everClosedAboveHHigh && currentlyAboveHHigh) {
-    status = 'CLOSE_REBREAK_HOLD';
+  } else if (everLowBelowBaseClose && !breakdownEverRecovered) {
+    status = 'BREACH_NO_RECOVER';
+  } else if (everLowBelowBaseClose && breakdownEverRecovered && !everClosedAboveHHigh) {
+    status = 'BREACH_RECOVER_ILLUSION';
+  } else if (everClosedAboveHHigh && !everLowBelowBaseClose) {
+    status = 'CLOSE_REBREAK_NO_BREACH';
+  } else if (everClosedAboveHHigh && rebreakValueRatio != null && rebreakValueRatio >= 5) {
+    status = 'CLOSE_REBREAK_VOL_EXPLOSION';
+  } else if (everClosedAboveHHigh && nextDayHoldAfterRebreak === true) {
+    status = 'CLOSE_REBREAK_HOLD_NEXTDAY';
+  } else if (everClosedAboveHHigh && everLowBelowBaseClose) {
+    status = 'CLOSE_REBREAK_BREACH_RECOVER';
   } else if (everClosedAboveHHigh) {
-    status = 'CLOSE_REBREAK_PULLBACK';
-  } else if (currentClose != null && currentClose >= hDayHigh) {
-    status = 'INTRADAY_REBREAK';
-  } else if (currentClose != null && currentClose >= hDayHigh * (1 + NEAR_REBREAK_PCT / 100)) {
-    status = 'NEAR_REBREAK';
+    // fallback: 종가 재돌파했고 위 조건 어디에도 안 맞음 — 이탈 없음으로 처리
+    status = 'CLOSE_REBREAK_NO_BREACH';
+  } else if (everIntradayAboveHHigh) {
+    status = 'INTRADAY_PUSHBACK';
   } else {
-    status = 'WAITING';
+    status = 'NO_REBREAK';
   }
+
+  // 거래대금 강도 분류
+  const volumeStrength = classifyVolumeStrength(rebreakValueRatio);
+
+  // 재돌파 후 거리 (현재 종가 vs hDayHigh)
+  const postRebreakDistPct = (everClosedAboveHHigh && currentClose != null && hDayHigh)
+    ? (currentClose / hDayHigh - 1) * 100 : null;
+  const rebreakDistanceClass = classifyRebreakDistance(postRebreakDistPct);
 
   // "눌림 없이 상승" 부가 플래그 — 정렬에 활용 가능
   const noPullback = !everPullbackToBreakoutLine;
@@ -127,8 +221,14 @@ function computeRebreakStatus({ rows, hIdx, baseClose, hDayHigh, breakoutLine, l
     status,
     everClosedAboveHHigh, everIntradayAboveHHigh,
     everLowBelowBaseClose, recoveredAboveBreakoutLine,
+    breakdownEverRecovered,
     everPullbackToBreakoutLine, noPullback,
     firstRebreakDayOffset, firstRebreakDate,
+    rebreakValueRatio: round(rebreakValueRatio),
+    nextDayHoldAfterRebreak,
+    volumeStrength,
+    postRebreakDistPct: round(postRebreakDistPct),
+    rebreakDistanceClass,
     currentClose, currentHigh, currentLow, currentOpen,
     todayChangePct: round(todayChangePct),
     todayHighVsHHighPct: round(todayHighVsHHighPct),
@@ -141,34 +241,48 @@ function computeRebreakStatus({ rows, hIdx, baseClose, hDayHigh, breakoutLine, l
 }
 
 // ─── 운용 코멘트 ───
-function buildRunComments({ status, hasVolumeSupport, gapPct, noPullback, firstRebreakDate, firstRebreakDayOffset, vprMain, currentClose, hDayHigh }) {
+function buildRunComments({ status, hasVolumeSupport, gapPct, noPullback, firstRebreakDate, firstRebreakDayOffset, vprMain, rebreakValueRatio, postRebreakDistPct, rebreakDistanceClass }) {
   const cmts = [];
   const rbInfo = (firstRebreakDate && firstRebreakDayOffset != null)
     ? `${firstRebreakDate.slice(0, 4)}-${firstRebreakDate.slice(4, 6)}-${firstRebreakDate.slice(6, 8)} (D+${firstRebreakDayOffset})`
     : null;
+
   if (status === 'TODAY_INITIAL_BREAKOUT') {
-    cmts.push('오늘이 바로 H돌파일(D+0) 자체입니다. 재돌파 추적은 내일(D+1)부터 시작됩니다 — 오늘은 VPR + 종가 위치로 강도를 봅니다.');
+    cmts.push('오늘이 바로 H돌파일(D+0) 자체. 재돌파 추적은 내일(D+1)부터 — 오늘은 VPR + 종가 위치로 강도 확인.');
     if (vprMain === 'OVERHEATED_BREAKOUT') {
-      cmts.push('VPR 과열 돌파 — 기준 종가 대비 +12% 이상 떠 있어 추격 위험이 큽니다. 내일 재돌파 시도 시 거래대금 동반 여부 확인.');
+      cmts.push('VPR 과열 돌파 — 기준 종가 대비 +12% 이상 떠 있음. 내일 재돌파 시도 시 거래대금 동반 여부 확인.');
     } else if (vprMain === 'HIGH_ZONE_HOLD') {
-      cmts.push('VPR 고가권 유지 — 종가 위치가 고가권에서 마감. 내일 H돌파일 고가 재돌파가 핵심.');
+      cmts.push('VPR 고가권 유지 — 종가 위치가 고가권에서 마감. 내일 H돌파일 고가 종가 재돌파가 핵심.');
     }
-  } else if (status === 'CLOSE_REBREAK_HOLD' && hasVolumeSupport) {
-    cmts.push((rbInfo ? `${rbInfo}에 ` : '') + '종가 재돌파했고 현재도 H돌파일 고가 위 유지 중. D+5 검증 최강 조건(재돌파+거래대금 동반).');
-  } else if (status === 'CLOSE_REBREAK_HOLD') {
-    cmts.push((rbInfo ? `${rbInfo}에 ` : '') + '종가 재돌파했고 현재도 H돌파일 고가 위 유지 중. 검증상 승률 75% 구간.');
-  } else if (status === 'CLOSE_REBREAK_PULLBACK') {
-    cmts.push((rbInfo ? `${rbInfo}에 ` : '') + '종가 재돌파했지만 현재는 H돌파일 고가 살짝 아래로 눌림. 정상 흐름이지만 종가 재돌파 재확인이 필요합니다.');
-  } else if (status === 'INTRADAY_REBREAK') {
-    cmts.push('오늘 장중 H돌파일 고가 위 유지 중. 아직 종가 미확정이라 마감까지 유지되는지 확인이 필요합니다.');
-  } else if (status === 'NEAR_REBREAK') {
-    cmts.push('H돌파일 고가까지 가까워진 상태(-3% 이내). 돌파 시 거래대금 동반 여부가 중요합니다.');
-  } else if (status === 'WAITING') {
-    cmts.push('아직 H돌파일 고가 재돌파 전입니다. 기준 종가를 지키는지 확인합니다.');
-  } else if (status === 'BELOW_BASE') {
-    cmts.push('기준 종가 아래로 내려온 상태입니다. 과거 검증상 이탈 후 회복 실패 구간은 성과가 매우 나빴습니다.');
-  } else if (status === 'BREAKDOWN_NO_RECOVER') {
-    cmts.push('과거 검증상 성과가 가장 나빴던 구간입니다 (n=72, 승률 0%). 신규 관찰 우선순위를 낮춥니다.');
+  } else if (status === 'CLOSE_REBREAK_NO_BREACH') {
+    cmts.push((rbInfo ? `${rbInfo}에 ` : '') + '종가 재돌파 + 기준 종가 한 번도 이탈 없음. 검증상 가장 강했던 핵심 조건(n=126, 승률 89%, 매번 +9.41%).');
+  } else if (status === 'CLOSE_REBREAK_VOL_EXPLOSION') {
+    const vr = rebreakValueRatio != null ? `×${rebreakValueRatio.toFixed(1)}` : '폭발';
+    cmts.push((rbInfo ? `${rbInfo}에 ` : '') + `종가 재돌파 + 재돌파일 거래대금 ${vr}. 검증상 강한 모멘텀 구간(n=91, 승률 87%, 매번 +11%).`);
+  } else if (status === 'CLOSE_REBREAK_HOLD_NEXTDAY') {
+    cmts.push((rbInfo ? `${rbInfo}에 ` : '') + '종가 재돌파 + 다음날 종가도 H돌파일 고가 위 유지. 강한 후속 확인(n=165, 승률 88%, 매번 +9.08%).');
+  } else if (status === 'CLOSE_REBREAK_BREACH_RECOVER') {
+    cmts.push((rbInfo ? `${rbInfo}에 ` : '') + '기준 종가 이탈이 한 번 있었지만 종가 재돌파까지 회복한 예외적 회복형(n=77, 승률 79%, 매번 +6.18%) — 이탈 안 한 본진(89%)보다는 약함.');
+  } else if (status === 'INTRADAY_PUSHBACK') {
+    cmts.push('장중 H돌파일 고가는 닿았지만 종가까지는 한 번도 못 마감. 검증상 재돌파 없음과 비슷하게 약했던 구간(n=106, 승률 8.5%, 매번 -5.02%) — 종가 재돌파 전까지는 재돌파로 인정 안 함.');
+  } else if (status === 'BREACH_RECOVER_ILLUSION') {
+    cmts.push('기준 종가 이탈한 뒤 종가는 회복했지만 H돌파일 고가까지는 종가 재돌파 못함. 회복처럼 보이지만 검증상 매우 약한 구간(이탈 후 당일 회복 n=95, 승률 7.4%, 매번 -4.74%) — 회복 착시.');
+  } else if (status === 'NO_REBREAK') {
+    cmts.push('아직 H돌파일 고가에 장중도 닿지 않은 상태. 검증상 매우 약한 구간(n=220, 승률 7%, 매번 -5.81%).');
+  } else if (status === 'BREACH_NO_RECOVER') {
+    cmts.push('기준 종가 이탈한 뒤 회복도 못 한 상태. 검증상 가장 나빴던 제외 우선 구간(n=76, 승률 0%, 매번 -10.2%).');
+  }
+
+  // 재돌파 후 거리 (긍정 4종 상태에서만 추가)
+  const isCloseRebreak = status === 'CLOSE_REBREAK_NO_BREACH'
+    || status === 'CLOSE_REBREAK_VOL_EXPLOSION'
+    || status === 'CLOSE_REBREAK_HOLD_NEXTDAY'
+    || status === 'CLOSE_REBREAK_BREACH_RECOVER';
+  if (isCloseRebreak && rebreakDistanceClass && postRebreakDistPct != null) {
+    const lab = REBREAK_DIST_LABELS[rebreakDistanceClass];
+    if (lab) {
+      cmts.push(`재돌파 후 거리 ${lab.label} (현재 +${postRebreakDistPct.toFixed(2)}%)${lab.note ? ' ' + lab.note : ''}.`);
+    }
   }
 
   // 갭 해석 추가
@@ -179,16 +293,16 @@ function buildRunComments({ status, hasVolumeSupport, gapPct, noPullback, firstR
     else if (gapPct < 0) cmts.push('하락 출발: 기준 종가 이탈 여부 확인 필요.');
   }
 
-  // 눌림 없이 상승 부가
-  if (noPullback && (status === 'CLOSE_REBREAK' || status === 'INTRADAY_REBREAK')) {
-    cmts.push('D+1~현재까지 기준선 아래로 내려간 적 없는 강한 흐름.');
+  // 눌림 없이 상승 부가 (종가 재돌파 4종 + INTRADAY_PUSHBACK은 아닌 데이터에 한정)
+  if (noPullback && isCloseRebreak) {
+    cmts.push('D+1~현재까지 돌파 기준선 아래로 내려간 적 없는 강한 흐름.');
   }
 
   return cmts;
 }
 
 // ─── 착각 방지 해석 코멘트 ───
-// "오늘 +7% 올랐는데 왜 재돌파 대기?" 같은 사용자 혼동을 자동으로 해소하는 한 줄.
+// "오늘 +7% 올랐는데 왜 재돌파 없음?" 같은 사용자 혼동을 자동으로 해소하는 한 줄.
 // 오늘의 등락 + 시스템 상태가 어긋나 보일 때 그 이유를 설명한다.
 function buildInterpretationComment(it) {
   const s = it.rebreakStatus;
@@ -199,43 +313,54 @@ function buildInterpretationComment(it) {
   const fmtN = (v) => v != null ? Math.round(v).toLocaleString() : '-';
   const breakoutDateLabel = (it.breakoutDate || '').replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
 
-  // D+0: 오늘 큰 상승 했어도 D+0 자체이므로 재돌파 추적 시작 전
+  // D+0
   if (s === 'TODAY_INITIAL_BREAKOUT') {
     if (chg != null && chg >= 5) {
-      return `오늘 +${chg.toFixed(1)}%로 큰 상승했지만, 오늘이 H돌파일(D+0) 자체라 ${fmtN(it.hDayHigh)}원은 "재돌파해야 할 기준"이 아니라 "내일부터 깨야 할 기준"입니다. 재돌파 추적은 D+1(내일)부터 시작.`;
+      return `오늘 +${chg.toFixed(1)}%로 큰 상승했지만, 오늘이 H돌파일(D+0) 자체라 ${fmtN(it.hDayHigh)}원은 "재돌파해야 할 기준"이 아니라 "내일부터 깨야 할 기준". 재돌파 추적은 D+1(내일)부터 시작.`;
     } else if (chg != null && chg < 0) {
-      return `오늘이 H돌파일(D+0)인데 종가가 ${chg.toFixed(1)}%로 약합니다. 강한 H돌파라기보다 변동성 큰 상태 — 내일 흐름 보고 판단 필요.`;
+      return `오늘이 H돌파일(D+0)인데 종가가 ${chg.toFixed(1)}%로 약함. 강한 H돌파라기보다 변동성 큰 상태 — 내일 흐름 보고 판단 필요.`;
     }
     return null;
   }
-  // 재돌파 대기: 오늘 큰 상승 했지만 H고 못 닿음
-  if (s === 'WAITING' && chg != null && chg >= 5 && hvh != null && hvh < -3) {
-    return `오늘 +${chg.toFixed(1)}%로 잘 갔지만, H돌파일(${breakoutDateLabel}) 고가 ${fmtN(it.hDayHigh)}원까지는 ${Math.abs(hvh).toFixed(1)}% 모자랐습니다. 그래서 "재돌파 대기" — 오늘 상승과 시스템 상태는 별개로 봐야 합니다.`;
+  // 재돌파 없음 + 오늘 큰 상승
+  if (s === 'NO_REBREAK' && chg != null && chg >= 5 && hvh != null && hvh < -3) {
+    return `오늘 +${chg.toFixed(1)}%로 잘 갔지만, H돌파일(${breakoutDateLabel}) 고가 ${fmtN(it.hDayHigh)}원까지는 ${Math.abs(hvh).toFixed(1)}% 모자랐음. 그래서 "재돌파 없음" — 오늘 상승과 시스템 상태는 별개로 봐야 함.`;
   }
-  // 재돌파 근접: 장중 거의 갔지만 종가 못 닿음
-  if (s === 'NEAR_REBREAK' && hvh != null && hvh > -3 && hvh < 0) {
-    return `장중 H돌파일 고가까지 ${Math.abs(hvh).toFixed(1)}%만 남기고 근접했지만 종가는 못 닿음. 내일 종가 재돌파 + 거래대금 동반이 핵심.`;
+  // 장중만 돌파 후 밀림 (긍정 색상 금지 — 검증상 매우 약함)
+  if (s === 'INTRADAY_PUSHBACK') {
+    if (wick != null && wick > 3) {
+      return `장중 H돌파일 고가는 닿았지만 종가는 위꼬리 ${wick.toFixed(1)}%로 밀림. 검증상 종가 재돌파 못 한 "장중만"은 재돌파 없음과 비슷하게 약함(승률 8.5%, 매번 -5.02%) — 종가 재돌파 전까지는 추격 보류.`;
+    }
+    return `장중 H돌파일 고가는 닿았지만 종가는 못 닿음. 검증상 종가 재돌파 못 한 "장중만"은 재돌파 없음과 비슷하게 약함(승률 8.5%) — 종가 재돌파 전까지 재돌파로 인정 안 함.`;
   }
-  // 장중 재돌파 + 위꼬리 큰 경우
-  if (s === 'INTRADAY_REBREAK' && wick != null && wick > 3) {
-    return `장중 H돌파일 고가 위 갔지만 종가는 위꼬리 ${wick.toFixed(1)}%로 약화. 내일 종가까지 위 유지되는지 확인 필요.`;
-  }
-  // 재돌파 후 눌림 + 오늘 약세
-  if (s === 'CLOSE_REBREAK_PULLBACK' && chg != null && chg < -1) {
-    const rb = it.firstRebreakDate ? it.firstRebreakDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : '-';
-    return `오늘 ${chg.toFixed(1)}% 약세였지만, 과거 ${rb} 종가 재돌파는 유지된 상태. 정상 눌림 범위면 다음 종가 재돌파 재확인 필요.`;
-  }
-  // 재돌파 후 위 유지 + 강한 마감
-  if (s === 'CLOSE_REBREAK_HOLD' && cp != null && cp >= 75) {
-    return `H돌파일 고가 위 + 종가 위치 ${cp.toFixed(0)}% 고가권 마감. D+5 검증상 가장 강한 흐름 패턴(승률 75% / 매번 +6.83%).`;
-  }
-  // 기준 종가 이탈
-  if (s === 'BELOW_BASE') {
-    return `오늘 종가가 기준 종가(${fmtN(it.baseClose)}원) 아래로 마감. 내일 회복 못 하면 통계상 가장 약한 영역(이탈 후 미회복 n=72, 승률 0%, 매번 -9.02%)에 진입.`;
+  // 이탈 후 회복 착시 — "회복처럼 보이지만 실제로는 매우 약함" 강조 (counterintuitive)
+  if (s === 'BREACH_RECOVER_ILLUSION') {
+    return `기준 종가(${fmtN(it.baseClose)}원) 이탈 뒤 종가는 회복했지만 H돌파일 고가(${fmtN(it.hDayHigh)}원)까지는 종가 재돌파 못 함. 겉으로는 회복처럼 보이지만 검증상 승률 7.4%로 매우 약했던 구간 — 회복 착시.`;
   }
   // 이탈 후 회복 실패
-  if (s === 'BREAKDOWN_NO_RECOVER') {
-    return `한 번 기준 종가 이탈한 뒤 H돌파일 고가나 돌파 기준선을 한 번도 회복 못 한 상태. 통계상 가장 약한 영역 (n=72, 승률 0%).`;
+  if (s === 'BREACH_NO_RECOVER') {
+    return `기준 종가(${fmtN(it.baseClose)}원) 이탈 뒤 회복도 못 한 상태. 통계상 가장 약한 영역(n=76, 승률 0%, 매번 -10.2%) — 신규 관찰 우선순위 최하.`;
+  }
+  // 종가 재돌파 + 이탈 없음 — 가장 강한 핵심
+  if (s === 'CLOSE_REBREAK_NO_BREACH') {
+    const dist = it.postRebreakDistPct != null ? ` 현재 +${it.postRebreakDistPct.toFixed(2)}%까지 떠 있음.` : '';
+    return `H돌파일 고가 종가 재돌파 + 기준 종가 한 번도 이탈 없음. 검증상 가장 강했던 핵심 조건(n=126, 승률 89%, 매번 +9.41%).${dist}`;
+  }
+  // 종가 재돌파 + 거래대금 폭발
+  if (s === 'CLOSE_REBREAK_VOL_EXPLOSION') {
+    const vr = it.rebreakValueRatio != null ? `×${it.rebreakValueRatio.toFixed(1)}` : '5배 이상';
+    return `H돌파일 고가 종가 재돌파 + 재돌파일 거래대금 ${vr} 폭발. 검증상 강한 모멘텀 구간(n=91, 승률 87%, 매번 +11%).`;
+  }
+  // 종가 재돌파 + 다음날 유지
+  if (s === 'CLOSE_REBREAK_HOLD_NEXTDAY') {
+    if (cp != null && cp >= 75) {
+      return `H돌파일 고가 종가 재돌파 + 다음날도 유지 + 오늘 종가 위치 ${cp.toFixed(0)}% 고가권 마감. 검증상 강한 후속 확인 패턴(n=165, 승률 88%, 매번 +9.08%).`;
+    }
+    return `H돌파일 고가 종가 재돌파 + 다음날 종가도 H고 위 유지. 검증상 강한 후속 확인 패턴(n=165, 승률 88%, 매번 +9.08%).`;
+  }
+  // 종가 재돌파 + 이탈 후 회복
+  if (s === 'CLOSE_REBREAK_BREACH_RECOVER') {
+    return `기준 종가 이탈했지만 H돌파일 고가 종가 재돌파까지 회복한 예외적 회복형(n=77, 승률 79%, 매번 +6.18%) — 이탈 안 한 본진(89%)보다는 약함.`;
   }
   // 일반: 오늘 큰 상승 + 종가 위치 약함
   if (chg != null && chg >= 3 && cp != null && cp < 40) {
@@ -293,8 +418,9 @@ function main() {
       firstRebreakDate: reb.firstRebreakDate,
       firstRebreakDayOffset: reb.firstRebreakDayOffset,
       vprMain: c.vprMain,
-      currentClose: reb.currentClose,
-      hDayHigh,
+      rebreakValueRatio: reb.rebreakValueRatio,
+      postRebreakDistPct: reb.postRebreakDistPct,
+      rebreakDistanceClass: reb.rebreakDistanceClass,
     });
 
     // 해석 코멘트 (착각 방지) — 마지막에 추가
@@ -307,8 +433,11 @@ function main() {
       todayClosePosition: reb.todayClosePosition,
       todayUpperWickPct: reb.todayUpperWickPct,
       firstRebreakDate: reb.firstRebreakDate,
+      rebreakValueRatio: reb.rebreakValueRatio,
+      postRebreakDistPct: reb.postRebreakDistPct,
     });
 
+    const rebreakDistLabelObj = reb.rebreakDistanceClass ? REBREAK_DIST_LABELS[reb.rebreakDistanceClass] : null;
     items.push({
       code: c.code, name: c.name, market: c.market,
       breakoutDate: c.breakoutDate, daysFromBreakout: c.daysFromBreakout,
@@ -325,11 +454,22 @@ function main() {
       gapPct,
       rebreakStatus: reb.status,
       rebreakStatusLabel: STATUS_LABELS[reb.status] || reb.status,
+      rebreakStatusInterp: STATUS_INTERPRETATIONS[reb.status] || null,
       everClosedAboveHHigh: reb.everClosedAboveHHigh,
+      everIntradayAboveHHigh: reb.everIntradayAboveHHigh,
       everLowBelowBaseClose: reb.everLowBelowBaseClose,
+      breakdownEverRecovered: reb.breakdownEverRecovered,
       noPullback: reb.noPullback,
       firstRebreakDayOffset: reb.firstRebreakDayOffset,
       firstRebreakDate: reb.firstRebreakDate,
+      rebreakValueRatio: reb.rebreakValueRatio,
+      volumeStrength: reb.volumeStrength,
+      volumeStrengthLabel: reb.volumeStrength ? VOLUME_STRENGTH_LABELS[reb.volumeStrength] : null,
+      nextDayHoldAfterRebreak: reb.nextDayHoldAfterRebreak,
+      postRebreakDistPct: reb.postRebreakDistPct,
+      rebreakDistanceClass: reb.rebreakDistanceClass,
+      rebreakDistanceLabel: rebreakDistLabelObj ? rebreakDistLabelObj.label : null,
+      rebreakDistanceNote: rebreakDistLabelObj ? rebreakDistLabelObj.note : null,
       // 오늘 흐름
       todayOpen: reb.currentOpen,
       todayHigh: reb.currentHigh,
@@ -343,28 +483,18 @@ function main() {
     });
   }
 
-  // ─── 정렬 (사용자 spec) ───
-  // 1. 종가 재돌파 확정 + 거래대금 동반
-  // 2. 장중 재돌파 유지 중 + 거래대금 동반
-  // 3. 재돌파 근접
-  // 4. 눌림 없이 상승 (위 어디에도 안 들어가는 종목)
-  // 5. 재돌파 대기
-  // 6. 기준 종가 이탈 주의
-  // 7. 기준 종가 이탈 후 회복 실패
+  // ─── 정렬 (사용자 spec 2026-05-06: 긍정 위 / 부정 하단) ───
   function sortRank(it) {
     const s = it.rebreakStatus;
-    const v = it.hasVolumeSupport;
-    if (s === 'TODAY_INITIAL_BREAKOUT') return 0;   // 오늘 H돌파 — 가장 위 (신선한 신규)
-    if (s === 'CLOSE_REBREAK_HOLD' && v) return 1;
-    if (s === 'CLOSE_REBREAK_HOLD') return 1.5;
-    if (s === 'INTRADAY_REBREAK' && v) return 2;
-    if (s === 'INTRADAY_REBREAK') return 2.5;
-    if (s === 'CLOSE_REBREAK_PULLBACK') return 3;
-    if (s === 'NEAR_REBREAK') return 4;
-    if (s === 'WAITING' && it.noPullback) return 5;
-    if (s === 'WAITING') return 6;
-    if (s === 'BELOW_BASE') return 7;
-    if (s === 'BREAKDOWN_NO_RECOVER') return 8;
+    if (s === 'TODAY_INITIAL_BREAKOUT') return 0;          // 오늘 H돌파 — 가장 위 (신선한 신규)
+    if (s === 'CLOSE_REBREAK_NO_BREACH') return 1;         // 핵심 긍정 (이탈 없음 + 재돌파)
+    if (s === 'CLOSE_REBREAK_VOL_EXPLOSION') return 2;     // 거래대금 폭발
+    if (s === 'CLOSE_REBREAK_HOLD_NEXTDAY') return 3;      // 다음날 유지
+    if (s === 'CLOSE_REBREAK_BREACH_RECOVER') return 4;    // 이탈 후 회복형
+    if (s === 'INTRADAY_PUSHBACK') return 5;               // 주의 (장중만)
+    if (s === 'NO_REBREAK') return 6;                      // 하단 (재돌파 없음)
+    if (s === 'BREACH_RECOVER_ILLUSION') return 7;         // 하단 (회복 착시)
+    if (s === 'BREACH_NO_RECOVER') return 8;               // 가장 하단 (이탈 후 회복 실패)
     return 9;
   }
   items.sort((a, b) => {
@@ -464,26 +594,38 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .card h3 { margin: 0 0 6px; font-size: 15px; color: #f1f5f9; font-weight: 700; }
 .card .meta { font-size: 11px; color: #94a3b8; margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .card .meta .badge { display:inline-block; padding:2px 7px; border-radius:3px; font-size:11px; font-weight:600; }
-.card.s-TODAY_INITIAL_BREAKOUT { border-left: 5px solid #c4b5fd; }
-.card.s-CLOSE_REBREAK_HOLD     { border-left: 5px solid #10b981; }
-.card.s-CLOSE_REBREAK_PULLBACK { border-left: 5px solid #5eead4; }
-.card.s-INTRADAY_REBREAK       { border-left: 5px solid #34d399; }
-.card.s-NEAR_REBREAK           { border-left: 5px solid #38bdf8; }
-.card.s-WAITING                { border-left: 5px solid #94a3b8; }
-.card.s-BELOW_BASE             { border-left: 5px solid #f59e0b; }
-.card.s-BREAKDOWN_NO_RECOVER   { border-left: 5px solid #ef4444; opacity: 0.85; }
+/* 사용자 spec 2026-05-06: rebreak deep-dive 8단계
+   긍정 4종 (CLOSE_REBREAK_*) = emerald/teal 그라데이션
+   주의 = INTRADAY_PUSHBACK (장중만 = 긍정 색 사용 금지)
+   부정 = NO_REBREAK / BREACH_RECOVER_ILLUSION / BREACH_NO_RECOVER */
+.card.s-TODAY_INITIAL_BREAKOUT       { border-left: 5px solid #c4b5fd; }
+.card.s-CLOSE_REBREAK_NO_BREACH      { border-left: 6px solid #10b981; box-shadow: -3px 0 12px -8px #10b981; } /* 핵심 긍정 */
+.card.s-CLOSE_REBREAK_VOL_EXPLOSION  { border-left: 6px solid #14b8a6; box-shadow: -3px 0 12px -8px #14b8a6; }
+.card.s-CLOSE_REBREAK_HOLD_NEXTDAY   { border-left: 5px solid #34d399; }
+.card.s-CLOSE_REBREAK_BREACH_RECOVER { border-left: 5px solid #5eead4; }
+.card.s-INTRADAY_PUSHBACK            { border-left: 5px solid #f59e0b; opacity: 0.92; } /* 주의 (긍정 X) */
+.card.s-NO_REBREAK                   { border-left: 5px solid #94a3b8; opacity: 0.88; }
+.card.s-BREACH_RECOVER_ILLUSION      { border-left: 5px solid #fb923c; opacity: 0.88; } /* 회복 착시 */
+.card.s-BREACH_NO_RECOVER            { border-left: 5px solid #ef4444; opacity: 0.85; }
 
-.badge.st-TODAY_INITIAL_BREAKOUT { background: #312e81; color: #c4b5fd; border: 1px solid #818cf8; font-weight: 700; }
-.badge.st-CLOSE_REBREAK_HOLD     { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
-.badge.st-CLOSE_REBREAK_PULLBACK { background: #134e4a; color: #5eead4; border: 1px solid #14b8a6; }
-.badge.st-INTRADAY_REBREAK       { background: #134e4a; color: #5eead4; border: 1px solid #14b8a6; }
-.badge.st-NEAR_REBREAK           { background: #1e3a8a; color: #93c5fd; border: 1px solid #3b82f6; }
-.badge.st-WAITING                { background: #1e293b; color: #cbd5e1; border: 1px solid #475569; }
-.badge.st-BELOW_BASE             { background: #422006; color: #fde047; border: 1px solid #ca8a04; }
-.badge.st-BREAKDOWN_NO_RECOVER   { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
-.badge.rebreak-date              { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; font-size: 10px; }
+.badge.st-TODAY_INITIAL_BREAKOUT       { background: #312e81; color: #c4b5fd; border: 1px solid #818cf8; font-weight: 700; }
+.badge.st-CLOSE_REBREAK_NO_BREACH      { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; font-weight: 700; }
+.badge.st-CLOSE_REBREAK_VOL_EXPLOSION  { background: #134e4a; color: #5eead4; border: 1px solid #14b8a6; font-weight: 700; }
+.badge.st-CLOSE_REBREAK_HOLD_NEXTDAY   { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
+.badge.st-CLOSE_REBREAK_BREACH_RECOVER { background: #134e4a; color: #5eead4; border: 1px solid #14b8a6; }
+.badge.st-INTRADAY_PUSHBACK            { background: #422006; color: #fde047; border: 1px solid #ca8a04; }
+.badge.st-NO_REBREAK                   { background: #1e293b; color: #cbd5e1; border: 1px solid #475569; }
+.badge.st-BREACH_RECOVER_ILLUSION      { background: #7c2d12; color: #fdba74; border: 1px solid #f97316; }
+.badge.st-BREACH_NO_RECOVER            { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
+.badge.rebreak-date                    { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; font-size: 10px; }
 .badge.vol     { background: #422006; color: #fbbf24; border: 1px solid #f59e0b; }
+.badge.vol-explosion { background: #7c2d12; color: #fef3c7; border: 1px solid #f97316; font-weight: 700; box-shadow: 0 0 0 1px #f59e0b inset; } /* 거래대금 폭발 별도 강조 */
+.badge.vol-strong    { background: #422006; color: #fde047; border: 1px solid #ca8a04; }
+.badge.vol-support   { background: #422006; color: #fbbf24; border: 1px solid #f59e0b; }
+.badge.no-breach { background: #064e3b; color: #a7f3d0; border: 1px solid #10b981; font-weight: 700; } /* 기준 종가 이탈 없음 핵심 긍정 태그 */
 .badge.no-pull { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
+.badge.dist-soft  { background: #134e4a; color: #5eead4; border: 1px solid #14b8a6; }
+.badge.dist-strong{ background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
 .badge.aux     { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
 .badge.vpr-HIGH_ZONE_HOLD       { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
 .badge.vpr-ABOVE_BREAKOUT_LINE  { background: #134e4a; color: #5eead4; }
@@ -654,16 +796,42 @@ function renderCards() {
     const distFromBaseCls = it.distFromBase != null && it.distFromBase >= 0 ? 'cell-pos' : 'cell-neg';
     const gapCls = it.gapPct != null && it.gapPct >= 5 ? 'cell-pos' : (it.gapPct != null && it.gapPct < 0 ? 'cell-neg' : '');
 
-    const isRebrokeAlready = (it.rebreakStatus === 'CLOSE_REBREAK_HOLD' || it.rebreakStatus === 'CLOSE_REBREAK_PULLBACK');
+    const closeRebreakSet = new Set(['CLOSE_REBREAK_NO_BREACH','CLOSE_REBREAK_VOL_EXPLOSION','CLOSE_REBREAK_HOLD_NEXTDAY','CLOSE_REBREAK_BREACH_RECOVER']);
+    const isRebrokeAlready = closeRebreakSet.has(it.rebreakStatus);
     const isTodayD0 = it.rebreakStatus === 'TODAY_INITIAL_BREAKOUT';
     const rebreakBadgeHtml = isRebrokeAlready && it.firstRebreakDate
       ? '<span class="badge rebreak-date">📅 재돌파일 ' + fmtDate(it.firstRebreakDate) + ' (D+' + (it.firstRebreakDayOffset ?? '?') + ')</span>'
       : '';
+
+    // 거래대금 강도 배지 (재돌파일 valueRatio 기반) — EXPLOSION만 별도 강조
+    let volStrengthHtml = '';
+    if (it.volumeStrength && it.rebreakValueRatio != null) {
+      const cls = it.volumeStrength === 'EXPLOSION' ? 'vol-explosion'
+                : it.volumeStrength === 'STRONG'    ? 'vol-strong'
+                : it.volumeStrength === 'SUPPORT'   ? 'vol-support'
+                : null;
+      if (cls && it.volumeStrength !== 'MILD') {
+        volStrengthHtml = '<span class="badge ' + cls + '">' + it.volumeStrengthLabel + ' (재돌파일 ×' + it.rebreakValueRatio.toFixed(1) + ')</span>';
+      }
+    }
+
+    // 기준 종가 이탈 없음 — 핵심 긍정 태그 (사용자 spec)
+    const noBreachHtml = (isRebrokeAlready && !it.everLowBelowBaseClose)
+      ? '<span class="badge no-breach">기준 종가 이탈 없음</span>'
+      : '';
+
+    // 재돌파 후 거리 라벨
+    const distLabelHtml = (isRebrokeAlready && it.rebreakDistanceLabel && it.postRebreakDistPct != null)
+      ? '<span class="badge ' + (it.rebreakDistanceClass === 'POST_0_2' || it.rebreakDistanceClass === 'POST_2_5' ? 'dist-soft' : 'dist-strong') + '">' + it.rebreakDistanceLabel + ' (+' + it.postRebreakDistPct.toFixed(1) + '%)' + (it.rebreakDistanceNote ? ' ' + it.rebreakDistanceNote : '') + '</span>'
+      : '';
+
     let hHighSubText;
     if (isTodayD0) {
       hHighSubText = '오늘 H돌파일 자체 — 종가 ' + fmtNum(it.currentClose) + '원 (고가 대비 <span class="' + distHHighCls + '">' + distHHigh + '</span>) · 저가 ' + fmtNum(it.hDayLow);
     } else if (isRebrokeAlready && it.firstRebreakDate) {
       hHighSubText = '재돌파 ' + fmtDate(it.firstRebreakDate) + ' (D+' + (it.firstRebreakDayOffset ?? '?') + ') · 현재 ' + (it.aboveHDayHigh ? '<span class="cell-pos">위 유지 ' : '<span class="cell-neg">살짝 아래 ') + distHHigh + '</span>';
+    } else if (it.rebreakStatus === 'INTRADAY_PUSHBACK') {
+      hHighSubText = '장중만 닿음 (종가 미돌파) · 현재 <span class="' + distHHighCls + '">' + distHHigh + '</span>';
     } else {
       hHighSubText = '남은 거리 <span class="' + distHHighCls + '">' + distHHigh + '</span> · 저가 ' + fmtNum(it.hDayLow);
     }
@@ -673,8 +841,11 @@ function renderCards() {
         '<div class="meta">' +
           '<span class="badge st-' + it.rebreakStatus + '">' + it.rebreakStatusLabel + '</span>' +
           rebreakBadgeHtml +
+          noBreachHtml +
+          volStrengthHtml +
+          distLabelHtml +
           (it.hasVolumeSupport ? '<span class="badge vol">거래대금 동반(H돌파일)</span>' : '') +
-          (it.noPullback && (it.rebreakStatus === 'CLOSE_REBREAK_HOLD' || it.rebreakStatus === 'CLOSE_REBREAK_PULLBACK' || it.rebreakStatus === 'INTRADAY_REBREAK') ? '<span class="badge no-pull">눌림 없이 상승</span>' : '') +
+          (it.noPullback && isRebrokeAlready ? '<span class="badge no-pull">눌림 없이 상승</span>' : '') +
           '<span class="badge aux">H돌파일 ' + fmtDate(it.breakoutDate) + ' · D+' + (it.daysFromBreakout ?? 0) + '</span>' +
           (it.vprMain ? ('<span class="badge vpr-' + it.vprMain + '">' + (it.vprMainLabel || it.vprMain) + '</span>') : '') +
           tagsHtml +
@@ -717,16 +888,23 @@ function renderCards() {
 renderCards();
 
 document.getElementById('data-limit').innerHTML =
-  '<strong>재돌파 상태 정의</strong><br>' +
-  '• 종가 재돌파 확정 = D+1~현재까지 어느 종가가 H돌파일 고가 이상으로 마감<br>' +
-  '• 장중 재돌파 유지 중 = 현재가 ≥ H돌파일 고가 (종가 미확정)<br>' +
-  '• 재돌파 근접 = 현재가가 H돌파일 고가 -3% 이내<br>' +
-  '• 재돌파 대기 = 현재가가 H돌파일 고가 -3% 아래, 기준 종가는 유지<br>' +
-  '• 기준 종가 이탈 주의 = 현재가 < 기준 종가<br>' +
-  '• 이탈 후 회복 실패 = 한 번 이탈했고 H돌파일 고가/돌파 기준선 미회복 (n=72, 백테스트 승률 0%)<br>' +
+  '<strong>재돌파 상태 정의 (rebreak deep-dive 결과 반영, 2026-05-06)</strong><br>' +
+  '<strong>긍정 4종 (종가 재돌파 = 핵심 시그널)</strong><br>' +
+  '• 종가 재돌파 · 이탈 없음 = D+1~현재 어느 날 종가 ≥ H돌파일 고가 + 기준 종가 한 번도 이탈 없음 (n=126, 승률 89%, 매번 +9.41%) <strong>핵심 조건</strong><br>' +
+  '• 종가 재돌파 · 거래대금 폭발 = 위 + 재돌파일 거래대금 ×5 이상 (n=91, 승률 87%, 매번 +11%)<br>' +
+  '• 종가 재돌파 · 다음날 유지 = 종가 재돌파 + 그 다음날 종가도 ≥ H돌파일 고가 (n=165, 승률 88%, 매번 +9.08%)<br>' +
+  '• 종가 재돌파 · 이탈 후 회복 = 기준 종가 이탈했지만 종가 재돌파까지 회복 (n=77, 승률 79%, 매번 +6.18%)<br>' +
+  '<strong>주의/부정</strong><br>' +
+  '• 장중만 돌파 후 밀림 = 장중 H돌파일 고가는 닿았지만 종가는 못 마감 (n=106, 승률 8.5%, 매번 -5.02%) — 종가 재돌파 전까지 재돌파로 인정 X<br>' +
+  '• 이탈 후 회복 착시 = 기준 종가 이탈한 뒤 종가는 회복했지만 H돌파일 고가까지는 종가 재돌파 못함 (이탈 후 당일 회복 n=95, 승률 7.4%, 매번 -4.74%)<br>' +
+  '• 재돌파 없음 = 장중도 H돌파일 고가에 한 번도 안 닿음 (n=220, 승률 7%, 매번 -5.81%)<br>' +
+  '• 이탈 후 회복 실패 = 기준 종가 이탈한 뒤 회복도 못 한 상태 (n=76, 승률 0%, 매번 -10.2%) <strong>제외 우선</strong><br>' +
   '<br>' +
+  '<strong>보조 태그</strong><br>' +
+  '• 거래대금 폭발(×5↑) / 강함(×3↑) / 동반(×2↑) — 재돌파일 거래대금 / 직전 20거래일 평균 valueApprox<br>' +
+  '• 재돌파 후 거리: 0~2% 직후 / 2~5% 상승 / 5~8% 강한 모멘텀 / 8~12% 강한 모멘텀 지속 / 12%↑ 급등 (5%↑ 구간은 표본 n<50 참고)<br>' +
   '• 거리 = 현재가 / 기준 종가 - 1 · 갭% = D+1 시가 / 기준 종가 - 1<br>' +
-  '• 거래대금 동반 = H돌파일에 거래대금 동반/폭발 보조태그 부착됨<br>' +
+  '• 거래대금 동반(H돌파일) = H돌파일 자체에 거래대금 동반/폭발 보조태그 부착<br>' +
   '• <strong>매수 추천이 아닙니다.</strong> 재돌파 추적용 운용 보드입니다.';
 </script>
 
