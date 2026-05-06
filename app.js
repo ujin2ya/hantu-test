@@ -3479,6 +3479,24 @@ app.get("/vvi-pending-winrate", (req, res) => {
   res.sendFile(filePath);
 });
 
+// ─────────── VPR 필터 조합 검증 (진입가 거리 + 시장 레짐) ───────────
+app.get("/vpr-filter-combo", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "vpr-filter-combo-backtest-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/vpr-filter-combo-backtest-result.html 파일이 없습니다. `node vpr-filter-combo-backtest.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
+// ─────────── VPR 시장 레짐 비교 (KOSPI 단독 vs marketBreadthScore) ───────────
+app.get("/vpr-market-breadth", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "vpr-market-breadth-backtest-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/vpr-market-breadth-backtest-result.html 파일이 없습니다. `node vpr-market-breadth-backtest.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+
 // ─────────── 패턴 스크리너 ───────────
 const patternState = {
   seeding: false, seedStartedAt: null, seedFinishedAt: null, seedProgress: null, seedError: null,

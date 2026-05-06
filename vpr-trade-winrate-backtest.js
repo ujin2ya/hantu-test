@@ -47,6 +47,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const vprAnalyzer = require('./vpr-analyzer');
 
 const ROOT = __dirname;
 const REPORTS_DIR = path.join(ROOT, 'reports');
@@ -63,7 +64,7 @@ const args = (() => {
   }
   return out;
 })();
-const ENTRY_DAY = parseInt(args['entry-day'] || '1', 10);  // 1=다음날(기본, 보드 발견 후 익일 매수), 0=H돌파일 종가, 5=D+5, 10=D+10
+const ENTRY_DAY = parseInt(args['entry-day'] || '5', 10);  // 5=D+5(기본, 보드 발견 시점), 1=다음날, 0=H돌파일
 const ENTRY_PRICE = (args['entry-price'] || 'open').toLowerCase();  // open (기본, 장초반) | close
 const HOLD_DAYS = parseInt(args['hold-days'] || '10', 10);  // 시간 종료까지 거래일
 
@@ -368,16 +369,28 @@ function main() {
     // 시간 종료 데이터 충분한가 — 매수 후 최소 3거래일은 있어야 의미 있음
     if (buyIdx + 3 >= rows.length) { skipNoData++; continue; }
 
+    // 새 VPR 재계산 (H돌파일 단일 거래일 기반) — D+5 보드 발견 시점에 보이는 분류와 동일
+    const vviIdx = rows.findIndex(r => r.date === e.vviDate);
+    let vprNew = null;
+    if (vviIdx >= 0) {
+      vprNew = vprAnalyzer.analyzeBreakoutReaction({ vviIdx, breakoutIdx: hIdx }, rows);
+    }
+
     eventTrades.push({
       event: e,
       buyPrice,
       buyIdx,
       buyDate: rows[buyIdx].date,
       rows,
-      d5VprStatus: e.d5Snapshot?.vprStatus,
-      d10VprStatus: e.d10Snapshot?.vprStatus,
       d5Judgment: e.d5Snapshot?.judgmentStatus,
-      d10Judgment: e.d10Snapshot?.judgmentStatus,
+      // 신규 VPR 분류
+      vprMain: vprNew?.vprMain || null,
+      vprMainLabel: vprNew?.vprMainLabel || null,
+      vprTags: vprNew?.vprTags || [],
+      vprBaseClose: vprNew?.vprBaseClose ?? null,
+      vprBreakoutLine: vprNew?.vprBreakoutLine ?? null,
+      vprDistanceFromBasePct: vprNew?.vprDistanceFromBasePct ?? null,
+      vprClosePosition: vprNew?.vprClosePosition ?? null,
     });
   }
   console.log(`  실효 trade: ${eventTrades.length}건 (skip: chart ${skipNoChart}, entry ${skipNoEntry}, data ${skipNoData})`);
@@ -398,24 +411,35 @@ function main() {
     scenarioResults[sc.key] = { scenario: sc, trades };
   }
 
-  // ─── 필터별 집계 (D+5 시점 = 보드에서 실제로 보이는 것만) ───
+  // ─── 필터별 집계 — 새 VPR 메인 5종 + 보조 10종 + judgmentStatus 3종 ───
   const FILTERS = [
     { key: 'ALL', label: '전체 (필터 없음)', match: (_t) => true },
-    // judgmentStatus (보드 정렬 1차 키)
-    { key: 'D5J_PWAIT', label: '눌림대기 (judgmentStatus)', match: t => t.d5Judgment === 'PULLBACK_WAIT' },
-    { key: 'D5J_MGMT', label: '관리구간 (judgmentStatus)', match: t => t.d5Judgment === 'MANAGEMENT' },
-    { key: 'D5J_BWEAK', label: '돌파악화 (judgmentStatus) — 매수금지', match: t => t.d5Judgment === 'BREAKDOWN_WEAK' },
-    // VPR 분류 (보드의 7라벨)
-    { key: 'D5V_STRONG', label: 'VPR: 강한 성공', match: t => t.d5VprStatus === 'STRONG_VPR_SUCCESS' },
-    { key: 'D5V_CLASSIC', label: 'VPR: 정석 성공', match: t => t.d5VprStatus === 'CLASSIC_VPR_SUCCESS' },
-    { key: 'D5V_RUNAWAY', label: 'VPR: 눌림없이 상승', match: t => t.d5VprStatus === 'NO_PULLBACK_RUNAWAY' },
-    { key: 'D5V_PENDING', label: 'VPR: 눌림 대기 (분류)', match: t => t.d5VprStatus === 'PULLBACK_PENDING' },
-    { key: 'D5V_WEAK', label: 'VPR: 약한 재돌파', match: t => t.d5VprStatus === 'WEAK_VPR_REBOUND' },
-    { key: 'D5V_STRUCT', label: 'VPR: 구조 훼손 — 매수금지', match: t => t.d5VprStatus === 'STRUCTURAL_BREAK' },
-    // 의미있는 조합
-    { key: 'COMBO_PWAIT_GOOD', label: '조합 ✅: 눌림대기 + 좋은 VPR (강한/정석/상승)', match: t => t.d5Judgment === 'PULLBACK_WAIT' && ['STRONG_VPR_SUCCESS', 'CLASSIC_VPR_SUCCESS', 'NO_PULLBACK_RUNAWAY'].includes(t.d5VprStatus) },
-    { key: 'COMBO_MGMT_RUNAWAY', label: '조합 ✅: 관리구간 + 눌림없이 상승', match: t => t.d5Judgment === 'MANAGEMENT' && t.d5VprStatus === 'NO_PULLBACK_RUNAWAY' },
-    { key: 'COMBO_BWEAK_STRUCT', label: '조합 ❌: 돌파악화 + 구조훼손 — 매수금지', match: t => t.d5Judgment === 'BREAKDOWN_WEAK' && t.d5VprStatus === 'STRUCTURAL_BREAK' },
+    // VPR 메인 태그 5종 (단독)
+    { key: 'M_HIGH_ZONE', label: 'VPR: 고가권 유지', match: t => t.vprMain === 'HIGH_ZONE_HOLD' },
+    { key: 'M_ABOVE_LINE', label: 'VPR: 기준선 위 마감', match: t => t.vprMain === 'ABOVE_BREAKOUT_LINE' },
+    { key: 'M_ABOVE_BASE', label: 'VPR: 기준 종가 위 유지', match: t => t.vprMain === 'ABOVE_BASE_CLOSE' },
+    { key: 'M_PUSHBACK', label: 'VPR: 장중 돌파 후 밀림', match: t => t.vprMain === 'INTRADAY_PUSHBACK' },
+    { key: 'M_OVERHEATED', label: 'VPR: 과열 돌파 (주의)', match: t => t.vprMain === 'OVERHEATED_BREAKOUT' },
+    // VPR 보조 태그 10종 (단독, 메인 무관)
+    { key: 'A_VOL_EXP', label: '보조: 거래대금 폭발', match: t => (t.vprTags || []).includes('VOLUME_EXPLOSION') },
+    { key: 'A_VOL_SUP', label: '보조: 거래대금 동반', match: t => (t.vprTags || []).includes('VOLUME_SUPPORT') },
+    { key: 'A_VOL_WEAK', label: '보조: 거래대금 약함', match: t => (t.vprTags || []).includes('VOLUME_WEAK') },
+    { key: 'A_GAP_UP', label: '보조: 갭상승 출발', match: t => (t.vprTags || []).includes('GAP_UP_START') },
+    { key: 'A_GAP_WOBBLE', label: '보조: 갭상승 후 흔들림', match: t => (t.vprTags || []).includes('GAP_UP_WOBBLE') },
+    { key: 'A_WICK_WARN', label: '보조: 위꼬리 주의', match: t => (t.vprTags || []).includes('UPPER_WICK_WARN') },
+    { key: 'A_WICK_SMALL', label: '보조: 위꼬리 적음', match: t => (t.vprTags || []).includes('UPPER_WICK_SMALL') },
+    { key: 'A_LOWER_REC', label: '보조: 아래꼬리 회복', match: t => (t.vprTags || []).includes('LOWER_WICK_RECOVER') },
+    { key: 'A_FAR_BASE', label: '보조: 기준가 대비 거리 큼', match: t => (t.vprTags || []).includes('FAR_FROM_BASE') },
+    { key: 'A_QUIET', label: '보조: 조용한 돌파', match: t => (t.vprTags || []).includes('QUIET_BREAKOUT') },
+    // 의미있는 조합 (메인 + 보조)
+    { key: 'COMBO_HIGH_VOL_SUP', label: '조합 ✅: 고가권 유지 + 거래대금 동반 이상', match: t => t.vprMain === 'HIGH_ZONE_HOLD' && ((t.vprTags || []).includes('VOLUME_SUPPORT') || (t.vprTags || []).includes('VOLUME_EXPLOSION')) },
+    { key: 'COMBO_HIGH_NOWICK', label: '조합 ✅: 고가권 유지 + 위꼬리 적음', match: t => t.vprMain === 'HIGH_ZONE_HOLD' && (t.vprTags || []).includes('UPPER_WICK_SMALL') },
+    { key: 'COMBO_PUSH_VOL_WEAK', label: '조합 ❌: 밀림 + 거래대금 약함', match: t => t.vprMain === 'INTRADAY_PUSHBACK' && (t.vprTags || []).includes('VOLUME_WEAK') },
+    { key: 'COMBO_OVER_FAR', label: '조합 ❌: 과열 돌파 + 기준가 대비 거리 큼', match: t => t.vprMain === 'OVERHEATED_BREAKOUT' && (t.vprTags || []).includes('FAR_FROM_BASE') },
+    // judgmentStatus (참고용 — D+5 boards에서도 보이는 다른 차원)
+    { key: 'J_PWAIT', label: 'judgment: 눌림대기', match: t => t.d5Judgment === 'PULLBACK_WAIT' },
+    { key: 'J_MGMT', label: 'judgment: 관리구간', match: t => t.d5Judgment === 'MANAGEMENT' },
+    { key: 'J_BWEAK', label: 'judgment: 돌파악화', match: t => t.d5Judgment === 'BREAKDOWN_WEAK' },
   ];
 
   const summary = [];
@@ -439,13 +463,13 @@ function main() {
     return all || { scenarioKey: sc.key, scenarioLabel: sc.label, scenarioRR: sc.rr, count: 0, valid: 0 };
   });
 
-  // ─── 시나리오 × D+5 분류 매트릭스 ───
-  const d5Matrix = {};
+  // ─── 시나리오 × VPR 메인 태그 매트릭스 ───
+  const vprMatrix = {};
   for (const sc of SCENARIOS) {
-    d5Matrix[sc.key] = {};
-    for (const f of ['ALL', 'D5J_PWAIT', 'D5J_MGMT', 'D5J_BWEAK', 'D5V_STRONG', 'D5V_CLASSIC', 'D5V_RUNAWAY', 'D5V_PENDING', 'D5V_WEAK', 'D5V_STRUCT']) {
+    vprMatrix[sc.key] = {};
+    for (const f of ['ALL', 'M_HIGH_ZONE', 'M_ABOVE_LINE', 'M_ABOVE_BASE', 'M_PUSHBACK', 'M_OVERHEATED']) {
       const s = summary.find(x => x.scenarioKey === sc.key && x.filterKey === f);
-      if (s) d5Matrix[sc.key][f] = s;
+      if (s) vprMatrix[sc.key][f] = s;
     }
   }
 
@@ -457,10 +481,14 @@ function main() {
     hDate: t.event.hDate,
     buyDate: t.buyDate,
     buyPrice: t.buyPrice,
-    d5VprStatus: t.d5VprStatus,
-    d10VprStatus: t.d10VprStatus,
+    vprMain: t.vprMain,
+    vprMainLabel: t.vprMainLabel,
+    vprTags: t.vprTags,
+    vprBaseClose: t.vprBaseClose,
+    vprBreakoutLine: t.vprBreakoutLine,
+    vprDistanceFromBasePct: t.vprDistanceFromBasePct,
+    vprClosePosition: t.vprClosePosition,
     d5Judgment: t.d5Judgment,
-    d10Judgment: t.d10Judgment,
     results: Object.fromEntries(SCENARIOS.map(sc => [
       sc.key, scenarioResults[sc.key].trades.find(x => x.event.eventKey === t.event.eventKey)?.result || null,
     ])),
@@ -469,11 +497,13 @@ function main() {
   const out = {
     meta: {
       generatedAt: new Date().toISOString(),
-      title: 'VPR Trade Win-Rate Backtest',
-      purpose: 'QVA→VVI→돌파 성공 후보를 H돌파일 종가에 매수 + 5종 익절/손절 시나리오 first-touch 시뮬레이션. 진짜 승률·기대값·손익비 검증.',
-      notice: 'QVA/VVI/H그룹/VPR 정의 변경 없음. vpr-analyzer.js 그대로. 매수 추천이 아니라 트레이드 규칙별 통계 검증.',
+      title: 'VPR Trade Win-Rate Backtest (D+5 신규 VPR 적용)',
+      purpose: 'H그룹을 보드 발견 시점(D+5)에 매수 + 5종 익절/손절 시나리오 first-touch 시뮬레이션. 새 VPR 메인 5종 + 보조 10종 태그 별 승률·평균 결과 검증.',
+      notice: 'VPR은 H돌파일 단일 거래일 기반 분류이므로 D+5 시점에 이미 결정돼 보드에서 보입니다. 매수 추천이 아니라 매매 규칙별 통계 검증.',
       inputSource: 'reports/vpr-hgroup-three-year-with-flow-backtest-result.json (이벤트 448건)',
       simulationKind: 'first-touch (high/low 기준 익절·손절 누가 먼저 닿는가, 갭 슬리피지 반영, 손절 우선 보수적)',
+      vprMainLabels: vprAnalyzer.VPR_MAIN_LABELS,
+      vprAuxLabels: vprAnalyzer.VPR_AUX_LABELS,
     },
     config: {
       entryDay: ENTRY_DAY,
@@ -492,7 +522,7 @@ function main() {
       skipNoChart, skipNoEntry, skipNoData,
     },
     scenarioSummary,
-    d5Matrix,
+    vprMatrix,
     summary,
     trades: eventTradesOut,
   };
@@ -507,7 +537,7 @@ function main() {
     console.log(`  ${(s.scenarioLabel || '-').padEnd(45)} ${String(s.valid).padStart(4)}  ${String(s.winRate ?? '-').padStart(6)}%  ${String(s.avgWin ?? '-').padStart(7)}%  ${String(s.avgLoss ?? '-').padStart(7)}%  ${String(s.expectancy ?? '-').padStart(7)}%  ${String(s.maxLossStreak ?? '-').padStart(7)}  ${String(s.avgHoldDays ?? '-').padStart(5)}`);
   }
 
-  console.log(`\n📊 D+5 보드 정보별 매번 평균(=기대값) % — 같은 보드 신호로 일관 매수했을 때 1번당 평균 결과`);
+  console.log(`\n📊 새 VPR 태그별 매번 평균(=기대값) % — 같은 VPR 분류로 일관 매수했을 때 1번당 평균 결과`);
   for (const f of FILTERS) {
     const printed = [];
     for (const sc of SCENARIOS) {
@@ -615,7 +645,7 @@ footer.foot strong { color: #fde68a; }
 
 <div class="warn-banner">
   ⚠️ <strong>매수 추천이 아닙니다.</strong> 매매 규칙별 통계 검증입니다.
-  필터 기준은 <strong>D+5 시점에 보드에서 실제로 보이는 정보만</strong> 사용합니다 (judgmentStatus + VPR 분류).
+  필터는 <strong>새 VPR 분류(메인 5종 + 보조 10종)</strong>를 사용합니다. VPR은 H돌파일 단일 거래일 기반이라 D+5 시점에 이미 보드에서 보입니다.
   입력은 3년+flow 백테스트 이벤트 448건.
 </div>
 
@@ -626,15 +656,15 @@ footer.foot strong { color: #fde68a; }
 <p class="subtitle">5가지 익절/손절 규칙을 같은 표본에 적용한 결과. <strong>매번 평균</strong> = 1번 매수당 평균 결과 (양수면 통계적으로 유리).</p>
 <div id="scenario-summary-table"></div>
 
-<h2>📊 시나리오 × D+5 보드 정보별 승률 매트릭스</h2>
-<p class="subtitle">각 셀 = 승률(거래수). D+5 시점에 보드에서 실제로 볼 수 있는 분류만 사용.</p>
+<h2>📊 시나리오 × VPR 메인 태그 매트릭스</h2>
+<p class="subtitle">각 셀 = 승률(거래수). 새 VPR 메인 태그 5종 별 결과.</p>
 <div id="matrix-table"></div>
 
-<h2>🏆 시나리오별 가장 좋은 D+5 필터 (n≥10, 매번 평균 기준)</h2>
-<p class="subtitle">각 시나리오에서 가장 평균 결과가 좋은 D+5 필터 (사례 수 10건 이상만).</p>
+<h2>🏆 시나리오별 가장 좋은 VPR 필터 (n≥10, 매번 평균 기준)</h2>
+<p class="subtitle">각 시나리오에서 가장 평균 결과가 좋은 VPR 태그/조합 (사례 수 10건 이상만).</p>
 <div id="best-filter-table"></div>
 
-<h2>📋 시나리오별 D+5 필터 상세</h2>
+<h2>📋 시나리오별 VPR 필터 상세</h2>
 <div class="tabs" id="scenario-tabs"></div>
 <div id="scenario-detail"></div>
 
@@ -742,22 +772,18 @@ function matrixTable(matrix, scenarios, filters) {
 }
 const matrixFilters = [
   { key: 'ALL', short: '전체' },
-  { key: 'D5J_PWAIT', short: '눌림대기' },
-  { key: 'D5J_MGMT', short: '관리구간' },
-  { key: 'D5J_BWEAK', short: '돌파악화' },
-  { key: 'D5V_STRONG', short: 'VPR 강한' },
-  { key: 'D5V_CLASSIC', short: 'VPR 정석' },
-  { key: 'D5V_RUNAWAY', short: '눌림없이' },
-  { key: 'D5V_PENDING', short: 'VPR 대기' },
-  { key: 'D5V_WEAK', short: '약한 재돌파' },
-  { key: 'D5V_STRUCT', short: '구조훼손' },
+  { key: 'M_HIGH_ZONE', short: '고가권 유지' },
+  { key: 'M_ABOVE_LINE', short: '기준선 위' },
+  { key: 'M_ABOVE_BASE', short: '기준 종가 위' },
+  { key: 'M_PUSHBACK', short: '장중 밀림' },
+  { key: 'M_OVERHEATED', short: '과열 돌파' },
 ];
-document.getElementById('matrix-table').innerHTML = matrixTable(DATA.d5Matrix, cfg.scenarios, matrixFilters);
+document.getElementById('matrix-table').innerHTML = matrixTable(DATA.vprMatrix, cfg.scenarios, matrixFilters);
 
 // 베스트 필터 (각 시나리오에서 매번 평균 기준 top, n≥10)
 function bestFilterTable() {
   const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
-    '<th>시나리오</th><th>가장 좋은 D+5 필터</th><th>n</th><th>승률</th>',
+    '<th>시나리오</th><th>가장 좋은 VPR 필터</th><th>n</th><th>승률</th>',
     '<th>평균 이익</th><th>평균 손실</th><th>매번 평균</th><th>최악</th>',
     '</tr></thead><tbody>'];
   for (const sc of cfg.scenarios) {
@@ -799,7 +825,7 @@ function renderScenarioDetail() {
   const rows = DATA.summary.filter(s => s.scenarioKey === curTab && (s.valid || 0) > 0);
   rows.sort((a, b) => (b.expectancy ?? -Infinity) - (a.expectancy ?? -Infinity));
   const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
-    '<th>D+5 필터</th><th>n</th><th>승률</th><th>평균 이익</th><th>평균 손실</th>',
+    '<th>VPR 필터</th><th>n</th><th>승률</th><th>평균 이익</th><th>평균 손실</th>',
     '<th>매번 평균</th><th>익절률</th><th>손절률</th><th>시간종료</th>',
     '<th>최고</th><th>최악</th>',
     '</tr></thead><tbody>'];
@@ -829,9 +855,10 @@ function tradesTable() {
   const trades = DATA.trades || [];
   const scs = cfg.scenarios;
   const head = ['<th>#</th>', '<th>종목</th>', '<th>매수일</th>', '<th>매수가</th>',
-    '<th>D+5 화면</th>', '<th>D+5 VPR</th>'];
+    '<th>VPR 메인</th>', '<th>VPR 보조</th>', '<th>기준 종가 대비%</th>'];
   for (const sc of scs) head.push('<th>' + sc.label + '</th>');
   const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>', head.join(''), '</tr></thead><tbody>'];
+  const auxLabels = (DATA.meta && DATA.meta.vprAuxLabels) || {};
   trades.slice(0, 200).forEach((t, i) => {
     const r = t.results || {};
     const cell = (key) => {
@@ -843,19 +870,21 @@ function tradesTable() {
       const exitTag = exit === 'TP' || exit === 'TP_GAP' ? '✅' : (exit === 'SL' || exit === 'SL_GAP' ? '❌' : (exit === 'SPLIT' ? '🔀' : '⏱'));
       return '<td><span class="' + cls + '">' + exitTag + ' ' + (ret > 0 ? '+' : '') + ret + '%</span></td>';
     };
+    const tagsHtml = (t.vprTags || []).map(tag => auxLabels[tag] || tag).join(' · ');
     const cells = [
       '<td>' + (i + 1) + '</td>',
       '<td>' + (t.name || '') + ' <span style="color:#64748b;">' + t.code + '</span></td>',
       '<td>' + fmtDate(t.buyDate) + '</td>',
       '<td>' + (t.buyPrice ? t.buyPrice.toLocaleString() : '-') + '</td>',
-      '<td><span style="font-size:11px;color:#94a3b8;">' + (t.d5Judgment || '-') + '</span></td>',
-      '<td><span style="font-size:11px;color:#94a3b8;">' + (t.d5VprStatus || '-') + '</span></td>',
+      '<td><span style="font-size:11px;color:#cbd5e1;">' + (t.vprMainLabel || '-') + '</span></td>',
+      '<td><span style="font-size:10px;color:#94a3b8;">' + (tagsHtml || '-') + '</span></td>',
+      '<td>' + (t.vprDistanceFromBasePct != null ? fmtPct(t.vprDistanceFromBasePct) : '-') + '</td>',
     ];
     for (const sc of scs) cells.push(cell(sc.key));
     html.push('<tr>' + cells.join('') + '</tr>');
   });
   if (trades.length > 200) {
-    html.push('<tr><td colspan="' + (6 + scs.length) + '" style="text-align:center;color:#64748b;padding:10px;">... ' + (trades.length - 200) + '건 추가 (JSON 참조)</td></tr>');
+    html.push('<tr><td colspan="' + (7 + scs.length) + '" style="text-align:center;color:#64748b;padding:10px;">... ' + (trades.length - 200) + '건 추가 (JSON 참조)</td></tr>');
   }
   html.push('</tbody></table></div>');
   return html.join('');
@@ -867,7 +896,7 @@ document.getElementById('data-limit').innerHTML =
   '• 매수: ' + cfg.buySource + ' (체결 슬리피지 미반영)<br>' +
   '• 청산: 매일 고가·저가 기준. 같은 날 둘 다 닿으면 손절 우선 (보수적). 시초가 갭 반영<br>' +
   '• 시간 종료: 매수 후 ' + cfg.holdDays + '거래일 종가 청산<br>' +
-  '• <strong>필터는 D+5 시점 정보만 사용</strong> — 보드에서 실제로 보이는 judgmentStatus + VPR 분류 (look-ahead 없음)<br>' +
+  '• <strong>필터는 새 VPR 분류 사용</strong> — H돌파일 단일 거래일 기반 (D+5 보드 발견 시점에 이미 결정돼 보임, look-ahead 없음)<br>' +
   '• 거래 수수료/세금 미반영 (실제 매매는 0.2~0.5% 추가 차감 필요)<br>' +
   '• 매수 추천이 아니라 매매 규칙별 통계 검증입니다.';
 </script>
