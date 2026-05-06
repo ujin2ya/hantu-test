@@ -3501,6 +3501,7 @@ app.get("/vpr-market-breadth", (req, res) => {
 const patternState = {
   seeding: false, seedStartedAt: null, seedFinishedAt: null, seedProgress: null, seedError: null,
   analyzing: false, analyzeStartedAt: null, analyzeFinishedAt: null, analyzeError: null,
+  refreshingBoard: false, boardRefreshStartedAt: null, boardRefreshFinishedAt: null, boardRefreshError: null,
 };
 
 app.get("/pattern", (req, res) => {
@@ -3730,6 +3731,46 @@ app.post("/admin/refresh-pattern-cache", requireAdmin, (req, res) => {
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
   }
+});
+
+// QVA Watchlist Board (보드 HTML/JSON) 수동 갱신 — pattern-result.json은 그대로,
+// qva-watchlist-board.js만 재실행. 캐시는 이미 sync된 상태에서 보드 표시만 다시 만들 때.
+app.post("/admin/refresh-watchlist-board", requireAdmin, (req, res) => {
+  if (patternState.refreshingBoard) {
+    return res.json({ success: false, message: "이미 보드 갱신 중입니다" });
+  }
+  patternState.refreshingBoard = true;
+  patternState.boardRefreshStartedAt = new Date().toISOString();
+  patternState.boardRefreshFinishedAt = null;
+  patternState.boardRefreshError = null;
+
+  res.json({
+    success: true,
+    message: "QVA Watchlist Board 갱신 시작 (백그라운드)",
+    startedAt: patternState.boardRefreshStartedAt,
+  });
+
+  (async () => {
+    try {
+      const { spawn } = require("child_process");
+      const scriptPath = require("path").join(__dirname, "qva-watchlist-board.js");
+      console.log("[Watchlist Refresh] 시작:", new Date().toISOString());
+      const proc = spawn("node", [scriptPath], { cwd: __dirname });
+      let stderr = "";
+      proc.stdout.on("data", (d) => process.stdout.write("[WL] " + d.toString()));
+      proc.stderr.on("data", (d) => { stderr += d.toString(); process.stderr.write("[WL ERR] " + d.toString()); });
+      proc.on("close", (code) => {
+        if (code === 0) console.log("[Watchlist Refresh] 완료");
+        else patternState.boardRefreshError = `exit ${code}: ${stderr.slice(0, 500)}`;
+        patternState.refreshingBoard = false;
+        patternState.boardRefreshFinishedAt = new Date().toISOString();
+      });
+    } catch (e) {
+      patternState.boardRefreshError = e.message;
+      patternState.refreshingBoard = false;
+      patternState.boardRefreshFinishedAt = new Date().toISOString();
+    }
+  })();
 });
 
 // Daily update — 차트 + 수급 + 분석 일괄 실행
