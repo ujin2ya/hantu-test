@@ -1,0 +1,415 @@
+<%
+function fmtNum(v) { return v != null ? Math.round(Number(v)).toLocaleString() : '-'; }
+function fmtDate(d) { if (!d || String(d).length !== 8) return d || '-'; return String(d).slice(0,4)+'-'+String(d).slice(4,6)+'-'+String(d).slice(6,8); }
+function fmtPct(v, prec) {
+  if (v == null) return '-';
+  prec = prec == null ? 2 : prec;
+  return (v > 0 ? '+' : '') + Number(v).toFixed(prec) + '%';
+}
+const rebreakStatusColor = {
+  TODAY_INITIAL_BREAKOUT: '#c4b5fd',
+  CLOSE_REBREAK_HOLD: '#10b981',
+  CLOSE_REBREAK_PULLBACK: '#5eead4',
+  INTRADAY_REBREAK: '#34d399',
+  NEAR_REBREAK: '#38bdf8',
+  WAITING: '#94a3b8',
+  BELOW_BASE: '#f59e0b',
+  BREAKDOWN_NO_RECOVER: '#ef4444',
+};
+const sCol = rebreakStatusColor[item.rebreakStatus] || '#94a3b8';
+const dispPrice = (kisLive && kisLive.price) || item.currentClose;
+const dispChg = (kisLive && kisLive.changeRate != null) ? kisLive.changeRate : item.todayChangePct;
+const fetchedAtKstStr = (kisLive && kisLive.fetchedAt) ? (() => {
+  const d = new Date(kisLive.fetchedAt);
+  const kst = new Date(d.getTime() + (d.getTimezoneOffset() + 9*60) * 60000);
+  const pad = (x) => String(x).padStart(2, '0');
+  return pad(kst.getHours()) + ':' + pad(kst.getMinutes()) + ':' + pad(kst.getSeconds());
+})() : null;
+%>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title><%= item.name %> · D+5 재돌파 상세</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0 auto; padding: 18px 24px 80px; max-width: 1200px;
+  font-family: -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  background: #0f172a; color: #e2e8f0; font-size: 13px; -webkit-overflow-scrolling: touch;
+}
+nav { display:flex; gap:10px; flex-wrap:wrap; padding:8px 0 14px; border-bottom:1px solid #1e293b; margin-bottom:14px; font-size: 12px; }
+nav a { color:#94a3b8; text-decoration:none; padding:4px 8px; border-radius:4px; }
+nav a:hover { color:#e2e8f0; background:#1e293b; }
+h1 { font-size: 24px; margin: 0 0 4px; color: #f1f5f9; font-weight: 700; }
+h1 .code { color: #64748b; font-size: 16px; font-weight: 400; margin-left: 8px; }
+h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
+.subtitle { font-size: 13px; color: #94a3b8; margin-bottom: 14px; }
+
+.price-block { background: #1e293b; border-radius: 10px; padding: 16px 20px; margin-bottom: 14px; border-left: 4px solid <%= sCol %>; }
+.price-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.price-big { font-size: 32px; font-weight: 700; color: #f1f5f9; font-variant-numeric: tabular-nums; }
+.price-unit { font-size: 14px; font-weight: 400; color: #94a3b8; margin-left: 2px; }
+.price-change { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.price-change.pos { color: #6ee7b7; }
+.price-change.neg { color: #fca5a5; }
+.price-meta { color: #94a3b8; font-size: 12px; margin-top: 6px; }
+.price-meta .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; background: #0f172a; border: 1px solid #334155; margin-right: 4px; font-size: 11px; }
+.price-meta .badge.live { background: #dcfce780; color: #15803d; border-color: #10b981; font-weight: 600; }
+
+.status-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 700; background: <%= sCol %>22; color: <%= sCol %>; border: 1px solid <%= sCol %>; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+.tag.aux { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
+.tag.vol { background: #422006; color: #fbbf24; border: 1px solid #f59e0b; }
+.tag.no-pull { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
+.tag.vpr-HIGH_ZONE_HOLD       { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
+.tag.vpr-ABOVE_BREAKOUT_LINE  { background: #134e4a; color: #5eead4; }
+.tag.vpr-ABOVE_BASE_CLOSE     { background: #312e81; color: #c7d2fe; }
+.tag.vpr-INTRADAY_PUSHBACK    { background: #422006; color: #fde047; border: 1px solid #ca8a04; }
+.tag.vpr-OVERHEATED_BREAKOUT  { background: #7c2d12; color: #fdba74; border: 1px solid #f97316; }
+
+.price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 14px; }
+.price-cell { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 10px 12px; }
+.price-cell .label { font-size: 11px; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+.price-cell .value { font-size: 16px; font-weight: 600; color: #e2e8f0; font-variant-numeric: tabular-nums; }
+.price-cell .sub { font-size: 11px; color: #64748b; margin-top: 4px; }
+.price-cell.k-current { border-left: 3px solid #c4b5fd; }
+.price-cell.k-hhigh   { border-left: 3px solid #6ee7b7; }
+.price-cell.k-base    { border-left: 3px solid #f59e0b; }
+.price-cell.k-line    { border-left: 3px solid #38bdf8; }
+.cell-pos { color: #6ee7b7; }
+.cell-neg { color: #fca5a5; }
+
+.today-flow, .interpretation-box, .run-comments {
+  padding: 12px 16px; border-radius: 6px; font-size: 13px; line-height: 1.7; margin-bottom: 12px;
+}
+.today-flow { background: #0f172a; border-left: 3px solid #c4b5fd; color: #cbd5e1; }
+.today-flow .ohlc { font-family: ui-monospace, monospace; font-size: 11px; color: #94a3b8; }
+.today-flow strong { color: #e2e8f0; }
+.interpretation-box { background: #1e1b4b; border-left: 3px solid #fbbf24; color: #fde68a; }
+.interpretation-box::before { content: '💡 '; font-weight: 700; }
+.run-comments { background: #1e293b; border-left: 3px solid #475569; color: #cbd5e1; }
+.run-comments div { margin: 4px 0; }
+.run-comments div::before { content: '💬 '; }
+
+.chart-wrap { background: #1e293b; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+.chart-svg { width: 100%; height: 360px; }
+
+.ai-section { background: #1e293b; border-radius: 10px; padding: 16px 20px; margin-bottom: 14px; }
+.ai-section h2 { margin-top: 0; }
+.ai-btn { background: #0369a1; color: #f1f5f9; border: 1px solid #38bdf8; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+.ai-btn:hover { background: #0284c7; }
+.ai-btn:disabled { background: #334155; border-color: #475569; color: #94a3b8; cursor: not-allowed; }
+.ai-output { margin-top: 12px; padding: 12px 14px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #cbd5e1; font-size: 13px; line-height: 1.8; white-space: pre-wrap; }
+.ai-loading { color: #94a3b8; font-style: italic; }
+
+footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.7; }
+
+@media (max-width: 900px) {
+  body { padding: 12px 12px 60px; }
+  .price-grid { grid-template-columns: repeat(2, 1fr); }
+  h1 { font-size: 20px; }
+  .price-big { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/qva-watchlist">📋 H그룹/VPR 보드</a>
+  <a href="/d5-rebreak-board">🔥 D+5 재돌파 운용</a>
+  <a href="/?query=<%= item.code %>&from=qva-watchlist" target="_blank">↗ 종합 상세 (AI 뉴스/공시)</a>
+</nav>
+
+<h1>
+  <%= item.name %><span class="code"><%= item.code %> · <%= item.market || '-' %></span>
+</h1>
+<div class="subtitle">
+  H돌파일 <%= fmtDate(item.breakoutDate) %> · D+<%= item.daysFromBreakout ?? 0 %> ·
+  기준일 <%= latestTradingDate ? fmtDate(latestTradingDate) : '-' %>
+</div>
+
+<!-- 실시간 가격 + 재돌파 상태 -->
+<div class="price-block">
+  <div class="price-row">
+    <span class="price-big"><%= fmtNum(dispPrice) %><span class="price-unit">원</span></span>
+    <span class="price-change <%= dispChg > 0 ? 'pos' : (dispChg < 0 ? 'neg' : '') %>">
+      <%= dispChg > 0 ? '▲' : (dispChg < 0 ? '▼' : '─') %>
+      <% if (kisLive && kisLive.changeAbs != null) { %><%= Math.abs(kisLive.changeAbs).toLocaleString() %>원 <% } %>
+      <%= fmtPct(dispChg) %>
+    </span>
+    <span class="status-badge"><%= item.rebreakStatusLabel %></span>
+  </div>
+  <div class="price-meta">
+    <% if (kisLive) { %>
+    <span class="badge live">🟢 KIS 실시간</span>
+    <% if (fetchedAtKstStr) { %><span>⏱ <%= fetchedAtKstStr %> 조회 (새로고침 시 갱신)</span><% } %>
+    <% } else { %>
+    <span class="badge">📅 <%= fmtDate(latestTradingDate) %> 종가</span>
+    <% } %>
+    <% if (kisLive && kisLive.prevClose) { %>· 전일 종가 <%= fmtNum(kisLive.prevClose) %>원<% } %>
+  </div>
+  <div class="tag-row">
+    <% if (item.hasVolumeSupport) { %><span class="tag vol">거래대금 동반(H돌파일)</span><% } %>
+    <% if (item.noPullback && (item.rebreakStatus === 'CLOSE_REBREAK_HOLD' || item.rebreakStatus === 'CLOSE_REBREAK_PULLBACK' || item.rebreakStatus === 'INTRADAY_REBREAK')) { %>
+      <span class="tag no-pull">눌림 없이 상승</span>
+    <% } %>
+    <% if (item.vprMain) { %><span class="tag vpr-<%= item.vprMain %>"><%= item.vprMainLabel %></span><% } %>
+    <% (item.vprTagLabels || []).forEach(function(t) { %><span class="tag aux"><%= t %></span><% }) %>
+  </div>
+</div>
+
+<!-- 운용 가격 기준 -->
+<h2>📐 운용 가격 기준</h2>
+<div class="price-grid">
+  <div class="price-cell k-current">
+    <div class="label">현재가</div>
+    <div class="value"><%= fmtNum(dispPrice) %>원</div>
+    <div class="sub">기준 종가 대비 <span class="<%= item.distFromBase >= 0 ? 'cell-pos' : 'cell-neg' %>"><%= fmtPct(item.distFromBase) %></span></div>
+  </div>
+  <div class="price-cell k-hhigh">
+    <div class="label">H돌파일 고가 (재돌파 기준)</div>
+    <div class="value"><%= fmtNum(item.hDayHigh) %>원</div>
+    <div class="sub">
+      <% if (item.rebreakStatus === 'TODAY_INITIAL_BREAKOUT') { %>
+        오늘 H돌파일 자체 — 종가 <%= fmtNum(item.currentClose) %>원
+      <% } else if (item.firstRebreakDate) { %>
+        재돌파 <%= fmtDate(item.firstRebreakDate) %> (D+<%= item.firstRebreakDayOffset %>) ·
+        <% if (item.aboveHDayHigh) { %><span class="cell-pos">현재 위 유지 <%= fmtPct(item.distToHHigh) %></span>
+        <% } else { %><span class="cell-neg">현재 살짝 아래 <%= fmtPct(item.distToHHigh) %></span><% } %>
+      <% } else { %>
+        남은 거리 <span class="<%= item.distToHHigh >= 0 ? 'cell-pos' : 'cell-neg' %>"><%= fmtPct(item.distToHHigh) %></span> · 저가 <%= fmtNum(item.hDayLow) %>
+      <% } %>
+    </div>
+  </div>
+  <div class="price-cell k-line">
+    <div class="label">돌파 기준선</div>
+    <div class="value"><%= fmtNum(item.breakoutLine) %>원</div>
+    <div class="sub">기준 종가 ×1.01</div>
+  </div>
+  <div class="price-cell k-base">
+    <div class="label">기준 종가 (이탈선)</div>
+    <div class="value"><%= fmtNum(item.baseClose) %>원</div>
+    <div class="sub">
+      <% if (item.belowBaseClose) { %><span class="cell-neg">⚠ 현재 이탈 중</span>
+      <% } else if (item.everLowBelowBaseClose) { %>한번 이탈했다가 회복
+      <% } else { %>이탈 없음<% } %>
+    </div>
+  </div>
+  <div class="price-cell">
+    <div class="label">갭% (D+1 시가/기준)</div>
+    <div class="value"><%= item.gapPct != null ? fmtPct(item.gapPct) : '-' %></div>
+    <div class="sub">≥8% 강모멘텀 · 0~2% 약</div>
+  </div>
+</div>
+
+<!-- 오늘 흐름 -->
+<% if (item.todayChangePct != null || item.todayOpen != null) { %>
+<div class="today-flow">
+  📊 <strong>오늘 흐름</strong>:
+  <% if (item.prevClose != null) { %>
+    <span class="ohlc">전일 <%= fmtNum(item.prevClose) %> → 오늘 종가 <%= fmtNum(item.currentClose) %></span> =
+  <% } %>
+  <strong class="<%= item.todayChangePct > 0 ? 'cell-pos' : (item.todayChangePct < 0 ? 'cell-neg' : '') %>" style="<%= item.todayChangePct > 0 ? 'color:#6ee7b7' : (item.todayChangePct < 0 ? 'color:#fca5a5' : '') %>">
+    <%= fmtPct(item.todayChangePct) %>
+  </strong>
+  <% if (item.todayOpen != null) { %>
+  <br>
+  <span class="ohlc">시 <%= fmtNum(item.todayOpen) %> · 고 <%= fmtNum(item.todayHigh) %> · 저 <%= fmtNum(item.todayLow) %> · 종 <%= fmtNum(item.currentClose) %></span>
+  <% } %>
+  <br>
+  <% if (item.todayHighVsHHighPct != null) {
+    if (item.todayHighVsHHighPct >= 0) { %>
+      장중 H돌파일 고가(<%= fmtNum(item.hDayHigh) %>) <span class="cell-pos">+<%= item.todayHighVsHHighPct.toFixed(2) %>%</span> 돌파
+    <% } else if (item.todayHighVsHHighPct >= -3) { %>
+      장중 H돌파일 고가(<%= fmtNum(item.hDayHigh) %>)까지 <span class="cell-pos"><%= item.todayHighVsHHighPct.toFixed(2) %>%</span> 근접
+    <% } else { %>
+      장중 H돌파일 고가(<%= fmtNum(item.hDayHigh) %>) 대비 <%= item.todayHighVsHHighPct.toFixed(2) %>%
+    <% } %>
+  <% } %>
+  <% if (item.todayClosePosition != null) { %>
+  · 종가 위치 <%= item.todayClosePosition >= 80 ? '<span class="cell-pos">' + Math.round(item.todayClosePosition) + '% (고가권 마감)</span>'
+              : (item.todayClosePosition < 50 ? '<span class="cell-neg">' + Math.round(item.todayClosePosition) + '% (저가권 마감)</span>'
+              : Math.round(item.todayClosePosition) + '% (중간권)') %>
+  <% } %>
+</div>
+<% } %>
+
+<!-- 착각 방지 해석 -->
+<% if (item.interpretation) { %>
+<div class="interpretation-box"><%= item.interpretation %></div>
+<% } %>
+
+<!-- 운용 코멘트 -->
+<% if (item.runComments && item.runComments.length > 0) { %>
+<h2>🎯 운용 코멘트</h2>
+<div class="run-comments">
+  <% item.runComments.forEach(function(c) { %><div><%= c %></div><% }) %>
+</div>
+<% } %>
+
+<!-- 차트 (간단 SVG candlestick) -->
+<% if (chartRows && chartRows.length > 0) { %>
+<h2>📈 일봉 차트 (최근 60일)</h2>
+<div class="chart-wrap">
+  <svg id="ohlc-chart" class="chart-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+</div>
+<% } %>
+
+<!-- AI 분석 (lazy) -->
+<div class="ai-section">
+  <h2>🤖 AI 분석</h2>
+  <p style="color:#94a3b8;font-size:12px;line-height:1.7;margin:0 0 10px;">
+    버튼을 누르면 Gemini AI가 현재 가격·VPR·재돌파 상태를 종합해 한 줄 해석과 짧은 코멘트를 만들어 줍니다.
+    호출은 1회만 캐시됩니다.
+  </p>
+  <button id="ai-btn" class="ai-btn">AI 분석 요청</button>
+  <div id="ai-output" class="ai-output" style="display:none;"></div>
+</div>
+
+<footer class="foot">
+  <strong>가격 기준 정의</strong><br>
+  • 기준 종가 = VVI 돌파대기일 종가 · 돌파 기준선 = 기준 종가 × 1.01<br>
+  • H돌파일 고가 = H그룹 발생일의 고가 (재돌파의 기준)<br>
+  • 거리 = 현재가 / 기준 종가 - 1<br>
+  • 갭% = D+1 시가 / 기준 종가 - 1<br>
+  • <strong>매수 추천이 아닙니다.</strong> 가격 기준 추적용 화면.
+</footer>
+
+<script>
+const ITEM = <%- JSON.stringify(item) %>;
+const CHART = <%- JSON.stringify(chartRows || []) %>;
+const KIS = <%- JSON.stringify(kisLive || null) %>;
+
+// ─── 간단 SVG candlestick 차트 ───
+function renderChart() {
+  const svg = document.getElementById('ohlc-chart');
+  if (!svg || CHART.length === 0) return;
+  const W = svg.clientWidth, H = svg.clientHeight;
+  const PAD_L = 60, PAD_R = 12, PAD_T = 12, PAD_B = 30;
+  const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
+
+  const highs = CHART.map(r => r.high);
+  const lows = CHART.map(r => r.low);
+  const yMaxRaw = Math.max(...highs);
+  const yMinRaw = Math.min(...lows);
+  // 운용 가격 기준 라인도 포함되게 패딩
+  const refs = [ITEM.hDayHigh, ITEM.baseClose, ITEM.breakoutLine].filter(v => v != null);
+  const yMax = Math.max(yMaxRaw, ...refs) * 1.02;
+  const yMin = Math.min(yMinRaw, ...refs) * 0.98;
+  const xStep = plotW / Math.max(1, CHART.length);
+  const cw = Math.max(2, xStep * 0.6);  // candle width
+
+  const yToPx = (y) => PAD_T + plotH * (1 - (y - yMin) / (yMax - yMin));
+  const xToPx = (i) => PAD_L + xStep * (i + 0.5);
+
+  let svgContent = '';
+
+  // 가로 reference 선
+  function refLine(price, color, label) {
+    if (price == null) return '';
+    const y = yToPx(price);
+    return '<line x1="' + PAD_L + '" x2="' + (W - PAD_R) + '" y1="' + y + '" y2="' + y + '" stroke="' + color + '" stroke-width="1" stroke-dasharray="3,3" opacity="0.7"/>' +
+           '<text x="' + (W - PAD_R - 4) + '" y="' + (y - 3) + '" text-anchor="end" font-size="10" fill="' + color + '">' + label + ' ' + Math.round(price).toLocaleString() + '</text>';
+  }
+  svgContent += refLine(ITEM.hDayHigh, '#6ee7b7', 'H고');
+  svgContent += refLine(ITEM.breakoutLine, '#38bdf8', '기준선');
+  svgContent += refLine(ITEM.baseClose, '#f59e0b', '기준종가');
+
+  // 캔들
+  CHART.forEach((r, i) => {
+    const x = xToPx(i);
+    const oy = yToPx(r.open), cy = yToPx(r.close);
+    const hy = yToPx(r.high), ly = yToPx(r.low);
+    const isUp = r.close >= r.open;
+    const color = isUp ? '#ef4444' : '#3b82f6';  // 한국 캔들: 양봉 빨강, 음봉 파랑
+    // 위/아래 꼬리
+    svgContent += '<line x1="' + x + '" x2="' + x + '" y1="' + hy + '" y2="' + ly + '" stroke="' + color + '" stroke-width="1"/>';
+    // 몸통
+    const bodyTop = Math.min(oy, cy), bodyH = Math.max(1, Math.abs(oy - cy));
+    svgContent += '<rect x="' + (x - cw/2) + '" y="' + bodyTop + '" width="' + cw + '" height="' + bodyH + '" fill="' + color + '"/>';
+    // H돌파일 마커 (해당일에 빨간 삼각형)
+    if (r.date === ITEM.breakoutDate) {
+      svgContent += '<text x="' + x + '" y="' + (PAD_T + 10) + '" text-anchor="middle" font-size="10" fill="#fbbf24" font-weight="700">H</text>';
+    }
+  });
+
+  // X축 (날짜) — 처음, 1/3, 2/3, 마지막
+  const labels = [0, Math.floor(CHART.length/3), Math.floor(CHART.length*2/3), CHART.length - 1];
+  for (const i of labels) {
+    if (i < 0 || i >= CHART.length) continue;
+    const x = xToPx(i);
+    const d = CHART[i].date;
+    const label = d.slice(4,6) + '/' + d.slice(6,8);
+    svgContent += '<text x="' + x + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10" fill="#94a3b8">' + label + '</text>';
+  }
+
+  // Y축 라벨 (좌측)
+  for (let k = 0; k <= 4; k++) {
+    const v = yMin + (yMax - yMin) * k / 4;
+    const y = yToPx(v);
+    svgContent += '<text x="' + (PAD_L - 4) + '" y="' + (y + 3) + '" text-anchor="end" font-size="10" fill="#64748b">' + Math.round(v).toLocaleString() + '</text>';
+  }
+
+  svg.innerHTML = svgContent;
+}
+renderChart();
+window.addEventListener('resize', renderChart);
+
+// ─── AI 분석 lazy 호출 ───
+document.getElementById('ai-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('ai-btn');
+  const out = document.getElementById('ai-output');
+  btn.disabled = true;
+  btn.textContent = 'AI 호출 중...';
+  out.style.display = 'block';
+  out.innerHTML = '<span class="ai-loading">Gemini AI 응답 대기 중 (10~20초)...</span>';
+  try {
+    const snapshot = {
+      code: ITEM.code,
+      name: ITEM.name,
+      currentPrice: ITEM.currentClose,
+      changePct: ITEM.todayChangePct,
+      hDayHigh: ITEM.hDayHigh,
+      baseClose: ITEM.baseClose,
+      breakoutLine: ITEM.breakoutLine,
+      breakoutDate: ITEM.breakoutDate,
+      daysFromBreakout: ITEM.daysFromBreakout,
+      vprMain: ITEM.vprMainLabel,
+      vprTags: ITEM.vprTagLabels,
+      rebreakStatus: ITEM.rebreakStatusLabel,
+      distFromBase: ITEM.distFromBase,
+      distToHHigh: ITEM.distToHHigh,
+      gapPct: ITEM.gapPct,
+      todayClosePosition: ITEM.todayClosePosition,
+      hasVolumeSupport: ITEM.hasVolumeSupport,
+      interpretation: ITEM.interpretation,
+    };
+    const resp = await fetch('/ai/comment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ mode: 'short', snapshot }),
+    });
+    const data = await resp.json();
+    if (data.error) {
+      out.innerHTML = '<span style="color:#fca5a5;">⚠️ AI 호출 실패: ' + (data.error || '알 수 없는 오류') + '</span>';
+      btn.disabled = false;
+      btn.textContent = 'AI 분석 다시 시도';
+      return;
+    }
+    const cachedTag = data.cached ? ' <span style="color:#94a3b8;font-size:11px;">(캐시)</span>' : '';
+    out.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:8px;">모델: ' + (data.model || '-') + cachedTag + '</div>' + (data.text || '').replace(/\n/g, '<br>');
+    btn.disabled = true;
+    btn.textContent = 'AI 분석 완료';
+  } catch (e) {
+    out.innerHTML = '<span style="color:#fca5a5;">오류: ' + e.message + '</span>';
+    btn.disabled = false;
+    btn.textContent = 'AI 분석 다시 시도';
+  }
+});
+</script>
+
+</body>
+</html>
