@@ -162,20 +162,31 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 
 ### 운영 보드 — QVA Watchlist (`qva-watchlist-board.js`)
 
-매일 장마감 후 갱신되는 추적 보드. **mutually exclusive 스냅샷 상태:**
+매일 장마감 후 갱신되는 추적 보드. funnel은 **단방향**이다: `QVA → VVI → H그룹(돌파 성공)`. 한 번 다음 단계로 넘어간 종목은 **앞 단계로 되돌아가지 않는다.**
+
+**mutually exclusive 스냅샷 상태 (D+0~D+20, "정식 추적"):**
 - `QVA_NEW` — 오늘(D=0) QVA 발생
-- `QVA_TRACKING` — D+1~D+20, VVI 미발생, 미이탈
+- `QVA_TRACKING` — D+1~D+20, **VVI 미발생** + 미이탈 (VVI를 한 번이라도 발화한 종목은 영구히 이 상태로 안 돌아옴)
 - `VVI_FIRED` — 가장 최근 거래일이 VVI 발생일
-- `BREAKOUT_SUCCESS` — VVI 다음 거래일 돌파 성공
-- `FAILED` — 종가 ≤ 신호가 × 0.85, D+20 만료, 또는 돌파 실패
+- `BREAKOUT_SUCCESS` — VVI 다음 거래일 돌파 성공. **H돌파일로부터 5거래일(`RECENT_BREAKOUT_DAYS=5`)까지만 보드에 유지**, D+6부터는 보드에서 영구 제외 (FAILED로도 안 표시됨)
+- `FAILED` — 종가 ≤ 신호가 × 0.85, D+20 VVI 미발생 만료, 또는 돌파 실패. 마찬가지로 5일(`RECENT_FAILED_DAYS=5`)만 표시
+
+**장기 QVA 슬롯 (D+21~D+40, `LONG_QVA_*` 태그):**
+"H그룹의 후속 단계가 아니다." 진입 조건이 배타적: `earlySignals.length === 0 && longQvaSignals.length > 0` — **D+0~D+20 안에 QVA 신호가 한 번도 없었던 종목**이 D+21~D+40에 처음 발화할 때만 후보. 정식 추적 윈도우를 놓친 종목 구제용 슬롯이며, H그룹은 이미 D+0~D+20에 통과 흔적(earlySignals)이 있어 명시적으로 제외된다.
+
+만료 조건: signalPrice 대비 -10% 이상 무너짐(`LONG_QVA_DROP_THRESHOLD_PCT=-10`) 또는 D+40 종료. tier는 `REACTIVE / INTEREST / BREAKOUT_DONE / WATCH / TRACKING` (재점화 점수 + qvaReturnPct 조합).
 
 **보조 태그(다중 적용):** `PRICE_HOLD`, `LOW_RISING`, `VALUE_REACTIVATION`. 설계 의도는 "H그룹(돌파 성공)이 1년 90개라 너무 적으니 추적 중·VVI 발생 후보도 같은 화면에 보이게 한다."
+
+상수는 [qva-watchlist-board.js:33-39](qva-watchlist-board.js#L33-L39)에 모여있다 (`TRACKING_DAYS`, `LONG_QVA_START/END`, `RECENT_BREAKOUT_DAYS`, `RECENT_FAILED_DAYS`, `EXIT_THRESHOLD_PCT`). 백테스트 윈도우를 바꿀 때 이 상수만 건드리고 라이브 의미를 바꾸지 말 것.
 
 `pattern-screener` + [vpr-analyzer.js](vpr-analyzer.js)를 사용해 funnel 단계와 후속 분석 태그를 계산하고, `qva-watchlist-board.html` + `qva-watchlist-board.json`을 ROOT에 정적 파일로 쓴다. `/qva-watchlist`는 sendFile만.
 
 ### 운영 보드 — D+5 재돌파 가족 (`hgroup-rebreak-*.js`)
 
 H돌파일 고가 재돌파 = 강한 시그널 (n=186, 승률 75.27%, +6.83%) 이라는 검증 결과 위에 만든 운용 화면.
+
+**중요한 D 기준의 차이**: D+5 재돌파의 D+0은 **H돌파일**이지 QVA 신호일이 아니다. `MAX_DAYS=5` ([hgroup-rebreak-operation-board.js:34](hgroup-rebreak-operation-board.js#L34))는 H돌파일로부터의 거래일 수. 입력은 `qva-watchlist-board.json`의 BREAKOUT_SUCCESS 종목만이고, 그 자체가 위 보드에서 5일 컷이므로 두 보드의 윈도우가 자연스럽게 일치한다.
 
 | 스크립트 | 입력 | 출력 (under `reports/`) | 라우트 |
 |---------|------|------------------------|--------|
@@ -184,6 +195,8 @@ H돌파일 고가 재돌파 = 강한 시그널 (n=186, 승률 75.27%, +6.83%) �
 | `hgroup-rebreak-flow-backtest.js` | 위 두 결과 + `cache/flow-history/` | `hgroup-rebreak-flow-result.{html,json}` | `/d5-rebreak-flow` |
 
 스크립트들은 `qva-watchlist-board.json`을 **읽기만 하고 수정하지 않는다.** 운영 보드는 D+0~D+5 H그룹 후보의 H돌파일 고가 재돌파 상태와 기준 종가 이탈 여부를 추적하지, 매수 등급표를 만들지 않는다.
+
+**D+5가 지난 종목은 어디로?** 어디로도 이관되지 않는다 — `/rebreak`에서 사라지고 QVA Watchlist의 BREAKOUT_SUCCESS에서도 빠진다. QVA_TRACKING은 "VVI 전" 조건 때문에 영구히 자격 없음. 장기 QVA는 위에서 본 배타 조건 때문에 자격 없음. 같은 종목에서 새 QVA가 발화하면 새 사이클로 처음부터 다시 들어온다.
 
 종목별 상세(`/d5-rebreak/:code`)만 EJS 렌더(`d5-rebreak-detail.ejs`)이고, 보드/심층/백테스트 페이지는 모두 정적 HTML sendFile.
 
