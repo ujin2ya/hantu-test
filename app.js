@@ -3518,6 +3518,16 @@ app.get("/hgroup-live-operation-hypothesis", (req, res) => {
 });
 app.get("/d5-hyp", (req, res) => res.redirect("/hgroup-live-operation-hypothesis"));
 
+// ─────────── D+5 재돌파 운용 보드 ───────────
+app.get("/hgroup-rebreak-operation", (req, res) => {
+  const filePath = path.join(__dirname, "reports", "hgroup-rebreak-operation-board-result.html");
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("reports/hgroup-rebreak-operation-board-result.html 파일이 없습니다. `node hgroup-rebreak-operation-board.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(filePath);
+});
+app.get("/d5-rebreak-board", (req, res) => res.redirect("/hgroup-rebreak-operation"));
+
 // ─────────── 패턴 스크리너 ───────────
 const patternState = {
   seeding: false, seedStartedAt: null, seedFinishedAt: null, seedProgress: null, seedError: null,
