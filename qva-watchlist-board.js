@@ -1855,6 +1855,15 @@ const TAG_DESCS = DATA.meta.auxTagDescriptions;
 function badges(c) {
   let b = '';
   if (c.isPreferred) b += '<span class="badge pref">우</span>';
+  // H그룹(VPR 적용 종목)은 VPR 보조 태그를 종목명 옆에 표시 — 일반 추적 태그(PRICE_HOLD/LOW_RISING/VALUE_REACTIVATION)는 H그룹에서는 숨김
+  if (c.vprMain && c.vprTags && c.vprTags.length > 0) {
+    const vprAuxLabels = (DATA.meta.vprAuxLabels || {});
+    const vprAuxDescs = (DATA.meta.vprAuxDescriptions || {});
+    for (const t of c.vprTags) {
+      b += '<span class="badge vpr-aux" title="' + (vprAuxDescs[t] || '').replace(/"/g, '&quot;') + '">' + (vprAuxLabels[t] || t) + '</span>';
+    }
+    return b;
+  }
   for (const t of (c.auxTags || [])) {
     b += '<span class="badge tag-' + t + '" title="' + (TAG_DESCS[t] || '') + '">' + (TAG_LABELS[t] || t) + '</span>';
   }
@@ -1876,15 +1885,8 @@ const COLS_BY_STAGE = {
       if (!m) return '<span class="muted">-</span>';
       const mainLbl = (DATA.meta.vprMainLabels && DATA.meta.vprMainLabels[m]) || m;
       const mainDesc = (DATA.meta.vprMainDescriptions && DATA.meta.vprMainDescriptions[m]) || '';
-      const tags = c.vprTags || [];
-      const tagLabels = (DATA.meta.vprAuxLabels || {});
-      const tagDescs = (DATA.meta.vprAuxDescriptions || {});
-      const tagsHtml = tags.length
-        ? '<div style="font-size:10px;color:#94a3b8;margin-top:3px;line-height:1.4;white-space:normal;max-width:240px;">' +
-            tags.map(t => '<span class="badge vpr-aux" title="' + (tagDescs[t] || '').replace(/"/g, '&quot;') + '">' + (tagLabels[t] || t) + '</span>').join(' ') +
-          '</div>'
-        : '';
-      return '<span class="badge vpr-' + m + '" title="' + mainDesc.replace(/"/g, '&quot;') + '">' + mainLbl + '</span>' + tagsHtml;
+      // 메인 태그만 표시 — 보조 태그는 종목명 옆으로 이동했음
+      return '<span class="badge vpr-' + m + '" title="' + mainDesc.replace(/"/g, '&quot;') + '">' + mainLbl + '</span>';
     }},
     { key: 'name', label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기 (AI 뉴스 분석 포함, 첫 조회 10~30초 소요)"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
     { key: 'breakoutDate', label: '돌파일', txt: true, render: c => fmtDate(c.breakoutDate) + ' <span class="muted">D+' + (c.daysFromBreakout ?? 0) + '</span>' },
