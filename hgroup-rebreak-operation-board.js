@@ -669,9 +669,8 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 
 <nav>
   <a href="/qva-watchlist">📋 H그룹/VPR 보드</a>
-  <a href="/d5">🎯 D+5 실전 운용</a>
-  <a href="/d5-rebreak-board" class="active">🔥 D+5 재돌파 운용</a>
-  <a href="/d5-hyp">🧪 D+5 가설 검증</a>
+  <a href="/rebreak" class="active">🔥 D+5 재돌파 운용</a>
+  <a href="/rebreak-deep">🔬 재돌파 심층 검증</a>
 </nav>
 
 <h1>🔥 D+5 재돌파 운용 보드</h1>
