@@ -661,6 +661,11 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .badge.st-NO_REBREAK                   { background: #1e293b; color: #cbd5e1; border: 1px solid #475569; }
 .badge.st-BREACH_RECOVER_ILLUSION      { background: #7c2d12; color: #fdba74; border: 1px solid #f97316; }
 .badge.st-BREACH_NO_RECOVER            { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
+/* lifecycle 배지 — D+N + 남은 거래일. D+4/D+5 + 약한 상태에서는 "재돌파 미확정"/"의미 약화" suffix가 붙는다. */
+.badge.lc-d0                           { background: #134e4a; color: #67e8f9; border: 1px solid #06b6d4; font-weight: 700; }
+.badge.lc-mid                          { background: #1e293b; color: #cbd5e1; border: 1px solid #475569; }
+.badge.lc-d4                           { background: #422006; color: #fdba74; border: 1px solid #f97316; font-weight: 700; }
+.badge.lc-d5                           { background: #3f1d1d; color: #fca5a5; border: 1px solid #ef4444; font-weight: 700; }
 .badge.rebreak-date                    { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; font-size: 10px; }
 .badge.vol     { background: #422006; color: #fbbf24; border: 1px solid #f59e0b; }
 .badge.vol-explosion { background: #7c2d12; color: #fef3c7; border: 1px solid #f97316; font-weight: 700; box-shadow: 0 0 0 1px #f59e0b inset; } /* 거래대금 폭발 별도 강조 */
@@ -829,6 +834,23 @@ function buildTodayFlowHtml(it) {
     '</div>';
 }
 
+// lifecycle 배지: D+N · 남은 X거래일 (사용자 spec 2026-05-07).
+// 약한 상태(NO_REBREAK / INTRADAY_PUSHBACK / BREACH_RECOVER_ILLUSION / BREACH_NO_RECOVER) +
+// D+4/D+5 조합에만 "재돌파 미확정" / "의미 약화" suffix를 붙여 우선순위를 자연스럽게 낮춘다.
+const WEAK_REBREAK_STATUS = new Set(['NO_REBREAK','INTRADAY_PUSHBACK','BREACH_RECOVER_ILLUSION','BREACH_NO_RECOVER']);
+function buildLifecycleBadge(it) {
+  const d = Math.max(0, it.daysFromBreakout ?? 0);
+  let label, cls;
+  if (d === 0)      { label = 'D+0 · 오늘 H돌파일';     cls = 'lc-d0'; }
+  else if (d >= 5)  { label = 'D+5 · 오늘 종료 예정';   cls = 'lc-d5'; }
+  else if (d === 4) { label = 'D+4 · 남은 1거래일';     cls = 'lc-d4'; }
+  else              { label = 'D+' + d + ' · 남은 ' + (5 - d) + '거래일'; cls = 'lc-mid'; }
+  if ((d === 4 || d >= 5) && WEAK_REBREAK_STATUS.has(it.rebreakStatus)) {
+    label += ' · ' + (d === 4 ? '재돌파 미확정' : '의미 약화');
+  }
+  return '<span class="badge ' + cls + '">' + label + '</span>';
+}
+
 // 카드 렌더
 function renderCards() {
   const items = DATA.items || [];
@@ -912,6 +934,7 @@ function renderCards() {
         '<h3><a href="/d5-rebreak/' + it.code + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;border-bottom:1px dotted #475569;">' + (it.name || '') + '</a> <span style="color:#64748b;font-size:13px;font-weight:400;">' + it.code + '</span> <a href="/d5-rebreak/' + it.code + '" target="_blank" rel="noopener" style="color:#94a3b8;text-decoration:none;font-size:12px;font-weight:400;margin-left:6px;" title="상세 페이지로 이동">↗ 상세</a></h3>' +
         '<div class="meta">' +
           '<span class="badge st-' + it.rebreakStatus + '">' + it.rebreakStatusLabel + '</span>' +
+          buildLifecycleBadge(it) +
           rebreakBadgeHtml +
           noBreachHtml +
           flowTagsHtml +
@@ -919,7 +942,7 @@ function renderCards() {
           distLabelHtml +
           (it.hasVolumeSupport ? '<span class="badge vol">거래대금 동반(H돌파일)</span>' : '') +
           (it.noPullback && isRebrokeAlready ? '<span class="badge no-pull">눌림 없이 상승</span>' : '') +
-          '<span class="badge aux">H돌파일 ' + fmtDate(it.breakoutDate) + ' · D+' + (it.daysFromBreakout ?? 0) + '</span>' +
+          '<span class="badge aux">H돌파일 ' + fmtDate(it.breakoutDate) + '</span>' +
           (it.vprMain ? ('<span class="badge vpr-' + it.vprMain + '">' + (it.vprMainLabel || it.vprMain) + '</span>') : '') +
           tagsHtml +
         '</div>' +
