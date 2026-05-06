@@ -8,6 +8,7 @@ const { getCurrentPrice } = require("../services/kis/kisApi");
 const OPERATION_HTML = path.join(REPORTS_DIR, "hgroup-rebreak-operation-board-result.html");
 const OPERATION_JSON = path.join(REPORTS_DIR, "hgroup-rebreak-operation-board-result.json");
 const DEEP_DIVE_HTML = path.join(REPORTS_DIR, "hgroup-rebreak-deep-dive-result.html");
+const FLOW_HTML = path.join(REPORTS_DIR, "hgroup-rebreak-flow-result.html");
 
 function getOperationBoard(req, res) {
   if (!fs.existsSync(OPERATION_HTML)) {
@@ -21,6 +22,13 @@ function getDeepDive(req, res) {
     return res.status(404).send("reports/hgroup-rebreak-deep-dive-result.html 파일이 없습니다. `node hgroup-rebreak-deep-dive-report.js`를 먼저 실행하세요.");
   }
   res.sendFile(DEEP_DIVE_HTML);
+}
+
+function getFlowBacktest(req, res) {
+  if (!fs.existsSync(FLOW_HTML)) {
+    return res.status(404).send("reports/hgroup-rebreak-flow-result.html 파일이 없습니다. `node hgroup-rebreak-flow-backtest.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(FLOW_HTML);
 }
 
 // 종목별 상세 페이지: 보드 항목 + 차트 + KIS 실시간 가격
@@ -80,4 +88,4 @@ async function getDetail(req, res) {
   }
 }
 
-module.exports = { getOperationBoard, getDeepDive, getDetail };
+module.exports = { getOperationBoard, getDeepDive, getFlowBacktest, getDetail };

@@ -26,6 +26,7 @@ const path = require('path');
 const ROOT = __dirname;
 const REPORTS_DIR = path.join(ROOT, 'reports');
 const CHART_DIR = path.join(ROOT, 'cache', 'stock-charts-long');
+const FLOW_DIR = path.join(ROOT, 'cache', 'flow-history');
 const BOARD_PATH = path.join(ROOT, 'qva-watchlist-board.json');
 const OUT_JSON = path.join(REPORTS_DIR, 'hgroup-rebreak-operation-board-result.json');
 const OUT_HTML = path.join(REPORTS_DIR, 'hgroup-rebreak-operation-board-result.html');
@@ -96,6 +97,42 @@ function loadChart(code) {
   const p = path.join(CHART_DIR, `${code}.json`);
   if (!fs.existsSync(p)) return null;
   try { return JSON.parse(fs.readFileSync(p, 'utf-8')); } catch (_) { return null; }
+}
+
+// 재돌파일 외국인/기관 순매수 금액 (cache/flow-history). 키 일치 안 하면 null.
+// 사용자 spec(2026-05-06 hgroup-rebreak-flow-backtest 결과): 외국인/기관만 사용. 개인은 근사값이라 보드 태그 X.
+function loadFlowRow(code, date) {
+  if (!code || !date) return null;
+  const p = path.join(FLOW_DIR, `${code}.json`);
+  if (!fs.existsSync(p)) return null;
+  try {
+    const f = JSON.parse(fs.readFileSync(p, 'utf-8'));
+    return (f.rows || []).find((r) => r.date === date) || null;
+  } catch (_) { return null; }
+}
+
+// 수급 태그 산출 — 재돌파일에 외국인/기관 순매수가 함께 들어왔는지.
+// 사용자 spec: 단순 순매수 여부만 보드에 표시. 비중 임계 3%/5%는 핵심 필터로 쓰지 않음.
+//   1) 외국인 순매수 동반: foreignNetValue > 0 (검증 n=70, 92.86%, +10.12% — 단독에서 가장 강함)
+//   2) 외인+기관 수급 동반: foreignNetValue + instNetValue > 0 (보조 태그)
+//   3) 거래대금 폭발 + 수급 동반: rebreakValueRatio ≥ 5 + 외인+기관 합산 > 0 (별도 강조)
+// 표시 우선순위: 외국인 단독 > 외인+기관 합산 (외국인 표시되면 합산은 중복 강조 안 함).
+function computeFlowTags(flowRow, rebreakValueRatio) {
+  if (!flowRow) return null;
+  const foreignNet = Number(flowRow.foreignNetValue) || 0;
+  const instNet = Number(flowRow.instNetValue) || 0;
+  const sumNet = foreignNet + instNet;
+  const foreignBuy = foreignNet > 0;
+  const sumBuy = sumNet > 0;
+  const volExplosionWithFlow = (rebreakValueRatio != null && rebreakValueRatio >= 5) && sumBuy;
+  return {
+    foreignNet, instNet, sumNet,
+    foreignBuy, sumBuy, volExplosionWithFlow,
+    // 표시용: 외국인 단독이 있으면 합산 배지는 숨김 (중복 강조 회피, 사용자 spec).
+    showForeign: foreignBuy,
+    showSum: !foreignBuy && sumBuy,
+    showVolExplosionFlow: volExplosionWithFlow,
+  };
 }
 
 // ─── 재돌파 상태 산출 ───
@@ -400,6 +437,10 @@ function main() {
 
     const reb = computeRebreakStatus({ rows, hIdx, baseClose, hDayHigh, breakoutLine, latestIdx });
 
+    // 재돌파일 수급 (외국인/기관 순매수). 종가 재돌파가 발생한 케이스에서만 의미 있음.
+    const flowRow = reb.firstRebreakDate ? loadFlowRow(c.code, reb.firstRebreakDate) : null;
+    const flowTags = computeFlowTags(flowRow, reb.rebreakValueRatio);
+
     // 갭% — D+1 시가 vs baseClose (가설 검증과 동일 정의)
     const day1 = rows[hIdx + 1];
     const gapPct = day1?.open ? round((day1.open / baseClose - 1) * 100) : null;
@@ -470,6 +511,9 @@ function main() {
       rebreakDistanceClass: reb.rebreakDistanceClass,
       rebreakDistanceLabel: rebreakDistLabelObj ? rebreakDistLabelObj.label : null,
       rebreakDistanceNote: rebreakDistLabelObj ? rebreakDistLabelObj.note : null,
+      // 재돌파일 수급 태그 (외국인/기관 단순 순매수 여부)
+      flowTags,
+      flowRebreakDate: reb.firstRebreakDate,
       // 오늘 흐름
       todayOpen: reb.currentOpen,
       todayHigh: reb.currentHigh,
@@ -624,6 +668,10 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .badge.vol-support   { background: #422006; color: #fbbf24; border: 1px solid #f59e0b; }
 .badge.no-breach { background: #064e3b; color: #a7f3d0; border: 1px solid #10b981; font-weight: 700; } /* 기준 종가 이탈 없음 핵심 긍정 태그 */
 .badge.no-pull { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
+/* 수급 태그 (사용자 spec 2026-05-06 hgroup-rebreak-flow-backtest 결과 반영) */
+.badge.flow-foreign      { background: #1e3a8a; color: #bfdbfe; border: 1px solid #3b82f6; font-weight: 700; box-shadow: 0 0 0 1px #60a5fa inset; } /* 외국인 단독 — 가장 우선, 강한 강조 */
+.badge.flow-sum          { background: #1e293b; color: #93c5fd; border: 1px solid #475569; }                                                          /* 외인+기관 합산 — 보조, 차분한 톤 */
+.badge.flow-vol-explosion{ background: #4c1d95; color: #ddd6fe; border: 1px solid #8b5cf6; font-weight: 700; box-shadow: 0 0 0 1px #a78bfa inset; }   /* 거래대금 폭발 + 수급 동반 — 별도 강조 */
 .badge.dist-soft  { background: #134e4a; color: #5eead4; border: 1px solid #14b8a6; }
 .badge.dist-strong{ background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
 .badge.aux     { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
@@ -681,6 +729,12 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
   백테스트에서는 H돌파일 고가 재돌파 여부가 D+5 성과를 가장 크게 갈랐습니다 (재돌파 있음 승률 75% / 매번 +6.83% vs 없음 8% / -5.54%).
   단, 재돌파는 사전에 확정되는 값이 아니라 장중 또는 종가 기준으로 확인되는 상태이므로, 이 화면은
   <strong>매수 등급표가 아니라 재돌파 상태와 기준 종가 이탈 여부를 추적하는 보드</strong>입니다.
+</div>
+
+<div class="purpose-box" style="border-left-color:#60a5fa;">
+  💱 <strong>수급 태그 안내</strong> — 현재 수급 태그는 외국인·기관 순매수 데이터를 기준으로 계산합니다.
+  개인 수급은 근사값이며, 프로그램 매매 데이터는 포함하지 않습니다.
+  따라서 <strong>개인 과열 주의 / 손바뀜 수급 / 프로그램 수급</strong> 태그는 보드에 표시하지 않습니다.
 </div>
 
 <h2>📊 백테스트 핵심 시그널 (3년·n=448)</h2>
@@ -819,6 +873,25 @@ function renderCards() {
       ? '<span class="badge no-breach">기준 종가 이탈 없음</span>'
       : '';
 
+    // 수급 태그 — 종가 재돌파 그룹에 한정. 사용자 spec 2026-05-06 hgroup-rebreak-flow-backtest 결과:
+    //   • 외국인 단독: n=70, 92.86%, +10.12% (가장 강함 → 최우선 강조)
+    //   • 외인+기관 합산: 보조 (외국인 단독 표시되면 합산은 숨김 — 중복 강조 회피)
+    //   • 거래대금 폭발 + 수급 동반: n=69, 88.41%, +11.15% (별도 강조)
+    let flowTagsHtml = '';
+    if (isRebrokeAlready && it.flowTags) {
+      const parts = [];
+      if (it.flowTags.showForeign) {
+        parts.push('<span class="badge flow-foreign" title="재돌파일에 외국인 순매수가 함께 들어온 상태입니다. 검증상 종가 재돌파·이탈 없음 조건과 결합될 때 수익 비율이 더 높았습니다 (n=70, 92.86%, +10.12%).">💱 외국인 순매수 동반</span>');
+      }
+      if (it.flowTags.showVolExplosionFlow) {
+        parts.push('<span class="badge flow-vol-explosion" title="거래대금이 평소보다 크게 터지고 외인/기관 수급도 동반된 상태입니다 (n=69, 88.41%, 평균 +11.15%). 강한 모멘텀 참고 태그 — 매수 확정 신호 아님.">🔥 거래대금 폭발 + 수급 동반</span>');
+      }
+      if (it.flowTags.showSum) {
+        parts.push('<span class="badge flow-sum" title="재돌파일에 외국인과 기관 합산 순매수가 양수인 상태입니다.">외인+기관 수급 동반</span>');
+      }
+      flowTagsHtml = parts.join('');
+    }
+
     // 재돌파 후 거리 라벨
     const distLabelHtml = (isRebrokeAlready && it.rebreakDistanceLabel && it.postRebreakDistPct != null)
       ? '<span class="badge ' + (it.rebreakDistanceClass === 'POST_0_2' || it.rebreakDistanceClass === 'POST_2_5' ? 'dist-soft' : 'dist-strong') + '">' + it.rebreakDistanceLabel + ' (+' + it.postRebreakDistPct.toFixed(1) + '%)' + (it.rebreakDistanceNote ? ' ' + it.rebreakDistanceNote : '') + '</span>'
@@ -841,6 +914,7 @@ function renderCards() {
           '<span class="badge st-' + it.rebreakStatus + '">' + it.rebreakStatusLabel + '</span>' +
           rebreakBadgeHtml +
           noBreachHtml +
+          flowTagsHtml +
           volStrengthHtml +
           distLabelHtml +
           (it.hasVolumeSupport ? '<span class="badge vol">거래대금 동반(H돌파일)</span>' : '') +
@@ -904,6 +978,15 @@ document.getElementById('data-limit').innerHTML =
   '• 재돌파 후 거리: 0~2% 직후 / 2~5% 상승 / 5~8% 강한 모멘텀 / 8~12% 강한 모멘텀 지속 / 12%↑ 급등 (5%↑ 구간은 표본 n<50 참고)<br>' +
   '• 거리 = 현재가 / 기준 종가 - 1 · 갭% = D+1 시가 / 기준 종가 - 1<br>' +
   '• 거래대금 동반(H돌파일) = H돌파일 자체에 거래대금 동반/폭발 보조태그 부착<br>' +
+  '<br>' +
+  '<strong>수급 태그 (재돌파일 외국인/기관 순매수 데이터 기준)</strong><br>' +
+  '• 💱 <strong>외국인 순매수 동반</strong> = 재돌파일 외국인 순매수 금액 > 0 (검증 n=70, 수익 비율 92.86%, 평균 +10.12% — 단독에서 가장 강함, 최우선 표시)<br>' +
+  '• 🔥 <strong>거래대금 폭발 + 수급 동반</strong> = 재돌파일 거래대금 ×5 이상 + 외인+기관 합산 순매수 > 0 (검증 n=69, 88.41%, 평균 +11.15% — 강한 모멘텀 참고)<br>' +
+  '• <strong>외인+기관 수급 동반</strong> = 재돌파일 외국인 + 기관 합산 순매수 > 0 (보조 태그, 외국인 단독 표시 시 중복 강조 회피로 숨김)<br>' +
+  '• 비중 임계 3%/5% 조건은 검증상 비중을 높일수록 평균 결과가 미세하게 낮아져 보드 핵심 필터로 쓰지 않습니다.<br>' +
+  '• 개인 수급은 -(외국인 + 기관) 근사값이라 보드 태그로 사용하지 않습니다 (개인 과열 주의·손바뀜 수급 미표시).<br>' +
+  '• 프로그램 매매 데이터는 cache에 없어 프로그램 수급 태그도 미표시입니다.<br>' +
+  '<br>' +
   '• <strong>매수 추천이 아닙니다.</strong> 재돌파 추적용 운용 보드입니다.';
 </script>
 

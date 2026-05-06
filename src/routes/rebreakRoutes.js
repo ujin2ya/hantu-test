@@ -13,6 +13,10 @@ router.get("/hgroup-rebreak-deep-dive", c.getDeepDive);
 router.get("/d5-rebreak-deep-dive", (req, res) => res.redirect("/hgroup-rebreak-deep-dive"));
 router.get("/rebreak-deep", (req, res) => res.redirect("/hgroup-rebreak-deep-dive"));
 
+// 수급 결합 백테스트 — spec 라우트 /d5-rebreak-flow
+router.get("/d5-rebreak-flow", c.getFlowBacktest);
+router.get("/rebreak-flow", (req, res) => res.redirect("/d5-rebreak-flow"));
+
 // 종목 상세 — KIS 실시간 가격 + 차트 + AI lazy 호출
 router.get("/d5-rebreak/:code", c.getDetail);
 
