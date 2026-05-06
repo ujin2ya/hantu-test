@@ -26,7 +26,9 @@ Daily chart update — KIS API 기반 최근 5거래일 갱신 (병렬 처리)
 
 import json
 import os
+import random
 import sys
+import time
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Any
@@ -40,10 +42,17 @@ ROOT = Path(__file__).parent
 load_dotenv(ROOT / '.env')  # 명시적 경로 지정
 STOCKS_LIST_PATH = ROOT / "cache" / "naver-stocks-list.json"
 CHART_LONG_DIR = ROOT / "cache" / "stock-charts-long"
+TOKEN_CACHE_FILE = ROOT / ".kis-token.json"  # app.js / update-flow-daily.js와 공유
 # 장기 캐시 보존 행 수 — QVA/VVI/H/VPR 장기 백테스트용으로 기본 1000(약 4년치) 유지.
 # 120으로 자르면 QVA 검출 및 장기 백테스트 표본이 부족해진다.
 # env CHART_KEEP_ROWS로 운영 환경에서 오버라이드 가능.
 MIN_ROWS = int(os.getenv("CHART_KEEP_ROWS", "1000"))
+
+# 동시성 / 재시도 — KIS API rate limit (실전 ~초당 20회)을 넘지 않도록 보수적으로 둔다.
+# 32 worker는 EGW00201/HTTP 429 silent fail이 빈번해 운영에서 1,000+ 종목 누락 사례가 있었다.
+WORKERS = int(os.getenv("UPDATE_WORKERS", "8"))
+PER_CALL_RETRIES = int(os.getenv("UPDATE_RETRIES", "3"))
+RETRY_ROUNDS = int(os.getenv("UPDATE_RETRY_ROUNDS", "2"))  # 첫 패스 후 실패 종목 자동 재시도 횟수
 
 # KIS API Config
 KIS_APP_KEY = os.getenv("KIS_APP_KEY")
@@ -54,17 +63,50 @@ token_cache = {"accessToken": None, "expiresAt": 0}
 
 
 # ─── Token Management ───
+def _load_token_from_disk():
+    """app.js / update-flow-daily.js와 공유하는 .kis-token.json에서 읽는다."""
+    if not TOKEN_CACHE_FILE.exists():
+        return None
+    try:
+        with open(TOKEN_CACHE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if data.get("accessToken") and data.get("expiresAt"):
+            return data
+    except Exception:
+        return None
+    return None
+
+
+def _save_token_to_disk(token_data):
+    try:
+        with open(TOKEN_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(token_data, f)
+    except Exception:
+        pass
+
+
 def get_access_token():
+    """토큰 발급은 KIS에서 1분 1회 제한(EGW00133)이 있다. .kis-token.json 파일 캐시를
+    app.js / update-flow-daily.js와 공유해 같은 분 안에 두 스크립트가 토큰을 새로
+    발급해 403을 받는 일을 막는다."""
     global token_cache
     now_ms = datetime.now().timestamp() * 1000
     TOKEN_REFRESH_MARGIN_MS = 5 * 60 * 1000
 
+    # 1) 메모리 캐시
     if (
         token_cache["accessToken"]
         and token_cache["expiresAt"] - now_ms > TOKEN_REFRESH_MARGIN_MS
     ):
         return token_cache["accessToken"]
 
+    # 2) 파일 캐시 (다른 프로세스/스크립트가 발급해 둔 토큰 재사용)
+    disk = _load_token_from_disk()
+    if disk and disk["expiresAt"] - now_ms > TOKEN_REFRESH_MARGIN_MS:
+        token_cache = {"accessToken": disk["accessToken"], "expiresAt": disk["expiresAt"]}
+        return token_cache["accessToken"]
+
+    # 3) 새로 발급
     url = f"{KIS_BASE_URL}/oauth2/tokenP"
     res = requests.post(
         url,
@@ -82,63 +124,91 @@ def get_access_token():
     now_ms = datetime.now().timestamp() * 1000
 
     token_cache = {"accessToken": data["access_token"], "expiresAt": now_ms + expires_in}
+    _save_token_to_disk(token_cache)
     return token_cache["accessToken"]
 
 
 # ─── KIS API ───
+# rate-limit / 일시 오류로 판단해 retry할 KIS 메시지 코드.
+# EGW00201: 초당 호출 한도 초과 / EGW00133: 1분당 토큰 발급 한도(여기선 거의 안 옴)
+RETRYABLE_KIS_MSG_CODES = {"EGW00201", "EGW00133"}
+
+
 def get_period_chart(access_token: str, stock_code: str, period: str = "D") -> List[Dict]:
     """
     KIS API로 차트 데이터 조회 (D: 일봉)
+
+    HTTP 429/5xx와 KIS rate-limit msg_cd(EGW00201 등)는 지수 백오프로 PER_CALL_RETRIES만큼 재시도한다.
+    그 외 KIS 오류(권한 없음, 종목 없음)는 즉시 raise.
 
     반환: [{"date": "YYYYMMDD", "open": int, "high": int, "low": int, "close": int, "volume": int}, ...]
     """
     url = f"{KIS_BASE_URL}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
 
-    today = datetime.now()
-    end_date = today.strftime("%Y%m%d")
-    start_date = (today - timedelta(days=60)).strftime("%Y%m%d")  # 60일 조회
+    last_err = None
+    for attempt in range(PER_CALL_RETRIES):
+        try:
+            res = requests.get(
+                url,
+                headers={
+                    "content-type": "application/json; charset=UTF-8",
+                    "authorization": f"Bearer {access_token}",
+                    "appkey": KIS_APP_KEY,
+                    "appsecret": KIS_APP_SECRET,
+                    "tr_id": "FHKST01010400",
+                },
+                params={
+                    "fid_cond_mrkt_div_code": "J",
+                    "fid_input_iscd": stock_code,
+                    "fid_org_adj_prc": "0",
+                    "fid_period_div_code": period,
+                },
+                timeout=10,
+            )
 
-    res = requests.get(
-        url,
-        headers={
-            "content-type": "application/json; charset=UTF-8",
-            "authorization": f"Bearer {access_token}",
-            "appkey": KIS_APP_KEY,
-            "appsecret": KIS_APP_SECRET,
-            "tr_id": "FHKST01010400",
-        },
-        params={
-            "fid_cond_mrkt_div_code": "J",
-            "fid_input_iscd": stock_code,
-            "fid_org_adj_prc": "0",
-            "fid_period_div_code": period,
-        },
-        timeout=10,
-    )
-    res.raise_for_status()
+            # HTTP 429 / 5xx → 백오프 후 재시도
+            if res.status_code == 429 or 500 <= res.status_code < 600:
+                last_err = f"HTTP {res.status_code}"
+                time.sleep(min(8.0, 0.5 * (2 ** attempt)) + random.uniform(0, 0.3))
+                continue
+            res.raise_for_status()
 
-    data = res.json()
-    if data.get("rt_cd") != "0":
-        raise Exception(f"KIS 차트 API 오류: {data.get('msg_cd')} / {data.get('msg1')}")
+            data = res.json()
+            if data.get("rt_cd") != "0":
+                msg_cd = (data.get("msg_cd") or "").strip()
+                if msg_cd in RETRYABLE_KIS_MSG_CODES:
+                    last_err = f"{msg_cd} / {data.get('msg1')}"
+                    time.sleep(min(8.0, 0.5 * (2 ** attempt)) + random.uniform(0, 0.3))
+                    continue
+                # 그 외 에러는 종목별 영구 실패 — 재시도해도 의미 없음
+                raise Exception(f"KIS 차트 API 오류: {msg_cd} / {data.get('msg1')}")
 
-    rows = []
-    for item in data.get("output", []):
-        date_str = str(item.get("stck_bsop_date", "")).strip()
-        if not date_str or len(date_str) != 8:
-            continue
+            rows = []
+            for item in data.get("output", []):
+                date_str = str(item.get("stck_bsop_date", "")).strip()
+                if not date_str or len(date_str) != 8:
+                    continue
 
-        rows.append(
-            {
-                "date": date_str,
-                "open": int(item.get("stck_oprc", 0)),
-                "high": int(item.get("stck_hgpr", 0)),
-                "low": int(item.get("stck_lwpr", 0)),
-                "close": int(item.get("stck_clpr", 0)),
-                "volume": int(item.get("acml_vol", 0)),
-            }
-        )
+                rows.append(
+                    {
+                        "date": date_str,
+                        "open": int(item.get("stck_oprc", 0)),
+                        "high": int(item.get("stck_hgpr", 0)),
+                        "low": int(item.get("stck_lwpr", 0)),
+                        "close": int(item.get("stck_clpr", 0)),
+                        "volume": int(item.get("acml_vol", 0)),
+                    }
+                )
 
-    return rows
+            return rows
+        except requests.exceptions.RequestException as e:
+            last_err = str(e)
+            if attempt < PER_CALL_RETRIES - 1:
+                time.sleep(min(8.0, 0.5 * (2 ** attempt)) + random.uniform(0, 0.3))
+                continue
+            raise
+
+    raise Exception(f"PER_CALL_RETRIES 소진: {last_err}")
 
 
 # ─── File I/O ───
@@ -230,6 +300,35 @@ def process_stock(code: str, access_token: str):
         return ("fail", code)
 
 
+def _run_pass(codes, access_token, workers, label):
+    """한 번의 패스를 실행하고 (fail로 분류된 종목 list, success/fail/skip 카운트)를 반환한다.
+    'skip' = KIS API에 데이터 없음(해제/거래정지/우선주 등) → retry 의미 없음.
+    'fail' = 네트워크/rate-limit 등 일시 오류 → retry 대상."""
+    success = 0
+    failed_codes = []
+    skipped = 0
+    completed = 0
+    total = len(codes)
+
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = {executor.submit(process_stock, code, access_token): code for code in codes}
+        for future in as_completed(futures):
+            completed += 1
+            status, code = future.result()
+            if status == "success":
+                success += 1
+            elif status == "fail":
+                failed_codes.append(code)
+            elif status == "skip":
+                skipped += 1
+
+            if completed % 50 == 0 or completed == 1:
+                pct = (completed * 100) // total
+                print(f"[{label}] {completed}/{total} ({pct}%)")
+
+    return failed_codes, success, len(failed_codes), skipped
+
+
 # ─── Main ───
 def update_daily():
     codes = load_stocks_list()
@@ -240,7 +339,7 @@ def update_daily():
         codes = codes[:limit]
         print(f"[테스트 모드] {limit}개 종목만 처리")
 
-    print(f"\n[시작] KIS API 차트 데이터 갱신 (병렬처리, 32개 워커)")
+    print(f"\n[시작] KIS API 차트 데이터 갱신 (workers={WORKERS}, retries={PER_CALL_RETRIES}, retry_rounds={RETRY_ROUNDS})")
     print(f"대상: {len(codes)}개 종목\n")
 
     # 토큰 획득
@@ -250,38 +349,37 @@ def update_daily():
         print(f"[ERROR] 토큰 획득 실패: {e}")
         sys.exit(1)
 
-    success = 0
-    failed = 0
-    skipped = 0
-    completed = 0
+    # 1차 패스
+    failed_codes, success, failed, skipped = _run_pass(
+        codes, access_token, WORKERS, "진행"
+    )
+    total_success = success
+    total_skipped = skipped
 
-    # 병렬 처리
-    with ThreadPoolExecutor(max_workers=32) as executor:
-        futures = {
-            executor.submit(process_stock, code, access_token): code for code in codes
-        }
-
-        for future in as_completed(futures):
-            completed += 1
-            status, code = future.result()
-
-            if status == "success":
-                success += 1
-            elif status == "fail":
-                failed += 1
-            elif status == "skip":
-                skipped += 1
-
-            # 진행률 표시
-            if completed % 50 == 0 or completed == 1:
-                pct = (completed * 100) // len(codes)
-                print(f"[진행] {completed}/{len(codes)} ({pct}%)")
+    # 자동 재시도 round — 실패 종목만 더 적은 동시성으로 다시 호출
+    for r in range(1, RETRY_ROUNDS + 1):
+        if not failed_codes:
+            break
+        retry_workers = max(2, WORKERS // (2 ** r))
+        print(f"\n[Retry {r}/{RETRY_ROUNDS}] {len(failed_codes)}개 재시도 (workers={retry_workers})")
+        # rate-limit 회복 시간을 짧게 둔다
+        time.sleep(2.0)
+        # retry 패스에서 새로운 'skip'은 진짜 데이터 없음 — total_skipped로 누적
+        retry_failed, retry_success, _, retry_skip = _run_pass(
+            failed_codes, access_token, retry_workers, f"Retry {r}"
+        )
+        total_success += retry_success
+        total_skipped += retry_skip
+        failed_codes = retry_failed
 
     # 완료 보고
     print(f"\n[완료]")
-    print(f"  성공: {success}개")
-    print(f"  실패: {failed}개")
-    print(f"  스킵(데이터 없음): {skipped}개")
+    print(f"  성공: {total_success}개")
+    print(f"  실패(영구): {len(failed_codes)}개")
+    print(f"  스킵(데이터 없음): {total_skipped}개")
+    if failed_codes:
+        sample = ", ".join(failed_codes[:10])
+        print(f"  최종 실패 샘플(앞 10): {sample}")
     print(f"\n업데이트 시각: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 
