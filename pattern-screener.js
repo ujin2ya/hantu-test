@@ -4034,8 +4034,7 @@ function calculateEarlyQVA(chartRows, flowRows, meta = {}, overrides = {}) {
 
   // ─── thresholds (default = D안 — strict 대비 거래대금 ceiling/저점조건 완화) ───
   // 1년 백테스트 (5-way 비교) 결과 D안이 D+20 플러스 마감 비율 + 평균 + 중앙값 모두
-  // strict보다 개선되며 -10%↓ 도 줄어 채택. 상세 비교는
-  // early-qva-threshold-comparison.json 참고.
+  // strict보다 개선되며 -10%↓ 도 줄어 채택.
   const TH = {
     returnFromLow20Max: 15,
     ret5Max: 8,
