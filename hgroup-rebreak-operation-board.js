@@ -34,17 +34,14 @@ const MAX_DAYS = 5;
 const NEAR_REBREAK_PCT = -3;  // 재돌파 근접 = -3% 이내
 
 const STATUS_LABELS = {
-  CLOSE_REBREAK: '종가 재돌파 확정',
-  INTRADAY_REBREAK: '장중 재돌파 유지 중',
+  CLOSE_REBREAK_HOLD: '재돌파 후 위 유지',
+  CLOSE_REBREAK_PULLBACK: '재돌파 후 눌림',
+  INTRADAY_REBREAK: '장중 재돌파 (오늘)',
   NEAR_REBREAK: '재돌파 근접',
   WAITING: '재돌파 대기',
   BELOW_BASE: '기준 종가 이탈 주의',
   BREAKDOWN_NO_RECOVER: '이탈 후 회복 실패',
 };
-// 상태 우선순위 (라벨 부여 시) — 사용자 spec: 부정 시그널 우선 (회복 실패 → 이탈 → ... → 대기)
-const STATUS_ASSIGN_PRIORITY = ['BREAKDOWN_NO_RECOVER', 'BELOW_BASE', 'CLOSE_REBREAK', 'INTRADAY_REBREAK', 'NEAR_REBREAK', 'WAITING'];
-// 정렬 우선순위 (보드 디스플레이 순) — 사용자 spec: 좋은 시그널 위에
-const DISPLAY_PRIORITY = ['CLOSE_REBREAK', 'INTRADAY_REBREAK', 'NEAR_REBREAK', 'NO_PULLBACK_RUNAWAY', 'WAITING', 'BELOW_BASE', 'BREAKDOWN_NO_RECOVER'];
 
 function round(v, d = 2) { if (v == null || !Number.isFinite(v)) return null; return Math.round(v * Math.pow(10, d)) / Math.pow(10, d); }
 function fmtNum(v) { return v != null ? Math.round(v).toLocaleString() : '-'; }
@@ -64,13 +61,17 @@ function computeRebreakStatus({ rows, hIdx, baseClose, hDayHigh, breakoutLine, l
   let recoveredAboveBreakoutLine = false;
   let everPullbackToBreakoutLine = false;
   let firstRebreakDayOffset = null;
+  let firstRebreakDate = null;
 
   for (let k = 1; hIdx + k <= latestIdx; k++) {
     const r = rows[hIdx + k];
     if (!r) continue;
     if (r.close >= hDayHigh) {
       everClosedAboveHHigh = true;
-      if (firstRebreakDayOffset == null) firstRebreakDayOffset = k;
+      if (firstRebreakDayOffset == null) {
+        firstRebreakDayOffset = k;
+        firstRebreakDate = r.date;
+      }
     }
     if (r.high >= hDayHigh) everIntradayAboveHHigh = true;
     if (r.low < baseClose) everLowBelowBaseClose = true;
@@ -82,15 +83,19 @@ function computeRebreakStatus({ rows, hIdx, baseClose, hDayHigh, breakoutLine, l
   const currentClose = lastRow ? lastRow.close : null;
   const currentHigh = lastRow ? lastRow.high : null;
   const currentLow = lastRow ? lastRow.low : null;
+  const currentlyAboveHHigh = currentClose != null && currentClose >= hDayHigh;
 
   // 상태 결정 — 우선순위 순으로 첫 매칭
+  // 사용자 spec(2026-05-06): CLOSE_REBREAK를 "현재 위 유지" vs "후 눌림" 둘로 분리해 시점 헷갈림 해소.
   let status;
   if (everLowBelowBaseClose && !everClosedAboveHHigh && currentClose < breakoutLine) {
     status = 'BREAKDOWN_NO_RECOVER';
   } else if (currentClose != null && currentClose < baseClose) {
     status = 'BELOW_BASE';
+  } else if (everClosedAboveHHigh && currentlyAboveHHigh) {
+    status = 'CLOSE_REBREAK_HOLD';      // 종가 재돌파 후 현재도 H고 위
   } else if (everClosedAboveHHigh) {
-    status = 'CLOSE_REBREAK';
+    status = 'CLOSE_REBREAK_PULLBACK';   // 종가 재돌파 후 살짝 눌림 (H고 아래로 이동)
   } else if (currentClose != null && currentClose >= hDayHigh) {
     status = 'INTRADAY_REBREAK';
   } else if (currentClose != null && currentClose >= hDayHigh * (1 + NEAR_REBREAK_PCT / 100)) {
@@ -107,24 +112,29 @@ function computeRebreakStatus({ rows, hIdx, baseClose, hDayHigh, breakoutLine, l
     everClosedAboveHHigh, everIntradayAboveHHigh,
     everLowBelowBaseClose, recoveredAboveBreakoutLine,
     everPullbackToBreakoutLine, noPullback,
-    firstRebreakDayOffset,
+    firstRebreakDayOffset, firstRebreakDate,
     currentClose, currentHigh, currentLow,
     distanceToHHighPct: (currentClose != null && hDayHigh) ? round((currentClose / hDayHigh - 1) * 100) : null,
-    aboveHDayHigh: currentClose != null && currentClose >= hDayHigh,
+    aboveHDayHigh: currentlyAboveHHigh,
   };
 }
 
 // ─── 운용 코멘트 ───
-function buildRunComments({ status, hasVolumeSupport, gapPct, noPullback }) {
+function buildRunComments({ status, hasVolumeSupport, gapPct, noPullback, firstRebreakDate, firstRebreakDayOffset }) {
   const cmts = [];
-  if (status === 'CLOSE_REBREAK' && hasVolumeSupport) {
-    cmts.push('D+5 검증에서 가장 강했던 재돌파 + 거래대금 동반 조건에 해당합니다.');
-  } else if (status === 'CLOSE_REBREAK') {
-    cmts.push('H돌파일 고가 종가 재돌파가 확인됐습니다. 검증상 승률 75% 구간.');
+  const rbInfo = (firstRebreakDate && firstRebreakDayOffset != null)
+    ? `${firstRebreakDate.slice(0, 4)}-${firstRebreakDate.slice(4, 6)}-${firstRebreakDate.slice(6, 8)} (D+${firstRebreakDayOffset})`
+    : null;
+  if (status === 'CLOSE_REBREAK_HOLD' && hasVolumeSupport) {
+    cmts.push((rbInfo ? `${rbInfo}에 ` : '') + '종가 재돌파했고 현재도 H돌파일 고가 위 유지 중. D+5 검증 최강 조건(재돌파+거래대금 동반).');
+  } else if (status === 'CLOSE_REBREAK_HOLD') {
+    cmts.push((rbInfo ? `${rbInfo}에 ` : '') + '종가 재돌파했고 현재도 H돌파일 고가 위 유지 중. 검증상 승률 75% 구간.');
+  } else if (status === 'CLOSE_REBREAK_PULLBACK') {
+    cmts.push((rbInfo ? `${rbInfo}에 ` : '') + '종가 재돌파했지만 현재는 H돌파일 고가 살짝 아래로 눌림. 정상 흐름이지만 종가 재돌파 재확인이 필요합니다.');
   } else if (status === 'INTRADAY_REBREAK') {
-    cmts.push('H돌파일 고가 위에서 유지 중입니다. 종가까지 유지되는지 확인이 필요합니다.');
+    cmts.push('오늘 장중 H돌파일 고가 위 유지 중. 아직 종가 미확정이라 마감까지 유지되는지 확인이 필요합니다.');
   } else if (status === 'NEAR_REBREAK') {
-    cmts.push('H돌파일 고가까지 가까워진 상태입니다. 돌파 시 거래대금 동반 여부가 중요합니다.');
+    cmts.push('H돌파일 고가까지 가까워진 상태(-3% 이내). 돌파 시 거래대금 동반 여부가 중요합니다.');
   } else if (status === 'WAITING') {
     cmts.push('아직 H돌파일 고가 재돌파 전입니다. 기준 종가를 지키는지 확인합니다.');
   } else if (status === 'BELOW_BASE') {
@@ -195,6 +205,8 @@ function main() {
       hasVolumeSupport,
       gapPct,
       noPullback: reb.noPullback,
+      firstRebreakDate: reb.firstRebreakDate,
+      firstRebreakDayOffset: reb.firstRebreakDayOffset,
     });
 
     items.push({
@@ -216,6 +228,7 @@ function main() {
       everLowBelowBaseClose: reb.everLowBelowBaseClose,
       noPullback: reb.noPullback,
       firstRebreakDayOffset: reb.firstRebreakDayOffset,
+      firstRebreakDate: reb.firstRebreakDate,
       runComments,
     });
   }
@@ -231,16 +244,17 @@ function main() {
   function sortRank(it) {
     const s = it.rebreakStatus;
     const v = it.hasVolumeSupport;
-    if (s === 'CLOSE_REBREAK' && v) return 1;
-    if (s === 'CLOSE_REBREAK') return 1.5;
+    if (s === 'CLOSE_REBREAK_HOLD' && v) return 1;
+    if (s === 'CLOSE_REBREAK_HOLD') return 1.5;
     if (s === 'INTRADAY_REBREAK' && v) return 2;
     if (s === 'INTRADAY_REBREAK') return 2.5;
-    if (s === 'NEAR_REBREAK') return 3;
-    if (s === 'WAITING' && it.noPullback) return 4;  // 눌림 없이 상승
-    if (s === 'WAITING') return 5;
-    if (s === 'BELOW_BASE') return 6;
-    if (s === 'BREAKDOWN_NO_RECOVER') return 7;
-    return 8;
+    if (s === 'CLOSE_REBREAK_PULLBACK') return 3;   // 재돌파 후 살짝 눌림 (정상)
+    if (s === 'NEAR_REBREAK') return 4;
+    if (s === 'WAITING' && it.noPullback) return 5;
+    if (s === 'WAITING') return 6;
+    if (s === 'BELOW_BASE') return 7;
+    if (s === 'BREAKDOWN_NO_RECOVER') return 8;
+    return 9;
   }
   items.sort((a, b) => {
     const ra = sortRank(a), rb = sortRank(b);
@@ -339,19 +353,22 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .card h3 { margin: 0 0 6px; font-size: 15px; color: #f1f5f9; font-weight: 700; }
 .card .meta { font-size: 11px; color: #94a3b8; margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .card .meta .badge { display:inline-block; padding:2px 7px; border-radius:3px; font-size:11px; font-weight:600; }
-.card.s-CLOSE_REBREAK         { border-left: 5px solid #10b981; }
-.card.s-INTRADAY_REBREAK      { border-left: 5px solid #34d399; }
-.card.s-NEAR_REBREAK          { border-left: 5px solid #38bdf8; }
-.card.s-WAITING               { border-left: 5px solid #94a3b8; }
-.card.s-BELOW_BASE            { border-left: 5px solid #f59e0b; }
-.card.s-BREAKDOWN_NO_RECOVER  { border-left: 5px solid #ef4444; opacity: 0.85; }
+.card.s-CLOSE_REBREAK_HOLD     { border-left: 5px solid #10b981; }
+.card.s-CLOSE_REBREAK_PULLBACK { border-left: 5px solid #5eead4; }
+.card.s-INTRADAY_REBREAK       { border-left: 5px solid #34d399; }
+.card.s-NEAR_REBREAK           { border-left: 5px solid #38bdf8; }
+.card.s-WAITING                { border-left: 5px solid #94a3b8; }
+.card.s-BELOW_BASE             { border-left: 5px solid #f59e0b; }
+.card.s-BREAKDOWN_NO_RECOVER   { border-left: 5px solid #ef4444; opacity: 0.85; }
 
-.badge.st-CLOSE_REBREAK         { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
-.badge.st-INTRADAY_REBREAK      { background: #134e4a; color: #5eead4; border: 1px solid #14b8a6; }
-.badge.st-NEAR_REBREAK          { background: #1e3a8a; color: #93c5fd; border: 1px solid #3b82f6; }
-.badge.st-WAITING               { background: #1e293b; color: #cbd5e1; border: 1px solid #475569; }
-.badge.st-BELOW_BASE            { background: #422006; color: #fde047; border: 1px solid #ca8a04; }
-.badge.st-BREAKDOWN_NO_RECOVER  { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
+.badge.st-CLOSE_REBREAK_HOLD     { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
+.badge.st-CLOSE_REBREAK_PULLBACK { background: #134e4a; color: #5eead4; border: 1px solid #14b8a6; }
+.badge.st-INTRADAY_REBREAK       { background: #134e4a; color: #5eead4; border: 1px solid #14b8a6; }
+.badge.st-NEAR_REBREAK           { background: #1e3a8a; color: #93c5fd; border: 1px solid #3b82f6; }
+.badge.st-WAITING                { background: #1e293b; color: #cbd5e1; border: 1px solid #475569; }
+.badge.st-BELOW_BASE             { background: #422006; color: #fde047; border: 1px solid #ca8a04; }
+.badge.st-BREAKDOWN_NO_RECOVER   { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
+.badge.rebreak-date              { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; font-size: 10px; }
 .badge.vol     { background: #422006; color: #fbbf24; border: 1px solid #f59e0b; }
 .badge.no-pull { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
 .badge.aux     { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
@@ -476,14 +493,22 @@ function renderCards() {
     const distFromBaseCls = it.distFromBase != null && it.distFromBase >= 0 ? 'cell-pos' : 'cell-neg';
     const gapCls = it.gapPct != null && it.gapPct >= 5 ? 'cell-pos' : (it.gapPct != null && it.gapPct < 0 ? 'cell-neg' : '');
 
+    const isRebrokeAlready = (it.rebreakStatus === 'CLOSE_REBREAK_HOLD' || it.rebreakStatus === 'CLOSE_REBREAK_PULLBACK');
+    const rebreakBadgeHtml = isRebrokeAlready && it.firstRebreakDate
+      ? '<span class="badge rebreak-date">📅 재돌파일 ' + fmtDate(it.firstRebreakDate) + ' (D+' + (it.firstRebreakDayOffset ?? '?') + ')</span>'
+      : '';
+    const hHighSubText = isRebrokeAlready && it.firstRebreakDate
+      ? '재돌파 ' + fmtDate(it.firstRebreakDate) + ' (D+' + (it.firstRebreakDayOffset ?? '?') + ') · 현재 ' + (it.aboveHDayHigh ? '<span class="cell-pos">위 유지 ' : '<span class="cell-neg">살짝 아래 ') + distHHigh + '</span>'
+      : '남은 거리 <span class="' + distHHighCls + '">' + distHHigh + '</span> · 저가 ' + fmtNum(it.hDayLow);
     html.push(
       '<div class="card s-' + it.rebreakStatus + '">' +
         '<h3>' + (it.name || '') + ' <span style="color:#64748b;font-size:13px;font-weight:400;">' + it.code + '</span></h3>' +
         '<div class="meta">' +
           '<span class="badge st-' + it.rebreakStatus + '">' + it.rebreakStatusLabel + '</span>' +
-          (it.hasVolumeSupport ? '<span class="badge vol">거래대금 동반</span>' : '') +
-          (it.noPullback && (it.rebreakStatus === 'CLOSE_REBREAK' || it.rebreakStatus === 'INTRADAY_REBREAK') ? '<span class="badge no-pull">눌림 없이 상승</span>' : '') +
-          '<span class="badge aux">돌파일 ' + fmtDate(it.breakoutDate) + ' · D+' + (it.daysFromBreakout ?? 0) + '</span>' +
+          rebreakBadgeHtml +
+          (it.hasVolumeSupport ? '<span class="badge vol">거래대금 동반(H돌파일)</span>' : '') +
+          (it.noPullback && (it.rebreakStatus === 'CLOSE_REBREAK_HOLD' || it.rebreakStatus === 'CLOSE_REBREAK_PULLBACK' || it.rebreakStatus === 'INTRADAY_REBREAK') ? '<span class="badge no-pull">눌림 없이 상승</span>' : '') +
+          '<span class="badge aux">H돌파일 ' + fmtDate(it.breakoutDate) + ' · D+' + (it.daysFromBreakout ?? 0) + '</span>' +
           (it.vprMain ? ('<span class="badge vpr-' + it.vprMain + '">' + (it.vprMainLabel || it.vprMain) + '</span>') : '') +
           tagsHtml +
         '</div>' +
@@ -496,7 +521,7 @@ function renderCards() {
           '<div class="price-cell k-hhigh">' +
             '<div class="label">H돌파일 고가 (재돌파 기준)</div>' +
             '<div class="value">' + fmtNum(it.hDayHigh) + '원</div>' +
-            '<div class="sub">남은 거리 <span class="' + distHHighCls + '">' + distHHigh + '</span> · 저가 ' + fmtNum(it.hDayLow) + '</div>' +
+            '<div class="sub">' + hHighSubText + '</div>' +
           '</div>' +
           '<div class="price-cell k-line">' +
             '<div class="label">돌파 기준선</div>' +
