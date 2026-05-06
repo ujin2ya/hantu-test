@@ -2773,20 +2773,46 @@ const handleSearch = async (req, res) => {
                           (kstHour < 15 || (kstHour === 15 && kstMin <= 30));
     const isWeekday = ![0, 6].includes(((_now.getUTCDay() + ((_now.getUTCHours() + 9) >= 24 ? 1 : 0)) % 7));
     const latestTradingDate = lastRow.date;
-    const isMarketOpenNow = inMarketHours && isWeekday && (todayCalendar === latestTradingDate);
-    const currentPriceLive = (stockMeta.closePrice && stockMeta.closePrice !== lastRow.close)
+
+    // KIS 실시간 현재가 조회 — 차트 캐시(전일 마감 후 16:10에 갱신)와 별개로 항상 최신가 표시.
+    // 실패 시 stockMeta.closePrice (Naver 스크랩) → lastRow.close 순으로 폴백.
+    let kisLivePrice = null;
+    let kisLiveChangeRate = null;
+    let kisLivePrevClose = null;
+    try {
+      const _token = await getAccessToken();
+      const _kis = await getCurrentPrice(_token, code);
+      const _o = _kis?.output;
+      if (_o) {
+        kisLivePrice = Number(_o.stck_prpr) || null;
+        kisLiveChangeRate = Number(_o.prdy_ctrt);
+        kisLivePrevClose = Number(_o.stck_sdpr) || null;
+      }
+    } catch (_) { /* KIS 실패 시 폴백 */ }
+
+    const naverFreshPrice = (stockMeta.closePrice && stockMeta.closePrice !== lastRow.close)
       ? stockMeta.closePrice : null;
+    const livePrice = kisLivePrice || naverFreshPrice;
+    const isMarketOpenNow = inMarketHours && isWeekday;
     const priceInfo = {
       latestTradingDate,
       lastClose: lastRow.close,
       todayCalendarDate: todayCalendar,
       isMarketOpenNow,
-      currentPrice: currentPriceLive,
-      currentPriceFetchedAt: currentPriceLive ? _now.toISOString() : null,
-      displayPrice: isMarketOpenNow && currentPriceLive ? currentPriceLive : lastRow.close,
-      displayPriceType: isMarketOpenNow && currentPriceLive ? 'INTRADAY_CURRENT' : 'LATEST_CLOSE',
+      currentPrice: livePrice,
+      currentPriceSource: kisLivePrice ? 'KIS' : (naverFreshPrice ? 'NAVER' : 'CACHE'),
+      currentPriceFetchedAt: livePrice ? _now.toISOString() : null,
+      // 항상 최신가를 우선 표시. 실시간 조회 실패 시에만 lastRow.close 폴백.
+      displayPrice: livePrice || lastRow.close,
+      displayPriceType: livePrice ? (isMarketOpenNow ? 'INTRADAY_CURRENT' : 'LATEST_CLOSE') : 'LATEST_CLOSE',
       nextTradingDate: null, // qvaWatchData에서 채울 수도 있음
-      changeRate: stockMeta.changeRate,
+      // 등락률: KIS 실시간 우선, 없으면 Naver, 그래도 없으면 직접 계산(livePrice vs lastRow.close)
+      changeRate: kisLiveChangeRate != null && Number.isFinite(kisLiveChangeRate)
+        ? kisLiveChangeRate
+        : (stockMeta.changeRate != null
+          ? stockMeta.changeRate
+          : (livePrice && lastRow.close ? +(((livePrice / lastRow.close) - 1) * 100).toFixed(2) : 0)),
+      kisPrevClose: kisLivePrevClose,
     };
 
     // ─── 새로 추가: riskChecks ───

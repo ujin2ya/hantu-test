@@ -124,7 +124,7 @@
     <% } %>
 
     <% if (stockMeta) {
-      var changeRate = stockMeta.changeRate || 0;
+      var changeRate = (priceInfo && priceInfo.changeRate != null) ? priceInfo.changeRate : (stockMeta.changeRate || 0);
       var changeClass = changeRate > 0 ? 'pos' : (changeRate < 0 ? 'neg' : '');
       var changeText = (changeRate > 0 ? '+' : '') + changeRate.toFixed(2) + '%';
       var qw = qvaWatchData;
@@ -152,11 +152,24 @@
           <% if (stockMeta.marketCap) { %> · 시총 <%= (stockMeta.marketCap / 1e8).toLocaleString() %>억<% } %>
         </div>
         <% if (priceInfo) {
-          var dispPrice = priceInfo.displayPriceType === 'INTRADAY_CURRENT' ? priceInfo.displayPrice : priceInfo.lastClose;
-          var basePrice = chartRows && chartRows.length >= 2 ? chartRows[chartRows.length - 2].close : null;
+          var dispPrice = priceInfo.displayPrice;
+          // 등락액 기준가: KIS 전일 종가 우선 → 차트 캐시 마지막 행 (lastRow가 어제면 그 자체) → 그 전 일
+          var basePrice = priceInfo.kisPrevClose
+            || (priceInfo.lastClose !== dispPrice ? priceInfo.lastClose
+              : (chartRows && chartRows.length >= 2 ? chartRows[chartRows.length - 2].close : null));
           var changeAmount = basePrice ? (dispPrice - basePrice) : null;
           var arrow = changeRate > 0 ? '▲' : (changeRate < 0 ? '▼' : '─');
           var dateLbl = priceInfo.latestTradingDate.slice(0,4) + '-' + priceInfo.latestTradingDate.slice(4,6) + '-' + priceInfo.latestTradingDate.slice(6,8);
+          var srcLabel = priceInfo.currentPriceSource === 'KIS' ? 'KIS 실시간'
+            : (priceInfo.currentPriceSource === 'NAVER' ? 'Naver 시세' : '캐시 종가');
+        %>
+        <% var fetchedTimeLbl = null;
+          if (priceInfo.currentPriceFetchedAt) {
+            var _ft = new Date(priceInfo.currentPriceFetchedAt);
+            var _kst = new Date(_ft.getTime() + (_ft.getTimezoneOffset() + 9*60) * 60000);
+            var _pad = function(x){ return String(x).padStart(2,'0'); };
+            fetchedTimeLbl = _pad(_kst.getHours()) + ':' + _pad(_kst.getMinutes()) + ':' + _pad(_kst.getSeconds());
+          }
         %>
         <div class="price-block">
           <div class="price-main">
@@ -168,8 +181,15 @@
           </div>
           <div class="price-sub-row">
             <% if (priceInfo.displayPriceType === 'INTRADAY_CURRENT') { %>
-              <span class="badge-tag" style="background:#dcfce7;color:#15803d;">🟢 장중 현재가</span>
-              <span class="price-sub-text">전일 종가 <%= priceInfo.lastClose.toLocaleString() %>원 (<%= dateLbl %>)</span>
+              <span class="badge-tag" style="background:#dcfce7;color:#15803d;">🟢 장중 현재가 (<%= srcLabel %>)</span>
+              <% if (basePrice) { %>
+              <span class="price-sub-text">전일 종가 <%= basePrice.toLocaleString() %>원</span>
+              <% } %>
+            <% } else if (priceInfo.currentPriceSource === 'KIS' || priceInfo.currentPriceSource === 'NAVER') { %>
+              <span class="badge-tag" style="background:#dbeafe;color:#1e40af;">📊 최신 시세 (<%= srcLabel %>)</span>
+              <% if (basePrice) { %>
+              <span class="price-sub-text">전일 종가 <%= basePrice.toLocaleString() %>원</span>
+              <% } %>
             <% } else { %>
               <span class="badge-tag" style="background:#f1f5f9;color:#475569;">📅 <%= dateLbl %> 종가</span>
               <% if (chartRows && chartRows.length > 0) {
@@ -179,6 +199,11 @@
               <% } %>
             <% } %>
           </div>
+          <% if (fetchedTimeLbl && (priceInfo.currentPriceSource === 'KIS' || priceInfo.currentPriceSource === 'NAVER')) { %>
+          <div class="price-sub-row" style="margin-top:2px;">
+            <span style="color:#94a3b8;font-size:10px;">⏱ <%= fetchedTimeLbl %> 조회 기준 (새로고침 시 갱신)</span>
+          </div>
+          <% } %>
         </div>
         <% } %>
       </div>

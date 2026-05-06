@@ -1687,27 +1687,10 @@ const htmlTemplate = `<!DOCTYPE html>
 
   <div class="help-wrap">
     <button class="help-btn open" id="help-btn">
-      <span>📖 QVA / VVI / H그룹 설명 닫기</span>
+      <span>📖 단계 흐름 닫기</span>
       <span class="arrow">▼</span>
     </button>
     <div class="help-content" id="help-content">
-
-      <div class="help-section">
-        <h3>📖 용어를 쉽게 말하면</h3>
-        <ul style="list-style:none;padding-left:0;">
-          <li style="margin-bottom:10px;"><strong style="color:#34d399;">🟢 QVA</strong> — 저점권에서 기존 거래량·거래대금을 확실히 뛰어넘는 수급 흔적이 나타난 관심 후보입니다. 아직 대상승 전인 종목을 찾는 것이 목적이며, 매수 신호는 아닙니다.</li>
-          <li style="margin-bottom:10px;"><strong style="color:#3b82f6;">⏳ VVI</strong> — QVA 이후 실제 수급이 더 강하게 확인되고, 종가가 고가권에서 양호하게 마감한 단계입니다.</li>
-          <li style="margin-bottom:10px;"><strong style="color:#10b981;">🔥 돌파 성공</strong> — VVI 다음 거래일에 vviHigh × 1.01을 돌파하고 종가가 유지된 후속 확인 후보입니다. 백테스트에서는 H그룹이라고 부릅니다.</li>
-          <li style="margin-bottom:10px;"><strong style="color:#93c5fd;">진입가 근처</strong> — 기준 가격에서 너무 멀리 오르지 않은 상태입니다. '매수해도 된다'는 뜻이 아니라, 추격 매수 위험을 줄이기 위한 위치 확인입니다.</li>
-          <li style="margin-bottom:10px;"><span class="badge tag-CONFIRMED_QVA_PASS" style="font-size:10px;padding:1px 6px;border-radius:3px;">QVA 확인 통과</span> — QVA 이후 가격 유지·저점 상승·거래대금 흐름이 한 번 더 확인된 경우 붙는 보조 태그입니다. 메인 단계는 아니고 참고용입니다.</li>
-        </ul>
-        <div style="background:#0f172a;border-left:3px solid #34d399;padding:8px 12px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.7;color:#cbd5e1;">
-          💡 <strong>QVA란 정확히 무엇인가</strong> — QVA는 저점권에서 기존 거래량·거래대금을 확실히 뛰어넘는 수급 흔적이 나타난 관심 후보입니다.
-          다만 과거에 이미 크게 급등한 뒤 무너진 종목의 잔파동은 제외합니다.
-          매수 신호가 아니라 관심 후보를 찾기 위한 단계입니다.<br>
-          <span style="color:#94a3b8;">제외 조건: 하락 마감(전일 대비 -1% 이상) / 종가 위치 50% 미만 / 60일 고점 대비 -30% 이상 붕괴 + 그 시기 거래대금이 현재의 3배 이상 / MA60 × 0.85 미만 등.</span>
-        </div>
-      </div>
 
       <div class="help-section">
         <h3>단계 흐름</h3>
@@ -2355,8 +2338,7 @@ function buildStageSection(stage) {
     const footer = document.createElement('div');
     footer.className = 'section-footer';
     footer.innerHTML =
-      '⚠️ 돌파 성공은 <strong>조건 통과</strong>를 의미하며, <strong>현재가에서의 신규 진입 적합성</strong>을 의미하지 않습니다.<br>' +
-      '현재가가 기준 진입가에서 많이 멀어진 경우에는 <strong>추격보다 눌림 확인</strong>이 필요합니다.';
+      '⚠️ 현재가가 기준 진입가에서 많이 멀어진 경우에는 <strong>추격보다 눌림 확인</strong>이 필요합니다.';
     sec.appendChild(footer);
   } else if (stage === 'QVA_TRACKING') {
     const footer = document.createElement('div');
@@ -2467,8 +2449,8 @@ if (helpBtn && helpContent) {
     const collapsed = helpContent.classList.toggle('collapsed');
     helpBtn.classList.toggle('open', !collapsed);
     helpBtn.querySelector('span:first-child').textContent = collapsed
-      ? '📖 QVA / VVI / H그룹 설명 보기'
-      : '📖 QVA / VVI / H그룹 설명 닫기';
+      ? '📖 단계 흐름 보기'
+      : '📖 단계 흐름 닫기';
   });
 }
 
