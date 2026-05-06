@@ -63,17 +63,20 @@ const args = (() => {
   }
   return out;
 })();
-const ENTRY_DAY = parseInt(args['entry-day'] || '0', 10);  // 0=H돌파일, 5=D+5, 10=D+10
+const ENTRY_DAY = parseInt(args['entry-day'] || '1', 10);  // 1=다음날(기본, 보드 발견 후 익일 매수), 0=H돌파일 종가, 5=D+5, 10=D+10
+const ENTRY_PRICE = (args['entry-price'] || 'open').toLowerCase();  // open (기본, 장초반) | close
 const HOLD_DAYS = parseInt(args['hold-days'] || '10', 10);  // 시간 종료까지 거래일
 
 // ─── 시나리오 정의 ───
 const SCENARIOS = [
-  { key: 'A', label: '익절 +6% / 손절 -3%', tp: 6, sl: -3, rr: '1:2', kind: 'simple' },
-  { key: 'B', label: '익절 +10% / 손절 -5%', tp: 10, sl: -5, rr: '1:2', kind: 'simple' },
-  { key: 'C', label: '익절 +15% / 손절 -5%', tp: 15, sl: -5, rr: '1:3', kind: 'simple' },
-  { key: 'D', label: '익절 +20% / 손절 -5%', tp: 20, sl: -5, rr: '1:4', kind: 'simple' },
+  { key: 'A', label: '익절 +6% / 손절 -3%', short: '+6/-3', tp: 6, sl: -3, rr: '1:2', kind: 'simple' },
+  { key: 'B', label: '익절 +10% / 손절 -5%', short: '+10/-5', tp: 10, sl: -5, rr: '1:2', kind: 'simple' },
+  { key: 'C', label: '익절 +15% / 손절 -5%', short: '+15/-5', tp: 15, sl: -5, rr: '1:3', kind: 'simple' },
+  { key: 'D', label: '익절 +20% / 손절 -5%', short: '+20/-5', tp: 20, sl: -5, rr: '1:4', kind: 'simple' },
   {
-    key: 'E', label: '분할 (50% +6 / 30% +12 / 20% +16, 본전 ratchet)',
+    key: 'E',
+    label: '분할 청산 (50% +6 / 30% +12 / 20% +16, 본전 이동)',
+    short: '분할 청산',
     kind: 'split',
     tiers: [
       { pct: 6, weight: 0.5 },
@@ -112,9 +115,22 @@ function fmtDate(d) {
 // 매수가 buyPrice, hold N거래일 동안 매일 high/low 체크.
 // 익절가/손절가 중 먼저 닿는 쪽 청산. 갭다운 시 시초가가 손절가 아래면 시초가 청산 (slippage).
 // 시간 종료 시 N거래일 종가 청산.
-function simulateSimple(rows, buyIdx, buyPrice, tpPct, slPct, holdDays) {
+function simulateSimple(rows, buyIdx, buyPrice, tpPct, slPct, holdDays, entryPrice = 'close') {
   const tpPrice = buyPrice * (1 + tpPct / 100);
   const slPrice = buyPrice * (1 + slPct / 100);
+
+  // entryPrice='open'일 때 매수일(buyIdx) 인트라데이도 체크
+  // (open으로 이미 체결됐으니 same-day 갭 체크는 의미 없음, 인트라데이 high/low만 본다)
+  if (entryPrice === 'open' && rows[buyIdx]) {
+    const r = rows[buyIdx];
+    if (r.low <= slPrice) {
+      return { exitDay: 0, exitPrice: slPrice, exitType: 'SL', returnPct: round((slPrice / buyPrice - 1) * 100) };
+    }
+    if (r.high >= tpPrice) {
+      return { exitDay: 0, exitPrice: tpPrice, exitType: 'TP', returnPct: round((tpPrice / buyPrice - 1) * 100) };
+    }
+  }
+
   for (let k = 1; k <= holdDays; k++) {
     const idx = buyIdx + k;
     if (idx >= rows.length) {
@@ -160,12 +176,36 @@ function simulateSimple(rows, buyIdx, buyPrice, tpPct, slPct, holdDays) {
 // ─── 분할 익절 시뮬레이션 ───
 // tiers: [{pct, weight}, ...] 순서대로 도달 체크. 도달 시 weight만큼 청산 + 손절선 ratchet up.
 // 첫 익절 도달 후 손절선을 매수가(본전)로 이동, 두 번째 후 첫 익절가로, ...
-function simulateSplit(rows, buyIdx, buyPrice, tiers, slPct, holdDays) {
+function simulateSplit(rows, buyIdx, buyPrice, tiers, slPct, holdDays, entryPrice = 'close') {
   let remaining = 1.0;
   let realized = 0;  // 누적 실현 수익률 × weight 합
   let stopPrice = buyPrice * (1 + slPct / 100);  // 초기 손절가
   let nextTier = 0;
   const exits = [];
+
+  // entryPrice='open'일 때 매수일 인트라데이 체크 (open으로 체결, 갭 의미 없음)
+  if (entryPrice === 'open' && rows[buyIdx]) {
+    const r = rows[buyIdx];
+    if (r.low <= stopPrice) {
+      const exitPct = (stopPrice / buyPrice - 1) * 100;
+      realized += remaining * exitPct;
+      exits.push({ day: 0, type: 'SL', weight: remaining, exitPrice: stopPrice, returnPct: round(exitPct) });
+      remaining = 0;
+    } else {
+      while (nextTier < tiers.length) {
+        const t = tiers[nextTier];
+        const tp = buyPrice * (1 + t.pct / 100);
+        if (r.high >= tp) {
+          realized += t.weight * t.pct;
+          exits.push({ day: 0, type: 'TP', tier: t.pct, weight: t.weight, exitPrice: tp, returnPct: t.pct });
+          remaining -= t.weight;
+          nextTier++;
+          if (nextTier === 1) stopPrice = buyPrice;
+          else stopPrice = buyPrice * (1 + tiers[nextTier - 2].pct / 100);
+        } else break;
+      }
+    }
+  }
 
   for (let k = 1; k <= holdDays; k++) {
     const idx = buyIdx + k;
@@ -305,7 +345,7 @@ function main() {
 
   console.log(`\n📊 VPR Trade Win-Rate Backtest`);
   console.log(`  입력 이벤트: ${events.length}건 (3년+flow 백테스트 결과)`);
-  console.log(`  매수 시점:    D+${ENTRY_DAY} 종가 / 시간 종료: 매수 후 ${HOLD_DAYS}거래일`);
+  console.log(`  매수 시점:    D+${ENTRY_DAY} ${ENTRY_PRICE === 'open' ? '시가 (장초반)' : '종가'} / 시간 종료: 매수 후 ${HOLD_DAYS}거래일`);
   console.log(`  시나리오:    ${SCENARIOS.length}종 (A, B, C, D, E)`);
 
   // ─── 각 이벤트별 매수가/시뮬레이션 데이터 준비 ───
@@ -323,7 +363,7 @@ function main() {
     if (hIdx < 0) { skipNoEntry++; continue; }
     const buyIdx = hIdx + ENTRY_DAY;
     if (buyIdx >= rows.length) { skipNoEntry++; continue; }
-    const buyPrice = rows[buyIdx].close;
+    const buyPrice = ENTRY_PRICE === 'open' ? rows[buyIdx].open : rows[buyIdx].close;
     if (!buyPrice || buyPrice <= 0) { skipNoEntry++; continue; }
     // 시간 종료 데이터 충분한가 — 매수 후 최소 3거래일은 있어야 의미 있음
     if (buyIdx + 3 >= rows.length) { skipNoData++; continue; }
@@ -349,33 +389,33 @@ function main() {
     for (const t of eventTrades) {
       let result = null;
       if (sc.kind === 'simple') {
-        result = simulateSimple(t.rows, t.buyIdx, t.buyPrice, sc.tp, sc.sl, HOLD_DAYS);
+        result = simulateSimple(t.rows, t.buyIdx, t.buyPrice, sc.tp, sc.sl, HOLD_DAYS, ENTRY_PRICE);
       } else if (sc.kind === 'split') {
-        result = simulateSplit(t.rows, t.buyIdx, t.buyPrice, sc.tiers, sc.sl, HOLD_DAYS);
+        result = simulateSplit(t.rows, t.buyIdx, t.buyPrice, sc.tiers, sc.sl, HOLD_DAYS, ENTRY_PRICE);
       }
       trades.push({ ...t, result });
     }
     scenarioResults[sc.key] = { scenario: sc, trades };
   }
 
-  // ─── 필터별 집계 ───
+  // ─── 필터별 집계 (D+5 시점 = 보드에서 실제로 보이는 것만) ───
   const FILTERS = [
-    { key: 'ALL', label: '전체', match: (_t) => true },
-    { key: 'D10_STRONG', label: 'D+10 강한 VPR 성공', match: t => t.d10VprStatus === 'STRONG_VPR_SUCCESS' },
-    { key: 'D10_CLASSIC', label: 'D+10 VPR 성공 (정석)', match: t => t.d10VprStatus === 'CLASSIC_VPR_SUCCESS' },
-    { key: 'D10_SUCCESS_ANY', label: 'D+10 VPR 성공 (강한+정석)', match: t => ['STRONG_VPR_SUCCESS', 'CLASSIC_VPR_SUCCESS'].includes(t.d10VprStatus) },
-    { key: 'D10_RUNAWAY', label: 'D+10 눌림 없이 상승', match: t => t.d10VprStatus === 'NO_PULLBACK_RUNAWAY' },
-    { key: 'D10_PENDING', label: 'D+10 VPR 대기', match: t => t.d10VprStatus === 'PULLBACK_PENDING' },
-    { key: 'D10_WEAK', label: 'D+10 VPR 재돌파 약함', match: t => t.d10VprStatus === 'WEAK_VPR_REBOUND' },
-    { key: 'D10_STRUCT', label: 'D+10 구조 훼손', match: t => t.d10VprStatus === 'STRUCTURAL_BREAK' },
-    { key: 'D10_NO_STRUCT', label: 'D+10 구조 훼손 제외', match: t => t.d10VprStatus !== 'STRUCTURAL_BREAK' && t.d10VprStatus !== 'REBOUND_FAIL' },
-    { key: 'D5_PWAIT', label: 'D+5 눌림 대기 (judgmentStatus)', match: t => t.d5Judgment === 'PULLBACK_WAIT' },
-    { key: 'D5_MGMT', label: 'D+5 관리 구간', match: t => t.d5Judgment === 'MANAGEMENT' },
-    { key: 'D5_BWEAK', label: 'D+5 돌파 악화', match: t => t.d5Judgment === 'BREAKDOWN_WEAK' },
-    { key: 'COMBO_PWAIT_SUCCESS', label: '조합: 눌림 대기 + VPR 성공(D+10)', match: t => t.d5Judgment === 'PULLBACK_WAIT' && ['STRONG_VPR_SUCCESS', 'CLASSIC_VPR_SUCCESS'].includes(t.d10VprStatus) },
-    { key: 'COMBO_PWAIT_RUNAWAY', label: '조합: 눌림 대기 + 눌림 없이 상승', match: t => t.d5Judgment === 'PULLBACK_WAIT' && t.d10VprStatus === 'NO_PULLBACK_RUNAWAY' },
-    { key: 'COMBO_BWEAK_STRUCT', label: '조합: 돌파 악화 + 구조 훼손', match: t => t.d5Judgment === 'BREAKDOWN_WEAK' && t.d10VprStatus === 'STRUCTURAL_BREAK' },
-    { key: 'COMBO_GOLDEN', label: '조합 (골든 필터): 강한 VPR (D+10) + 눌림 대기 또는 진입가 근처', match: t => t.d10VprStatus === 'STRONG_VPR_SUCCESS' && ['PULLBACK_WAIT', 'REVIEW_OK', 'CHASE_CAUTION'].includes(t.d5Judgment) },
+    { key: 'ALL', label: '전체 (필터 없음)', match: (_t) => true },
+    // judgmentStatus (보드 정렬 1차 키)
+    { key: 'D5J_PWAIT', label: '눌림대기 (judgmentStatus)', match: t => t.d5Judgment === 'PULLBACK_WAIT' },
+    { key: 'D5J_MGMT', label: '관리구간 (judgmentStatus)', match: t => t.d5Judgment === 'MANAGEMENT' },
+    { key: 'D5J_BWEAK', label: '돌파악화 (judgmentStatus) — 매수금지', match: t => t.d5Judgment === 'BREAKDOWN_WEAK' },
+    // VPR 분류 (보드의 7라벨)
+    { key: 'D5V_STRONG', label: 'VPR: 강한 성공', match: t => t.d5VprStatus === 'STRONG_VPR_SUCCESS' },
+    { key: 'D5V_CLASSIC', label: 'VPR: 정석 성공', match: t => t.d5VprStatus === 'CLASSIC_VPR_SUCCESS' },
+    { key: 'D5V_RUNAWAY', label: 'VPR: 눌림없이 상승', match: t => t.d5VprStatus === 'NO_PULLBACK_RUNAWAY' },
+    { key: 'D5V_PENDING', label: 'VPR: 눌림 대기 (분류)', match: t => t.d5VprStatus === 'PULLBACK_PENDING' },
+    { key: 'D5V_WEAK', label: 'VPR: 약한 재돌파', match: t => t.d5VprStatus === 'WEAK_VPR_REBOUND' },
+    { key: 'D5V_STRUCT', label: 'VPR: 구조 훼손 — 매수금지', match: t => t.d5VprStatus === 'STRUCTURAL_BREAK' },
+    // 의미있는 조합
+    { key: 'COMBO_PWAIT_GOOD', label: '조합 ✅: 눌림대기 + 좋은 VPR (강한/정석/상승)', match: t => t.d5Judgment === 'PULLBACK_WAIT' && ['STRONG_VPR_SUCCESS', 'CLASSIC_VPR_SUCCESS', 'NO_PULLBACK_RUNAWAY'].includes(t.d5VprStatus) },
+    { key: 'COMBO_MGMT_RUNAWAY', label: '조합 ✅: 관리구간 + 눌림없이 상승', match: t => t.d5Judgment === 'MANAGEMENT' && t.d5VprStatus === 'NO_PULLBACK_RUNAWAY' },
+    { key: 'COMBO_BWEAK_STRUCT', label: '조합 ❌: 돌파악화 + 구조훼손 — 매수금지', match: t => t.d5Judgment === 'BREAKDOWN_WEAK' && t.d5VprStatus === 'STRUCTURAL_BREAK' },
   ];
 
   const summary = [];
@@ -399,13 +439,13 @@ function main() {
     return all || { scenarioKey: sc.key, scenarioLabel: sc.label, scenarioRR: sc.rr, count: 0, valid: 0 };
   });
 
-  // ─── 시나리오 × VPR 분류 매트릭스 ───
-  const vprMatrix = {};
+  // ─── 시나리오 × D+5 분류 매트릭스 ───
+  const d5Matrix = {};
   for (const sc of SCENARIOS) {
-    vprMatrix[sc.key] = {};
-    for (const f of ['ALL', 'D10_STRONG', 'D10_CLASSIC', 'D10_SUCCESS_ANY', 'D10_RUNAWAY', 'D10_PENDING', 'D10_WEAK', 'D10_STRUCT', 'D10_NO_STRUCT']) {
+    d5Matrix[sc.key] = {};
+    for (const f of ['ALL', 'D5J_PWAIT', 'D5J_MGMT', 'D5J_BWEAK', 'D5V_STRONG', 'D5V_CLASSIC', 'D5V_RUNAWAY', 'D5V_PENDING', 'D5V_WEAK', 'D5V_STRUCT']) {
       const s = summary.find(x => x.scenarioKey === sc.key && x.filterKey === f);
-      if (s) vprMatrix[sc.key][f] = s;
+      if (s) d5Matrix[sc.key][f] = s;
     }
   }
 
@@ -437,9 +477,14 @@ function main() {
     },
     config: {
       entryDay: ENTRY_DAY,
+      entryPrice: ENTRY_PRICE,
       holdDays: HOLD_DAYS,
       scenarios: SCENARIOS,
-      buySource: ENTRY_DAY === 0 ? 'H돌파일 종가' : `D+${ENTRY_DAY} 종가`,
+      buySource: (() => {
+        const dayLabel = ENTRY_DAY === 0 ? 'H돌파일' : `D+${ENTRY_DAY}`;
+        const priceLabel = ENTRY_PRICE === 'open' ? '시가 (장초반)' : '종가';
+        return `${dayLabel} ${priceLabel}`;
+      })(),
     },
     counts: {
       totalEvents: events.length,
@@ -447,7 +492,7 @@ function main() {
       skipNoChart, skipNoEntry, skipNoData,
     },
     scenarioSummary,
-    vprMatrix,
+    d5Matrix,
     summary,
     trades: eventTradesOut,
   };
@@ -455,32 +500,29 @@ function main() {
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
 
   // ─── 콘솔 출력 ───
-  console.log(`\n📊 시나리오별 전체 (filter=ALL):`);
-  console.log(`  시나리오               n   승률   평균수익  평균손실  손익비  기대값  TP%   SL%   TIME%  최대연패  보유일`);
+  console.log(`\n📊 시나리오별 전체 (필터 없음):`);
+  console.log(`  시나리오                                  n     승률   평균이익  평균손실  매번 평균  연속손실  보유일`);
   for (const s of scenarioSummary) {
     if (!s.count) continue;
-    console.log(`  ${(s.scenarioLabel || '-').padEnd(40)} ${String(s.valid).padStart(4)}  ${String(s.winRate ?? '-').padStart(6)}%  ${String(s.avgWin ?? '-').padStart(7)}%  ${String(s.avgLoss ?? '-').padStart(7)}%  ${String(s.rrRatio ?? '-').padStart(5)}  ${String(s.expectancy ?? '-').padStart(6)}%  ${String(s.tpRate ?? '-').padStart(5)}%  ${String(s.slRate ?? '-').padStart(5)}%  ${String(s.timeRate ?? '-').padStart(5)}%  ${String(s.maxLossStreak ?? '-').padStart(4)}  ${String(s.avgHoldDays ?? '-').padStart(5)}`);
+    console.log(`  ${(s.scenarioLabel || '-').padEnd(45)} ${String(s.valid).padStart(4)}  ${String(s.winRate ?? '-').padStart(6)}%  ${String(s.avgWin ?? '-').padStart(7)}%  ${String(s.avgLoss ?? '-').padStart(7)}%  ${String(s.expectancy ?? '-').padStart(7)}%  ${String(s.maxLossStreak ?? '-').padStart(7)}  ${String(s.avgHoldDays ?? '-').padStart(5)}`);
   }
 
-  console.log(`\n📊 시나리오 × VPR 분류 매트릭스 (승률 %):`);
-  const headerCols = ['ALL', 'D10_STRONG', 'D10_CLASSIC', 'D10_SUCCESS_ANY', 'D10_RUNAWAY', 'D10_PENDING', 'D10_STRUCT', 'D10_NO_STRUCT'];
-  console.log(`  시나리오   ${headerCols.map(c => c.padStart(13)).join(' ')}`);
-  for (const sc of SCENARIOS) {
-    const row = headerCols.map(f => {
-      const v = vprMatrix[sc.key]?.[f];
-      if (!v || !v.valid) return '-'.padStart(13);
-      return `${String(v.winRate ?? '-')}%(${v.valid})`.padStart(13);
-    });
-    console.log(`  ${sc.key} ${sc.rr.padEnd(8)} ${row.join(' ')}`);
-  }
-
-  console.log(`\n📊 핵심 조합 시나리오별 (n>=10만):`);
-  for (const f of ['COMBO_PWAIT_SUCCESS', 'COMBO_PWAIT_RUNAWAY', 'COMBO_BWEAK_STRUCT', 'COMBO_GOLDEN']) {
-    console.log(`  [${f}]`);
+  console.log(`\n📊 D+5 보드 정보별 매번 평균(=기대값) % — 같은 보드 신호로 일관 매수했을 때 1번당 평균 결과`);
+  for (const f of FILTERS) {
+    const printed = [];
     for (const sc of SCENARIOS) {
-      const s = summary.find(x => x.scenarioKey === sc.key && x.filterKey === f);
-      if (!s || !s.valid || s.valid < 10) continue;
-      console.log(`    ${sc.key} ${sc.rr}: n=${s.valid}, 승률 ${s.winRate}%, 기대값 ${s.expectancy}%, 평균수익 ${s.avgWin}% / 손실 ${s.avgLoss}%`);
+      const s = summary.find(x => x.scenarioKey === sc.key && x.filterKey === f.key);
+      if (!s || !s.valid) continue;
+      printed.push({ sc, s });
+    }
+    if (printed.length === 0) continue;
+    const n = printed[0].s.valid;
+    console.log(`  [${f.label}] (n=${n})`);
+    for (const { sc, s } of printed) {
+      const tag = s.expectancy > 0.5 ? '🟢' : (s.expectancy < -0.5 ? '🔴' : '⚪');
+      const winStr = s.avgWin == null ? '없음' : (s.avgWin + '%');
+      const lossStr = s.avgLoss == null ? '없음' : (s.avgLoss + '%');
+      console.log(`    ${tag} ${sc.label.padEnd(45)} 승률 ${String(s.winRate).padStart(5)}%  매번평균 ${String(s.expectancy >= 0 ? '+' : '') + s.expectancy}%  (이익 ${winStr} / 손실 ${lossStr})`);
     }
   }
 
@@ -562,41 +604,42 @@ footer.foot strong { color: #fde68a; }
 </head>
 <body>
 
-<h1>VPR Trade Win-Rate Backtest</h1>
+<h1>VPR 매매 승률 백테스트</h1>
 <div class="subtitle" id="subtitle"></div>
 
 <div class="purpose-box">
-  QVA→VVI→돌파 성공(H그룹) 후보를 <strong id="entry-label"></strong>에 매수했다고 가정하고, <strong>5가지 익절/손절 시나리오</strong>로
-  매일 high/low 기준 <strong>first-touch 시뮬레이션</strong>해서 진짜 승률·기대값·손익비를 검증합니다.
-  보수적: 같은 날 high와 low 둘 다 닿으면 손절 우선 청산. 갭 슬리피지 반영.
+  QVA→VVI→돌파 성공(H그룹) 후보를 <strong id="entry-label"></strong>에 매수했다고 가정하고,
+  <strong>5가지 익절/손절 규칙</strong>으로 매일 고가·저가 기준 시뮬레이션해서 진짜 승률과 평균 수익을 검증합니다.
+  보수적 가정: 같은 날 고가·저가 둘 다 닿으면 손절 우선 청산. 시초가 갭 반영.
 </div>
 
 <div class="warn-banner">
-  ⚠️ <strong>매수 추천이 아닙니다.</strong> 트레이드 규칙별 통계 검증입니다.
-  QVA/VVI/H그룹/VPR 정의는 변경하지 않았으며, 입력은 3년+flow 백테스트 이벤트 448건입니다.
+  ⚠️ <strong>매수 추천이 아닙니다.</strong> 매매 규칙별 통계 검증입니다.
+  필터 기준은 <strong>D+5 시점에 보드에서 실제로 보이는 정보만</strong> 사용합니다 (judgmentStatus + VPR 분류).
+  입력은 3년+flow 백테스트 이벤트 448건.
 </div>
 
-<h2>📊 핵심 타일</h2>
+<h2>📊 시나리오별 핵심 타일 (필터 없음)</h2>
 <div class="big-summary" id="big-summary"></div>
 
-<h2>📊 시나리오별 전체 비교 (필터 = ALL)</h2>
-<p class="subtitle">5가지 익절/손절 규칙을 같은 표본에 적용한 결과. 기대값(expectancy) = 승률 × 평균수익 - 패율 × 평균손실. 양수면 통계적 우위.</p>
+<h2>📊 시나리오별 전체 비교 (필터 없음)</h2>
+<p class="subtitle">5가지 익절/손절 규칙을 같은 표본에 적용한 결과. <strong>매번 평균</strong> = 1번 매수당 평균 결과 (양수면 통계적으로 유리).</p>
 <div id="scenario-summary-table"></div>
 
-<h2>📊 시나리오 × VPR/judgment 분류 매트릭스 (승률 %)</h2>
-<p class="subtitle">각 셀 = 승률(거래수). VPR 분류는 D+10 시점 기준, judgment는 D+5 시점 기준.</p>
+<h2>📊 시나리오 × D+5 보드 정보별 승률 매트릭스</h2>
+<p class="subtitle">각 셀 = 승률(거래수). D+5 시점에 보드에서 실제로 볼 수 있는 분류만 사용.</p>
 <div id="matrix-table"></div>
 
-<h2>🏆 시나리오별 베스트 필터 (n≥10, 기대값 기준)</h2>
-<p class="subtitle">각 시나리오에서 가장 좋은 필터 (사례 수 10건 이상만).</p>
+<h2>🏆 시나리오별 가장 좋은 D+5 필터 (n≥10, 매번 평균 기준)</h2>
+<p class="subtitle">각 시나리오에서 가장 평균 결과가 좋은 D+5 필터 (사례 수 10건 이상만).</p>
 <div id="best-filter-table"></div>
 
-<h2>📋 전체 시나리오 × 필터 결과</h2>
+<h2>📋 시나리오별 D+5 필터 상세</h2>
 <div class="tabs" id="scenario-tabs"></div>
 <div id="scenario-detail"></div>
 
-<h2>📋 개별 trade 결과 (시나리오 A — +6/-3 기본)</h2>
-<p class="subtitle">개별 사례. 다른 시나리오 결과도 JSON에 포함됨.</p>
+<h2>📋 개별 매매 결과</h2>
+<p class="subtitle">개별 사례. 5가지 시나리오 결과를 모두 표시. ✅ 익절 / ❌ 손절 / ⏱ 시간종료 / 🔀 분할청산.</p>
 <div id="trades-list"></div>
 
 <footer class="foot" id="data-limit"></footer>
@@ -621,19 +664,18 @@ function fmtDate(d) {
 
 const cfg = DATA.config;
 document.getElementById('subtitle').textContent =
-  '입력 ' + DATA.counts.totalEvents + '건 → 실효 trade ' + DATA.counts.effectiveTrades + '건 · ' +
-  '매수 ' + cfg.buySource + ' / hold ' + cfg.holdDays + '거래일 · ' +
-  '시나리오 ' + cfg.scenarios.length + '종 · ' +
+  '입력 ' + DATA.counts.totalEvents + '건 → 실제 매매 ' + DATA.counts.effectiveTrades + '건 · ' +
+  '매수 ' + cfg.buySource + ' / 보유 ' + cfg.holdDays + '거래일 · ' +
   '생성 ' + new Date(DATA.meta.generatedAt).toLocaleString('ko-KR');
 document.getElementById('entry-label').textContent = cfg.buySource;
 
 // 핵심 타일
 const ssum = DATA.scenarioSummary;
-const tiles = ssum.slice(0, 5).map((s, i) => ({
+const tiles = ssum.map((s, i) => ({
   cls: s.expectancy > 0 ? 'success' : 'fail',
-  label: '시나리오 ' + s.scenarioKey + ' (' + s.scenarioRR + ')',
+  label: s.scenarioLabel,
   value: s.winRate != null ? s.winRate + '%' : '-',
-  sub: 'n=' + (s.valid || 0) + ' / 기대값 ' + (s.expectancy != null ? (s.expectancy > 0 ? '+' : '') + s.expectancy + '%' : '-'),
+  sub: 'n=' + (s.valid || 0) + ' / 매번평균 ' + (s.expectancy != null ? (s.expectancy > 0 ? '+' : '') + s.expectancy + '%' : '-'),
 }));
 document.getElementById('big-summary').innerHTML = tiles.map(t =>
   '<div class="big-tile ' + t.cls + '">' +
@@ -646,9 +688,9 @@ document.getElementById('big-summary').innerHTML = tiles.map(t =>
 // 시나리오 요약 표
 function scenarioSummaryTable(rows) {
   const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
-    '<th>시나리오</th><th>RR</th><th>n</th><th>승률</th>',
-    '<th>평균 수익</th><th>평균 손실</th><th>손익비</th><th>기대값</th>',
-    '<th>TP%</th><th>SL%</th><th>TIME%</th><th>최대 연패</th><th>평균 보유일</th>',
+    '<th>시나리오</th><th>n</th><th>승률</th>',
+    '<th>평균 이익</th><th>평균 손실</th><th>매번 평균</th>',
+    '<th>익절률</th><th>손절률</th><th>시간종료</th><th>연속손실 최대</th><th>평균 보유일</th>',
     '<th>최고</th><th>최악</th>',
     '</tr></thead><tbody>'];
   for (const r of rows) {
@@ -656,12 +698,10 @@ function scenarioSummaryTable(rows) {
     const cls = r.expectancy > 0 ? ' class="row-highlight"' : '';
     html.push('<tr' + cls + '>' +
       '<td>' + (r.scenarioLabel || '-') + '</td>' +
-      '<td>' + (r.scenarioRR || '-') + '</td>' +
       '<td>' + (r.valid ?? '-') + '</td>' +
       '<td>' + fmtRate(r.winRate) + '</td>' +
       '<td>' + fmtPct(r.avgWin) + '</td>' +
       '<td>' + fmtPct(r.avgLoss) + '</td>' +
-      '<td>' + (r.rrRatio != null ? r.rrRatio.toFixed(2) : '-') + '</td>' +
       '<td>' + fmtPct(r.expectancy) + '</td>' +
       '<td>' + (r.tpRate != null ? r.tpRate + '%' : '-') + '</td>' +
       '<td>' + (r.slRate != null ? r.slRate + '%' : '-') + '</td>' +
@@ -677,14 +717,14 @@ function scenarioSummaryTable(rows) {
 }
 document.getElementById('scenario-summary-table').innerHTML = scenarioSummaryTable(ssum);
 
-// 매트릭스 (시나리오 × 필터, 셀 = 승률(n))
+// 매트릭스 (시나리오 × D+5 필터, 셀 = 승률(n))
 function matrixTable(matrix, scenarios, filters) {
   const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
     '<th>시나리오</th>'];
   for (const f of filters) html.push('<th>' + f.short + '</th>');
   html.push('</tr></thead><tbody>');
   for (const sc of scenarios) {
-    html.push('<tr><td>' + sc.key + ' ' + sc.rr + '</td>');
+    html.push('<tr><td>' + sc.label + '</td>');
     for (const f of filters) {
       const cell = matrix[sc.key]?.[f.key];
       if (!cell || !cell.valid) {
@@ -692,8 +732,7 @@ function matrixTable(matrix, scenarios, filters) {
         continue;
       }
       const wr = cell.winRate;
-      const exp = cell.expectancy;
-      const cls = wr >= 60 ? 'cell-pos' : (wr < 40 ? 'cell-neg' : '');
+      const cls = wr >= 50 ? 'cell-pos' : (wr < 30 ? 'cell-neg' : '');
       html.push('<td><span class="' + cls + '">' + (wr ?? '-') + '%</span><br><span style="font-size:10px;color:#64748b;">n=' + cell.valid + '</span></td>');
     }
     html.push('</tr>');
@@ -703,21 +742,23 @@ function matrixTable(matrix, scenarios, filters) {
 }
 const matrixFilters = [
   { key: 'ALL', short: '전체' },
-  { key: 'D10_STRONG', short: 'D+10 강한' },
-  { key: 'D10_CLASSIC', short: 'D+10 정석' },
-  { key: 'D10_SUCCESS_ANY', short: 'D+10 성공Σ' },
-  { key: 'D10_RUNAWAY', short: '눌림없이' },
-  { key: 'D10_PENDING', short: 'D+10 대기' },
-  { key: 'D10_STRUCT', short: '구조훼손' },
-  { key: 'D10_NO_STRUCT', short: '훼손제외' },
+  { key: 'D5J_PWAIT', short: '눌림대기' },
+  { key: 'D5J_MGMT', short: '관리구간' },
+  { key: 'D5J_BWEAK', short: '돌파악화' },
+  { key: 'D5V_STRONG', short: 'VPR 강한' },
+  { key: 'D5V_CLASSIC', short: 'VPR 정석' },
+  { key: 'D5V_RUNAWAY', short: '눌림없이' },
+  { key: 'D5V_PENDING', short: 'VPR 대기' },
+  { key: 'D5V_WEAK', short: '약한 재돌파' },
+  { key: 'D5V_STRUCT', short: '구조훼손' },
 ];
-document.getElementById('matrix-table').innerHTML = matrixTable(DATA.vprMatrix, cfg.scenarios, matrixFilters);
+document.getElementById('matrix-table').innerHTML = matrixTable(DATA.d5Matrix, cfg.scenarios, matrixFilters);
 
-// 베스트 필터 (각 시나리오에서 기대값 기준 top, n≥10)
+// 베스트 필터 (각 시나리오에서 매번 평균 기준 top, n≥10)
 function bestFilterTable() {
   const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
-    '<th>시나리오</th><th>최고 필터</th><th>n</th><th>승률</th>',
-    '<th>평균 수익</th><th>평균 손실</th><th>기대값</th><th>최악</th>',
+    '<th>시나리오</th><th>가장 좋은 D+5 필터</th><th>n</th><th>승률</th>',
+    '<th>평균 이익</th><th>평균 손실</th><th>매번 평균</th><th>최악</th>',
     '</tr></thead><tbody>'];
   for (const sc of cfg.scenarios) {
     const candidates = DATA.summary.filter(s => s.scenarioKey === sc.key && (s.valid || 0) >= 10 && s.filterKey !== 'ALL');
@@ -726,7 +767,7 @@ function bestFilterTable() {
     const best = candidates[0];
     const cls = best.expectancy > 0 ? ' class="row-highlight"' : '';
     html.push('<tr' + cls + '>' +
-      '<td>' + sc.key + ' ' + sc.rr + '</td>' +
+      '<td>' + sc.label + '</td>' +
       '<td>' + best.filterLabel + '</td>' +
       '<td>' + best.valid + '</td>' +
       '<td>' + fmtRate(best.winRate) + '</td>' +
@@ -741,11 +782,10 @@ function bestFilterTable() {
 }
 document.getElementById('best-filter-table').innerHTML = bestFilterTable();
 
-// 시나리오 × 필터 디테일 (탭별)
-const scenarioTabs = cfg.scenarios.map(s => s.key);
-let curTab = scenarioTabs[0];
+// 시나리오 × D+5 필터 디테일 (탭별)
+let curTab = cfg.scenarios[0].key;
 document.getElementById('scenario-tabs').innerHTML = cfg.scenarios.map(s =>
-  '<button class="tab-btn' + (s.key === curTab ? ' active' : '') + '" data-tab="' + s.key + '">시나리오 ' + s.key + ' (' + s.rr + ')</button>'
+  '<button class="tab-btn' + (s.key === curTab ? ' active' : '') + '" data-tab="' + s.key + '">' + s.label + '</button>'
 ).join('');
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -759,8 +799,8 @@ function renderScenarioDetail() {
   const rows = DATA.summary.filter(s => s.scenarioKey === curTab && (s.valid || 0) > 0);
   rows.sort((a, b) => (b.expectancy ?? -Infinity) - (a.expectancy ?? -Infinity));
   const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
-    '<th>필터</th><th>n</th><th>승률</th><th>평균 수익</th><th>평균 손실</th>',
-    '<th>손익비</th><th>기대값</th><th>TP%</th><th>SL%</th><th>TIME%</th>',
+    '<th>D+5 필터</th><th>n</th><th>승률</th><th>평균 이익</th><th>평균 손실</th>',
+    '<th>매번 평균</th><th>익절률</th><th>손절률</th><th>시간종료</th>',
     '<th>최고</th><th>최악</th>',
     '</tr></thead><tbody>'];
   for (const r of rows) {
@@ -771,7 +811,6 @@ function renderScenarioDetail() {
       '<td>' + fmtRate(r.winRate) + '</td>' +
       '<td>' + fmtPct(r.avgWin) + '</td>' +
       '<td>' + fmtPct(r.avgLoss) + '</td>' +
-      '<td>' + (r.rrRatio != null ? r.rrRatio.toFixed(2) : '-') + '</td>' +
       '<td>' + fmtPct(r.expectancy) + '</td>' +
       '<td>' + (r.tpRate != null ? r.tpRate + '%' : '-') + '</td>' +
       '<td>' + (r.slRate != null ? r.slRate + '%' : '-') + '</td>' +
@@ -785,14 +824,14 @@ function renderScenarioDetail() {
 }
 renderScenarioDetail();
 
-// 개별 trade 리스트 (시나리오 A 기본 + 다른 시나리오 결과 펼침)
+// 개별 trade 리스트 — D+5 정보만 표시
 function tradesTable() {
   const trades = DATA.trades || [];
-  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>',
-    '<th>#</th><th>종목</th><th>매수일</th><th>매수가</th>',
-    '<th>D+5 화면</th><th>D+10 VPR</th>',
-    '<th>A (+6/-3)</th><th>B (+10/-5)</th><th>C (+15/-5)</th><th>D (+20/-5)</th><th>E (분할)</th>',
-    '</tr></thead><tbody>'];
+  const scs = cfg.scenarios;
+  const head = ['<th>#</th>', '<th>종목</th>', '<th>매수일</th>', '<th>매수가</th>',
+    '<th>D+5 화면</th>', '<th>D+5 VPR</th>'];
+  for (const sc of scs) head.push('<th>' + sc.label + '</th>');
+  const html = ['<div class="scroll-x"><table class="cmp"><thead><tr>', head.join(''), '</tr></thead><tbody>'];
   trades.slice(0, 200).forEach((t, i) => {
     const r = t.results || {};
     const cell = (key) => {
@@ -804,18 +843,19 @@ function tradesTable() {
       const exitTag = exit === 'TP' || exit === 'TP_GAP' ? '✅' : (exit === 'SL' || exit === 'SL_GAP' ? '❌' : (exit === 'SPLIT' ? '🔀' : '⏱'));
       return '<td><span class="' + cls + '">' + exitTag + ' ' + (ret > 0 ? '+' : '') + ret + '%</span></td>';
     };
-    html.push('<tr>' +
-      '<td>' + (i + 1) + '</td>' +
-      '<td>' + (t.name || '') + ' <span style="color:#64748b;">' + t.code + '</span></td>' +
-      '<td>' + fmtDate(t.buyDate) + '</td>' +
-      '<td>' + (t.buyPrice ? t.buyPrice.toLocaleString() : '-') + '</td>' +
-      '<td><span style="font-size:11px;color:#94a3b8;">' + (t.d5Judgment || '-') + '</span></td>' +
-      '<td><span style="font-size:11px;color:#94a3b8;">' + (t.d10VprStatus || '-') + '</span></td>' +
-      cell('A') + cell('B') + cell('C') + cell('D') + cell('E') +
-      '</tr>');
+    const cells = [
+      '<td>' + (i + 1) + '</td>',
+      '<td>' + (t.name || '') + ' <span style="color:#64748b;">' + t.code + '</span></td>',
+      '<td>' + fmtDate(t.buyDate) + '</td>',
+      '<td>' + (t.buyPrice ? t.buyPrice.toLocaleString() : '-') + '</td>',
+      '<td><span style="font-size:11px;color:#94a3b8;">' + (t.d5Judgment || '-') + '</span></td>',
+      '<td><span style="font-size:11px;color:#94a3b8;">' + (t.d5VprStatus || '-') + '</span></td>',
+    ];
+    for (const sc of scs) cells.push(cell(sc.key));
+    html.push('<tr>' + cells.join('') + '</tr>');
   });
   if (trades.length > 200) {
-    html.push('<tr><td colspan="11" style="text-align:center;color:#64748b;padding:10px;">... ' + (trades.length - 200) + '건 추가 (JSON 참조)</td></tr>');
+    html.push('<tr><td colspan="' + (6 + scs.length) + '" style="text-align:center;color:#64748b;padding:10px;">... ' + (trades.length - 200) + '건 추가 (JSON 참조)</td></tr>');
   }
   html.push('</tbody></table></div>');
   return html.join('');
@@ -824,12 +864,12 @@ document.getElementById('trades-list').innerHTML = tradesTable();
 
 document.getElementById('data-limit').innerHTML =
   '<strong>데이터 한계 / 시뮬레이션 가정</strong><br>' +
-  '• 매수: ' + cfg.buySource + ' (slippage/체결 슬리피지 미반영, 종가 기준)<br>' +
-  '• 청산: 매일 high/low 기준 first-touch. 같은 날 high·low 둘 다 닿으면 손절 우선 (보수적). 갭 시초가 슬리피지 반영<br>' +
+  '• 매수: ' + cfg.buySource + ' (체결 슬리피지 미반영)<br>' +
+  '• 청산: 매일 고가·저가 기준. 같은 날 둘 다 닿으면 손절 우선 (보수적). 시초가 갭 반영<br>' +
   '• 시간 종료: 매수 후 ' + cfg.holdDays + '거래일 종가 청산<br>' +
-  '• VPR 분류는 사후(post-hoc) 정보 — 매수 시점에는 알 수 없음. D+10 분류 필터는 "그 분류로 갈 사례를 미리 알았다면" 가정 (look-ahead). 실시간 운영에서는 D+5 분류만 사용 가능<br>' +
-  '• 거래 수수료/세금 미반영 (실제 trade는 0.2~0.5% 추가 차감 필요)<br>' +
-  '• 매수 추천이 아니라 트레이드 규칙별 통계 검증입니다.';
+  '• <strong>필터는 D+5 시점 정보만 사용</strong> — 보드에서 실제로 보이는 judgmentStatus + VPR 분류 (look-ahead 없음)<br>' +
+  '• 거래 수수료/세금 미반영 (실제 매매는 0.2~0.5% 추가 차감 필요)<br>' +
+  '• 매수 추천이 아니라 매매 규칙별 통계 검증입니다.';
 </script>
 
 </body>
