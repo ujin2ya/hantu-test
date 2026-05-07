@@ -1,0 +1,293 @@
+<%
+function fmtNum(v) { return v != null ? Math.round(Number(v)).toLocaleString() : '-'; }
+function fmtDate(d) { if (!d || String(d).length !== 8) return d || '-'; return String(d).slice(0,4)+'-'+String(d).slice(4,6)+'-'+String(d).slice(6,8); }
+function fmtPct(v, prec) {
+  if (v == null) return '-';
+  prec = prec == null ? 2 : prec;
+  return (v > 0 ? '+' : '') + Number(v).toFixed(prec) + '%';
+}
+function fmtMarketCap(won) {
+  if (!won || won <= 0) return '-';
+  const eok = won / 1e8;
+  if (eok >= 10000) return (eok / 10000).toFixed(2) + '조';
+  return Math.round(eok).toLocaleString() + '억';
+}
+const rows = chartRows || [];
+const lastRow = rows.length > 0 ? rows[rows.length - 1] : null;
+const dispPrice = (kisLive && kisLive.price) || (lastRow && lastRow.close);
+const dispChg = (kisLive && kisLive.changeRate != null) ? kisLive.changeRate : null;
+const fetchedAtKstStr = (kisLive && kisLive.fetchedAt) ? (() => {
+  const d = new Date(kisLive.fetchedAt);
+  const kst = new Date(d.getTime() + (d.getTimezoneOffset() + 9*60) * 60000);
+  const pad = (x) => String(x).padStart(2, '0');
+  return pad(kst.getHours()) + ':' + pad(kst.getMinutes()) + ':' + pad(kst.getSeconds());
+})() : null;
+const backUrl = (function() {
+  const map = { 'qva-watchlist': '/qva-watchlist', 'rebreak': '/rebreak', 'one-day-surge': '/one-day-surge-board' };
+  return (from && map[from]) || null;
+})();
+%>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title><%= meta.name %> · 종목 상세</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0 auto; padding: 18px 24px 80px; max-width: 1200px;
+  font-family: -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  background: #0f172a; color: #e2e8f0; font-size: 13px;
+}
+nav { display:flex; gap:10px; flex-wrap:wrap; padding:8px 0 14px; border-bottom:1px solid #1e293b; margin-bottom:14px; font-size: 12px; }
+nav a { color:#94a3b8; text-decoration:none; padding:4px 8px; border-radius:4px; }
+nav a:hover { color:#e2e8f0; background:#1e293b; }
+h1 { font-size: 24px; margin: 0 0 4px; color: #f1f5f9; font-weight: 700; }
+h1 .code { color: #64748b; font-size: 16px; font-weight: 400; margin-left: 8px; }
+h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
+.subtitle { font-size: 13px; color: #94a3b8; margin-bottom: 14px; }
+
+.price-block { background: #1e293b; border-radius: 10px; padding: 16px 20px; margin-bottom: 14px; border-left: 4px solid #38bdf8; }
+.price-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.price-big { font-size: 32px; font-weight: 700; color: #f1f5f9; font-variant-numeric: tabular-nums; }
+.price-unit { font-size: 14px; font-weight: 400; color: #94a3b8; margin-left: 2px; }
+.price-change { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.price-change.pos { color: #6ee7b7; }
+.price-change.neg { color: #fca5a5; }
+.price-meta { color: #94a3b8; font-size: 12px; margin-top: 6px; }
+.price-meta .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; background: #0f172a; border: 1px solid #334155; margin-right: 4px; font-size: 11px; }
+.price-meta .badge.live { background: #064e3b; color: #6ee7b7; border-color: #10b981; font-weight: 600; }
+
+.price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 14px; }
+.price-cell { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 10px 12px; }
+.price-cell .label { font-size: 11px; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+.price-cell .value { font-size: 16px; font-weight: 600; color: #e2e8f0; font-variant-numeric: tabular-nums; }
+
+.chart-wrap { background: #1e293b; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+.chart-svg { width: 100%; height: 360px; }
+
+.member-section { background: #1e293b; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; }
+.member-section h3 { font-size: 13px; margin: 0 0 8px; color: #cbd5e1; font-weight: 600; }
+.member-row { font-size: 12px; color: #94a3b8; line-height: 1.7; }
+.member-row .k { color: #cbd5e1; font-weight: 600; margin-right: 4px; }
+.member-row .stage { display: inline-block; padding: 2px 8px; border-radius: 4px; background: #312e81; color: #c7d2fe; margin-right: 4px; font-size: 11px; font-weight: 600; }
+.member-row .stage.qva { background: #064e3b; color: #6ee7b7; }
+.member-row .stage.rebreak { background: #422006; color: #fbbf24; }
+.member-row .stage.ods { background: #581c87; color: #d8b4fe; }
+.member-link { color: #38bdf8; text-decoration: none; }
+.member-link:hover { text-decoration: underline; }
+
+table.daily { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.daily th { background: #0f172a; color: #94a3b8; padding: 6px 8px; text-align: right; border-bottom: 1px solid #334155; font-weight: 600; }
+table.daily th:first-child { text-align: left; }
+table.daily td { padding: 5px 8px; text-align: right; border-bottom: 1px solid #1e293b; font-variant-numeric: tabular-nums; color: #e2e8f0; }
+table.daily td:first-child { text-align: left; color: #94a3b8; }
+table.daily tr:hover { background: #1e293b; }
+.cell-pos { color: #6ee7b7; }
+.cell-neg { color: #fca5a5; }
+
+.empty-msg { padding: 12px; background: #1e293b; border-radius: 6px; color: #94a3b8; font-size: 12px; }
+
+footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.7; }
+
+@media (max-width: 900px) {
+  body { padding: 12px 12px 60px; }
+  .price-grid { grid-template-columns: repeat(2, 1fr); }
+  h1 { font-size: 20px; }
+  .price-big { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <% if (backUrl) { %><a href="<%= backUrl %>">← 보드로 돌아가기</a><% } %>
+  <a href="/qva-watchlist">📋 QVA 보드</a>
+  <a href="/rebreak">🔥 D+5 재돌파</a>
+  <a href="/one-day-surge-board">⚡ 1DS 보드</a>
+</nav>
+
+<h1>
+  <%= meta.name %><span class="code"><%= code %> · <%= meta.market || '-' %></span>
+</h1>
+<div class="subtitle">
+  시가총액 <%= fmtMarketCap(meta.marketCap) %>
+  <% if (meta.isEtf) { %> · ETF<% } %>
+  <% if (meta.isSpecial) { %> · 우선주/리츠/스팩<% } %>
+</div>
+
+<div class="price-block">
+  <div class="price-row">
+    <span class="price-big"><%= fmtNum(dispPrice) %><span class="price-unit">원</span></span>
+    <% if (dispChg != null) { %>
+    <span class="price-change <%= dispChg > 0 ? 'pos' : (dispChg < 0 ? 'neg' : '') %>">
+      <%= dispChg > 0 ? '▲' : (dispChg < 0 ? '▼' : '─') %>
+      <% if (kisLive && kisLive.changeAbs != null) { %><%= Math.abs(kisLive.changeAbs).toLocaleString() %>원 <% } %>
+      <%= fmtPct(dispChg) %>
+    </span>
+    <% } %>
+  </div>
+  <div class="price-meta">
+    <% if (kisLive) { %>
+    <span class="badge live">🟢 KIS 실시간</span>
+    <% if (fetchedAtKstStr) { %><span>⏱ <%= fetchedAtKstStr %> 조회 (새로고침 시 갱신)</span><% } %>
+    <% if (kisLive.prevClose) { %> · 전일 종가 <%= fmtNum(kisLive.prevClose) %>원<% } %>
+    <% } else if (lastRow) { %>
+    <span class="badge">📅 <%= fmtDate(lastRow.date) %> 종가 (KIS 실시간 호출 실패)</span>
+    <% } else { %>
+    <span class="badge">데이터 없음</span>
+    <% } %>
+  </div>
+  <% if (kisLive) { %>
+  <div class="price-grid" style="margin-top: 12px;">
+    <div class="price-cell"><div class="label">시가</div><div class="value"><%= fmtNum(kisLive.open) %></div></div>
+    <div class="price-cell"><div class="label">고가</div><div class="value"><%= fmtNum(kisLive.high) %></div></div>
+    <div class="price-cell"><div class="label">저가</div><div class="value"><%= fmtNum(kisLive.low) %></div></div>
+    <div class="price-cell"><div class="label">거래량</div><div class="value"><%= fmtNum(kisLive.volume) %></div></div>
+  </div>
+  <% } %>
+</div>
+
+<!-- 보드 funnel 멤버십 -->
+<% if (memberships.qva || memberships.rebreak || memberships.oneDaySurge) { %>
+<div class="member-section">
+  <h3>📍 현재 보드 funnel</h3>
+  <% if (memberships.qva) { %>
+    <% memberships.qva.forEach(function(q) { %>
+    <div class="member-row">
+      <span class="stage qva"><%= q.stage %></span>
+      <% if (q.qvaSignalDate) { %>QVA 신호일 <%= fmtDate(q.qvaSignalDate) %><% } %>
+      <% if (q.daysSinceQva != null) { %> · D+<%= q.daysSinceQva %><% } %>
+      <% if (q.breakoutDate) { %> · H돌파일 <%= fmtDate(q.breakoutDate) %><% } %>
+      <a class="member-link" href="/qva-watchlist" target="_blank">→ QVA 보드</a>
+    </div>
+    <% }) %>
+  <% } %>
+  <% if (memberships.rebreak) { %>
+    <div class="member-row">
+      <span class="stage rebreak">D+5 재돌파</span>
+      <%= memberships.rebreak.rebreakStatusLabel || memberships.rebreak.rebreakStatus %>
+      <% if (memberships.rebreak.daysFromBreakout != null) { %> · D+<%= memberships.rebreak.daysFromBreakout %><% } %>
+      <% if (memberships.rebreak.breakoutDate) { %> · H돌파일 <%= fmtDate(memberships.rebreak.breakoutDate) %><% } %>
+      <a class="member-link" href="/d5-rebreak/<%= code %>" target="_blank">→ 재돌파 상세</a>
+    </div>
+  <% } %>
+  <% if (memberships.oneDaySurge) { %>
+    <% var ods = memberships.oneDaySurge; %>
+    <div class="member-row">
+      <span class="stage ods">1DS · <%= ods.gtGroup %></span>
+      <% if (ods.dayChangeRate != null) { %>당일 <%= fmtPct(ods.dayChangeRate) %><% } %>
+      <% if (ods.valueToMarketCapRatio != null) { %> · 시총회전 ×<%= Number(ods.valueToMarketCapRatio).toFixed(2) %><% } %>
+      <% if (ods.candleType) { %> · <%= ods.candleType %><% } %>
+      <% if (ods.dailyValueRank) { %> · 거래대금 <%= ods.dailyValueRank %>위<% } %>
+      <a class="member-link" href="/one-day-surge-board" target="_blank">→ 1DS 보드</a>
+    </div>
+  <% } %>
+</div>
+<% } else { %>
+<div class="member-section">
+  <h3>📍 현재 보드 funnel</h3>
+  <div class="empty-msg">현재 어느 보드에도 후보로 등록되어 있지 않습니다.</div>
+</div>
+<% } %>
+
+<!-- 차트 (간단 SVG candlestick) -->
+<% if (rows.length > 0) { %>
+<h2>📈 일봉 차트 (최근 <%= rows.length %>일)</h2>
+<div class="chart-wrap">
+  <svg id="ohlc-chart" class="chart-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+</div>
+
+<h2>📋 일봉 raw (최근 20일)</h2>
+<table class="daily">
+  <thead>
+    <tr><th>일자</th><th>시가</th><th>고가</th><th>저가</th><th>종가</th><th>등락</th><th>거래량</th></tr>
+  </thead>
+  <tbody>
+    <% rows.slice(-20).reverse().forEach(function(r, i, arr) {
+      var prev = arr[i+1];
+      var chg = (prev && prev.close) ? ((r.close / prev.close - 1) * 100) : null;
+    %>
+    <tr>
+      <td><%= fmtDate(r.date) %></td>
+      <td><%= fmtNum(r.open) %></td>
+      <td><%= fmtNum(r.high) %></td>
+      <td><%= fmtNum(r.low) %></td>
+      <td><strong><%= fmtNum(r.close) %></strong></td>
+      <td class="<%= chg != null ? (chg > 0 ? 'cell-pos' : (chg < 0 ? 'cell-neg' : '')) : '' %>">
+        <%= chg != null ? fmtPct(chg) : '-' %>
+      </td>
+      <td><%= fmtNum(r.volume) %></td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<% } else { %>
+<div class="empty-msg">차트 데이터가 없습니다 (cache/stock-charts-long/<%= code %>.json 부재).</div>
+<% } %>
+
+<footer class="foot">
+  단순 종목 상세 페이지. 보드 어디서든 종목명을 클릭하면 떠오릅니다.<br>
+  실시간 가격은 KIS Open Trading API. 차트는 일일 갱신 캐시 기반.<br>
+  <strong>매수 추천이 아닙니다.</strong>
+</footer>
+
+<% if (rows.length > 0) { %>
+<script>
+const CHART = <%- JSON.stringify(rows) %>;
+
+function renderChart() {
+  const svg = document.getElementById('ohlc-chart');
+  if (!svg || CHART.length === 0) return;
+  const W = svg.clientWidth, H = svg.clientHeight;
+  const PAD_L = 60, PAD_R = 12, PAD_T = 12, PAD_B = 30;
+  const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
+
+  const highs = CHART.map(r => r.high);
+  const lows = CHART.map(r => r.low);
+  const yMaxRaw = Math.max(...highs);
+  const yMinRaw = Math.min(...lows);
+  const yMax = yMaxRaw * 1.02;
+  const yMin = yMinRaw * 0.98;
+  const xStep = plotW / Math.max(1, CHART.length);
+  const cw = Math.max(2, xStep * 0.6);
+
+  const yToPx = (y) => PAD_T + plotH * (1 - (y - yMin) / (yMax - yMin));
+  const xToPx = (i) => PAD_L + xStep * (i + 0.5);
+
+  let svgContent = '';
+
+  CHART.forEach((r, i) => {
+    const x = xToPx(i);
+    const oy = yToPx(r.open), cy = yToPx(r.close);
+    const hy = yToPx(r.high), ly = yToPx(r.low);
+    const isUp = r.close >= r.open;
+    const color = isUp ? '#ef4444' : '#3b82f6';
+    svgContent += '<line x1="' + x + '" x2="' + x + '" y1="' + hy + '" y2="' + ly + '" stroke="' + color + '" stroke-width="1"/>';
+    const bodyTop = Math.min(oy, cy), bodyH = Math.max(1, Math.abs(oy - cy));
+    svgContent += '<rect x="' + (x - cw/2) + '" y="' + bodyTop + '" width="' + cw + '" height="' + bodyH + '" fill="' + color + '"/>';
+  });
+
+  const labels = [0, Math.floor(CHART.length/3), Math.floor(CHART.length*2/3), CHART.length - 1];
+  for (const i of labels) {
+    if (i < 0 || i >= CHART.length) continue;
+    const x = xToPx(i);
+    const d = CHART[i].date;
+    const label = d.slice(4,6) + '/' + d.slice(6,8);
+    svgContent += '<text x="' + x + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10" fill="#94a3b8">' + label + '</text>';
+  }
+  for (let k = 0; k <= 4; k++) {
+    const v = yMin + (yMax - yMin) * k / 4;
+    const y = yToPx(v);
+    svgContent += '<text x="' + (PAD_L - 4) + '" y="' + (y + 3) + '" text-anchor="end" font-size="10" fill="#64748b">' + Math.round(v).toLocaleString() + '</text>';
+  }
+
+  svg.innerHTML = svgContent;
+}
+renderChart();
+window.addEventListener('resize', renderChart);
+</script>
+<% } %>
+
+</body>
+</html>

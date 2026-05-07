@@ -1917,7 +1917,7 @@ const COLS_BY_STAGE = {
       // 메인 태그만 표시 — 보조 태그는 종목명 옆으로 이동했음
       return '<span class="badge vpr-' + m + '" title="' + mainDesc.replace(/"/g, '&quot;') + '">' + mainLbl + '</span>';
     }},
-    { key: 'name', label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기 (AI 뉴스 분석 포함, 첫 조회 10~30초 소요)"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
+    { key: 'name', label: '종목', txt: true, render: c => '<a href="/stock/' + c.code + '?from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 종목 상세 페이지 열기"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
     { key: 'breakoutDate', label: '돌파일(기준일)<span class="help" data-tip="기준일 확인 필수. D+0이 오늘 돌파, D+5는 5거래일 전 돌파. 5일 노출 윈도우.">ⓘ</span>', txt: true, render: c => {
       const d = c.daysFromBreakout ?? 0;
       const dCls = d === 0 ? 'color:#10b981;font-weight:700;' : (d <= 2 ? 'color:#34d399;font-weight:600;' : (d >= 5 ? 'color:#fbbf24;' : 'color:#94a3b8;'));
@@ -1945,7 +1945,7 @@ const COLS_BY_STAGE = {
   VVI_FIRED: [
     { key: 'qvaSignalDate', label: 'QVA일', txt: true, render: c => fmtDate(c.qvaSignalDate) + ' <span class="muted">D+' + c.daysSinceQva + '</span>' },
     { key: 'vviDate', label: 'VVI일', txt: true, render: c => fmtDate(c.vviDate) },
-    { key: 'name', label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기 (AI 뉴스 분석 포함, 첫 조회 10~30초 소요)"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
+    { key: 'name', label: '종목', txt: true, render: c => '<a href="/stock/' + c.code + '?from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 종목 상세 페이지 열기"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
     { key: 'qvaSignalPrice', label: 'QVA 신호가', render: c => fmtNum(c.qvaSignalPrice) + '원' },
     { key: 'vviHigh', label: 'VVI 고가', render: c => fmtNum(c.vviHigh) + '원' },
     { key: 'vviClose', label: 'VVI 종가', render: c => fmtNum(c.vviClose) + '원' },
@@ -1961,7 +1961,7 @@ const COLS_BY_STAGE = {
     }},
     { key: 'name', label: '종목', txt: true, render: c => {
       const risk = c.riskTag ? '<span class="badge" style="background:#4c1d1d;color:#fca5a5;">위험</span>' : '';
-      return '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기 (AI 뉴스 분석 포함, 첫 조회 10~30초 소요)"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + risk + badges(c);
+      return '<a href="/stock/' + c.code + '?from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 종목 상세 페이지 열기"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + risk + badges(c);
     }},
     { key: 'qvaSignalPrice', label: 'QVA 신호가', render: c => fmtNum(c.qvaSignalPrice) + '원' },
     { key: 'currentClose', label: '현재가', render: c => fmtNum(c.currentClose) + '원' },
@@ -1970,7 +1970,7 @@ const COLS_BY_STAGE = {
     { key: 'auxTagsCount', label: '보조태그', render: c => (c.auxTags?.length || 0) + '/3' },
   ],
   QVA_NEW: [
-    { key: 'name', label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기 (AI 뉴스 분석 포함, 첫 조회 10~30초 소요)"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
+    { key: 'name', label: '종목', txt: true, render: c => '<a href="/stock/' + c.code + '?from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 종목 상세 페이지 열기"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
     { key: 'qvaSignalPrice', label: '신호가 (= 종가)', render: c => fmtNum(c.qvaSignalPrice) + '원' },
     { key: 'qvaSignalTradingValue', label: '거래대금', render: c => fmtValue(c.qvaSignalTradingValue) },
     { key: 'marketValue', label: '시총', render: c => fmtValue(c.marketValue) },
@@ -1978,7 +1978,7 @@ const COLS_BY_STAGE = {
   ],
   FAILED: [
     { key: 'qvaSignalDate', label: 'QVA일', txt: true, render: c => fmtDate(c.qvaSignalDate) + ' <span class="muted">D+' + c.daysSinceQva + '</span>' },
-    { key: 'name', label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기 (AI 뉴스 분석 포함, 첫 조회 10~30초 소요)"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
+    { key: 'name', label: '종목', txt: true, render: c => '<a href="/stock/' + c.code + '?from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 종목 상세 페이지 열기"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
     { key: 'qvaSignalPrice', label: '신호가', render: c => fmtNum(c.qvaSignalPrice) + '원' },
     { key: 'currentClose', label: '현재가', render: c => fmtNum(c.currentClose) + '원' },
     { key: 'currentReturnFromSignal', label: '신호가 대비%', render: c => fmtPct(c.currentReturnFromSignal, true) },
@@ -1993,7 +1993,7 @@ const COLS_BY_STAGE = {
     }},
     { key: 'firstEarlyQvaDate', label: '최초 감지일', txt: true, render: c => fmtDate(c.firstEarlyQvaDate) + ' <span class="muted">D+' + (c.daysSinceFirst ?? 0) + '</span>' },
     { key: 'latestEarlyQvaDate', label: '최근 발화일', txt: true, render: c => fmtDate(c.latestEarlyQvaDate || c.bestEarlyQvaDate) + ' <span class="muted">D+' + (c.daysSinceLatest ?? c.daysSinceBest ?? 0) + '</span>' },
-    { key: 'name', label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기 (AI 뉴스 분석 포함, 첫 조회 10~30초 소요)"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
+    { key: 'name', label: '종목', txt: true, render: c => '<a href="/stock/' + c.code + '?from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 종목 상세 페이지 열기"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
     { key: 'anchorPrice', label: '신호가', render: c => fmtNum(c.anchorPrice) + '원' },
     { key: 'currentClose', label: '현재가', render: c => fmtNum(c.currentClose) + '원' },
     { key: 'currentReturnFromSignal', label: '신호가 대비%', render: c => fmtPct(c.currentReturnFromSignal, true) },
@@ -2013,7 +2013,7 @@ COLS_BY_STAGE.LONG_QVA_REACTIVE = [
     return '<span style="color:' + (colors[t] || '#94a3b8') + ';font-weight:600;">' + (c.longQvaLabel || '-') + '</span>';
   }},
   { key: 'firstEarlyQvaDate', label: 'QVA일', txt: true, render: c => fmtDate(c.firstEarlyQvaDate) + ' <span class="muted">D+' + (c.daysSinceFirst ?? 0) + '</span>' },
-  { key: 'name', label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기 (AI 뉴스 분석 포함, 첫 조회 10~30초 소요)"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
+  { key: 'name', label: '종목', txt: true, render: c => '<a href="/stock/' + c.code + '?from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 종목 상세 페이지 열기"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
   { key: 'anchorPrice', label: 'QVA 신호가', render: c => fmtNum(c.anchorPrice) + '원' },
   { key: 'currentClose', label: '현재가', render: c => fmtNum(c.currentClose) + '원' },
   { key: 'currentReturnFromSignal', label: 'QVA 대비%', render: c => {
@@ -2061,7 +2061,7 @@ COLS_BY_STAGE.LONG_QVA_BREAKOUT_DONE = [
     return '<span class="' + cls + '">' + v.toFixed(2) + '%</span> <span class="muted">(D+' + (c.daysSinceMfeHigh ?? 0) + ')</span>';
   }},
   { key: 'firstEarlyQvaDate', label: 'QVA일', txt: true, render: c => fmtDate(c.firstEarlyQvaDate) + ' <span class="muted">D+' + (c.daysSinceFirst ?? 0) + '</span>' },
-  { key: 'name', label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
+  { key: 'name', label: '종목', txt: true, render: c => '<a href="/stock/' + c.code + '?from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
   { key: 'anchorPrice', label: 'QVA 신호가', render: c => fmtNum(c.anchorPrice) + '원' },
   { key: 'mfeHighPrice', label: '최고가', render: c => fmtNum(c.mfeHighPrice) + '원' },
   { key: 'currentClose', label: '현재가', render: c => fmtNum(c.currentClose) + '원' },
@@ -2563,7 +2563,7 @@ function buildRecentVviHistorySection() {
     };
     const cols = [
       { label: 'VVI일', txt: true, render: c => fmtDate(c.vviDate) },
-      { label: '종목', txt: true, render: c => '<a href="/?query=' + c.code + '&from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 상세 페이지 열기 (AI 뉴스 분석 포함, 첫 조회 10~30초 소요)"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + (c.isPreferred ? '<span class="badge pref">우</span>' : '') },
+      { label: '종목', txt: true, render: c => '<a href="/stock/' + c.code + '?from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 종목 상세 페이지 열기"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + (c.isPreferred ? '<span class="badge pref">우</span>' : '') },
       { label: 'VVI 고가', render: c => fmtNum(c.vviHigh) + '원' },
       { label: '+1% 기준가', render: c => fmtNum(c.breakoutEntryPrice1Pct) + '원' },
       { label: '다음 거래일 결과', txt: true, render: c => outcomeRender(c.vviOutcome) },
