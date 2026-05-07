@@ -1529,10 +1529,9 @@ function buildCardHtml(it) {
   // 그룹 라벨
   const groupLabel = (DATA.groupLabels && DATA.groupLabels[it.gtGroup]) || it.gtGroup;
   badges.push('<span class="badge g-' + it.gtGroup + '">' + groupLabel + '</span>');
-  // 시총 + 점수
+  // 시총 (총점 oneDaySurgeScore는 화면 노출 X — 정렬에 안 쓰이고 우선순위 점수와 혼동 방지. JSON에는 그대로 유지.)
   badges.push('<span class="badge aux" title="' + (it.gtBandLabel || '') + '">' + fmtMoney(it.marketCap) + '</span>');
-  badges.push('<span class="badge score">총점 ' + it.oneDaySurgeScore + '</span>');
-  // displayPriorityScore (화면 우선순위) — 디버그/투명성
+  // displayPriorityScore (화면 우선순위 — 정렬 기준)
   if (typeof it.displayPriorityScore === 'number') {
     const ps = it.displayPriorityScore;
     const psCls = ps >= 80 ? 'value-strong' : (ps >= 50 ? 'value-mid' : (ps < 0 ? 'overheat' : 'aux'));
