@@ -40,6 +40,9 @@ cache/*
 !cache/flow-history/
 !cache/flow-history/*.json
 
+# 1DS 분봉 수집 (collect-1ds-intraday.js) — 운영 데이터, git 추적 X
+data/intraday/
+
 # Python
 .venv/
 venv/
