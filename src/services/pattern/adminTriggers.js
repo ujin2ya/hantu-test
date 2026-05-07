@@ -13,7 +13,20 @@ const patternState = {
   refreshingBoard: false, boardRefreshStartedAt: null, boardRefreshFinishedAt: null, boardRefreshError: null,
   qvaBacktesting: false, qvaBacktestStartedAt: null, qvaBacktestFinishedAt: null, qvaBacktestError: null,
   dailyUpdating: false, dailyUpdateStartedAt: null, dailyUpdateFinishedAt: null, dailyUpdateError: null,
+  // 전체 보드 갱신 (QVA + D+5 재돌파 × 3 + 1DS) — cron 16:35 + /admin/refresh-all-boards
+  refreshingAllBoards: false, allBoardsRefreshStartedAt: null, allBoardsRefreshFinishedAt: null,
+  allBoardsRefreshError: null, allBoardsCurrent: null, allBoardsResults: [],
 };
+
+// 16:35 cron + admin 트리거가 같은 순서로 갱신하는 보드 스크립트 목록.
+// 의존성 순서: QVA 보드(qva-watchlist-board.json 생성) → D+5 재돌파(QVA 결과 read) → 1DS(독립)
+const BOARD_SCRIPTS = [
+  { name: "QVA Watchlist Board",          file: "qva-watchlist-board.js" },
+  { name: "D+5 재돌파 운용 보드",            file: "hgroup-rebreak-operation-board.js" },
+  { name: "D+5 재돌파 심층 검증 보고서",       file: "hgroup-rebreak-deep-dive-report.js" },
+  { name: "D+5 재돌파 수급 백테스트",          file: "hgroup-rebreak-flow-backtest.js" },
+  { name: "1-Day Surge Board",            file: "one-day-surge-board.js" },
+];
 
 const PATTERN_RESULT_PATH = path.join(CACHE_DIR, "pattern-result.json");
 const QVA_BACKTEST_PATH = path.join(CACHE_DIR, "qva-backtest.json");
@@ -167,13 +180,74 @@ function runDailyUpdate() {
   return { ok: true, message: "일일 업데이트 시작 (차트 + 수급 + 분석)", startedAt: patternState.dailyUpdateStartedAt };
 }
 
+// 단일 보드 스크립트를 spawn으로 실행하고 종료를 기다린다 (스트림은 stdout/stderr로 미러링).
+function spawnBoardScript(scriptFile) {
+  return new Promise((resolve) => {
+    const scriptPath = path.join(ROOT, scriptFile);
+    const proc = spawn("node", [scriptPath], { cwd: ROOT });
+    let stderr = "";
+    proc.stdout.on("data", (d) => process.stdout.write("[BD] " + d.toString()));
+    proc.stderr.on("data", (d) => { stderr += d.toString(); process.stderr.write("[BD ERR] " + d.toString()); });
+    proc.on("close", (code) => {
+      if (code === 0) resolve({ ok: true });
+      else resolve({ ok: false, error: `exit ${code}: ${stderr.slice(0, 500)}` });
+    });
+    proc.on("error", (err) => resolve({ ok: false, error: err.message }));
+  });
+}
+
+// 전체 보드 갱신 (cron 16:35 + /admin/refresh-all-boards 가 호출).
+// QVA → D+5 재돌파(operation/deep-dive/flow) → 1DS 순서로 순차 실행. 한 보드 실패해도 다음 진행.
+function refreshAllBoards() {
+  if (patternState.refreshingAllBoards) {
+    return { ok: false, message: "이미 전체 보드 갱신 중입니다", startedAt: patternState.allBoardsRefreshStartedAt };
+  }
+  patternState.refreshingAllBoards = true;
+  patternState.allBoardsRefreshStartedAt = new Date().toISOString();
+  patternState.allBoardsRefreshFinishedAt = null;
+  patternState.allBoardsRefreshError = null;
+  patternState.allBoardsCurrent = null;
+  patternState.allBoardsResults = [];
+
+  (async () => {
+    console.log(`[All Boards] 시작 (${BOARD_SCRIPTS.length}개): ${patternState.allBoardsRefreshStartedAt}`);
+    for (const s of BOARD_SCRIPTS) {
+      patternState.allBoardsCurrent = s.name;
+      const t0 = Date.now();
+      const r = await spawnBoardScript(s.file);
+      const elapsedMs = Date.now() - t0;
+      patternState.allBoardsResults.push({
+        name: s.name, file: s.file, ok: r.ok, error: r.error || null, elapsedMs,
+      });
+      if (r.ok) console.log(`[All Boards] ✅ ${s.name} (${elapsedMs}ms)`);
+      else console.error(`[All Boards] ❌ ${s.name}: ${r.error}`);
+    }
+    patternState.allBoardsCurrent = null;
+    const failed = patternState.allBoardsResults.filter((r) => !r.ok);
+    if (failed.length) {
+      patternState.allBoardsRefreshError = `${failed.length}개 보드 실패: ${failed.map((f) => f.name).join(", ")}`;
+    }
+    patternState.refreshingAllBoards = false;
+    patternState.allBoardsRefreshFinishedAt = new Date().toISOString();
+    console.log(`[All Boards] 완료: ${patternState.allBoardsRefreshFinishedAt}` + (failed.length ? ` (${failed.length}개 실패)` : ""));
+  })();
+
+  return {
+    ok: true,
+    message: `전체 보드 갱신 시작 (${BOARD_SCRIPTS.length}개 — QVA + 재돌파 × 3 + 1DS, 백그라운드 30~90초 예상)`,
+    startedAt: patternState.allBoardsRefreshStartedAt,
+  };
+}
+
 module.exports = {
   patternState,
+  BOARD_SCRIPTS,
   startSeed,
   startAnalyze,
   startQvaBacktest,
   refreshPatternCache,
   refreshWatchlistBoard,
+  refreshAllBoards,
   runDailyUpdate,
   PATTERN_RESULT_PATH,
 };

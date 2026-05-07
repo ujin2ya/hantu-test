@@ -5,7 +5,7 @@ const { execSync } = require("child_process");
 const cron = require("node-cron");
 const patternScreener = require("../../../pattern-screener");
 const { ROOT, CACHE_DIR } = require("../../utils/paths");
-const { patternState, PATTERN_RESULT_PATH } = require("./adminTriggers");
+const { patternState, PATTERN_RESULT_PATH, BOARD_SCRIPTS } = require("./adminTriggers");
 const { sendPatternMail } = require("../mail/patternMail");
 
 function registerSchedules() {
@@ -57,18 +57,27 @@ function registerSchedules() {
   }, { scheduled: true, timezone: "Asia/Seoul" });
   console.log("[스케줄] 매일 평일 16:20 일일 데이터 업데이트 + 재분석 활성화 (한국 시간)");
 
-  // 16:35 평일 — QVA Watchlist Board 갱신
+  // 16:35 평일 — 전체 보드 갱신 (QVA + D+5 재돌파 × 3 + 1DS)
+  // 각 보드를 순차 실행. 한 보드가 실패해도 다음 보드로 진행해서 부분 갱신은 보장한다.
   cron.schedule("35 16 * * 1-5", () => {
-    console.log("[Watchlist] 16:35 시작 — qva-watchlist-board 갱신");
-    try {
-      const scriptPath = path.join(ROOT, "qva-watchlist-board.js");
-      execSync(`node ${scriptPath}`, { stdio: "pipe" });
-      console.log("[Watchlist] 갱신 완료");
-    } catch (e) {
-      console.error("[Watchlist] 에러:", e.message);
+    console.log(`[Boards] 16:35 시작 — 전체 보드 갱신 (${BOARD_SCRIPTS.length}개)`);
+    let okCount = 0, failCount = 0;
+    for (const s of BOARD_SCRIPTS) {
+      try {
+        const scriptPath = path.join(ROOT, s.file);
+        const t0 = Date.now();
+        execSync(`node ${scriptPath}`, { stdio: "pipe" });
+        const elapsed = Date.now() - t0;
+        console.log(`[Boards] ✅ ${s.name} (${elapsed}ms)`);
+        okCount++;
+      } catch (e) {
+        console.error(`[Boards] ❌ ${s.name}: ${e.message.slice(0, 200)}`);
+        failCount++;
+      }
     }
+    console.log(`[Boards] 16:35 완료 — 성공 ${okCount} / 실패 ${failCount}`);
   }, { scheduled: true, timezone: "Asia/Seoul" });
-  console.log("[스케줄] 매일 평일 16:35 QVA Watchlist Board 갱신 활성화 (한국 시간)");
+  console.log(`[스케줄] 매일 평일 16:35 전체 보드 갱신 활성화 (${BOARD_SCRIPTS.length}개 — QVA + 재돌파 × 3 + 1DS)`);
 
   // 18:00 매일 — VVI 신호 메일 (옵션, MAIL_CRON_ENABLED=1 일 때만)
   if (process.env.MAIL_CRON_ENABLED === "1") {

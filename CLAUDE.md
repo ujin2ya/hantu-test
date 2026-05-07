@@ -11,6 +11,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 일일 갱신을 수동 트리거: `node run-daily-analysis.js` (또는 `/admin/run-daily-update`)
 - QVA 운영 보드 재생성: `node qva-watchlist-board.js` → `qva-watchlist-board.html` 생성. 라우트 `/qva-watchlist`가 이 정적 HTML을 서빙
 - D+5 재돌파 보드/심층/수급 백테스트 재생성: `node hgroup-rebreak-operation-board.js`, `node hgroup-rebreak-deep-dive-report.js`, `node hgroup-rebreak-flow-backtest.js` → `reports/hgroup-rebreak-*-result.{html,json}` 생성. 라우트는 이 파일을 sendFile만 함
+- 1-Day Surge Board(단타 관심 후보) 재생성: `node one-day-surge-board.js` → `reports/one-day-surge-board-result.{html,json}` 생성. 라우트 `/one-day-surge-board`가 sendFile만 함
+- 1-Day Surge 다음날 검증 보고서: `node one-day-surge-nextday-validation-report.js` → `reports/one-day-surge-nextday-validation-result.{html,json}` 생성. 환경변수 `VALIDATION_DAYS`(기본 60), `VALIDATION_MAX_STOCKS`(기본 무제한) 지원
 - **운영 서버 캐시 동기화 (push 전 필수)**: `bash scripts/sync-remote-cache.sh` — 운영 서버의 `cache/pattern-result.json` + `cache/flow-history/` + `cache/stock-charts-long/`를 로컬로 받는다. 이유는 [push 절차](#push-절차) 참고.
 
 테스트, 린터, 빌드 단계는 구성되어 있지 않다. 운영 배포는 GitHub Actions(`.github/workflows/deploy.yml`)가 ydata.co.kr 서버에 SSH로 push해 PM2(`hantu-test` 프로세스)로 재기동한다.
@@ -76,6 +78,7 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 2. **운영 보드** — 패턴 결과를 funnel 단계별 운용 화면으로 재가공
    - QVA Watchlist Board (`qva-watchlist-board.js` → `/qva-watchlist`)
    - D+5 재돌파 운용 보드 가족 (`hgroup-rebreak-*.js` → `/rebreak`, `/rebreak-deep`, `/d5-rebreak-flow`, `/d5-rebreak/:code`)
+   - 1-Day Surge Board — **QVA/VVI/BMS와 분리된 독립 단타 후보 보드** (`one-day-surge-board.js` → `/one-day-surge-board`). 본체 점수에는 QVA/VVI/BMS 조건을 섞지 않고, QVA/VVI 이력은 카드 참고 태그로만 부착.
 3. **일일 갱신 파이프라인** (`update-flow-daily.js`, `update-daily-pykrx.py`, `run-daily-analysis.js` + node-cron 4개)
 
 운영 UI(관리자 대시보드, 구독 메일)는 위 세 축이 만든 결과물 위에 얇게 얹힌다.
@@ -116,6 +119,10 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 | `GET /hgroup-rebreak-deep-dive` | rebreakController.getDeepDive | 심층 검증 보고서 sendFile |
 | `GET /d5-rebreak-flow`, `/rebreak-flow` | rebreakController.getFlowBacktest | 수급 결합 백테스트 보고서 sendFile |
 | `GET /d5-rebreak/:code` | rebreakController.getDetail | 종목 상세 — JSON에서 항목 찾기 + 차트 60일 + KIS 실시간 가격 + `d5-rebreak-detail.ejs` 렌더 |
+| `GET /one-day-surge-board` | oneDaySurgeController.getBoard | 단타 관심 후보 보드 HTML sendFile (`reports/one-day-surge-board-result.html`) |
+| `GET /one-day-surge`, `/ods` | (redirect) | `/one-day-surge-board`로 |
+| `GET /one-day-surge-validation` | oneDaySurgeController.getValidation | 다음날 검증 백테스트 보고서 HTML sendFile (`reports/one-day-surge-nextday-validation-result.html`) |
+| `GET /ods-validation` | (redirect) | `/one-day-surge-validation`로 |
 | `POST /ai/comment` | aiController.postComment | Gemini 호출. `/d5-rebreak/:code` 페이지가 lazy 호출 |
 | `GET/POST /login`, `GET /unsubscribe` | authController | 사이트 비밀번호 게이트, 메일 unsubscribe |
 | `GET/POST /admin/login`, `GET /admin/logout` | adminController | 관리자 인증 |
@@ -124,7 +131,8 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 | `POST /admin/send-pattern-mail` | adminController.postSendPatternMail | `pattern-result.json` 기반 즉시 메일 |
 | `POST /admin/pattern/seed`, `/admin/pattern/analyze`, `/admin/backtest/qva` | adminController + adminTriggers | 패턴 시드/분석/QVA 백테스트 비동기 트리거 |
 | `POST /admin/refresh-pattern-cache` | adminController | pattern-result.json 강제 재생성 (JSON 응답) |
-| `POST /admin/refresh-watchlist-board` | adminController | `qva-watchlist-board.js` 강제 재실행 |
+| `POST /admin/refresh-watchlist-board` | adminController | `qva-watchlist-board.js` 만 강제 재실행 |
+| `POST /admin/refresh-all-boards` | adminController.postRefreshAllBoards | **전체 보드 갱신** — `adminTriggers.BOARD_SCRIPTS` 5개를 백그라운드 순차 실행. cron 16:35와 동일한 sequence를 admin에서 트리거. `patternState.refreshingAllBoards` / `allBoardsCurrent` / `allBoardsResults`로 진행 추적 |
 | `POST /admin/run-daily-update` | adminController | `run-daily-analysis.js` 강제 실행 |
 
 기존에 있었지만 **현재는 없는** 라우트: `POST /search`, `/pattern`, `/scan`, `/backtest`, `/pdf`, `/pdf-viewer`, `/simple-report`, `/report`, `POST /subscribe`, `POST /ai/adjust`. UI는 단건 가중치 검색 모델에서 운영 보드 모델로 이전됐다.
@@ -200,6 +208,36 @@ H돌파일 고가 재돌파 = 강한 시그널 (n=186, 승률 75.27%, +6.83%) �
 
 종목별 상세(`/d5-rebreak/:code`)만 EJS 렌더(`d5-rebreak-detail.ejs`)이고, 보드/심층/백테스트 페이지는 모두 정적 HTML sendFile.
 
+### 운영 보드 — 1-Day Surge Board (`one-day-surge-board.js` + `one-day-surge-core.js`)
+
+QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조건을 섞지 않으며, QVA/VVI 이력은 카드 참고 태그로만 부착한다. 1차 버전은 일봉 캐시 기준 "다음 거래일 장초 단타 관심 후보 예비 보드"로, 실시간 분봉/호가/VI는 사용하지 않는다.
+
+**파일 구조 (튜닝 시 한 곳만 고치면 보드+검증이 자동 동기화):**
+- [one-day-surge-core.js](one-day-surge-core.js) — `CONFIG` 상수, `passesHardFilter`, `analyzeAt`, `scoreMetrics`, `classifyGroup` 등 점수/분류/필터 로직 일체. **임계값을 튜닝할 때는 이 파일만 고친다.**
+- [one-day-surge-board.js](one-day-surge-board.js) — 라이브 보드 (오늘 후보 카드)
+- [one-day-surge-nextday-validation-report.js](one-day-surge-nextday-validation-report.js) — 과거 N거래일 백테스트 검증 보고서
+
+- **입력**: `cache/stock-charts-long/{code}.json` (전 종목 일봉) + `cache/naver-stocks-list.json` (시총·`isEtf`·`isSpecial`) + `stocks.json` (보조) + (선택) `qva-watchlist-board.json` funnel + `cache/pattern-result.json`의 `vviRecentSignals`
+- **출력**: `reports/one-day-surge-board-result.{html,json}` — 라우트 `/one-day-surge-board` (alias `/one-day-surge`, `/ods`)가 sendFile만
+- **기준일**: 각 종목의 chart 캐시에서 가장 최근 volume>0 row. 보드 상단의 "분석 기준일"은 후보 풀에서 가장 흔한 baseDate.
+
+**필터 (`passesHardFilter`, 차트 read 전에 적용):**
+- ETF/ETN: naver `isEtf` 플래그
+- 우선주/리츠/스팩/관리종목: naver `isSpecial` 플래그
+- 키워드 매칭 (방어용): `EXCLUDE_NAME_KEYWORDS` (KODEX/TIGER/ACE/SOL/KBSTAR/HANARO/ARIRANG/TIMEFOLIO/KOSEF/히어로즈/PLUS/인버스/레버리지/리츠/스팩/제1~4호) + 종목명 끝 우선주 정규식 `/\s?\d*우[A-Z]?$/`
+- 시총 < 500억 / ≥ 5조 / 시총 미확인 → 제외
+- 결과: ~4270 chart 중 ~2350개를 **차트 파싱 전에 컷오프**해서 실제 처리량 절반 감소 → 1.8초 wall time
+
+**점수 구성**: 거래대금 증가(25) + 거래량 증가(15) + 종가 위치(20) + 당일 상승률(15) + 20일 고점 돌파/근접(15) + 거래대금 순위(10) − 윗꼬리(20) − 과열(20) − 위험(30) − 시가총액(8). 시총 감점은 1.5조~3조 -3 / 3조~5조 -8 / 500억~1,000억 -5, 핵심 1,000억~1.5조는 0.
+
+**그룹 분류 (배타)**: D(과열·위험) → A(강한 단타) → B(장초 확인) → C(눌림 후 재상승) → null(드롭). 그룹별 상한 `CAP = { A: 80, B: 80, C: 60, D: 60 }`.
+
+**검증 보고서 (`one-day-surge-nextday-validation-report.js`)**: 라이브 보드와 **동일한 core 함수**로 과거 N거래일 시뮬레이션. 각 분류 이벤트에 대해 D+1의 +3%/+5%/+10% 도달률, 종가 -3%↓ 실패율, 평균/중앙값 다음날 시초·고가·종가를 그룹/점수구간/거래대금배율/시총구간/일자별로 cross-tab. 환경변수 `VALIDATION_DAYS`(기본 60), `VALIDATION_MAX_STOCKS`(기본 무제한). 출력 `reports/one-day-surge-nextday-validation-result.{html,json}` — 라우트 `/one-day-surge-validation` (alias `/ods-validation`).
+
+**트리거**: 현재는 수동 실행만. cron 등록 / `/admin` 강제 재생성 / 검증 보고서 라우트 연결은 2차에서.
+
+2차에서 실시간 1분/3분/5분 데이터(09:05/09:10 거래대금, 장초 고점 재돌파, VI 근접, VWAP 위 유지)를 추가할 예정 — 그때까지 1차 일봉 기반은 "예비 보드" 위치를 유지한다.
+
 ### 일일 갱신 파이프라인
 
 [src/services/pattern/scheduledJobs.js](src/services/pattern/scheduledJobs.js)의 `registerSchedules()`가 `node-cron`으로 4개의 일일 작업을 등록 (시간은 KST):
@@ -208,7 +246,7 @@ H돌파일 고가 재돌파 = 강한 시그널 (n=186, 승률 75.27%, +6.83%) �
 |-----|------|------|------|
 | 16:10 | 매일 | `pattern-screener.analyzeAll()` 호출 → `cache/pattern-result.json` 갱신 (종가 기준 신호 재계산만) | 항상 |
 | 16:20 | 평일 (월-금) | `node run-daily-analysis.js` 외부 실행 (차트+수급 갱신 + 재분석) | `patternState.analyzing`이 false일 때만 |
-| 16:35 | 평일 (월-금) | `node qva-watchlist-board.js` 외부 실행 → 운영 보드 HTML 갱신 | 항상 |
+| 16:35 | 평일 (월-금) | **전체 보드 갱신** — `BOARD_SCRIPTS` 5개 순차 실행: `qva-watchlist-board.js` → `hgroup-rebreak-operation-board.js` → `hgroup-rebreak-deep-dive-report.js` → `hgroup-rebreak-flow-backtest.js` → `one-day-surge-board.js` | 항상 (보드별 실패는 다음 보드로 진행) |
 | 18:00 | 매일 | `pattern-result.json` 기반 메일 발송. 결과가 오늘자가 아니면 skip | `MAIL_CRON_ENABLED=1`일 때만 |
 
 각 스크립트의 역할:
@@ -236,6 +274,8 @@ H돌파일 고가 재돌파 = 강한 시그널 (n=186, 승률 75.27%, +6.83%) �
 루트의 정적 출력물:
 - `qva-watchlist-board.{html,json}` — `/qva-watchlist`가 sendFile하는 운영 보드
 - `reports/hgroup-rebreak-*-result.{html,json}` — `/rebreak`, `/rebreak-deep`, `/d5-rebreak-flow`가 sendFile
+- `reports/one-day-surge-board-result.{html,json}` — `/one-day-surge-board`가 sendFile하는 단타 관심 후보 보드 (QVA/VVI와 독립)
+- `reports/one-day-surge-nextday-validation-result.{html,json}` — 다음날 검증 백테스트 보고서 (라우트 미연결, 수동 확인용)
 
 ### 인증·구독·관리자
 

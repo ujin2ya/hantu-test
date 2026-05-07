@@ -18,6 +18,7 @@ router.post("/admin/pattern/analyze", requireAdmin, c.postPatternAnalyze);
 router.post("/admin/backtest/qva", requireAdmin, c.postQvaBacktest);
 router.post("/admin/refresh-pattern-cache", requireAdmin, c.postRefreshPatternCache);
 router.post("/admin/refresh-watchlist-board", requireAdmin, c.postRefreshWatchlistBoard);
+router.post("/admin/refresh-all-boards", requireAdmin, c.postRefreshAllBoards);
 router.post("/admin/run-daily-update", requireAdmin, c.postRunDailyUpdate);
 
 module.exports = router;

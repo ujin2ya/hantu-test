@@ -88,6 +88,11 @@ function postRefreshWatchlistBoard(req, res) {
   res.json({ success: r.ok, message: r.message, startedAt: r.startedAt });
 }
 
+function postRefreshAllBoards(req, res) {
+  const r = triggers.refreshAllBoards();
+  res.json({ success: r.ok, message: r.message, startedAt: r.startedAt });
+}
+
 function postRunDailyUpdate(req, res) {
   const r = triggers.runDailyUpdate();
   res.json({ success: r.ok, message: r.message, startedAt: r.startedAt });
@@ -97,5 +102,5 @@ module.exports = {
   getLogin, postLogin, getLogout,
   getDashboard, postUnsubscribe, postSendPatternMail,
   postPatternSeed, postPatternAnalyze, postQvaBacktest,
-  postRefreshPatternCache, postRefreshWatchlistBoard, postRunDailyUpdate,
+  postRefreshPatternCache, postRefreshWatchlistBoard, postRefreshAllBoards, postRunDailyUpdate,
 };
