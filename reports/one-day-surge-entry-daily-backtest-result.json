@@ -2,7 +2,7 @@
   "meta": {
     "title": "1-Day Surge ENTRY 날짜별 운영형 백테스트",
     "subtitle": "D일 후보 → D+1 09:30 ENTRY_CONFIRM → D+1 일봉 outcome 사이클을 날짜별로 simulate",
-    "generatedAt": "2026-05-07T11:09:28.987Z",
+    "generatedAt": "2026-05-07T11:37:07.860Z",
     "windowDays": 40,
     "windowFrom": "20260310",
     "windowFromFmt": "2026-03-10",
@@ -45,7 +45,7 @@
     "missingMinuteData": 0,
     "minuteCoverage": 99.32835820895522,
     "totalDays": 40,
-    "elapsedMs": 2442,
+    "elapsedMs": 2354,
     "assumption": {
       "entryPrice": "09:10 close (ENTRY_AT_0910)",
       "afterEntryRange": "D+1 일봉 high/low/close. 일봉 high가 09:00~09:10 안에서 발생한 경우 afterEntryHighRate 과대 추정 가능 (peakBeforeEntry 플래그).",
@@ -28593,6 +28593,389 @@
     ],
     "interpretation": "이 그룹은 평균적으로 실패폭이 크지만, 장중 큰 상승도 나올 수 있습니다. 메인 안전 후보가 아니라 고위험 급등 가능 후보로 별도 확인하는 것이 적절합니다."
   },
+  "qvaCohortAnalysis": {
+    "note": "qva-watchlist-board.json snapshot 기반 매칭. 오래된 baseDate(예: 윈도우 시작쯤)에서는 일부 QVA 신호가 누락될 수 있음.",
+    "qvaSignalMapSize": 653,
+    "qvaTaggedCount": 223,
+    "overall": {
+      "withQva": {
+        "count": 223,
+        "hit3": 168,
+        "hit5": 113,
+        "hit7": 71,
+        "fail3": 149,
+        "fail5": 76,
+        "closePositive": 91,
+        "peakBeforeEntry": 121,
+        "hit3Rate": 75.33632286995515,
+        "hit5Rate": 50.672645739910315,
+        "hit7Rate": 31.838565022421523,
+        "fail3Rate": 66.81614349775785,
+        "fail5Rate": 34.08071748878923,
+        "closePositiveRate": 40.80717488789238,
+        "peakBeforeEntryRate": 54.26008968609865,
+        "avgAfterHigh": 6.588145426013654,
+        "avgAfterLow": -4.986781824385569,
+        "avgAfterClose": -0.013822328031260045
+      },
+      "withoutQva": {
+        "count": 1108,
+        "hit3": 864,
+        "hit5": 630,
+        "hit7": 431,
+        "fail3": 689,
+        "fail5": 452,
+        "closePositive": 482,
+        "peakBeforeEntry": 522,
+        "hit3Rate": 77.9783393501805,
+        "hit5Rate": 56.85920577617328,
+        "hit7Rate": 38.898916967509024,
+        "fail3Rate": 62.1841155234657,
+        "fail5Rate": 40.794223826714806,
+        "closePositiveRate": 43.501805054151625,
+        "peakBeforeEntryRate": 47.11191335740072,
+        "avgAfterHigh": 7.58959001962514,
+        "avgAfterLow": -5.307036080201661,
+        "avgAfterClose": -0.20749609676167208
+      }
+    },
+    "byWindow": {
+      "단기": {
+        "count": 71,
+        "hit3": 50,
+        "hit5": 34,
+        "hit7": 23,
+        "fail3": 46,
+        "fail5": 21,
+        "closePositive": 33,
+        "peakBeforeEntry": 35,
+        "hit3Rate": 70.4225352112676,
+        "hit5Rate": 47.88732394366197,
+        "hit7Rate": 32.3943661971831,
+        "fail3Rate": 64.7887323943662,
+        "fail5Rate": 29.577464788732392,
+        "closePositiveRate": 46.478873239436616,
+        "peakBeforeEntryRate": 49.29577464788733,
+        "avgAfterHigh": 6.855911836467778,
+        "avgAfterLow": -4.796731315201044,
+        "avgAfterClose": 0.22182907050550837
+      },
+      "1주일 이내": {
+        "count": 75,
+        "hit3": 58,
+        "hit5": 37,
+        "hit7": 27,
+        "fail3": 46,
+        "fail5": 25,
+        "closePositive": 32,
+        "peakBeforeEntry": 37,
+        "hit3Rate": 77.33333333333333,
+        "hit5Rate": 49.333333333333336,
+        "hit7Rate": 36,
+        "fail3Rate": 61.33333333333333,
+        "fail5Rate": 33.33333333333333,
+        "closePositiveRate": 42.66666666666667,
+        "peakBeforeEntryRate": 49.333333333333336,
+        "avgAfterHigh": 6.768599661837734,
+        "avgAfterLow": -5.038242410700606,
+        "avgAfterClose": 0.19156345288056437
+      },
+      "1~2주 전": {
+        "count": 65,
+        "hit3": 50,
+        "hit5": 34,
+        "hit7": 18,
+        "fail3": 47,
+        "fail5": 23,
+        "closePositive": 22,
+        "peakBeforeEntry": 43,
+        "hit3Rate": 76.92307692307693,
+        "hit5Rate": 52.307692307692314,
+        "hit7Rate": 27.692307692307693,
+        "fail3Rate": 72.3076923076923,
+        "fail5Rate": 35.38461538461539,
+        "closePositiveRate": 33.84615384615385,
+        "peakBeforeEntryRate": 66.15384615384615,
+        "avgAfterHigh": 6.22778595452218,
+        "avgAfterLow": -4.734516638465786,
+        "avgAfterClose": -0.3294274483359245
+      },
+      "2~3주 전": {
+        "count": 12,
+        "hit3": 10,
+        "hit5": 8,
+        "hit7": 3,
+        "fail3": 10,
+        "fail5": 7,
+        "closePositive": 4,
+        "peakBeforeEntry": 6,
+        "hit3Rate": 83.33333333333334,
+        "hit5Rate": 66.66666666666666,
+        "hit7Rate": 25,
+        "fail3Rate": 83.33333333333334,
+        "fail5Rate": 58.333333333333336,
+        "closePositiveRate": 33.33333333333333,
+        "peakBeforeEntryRate": 50,
+        "avgAfterHigh": 5.827968994171724,
+        "avgAfterLow": -7.156055096323872,
+        "avgAfterClose": -0.9822264984224404
+      }
+    },
+    "byStrategy": {
+      "SAFE_REBREAK": {
+        "withQva": {
+          "count": 26,
+          "hit3": 24,
+          "hit5": 19,
+          "hit7": 13,
+          "fail3": 16,
+          "fail5": 4,
+          "closePositive": 20,
+          "peakBeforeEntry": 0,
+          "hit3Rate": 92.3076923076923,
+          "hit5Rate": 73.07692307692307,
+          "hit7Rate": 50,
+          "fail3Rate": 61.53846153846154,
+          "fail5Rate": 15.384615384615385,
+          "closePositiveRate": 76.92307692307693,
+          "peakBeforeEntryRate": 0,
+          "avgAfterHigh": 9.628033066208069,
+          "avgAfterLow": -3.272395600636111,
+          "avgAfterClose": 3.4942462384844726
+        },
+        "withoutQva": {
+          "count": 167,
+          "hit3": 125,
+          "hit5": 92,
+          "hit7": 65,
+          "fail3": 86,
+          "fail5": 44,
+          "closePositive": 100,
+          "peakBeforeEntry": 0,
+          "hit3Rate": 74.8502994011976,
+          "hit5Rate": 55.08982035928144,
+          "hit7Rate": 38.92215568862276,
+          "fail3Rate": 51.49700598802395,
+          "fail5Rate": 26.34730538922156,
+          "closePositiveRate": 59.88023952095808,
+          "peakBeforeEntryRate": 0,
+          "avgAfterHigh": 7.88859020964856,
+          "avgAfterLow": -3.7575476935073024,
+          "avgAfterClose": 1.7604712369839368
+        }
+      },
+      "BALANCED_REBREAK": {
+        "withQva": {
+          "count": 9,
+          "hit3": 9,
+          "hit5": 9,
+          "hit7": 9,
+          "fail3": 6,
+          "fail5": 4,
+          "closePositive": 8,
+          "peakBeforeEntry": 0,
+          "hit3Rate": 100,
+          "hit5Rate": 100,
+          "hit7Rate": 100,
+          "fail3Rate": 66.66666666666666,
+          "fail5Rate": 44.44444444444444,
+          "closePositiveRate": 88.88888888888889,
+          "peakBeforeEntryRate": 0,
+          "avgAfterHigh": 18.525989180763652,
+          "avgAfterLow": -5.115988753933755,
+          "avgAfterClose": 10.561369221217685
+        },
+        "withoutQva": {
+          "count": 68,
+          "hit3": 59,
+          "hit5": 49,
+          "hit7": 39,
+          "fail3": 44,
+          "fail5": 26,
+          "closePositive": 44,
+          "peakBeforeEntry": 0,
+          "hit3Rate": 86.76470588235294,
+          "hit5Rate": 72.05882352941177,
+          "hit7Rate": 57.35294117647059,
+          "fail3Rate": 64.70588235294117,
+          "fail5Rate": 38.23529411764706,
+          "closePositiveRate": 64.70588235294117,
+          "peakBeforeEntryRate": 0,
+          "avgAfterHigh": 9.29400751072438,
+          "avgAfterLow": -5.177478497828957,
+          "avgAfterClose": 2.623537489624587
+        }
+      },
+      "CLEAN_REBREAK": {
+        "withQva": {
+          "count": 26,
+          "hit3": 24,
+          "hit5": 19,
+          "hit7": 13,
+          "fail3": 16,
+          "fail5": 4,
+          "closePositive": 20,
+          "peakBeforeEntry": 0,
+          "hit3Rate": 92.3076923076923,
+          "hit5Rate": 73.07692307692307,
+          "hit7Rate": 50,
+          "fail3Rate": 61.53846153846154,
+          "fail5Rate": 15.384615384615385,
+          "closePositiveRate": 76.92307692307693,
+          "peakBeforeEntryRate": 0,
+          "avgAfterHigh": 9.628033066208069,
+          "avgAfterLow": -3.272395600636111,
+          "avgAfterClose": 3.4942462384844726
+        },
+        "withoutQva": {
+          "count": 172,
+          "hit3": 129,
+          "hit5": 94,
+          "hit7": 67,
+          "fail3": 89,
+          "fail5": 45,
+          "closePositive": 102,
+          "peakBeforeEntry": 0,
+          "hit3Rate": 75,
+          "hit5Rate": 54.65116279069767,
+          "hit7Rate": 38.95348837209303,
+          "fail3Rate": 51.74418604651163,
+          "fail5Rate": 26.16279069767442,
+          "closePositiveRate": 59.30232558139535,
+          "peakBeforeEntryRate": 0,
+          "avgAfterHigh": 7.839637140832378,
+          "avgAfterLow": -3.7564559100464106,
+          "avgAfterClose": 1.7181908538822093
+        }
+      },
+      "LIGHT_REBREAK": {
+        "withQva": {
+          "count": 35,
+          "hit3": 31,
+          "hit5": 26,
+          "hit7": 16,
+          "fail3": 22,
+          "fail5": 9,
+          "closePositive": 25,
+          "peakBeforeEntry": 0,
+          "hit3Rate": 88.57142857142857,
+          "hit5Rate": 74.28571428571429,
+          "hit7Rate": 45.714285714285715,
+          "fail3Rate": 62.857142857142854,
+          "fail5Rate": 25.71428571428571,
+          "closePositiveRate": 71.42857142857143,
+          "peakBeforeEntryRate": 0,
+          "avgAfterHigh": 8.15802270216867,
+          "avgAfterLow": -4.146005758963755,
+          "avgAfterClose": 2.50288991105795
+        },
+        "withoutQva": {
+          "count": 188,
+          "hit3": 148,
+          "hit5": 115,
+          "hit7": 82,
+          "fail3": 110,
+          "fail5": 64,
+          "closePositive": 111,
+          "peakBeforeEntry": 0,
+          "hit3Rate": 78.72340425531915,
+          "hit5Rate": 61.170212765957444,
+          "hit7Rate": 43.61702127659575,
+          "fail3Rate": 58.51063829787234,
+          "fail5Rate": 34.04255319148936,
+          "closePositiveRate": 59.04255319148937,
+          "peakBeforeEntryRate": 0,
+          "avgAfterHigh": 8.239272095771003,
+          "avgAfterLow": -4.2831487669676145,
+          "avgAfterClose": 1.6925619754131382
+        }
+      },
+      "RISK_REBREAK": {
+        "withQva": {
+          "count": 13,
+          "hit3": 11,
+          "hit5": 10,
+          "hit7": 8,
+          "fail3": 12,
+          "fail5": 11,
+          "closePositive": 6,
+          "peakBeforeEntry": 0,
+          "hit3Rate": 84.61538461538461,
+          "hit5Rate": 76.92307692307693,
+          "hit7Rate": 61.53846153846154,
+          "fail3Rate": 92.3076923076923,
+          "fail5Rate": 84.61538461538461,
+          "closePositiveRate": 46.15384615384615,
+          "peakBeforeEntryRate": 0,
+          "avgAfterHigh": 11.051130787515321,
+          "avgAfterLow": -10.928672703277547,
+          "avgAfterClose": -0.7769972197639772
+        },
+        "withoutQva": {
+          "count": 63,
+          "hit3": 57,
+          "hit5": 45,
+          "hit7": 34,
+          "fail3": 58,
+          "fail5": 51,
+          "closePositive": 34,
+          "peakBeforeEntry": 0,
+          "hit3Rate": 90.47619047619048,
+          "hit5Rate": 71.42857142857143,
+          "hit7Rate": 53.96825396825397,
+          "fail3Rate": 92.06349206349206,
+          "fail5Rate": 80.95238095238095,
+          "closePositiveRate": 53.96825396825397,
+          "peakBeforeEntryRate": 0,
+          "avgAfterHigh": 10.240973293215552,
+          "avgAfterLow": -10.213454080196232,
+          "avgAfterClose": 0.12135609141022254
+        }
+      },
+      "PREV_HIGH_SPIKE": {
+        "withQva": {
+          "count": 69,
+          "hit3": 50,
+          "hit5": 42,
+          "hit7": 28,
+          "fail3": 54,
+          "fail5": 41,
+          "closePositive": 30,
+          "peakBeforeEntry": 26,
+          "hit3Rate": 72.46376811594203,
+          "hit5Rate": 60.86956521739131,
+          "hit7Rate": 40.57971014492754,
+          "fail3Rate": 78.26086956521739,
+          "fail5Rate": 59.42028985507246,
+          "closePositiveRate": 43.47826086956522,
+          "peakBeforeEntryRate": 37.68115942028986,
+          "avgAfterHigh": 7.445057718303628,
+          "avgAfterLow": -7.54424650015846,
+          "avgAfterClose": 0.19136023875569141
+        },
+        "withoutQva": {
+          "count": 318,
+          "hit3": 274,
+          "hit5": 230,
+          "hit7": 176,
+          "fail3": 267,
+          "fail5": 218,
+          "closePositive": 151,
+          "peakBeforeEntry": 107,
+          "hit3Rate": 86.16352201257862,
+          "hit5Rate": 72.32704402515722,
+          "hit7Rate": 55.34591194968554,
+          "fail3Rate": 83.9622641509434,
+          "fail5Rate": 68.55345911949685,
+          "closePositiveRate": 47.48427672955975,
+          "peakBeforeEntryRate": 33.64779874213836,
+          "avgAfterHigh": 9.249202715408703,
+          "avgAfterLow": -8.403062091257754,
+          "avgAfterClose": -0.43518748974183596
+        }
+      }
+    }
+  },
   "autoConclusion": {
     "operationalViability": {
       "SAFE_REBREAK": {
@@ -29033,6 +29416,147 @@
       },
       "interpretation": "평균은 위험하지만 장중 +15% 이상 큰 상승 사례 15건 존재. 메인 안전 후보(SAFE_REBREAK)와 분리해서 \"고위험 급등 가능 후보\" 별도 섹션으로 운영하는 것이 적절."
     },
+    "qvaOverallEffect": {
+      "withQva": {
+        "n": 223,
+        "hit5": 50.672645739910315,
+        "fail5": 34.08071748878923,
+        "closePos": 40.80717488789238,
+        "avgClose": -0.013822328031260045,
+        "avgHigh": 6.588145426013654
+      },
+      "withoutQva": {
+        "n": 1108,
+        "hit5": 56.85920577617328,
+        "fail5": 40.794223826714806,
+        "closePos": 43.501805054151625,
+        "avgClose": -0.20749609676167208,
+        "avgHigh": 7.58959001962514
+      },
+      "hit5Lift": -6.186560036262968,
+      "closePosLift": -2.6946301662592447,
+      "avgCloseLift": 0.19367376873041203
+    },
+    "qvaByWindowSummary": [
+      {
+        "window": "단기",
+        "n": 71,
+        "hit5": 47.88732394366197,
+        "fail5": 29.577464788732392,
+        "closePos": 46.478873239436616,
+        "avgClose": 0.22182907050550837
+      },
+      {
+        "window": "1주일 이내",
+        "n": 75,
+        "hit5": 49.333333333333336,
+        "fail5": 33.33333333333333,
+        "closePos": 42.66666666666667,
+        "avgClose": 0.19156345288056437
+      },
+      {
+        "window": "1~2주 전",
+        "n": 65,
+        "hit5": 52.307692307692314,
+        "fail5": 35.38461538461539,
+        "closePos": 33.84615384615385,
+        "avgClose": -0.3294274483359245
+      },
+      {
+        "window": "2~3주 전",
+        "n": 12,
+        "hit5": 66.66666666666666,
+        "fail5": 58.333333333333336,
+        "closePos": 33.33333333333333,
+        "avgClose": -0.9822264984224404
+      }
+    ],
+    "qvaByStrategySummary": [
+      {
+        "strategy": "SAFE_REBREAK",
+        "withQva": {
+          "n": 26,
+          "closePos": 76.92307692307693,
+          "avgClose": 3.4942462384844726
+        },
+        "withoutQva": {
+          "n": 167,
+          "closePos": 59.88023952095808,
+          "avgClose": 1.7604712369839368
+        },
+        "avgCloseLift": 1.7337750015005358
+      },
+      {
+        "strategy": "BALANCED_REBREAK",
+        "withQva": {
+          "n": 9,
+          "closePos": 88.88888888888889,
+          "avgClose": 10.561369221217685
+        },
+        "withoutQva": {
+          "n": 68,
+          "closePos": 64.70588235294117,
+          "avgClose": 2.623537489624587
+        },
+        "avgCloseLift": 7.937831731593098
+      },
+      {
+        "strategy": "CLEAN_REBREAK",
+        "withQva": {
+          "n": 26,
+          "closePos": 76.92307692307693,
+          "avgClose": 3.4942462384844726
+        },
+        "withoutQva": {
+          "n": 172,
+          "closePos": 59.30232558139535,
+          "avgClose": 1.7181908538822093
+        },
+        "avgCloseLift": 1.7760553846022633
+      },
+      {
+        "strategy": "LIGHT_REBREAK",
+        "withQva": {
+          "n": 35,
+          "closePos": 71.42857142857143,
+          "avgClose": 2.50288991105795
+        },
+        "withoutQva": {
+          "n": 188,
+          "closePos": 59.04255319148937,
+          "avgClose": 1.6925619754131382
+        },
+        "avgCloseLift": 0.8103279356448119
+      },
+      {
+        "strategy": "RISK_REBREAK",
+        "withQva": {
+          "n": 13,
+          "closePos": 46.15384615384615,
+          "avgClose": -0.7769972197639772
+        },
+        "withoutQva": {
+          "n": 63,
+          "closePos": 53.96825396825397,
+          "avgClose": 0.12135609141022254
+        },
+        "avgCloseLift": -0.8983533111741997
+      },
+      {
+        "strategy": "PREV_HIGH_SPIKE",
+        "withQva": {
+          "n": 69,
+          "closePos": 43.47826086956522,
+          "avgClose": 0.19136023875569141
+        },
+        "withoutQva": {
+          "n": 318,
+          "closePos": 47.48427672955975,
+          "avgClose": -0.43518748974183596
+        },
+        "avgCloseLift": 0.6265477284975274
+      }
+    ],
     "recommendations": [
       "최우선 전략: SAFE_REBREAK (n=193, 종가>0 62.2%, 평균종가 +1.99%, 일평균 4.8건).",
       "SAFE_REBREAK 일평균 4.8건 / 0일 1/40 — 운영 가능.",
@@ -29043,6 +29567,7 @@
       "최근 거래일 (2026-05-06 → 2026-05-07) 분류: HIT_AND_FADE_DAY — hit5 62.5% / 종가>0 29.2% / 평균종가 -1.27% (n=48). 장중 한 번 튀었지만 종가 유지 약함 — 짧은 익절형으로만 사용했어야 했음.",
       "peakBeforeEntry 영향: 진입 전 고점 발생(n=643) avgClose -3.14% vs 진입 후 고점(n=688) avgClose +2.59% — 차이 +5.73pp. peakBefore=true는 강한 추격 주의 신호로 카드에 명시 권고.",
       "고위험 급등 가능 후보 (MOM-RISK + GAP_HOLD + PREV_HIGH_SPIKE, n=443): 평균 종가 -0.06%지만 +15% 이상 큰 상승 15건. \"제외\"가 아니라 별도 섹션으로 분리해서 노출하는 것이 적절.",
+      "QVA 보조 태그 효과: 있음(n=223) 평균종가 -0.01% / 종가>0 40.8% vs 없음(n=1108) -0.21% / 43.5% — 평균종가 lift +0.19pp, 종가>0 lift -2.7pp. 거의 차이 없음 — display only가 적절.",
       "보드 반영 여부: ✅ 진입 가능 — 안정형(SAFE)과 고위험 급등 가능 후보를 분리한 2-tier 보드가 결론."
     ]
   }

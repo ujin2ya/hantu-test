@@ -105,6 +105,66 @@ function classifyDayType(daySummary) {
   return 'MIXED_DAY';
 }
 
+// ── QVA 신호 lookup (qva-watchlist-board.json snapshot 기반) ──
+// 주의: 오늘 시점 snapshot이라 baseDate가 오래 전이면 일부 QVA 신호가 누락될 수 있음.
+// 1DS 후보의 baseDate 기준 1~20 거래일 안에 QVA 신호가 있었는지 매칭한다.
+const QVA_BOARD_PATH = path.join(ROOT, 'qva-watchlist-board.json');
+function extractQvaDate(it) {
+  return it.qvaSignalDate || it.latestEarlyQvaDate || it.bestEarlyQvaDate || it.firstEarlyQvaDate || null;
+}
+function loadQvaSignalMap() {
+  const map = new Map();
+  if (!fs.existsSync(QVA_BOARD_PATH)) return map;
+  try {
+    const j = JSON.parse(fs.readFileSync(QVA_BOARD_PATH, 'utf-8'));
+    const stages = j.stages || {};
+    for (const list of Object.values(stages)) {
+      if (!Array.isArray(list)) continue;
+      for (const it of list) {
+        if (!it.code) continue;
+        const sd = extractQvaDate(it);
+        if (!sd) continue;
+        const cur = map.get(it.code);
+        // 가장 최근(latest) 신호 보존
+        if (!cur || sd > cur.signalDate) map.set(it.code, { signalDate: sd });
+      }
+    }
+  } catch (_) {}
+  return map;
+}
+function tradingDaysBetween(d1, d2) {
+  if (!d1 || !d2 || d1.length !== 8 || d2.length !== 8) return null;
+  const a = new Date(Number(d1.slice(0,4)), Number(d1.slice(4,6))-1, Number(d1.slice(6,8)));
+  const b = new Date(Number(d2.slice(0,4)), Number(d2.slice(4,6))-1, Number(d2.slice(6,8)));
+  return Math.round((b - a) / (1000*60*60*24) * 5 / 7);
+}
+function classifyQvaWindow(daysAgo) {
+  if (daysAgo < 1 || daysAgo > 20) return null;
+  if (daysAgo <= 3)  return '단기';
+  if (daysAgo <= 7)  return '1주일 이내';
+  if (daysAgo <= 14) return '1~2주 전';
+  return '2~3주 전';
+}
+function attachQvaToEvents(events, qvaSignalMap) {
+  let tagged = 0;
+  for (const ev of events) {
+    ev.hasRecentQva = false;
+    const sig = qvaSignalMap.get(ev.code);
+    if (!sig || !sig.signalDate) continue;
+    if (sig.signalDate > ev.baseDate) continue;
+    const days = tradingDaysBetween(sig.signalDate, ev.baseDate);
+    if (days == null || days < 1 || days > 20) continue;
+    const window = classifyQvaWindow(days);
+    if (!window) continue;
+    ev.hasRecentQva = true;
+    ev.qvaSignalDate = sig.signalDate;
+    ev.qvaDaysAgo = days;
+    ev.qvaWindow = window;
+    tagged++;
+  }
+  return tagged;
+}
+
 // ── 유틸 ──
 function isNum(v) { return v != null && Number.isFinite(v); }
 function fmtDate(d) {
@@ -309,6 +369,39 @@ function main() {
     prevHighSpike: report.summarizeBucket(eventsWithMinute.filter((e) => e.intraday?.rebreakPrevHighBy0930 === true)),
   };
 
+  // 6.9) QVA 보조 태그 cohort 분석
+  // baseDate 기준 1~20 거래일 안에 QVA 신호가 있었던 후보 vs 없었던 후보의 outcome 비교
+  // 4 윈도우(단기/1주일 이내/1~2주 전/2~3주 전) + 전략별 cross-tab
+  // ⚠ qva-watchlist-board.json 은 오늘 시점 snapshot — 오래된 baseDate에서는 일부 QVA 신호가 누락될 수 있음
+  const qvaSignalMap = loadQvaSignalMap();
+  const qvaTaggedCount = attachQvaToEvents(eventsWithMinute, qvaSignalMap);
+  console.log(`  📈 QVA 코호트 부착: ${qvaTaggedCount}건 태그 / ${eventsWithMinute.length}건 (qvaSignalMap ${qvaSignalMap.size}건)`);
+
+  const withQva    = eventsWithMinute.filter((e) => e.hasRecentQva);
+  const withoutQva = eventsWithMinute.filter((e) => !e.hasRecentQva);
+  const QVA_WINDOWS = ['단기', '1주일 이내', '1~2주 전', '2~3주 전'];
+  const qvaCohortAnalysis = {
+    note: 'qva-watchlist-board.json snapshot 기반 매칭. 오래된 baseDate(예: 윈도우 시작쯤)에서는 일부 QVA 신호가 누락될 수 있음.',
+    qvaSignalMapSize: qvaSignalMap.size,
+    qvaTaggedCount,
+    overall: {
+      withQva:    report.summarizeBucket(withQva),
+      withoutQva: report.summarizeBucket(withoutQva),
+    },
+    byWindow: Object.fromEntries(
+      QVA_WINDOWS.map((w) => [w, report.summarizeBucket(withQva.filter((e) => e.qvaWindow === w))])
+    ),
+    byStrategy: {},
+  };
+  // 전략별 QVA × 전략 cross-tab (운영 보드에 노출되는 4 안전 전략 + RISK/SPIKE 비교용)
+  for (const sName of ['SAFE_REBREAK', 'BALANCED_REBREAK', 'CLEAN_REBREAK', 'LIGHT_REBREAK', 'RISK_REBREAK', 'PREV_HIGH_SPIKE']) {
+    const strat = STRATEGIES[sName];
+    qvaCohortAnalysis.byStrategy[sName] = {
+      withQva:    report.summarizeBucket(withQva.filter(strat.filter)),
+      withoutQva: report.summarizeBucket(withoutQva.filter(strat.filter)),
+    };
+  }
+
   // 7) best/worst days (SAFE_REBREAK 후보들의 평균 종가 기준; 표본 부족 시 전체 day 평균)
   const dayPerf = byDateDetail.map((r) => {
     const safe = r.strategyCounts.SAFE_REBREAK;
@@ -334,6 +427,7 @@ function main() {
     byDateDetail, dayTypeCounts, dayTypeStrategy,
     peakBeforeAnalysis, peakBeforeByDayType,
     highRiskOverall, highRiskBuckets, highRiskBigGains,
+    qvaCohortAnalysis,
   });
 
   // 9) 분석 윈도우
@@ -389,6 +483,7 @@ function main() {
       interpretation: '이 그룹은 평균적으로 실패폭이 크지만, 장중 큰 상승도 나올 수 있습니다. ' +
         '메인 안전 후보가 아니라 고위험 급등 가능 후보로 별도 확인하는 것이 적절합니다.',
     },
+    qvaCohortAnalysis,
     autoConclusion,
   };
 
@@ -437,6 +532,7 @@ function buildAutoConclusion({
   byDateDetail, dayTypeCounts, dayTypeStrategy,
   peakBeforeAnalysis, peakBeforeByDayType,
   highRiskOverall, highRiskBuckets, highRiskBigGains,
+  qvaCohortAnalysis,
 }) {
   const c = {};
   const fmt = (v) => v != null && Number.isFinite(v) ? v.toFixed(1) : '-';
@@ -596,6 +692,45 @@ function buildAutoConclusion({
     };
   }
 
+  // ── 13.5) QVA 코호트 분석 ──
+  // 1DS 후보 중 baseDate 기준 1~20거래일 안에 QVA 신호가 있었던 종목과 없었던 종목의 outcome 비교
+  if (qvaCohortAnalysis) {
+    const ov = qvaCohortAnalysis.overall || {};
+    const wq = ov.withQva || {};
+    const nq = ov.withoutQva || {};
+    if ((wq.count || 0) >= 10) {
+      c.qvaOverallEffect = {
+        withQva:    { n: wq.count, hit5: wq.hit5Rate, fail5: wq.fail5Rate, closePos: wq.closePositiveRate, avgClose: wq.avgAfterClose, avgHigh: wq.avgAfterHigh },
+        withoutQva: { n: nq.count, hit5: nq.hit5Rate, fail5: nq.fail5Rate, closePos: nq.closePositiveRate, avgClose: nq.avgAfterClose, avgHigh: nq.avgAfterHigh },
+        hit5Lift:     (wq.hit5Rate || 0) - (nq.hit5Rate || 0),
+        closePosLift: (wq.closePositiveRate || 0) - (nq.closePositiveRate || 0),
+        avgCloseLift: (wq.avgAfterClose || 0) - (nq.avgAfterClose || 0),
+      };
+    }
+    // 윈도우별 효과
+    c.qvaByWindowSummary = [];
+    for (const [w, s] of Object.entries(qvaCohortAnalysis.byWindow || {})) {
+      if ((s.count || 0) < 5) continue;
+      c.qvaByWindowSummary.push({
+        window: w, n: s.count,
+        hit5: s.hit5Rate, fail5: s.fail5Rate, closePos: s.closePositiveRate, avgClose: s.avgAfterClose,
+      });
+    }
+    // 전략 × QVA 효과 (SAFE_REBREAK이 QVA로 더 좋아지는지)
+    c.qvaByStrategySummary = [];
+    for (const [sName, sBoth] of Object.entries(qvaCohortAnalysis.byStrategy || {})) {
+      const wq2 = sBoth.withQva || {};
+      const nq2 = sBoth.withoutQva || {};
+      if ((wq2.count || 0) < 5 && (nq2.count || 0) < 5) continue;
+      c.qvaByStrategySummary.push({
+        strategy: sName,
+        withQva:    { n: wq2.count, closePos: wq2.closePositiveRate, avgClose: wq2.avgAfterClose },
+        withoutQva: { n: nq2.count, closePos: nq2.closePositiveRate, avgClose: nq2.avgAfterClose },
+        avgCloseLift: (wq2.avgAfterClose || 0) - (nq2.avgAfterClose || 0),
+      });
+    }
+  }
+
   // ── 14) 핵심 권고 (텍스트 권고 — 기존 + 신규 dayType/peakBefore/highRisk 강조) ──
   c.recommendations = [];
   c.recommendations.push(`최우선 전략: ${c.bestStrategy ? c.bestStrategy.name + ' (n=' + c.bestStrategy.n + ', 종가>0 ' + fmt(c.bestStrategy.closePos) + '%, 평균종가 ' + fmtSign(c.bestStrategy.avgClose) + '%, 일평균 ' + c.bestStrategy.dailyAvg.toFixed(1) + '건)' : '판단 보류 (표본 부족)'}.`);
@@ -615,6 +750,10 @@ function buildAutoConclusion({
   }
   if (c.highRiskMessage) {
     c.recommendations.push(`고위험 급등 가능 후보 (MOM-RISK + GAP_HOLD + PREV_HIGH_SPIKE, n=${c.highRiskMessage.overall.n}): 평균 종가 ${fmtSign(c.highRiskMessage.overall.avgClose)}%지만 +15% 이상 큰 상승 ${c.highRiskMessage.bigGainsCount}건. "제외"가 아니라 별도 섹션으로 분리해서 노출하는 것이 적절.`);
+  }
+  if (c.qvaOverallEffect) {
+    const e = c.qvaOverallEffect;
+    c.recommendations.push(`QVA 보조 태그 효과: 있음(n=${e.withQva.n}) 평균종가 ${fmtSign(e.withQva.avgClose)}% / 종가>0 ${fmt(e.withQva.closePos)}% vs 없음(n=${e.withoutQva.n}) ${fmtSign(e.withoutQva.avgClose)}% / ${fmt(e.withoutQva.closePos)}% — 평균종가 lift ${fmtSign(e.avgCloseLift)}pp, 종가>0 lift ${e.closePosLift > 0 ? '+' : ''}${e.closePosLift.toFixed(1)}pp. ${e.avgCloseLift > 0.5 ? '의미 있는 보조 신호.' : (e.avgCloseLift < -0.5 ? '오히려 감점 신호 — display only가 적절.' : '거의 차이 없음 — display only가 적절.')}`);
   }
   c.recommendations.push(`보드 반영 여부: ${c.boardReadiness.boardReady ? '✅ 진입 가능' : '⏸ 아직 대기'} — 안정형(SAFE)과 고위험 급등 가능 후보를 분리한 2-tier 보드가 결론.`);
 
@@ -755,6 +894,32 @@ details.section > .section-body { padding: 8px 10px; }
 <table id="t-peakbefore"><thead><tr>
   <th class="left">구분</th><th>n</th>
   <th>HIT5</th><th>FAIL5</th><th>종가&gt;0</th><th>평균 진입후 종가</th>
+</tr></thead><tbody></tbody></table>
+
+<h2>📈 QVA 보조 태그 효과 (1DS 후보 × 최근 20거래일 안 QVA 신호)</h2>
+<div class="muted" style="font-size:11px;margin-bottom:6px;">
+  baseDate 기준 1~20 거래일 안에 QVA 신호가 있었던 후보 vs 없었던 후보의 outcome 비교.
+  ⚠ qva-watchlist-board.json snapshot 기반 — 오래된 baseDate(윈도우 시작쯤)에서는 일부 QVA 신호가 누락될 수 있음.
+</div>
+
+<h3>전체 비교</h3>
+<table id="t-qva-overall"><thead><tr>
+  <th class="left">구분</th><th>n</th>
+  <th>HIT5</th><th>FAIL5</th><th>종가&gt;0</th><th>평균 고가</th><th>평균 종가</th>
+</tr></thead><tbody></tbody></table>
+
+<h3>QVA 윈도우(거래일 전)별 outcome</h3>
+<table id="t-qva-window"><thead><tr>
+  <th class="left">QVA 신호 시점</th><th>n</th>
+  <th>HIT5</th><th>FAIL5</th><th>종가&gt;0</th><th>평균 고가</th><th>평균 종가</th>
+</tr></thead><tbody></tbody></table>
+
+<h3>전략 × QVA 보유 여부</h3>
+<table id="t-qva-strategy"><thead><tr>
+  <th class="left">전략</th>
+  <th>QVA 있음 n / 종가&gt;0 / 평균종가</th>
+  <th>QVA 없음 n / 종가&gt;0 / 평균종가</th>
+  <th>평균종가 lift</th>
 </tr></thead><tbody></tbody></table>
 
 <h2>🚀 고위험 급등 가능 후보 (MOM-RISK + GAP_HOLD + PREV_HIGH_SPIKE)</h2>
@@ -961,6 +1126,60 @@ function dayTypeChipHtml(dt) {
   tb.innerHTML = rows.join('');
 })();
 
+// ── QVA 코호트 분석 (3 tables) ──
+(function() {
+  const q = DATA.qvaCohortAnalysis;
+  if (!q) return;
+  function row(label, x, isWarn) {
+    if (!x || !x.count) return '<tr><td class="left">' + label + '</td><td colspan="6" class="muted">데이터 없음</td></tr>';
+    return '<tr>' +
+      '<td class="left">' + label + '</td>' +
+      '<td>' + x.count + '</td>' +
+      '<td><strong>' + fmtRate(x.hit5Rate) + '</strong></td>' +
+      '<td class="' + (isNum(x.fail5Rate) && x.fail5Rate >= 50 ? 'neg' : '') + '">' + fmtRate(x.fail5Rate) + '</td>' +
+      '<td>' + fmtRate(x.closePositiveRate) + '</td>' +
+      '<td>' + fmtPct(x.avgAfterHigh) + '</td>' +
+      '<td class="' + (isNum(x.avgAfterClose) && x.avgAfterClose > 0 ? 'pos' : 'neg') + '"><strong>' + fmtPct(x.avgAfterClose) + '</strong></td>' +
+    '</tr>';
+  }
+  // 1) overall
+  const tb1 = document.querySelector('#t-qva-overall tbody');
+  if (tb1) {
+    const ov = q.overall || {};
+    tb1.innerHTML = [
+      row('📈 QVA 신호 있음 (1~20 거래일 안)', ov.withQva),
+      row('· QVA 신호 없음', ov.withoutQva),
+    ].join('');
+  }
+  // 2) window
+  const tb2 = document.querySelector('#t-qva-window tbody');
+  if (tb2) {
+    const order = ['단기', '1주일 이내', '1~2주 전', '2~3주 전'];
+    const labels = { '단기': '단기 (D-1~3, 급등 직전)', '1주일 이내': '1주일 이내 (D-4~7)', '1~2주 전': '1~2주 전 (D-8~14)', '2~3주 전': '2~3주 전 (D-15~20)' };
+    tb2.innerHTML = order.map(w => row(labels[w], (q.byWindow || {})[w])).join('');
+  }
+  // 3) strategy
+  const tb3 = document.querySelector('#t-qva-strategy tbody');
+  if (tb3) {
+    const order = ['SAFE_REBREAK', 'BALANCED_REBREAK', 'CLEAN_REBREAK', 'LIGHT_REBREAK', 'RISK_REBREAK', 'PREV_HIGH_SPIKE'];
+    const rows = [];
+    for (const s of order) {
+      const both = (q.byStrategy || {})[s];
+      if (!both) continue;
+      const w = both.withQva || {}, n = both.withoutQva || {};
+      const lift = (w.avgAfterClose || 0) - (n.avgAfterClose || 0);
+      const liftCls = lift > 0 ? 'pos' : 'neg';
+      rows.push('<tr>' +
+        '<td class="left"><strong>' + s + '</strong></td>' +
+        '<td>n=' + (w.count || 0) + ' · 종가>0 ' + fmtRate(w.closePositiveRate) + ' · ' + fmtPct(w.avgAfterClose) + '</td>' +
+        '<td>n=' + (n.count || 0) + ' · 종가>0 ' + fmtRate(n.closePositiveRate) + ' · ' + fmtPct(n.avgAfterClose) + '</td>' +
+        '<td class="' + liftCls + '"><strong>' + (lift > 0 ? '+' : '') + lift.toFixed(2) + 'pp</strong></td>' +
+      '</tr>');
+    }
+    tb3.innerHTML = rows.join('') || '<tr><td class="muted left" colspan="4">데이터 없음</td></tr>';
+  }
+})();
+
 // ── 고위험 급등 가능 후보 ──
 (function() {
   const root = document.getElementById('highrisk-interpretation');
@@ -1127,6 +1346,21 @@ function dayTypeChipHtml(dt) {
       'peakBefore=true (n=' + pe.withPeak.n + '): 평균종가 ' + (pe.withPeak.avgClose>0?'+':'') + (pe.withPeak.avgClose||0).toFixed(2) + '% / 종가>0 ' + (pe.withPeak.closePos||0).toFixed(1) + '%<br>' +
       'peakBefore=false (n=' + pe.withoutPeak.n + '): 평균종가 ' + (pe.withoutPeak.avgClose>0?'+':'') + (pe.withoutPeak.avgClose||0).toFixed(2) + '% / 종가>0 ' + (pe.withoutPeak.closePos||0).toFixed(1) + '%<br>' +
       '차이: 평균종가 ' + (pe.avgCloseLift>0?'+':'') + pe.avgCloseLift.toFixed(2) + 'pp / 종가>0 ' + (pe.closePositiveLift>0?'+':'') + pe.closePositiveLift.toFixed(1) + 'pp — peakBefore=true는 09:10 진입 시점에 이미 고점 후. 카드에 명시 권고.' +
+    '</div>');
+  }
+  // 5.45) QVA 코호트 효과
+  if (c.qvaOverallEffect) {
+    const e = c.qvaOverallEffect;
+    const liftCls = e.avgCloseLift > 0.5 ? 'success' : (e.avgCloseLift < -0.5 ? 'warn' : '');
+    html.push('<div class="callout ' + liftCls + '"><strong>📈 QVA 보조 태그 효과</strong> (1DS 후보 중 baseDate 기준 1~20거래일 안 QVA 신호)<br>' +
+      'QVA 있음 (n=' + e.withQva.n + '): hit5 ' + (e.withQva.hit5||0).toFixed(1) + '% / 종가>0 ' + (e.withQva.closePos||0).toFixed(1) + '% / 평균종가 ' + (e.withQva.avgClose>0?'+':'') + (e.withQva.avgClose||0).toFixed(2) + '%<br>' +
+      'QVA 없음 (n=' + e.withoutQva.n + '): hit5 ' + (e.withoutQva.hit5||0).toFixed(1) + '% / 종가>0 ' + (e.withoutQva.closePos||0).toFixed(1) + '% / 평균종가 ' + (e.withoutQva.avgClose>0?'+':'') + (e.withoutQva.avgClose||0).toFixed(2) + '%<br>' +
+      '<strong>lift</strong>: hit5 ' + (e.hit5Lift>0?'+':'') + e.hit5Lift.toFixed(1) + 'pp · 종가>0 ' + (e.closePosLift>0?'+':'') + e.closePosLift.toFixed(1) + 'pp · <strong>평균종가 ' + (e.avgCloseLift>0?'+':'') + e.avgCloseLift.toFixed(2) + 'pp</strong>' +
+    '</div>');
+  }
+  if ((c.qvaByWindowSummary||[]).length) {
+    html.push('<div class="callout"><strong>📊 QVA 윈도우별 평균종가</strong><br>' +
+      c.qvaByWindowSummary.map(w => '• ' + w.window + ' (n=' + w.n + ') hit5 ' + (w.hit5||0).toFixed(1) + '% / 종가>0 ' + (w.closePos||0).toFixed(1) + '% / 평균종가 ' + (w.avgClose>0?'+':'') + (w.avgClose||0).toFixed(2) + '%').join('<br>') +
     '</div>');
   }
   // 5.5) 고위험 급등 가능 후보 메시지
