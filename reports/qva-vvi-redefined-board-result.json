@@ -2,7 +2,7 @@
   "meta": {
     "title": "새 VVI 후보 보드",
     "subtitle": "QVA 때 만든 고점을 다시 넘었고, 그때만큼 거래량과 거래대금이 다시 붙은 후보를 보여줍니다.",
-    "generatedAt": "2026-05-07T14:53:28.680Z",
+    "generatedAt": "2026-05-07T15:07:11.686Z",
     "lookbackDays": 20,
     "sectionLimit": 20,
     "todayNewLimit": 10,

@@ -541,6 +541,8 @@ h3 { font-size: 14px; margin: 18px 0 8px; color: #cbd5e1; }
 .card.s-OVERHEATED { border-left: 4px solid #ef4444; opacity: 0.92; }
 .card h3 { margin: 0 0 6px; font-size: 15px; color: #f1f5f9; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .card h3 .code { color: #64748b; font-size: 12px; font-weight: 400; }
+.card h3 a.name-link { color: #f1f5f9; text-decoration: none; border-bottom: 1px dashed transparent; }
+.card h3 a.name-link:hover { color: #5eead4; border-bottom-color: #5eead4; }
 .card h3 .market { color: #94a3b8; font-size: 11px; font-weight: 400; padding: 1px 6px; border: 1px solid #334155; border-radius: 4px; }
 .card .status-badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; border: 1px solid; }
 .card.s-VVI_FIRED .status-badge  { background: #042f2e; color: #5eead4; border-color: #14b8a6; }
@@ -710,7 +712,7 @@ function buildCardHtml(it) {
     ? '<span class="status-badge" style="background:#1e3a8a;color:#bfdbfe;border-color:#3b82f6;">📅 오늘 신규 VVI</span>'
     : '';
   return '<div class="card s-' + it.status + '">' +
-    '<h3>' + (it.name || '-') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' +
+    '<h3><a class="name-link" href="/qva-vvi-redefined/' + it.code + '">' + (it.name || '-') + '</a> <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' +
       groupBadge + ' ' + todayBadge + '</h3>' +
     '<div class="metrics-grid">' +
       '<div class="metric"><div class="label">QVA 때 만든 고점</div><div class="value">' + fmtNum(it.qvaHigh) + '원</div><div class="sub">' + fmtDate(it.qvaSignalDate) + ' 종가 ' + fmtNum(it.qvaClose) + '</div></div>' +
@@ -738,7 +740,7 @@ function buildValueInsufCardHtml(it) {
   const valueFillPct  = isNum(it.valueFillRatio)  ? Math.round(it.valueFillRatio  * 100) : null;
   const volumeFillPct = isNum(it.volumeFillRatio) ? Math.round(it.volumeFillRatio * 100) : null;
   return '<div class="card preview s-PRICE_ONLY">' +
-    '<h3>' + (it.name || '-') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' +
+    '<h3><a class="name-link" href="/qva-vvi-redefined/' + it.code + '">' + (it.name || '-') + '</a> <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' +
       '<span class="status-badge badge-ref">⚠️ 거래대금 부족 돌파 참고</span> ' +
       '<span class="status-badge badge-ref">참고용</span></h3>' +
     '<div class="metrics-grid">' +
@@ -757,7 +759,7 @@ function buildValueInsufCardHtml(it) {
 // 고점 재돌파 대기 (E그룹) — 메인 후보 아님, 작은 회색 카드
 function buildWaitingCardHtml(it) {
   return '<div class="card preview s-WAITING">' +
-    '<h3>' + (it.name || '-') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' +
+    '<h3><a class="name-link" href="/qva-vvi-redefined/' + it.code + '">' + (it.name || '-') + '</a> <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' +
       '<span class="status-badge badge-wait">⏳ 고점 재돌파 대기</span> ' +
       '<span class="status-badge badge-wait">대기 후보</span></h3>' +
     '<div class="metrics-grid">' +

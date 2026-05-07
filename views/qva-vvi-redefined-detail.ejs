@@ -1,0 +1,414 @@
+<%
+function fmtNum(v) { return v != null ? Math.round(Number(v)).toLocaleString() : '-'; }
+function fmtDate(d) { if (!d || String(d).length !== 8) return d || '-'; return String(d).slice(0,4)+'-'+String(d).slice(4,6)+'-'+String(d).slice(6,8); }
+function fmtPct(v, prec) {
+  if (v == null) return '-';
+  prec = prec == null ? 2 : prec;
+  return (v > 0 ? '+' : '') + Number(v).toFixed(prec) + '%';
+}
+function fmtMarketCap(won) {
+  if (!won || won <= 0) return '-';
+  const eok = won / 1e8;
+  if (eok >= 10000) return (eok / 10000).toFixed(2) + '조';
+  return Math.round(eok).toLocaleString() + '억';
+}
+function fmtMoney(won) {
+  if (!won || won === 0) return '-';
+  const v = Number(won);
+  if (v >= 1e12) return (v/1e12).toFixed(2) + '조';
+  if (v >= 1e8)  return (v/1e8).toFixed(1) + '억';
+  if (v >= 1e4)  return (v/1e4).toFixed(0) + '만';
+  return Math.round(v).toLocaleString();
+}
+const rows = chartRows || [];
+const lastRow = rows.length > 0 ? rows[rows.length - 1] : null;
+const dispPrice = (kisLive && kisLive.price) || (lastRow && lastRow.close);
+const dispChg = (kisLive && kisLive.changeRate != null) ? kisLive.changeRate : null;
+%>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title><%= meta.name %> · 새 VVI 종목 상세</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0 auto; padding: 18px 24px 80px; max-width: 1200px;
+  font-family: -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  background: #0f172a; color: #e2e8f0; font-size: 13px;
+}
+nav { display:flex; gap:10px; flex-wrap:wrap; padding:8px 0 14px; border-bottom:1px solid #1e293b; margin-bottom:14px; font-size: 12px; }
+nav a { color:#94a3b8; text-decoration:none; padding:4px 8px; border-radius:4px; }
+nav a:hover { color:#e2e8f0; background:#1e293b; }
+nav a.back { color: #5eead4; }
+h1 { font-size: 24px; margin: 0 0 4px; color: #f1f5f9; font-weight: 700; }
+h1 .code { color: #64748b; font-size: 16px; font-weight: 400; margin-left: 8px; }
+h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
+.subtitle { font-size: 13px; color: #94a3b8; margin-bottom: 14px; }
+
+.price-block { background: #1e293b; border-radius: 10px; padding: 16px 20px; margin-bottom: 14px; border-left: 4px solid #14b8a6; }
+.price-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.price-big { font-size: 32px; font-weight: 700; color: #f1f5f9; font-variant-numeric: tabular-nums; }
+.price-unit { font-size: 14px; font-weight: 400; color: #94a3b8; margin-left: 2px; }
+.price-change { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.price-change.pos { color: #6ee7b7; }
+.price-change.neg { color: #fca5a5; }
+.price-meta { color: #94a3b8; font-size: 12px; margin-top: 6px; }
+.price-meta .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; background: #0f172a; border: 1px solid #334155; margin-right: 4px; font-size: 11px; }
+.price-meta .badge.live { background: #064e3b; color: #6ee7b7; border-color: #10b981; font-weight: 600; }
+
+.price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 14px; }
+.price-cell { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 10px 12px; }
+.price-cell .label { font-size: 11px; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+.price-cell .value { font-size: 16px; font-weight: 600; color: #e2e8f0; font-variant-numeric: tabular-nums; }
+.price-cell .sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+.chart-wrap { background: #1e293b; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+.chart-svg { width: 100%; height: 360px; }
+
+.member-section { background: #1e293b; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; border-left: 4px solid #14b8a6; }
+.member-section h3 { font-size: 13px; margin: 0 0 8px; color: #cbd5e1; font-weight: 600; }
+.member-row { font-size: 12px; color: #94a3b8; line-height: 1.7; }
+.member-row .stage { display: inline-block; padding: 2px 8px; border-radius: 4px; background: #042f2e; color: #5eead4; margin-right: 4px; font-size: 11px; font-weight: 600; }
+.member-row .stage.strong { background: #7f1d1d; color: #fca5a5; }
+.member-row .stage.valueInsuf { background: #422006; color: #fde68a; }
+.member-row .stage.waiting { background: #1e293b; color: #cbd5e1; border: 1px solid #475569; }
+
+.fin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.fin-cell { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 10px 12px; border-left: 3px solid #38bdf8; }
+.fin-cell .label { font-size: 11px; color: #94a3b8; margin-bottom: 4px; }
+.fin-cell .value { font-size: 16px; font-weight: 600; color: #e2e8f0; font-variant-numeric: tabular-nums; }
+.fin-cell .growth { font-size: 12px; margin-top: 4px; font-variant-numeric: tabular-nums; font-weight: 600; }
+.fin-cell .growth.pos { color: #6ee7b7; }
+.fin-cell .growth.neg { color: #fca5a5; }
+.fin-cell .sub { font-size: 10px; color: #64748b; margin-top: 2px; }
+
+.list-card { background: #1e293b; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; }
+.list-card h2 { margin: 0 0 10px; }
+.list-item { padding: 8px 0; border-bottom: 1px solid #334155; font-size: 12px; line-height: 1.6; }
+.list-item:last-child { border-bottom: none; }
+.list-item .meta { color: #64748b; font-size: 11px; margin-bottom: 2px; }
+.list-item .meta .source { color: #94a3b8; margin-right: 6px; }
+.list-item .title { color: #e2e8f0; font-weight: 500; }
+.list-item .title a { color: #38bdf8; text-decoration: none; }
+.list-item .title a:hover { text-decoration: underline; }
+.list-item .body { color: #94a3b8; font-size: 11.5px; margin-top: 3px; }
+
+.empty-msg { padding: 12px; background: #1e293b; border-radius: 6px; color: #94a3b8; font-size: 12px; }
+
+table.daily { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.daily th { background: #0f172a; color: #94a3b8; padding: 6px 8px; text-align: right; border-bottom: 1px solid #334155; font-weight: 600; }
+table.daily th:first-child { text-align: left; }
+table.daily td { padding: 5px 8px; text-align: right; border-bottom: 1px solid #1e293b; font-variant-numeric: tabular-nums; color: #e2e8f0; }
+table.daily td:first-child { text-align: left; color: #94a3b8; }
+table.daily tr:hover { background: #1e293b; }
+.cell-pos { color: #6ee7b7; }
+.cell-neg { color: #fca5a5; }
+
+/* AI 분석 영역 */
+.ai-section { background: linear-gradient(135deg, #1e1b4b 0%, #1e293b 100%); border-radius: 10px; padding: 18px 20px; margin-top: 16px; border: 1px solid #4338ca; }
+.ai-section h2 { color: #c7d2fe; margin: 0 0 10px; }
+.ai-btn { background: #4f46e5; color: #fff; border: none; padding: 10px 22px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.ai-btn:hover { background: #6366f1; }
+.ai-btn:disabled { background: #4338ca; opacity: 0.6; cursor: not-allowed; }
+.ai-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #c7d2fe; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 8px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ai-result { margin-top: 14px; line-height: 1.8; color: #e2e8f0; font-size: 13px; }
+.ai-result h2 { font-size: 14px; color: #a5b4fc; margin: 14px 0 6px; padding-bottom: 4px; border-bottom: 1px solid #4338ca; }
+.ai-result p { margin: 6px 0; }
+.ai-error { color: #fca5a5; padding: 10px 14px; background: #422006; border-radius: 6px; margin-top: 10px; font-size: 12px; }
+.ai-meta { font-size: 10.5px; color: #818cf8; margin-top: 8px; }
+
+footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.7; }
+
+@media (max-width: 900px) {
+  body { padding: 12px 12px 60px; }
+  .price-grid, .fin-grid { grid-template-columns: repeat(2, 1fr); }
+  h1 { font-size: 20px; }
+  .price-big { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/qva-vvi-redefined-board" class="back">← 새 VVI 보드</a>
+  <a href="/qva-watchlist">📋 H그룹/VPR</a>
+  <a href="/rebreak">🔥 D+5 재돌파</a>
+  <a href="/one-day-surge-board">⚡ 1DS</a>
+  <a href="/qva-vvi-redefined-board">🎯 QVA 고점 재돌파</a>
+</nav>
+
+<h1><%= meta.name %><span class="code"><%= code %> · <%= meta.market || '-' %></span></h1>
+<div class="subtitle">
+  시가총액 <%= fmtMarketCap(meta.marketCap) %>
+  <% if (meta.isEtf) { %> · ETF<% } %>
+  <% if (meta.isSpecial) { %> · 우선주/리츠/스팩<% } %>
+</div>
+
+<!-- 시세 -->
+<div class="price-block">
+  <div class="price-row">
+    <span class="price-big"><%= fmtNum(dispPrice) %><span class="price-unit">원</span></span>
+    <% if (dispChg != null) { %>
+    <span class="price-change <%= dispChg > 0 ? 'pos' : (dispChg < 0 ? 'neg' : '') %>">
+      <%= dispChg > 0 ? '▲' : (dispChg < 0 ? '▼' : '─') %>
+      <% if (kisLive && kisLive.changeAbs != null) { %><%= Math.abs(kisLive.changeAbs).toLocaleString() %>원 <% } %>
+      <%= fmtPct(dispChg) %>
+    </span>
+    <% } %>
+  </div>
+  <div class="price-meta">
+    <% if (kisLive) { %>
+    <span class="badge live">🟢 KIS 실시간</span>
+    <% if (kisLive.prevClose) { %> · 전일 종가 <%= fmtNum(kisLive.prevClose) %>원<% } %>
+    <% } else if (lastRow) { %>
+    <span class="badge">📅 <%= fmtDate(lastRow.date) %> 종가 (KIS 실시간 호출 실패)</span>
+    <% } else { %>
+    <span class="badge">데이터 없음</span>
+    <% } %>
+  </div>
+  <% if (kisLive) { %>
+  <div class="price-grid" style="margin-top: 12px;">
+    <div class="price-cell"><div class="label">시가</div><div class="value"><%= fmtNum(kisLive.open) %></div></div>
+    <div class="price-cell"><div class="label">고가</div><div class="value"><%= fmtNum(kisLive.high) %></div></div>
+    <div class="price-cell"><div class="label">저가</div><div class="value"><%= fmtNum(kisLive.low) %></div></div>
+    <div class="price-cell"><div class="label">거래량</div><div class="value"><%= fmtNum(kisLive.volume) %></div></div>
+  </div>
+  <% } %>
+</div>
+
+<!-- 새 VVI 보드 funnel 멤버십 -->
+<% if (vviMembership) { %>
+<div class="member-section">
+  <h3>🎯 새 VVI 보드 위치</h3>
+  <div class="member-row">
+    <span class="stage <%= vviMembership.group %>"><%= vviMembership.label %></span>
+    <% var it = vviMembership.item; %>
+    <% if (it.qvaSignalDate) { %>QVA 발생일 <%= fmtDate(it.qvaSignalDate) %><% } %>
+    <% if (it.vviDate) { %> · VVI 발생일 <%= fmtDate(it.vviDate) %><% } %>
+    <% if (it.daysFromQvaToVvi != null) { %> · QVA→VVI <%= it.daysFromQvaToVvi %>거래일<% } %>
+    <% if (it.vviValueRatio) { %> · 거래대금 ×<%= Number(it.vviValueRatio).toFixed(2) %><% } %>
+    <% if (it.currentFromQvaCloseRate != null) { %> · QVA→현재 <%= fmtPct(it.currentFromQvaCloseRate, 1) %><% } %>
+  </div>
+</div>
+<% } %>
+
+<!-- 재무정보 -->
+<h2>💰 재무정보 (DART)</h2>
+<% if (financials && financials.latest) { %>
+<%
+  var lat = financials.latest, prior = financials.prior, growth = financials.growth || {};
+  var reportLabel = lat.reportCode === '11011' ? '사업보고서' : (lat.reportCode === '11013' ? '1분기' : (lat.reportCode === '11012' ? '반기' : (lat.reportCode === '11014' ? '3분기' : lat.reportCode)));
+%>
+<div class="fin-grid">
+  <div class="fin-cell">
+    <div class="label">매출액</div>
+    <div class="value"><%= fmtMoney(lat.revenue) %>원</div>
+    <% if (growth.revenue != null) { %><div class="growth <%= growth.revenue > 0 ? 'pos' : 'neg' %>"><%= fmtPct(growth.revenue, 1) %> YoY</div><% } %>
+    <% if (prior && prior.revenue) { %><div class="sub">전년 <%= fmtMoney(prior.revenue) %>원</div><% } %>
+  </div>
+  <div class="fin-cell">
+    <div class="label">영업이익</div>
+    <div class="value"><%= fmtMoney(lat.opIncome) %>원</div>
+    <% if (growth.opIncome != null) { %><div class="growth <%= growth.opIncome > 0 ? 'pos' : 'neg' %>"><%= fmtPct(growth.opIncome, 1) %> YoY</div><% } %>
+    <% if (prior && prior.opIncome) { %><div class="sub">전년 <%= fmtMoney(prior.opIncome) %>원</div><% } %>
+  </div>
+  <div class="fin-cell">
+    <div class="label">당기순이익</div>
+    <div class="value"><%= fmtMoney(lat.netIncome) %>원</div>
+    <% if (growth.netIncome != null) { %><div class="growth <%= growth.netIncome > 0 ? 'pos' : 'neg' %>"><%= fmtPct(growth.netIncome, 1) %> YoY</div><% } %>
+    <% if (prior && prior.netIncome) { %><div class="sub">전년 <%= fmtMoney(prior.netIncome) %>원</div><% } %>
+  </div>
+  <div class="fin-cell">
+    <div class="label">기준 보고서</div>
+    <div class="value"><%= lat.bsnsYear %></div>
+    <div class="sub"><%= reportLabel %></div>
+  </div>
+</div>
+<% } else { %>
+<div class="empty-msg">DART 재무 캐시가 없습니다 (cache/dart-financials/<%= code %>.json 부재).</div>
+<% } %>
+
+<!-- 차트 -->
+<% if (rows.length > 0) { %>
+<h2>📈 일봉 차트 (최근 <%= rows.length %>일)</h2>
+<div class="chart-wrap">
+  <svg id="ohlc-chart" class="chart-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+</div>
+<% } else { %>
+<div class="empty-msg">차트 데이터가 없습니다 (cache/stock-charts-long/<%= code %>.json 부재).</div>
+<% } %>
+
+<!-- 최근 뉴스 -->
+<div class="list-card">
+  <h2>📰 최근 뉴스 (Naver, 최대 8건)</h2>
+  <% if (news && news.length > 0) { %>
+    <% news.forEach(function(n) { %>
+    <div class="list-item">
+      <div class="meta">
+        <% if (n.source) { %><span class="source"><%= n.source %></span><% } %>
+        <% if (n.dateTimeFmt) { %><%= n.dateTimeFmt %><% } %>
+      </div>
+      <div class="title">
+        <% if (n.url) { %><a href="<%= n.url %>" target="_blank" rel="noopener"><%= n.title %> ↗</a><% } else { %><%= n.title %><% } %>
+      </div>
+      <% if (n.body) { %><div class="body"><%= n.body %></div><% } %>
+    </div>
+    <% }) %>
+  <% } else { %>
+    <div class="empty-msg">
+      뉴스를 불러오지 못했습니다.<% if (newsError) { %> <span style="color:#fca5a5;">(<%= newsError %>)</span><% } %>
+    </div>
+  <% } %>
+</div>
+
+<!-- 최근 공시 -->
+<div class="list-card">
+  <h2>📋 최근 공시 (DART, 최근 90일 / 최대 10건)</h2>
+  <% if (disclosures && disclosures.length > 0) { %>
+    <% disclosures.forEach(function(d) { %>
+    <div class="list-item">
+      <div class="meta">
+        <% if (d.receiptDateFmt) { %><span class="source"><%= d.receiptDateFmt %></span><% } %>
+        <% if (d.filerName) { %>· <%= d.filerName %><% } %>
+      </div>
+      <div class="title">
+        <a href="<%= d.url %>" target="_blank" rel="noopener"><%= d.reportName %> ↗</a>
+      </div>
+    </div>
+    <% }) %>
+  <% } else { %>
+    <div class="empty-msg">
+      공시를 불러오지 못했습니다.<% if (disclosureError) { %> <span style="color:#fca5a5;">(<%= disclosureError %>)</span><% } %>
+    </div>
+  <% } %>
+</div>
+
+<!-- AI 분석 버튼 -->
+<div class="ai-section">
+  <h2>🤖 AI 기업 분석</h2>
+  <p style="color: #c7d2fe; font-size: 12.5px; margin: 0 0 12px; line-height: 1.6;">
+    버튼을 누르면 Gemini가 위 종목의 <strong>기업 분석 · 사업 내용 · 최근 이슈</strong>를 정리해 줍니다.
+    위에 표시된 재무·뉴스·공시를 근거로 분석합니다. 응답까지 5~15초 정도 걸립니다.
+  </p>
+  <button id="ai-btn" class="ai-btn">📊 AI 분석 시작</button>
+  <div id="ai-output"></div>
+</div>
+
+<footer class="foot">
+  <strong>새 VVI 보드 종목 상세.</strong> 기본정보·재무·차트·뉴스·공시는 일일 갱신 캐시 + 외부 API 기반.<br>
+  AI 분석은 호출 시점의 최근 공시·뉴스를 근거로 합니다 — <strong>매수 추천이 아닙니다.</strong>
+</footer>
+
+<% if (rows.length > 0) { %>
+<script>
+const CHART = <%- JSON.stringify(rows) %>;
+
+function renderChart() {
+  const svg = document.getElementById('ohlc-chart');
+  if (!svg || CHART.length === 0) return;
+  const W = svg.clientWidth, H = svg.clientHeight;
+  const PAD_L = 60, PAD_R = 12, PAD_T = 12, PAD_B = 30;
+  const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
+
+  const highs = CHART.map(r => r.high);
+  const lows = CHART.map(r => r.low);
+  const yMaxRaw = Math.max(...highs);
+  const yMinRaw = Math.min(...lows);
+  const yMax = yMaxRaw * 1.02;
+  const yMin = yMinRaw * 0.98;
+  const xStep = plotW / Math.max(1, CHART.length);
+  const cw = Math.max(2, xStep * 0.6);
+  const yToPx = (y) => PAD_T + plotH * (1 - (y - yMin) / (yMax - yMin));
+  const xToPx = (i) => PAD_L + xStep * (i + 0.5);
+
+  let svgContent = '';
+  CHART.forEach((r, i) => {
+    const x = xToPx(i);
+    const oy = yToPx(r.open), cy = yToPx(r.close);
+    const hy = yToPx(r.high), ly = yToPx(r.low);
+    const isUp = r.close >= r.open;
+    const color = isUp ? '#ef4444' : '#3b82f6';
+    svgContent += '<line x1="' + x + '" x2="' + x + '" y1="' + hy + '" y2="' + ly + '" stroke="' + color + '" stroke-width="1"/>';
+    const bodyTop = Math.min(oy, cy), bodyH = Math.max(1, Math.abs(oy - cy));
+    svgContent += '<rect x="' + (x - cw/2) + '" y="' + bodyTop + '" width="' + cw + '" height="' + bodyH + '" fill="' + color + '"/>';
+  });
+  const labels = [0, Math.floor(CHART.length/3), Math.floor(CHART.length*2/3), CHART.length - 1];
+  for (const i of labels) {
+    if (i < 0 || i >= CHART.length) continue;
+    const x = xToPx(i);
+    const d = CHART[i].date;
+    const label = d.slice(4,6) + '/' + d.slice(6,8);
+    svgContent += '<text x="' + x + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10" fill="#94a3b8">' + label + '</text>';
+  }
+  for (let k = 0; k <= 4; k++) {
+    const v = yMin + (yMax - yMin) * k / 4;
+    const y = yToPx(v);
+    svgContent += '<text x="' + (PAD_L - 4) + '" y="' + (y + 3) + '" text-anchor="end" font-size="10" fill="#64748b">' + Math.round(v).toLocaleString() + '</text>';
+  }
+  svg.innerHTML = svgContent;
+}
+renderChart();
+window.addEventListener('resize', renderChart);
+</script>
+<% } %>
+
+<script>
+// ── AI 버튼 ──
+const aiBtn = document.getElementById('ai-btn');
+const aiOutput = document.getElementById('ai-output');
+const STOCK_CODE = '<%= code %>';
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+// 매우 단순한 markdown → html (## 헤더 + 단락 + 줄바꿈)
+function md2html(text) {
+  const lines = String(text || '').split('\n');
+  let html = '', inP = false;
+  for (const line of lines) {
+    const t = line.trim();
+    if (/^##\s+/.test(t)) {
+      if (inP) { html += '</p>'; inP = false; }
+      html += '<h2>' + escapeHtml(t.replace(/^##\s+/, '')) + '</h2>';
+    } else if (t === '') {
+      if (inP) { html += '</p>'; inP = false; }
+    } else {
+      if (!inP) { html += '<p>'; inP = true; } else { html += '<br>'; }
+      html += escapeHtml(t);
+    }
+  }
+  if (inP) html += '</p>';
+  return html;
+}
+
+aiBtn.addEventListener('click', async () => {
+  aiBtn.disabled = true;
+  aiOutput.innerHTML = '<div class="ai-result"><span class="ai-spinner"></span>AI 분석 중... (재무·공시·뉴스 정리 후 응답까지 5~15초)</div>';
+  try {
+    const r = await fetch('/qva-vvi-redefined/' + STOCK_CODE + '/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ error: 'HTTP ' + r.status }));
+      throw new Error(err.error || ('HTTP ' + r.status));
+    }
+    const data = await r.json();
+    aiOutput.innerHTML =
+      '<div class="ai-result">' + md2html(data.text || '') + '</div>' +
+      '<div class="ai-meta">' + (data.cached ? '⚡ 캐시 응답 · ' : '') + '모델: ' + escapeHtml(data.model || '-') + '</div>';
+    aiBtn.disabled = false;
+    aiBtn.textContent = '🔄 다시 분석';
+  } catch (e) {
+    aiOutput.innerHTML = '<div class="ai-error">AI 분석 실패: ' + escapeHtml(e.message) + '</div>';
+    aiBtn.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>

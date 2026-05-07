@@ -105,7 +105,7 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 |---------|------|
 | [src/routes/](src/routes/) | URL → 컨트롤러 매핑. `index.js`가 `auth/admin/qva/rebreak/ai` 라우터를 합쳐 export |
 | [src/controllers/](src/controllers/) | 라우트 핸들러. 컨트롤러는 fs/render/sendFile만 하고 무거운 일은 services로 위임 |
-| [src/services/](src/services/) | 도메인 로직 — `ai/`, `auth/`, `kis/`, `mail/`, `pattern/`, `stocks/` |
+| [src/services/](src/services/) | 도메인 로직 — `ai/`, `auth/`, `dart/`, `kis/`, `mail/`, `news/`, `pattern/`, `stocks/` |
 | [src/middleware/](src/middleware/) | `siteGate.js` — `privateTokenGate` + `sitePasswordGate` |
 | [src/utils/](src/utils/) | `paths.js` (모든 파일 경로 한 곳에서 export), `sleep.js` |
 
@@ -134,8 +134,10 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 | `GET /ods-entry-daily-backtest` | (redirect) | `/one-day-surge-entry-daily-backtest`로 |
 | `GET /qva-vvi-redefined-board` | qvaVviRedefinedController.getRedefinedVviBoard | 새 VVI 정의 (QVA 고가 + 거래량 + 거래대금 동시 재돌파) 후보 보드 HTML sendFile (`reports/qva-vvi-redefined-board-result.html`) |
 | `GET /qva-vvi-redefined-backtest` | qvaVviRedefinedController.getRedefinedVviBacktest | 새 VVI 정의 1차 백테스트 HTML sendFile (`reports/qva-vvi-redefined-backtest-result.html`) |
+| `GET /qva-vvi-redefined/:code` | qvaVviRedefinedController.getRedefinedVviStockDetail | 새 VVI 종목 상세 페이지 — naver 메타 + KIS 실시간 + 60일 SVG 차트 + DART 재무 + Naver 뉴스 8건 + DART 공시 10건 + 새 VVI funnel 위치 + AI 분석 버튼. `views/qva-vvi-redefined-detail.ejs` 렌더. 보드 카드의 종목명이 이 라우트로 링크 |
+| `POST /qva-vvi-redefined/:code/ai` | qvaVviRedefinedController.postCompanyAnalysis | 상세 페이지 AI 버튼이 fetch로 호출. Gemini가 기업분석/사업내용/최근이슈 3섹션 생성 (in-memory 30분 TTL 캐시). `geminiCompanyAnalysis.js` |
 | `GET /stock/:code` | stockController.getStockDetail | 보드 어디서든 종목명 클릭 시 떠오르는 단순 종목 상세 페이지. naver/stocks.json 메타 + KIS 실시간 가격 + 60일 SVG 차트 + 보드 funnel 멤버십(QVA/D+5재돌파/1DS). `views/stock-detail.ejs` 렌더 |
-| `POST /ai/comment` | aiController.postComment | Gemini 호출. `/d5-rebreak/:code` 페이지가 lazy 호출 |
+| `POST /ai/comment` | aiController.postComment | Gemini 호출. `/d5-rebreak/:code` 페이지가 lazy 호출 (단타·스윙용 4섹션) |
 | `GET/POST /login`, `GET /unsubscribe` | authController | 사이트 비밀번호 게이트, 메일 unsubscribe |
 | `GET/POST /admin/login`, `GET /admin/logout` | adminController | 관리자 인증 |
 | `GET /admin` | adminController.getDashboard | 대시보드 (구독자 / stocks 마스터 / 패턴 상태) |
@@ -309,9 +311,11 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 
 ### 렌더링
 
-EJS 템플릿은 4개만 남아있다:
+EJS 템플릿:
 - `views/site-login.ejs` — `/login`
-- `views/d5-rebreak-detail.ejs` — `/d5-rebreak/:code`
+- `views/d5-rebreak-detail.ejs` — `/d5-rebreak/:code` (단타·스윙 4섹션 AI)
+- `views/stock-detail.ejs` — `/stock/:code` (보드 공용 단순 상세)
+- `views/qva-vvi-redefined-detail.ejs` — `/qva-vvi-redefined/:code` (재무·뉴스·공시 + 기업분석 3섹션 AI)
 - `views/admin/login.ejs` — `/admin/login`
 - `views/admin/dashboard.ejs` — `/admin`
 
