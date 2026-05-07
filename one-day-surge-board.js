@@ -35,8 +35,26 @@ const NAVER_LIST_PATH = path.join(ROOT, 'cache', 'naver-stocks-list.json');
 const QVA_BOARD_PATH = path.join(ROOT, 'qva-watchlist-board.json');
 const PATTERN_RESULT_PATH = path.join(ROOT, 'cache', 'pattern-result.json');
 const INTRADAY_BASE = path.join(ROOT, 'data', 'intraday', '1ds');
+const MANUAL_TARGETS_PATH = path.join(ROOT, 'data', 'manual-1ds-targets.json');
 const OUT_JSON = path.join(REPORTS_DIR, 'one-day-surge-board-result.json');
 const OUT_HTML = path.join(REPORTS_DIR, 'one-day-surge-board-result.html');
+
+// 사용자가 외부 분석으로 정한 매수·매도 가이드를 카드에 띄우기 위한 파일.
+// `data/manual-1ds-targets.json` (없거나 파싱 실패하면 무시).
+function loadManualTargets() {
+  if (!fs.existsSync(MANUAL_TARGETS_PATH)) return new Map();
+  try {
+    const j = JSON.parse(fs.readFileSync(MANUAL_TARGETS_PATH, 'utf-8'));
+    const map = new Map();
+    for (const t of (j.targets || [])) {
+      if (t && t.code) map.set(String(t.code), t);
+    }
+    return map;
+  } catch (e) {
+    console.warn('[manual-targets] 파일 파싱 실패:', e.message);
+    return new Map();
+  }
+}
 
 // ── 장초 분봉 재상승 전략 정의 ── (운영자 친화 한국어 라벨)
 // 내부 키는 유지 (분석 보고서 호환), 화면 chipLabel만 친절 한국어로.
@@ -793,6 +811,17 @@ function main() {
     strategyCounts[name] = all.filter((it) => (it.entryStrategies || []).includes(name)).length;
   }
 
+  // 수동 매수·매도 가이드 — `data/manual-1ds-targets.json` 매칭 코드 카드에 attach
+  const manualTargets = loadManualTargets();
+  if (manualTargets.size > 0) {
+    let attached = 0;
+    for (const it of all) {
+      const t = manualTargets.get(it.code);
+      if (t) { it.manualTargets = t; attached++; }
+    }
+    console.log(`  📌 수동 매수·매도 가이드 attach: ${attached}건 / 파일 entry ${manualTargets.size}건`);
+  }
+
   // QVA 보조 태그 — 화면 노출 후보만 집계 (위험/숨김 후보는 카운트 X)
   const qvaTaggedTopCount = topPriority.filter((it) => it.hasRecentQva).length;
   const qvaTaggedExtraCount = extraPriority.filter((it) => it.hasRecentQva).length;
@@ -1200,6 +1229,48 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .perf-box .perf-disclaimer { font-size: 10px; color: #64748b; margin-top: 5px; opacity: 0.9; }
 .perf-box.pending { background: #1e293b; border-style: dashed; }
 .perf-box.pending .perf-pending { color: #94a3b8; font-size: 11.5px; font-style: italic; }
+
+/* ── 📌 수동 매수·매도 가이드 (manualTargets) ── */
+.manual-targets-box {
+  margin: 10px 0 8px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #422006 0%, #1e293b 100%);
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.manual-targets-box .mt-header {
+  font-size: 13px; font-weight: 700; color: #fcd34d;
+  margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #78350f;
+}
+.manual-targets-box .mt-header .mt-sub {
+  font-size: 10.5px; color: #d4a574; font-weight: 400; margin-left: 8px;
+}
+.manual-targets-box .mt-section {
+  margin-top: 6px; padding: 8px 10px; background: rgba(15,23,42,0.6); border-radius: 5px;
+}
+.manual-targets-box .mt-section.pre-open { border-left: 3px solid #14b8a6; }
+.manual-targets-box .mt-section.after-930 { border-left: 3px solid #f59e0b; }
+.manual-targets-box .mt-section-label {
+  font-size: 11px; color: #cbd5e1; font-weight: 600; margin-bottom: 5px;
+}
+.manual-targets-box .mt-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 2px 0; font-variant-numeric: tabular-nums;
+}
+.manual-targets-box .mt-row.sub { font-size: 11px; opacity: 0.9; }
+.manual-targets-box .mt-key { color: #94a3b8; }
+.manual-targets-box .mt-val { font-weight: 700; }
+.manual-targets-box .mt-val.buy      { color: #6ee7b7; }
+.manual-targets-box .mt-val.buy-safe { color: #5eead4; }
+.manual-targets-box .mt-val.sell     { color: #fca5a5; }
+.manual-targets-box .mt-val.risk     { color: #fbbf24; }
+.manual-targets-box .mt-note {
+  margin-top: 4px; padding: 4px 8px;
+  background: rgba(15,23,42,0.8); border-radius: 4px;
+  font-size: 10.5px; color: #d4d4d8; font-style: italic;
+}
 
 .empty-list { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; text-align: center; color: #64748b; }
 
@@ -1714,10 +1785,43 @@ function buildCardHtml(it) {
     '</div>';
   }
 
-  return '<div class="card g-' + it.gtGroup + '" data-group="' + it.gtGroup + '" data-candle="' + (it.candleType || '') + '" data-qva="' + (it.qvaHistoryLabel ? '1' : '0') + '" data-has-qva="' + (it.hasRecentQva ? '1' : '0') + '" data-vvi="' + (it.vviHistory ? '1' : '0') + '" data-strategies="' + ((it.entryStrategies || []).join(',')) + '">' +
+  // 📌 수동 매수·매도 가이드 (manualTargets 있는 카드만)
+  let manualTargetsBox = '';
+  if (it.manualTargets && (it.manualTargets.preOpen || it.manualTargets.after930)) {
+    const mt = it.manualTargets;
+    const pre = mt.preOpen || {};
+    const aft = mt.after930 || {};
+    const fmtN = (v) => v != null ? Math.round(v).toLocaleString() + '원' : '-';
+    manualTargetsBox = '<div class="manual-targets-box">' +
+      '<div class="mt-header">📌 단타 매수·매도 가이드 <span class="mt-sub">사용자 수동 입력 · 외부 분석 기반</span></div>' +
+      // 9:30 이전
+      (Object.keys(pre).length ? (
+        '<div class="mt-section pre-open">' +
+          '<div class="mt-section-label">⏰ 9:30 이전 (장 시작 전 가이드)</div>' +
+          (pre.realisticBuyMax != null ? '<div class="mt-row"><span class="mt-key">현실적 매수가</span><span class="mt-val buy">' + fmtN(pre.realisticBuyMax) + ' 이하</span></div>' : '') +
+          (pre.sellMin != null         ? '<div class="mt-row"><span class="mt-key">매도가</span><span class="mt-val sell">' + fmtN(pre.sellMin) + ' 이상</span></div>' : '') +
+          (pre.safeBuyMax != null      ? '<div class="mt-row sub"><span class="mt-key">· 안정적 매수가</span><span class="mt-val buy-safe">' + fmtN(pre.safeBuyMax) + ' 이하</span></div>' : '') +
+          (pre.downsideRiskPrice != null ? '<div class="mt-row sub"><span class="mt-key">⚠ 하락 리스크</span><span class="mt-val risk">' + fmtN(pre.downsideRiskPrice) + ' 까지 가능</span></div>' : '') +
+          (pre.downsideRiskNote ? '<div class="mt-note">' + pre.downsideRiskNote + '</div>' : '') +
+        '</div>'
+      ) : '') +
+      // 9:30 이후
+      (Object.keys(aft).length ? (
+        '<div class="mt-section after-930">' +
+          '<div class="mt-section-label">🕘 9:30 이후 (장중 매수 가이드)</div>' +
+          ((aft.buyRangeLow != null && aft.buyRangeHigh != null) ? '<div class="mt-row"><span class="mt-key">매수 구간</span><span class="mt-val buy">' + fmtN(aft.buyRangeLow) + ' ~ ' + fmtN(aft.buyRangeHigh) + '</span></div>' : '') +
+          (aft.sellMin != null ? '<div class="mt-row"><span class="mt-key">매도가</span><span class="mt-val sell">' + fmtN(aft.sellMin) + ' 이상</span></div>' : '') +
+          (aft.guidanceNote ? '<div class="mt-note">' + aft.guidanceNote + '</div>' : '') +
+        '</div>'
+      ) : '') +
+    '</div>';
+  }
+
+  return '<div class="card g-' + it.gtGroup + '" data-group="' + it.gtGroup + '" data-candle="' + (it.candleType || '') + '" data-qva="' + (it.qvaHistoryLabel ? '1' : '0') + '" data-has-qva="' + (it.hasRecentQva ? '1' : '0') + '" data-vvi="' + (it.vviHistory ? '1' : '0') + '" data-strategies="' + ((it.entryStrategies || []).join(',')) + '" data-manual-targets="' + (it.manualTargets ? '1' : '0') + '">' +
     '<h3>' + (it.name || '-') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' + entryStatusPill(it) + '</h3>' +
     qvaStrip +
     '<div class="meta">' + strategyChips(it) + badges.join('') + '</div>' +
+    manualTargetsBox +
     perfBox +
     '<div class="metrics-grid">' +
       '<div class="metric"><div class="label">기준일 종가</div><div class="value">' + fmtNum(it.close) + '원</div><div class="sub">' + fmtDate(it.baseDate) + '</div></div>' +

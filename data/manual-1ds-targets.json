@@ -1,0 +1,96 @@
+{
+  "_meta": {
+    "purpose": "1DS 보드 카드에 표시할 수동 매수·매도 가이드. 사용자가 외부 분석으로 정한 가격을 보드에 띄우기 위한 단일 파일.",
+    "format": "targets[].code 가 카드의 code 와 매칭되면 카드에 가이드 패널이 자동 추가된다.",
+    "updatedAt": "2026-05-08",
+    "targetTradingDate": "2026-05-09",
+    "note": "이 파일을 갱신하면 다음 보드 재생성 시(`node one-day-surge-board.js` 또는 16:35 cron) 반영됨. 매칭 안 되는 종목 entry는 무시된다."
+  },
+  "targets": [
+    {
+      "code": "138080",
+      "name": "오이솔루션",
+      "preOpen": {
+        "realisticBuyMax": 52500,
+        "sellMin": 60600,
+        "safeBuyMax": 49800,
+        "downsideRiskPrice": 46000,
+        "downsideRiskNote": "고점이라 하락하면 46,000원까지 갈 수 있음"
+      },
+      "after930": {
+        "buyRangeLow": 53200,
+        "buyRangeHigh": 56600,
+        "sellMin": 58500,
+        "guidanceNote": "9:30 이후 55,000~56,500 유지하면 위험 감수하고 매수 가능. 진입 시 59,400 이상에서 매도."
+      }
+    },
+    {
+      "code": "017550",
+      "name": "수산세보틱스",
+      "preOpen": {
+        "realisticBuyMax": 3730,
+        "sellMin": 4400,
+        "safeBuyMax": 3560,
+        "downsideRiskPrice": 3300,
+        "downsideRiskNote": "고점이라 하락하면 3,300원 이하까지 갈 수 있음"
+      },
+      "after930": {
+        "buyRangeLow": 3790,
+        "buyRangeHigh": 4040,
+        "sellMin": 4210,
+        "guidanceNote": "위험성 존재. 9:30 이후 매수가로 진입 시 4,210원 이상에서 매도."
+      }
+    },
+    {
+      "code": "078890",
+      "name": "가온그룹",
+      "preOpen": {
+        "realisticBuyMax": 8060,
+        "sellMin": 9400,
+        "safeBuyMax": 7910,
+        "downsideRiskPrice": 7230,
+        "downsideRiskNote": "고점이라 하락하면 7,230원 이하까지 갈 수 있음"
+      },
+      "after930": {
+        "buyRangeLow": 8140,
+        "buyRangeHigh": 8480,
+        "sellMin": 9030,
+        "guidanceNote": "위험성 존재. 9:30 이후 매수가로 진입 시 9,030원 이상에서 매도."
+      }
+    },
+    {
+      "code": "159010",
+      "name": "아스플로",
+      "preOpen": {
+        "realisticBuyMax": 13460,
+        "sellMin": 15600,
+        "safeBuyMax": 13050,
+        "downsideRiskPrice": 12100,
+        "downsideRiskNote": "고점이라 하락하면 12,100원 이하까지 갈 수 있음"
+      },
+      "after930": {
+        "buyRangeLow": 13700,
+        "buyRangeHigh": 14200,
+        "sellMin": 14910,
+        "guidanceNote": "위험성 존재. 9:30 이후 매수가로 진입 시 14,910원 이상에서 매도."
+      }
+    },
+    {
+      "code": "004710",
+      "name": "한솔테크닉스",
+      "preOpen": {
+        "realisticBuyMax": 8870,
+        "sellMin": 10350,
+        "safeBuyMax": 8540,
+        "downsideRiskPrice": 8130,
+        "downsideRiskNote": "고점이라 하락하면 8,130원 이하까지 갈 수 있음"
+      },
+      "after930": {
+        "buyRangeLow": 9020,
+        "buyRangeHigh": 9390,
+        "sellMin": 9880,
+        "guidanceNote": "위험성 존재. 9:30 이후 매수가로 진입 시 9,880원 이상에서 매도."
+      }
+    }
+  ]
+}
