@@ -101,4 +101,38 @@ function normalizeBars(rawBars) {
   return bars;
 }
 
-module.exports = { getMinuteBarsAt, getMorningMinuteBars, normalizeBars };
+// 과거 특정 날짜 분봉 조회 — TR `FHKST03010230` (주식기간별분봉시세).
+// FHKST03010200(today)과 다르게 fid_input_date_1로 과거 영업일 직접 지정 가능 + 한 콜에 120 bars 반환.
+// dateYYYYMMDD: 대상 영업일 / endHour: 그 날의 종료 시각(HHMMSS) 기준 거꾸로 120 bars.
+// 응답에 직전 영업일 분봉이 섞여 들어오므로 stck_bsop_date == dateYYYYMMDD 만 필터해서 반환.
+async function getMinuteBarsForDate(accessToken, stockCode, dateYYYYMMDD, endHour = "100000") {
+  const url = `${process.env.KIS_BASE_URL}/uapi/domestic-stock/v1/quotations/inquire-time-dailychartprice`;
+  const res = await axios.get(url, {
+    headers: {
+      "content-type": "application/json; charset=UTF-8",
+      authorization: `Bearer ${accessToken}`,
+      appkey: process.env.KIS_APP_KEY,
+      appsecret: process.env.KIS_APP_SECRET,
+      tr_id: "FHKST03010230",
+    },
+    params: {
+      fid_cond_mrkt_div_code: "J",
+      fid_input_iscd: stockCode,
+      fid_input_hour_1: endHour,
+      fid_input_date_1: dateYYYYMMDD,
+      fid_pw_data_incu_yn: "Y",
+      fid_fake_tick_incu_yn: "N",
+    },
+    timeout: 10000,
+  });
+  if (res.data.rt_cd !== "0") {
+    throw new Error(`분봉(과거) API 오류 ${stockCode}@${dateYYYYMMDD}: ${res.data.msg_cd} / ${res.data.msg1}`);
+  }
+  const out2 = res.data.output2 || [];
+  // 대상 날짜만 필터 + 시간 오름차순
+  const filtered = out2.filter((r) => r.stck_bsop_date === dateYYYYMMDD)
+    .sort((a, b) => (a.stck_cntg_hour || "").localeCompare(b.stck_cntg_hour || ""));
+  return { meta: res.data.output1 || null, raw: filtered };
+}
+
+module.exports = { getMinuteBarsAt, getMorningMinuteBars, getMinuteBarsForDate, normalizeBars };

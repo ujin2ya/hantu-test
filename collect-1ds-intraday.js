@@ -1,253 +1,295 @@
 #!/usr/bin/env node
 /**
- * 1DS 후보 종목 다음날 장초 분봉 수집 (PoC)
+ * 1DS GT 후보 다음날 장초 분봉 백필 (ENTRY_CONFIRM 연구용)
  *
  * 입력:
- *   - reports/one-day-surge-board-result.json (one-day-surge-board.js v5 결과)
+ *   - cache/stock-charts-long/{code}.json (historical 후보 산출)
+ *   - cache/naver-stocks-list.json (시총/ETF/특수 플래그)
+ *   - 후보 산출 로직: one-day-surge-entry-confirm-report.js의 generateGtEventsByDate 재사용
  *
  * 출력:
- *   - data/intraday/1ds/YYYY-MM-DD/{code}.json
+ *   - data/intraday/1ds/YYYY-MM-DD/{code}.json (분봉 raw + 정규화 bars + boardSnapshot)
+ *   - reports/one-day-surge-intraday-missing.json (실패/누락 로그, 누적)
+ *
+ * KIS API:
+ *   - TR FHKST03010230 (주식기간별분봉시세) — fid_input_date_1로 과거 영업일 직접 지정
+ *   - 1콜에 120 bars (대상일 09:00~10:00 60bars + 직전 영업일 후반 60bars 섞여 옴 → 우리는 대상일만 필터)
+ *   - 종목당 ~1콜로 09:00~10:00 60bars 모두 회수
  *
  * 사용:
- *   node collect-1ds-intraday.js                       # 기본 (top 30, BALANCED+LIGHT+MID-CAP, 09:00~09:30)
- *   node collect-1ds-intraday.js --top 50              # 상위 50개
- *   node collect-1ds-intraday.js --end-hour 100000     # 09:00~10:00 (2 콜/종목)
+ *   node collect-1ds-intraday.js                                # 기본 — 최근 40 거래일 백필
+ *   node collect-1ds-intraday.js --window-days 60               # 윈도우 60거래일
+ *   node collect-1ds-intraday.js --target-date 2026-04-30       # 특정 D일 후보 → D+1 분봉 1일치만
+ *   node collect-1ds-intraday.js --from 2026-04-01 --to 2026-04-30  # 기간 walk
  *   node collect-1ds-intraday.js --groups BALANCED-GT,LIGHT-GT  # 그룹 한정
- *   node collect-1ds-intraday.js --include-mom         # MOM-RISK도 함께 (상한가형 검증용)
- *   node collect-1ds-intraday.js --dry-run             # API 호출 없이 후보만 출력
- *   node collect-1ds-intraday.js --date 2026-05-08     # 출력 디렉토리 날짜 지정 (기본: 오늘)
+ *   node collect-1ds-intraday.js --top-per-day 30               # 일별 상위 N개 (default: all GT)
+ *   node collect-1ds-intraday.js --dry-run                      # 후보만 카운트, KIS 호출 X
  *
- * 주의 (PoC 한계):
- *   - KIS FHKST03010200은 "오늘" 분봉만 반환 — 09:35+ 또는 10:05+에 실행해야 의미 있음
- *   - 이 스크립트는 자동 cron에 등록하지 않음 — 사용자가 다음 거래일 장초에 수동 실행
- *   - 이미 저장된 파일은 skip (멱등성)
- *   - 종목별 250ms sleep으로 KIS rate limit 방어
- *   - 실패 종목은 logs에 남기고 전체 작업 계속
- *
- * 다음 단계 (이 스크립트가 데이터 모은 후):
- *   - 별도 분석 스크립트로 ENTRY_CONFIRM 지표 계산 (gapRate, lowFromOpen_0_10, value_0_10 등)
- *   - 검증 보고서에 ENTRY_CONFIRM 효과 측정 (GOOD↑ / TRAP↓ / openFail↓ 검증)
+ * 주의:
+ *   - 전 종목 분봉 수집이 아니라 1DS GT 후보(LIGHT-GT/BALANCED-GT/MID-CAP-GT/MOM-RISK)만 대상
+ *   - D일 후보 산출은 D일까지 차트만 사용 → look-ahead 없음
+ *   - 이미 저장된 분봉 JSON은 재수집하지 않음 (멱등성)
+ *   - KIS rate limit 방어: 종목 사이 sleep + retry 2회 + missing log
  */
 
 const fs = require('fs');
 const path = require('path');
-
-// dotenv 로드 (KIS 자격증명)
 require('dotenv').config({ path: path.join(__dirname, '.env'), override: true });
 
 const { getAccessToken } = require('./src/services/kis/kisToken');
-const { getMorningMinuteBars, normalizeBars } = require('./src/services/kis/kisMinuteBars');
+const { getMinuteBarsForDate, normalizeBars } = require('./src/services/kis/kisMinuteBars');
+const report = require('./one-day-surge-entry-confirm-report');
 
 const ROOT = __dirname;
-const BOARD_RESULT_PATH = path.join(ROOT, 'reports', 'one-day-surge-board-result.json');
-const OUTPUT_BASE = path.join(ROOT, 'data', 'intraday', '1ds');
+const REPORTS_DIR = path.join(ROOT, 'reports');
+const NAVER_LIST_PATH = path.join(ROOT, 'cache', 'naver-stocks-list.json');
+const STOCKS_PATH = path.join(ROOT, 'stocks.json');
+const CHART_DIR = path.join(ROOT, 'cache', 'stock-charts-long');
+const INTRADAY_BASE = path.join(ROOT, 'data', 'intraday', '1ds');
+const MISSING_LOG = path.join(REPORTS_DIR, 'one-day-surge-intraday-missing.json');
 
-// ── CLI 파싱 ──
+// ── CLI ──
 function parseArgs(argv) {
-  const args = {
-    top: 30,
-    groups: ['BALANCED-GT', 'LIGHT-GT', 'MID-CAP-GT'],
-    includeMom: false,
-    endHour: '093000',
-    interval: '1m',
+  const a = {
+    targetDate: null,        // single D-day (YYYY-MM-DD)
+    from: null, to: null,    // range D-days (YYYY-MM-DD)
+    windowDays: 40,          // last N trading days (used when no targetDate / no range)
+    groups: ['BALANCED-GT', 'LIGHT-GT', 'MID-CAP-GT', 'MOM-RISK'],
+    topPerDay: 0,            // 0 = no cap
+    sleepMs: 350,            // KIS throttle (ms between calls)
+    retry: 2,                // retries per stock on failure
+    endHour: '100000',       // KIS hour parameter (returns 120 bars going back)
     dryRun: false,
-    date: null,        // null이면 오늘
-    sleepMs: 250,
   };
   for (let i = 2; i < argv.length; i++) {
-    const a = argv[i];
-    if (a === '--top') args.top = parseInt(argv[++i], 10) || 30;
-    else if (a === '--groups') args.groups = argv[++i].split(',').map(s => s.trim()).filter(Boolean);
-    else if (a === '--include-mom') args.includeMom = true;
-    else if (a === '--end-hour') args.endHour = argv[++i];
-    else if (a === '--interval') args.interval = argv[++i];
-    else if (a === '--dry-run') args.dryRun = true;
-    else if (a === '--date') args.date = argv[++i];
-    else if (a === '--sleep') args.sleepMs = parseInt(argv[++i], 10) || 250;
-    else if (a === '--help' || a === '-h') {
-      console.log('Usage: node collect-1ds-intraday.js [--top 30] [--groups BALANCED-GT,LIGHT-GT,MID-CAP-GT]');
-      console.log('                                    [--include-mom] [--end-hour 093000|100000]');
-      console.log('                                    [--interval 1m] [--dry-run] [--date YYYY-MM-DD]');
-      process.exit(0);
+    const k = argv[i];
+    if (k === '--target-date') a.targetDate = argv[++i];
+    else if (k === '--from') a.from = argv[++i];
+    else if (k === '--to') a.to = argv[++i];
+    else if (k === '--window-days') a.windowDays = parseInt(argv[++i], 10) || 40;
+    else if (k === '--groups') a.groups = argv[++i].split(',').map((s) => s.trim()).filter(Boolean);
+    else if (k === '--top-per-day') a.topPerDay = parseInt(argv[++i], 10) || 0;
+    else if (k === '--sleep') a.sleepMs = parseInt(argv[++i], 10) || 350;
+    else if (k === '--retry') a.retry = parseInt(argv[++i], 10) || 2;
+    else if (k === '--end-hour') a.endHour = argv[++i];
+    else if (k === '--dry-run') a.dryRun = true;
+    else if (k === '--help' || k === '-h') { printHelp(); process.exit(0); }
+  }
+  return a;
+}
+function printHelp() {
+  console.log(`Usage: node collect-1ds-intraday.js [options]
+  --target-date YYYY-MM-DD     특정 D일 후보 → D+1 분봉만 수집
+  --from YYYY-MM-DD            기간 시작 (D일 기준)
+  --to   YYYY-MM-DD            기간 종료 (D일 기준)
+  --window-days 40             기본: 최근 N 거래일 (target-date / from 미지정 시)
+  --groups ...                 GT 그룹 필터 (default: BALANCED-GT,LIGHT-GT,MID-CAP-GT,MOM-RISK)
+  --top-per-day N              일별 상위 N개로 제한 (default: all)
+  --sleep 350                  KIS 콜 사이 대기 (ms)
+  --retry 2                    실패 시 재시도 횟수
+  --end-hour 100000            KIS hour 파라미터
+  --dry-run                    후보만 카운트, KIS 호출 X`);
+}
+
+// ── 유틸 ──
+function dateNumToStr(yyyymmdd) {
+  return yyyymmdd.slice(0, 4) + '-' + yyyymmdd.slice(4, 6) + '-' + yyyymmdd.slice(6, 8);
+}
+function dateStrToNum(yyyy_mm_dd) {
+  return yyyy_mm_dd.replace(/-/g, '');
+}
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+// ── missing log helpers ──
+function loadMissingLog() {
+  if (!fs.existsSync(MISSING_LOG)) return { lastUpdated: null, entries: [] };
+  try { return JSON.parse(fs.readFileSync(MISSING_LOG, 'utf-8')); }
+  catch (_) { return { lastUpdated: null, entries: [] }; }
+}
+function saveMissingLog(log) {
+  if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR, { recursive: true });
+  log.lastUpdated = new Date().toISOString();
+  fs.writeFileSync(MISSING_LOG, JSON.stringify(log, null, 2), 'utf-8');
+}
+function appendMissing(log, entry) {
+  // 같은 (date, code) 중복 추가 방지 — 마지막 항목만 유지
+  log.entries = (log.entries || []).filter((e) => !(e.date === entry.date && e.code === entry.code));
+  log.entries.push({ ...entry, recordedAt: new Date().toISOString() });
+}
+
+// ── KIS retry wrapper ──
+async function fetchWithRetry(token, code, dateNum, endHour, retries) {
+  let lastErr = null;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await getMinuteBarsForDate(token, code, dateNum, endHour);
+    } catch (e) {
+      lastErr = e;
+      // 429 / EGW00 토큰 류 에러는 재시도가 의미 있음 — 그 외 빠르게 fallthrough
+      if (attempt < retries) await sleep(500 * (attempt + 1));
     }
   }
-  if (args.includeMom && !args.groups.includes('MOM-RISK')) args.groups.push('MOM-RISK');
-  return args;
+  throw lastErr;
 }
 
-// ── 후보 추출 ──
-function loadCandidates(args) {
-  if (!fs.existsSync(BOARD_RESULT_PATH)) {
-    console.error(`[ERROR] 보드 결과 없음: ${BOARD_RESULT_PATH}\n  먼저 'node one-day-surge-board.js'를 실행하세요.`);
-    process.exit(1);
-  }
-  const board = JSON.parse(fs.readFileSync(BOARD_RESULT_PATH, 'utf-8'));
-  const all = [];
-  for (const g of args.groups) {
-    const list = (board.groups && board.groups[g]) || [];
-    for (const it of list) {
-      all.push({ ...it, _gtGroup: g });
-    }
-  }
-  // 중복 제거 (한 종목이 여러 그룹에 들어가는 일은 없지만 방어)
-  const seen = new Set();
-  const dedup = [];
-  for (const it of all) {
-    if (seen.has(it.code)) continue;
-    seen.add(it.code);
-    dedup.push(it);
-  }
-  // 정렬: GT 그룹 우선 + valueToMcRatio 내림차순 + dailyValueRank 오름차순
-  const groupRank = { 'BALANCED-GT': 1, 'LIGHT-GT': 2, 'MID-CAP-GT': 3, 'MOM-RISK': 4 };
-  dedup.sort((a, b) => {
-    const ga = groupRank[a._gtGroup] || 9;
-    const gb = groupRank[b._gtGroup] || 9;
-    if (ga !== gb) return ga - gb;
-    const va = a.valueToMarketCapRatio || 0;
-    const vb = b.valueToMarketCapRatio || 0;
-    if (vb !== va) return vb - va;
-    const ra = a.dailyValueRank || 9999;
-    const rb = b.dailyValueRank || 9999;
-    return ra - rb;
-  });
-  return { board, candidates: dedup.slice(0, args.top) };
-}
-
-function todayDateStr() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${dd}`;
-}
-function dateStrToDir(s) {
-  // accept YYYY-MM-DD or YYYYMMDD
-  if (!s) return todayDateStr();
-  if (/^\d{8}$/.test(s)) return s.slice(0, 4) + '-' + s.slice(4, 6) + '-' + s.slice(6, 8);
-  return s;
-}
-
+// ── main ──
 async function main() {
   const args = parseArgs(process.argv);
-  const dateDir = dateStrToDir(args.date);
+  if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR, { recursive: true });
+  if (!fs.existsSync(INTRADAY_BASE)) fs.mkdirSync(INTRADAY_BASE, { recursive: true });
 
-  console.log(`\n📡 1DS 후보 장초 분봉 수집 (PoC)`);
-  console.log(`  날짜: ${dateDir} / 그룹: ${args.groups.join(',')} / 상위 ${args.top}개 / 종료시각 ${args.endHour} / interval ${args.interval}`);
-  if (args.dryRun) console.log(`  ⚠ DRY RUN — 후보 출력만, API 호출 없음`);
+  const t0 = Date.now();
+  console.log('\n📡 1DS 분봉 백필 (ENTRY_CONFIRM 연구용)');
+  if (args.dryRun) console.log('  ⚠ DRY RUN — 후보 카운트만, KIS 호출 X');
 
-  const { board, candidates } = loadCandidates(args);
-  console.log(`  보드 분석 기준일: ${board.meta?.analysisDateFmt || '-'} / 후보 풀: ${board.meta?.candidateTotal || '?'} / 추출 ${candidates.length}건`);
+  // 1) 후보 산출 (report.js helper 재사용)
+  const metaMap = report.loadStockMetaMap();
+  const files = fs.readdirSync(CHART_DIR).filter((f) => f.endsWith('.json'));
+  // 기간/타겟에 따라 사용할 windowDays 결정 (D-day filter는 후처리)
+  const effectiveWindow = args.targetDate || args.from || args.to ? Math.max(args.windowDays, 60) : args.windowDays;
+  const { allEvents, eventsByDate, stocksProcessed, stocksFiltered } =
+    report.generateGtEventsByDate({ windowDays: effectiveWindow, groupsFilter: args.groups, metaMap, files });
+  console.log(`  메타: ${metaMap.size}건 / 차트 파일: ${files.length}건`);
+  console.log(`  처리 종목: ${stocksProcessed} / 필터 제외: ${stocksFiltered} / 그룹 후보 이벤트: ${allEvents.length}건 (${eventsByDate.size}일)`);
 
-  if (candidates.length === 0) {
-    console.error(`  [WARN] 추출된 후보 0건 — 그룹 이름 확인 또는 보드 결과를 확인하세요.`);
-    process.exit(0);
+  // 2) D일 필터 적용
+  let targetBaseDates;
+  if (args.targetDate) {
+    targetBaseDates = new Set([dateStrToNum(args.targetDate)]);
+  } else if (args.from || args.to) {
+    const fromNum = args.from ? dateStrToNum(args.from) : '00000000';
+    const toNum   = args.to   ? dateStrToNum(args.to)   : '99999999';
+    targetBaseDates = new Set([...eventsByDate.keys()].filter((d) => d >= fromNum && d <= toNum));
+  } else {
+    // last windowDays trading days
+    const sortedDates = [...eventsByDate.keys()].sort();
+    const tail = sortedDates.slice(-args.windowDays);
+    targetBaseDates = new Set(tail);
   }
+  const sortedTargetDates = [...targetBaseDates].sort();
+  console.log(`  대상 D일 수: ${sortedTargetDates.length}일 (${sortedTargetDates[0] || '-'} ~ ${sortedTargetDates[sortedTargetDates.length - 1] || '-'})`);
 
-  // 후보 미리 출력
-  console.log('\n  ── 추출 후보 ──');
-  for (let i = 0; i < candidates.length; i++) {
-    const it = candidates[i];
-    const vmc = it.valueToMarketCapRatio != null ? it.valueToMarketCapRatio.toFixed(1) + '%' : '-';
-    console.log(`  ${String(i + 1).padStart(3)}. [${it._gtGroup.padEnd(12)}] ${it.code} ${(it.name || '').padEnd(14)} mc=${(it.marketCap / 1e8).toFixed(0).padStart(5)}억 v/mc=${vmc.padStart(7)} chg=${(it.changeRate || 0).toFixed(1).padStart(6)}% rank=#${it.dailyValueRank || '-'}`);
+  // 3) D일별로 후보 정리 + (옵션) top-per-day cut + nextDate 산출
+  let totalCandidates = 0;
+  const tasks = []; // [{ baseDate, nextDateNum, nextDateStr, code, name, gtGroup, ev }]
+  for (const d of sortedTargetDates) {
+    let evs = (eventsByDate.get(d) || []).filter((e) => args.groups.includes(e.gtGroup) && e.gtGroup !== 'UNCLASSIFIED');
+    // 정렬: 그룹 우선순위 → valueToMcRatio 내림차순 → dailyValueRank 오름차순
+    const groupRank = { 'BALANCED-GT': 1, 'LIGHT-GT': 2, 'MID-CAP-GT': 3, 'MOM-RISK': 4 };
+    evs.sort((a, b) => {
+      const ga = groupRank[a.gtGroup] || 9, gb = groupRank[b.gtGroup] || 9;
+      if (ga !== gb) return ga - gb;
+      const va = a.valueToMarketCapRatio || 0, vb = b.valueToMarketCapRatio || 0;
+      if (vb !== va) return vb - va;
+      return (a.dailyValueRank || 9999) - (b.dailyValueRank || 9999);
+    });
+    if (args.topPerDay > 0 && evs.length > args.topPerDay) evs = evs.slice(0, args.topPerDay);
+    for (const ev of evs) {
+      const next = ev.nextDayRow;
+      if (!next || !next.date) continue;
+      tasks.push({
+        baseDate: d, nextDateNum: next.date, nextDateStr: dateNumToStr(next.date),
+        code: ev.code, name: ev.name, gtGroup: ev.gtGroup,
+        marketCap: ev.marketCap, valueToMarketCapRatio: ev.valueToMarketCapRatio,
+        dailyValueRank: ev.dailyValueRank, candleType: ev.candleType,
+        dayChangeRate: ev.changeRate, recent5Up15Count: ev.recent5Up15Count, market: ev.market,
+      });
+    }
+    totalCandidates += evs.length;
   }
+  console.log(`  총 수집 대상 (task): ${tasks.length}건 (--top-per-day=${args.topPerDay || 'all'} 적용)`);
 
   if (args.dryRun) {
-    console.log('\n  DRY RUN 완료. --dry-run 빼고 실행하면 실제 KIS 분봉을 수집합니다.');
+    // 일자별 분포 미리보기
+    const perDay = new Map();
+    for (const t of tasks) perDay.set(t.baseDate, (perDay.get(t.baseDate) || 0) + 1);
+    const lines = [...perDay.entries()].sort().slice(0, 20)
+      .map(([d, n]) => `    ${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}: ${n}건`);
+    console.log(`  ── 일자별 task 수 (앞 20일) ──`);
+    for (const l of lines) console.log(l);
+    console.log(`\nDRY RUN 완료. --dry-run 빼고 실행하면 KIS 호출 시작 (예상 ${(tasks.length * args.sleepMs / 1000 / 60).toFixed(1)}분).`);
     return;
   }
 
-  const outDir = path.join(OUTPUT_BASE, dateDir);
-  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-  console.log(`\n  ── 분봉 수집 시작 (출력: ${outDir}) ──`);
-
-  // KIS 토큰
+  // 4) KIS 토큰
   let token;
-  try {
-    token = await getAccessToken();
-  } catch (e) {
-    console.error(`  [ERROR] KIS 토큰 발급 실패: ${e.message}`);
-    console.error(`  .env에 KIS_APP_KEY / KIS_APP_SECRET / KIS_BASE_URL 가 있는지 확인하세요.`);
-    process.exit(1);
-  }
-  console.log(`  KIS 토큰 OK (캐시 또는 신규)`);
+  try { token = await getAccessToken(); console.log('  KIS 토큰 OK'); }
+  catch (e) { console.error(`  [ERROR] KIS 토큰 실패: ${e.message}`); process.exit(1); }
 
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-  const summary = { total: candidates.length, fetched: 0, skipped: 0, failed: 0, failures: [] };
+  // 5) missing log 로드 (누적)
+  const missingLog = loadMissingLog();
 
-  for (let i = 0; i < candidates.length; i++) {
-    const it = candidates[i];
-    const outFile = path.join(outDir, `${it.code}.json`);
-    if (fs.existsSync(outFile)) {
-      summary.skipped++;
-      console.log(`  [${String(i + 1).padStart(3)}/${candidates.length}] ${it.code} ${it.name} → skip (이미 존재)`);
+  // 6) 수집 루프
+  let success = 0, skipped = 0, failed = 0;
+  const failedDetails = [];
+  console.log(`\n  ── 수집 시작 (sleep ${args.sleepMs}ms / retry ${args.retry}) ──`);
+  for (let i = 0; i < tasks.length; i++) {
+    const t = tasks[i];
+    const dirPath = path.join(INTRADAY_BASE, t.nextDateStr);
+    if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
+    const outPath = path.join(dirPath, `${t.code}.json`);
+    if (fs.existsSync(outPath)) {
+      skipped++;
+      if ((i + 1) % 100 === 0) console.log(`  [${i + 1}/${tasks.length}] (진행률 ${((i + 1) / tasks.length * 100).toFixed(1)}% / 성공 ${success} / skip ${skipped} / 실패 ${failed})`);
       continue;
     }
 
     try {
-      const { meta, raw } = await getMorningMinuteBars(token, it.code, args.endHour, args.sleepMs);
+      const { meta, raw } = await fetchWithRetry(token, t.code, t.nextDateNum, args.endHour, args.retry);
       const bars = normalizeBars(raw);
+      // 09:00~10:00 윈도우만 저장 (10:00 초과 bar는 우리 분석 범위 밖)
+      const windowBars = bars.filter((b) => b.time <= '10:00');
       const out = {
-        code: it.code,
-        name: it.name,
-        market: it.market,
-        date: dateDir,
-        interval: args.interval,
-        source: 'kis',
-        tr: 'FHKST03010200',
+        code: t.code, name: t.name, market: t.market || null,
+        date: t.nextDateStr, interval: '1m',
+        source: 'kis', tr: 'FHKST03010230',
         fetchedAt: new Date().toISOString(),
-        windowFrom: '09:00',
-        windowTo: args.endHour.slice(0, 2) + ':' + args.endHour.slice(2, 4),
+        windowFrom: '09:00', windowTo: '10:00',
         boardSnapshot: {
-          gtGroup: it._gtGroup,
-          marketCap: it.marketCap,
-          valueToMarketCapRatio: it.valueToMarketCapRatio,
-          dailyValueRank: it.dailyValueRank,
-          candleType: it.candleType,
-          dayChangeRate: it.changeRate,
-          recent5Up15Count: it.recent5Up15Count,
+          baseDate: t.baseDate, gtGroup: t.gtGroup,
+          marketCap: t.marketCap, valueToMarketCapRatio: t.valueToMarketCapRatio,
+          dailyValueRank: t.dailyValueRank, candleType: t.candleType,
+          dayChangeRate: t.dayChangeRate, recent5Up15Count: t.recent5Up15Count,
         },
         kisMeta: meta,
-        bars,
+        bars: windowBars,
       };
-      fs.writeFileSync(outFile, JSON.stringify(out, null, 2));
-      summary.fetched++;
-      console.log(`  [${String(i + 1).padStart(3)}/${candidates.length}] ${it.code} ${it.name} → ${bars.length}개 분봉 저장`);
+      fs.writeFileSync(outPath, JSON.stringify(out));
+      success++;
+      if (windowBars.length === 0) {
+        // 분봉 0건 = 거래정지 가능성. 실패는 아니지만 missing log에는 남김.
+        appendMissing(missingLog, { date: t.nextDateStr, code: t.code, name: t.name, reason: 'empty_bars (likely halted)' });
+      }
     } catch (e) {
-      summary.failed++;
-      summary.failures.push({ code: it.code, name: it.name, error: e.message });
-      console.log(`  [${String(i + 1).padStart(3)}/${candidates.length}] ${it.code} ${it.name} → ❌ ${e.message}`);
+      failed++;
+      const reason = (e.message || String(e)).slice(0, 200);
+      failedDetails.push({ code: t.code, name: t.name, date: t.nextDateStr, reason });
+      appendMissing(missingLog, { date: t.nextDateStr, code: t.code, name: t.name, reason });
     }
-    if (i < candidates.length - 1) await sleep(args.sleepMs);
+
+    if (i % 25 === 24 || i === tasks.length - 1) {
+      console.log(`  [${i + 1}/${tasks.length}] 진행률 ${((i + 1) / tasks.length * 100).toFixed(1)}% / 성공 ${success} / skip ${skipped} / 실패 ${failed}`);
+    }
+    if (i < tasks.length - 1) await sleep(args.sleepMs);
   }
 
-  console.log(`\n✅ 수집 완료: 성공 ${summary.fetched} / skip ${summary.skipped} / 실패 ${summary.failed}`);
-  if (summary.failures.length) {
-    console.log(`  실패 상세:`);
-    for (const f of summary.failures) console.log(`    ${f.code} ${f.name}: ${f.error}`);
-  }
+  saveMissingLog(missingLog);
 
-  // 수집 메니페스트 (디렉토리당 1개) — 분석 스크립트가 빨리 후보를 찾도록
-  const manifestPath = path.join(outDir, '_manifest.json');
-  const manifest = {
-    date: dateDir,
-    fetchedAt: new Date().toISOString(),
-    interval: args.interval,
-    windowFrom: '09:00',
-    windowTo: args.endHour.slice(0, 2) + ':' + args.endHour.slice(2, 4),
-    groups: args.groups,
-    topN: args.top,
-    candidates: candidates.map(it => ({
-      code: it.code, name: it.name, gtGroup: it._gtGroup,
-      marketCap: it.marketCap, valueToMarketCapRatio: it.valueToMarketCapRatio,
-      dailyValueRank: it.dailyValueRank, candleType: it.candleType,
-    })),
-    summary,
-  };
-  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-  console.log(`\n📝 수집 메니페스트: ${manifestPath}`);
+  const elapsed = (Date.now() - t0) / 1000;
+  const totalProcessed = success + skipped + failed;
+  const coverage = totalProcessed > 0 ? ((success + skipped) / totalProcessed * 100).toFixed(1) : '0';
+  console.log(`\n✅ 백필 완료 (${elapsed.toFixed(1)}s)`);
+  console.log(`  대상 D일: ${sortedTargetDates.length}일 (${sortedTargetDates[0] || '-'} ~ ${sortedTargetDates[sortedTargetDates.length - 1] || '-'})`);
+  console.log(`  대상 후보 task: ${tasks.length}건`);
+  console.log(`  ▸ 수집 성공:    ${success}건`);
+  console.log(`  ▸ 기존 파일 skip: ${skipped}건`);
+  console.log(`  ▸ 실패/누락:    ${failed}건`);
+  console.log(`  최종 커버리지 (성공+skip): ${coverage}%`);
+  console.log(`  missing log: ${MISSING_LOG} (총 ${missingLog.entries.length}건 누적)`);
+  if (failedDetails.length) {
+    console.log(`\n  ── 실패 상세 (앞 10건) ──`);
+    for (const f of failedDetails.slice(0, 10)) console.log(`    ${f.date} ${f.code} ${f.name}: ${f.reason}`);
+  }
 }
 
-main().catch((e) => {
-  console.error('[FATAL]', e);
-  process.exit(1);
-});
+main().catch((e) => { console.error('[FATAL]', e); process.exit(1); });

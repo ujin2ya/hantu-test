@@ -12,4 +12,8 @@ router.get("/ods", (req, res) => res.redirect("/one-day-surge-board"));
 router.get("/one-day-surge-validation", c.getValidation);
 router.get("/ods-validation", (req, res) => res.redirect("/one-day-surge-validation"));
 
+// 분봉 ENTRY_CONFIRM 연구 보고서 — reports/one-day-surge-entry-confirm-result.html sendFile
+router.get("/one-day-surge-entry-confirm", c.getEntryConfirm);
+router.get("/ods-entry-confirm", (req, res) => res.redirect("/one-day-surge-entry-confirm"));
+
 module.exports = router;
