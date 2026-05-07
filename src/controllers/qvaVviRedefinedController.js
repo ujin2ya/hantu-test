@@ -58,6 +58,16 @@ function loadRecentChart(code, days = 60) {
   } catch (_) { return null; }
 }
 
+// 상세페이지 차트용 — 전체 일봉 row 반환 (MA240 + 5년 기간 선택용 충분한 깊이 필요).
+function loadFullChart(code) {
+  const fp = path.join(CHART_DIR, `${code}.json`);
+  if (!fs.existsSync(fp)) return null;
+  try {
+    const c = JSON.parse(fs.readFileSync(fp, "utf-8"));
+    return { name: c.name, market: c.market, rows: c.rows || [] };
+  } catch (_) { return null; }
+}
+
 // 새 VVI 보드 funnel 정보 — 이 종목이 보드의 어느 그룹에 들어있는지
 function lookupVviMembership(code) {
   if (!fs.existsSync(BOARD_JSON)) return null;
@@ -86,7 +96,7 @@ async function getRedefinedVviStockDetail(req, res) {
     const meta = lookupStockMeta(code);
     if (!meta) return res.status(404).send(`종목 ${code}을(를) 찾을 수 없습니다.`);
 
-    const chart = loadRecentChart(code, 60);
+    const chart = loadFullChart(code); // 전체 row — 클라이언트에서 기간 토글
     const financials = loadFinancials(code);
     const vviMembership = lookupVviMembership(code);
 
@@ -147,11 +157,28 @@ async function postCompanyAnalysis(req, res) {
       fetchRecentDisclosures(code, { days: 90, limit: 10 }),
     ]);
 
+    // 현재가/등락률 — 상세페이지 헤더에서 이미 보여주는 값과 동일 (KIS 우선, fallback chart 마지막 row)
+    const chart = loadRecentChart(code, 5);
+    const lastRow = chart && chart.rows && chart.rows.length ? chart.rows[chart.rows.length - 1] : null;
+    let currentPrice = null, currentChangeRate = null;
+    try {
+      const t = await getAccessToken();
+      const k = await getCurrentPrice(t, code);
+      const o = k && k.output;
+      if (o) {
+        currentPrice = Number(o.stck_prpr) || null;
+        currentChangeRate = Number(o.prdy_ctrt);
+      }
+    } catch (_) {}
+    if (currentPrice == null && lastRow) currentPrice = lastRow.close;
+
     const snapshot = {
       code,
       name: meta.name,
       market: meta.market,
       marketCap: meta.marketCap,
+      currentPrice,
+      currentChangeRate,
       financials: financials ? {
         latest: financials.latest, prior: financials.prior, growth: financials.growth,
       } : null,
@@ -159,7 +186,7 @@ async function postCompanyAnalysis(req, res) {
         date: d.receiptDateFmt, name: d.reportName,
       })),
       news: ((newsRes && newsRes.news) || []).slice(0, 8).map((n) => ({
-        date: n.dateTimeFmt, title: n.title, source: n.source,
+        date: n.dateTimeFmt, title: n.title, source: n.source, body: n.body,
       })),
     };
 
