@@ -26,6 +26,7 @@ const fs = require('fs');
 const path = require('path');
 const core = require('./one-day-surge-core');
 const entryReport = require('./one-day-surge-entry-confirm-report');
+const tradePlanModule = require('./one-day-surge-trade-plan');
 
 const ROOT = __dirname;
 const CHART_DIR = path.join(ROOT, 'cache', 'stock-charts-long');
@@ -805,6 +806,33 @@ function main() {
   const extraPriority = mainPool.slice(TOP_PRIORITY_LIMIT, TOP_PRIORITY_LIMIT + EXTRA_PRIORITY_LIMIT);
   const overflowPool  = mainPool.slice(TOP_PRIORITY_LIMIT + EXTRA_PRIORITY_LIMIT); // 메인 풀 안에 있어도 화면에선 숨김
 
+  // ── 자동 참고 매수가/매도가 계산 ──
+  // mainPool(위험 필터 통과 + displayPriorityScore 내림차순) 상위에서 자동 계산 가능한 후보 10개에 tradePlan 부착.
+  // 후보 선정/정렬은 그대로. 매수 추천이 아닌 참고 가격이며 시장가 매수 전제로 계산하지 않는다.
+  const { plansByCode: tradePlansByCode, summary: tradePlanCalcSummary } = tradePlanModule.buildTradePlans(mainPool);
+  let tradePlanExcludedRiskCount = 0;
+  for (const it of all) {
+    if (it.riskExcluded) {
+      it.tradePlan = { mode: 'NONE', status: 'AUTO_EXCLUDED_RISK', reason: '위험 태그로 자동 계산 제외' };
+      tradePlanExcludedRiskCount++;
+    } else if (tradePlansByCode.has(it.code)) {
+      it.tradePlan = tradePlansByCode.get(it.code);
+    } else {
+      it.tradePlan = { mode: 'NONE', status: 'NOT_SELECTED' };
+    }
+  }
+  const tradePlanSummary = {
+    autoCount: tradePlanCalcSummary.autoCount,
+    readyCount: tradePlanCalcSummary.readyCount,
+    waitPullbackCount: tradePlanCalcSummary.waitPullbackCount,
+    invalidatedCount: tradePlanCalcSummary.invalidatedCount,
+    excludedRiskCount: tradePlanExcludedRiskCount,
+    missingPriceCount: tradePlanCalcSummary.missingPriceCount,
+    intradayConfirmedCount: tradePlanCalcSummary.intradayConfirmedCount,
+    groupFallbackCount: tradePlanCalcSummary.groupFallbackCount,
+    autoPlanLimit: tradePlanModule.AUTO_PLAN_LIMIT,
+  };
+
   // 전략별 카운트 (참고용 — 카드 chip rendering)
   const strategyCounts = {};
   for (const name of [...ENTRY_TOP_STRATEGIES, ...ENTRY_BOTTOM_STRATEGIES]) {
@@ -911,6 +939,9 @@ function main() {
     latestDayType,
     marketState,
     qvaSummary,
+    summary: {
+      tradePlan: tradePlanSummary,
+    },
     entryShelf: {
       // 신규 priorityRanked로 대체됐지만, strategyDefs/counts는 카드 chip + 요약에 계속 필요
       strategyDefs: Object.fromEntries(Object.entries(ENTRY_STRATEGY_DEFS).map(([k, v]) => [k, { label: v.label, chipLabel: v.chipLabel, desc: v.desc, isTopShelf: v.isTopShelf }])),
@@ -1272,6 +1303,81 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
   font-size: 10.5px; color: #d4d4d8; font-style: italic;
 }
 
+/* ── 🤖 자동 참고 매매가 (tradePlan) ── */
+/* 매수 추천이 아닌 참고 가격. 시장가 매수 전제 X. 기준가 근처 눌림 지정가 개념. */
+.trade-plan-box {
+  margin: 10px 0 8px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #042f2e 0%, #1e293b 100%);
+  border: 1px solid #14b8a6;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.trade-plan-box.wait    { background: linear-gradient(135deg, #422006 0%, #1e293b 100%); border-color: #f59e0b; }
+.trade-plan-box.invalid { background: linear-gradient(135deg, #4c0519 0%, #1e293b 100%); border-color: #f43f5e; }
+.trade-plan-box.missing { background: #1e293b; border-style: dashed; border-color: #475569; }
+.trade-plan-box .tp-header {
+  font-size: 13px; font-weight: 700; color: #5eead4;
+  margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #134e4a;
+}
+.trade-plan-box.wait    .tp-header { color: #fcd34d; border-bottom-color: #78350f; }
+.trade-plan-box.invalid .tp-header { color: #fda4af; border-bottom-color: #881337; }
+.trade-plan-box .tp-badge {
+  display: inline-block; font-size: 10.5px; font-weight: 700;
+  padding: 2px 7px; border-radius: 999px; margin-right: 6px;
+  background: rgba(20,184,166,0.18); color: #5eead4; border: 1px solid #14b8a6;
+}
+.trade-plan-box.wait    .tp-badge { background: rgba(245,158,11,0.18); color: #fcd34d; border-color: #f59e0b; }
+.trade-plan-box.invalid .tp-badge { background: rgba(244,63,94,0.18); color: #fda4af; border-color: #f43f5e; }
+.trade-plan-box .tp-strategy { font-size: 10.5px; color: #94a3b8; font-weight: 400; margin-left: 4px; }
+.trade-plan-box .tp-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 2px 0; font-variant-numeric: tabular-nums;
+}
+.trade-plan-box .tp-row.sub { font-size: 11px; opacity: 0.9; }
+.trade-plan-box .tp-key { color: #94a3b8; }
+.trade-plan-box .tp-val { font-weight: 700; }
+.trade-plan-box .tp-val.buy   { color: #6ee7b7; }
+.trade-plan-box .tp-val.sell  { color: #fca5a5; }
+.trade-plan-box .tp-val.stop  { color: #fbbf24; }
+.trade-plan-box .tp-val.base  { color: #cbd5e1; }
+.trade-plan-box .tp-val.rr    { color: #93c5fd; }
+.trade-plan-box .tp-pause     { color: #fcd34d; font-weight: 700; font-size: 13px; }
+.trade-plan-box .tp-reason {
+  margin-top: 4px; padding: 4px 8px;
+  background: rgba(15,23,42,0.8); border-radius: 4px;
+  font-size: 10.5px; color: #d4d4d8;
+}
+.trade-plan-box .tp-risknote {
+  margin-top: 4px; padding: 4px 8px;
+  background: rgba(15,23,42,0.5); border-left: 2px solid #94a3b8;
+  font-size: 10.5px; color: #cbd5e1; font-style: italic;
+}
+.trade-plan-box .tp-disclaimer {
+  margin-top: 6px; font-size: 10px; color: #64748b; font-style: italic;
+}
+
+.tp-summary-strip {
+  margin: 6px 0 14px; padding: 10px 14px;
+  background: linear-gradient(90deg, #042f2e 0%, #0f172a 100%);
+  border: 1px solid #14b8a6; border-radius: 8px;
+  font-size: 12px; line-height: 1.6; color: #e2e8f0;
+}
+.tp-summary-strip .tps-title { color: #5eead4; font-weight: 700; margin-right: 10px; }
+.tp-summary-strip .tps-pill {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  background: rgba(15,23,42,0.6); margin: 0 4px 0 0; font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.tp-summary-strip .tps-pill .num { font-weight: 700; }
+.tp-summary-strip .tps-pill.ready    { color: #6ee7b7; }
+.tp-summary-strip .tps-pill.wait     { color: #fcd34d; }
+.tp-summary-strip .tps-pill.invalid  { color: #fda4af; }
+.tp-summary-strip .tps-pill.risk     { color: #fb923c; }
+.tp-summary-strip .tps-pill.missing  { color: #94a3b8; }
+.tp-summary-strip .tps-disclaimer { display: block; margin-top: 6px; font-size: 10.5px; color: #94a3b8; font-style: italic; }
+
 .empty-list { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; text-align: center; color: #64748b; }
 
 footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.7; }
@@ -1312,6 +1418,7 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 
 <h2>📊 화면 요약</h2>
 <div class="summary-grid" id="summary-grid"></div>
+<div id="trade-plan-summary"></div>
 <div id="qva-summary-line"></div>
 
 <!-- ① 최우선 5종목 -->
@@ -1383,6 +1490,33 @@ function renderSummary() {
   ).join('');
 }
 renderSummary();
+
+// 🤖 자동 참고 매매가 요약 strip — 상단에 한 줄로 표시 (autoCount/READY/대기/이탈/위험제외/가격부족)
+(function renderTradePlanSummary() {
+  const host = document.getElementById('trade-plan-summary');
+  if (!host) return;
+  const tp = (DATA.summary && DATA.summary.tradePlan) || null;
+  if (!tp) return;
+  const lim = tp.autoPlanLimit || 10;
+  const pills = [
+    '<span class="tps-pill ready">READY <span class="num">' + (tp.readyCount || 0) + '</span></span>',
+    '<span class="tps-pill wait">눌림 대기 <span class="num">' + (tp.waitPullbackCount || 0) + '</span></span>',
+    '<span class="tps-pill invalid">기준가 이탈 <span class="num">' + (tp.invalidatedCount || 0) + '</span></span>',
+    '<span class="tps-pill missing">가격 데이터 부족 <span class="num">' + (tp.missingPriceCount || 0) + '</span></span>',
+    '<span class="tps-pill risk">위험 태그 제외 <span class="num">' + (tp.excludedRiskCount || 0) + '</span></span>',
+  ].join('');
+  const sourceLine = (tp.intradayConfirmedCount > 0 || tp.groupFallbackCount > 0)
+    ? '<span class="tps-pill" style="color:#5eead4;">분봉 재상승 확인 <span class="num">' + (tp.intradayConfirmedCount || 0) + '</span></span>' +
+      '<span class="tps-pill" style="color:#fcd34d;">분봉 미확인 / 그룹 기본 <span class="num">' + (tp.groupFallbackCount || 0) + '</span></span>'
+    : '';
+  host.innerHTML = '<div class="tp-summary-strip">' +
+    '<span class="tps-title">🤖 자동 참고 매매가 (상위 ' + lim + '개)</span>' +
+    '<span class="tps-pill"><span class="num">' + (tp.autoCount || 0) + '</span> / ' + lim + ' 자동 계산</span>' +
+    pills +
+    (sourceLine ? '<br>' + sourceLine : '') +
+    '<span class="tps-disclaimer">자동 계산 가격은 참고용입니다. 시장가 매수 지시가 아닙니다. 실제 진입과 대응은 본인의 판단입니다.</span>' +
+    '</div>';
+})();
 
 // QVA 보조 요약 — 이전 수급 흔적이 있는 후보 수를 카드형 안내 박스로 표시
 (function renderQvaSummaryLine() {
@@ -1657,6 +1791,80 @@ const CANDLE_LABEL = {
   OTHER:            '⚪ 기타',
 };
 
+// ── 🤖 자동 참고 매매가 박스 (tradePlan) ──
+// 매수 추천이 아닌 참고 가격. 기준가 근처 눌림 지정가 개념. 시장가 매수 지시가 아닙니다.
+const TP_STRATEGY_LABEL = {
+  BALANCED_REBREAK: '수급 균형 + 장초 재상승',
+  SAFE_REBREAK:     '장초 재상승 확인',
+  CLEAN_REBREAK:    '무리 없는 장초 재상승',
+  LIGHT_REBREAK:    '가벼운 종목의 장초 재상승',
+};
+const TP_BASE_SOURCE_LABEL = {
+  rebreakPrice:    '09:00~09:10 첫 10분 고점 (재돌파 trigger)',
+  entryPrice0910:  '09:10 종가',
+  baseClose:       '기준일 종가 (분봉 미확인)',
+  todayOpen:       '기준일 시가',
+  prevClose:       '전일 종가',
+};
+function renderTradePlanBox(it) {
+  const tp = it.tradePlan;
+  if (!tp || tp.mode !== 'AUTO') return '';
+  const fmtN = (v) => v != null ? Math.round(v).toLocaleString() + '원' : '-';
+  const stratLabel = TP_STRATEGY_LABEL[tp.strategy] || tp.strategy || '-';
+  const baseLabel  = TP_BASE_SOURCE_LABEL[tp.baseEntrySource] || tp.baseEntrySource || '-';
+  const sourceTag  = (tp.strategySource === 'group_fallback')
+    ? ' <span class="tp-strategy" style="color:#fcd34d;">· 분봉 미확인 / 그룹 기본</span>'
+    : ' <span class="tp-strategy" style="color:#5eead4;">· 분봉 재상승 확인</span>';
+  const disclaimer = '<div class="tp-disclaimer">자동 계산 가격은 참고용입니다. 시장가 매수 지시가 아닙니다. 실제 진입과 대응은 본인의 판단입니다.</div>';
+
+  if (tp.status === 'WAIT_PULLBACK') {
+    return '<div class="trade-plan-box wait">' +
+      '<div class="tp-header"><span class="tp-badge">자동 계산</span>눌림 대기<span class="tp-strategy">' + stratLabel + '</span>' + sourceTag + '</div>' +
+      '<div class="tp-row"><span class="tp-key">기준가</span><span class="tp-val base">' + fmtN(tp.baseEntryPrice) + '</span></div>' +
+      '<div class="tp-row sub"><span class="tp-key">· 기준가 출처</span><span class="tp-val base">' + baseLabel + '</span></div>' +
+      '<div class="tp-row"><span class="tp-key">참고 매수가</span><span class="tp-pause">눌림 대기</span></div>' +
+      (tp.reason ? '<div class="tp-reason">' + tp.reason + '</div>' : '') +
+      (tp.riskNote ? '<div class="tp-risknote">' + tp.riskNote + '</div>' : '') +
+      disclaimer +
+    '</div>';
+  }
+  if (tp.status === 'ENTRY_INVALIDATED') {
+    return '<div class="trade-plan-box invalid">' +
+      '<div class="tp-header"><span class="tp-badge">자동 계산</span>자동 진입 보류<span class="tp-strategy">' + stratLabel + '</span>' + sourceTag + '</div>' +
+      '<div class="tp-row"><span class="tp-key">기준가</span><span class="tp-val base">' + fmtN(tp.baseEntryPrice) + '</span></div>' +
+      '<div class="tp-row sub"><span class="tp-key">· 기준가 출처</span><span class="tp-val base">' + baseLabel + '</span></div>' +
+      '<div class="tp-row"><span class="tp-key">참고 매수가</span><span class="tp-pause">자동 진입 보류</span></div>' +
+      (tp.reason ? '<div class="tp-reason">' + tp.reason + '</div>' : '') +
+      (tp.riskNote ? '<div class="tp-risknote">' + tp.riskNote + '</div>' : '') +
+      disclaimer +
+    '</div>';
+  }
+  if (tp.status === 'MISSING_PRICE_DATA') {
+    return '<div class="trade-plan-box missing">' +
+      '<div class="tp-header"><span class="tp-badge">자동 계산</span>가격 데이터 부족<span class="tp-strategy">' + stratLabel + '</span>' + sourceTag + '</div>' +
+      '<div class="tp-reason">' + (tp.reason || '가격 데이터 부족') + '</div>' +
+      disclaimer +
+    '</div>';
+  }
+  // READY
+  const rrLine = (tp.rewardRisk1 != null || tp.rewardRisk2 != null)
+    ? '<div class="tp-row"><span class="tp-key">손익비</span><span class="tp-val rr">1차 ' + (tp.rewardRisk1 != null ? tp.rewardRisk1.toFixed(2) : '-') + ' / 2차 ' + (tp.rewardRisk2 != null ? tp.rewardRisk2.toFixed(2) : '-') + '</span></div>'
+    : '';
+  return '<div class="trade-plan-box">' +
+    '<div class="tp-header"><span class="tp-badge">자동 계산</span>참고 매매가<span class="tp-strategy">' + stratLabel + '</span>' + sourceTag + '</div>' +
+    '<div class="tp-row"><span class="tp-key">기준가</span><span class="tp-val base">' + fmtN(tp.baseEntryPrice) + '</span></div>' +
+    '<div class="tp-row sub"><span class="tp-key">· 기준가 출처</span><span class="tp-val base">' + baseLabel + '</span></div>' +
+    '<div class="tp-row"><span class="tp-key">참고 매수가</span><span class="tp-val buy">' + fmtN(tp.buyPrice) + '</span></div>' +
+    '<div class="tp-row"><span class="tp-key">1차 목표</span><span class="tp-val sell">' + fmtN(tp.sellPrice1) + '</span></div>' +
+    '<div class="tp-row"><span class="tp-key">2차 목표</span><span class="tp-val sell">' + fmtN(tp.sellPrice2) + '</span></div>' +
+    '<div class="tp-row"><span class="tp-key">손절 기준</span><span class="tp-val stop">' + fmtN(tp.stopPrice) + '</span></div>' +
+    rrLine +
+    (tp.reason ? '<div class="tp-reason">' + tp.reason + '</div>' : '') +
+    (tp.riskNote ? '<div class="tp-risknote">' + tp.riskNote + '</div>' : '') +
+    disclaimer +
+  '</div>';
+}
+
 function strategyChips(it) {
   const list = it.entryStrategies || [];
   const defs = (DATA.entryShelf && DATA.entryShelf.strategyDefs) || {};
@@ -1785,6 +1993,10 @@ function buildCardHtml(it) {
     '</div>';
   }
 
+  // 🤖 자동 참고 매매가 (tradePlan)
+  // 매수 추천이 아닌 참고 가격. 시장가 매수 전제 X.
+  const tradePlanBox = renderTradePlanBox(it);
+
   // 📌 수동 매수·매도 가이드 (manualTargets 있는 카드만)
   let manualTargetsBox = '';
   if (it.manualTargets && (it.manualTargets.preOpen || it.manualTargets.after930)) {
@@ -1817,7 +2029,7 @@ function buildCardHtml(it) {
     '</div>';
   }
 
-  return '<div class="card g-' + it.gtGroup + '" data-group="' + it.gtGroup + '" data-candle="' + (it.candleType || '') + '" data-qva="' + (it.qvaHistoryLabel ? '1' : '0') + '" data-has-qva="' + (it.hasRecentQva ? '1' : '0') + '" data-vvi="' + (it.vviHistory ? '1' : '0') + '" data-strategies="' + ((it.entryStrategies || []).join(',')) + '" data-manual-targets="' + (it.manualTargets ? '1' : '0') + '">' +
+  return '<div class="card g-' + it.gtGroup + '" data-group="' + it.gtGroup + '" data-candle="' + (it.candleType || '') + '" data-qva="' + (it.qvaHistoryLabel ? '1' : '0') + '" data-has-qva="' + (it.hasRecentQva ? '1' : '0') + '" data-vvi="' + (it.vviHistory ? '1' : '0') + '" data-strategies="' + ((it.entryStrategies || []).join(',')) + '" data-manual-targets="' + (it.manualTargets ? '1' : '0') + '" data-trade-plan="' + (it.tradePlan && it.tradePlan.status || 'NONE') + '">' +
     '<h3>' + (it.name || '-') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' + entryStatusPill(it) + '</h3>' +
     qvaStrip +
     '<div class="meta">' + strategyChips(it) + badges.join('') + '</div>' +
@@ -1840,6 +2052,8 @@ function buildCardHtml(it) {
     '<div class="summary-line">💡 ' + (it.summaryLine || '') + '</div>' +
     intradayLine +
     (intradayLine ? '' : '<div class="gap-note">🚪 다음 거래일 시초가가 나오면 갭 7% 이상은 "갭 과열 주의", 12% 이상은 "강한 추격 주의", 20% 이상은 "초고위험 갭"으로 표시됩니다. 7% 미만이면 "장초 확인 가능 구간".</div>') +
+    // 🤖 자동 참고 매매가 — 카드 하단에 가격 박스 (참고 매수가/1차/2차/손절). 매수 추천 X, 시장가 매수 지시 X.
+    tradePlanBox +
     // 장초 확인 전 카드 하단 작은 안내 — status에 따라 JS가 텍스트 갱신/숨김
     '<div class="card-watch-note" style="margin-top:6px;font-size:11px;color:#94a3b8;border-top:1px dashed #334155;padding-top:6px;">' +
       '장초 확인 전 · 장 시작 후 09:30 이후 다시 확인 필요' +

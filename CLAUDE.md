@@ -231,6 +231,7 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 - [one-day-surge-core.js](one-day-surge-core.js) — `CONFIG` 상수, `passesHardFilter`, `analyzeAt`, `scoreMetrics`, `classifyGroup` 등 점수/분류/필터 로직 일체. **임계값을 튜닝할 때는 이 파일만 고친다.**
 - [one-day-surge-board.js](one-day-surge-board.js) — 라이브 보드 (오늘 후보 카드)
 - [one-day-surge-nextday-validation-report.js](one-day-surge-nextday-validation-report.js) — 과거 N거래일 백테스트 검증 보고서
+- [one-day-surge-trade-plan.js](one-day-surge-trade-plan.js) — 자동 참고 매매가 모듈. mainPool 상위 10개에 한해 SAFE/BALANCED/CLEAN/LIGHT 전략별 buyPrice(0.5~1.0% 눌림 지정가) / sellPrice1/2 / stopPrice + 손익비를 계산. 한국 호가 단위 round, CHASE_LIMIT_RATE=4% / INVALID_DROP_RATE=-3% 게이트로 WAIT_PULLBACK / ENTRY_INVALIDATED 분기. 기존 후보 선정/정렬은 무수정. **매수 추천이 아닌 참고 가격 — 시장가 매수 전제 X.**
 
 - **입력**: `cache/stock-charts-long/{code}.json` (전 종목 일봉) + `cache/naver-stocks-list.json` (시총·`isEtf`·`isSpecial`) + `stocks.json` (보조) + (선택) `qva-watchlist-board.json` funnel + `cache/pattern-result.json`의 `vviRecentSignals`
 - **출력**: `reports/one-day-surge-board-result.{html,json}` — 라우트 `/one-day-surge-board` (alias `/one-day-surge`, `/ods`)가 sendFile만

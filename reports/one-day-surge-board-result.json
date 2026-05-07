@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "1-Day Surge Board v5 · GOOD_TRADE 중심 단타 후보 보드",
-    "generatedAt": "2026-05-07T15:56:17.529Z",
+    "generatedAt": "2026-05-07T23:33:25.486Z",
     "analysisDate": "20260507",
     "analysisDateFmt": "2026-05-07",
     "stockUniverse": 4270,
@@ -102,6 +102,22 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "BALANCED_REBREAK",
+          "strategySource": "group_fallback",
+          "baseEntryPrice": 54000,
+          "baseEntrySource": "baseClose",
+          "buyPrice": 53800,
+          "sellPrice1": 55700,
+          "sellPrice2": 57600,
+          "stopPrice": 52400,
+          "reason": "기준일 종가 기준 눌림 지정가 (분봉 미확인 — 그룹 기본 전략 적용)",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하)",
+          "rewardRisk1": 1.36,
+          "rewardRisk2": 2.71
+        },
         "manualTargets": {
           "code": "138080",
           "name": "오이솔루션",
@@ -183,7 +199,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "092220",
@@ -249,7 +270,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "092190",
@@ -349,7 +375,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "017900",
@@ -414,7 +445,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "001570",
@@ -479,7 +515,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       }
     ],
     "LIGHT-GT": [
@@ -546,7 +587,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "078150",
@@ -616,7 +662,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "017550",
@@ -681,6 +732,22 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "group_fallback",
+          "baseEntryPrice": 3860,
+          "baseEntrySource": "baseClose",
+          "buyPrice": 3820,
+          "sellPrice1": 3920,
+          "sellPrice2": 4015,
+          "stopPrice": 3705,
+          "reason": "기준일 종가 기준 눌림 지정가 (분봉 미확인 — 그룹 기본 전략 적용)",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하)",
+          "rewardRisk1": 0.87,
+          "rewardRisk2": 1.7
+        },
         "manualTargets": {
           "code": "017550",
           "name": "수산세보틱스",
@@ -766,7 +833,11 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "NOT_SELECTED"
+        }
       },
       {
         "code": "054920",
@@ -830,7 +901,11 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "NOT_SELECTED"
+        }
       },
       {
         "code": "115440",
@@ -895,7 +970,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "381620",
@@ -960,7 +1040,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "101170",
@@ -1030,7 +1115,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "013310",
@@ -1094,7 +1184,11 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "NOT_SELECTED"
+        }
       },
       {
         "code": "377480",
@@ -1163,7 +1257,11 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "NOT_SELECTED"
+        }
       },
       {
         "code": "016790",
@@ -1228,7 +1326,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "078890",
@@ -1298,6 +1401,22 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "group_fallback",
+          "baseEntryPrice": 8300,
+          "baseEntrySource": "baseClose",
+          "buyPrice": 8210,
+          "sellPrice1": 8420,
+          "sellPrice2": 8630,
+          "stopPrice": 7960,
+          "reason": "기준일 종가 기준 눌림 지정가 (분봉 미확인 — 그룹 기본 전략 적용)",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하)",
+          "rewardRisk1": 0.84,
+          "rewardRisk2": 1.68
+        },
         "manualTargets": {
           "code": "078890",
           "name": "가온그룹",
@@ -1379,7 +1498,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "065440",
@@ -1444,7 +1568,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "396470",
@@ -1509,7 +1638,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "079430",
@@ -1579,7 +1713,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "011700",
@@ -1649,7 +1788,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "250060",
@@ -1718,7 +1862,11 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "NOT_SELECTED"
+        }
       },
       {
         "code": "042500",
@@ -1783,7 +1931,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "159010",
@@ -1848,6 +2001,22 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "group_fallback",
+          "baseEntryPrice": 13800,
+          "baseEntrySource": "baseClose",
+          "buyPrice": 13660,
+          "sellPrice1": 14010,
+          "sellPrice2": 14350,
+          "stopPrice": 13250,
+          "reason": "기준일 종가 기준 눌림 지정가 (분봉 미확인 — 그룹 기본 전략 적용)",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하)",
+          "rewardRisk1": 0.85,
+          "rewardRisk2": 1.68
+        },
         "manualTargets": {
           "code": "159010",
           "name": "아스플로",
@@ -1929,7 +2098,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "380540",
@@ -1995,7 +2169,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "306620",
@@ -2065,7 +2244,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "004710",
@@ -2130,6 +2314,22 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "group_fallback",
+          "baseEntryPrice": 9150,
+          "baseEntrySource": "baseClose",
+          "buyPrice": 9050,
+          "sellPrice1": 9280,
+          "sellPrice2": 9510,
+          "stopPrice": 8770,
+          "reason": "기준일 종가 기준 눌림 지정가 (분봉 미확인 — 그룹 기본 전략 적용)",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하)",
+          "rewardRisk1": 0.82,
+          "rewardRisk2": 1.64
+        },
         "manualTargets": {
           "code": "004710",
           "name": "한솔테크닉스",
@@ -2215,7 +2415,11 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "NOT_SELECTED"
+        }
       },
       {
         "code": "453450",
@@ -2285,7 +2489,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "008830",
@@ -2350,7 +2559,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "388050",
@@ -2415,7 +2629,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "062970",
@@ -2479,7 +2698,23 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "group_fallback",
+          "baseEntryPrice": 3090,
+          "baseEntrySource": "baseClose",
+          "buyPrice": 3055,
+          "sellPrice1": 3135,
+          "sellPrice2": 3210,
+          "stopPrice": 2960,
+          "reason": "기준일 종가 기준 눌림 지정가 (분봉 미확인 — 그룹 기본 전략 적용)",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하)",
+          "rewardRisk1": 0.84,
+          "rewardRisk2": 1.63
+        }
       },
       {
         "code": "209640",
@@ -2543,7 +2778,11 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "NOT_SELECTED"
+        }
       },
       {
         "code": "049080",
@@ -2608,7 +2847,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "042510",
@@ -2673,7 +2917,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "129920",
@@ -2737,7 +2986,11 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "NOT_SELECTED"
+        }
       },
       {
         "code": "158430",
@@ -2807,7 +3060,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "115500",
@@ -2876,7 +3134,11 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "NOT_SELECTED"
+        }
       },
       {
         "code": "025950",
@@ -2941,7 +3203,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "267320",
@@ -3011,7 +3278,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "488280",
@@ -3080,7 +3352,23 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "group_fallback",
+          "baseEntryPrice": 29000,
+          "baseEntrySource": "baseClose",
+          "buyPrice": 28700,
+          "sellPrice1": 29450,
+          "sellPrice2": 30150,
+          "stopPrice": 27800,
+          "reason": "기준일 종가 기준 눌림 지정가 (분봉 미확인 — 그룹 기본 전략 적용)",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하)",
+          "rewardRisk1": 0.83,
+          "rewardRisk2": 1.61
+        }
       },
       {
         "code": "066310",
@@ -3145,7 +3433,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "412350",
@@ -3210,7 +3503,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "365330",
@@ -3274,7 +3572,23 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "group_fallback",
+          "baseEntryPrice": 3895,
+          "baseEntrySource": "baseClose",
+          "buyPrice": 3855,
+          "sellPrice1": 3955,
+          "sellPrice2": 4050,
+          "stopPrice": 3735,
+          "reason": "기준일 종가 기준 눌림 지정가 (분봉 미확인 — 그룹 기본 전략 적용)",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하)",
+          "rewardRisk1": 0.83,
+          "rewardRisk2": 1.63
+        }
       },
       {
         "code": "019990",
@@ -3344,7 +3658,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "047770",
@@ -3413,7 +3732,11 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "NOT_SELECTED"
+        }
       },
       {
         "code": "105550",
@@ -3478,7 +3801,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "307180",
@@ -3548,7 +3876,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "017510",
@@ -3612,7 +3945,11 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "NOT_SELECTED"
+        }
       },
       {
         "code": "102460",
@@ -3677,7 +4014,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "125020",
@@ -3747,7 +4089,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "024060",
@@ -3811,7 +4158,11 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "NOT_SELECTED"
+        }
       },
       {
         "code": "053080",
@@ -3881,7 +4232,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "006660",
@@ -3946,7 +4302,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "102120",
@@ -4016,7 +4377,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "147830",
@@ -4085,7 +4451,23 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "group_fallback",
+          "baseEntryPrice": 12980,
+          "baseEntrySource": "baseClose",
+          "buyPrice": 12850,
+          "sellPrice1": 13180,
+          "sellPrice2": 13500,
+          "stopPrice": 12460,
+          "reason": "기준일 종가 기준 눌림 지정가 (분봉 미확인 — 그룹 기본 전략 적용)",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하)",
+          "rewardRisk1": 0.85,
+          "rewardRisk2": 1.67
+        }
       },
       {
         "code": "014280",
@@ -4150,7 +4532,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "187790",
@@ -4214,7 +4601,11 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "NOT_SELECTED"
+        }
       },
       {
         "code": "123330",
@@ -4279,7 +4670,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "trap_risk_high"
+        "riskExcluded": "trap_risk_high",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "317770",
@@ -4348,7 +4744,11 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "NOT_SELECTED"
+        }
       },
       {
         "code": "187870",
@@ -4412,7 +4812,23 @@
         "performanceStats": null,
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
-        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다."
+        "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
+        "tradePlan": {
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "group_fallback",
+          "baseEntryPrice": 20200,
+          "baseEntrySource": "baseClose",
+          "buyPrice": 19990,
+          "sellPrice1": 20500,
+          "sellPrice2": 21000,
+          "stopPrice": 19390,
+          "reason": "기준일 종가 기준 눌림 지정가 (분봉 미확인 — 그룹 기본 전략 적용)",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하)",
+          "rewardRisk1": 0.85,
+          "rewardRisk2": 1.68
+        }
       }
     ],
     "MID-CAP-GT": [],
@@ -4485,7 +4901,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "264850",
@@ -4555,7 +4976,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "223250",
@@ -4620,7 +5046,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "037440",
@@ -4685,7 +5116,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "229000",
@@ -4755,7 +5191,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       }
     ],
     "HEAVY-WATCH": [
@@ -4822,7 +5263,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "080220",
@@ -4892,7 +5338,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "417200",
@@ -4957,7 +5408,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "003530",
@@ -5022,7 +5478,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "005290",
@@ -5092,7 +5553,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "322000",
@@ -5157,7 +5623,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "090710",
@@ -5227,7 +5698,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "098460",
@@ -5297,7 +5773,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "218410",
@@ -5362,7 +5843,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "027360",
@@ -5427,7 +5913,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "089030",
@@ -5492,7 +5983,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "229640",
@@ -5557,7 +6053,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "007810",
@@ -5622,7 +6123,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "028670",
@@ -5692,7 +6198,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "067310",
@@ -5762,7 +6273,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "038500",
@@ -5832,7 +6348,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "100790",
@@ -5897,7 +6418,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "043260",
@@ -5967,7 +6493,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "078600",
@@ -6032,7 +6563,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "257720",
@@ -6097,7 +6633,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "476830",
@@ -6162,7 +6703,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "060370",
@@ -6232,7 +6778,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "319660",
@@ -6302,7 +6853,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "084370",
@@ -6372,7 +6928,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "058610",
@@ -6442,7 +7003,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "475150",
@@ -6512,7 +7078,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "077970",
@@ -6577,7 +7148,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "097230",
@@ -6647,7 +7223,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "232140",
@@ -6712,7 +7293,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "008770",
@@ -6777,7 +7363,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "095610",
@@ -6842,7 +7433,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "290650",
@@ -6907,7 +7503,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "483650",
@@ -6972,7 +7573,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "030530",
@@ -7037,7 +7643,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "082920",
@@ -7102,7 +7713,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "101490",
@@ -7167,7 +7783,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "139480",
@@ -7232,7 +7853,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "120110",
@@ -7297,7 +7923,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "131970",
@@ -7362,7 +7993,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "099320",
@@ -7427,7 +8063,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       }
     ],
     "MICRO-RISK": [
@@ -7494,7 +8135,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "038060",
@@ -7559,7 +8205,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "003010",
@@ -7624,7 +8275,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "223310",
@@ -7690,7 +8346,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "042940",
@@ -7755,7 +8416,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "150900",
@@ -7820,7 +8486,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "041910",
@@ -7890,7 +8561,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "076610",
@@ -7955,7 +8631,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "189860",
@@ -8025,7 +8706,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "317850",
@@ -8090,7 +8776,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "073640",
@@ -8155,7 +8846,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "026940",
@@ -8220,7 +8916,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "215790",
@@ -8285,7 +8986,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "340930",
@@ -8351,7 +9057,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "038680",
@@ -8416,7 +9127,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "170030",
@@ -8481,7 +9197,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "071090",
@@ -8546,7 +9267,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "321260",
@@ -8611,7 +9337,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "056360",
@@ -8676,7 +9407,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "253840",
@@ -8741,7 +9477,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "023350",
@@ -8806,7 +9547,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "290660",
@@ -8871,7 +9617,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "434480",
@@ -8936,7 +9687,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "035460",
@@ -9001,7 +9757,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "008420",
@@ -9071,7 +9832,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "078590",
@@ -9137,7 +9903,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "109070",
@@ -9202,7 +9973,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "047400",
@@ -9272,7 +10048,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "025560",
@@ -9337,7 +10118,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "340440",
@@ -9402,7 +10188,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "430690",
@@ -9467,7 +10258,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "302430",
@@ -9532,7 +10328,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "263020",
@@ -9597,7 +10398,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "184230",
@@ -9663,7 +10469,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "199550",
@@ -9728,7 +10539,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "095910",
@@ -9793,7 +10609,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "192250",
@@ -9858,7 +10679,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "089790",
@@ -9923,7 +10749,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "109080",
@@ -9988,7 +10819,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "049180",
@@ -10054,7 +10890,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       }
     ],
     "HEAVY-RISK": [
@@ -10122,7 +10963,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "178320",
@@ -10192,7 +11038,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "011790",
@@ -10257,7 +11108,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "222800",
@@ -10322,7 +11178,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "032820",
@@ -10392,7 +11253,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "006360",
@@ -10457,7 +11323,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "375500",
@@ -10522,7 +11393,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "018880",
@@ -10592,7 +11468,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "336260",
@@ -10657,7 +11538,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "440110",
@@ -10722,7 +11608,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "403870",
@@ -10792,7 +11683,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "083650",
@@ -10857,7 +11753,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "112610",
@@ -10922,7 +11823,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "489790",
@@ -10992,7 +11898,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "004800",
@@ -11062,7 +11973,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "108490",
@@ -11127,7 +12043,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "145020",
@@ -11192,7 +12113,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "214450",
@@ -11257,7 +12183,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "226950",
@@ -11322,7 +12253,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "088350",
@@ -11387,7 +12323,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "071970",
@@ -11452,7 +12393,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "457190",
@@ -11517,7 +12463,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "051900",
@@ -11587,7 +12538,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "357780",
@@ -11657,7 +12613,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "319400",
@@ -11727,7 +12688,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "020150",
@@ -11792,7 +12758,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "004170",
@@ -11857,7 +12828,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "263750",
@@ -11922,7 +12898,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "347850",
@@ -11992,7 +12973,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       },
       {
         "code": "011780",
@@ -12061,7 +13047,12 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "group_off_pool"
+        "riskExcluded": "group_off_pool",
+        "tradePlan": {
+          "mode": "NONE",
+          "status": "AUTO_EXCLUDED_RISK",
+          "reason": "위험 태그로 자동 계산 제외"
+        }
       }
     ]
   },
@@ -12173,6 +13164,19 @@
     "totalCandidatesTagged": 439,
     "qvaSignalMapSize": 600,
     "displayOnly": true
+  },
+  "summary": {
+    "tradePlan": {
+      "autoCount": 10,
+      "readyCount": 10,
+      "waitPullbackCount": 0,
+      "invalidatedCount": 0,
+      "excludedRiskCount": 155,
+      "missingPriceCount": 0,
+      "intradayConfirmedCount": 0,
+      "groupFallbackCount": 10,
+      "autoPlanLimit": 10
+    }
   },
   "entryShelf": {
     "strategyDefs": {
