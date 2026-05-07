@@ -24,97 +24,83 @@ function fmtMarketCap(won) {
 }
 
 function buildPrompt(snapshot) {
-  // 헤더에 회사 기본정보 명시 — Gemini가 학습된 일반 지식과 결합해 분석할 수 있게.
+  // 사용자는 이미 상세페이지에서 기본정보·시세·재무·공시·뉴스 표를 보고 들어왔다.
+  // AI는 표에 없는 것 (사업내용 텍스트 + 최근 이슈 정리 + 체크 포인트) 만 짧게 채운다.
   const headerLines = [
-    `- 회사명: ${snapshot.name || "-"}`,
-    `- 종목코드: ${snapshot.code || "-"}`,
-    `- 시장: ${snapshot.market || "-"}`,
-    `- 시가총액: ${fmtMarketCap(snapshot.marketCap)}`,
+    `회사명: ${snapshot.name || "-"} (${snapshot.code || "-"}) · ${snapshot.market || "-"}`,
+    `시가총액: ${fmtMarketCap(snapshot.marketCap)}`,
   ];
-  if (snapshot.currentPrice != null) headerLines.push(`- 현재가: ${snapshot.currentPrice.toLocaleString()}원`);
-  if (snapshot.currentChangeRate != null) headerLines.push(`- 등락률: ${snapshot.currentChangeRate.toFixed(2)}%`);
+  if (snapshot.industry) {
+    const ind = snapshot.industry;
+    if (ind.lcls || ind.mcls || ind.scls) headerLines.push(`업종: ${[ind.lcls, ind.mcls, ind.scls].filter(Boolean).join(" › ")}`);
+    if (ind.ksic) headerLines.push(`표준산업분류 (KSIC): ${ind.ksic}`);
+  }
+  if (snapshot.company) {
+    const c = snapshot.company;
+    const bits = [];
+    if (c.ceoName) bits.push(`대표 ${c.ceoName}`);
+    if (c.establishedDate) bits.push(`설립 ${c.establishedDate}`);
+    if (c.corpNameEng) bits.push(`영문명 ${c.corpNameEng}`);
+    if (bits.length) headerLines.push(`회사 정보: ${bits.join(" · ")}`);
+  }
+  // 최대주주 — AI가 그룹 계열사·지배구조 추론에 활용
+  if (snapshot.shareholders && snapshot.shareholders.topShareholder) {
+    const ts = snapshot.shareholders.topShareholder;
+    headerLines.push(`최대주주: ${ts.name} (지분 ${ts.rateEnd != null ? Number(ts.rateEnd).toFixed(2) + "%" : "-"})`);
+    if (snapshot.shareholders.totalRateEnd != null) {
+      headerLines.push(`본인+특수관계인 합계 지분율: ${Number(snapshot.shareholders.totalRateEnd).toFixed(2)}%`);
+    }
+  }
 
   return `
-너는 한국 주식 상세종목 페이지에 들어가는 기업 리서치 요약 작성자다.
+너는 한국 주식 상세종목 페이지의 **"사업내용 요약"** 영역에 들어가는 짧은 정보 정리자다.
 
-사용자는 이미 후보 보드에서 종목을 보고 들어왔다.
-따라서 QVA/VVI, 차트, 수급, 후보 선정 이유는 설명하지 않는다.
+이 페이지에는 이미 다음이 표·리스트로 표시되어 있다 — **다시 풀어 쓰지 마라**:
+- 기본정보 (대표이사·설립일·결산월·자본금·상장주식수·업종 분류·KSIC·주소·홈페이지)
+- 시세현황 (현재가·등락·52주 고저·PER·PBR·EPS·BPS·외국인보유율 등)
+- 기간 수익률 (1M/3M/6M/1Y)
+- 재무 (매출·영익·순익 + YoY)
+- 최근 공시 10건, 최근 뉴스 8건 (제목·날짜·요약 표시됨)
 
-너는 아래 세 섹션만 작성한다.
+너는 표에 **없는** 것만 짧게 쓴다. 다음 세 섹션, 정확히 이 순서·제목으로 출력한다:
 
-## 기업 분석
-## 사업 내용
+## 사업내용
+회사가 실제로 무엇을 만들거나 어떤 서비스를 제공하는지 3~4문장.
+주요 제품·고객·전방산업을 구체적인 이름으로.
+업종 분류에 "기계·장비" 같은 큰 분류만 있으면, 회사명과 학습 지식으로 **구체적 제품군**까지 풀어 써라 (예: "콘크리트 펌프카·타워크레인·소방차" 식).
+
 ## 최근 이슈
+제공된 disclosures(공시)·news(뉴스)를 읽고 호재/악재로 분류한다.
+형식:
+- 🟢 호재 (1~3개 bullet)
+  * {공시/뉴스 제목 또는 키워드} — {왜 주가에 영향 줄 수 있는지 한 문장}
+- 🔴 악재 (1~3개 bullet)
+  * {공시/뉴스 제목 또는 키워드} — {왜 주가에 영향 줄 수 있는지 한 문장}
 
-작성 목표:
-짧은 소개가 아니라, 사용자가 "이 회사가 뭘 하는 회사인지, 왜 시장에서 움직일 수 있는지, 최근 어떤 재료와 리스크가 있는지" 이해하게 해야 한다.
+호재가 정말 없으면 "🟢 호재: 특별한 재료 없음", 악재가 없으면 "🔴 악재: 특별한 리스크 없음".
+
+## 체크 포인트
+1~3개 bullet — 단기 트레이딩 관점에서 추가 확인 필요한 포인트.
+일회성 재료 여부 / 추세 지속 가능성 / 추가 검증 필요한 지표 등.
 
 작성 규칙:
-- 한국어로 쓴다.
-- 초보자도 이해할 수 있게 쓰되, 내용은 구체적으로 쓴다.
-- 각 섹션은 5~8문장 정도까지 허용한다.
-- 핵심 정보가 많으면 bullet을 사용한다.
-- 계열사, 그룹 소속, 대표 제품, 주요 고객, 전방산업, 최근 공시/뉴스/실적은 빠뜨리지 않는다.
-- 호재와 악재를 모두 쓴다.
-- 확인되지 않은 재료는 "가능성" 또는 "시장에서는 ~로 연결해 볼 수 있음"이라고 쓴다.
-- 근거 없는 내용을 지어내지 않는다.
-- 매수 추천, 매도 추천, 목표가, 투자 의견은 금지한다.
-- "자료 부족", "확인 어렵다", "추가 정보 필요" 같은 변명 문장은 쓰지 않는다.
-- 정보가 부족하면 "확인된 정보 기준으로는"이라고 짧게 쓰고 바로 설명한다.
-- 회사명 자체로 알려진 사실(그룹 계열 관계, 업종, 대표 제품)은 학습된 지식에서 적극적으로 끌어와 작성한다.
+- 한국어, 간결하게. 표에 이미 있는 숫자(현재가·시총·PER 등)를 다시 풀어 쓰지 마라.
+- 매수·매도 추천, 목표가 금지.
+- "공개 정보 부족", "확인 어렵다", "추가 정보 필요" 같은 변명 표현 금지.
+- 회사가 무슨 일을 하는지는 학습 지식으로 적극적으로 풀어 써라 (모른다고 도망가지 마라).
+- 호재/악재는 반드시 제공된 공시·뉴스 근거로만. 없는 사실 추측 금지.
 
-특히 기업 분석에서는 아래를 최대한 확인해서 작성한다.
-- 그룹 계열 여부 (대기업 그룹 계열사인지, 어느 그룹인지)
-- 업종 (산업재/IT/바이오/반도체/2차전지 등)
-- 시장 내 성격 (대형주/중형주/소형주, 경기민감/방어주/성장주)
-- 시가총액 규모
-- 연결 테마 (재난/지진/AI/방산/원전 등)
-
-사업 내용에서는 아래를 최대한 확인해서 작성한다.
-- 주요 제품
-- 주요 서비스
-- 고객군
-- 전방산업 (건설/조선/반도체/공공기관/병원 등)
-- 매출이 발생하는 구조
-- 수요가 늘어나는 조건
-- 사업상 약점 또는 변동성 요인
-
-최근 이슈에서는 반드시 아래 세 그룹으로 나눠서 작성한다.
-- 호재/재료: 뉴스·공시·실적·테마 중 주가에 긍정적으로 작용할 수 있는 항목
-- 악재/부담: 실적 부진, 비용 부담, 규제, 희석 등 부정적으로 작용할 수 있는 항목
-- 체크할 리스크: 일회성 재료 여부, 추세 지속 가능성, 추가 확인이 필요한 포인트
-
-각 그룹은 1~3개 bullet로 정리하되, 각 항목은 "무엇이 / 왜 주가와 연결되는지" 한 문장으로 쓴다.
-
-금지 표현 (절대 쓰지 마라):
-- "정확한 산업 섹터를 알 수 없습니다"
-- "공개 정보 부족"
-- "추가 정보가 필요합니다"
-- "제공된 자료에서 확인하기 어렵습니다"
-- "핵심 비즈니스 모델을 파악하기 어렵습니다"
-
-출력 형식 (반드시 이 형식 그대로):
-
-## 기업 분석
-내용
-
-## 사업 내용
-내용
-
-## 최근 이슈
-- 호재/재료:
-  - 내용
-- 악재/부담:
-  - 내용
-- 체크할 리스크:
-  - 내용
-
-[기본 정보]
+[종목 컨텍스트]
 ${headerLines.join("\n")}
 
-[종목 데이터 (JSON)]
+[제공된 데이터 (JSON)]
 ${JSON.stringify({
-  financials: snapshot.financials,
+  financialsSummary: snapshot.financials ? {
+    year: snapshot.financials.latest && snapshot.financials.latest.bsnsYear,
+    revenue: snapshot.financials.latest && snapshot.financials.latest.revenue,
+    opIncome: snapshot.financials.latest && snapshot.financials.latest.opIncome,
+    growth: snapshot.financials.growth,
+  } : null,
   disclosures: snapshot.disclosures,
   news: snapshot.news,
 }, null, 2)}
@@ -154,19 +140,15 @@ function postProcess(text) {
   return out;
 }
 
-const FALLBACK = `## 기업 분석
-확인된 정보 기준으로 이 회사의 업종, 시장, 시가총액 규모, 그룹 계열 관계, 연결 테마를 정리합니다. 보드 카드에 표시된 시가총액과 시장 구분을 함께 참고해 규모와 성격을 판단할 수 있습니다.
-
-## 사업 내용
-확인된 제품/서비스와 전방산업, 주요 고객군을 중심으로 정리합니다. 매출 구조가 명확하지 않은 경우에는 알려진 사업 키워드 중심으로 짧게 설명합니다.
+const FALLBACK = `## 사업내용
+위 표의 업종 분류와 회사명을 기준으로 이 회사의 주요 사업을 짧게 요약합니다. 구체적 제품군이 표에 충분히 드러나면 그 키워드 중심으로 정리합니다.
 
 ## 최근 이슈
-- 호재/재료:
-  - 최근 공시·뉴스에서 확인되는 호재성 재료를 정리합니다.
-- 악재/부담:
-  - 실적 부진, 규제, 비용 부담 등 부정적 항목을 정리합니다.
-- 체크할 리스크:
-  - 일회성 재료 여부, 추세 지속 가능성, 추가 확인이 필요한 포인트를 짧게 정리합니다.`;
+- 🟢 호재: 위에 표시된 최근 공시·뉴스에서 호재성 재료가 보이면 정리합니다.
+- 🔴 악재: 실적 부진·규제·비용 부담 등 부정 재료를 정리합니다.
+
+## 체크 포인트
+- 일회성 재료 여부, 추세 지속 가능성, 추가 검증 필요한 포인트를 짧게 정리합니다.`;
 
 async function generateCompanyAnalysis(snapshot) {
   const cacheKey = String(snapshot.code || "_");

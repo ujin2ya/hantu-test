@@ -1,15 +1,19 @@
 // /qva-vvi-redefined-* 라우트 컨트롤러.
 // - getRedefinedVviBoard / getRedefinedVviBacktest: 정적 HTML sendFile
-// - getRedefinedVviStockDetail: 새 VVI 종목 상세 페이지 (재무·차트·뉴스·공시 + AI 버튼)
-// - postCompanyAnalysis: AI 기업분석 lazy 호출
+// - getRedefinedVviStockDetail: 새 VVI 종목 상세 페이지 (CompanyGuide 스타일 기업정보 영역)
+// - postCompanyAnalysis: AI 사업내용 요약 lazy 호출
 const fs = require("fs");
 const path = require("path");
 const { ROOT, REPORTS_DIR, CHART_DIR, CACHE_DIR } = require("../utils/paths");
 const { getAccessToken } = require("../services/kis/kisToken");
 const { getCurrentPrice } = require("../services/kis/kisApi");
+const { fetchStockInfo: fetchKisStockInfo } = require("../services/kis/kisStockInfo");
+const { fetchCompanyInfo: fetchDartCompanyInfo } = require("../services/dart/dartCompanyInfo");
+const { fetchShareholders: fetchDartShareholders } = require("../services/dart/dartShareholders");
 const { fetchRecentNews } = require("../services/news/naverNewsFetcher");
 const { fetchRecentDisclosures } = require("../services/dart/dartDisclosureFetcher");
 const { generateCompanyAnalysis } = require("../services/ai/geminiCompanyAnalysis");
+const dartFetcher = require("../../dart-fetcher");
 
 const BOARD_HTML    = path.join(REPORTS_DIR, "qva-vvi-redefined-board-result.html");
 const BACKTEST_HTML = path.join(REPORTS_DIR, "qva-vvi-redefined-backtest-result.html");
@@ -49,16 +53,23 @@ function loadFinancials(code) {
   try { return JSON.parse(fs.readFileSync(fp, "utf-8")); } catch (_) { return null; }
 }
 
-function loadRecentChart(code, days = 60) {
-  const fp = path.join(CHART_DIR, `${code}.json`);
-  if (!fs.existsSync(fp)) return null;
+// Lazy auto-fetch DART 재무 — 캐시 hit 즉답, miss 시 DART 호출 (12s timeout).
+async function loadOrFetchFinancials(code) {
+  const cached = loadFinancials(code);
+  if (cached) return cached;
+  const apiKey = process.env.DART_API_KEY;
+  if (!apiKey) return null;
   try {
-    const c = JSON.parse(fs.readFileSync(fp, "utf-8"));
-    return { name: c.name, market: c.market, rows: (c.rows || []).slice(-days) };
-  } catch (_) { return null; }
+    return await Promise.race([
+      dartFetcher.getFinancialsCached(code, apiKey),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("DART fetch timeout (12s)")), 12000)),
+    ]);
+  } catch (e) {
+    console.warn(`[qva-vvi-redefined] DART 재무 lazy fetch failed for ${code}: ${e.message}`);
+    return null;
+  }
 }
 
-// 상세페이지 차트용 — 전체 일봉 row 반환 (MA240 + 5년 기간 선택용 충분한 깊이 필요).
 function loadFullChart(code) {
   const fp = path.join(CHART_DIR, `${code}.json`);
   if (!fs.existsSync(fp)) return null;
@@ -68,7 +79,27 @@ function loadFullChart(code) {
   } catch (_) { return null; }
 }
 
-// 새 VVI 보드 funnel 정보 — 이 종목이 보드의 어느 그룹에 들어있는지
+// 일봉 기반 기간 수익률 (영업일 기준 근사: 1M≈21, 3M≈63, 6M≈126, 1Y≈252).
+function computePeriodReturns(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return null;
+  const last = rows[rows.length - 1];
+  if (!last || !last.close) return null;
+  function rateBack(N) {
+    const idx = rows.length - 1 - N;
+    if (idx < 0) return null;
+    const past = rows[idx];
+    if (!past || !past.close) return null;
+    return (last.close / past.close - 1) * 100;
+  }
+  return {
+    ret1M: rateBack(21),
+    ret3M: rateBack(63),
+    ret6M: rateBack(126),
+    ret1Y: rateBack(252),
+  };
+}
+
+// 새 VVI 보드 funnel 정보
 function lookupVviMembership(code) {
   if (!fs.existsSync(BOARD_JSON)) return null;
   try {
@@ -88,6 +119,60 @@ function lookupVviMembership(code) {
   return null;
 }
 
+// KIS 현재가 raw output → 시세현황·메타 view data로 정리
+function extractPriceQuoteFromKis(o) {
+  if (!o) return null;
+  const num = (v) => v == null || v === "" ? null : Number(v);
+  return {
+    price: num(o.stck_prpr),
+    prevClose: num(o.stck_sdpr),
+    changeRate: num(o.prdy_ctrt),
+    changeAbs: num(o.prdy_vrss),
+    open: num(o.stck_oprc),
+    high: num(o.stck_hgpr),
+    low: num(o.stck_lwpr),
+    volume: num(o.acml_vol),
+    valueAmount: num(o.acml_tr_pbmn),
+    upperLimit: num(o.stck_mxpr),
+    lowerLimit: num(o.stck_llam),
+    weightedAvgPrice: num(o.wghn_avrg_stck_prc),
+    volumeTurnoverRate: num(o.vol_tnrt),
+    // 52주 / 250일 / 연중
+    week52High: num(o.w52_hgpr),
+    week52Low: num(o.w52_lwpr),
+    week52HighDate: o.w52_hgpr_date || null,
+    week52LowDate: o.w52_lwpr_date || null,
+    week52HighFromCurrent: num(o.w52_hgpr_vrss_prpr_ctrt),
+    week52LowFromCurrent: num(o.w52_lwpr_vrss_prpr_ctrt),
+    yearHigh: num(o.stck_dryy_hgpr),
+    yearLow: num(o.stck_dryy_lwpr),
+    // 밸류 지표
+    per: num(o.per),
+    pbr: num(o.pbr),
+    eps: num(o.eps),
+    bps: num(o.bps),
+    // 외인 / 신용
+    foreignHoldingQty: num(o.frgn_hldn_qty),
+    foreignHoldingRate: num(o.hts_frgn_ehrt),
+    // 종목 메타
+    industryName: o.bstp_kor_isnm || null,        // 업종명 (e.g. "기계·장비")
+    marketName: o.rprs_mrkt_kor_name || null,     // 대표 시장명
+    accountingMonth: num(o.stac_month),           // 결산월
+    faceValue: num(o.stck_fcam),                  // 액면가
+    listedShares: num(o.lstn_stcn),               // 상장주식수
+    capital: num(o.cpfn),                         // 자본금 (단위: 억)
+    marketCapEokwon: num(o.hts_avls),             // 시가총액 (단위: 억)
+    // 위험 플래그 — KIS는 "Y"(해당) / "N"(아님) 또는 "00"(정상)/"01"(경고)/"02"(위험) 등 다중 표기.
+    // 안전하게 "Y" 또는 "00이 아닌 숫자 코드"일 때만 true.
+    isManagement: o.mang_issu_cls_code === "Y",
+    marketWarn: (o.mrkt_warn_cls_code && o.mrkt_warn_cls_code !== "00") ? o.mrkt_warn_cls_code : null,
+    isShortOver: o.short_over_yn === "Y",
+    tradeStop: o.temp_stop_yn === "Y",
+    viCode: (o.vi_cls_code && o.vi_cls_code !== "N" && o.vi_cls_code !== "00") ? o.vi_cls_code : null,
+    investCaution: o.invt_caful_yn === "Y",
+  };
+}
+
 async function getRedefinedVviStockDetail(req, res) {
   try {
     const code = String(req.params.code || "").replace(/[^0-9A-Za-z]/g, "");
@@ -96,33 +181,28 @@ async function getRedefinedVviStockDetail(req, res) {
     const meta = lookupStockMeta(code);
     if (!meta) return res.status(404).send(`종목 ${code}을(를) 찾을 수 없습니다.`);
 
-    const chart = loadFullChart(code); // 전체 row — 클라이언트에서 기간 토글
-    const financials = loadFinancials(code);
+    const chart = loadFullChart(code);
     const vviMembership = lookupVviMembership(code);
+    const periodReturns = chart ? computePeriodReturns(chart.rows) : null;
 
-    // 외부 호출 3개 병렬 — 각각 timeout/실패 fallback
-    const [kisLive, newsRes, disclosureRes] = await Promise.all([
+    // 7개 외부 호출 병렬
+    const [financials, kisRaw, kisStockInfo, companyInfo, shareholders, newsRes, disclosureRes] = await Promise.all([
+      loadOrFetchFinancials(code),
       (async () => {
         try {
           const t = await getAccessToken();
           const k = await getCurrentPrice(t, code);
-          const o = k && k.output;
-          if (!o) return null;
-          return {
-            price: Number(o.stck_prpr) || null,
-            prevClose: Number(o.stck_sdpr) || null,
-            changeRate: Number(o.prdy_ctrt),
-            changeAbs: Number(o.prdy_vrss) || null,
-            open: Number(o.stck_oprc) || null,
-            high: Number(o.stck_hgpr) || null,
-            low: Number(o.stck_lwpr) || null,
-            volume: Number(o.acml_vol) || null,
-          };
+          return k && k.output ? k.output : null;
         } catch (_) { return null; }
       })(),
+      fetchKisStockInfo(code),
+      fetchDartCompanyInfo(code),
+      fetchDartShareholders(code),
       fetchRecentNews(code, 8),
       fetchRecentDisclosures(code, { days: 90, limit: 10 }),
     ]);
+
+    const priceQuote = extractPriceQuoteFromKis(kisRaw);
 
     res.render("qva-vvi-redefined-detail", {
       code,
@@ -130,7 +210,14 @@ async function getRedefinedVviStockDetail(req, res) {
       chartRows: (chart && chart.rows) || [],
       financials,
       vviMembership,
-      kisLive,
+      priceQuote,
+      kisStockInfo: kisStockInfo && !kisStockInfo.error ? kisStockInfo : null,
+      kisStockInfoError: kisStockInfo && kisStockInfo.error ? kisStockInfo.error : null,
+      companyInfo: companyInfo && !companyInfo.error ? companyInfo : null,
+      companyInfoError: companyInfo && companyInfo.error ? companyInfo.error : null,
+      shareholders: shareholders && !shareholders.error ? shareholders : null,
+      shareholdersError: shareholders && shareholders.error ? shareholders.error : null,
+      periodReturns,
       news: (newsRes && newsRes.news) || [],
       newsError: (newsRes && newsRes.error) || null,
       disclosures: (disclosureRes && disclosureRes.disclosures) || [],
@@ -142,7 +229,7 @@ async function getRedefinedVviStockDetail(req, res) {
   }
 }
 
-// AI 기업분석 — 버튼 클릭 시 호출
+// AI 사업내용 요약 — 공식 데이터(KIS 업종 + DART 회사정보 + 재무 + 공시·뉴스) 기반.
 async function postCompanyAnalysis(req, res) {
   try {
     const code = String(req.params.code || "").replace(/[^0-9A-Za-z]/g, "");
@@ -151,34 +238,42 @@ async function postCompanyAnalysis(req, res) {
     const meta = lookupStockMeta(code);
     if (!meta) return res.status(404).json({ error: `종목 ${code}을(를) 찾을 수 없습니다.` });
 
-    const financials = loadFinancials(code);
-    const [newsRes, discRes] = await Promise.all([
+    const [financials, kisStockInfo, companyInfo, shareholders, newsRes, discRes] = await Promise.all([
+      loadOrFetchFinancials(code),
+      fetchKisStockInfo(code),
+      fetchDartCompanyInfo(code),
+      fetchDartShareholders(code),
       fetchRecentNews(code, 8),
       fetchRecentDisclosures(code, { days: 90, limit: 10 }),
     ]);
-
-    // 현재가/등락률 — 상세페이지 헤더에서 이미 보여주는 값과 동일 (KIS 우선, fallback chart 마지막 row)
-    const chart = loadRecentChart(code, 5);
-    const lastRow = chart && chart.rows && chart.rows.length ? chart.rows[chart.rows.length - 1] : null;
-    let currentPrice = null, currentChangeRate = null;
-    try {
-      const t = await getAccessToken();
-      const k = await getCurrentPrice(t, code);
-      const o = k && k.output;
-      if (o) {
-        currentPrice = Number(o.stck_prpr) || null;
-        currentChangeRate = Number(o.prdy_ctrt);
-      }
-    } catch (_) {}
-    if (currentPrice == null && lastRow) currentPrice = lastRow.close;
 
     const snapshot = {
       code,
       name: meta.name,
       market: meta.market,
       marketCap: meta.marketCap,
-      currentPrice,
-      currentChangeRate,
+      industry: kisStockInfo && !kisStockInfo.error ? {
+        lcls: kisStockInfo.industryLclsName,
+        mcls: kisStockInfo.industryMclsName,
+        scls: kisStockInfo.industryScls,
+        ksic: kisStockInfo.ksicName,
+      } : null,
+      company: companyInfo && !companyInfo.error ? {
+        ceoName: companyInfo.ceoName,
+        establishedDate: companyInfo.establishedDateFmt,
+        accountingMonth: companyInfo.accountingMonth,
+        address: companyInfo.address,
+        homepageUrl: companyInfo.homepageUrl,
+        corpNameEng: companyInfo.corpNameEng,
+      } : null,
+      // 최대주주 정보 — AI가 그룹 계열·지배구조 추론에 활용
+      shareholders: shareholders && !shareholders.error ? {
+        topShareholder: shareholders.topShareholder,
+        totalRateEnd: shareholders.totalRateEnd,
+        commonItems: shareholders.commonItems,
+        reportLabel: shareholders.reportLabel,
+        settlementDate: shareholders.settlementDate,
+      } : null,
       financials: financials ? {
         latest: financials.latest, prior: financials.prior, growth: financials.growth,
       } : null,
