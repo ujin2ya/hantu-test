@@ -45,6 +45,8 @@ const TOP_LIMIT         = Number(process.env.VVI_TOP_LIMIT || 10);
 // 추격 부담 임계값
 const OVERHEAT_FROM_QVA_PCT = 25;
 const OVERHEAT_FROM_VVI_PCT = 20;
+// 시가총액 상한 — "뚱뚱이"(대형주) 제외. 2조 이하만 운영 후보로.
+const MAX_MARKET_CAP = Number(process.env.VVI_MAX_MARKET_CAP || 2e12);
 
 // ── 유틸 ──
 function fmtDate(d) {
@@ -282,23 +284,25 @@ function main() {
 
   // 분석
   const events = [];
-  let chartMissing = 0, qvaRowMissing = 0;
+  let chartMissing = 0, qvaRowMissing = 0, marketCapFiltered = 0;
   for (const sig of qvaSignals) {
     if (!isWithinLookback(sig.qvaSignalDate)) continue;
-    const chart = loadChart(sig.code);
-    if (!chart) { chartMissing++; continue; }
-    // 이름·시총 보강 (qva-watchlist 데이터 + naver 데이터)
+    // 이름·시총 보강 (qva-watchlist 데이터 + naver 데이터) — 시총 필터를 위해 chart 로드 전에 먼저 적용
     const meta = metaMap.get(sig.code);
     if (meta) {
       sig.name = sig.name || meta.name;
       sig.market = sig.market || meta.market;
       sig.marketValue = sig.marketValue || meta.marketCap;
     }
+    // 시총 필터: MAX_MARKET_CAP 초과 제외 (시총 미상도 보수적으로 제외)
+    if (!sig.marketValue || sig.marketValue > MAX_MARKET_CAP) { marketCapFiltered++; continue; }
+    const chart = loadChart(sig.code);
+    if (!chart) { chartMissing++; continue; }
     const ev = analyzeVvi(sig, chart, todayDate);
     if (!ev) { qvaRowMissing++; continue; }
     events.push(ev);
   }
-  console.log(`  분석 이벤트: ${events.length}건 / chart 없음 ${chartMissing} / qvaRow 없음 ${qvaRowMissing}`);
+  console.log(`  분석 이벤트: ${events.length}건 / chart 없음 ${chartMissing} / qvaRow 없음 ${qvaRowMissing} / 시총>${(MAX_MARKET_CAP/1e12).toFixed(1)}조 제외 ${marketCapFiltered}`);
 
   // 종목별 dedup (VVI 발생 우선, 그 다음 최신 qvaSignalDate)
   const dedupMap = new Map();
@@ -409,6 +413,7 @@ function main() {
   const counts = {
     totalQvaEvents: qvaSignals.length,
     qvaSignalsInLookback: events.length,
+    marketCapFilteredOut: marketCapFiltered,
     dedupedCandidates: dedupedEvents.length,
     newVviTotal: byStatus.VVI_FIRED.length + byStatus.OVERHEATED.length,
     stableBreakoutCount: byStatus.VVI_FIRED.length,
@@ -426,6 +431,7 @@ function main() {
       lookbackDays: VVI_LOOKBACK_DAYS,
       sectionLimit: SECTION_LIMIT,
       todayNewLimit: TODAY_NEW_LIMIT,
+      maxMarketCap: MAX_MARKET_CAP,
       analysisDate: todayDate,
       analysisDateFmt: todayDate ? fmtDate(todayDate) : null,
       definition: 'VVI = QVA 고가 재돌파 + QVA 이상 거래량 + QVA 이상 거래대금. 셋 다 만족하는 첫 거래일.',
@@ -591,6 +597,7 @@ footer.foot strong { color: #cbd5e1; }
   <strong>새 VVI 정의:</strong> QVA 때 만든 고점을 다시 넘었고, 그때만큼 거래량과 거래대금이 다시 붙은 후보.<br>
   메인 후보는 <strong>"안정형 고점 재돌파"</strong> · <strong>"강한 거래대금 재돌파"</strong> 두 그룹입니다.
   그 아래에 참고용 <strong>"거래대금 부족 돌파 참고"</strong>와 대기용 <strong>"고점 재돌파 대기"</strong>를 약하게 표시합니다 — 메인 후보가 아니므로 약한 색으로 보입니다.<br>
+  <strong style="color:#fbbf24;">시가총액 필터:</strong> <span id="market-cap-filter-info"></span><br>
   <span style="font-size:11.5px;color:#94a3b8;">
     <strong>과거 검증상 이런 흐름이 많았다는 뜻입니다.</strong> 실제 진입과 대응은 본인의 판단입니다.
   </span>
@@ -654,6 +661,16 @@ document.getElementById('subtitle').innerHTML =
   ' · 최근 ' + DATA.meta.lookbackDays + '거래일 안 QVA 신호 ' + DATA.counts.qvaSignalsInLookback + '건' +
   ' (전체 ' + DATA.counts.totalQvaEvents + ', 종목 dedup ' + DATA.counts.dedupedCandidates + ')' +
   ' · 생성: ' + new Date(DATA.meta.generatedAt).toLocaleString('ko-KR');
+
+(function fillMarketCapFilterInfo() {
+  const host = document.getElementById('market-cap-filter-info');
+  if (!host) return;
+  const cap = DATA.meta.maxMarketCap;
+  const filtered = DATA.counts.marketCapFilteredOut || 0;
+  const capLabel = cap >= 1e12 ? (cap / 1e12).toFixed(1).replace(/\.0$/, '') + '조' : (cap / 1e8).toFixed(0) + '억';
+  host.innerHTML = '시가총액 ' + capLabel + ' 이하만 후보로. ' +
+    '시총이 더 큰 종목은 <strong>' + filtered + '건 제외</strong>됐습니다.';
+})();
 
 (function renderSummary() {
   const c = DATA.counts;
@@ -731,6 +748,7 @@ function buildValueInsufCardHtml(it) {
       '<div class="metric"><div class="label">거래대금 충족률</div><div class="value cell-warn">' + (valueFillPct != null ? valueFillPct + '%' : '-') + '</div><div class="sub">QVA 당일 대비</div></div>' +
       '<div class="metric"><div class="label">거래량 충족률</div><div class="value cell-warn">' + (volumeFillPct != null ? volumeFillPct + '%' : '-') + '</div><div class="sub">QVA 당일 대비</div></div>' +
       '<div class="metric"><div class="label">QVA 종가 대비 현재 위치</div><div class="value ' + (isNum(it.currentFromQvaCloseRate) && it.currentFromQvaCloseRate > 0 ? 'cell-pos' : 'cell-neg') + '">' + fmtPct(it.currentFromQvaCloseRate, 1) + '</div><div class="sub">현재 ' + fmtNum(it.currentClose) + '원</div></div>' +
+      '<div class="metric"><div class="label">시가총액</div><div class="value">' + fmtMoney(it.marketValue) + '원</div><div class="sub">' + (it.market || '-') + '</div></div>' +
     '</div>' +
     '<div class="summary-line">💡 아직 새 VVI 조건 미충족 — 거래대금이 다시 붙으면 새 VVI 후보로 바뀔 수 있어요.</div>' +
   '</div>';
@@ -750,6 +768,7 @@ function buildWaitingCardHtml(it) {
       '<div class="metric"><div class="label">최근 고가 도달거리</div><div class="value">' + (isNum(it.highDistanceToQvaHighRate) ? it.highDistanceToQvaHighRate.toFixed(1) + '% 남음' : '-') + '</div><div class="sub">QVA 이후 만든 최고가 기준</div></div>' +
       '<div class="metric"><div class="label">거래대금 배율</div><div class="value">' + (isNum(it.currentValueRatio) ? '×' + it.currentValueRatio.toFixed(2) : '-') + '</div><div class="sub">QVA 당일 대비 현재</div></div>' +
       '<div class="metric"><div class="label">QVA 종가 대비 현재 위치</div><div class="value ' + (isNum(it.currentFromQvaCloseRate) && it.currentFromQvaCloseRate > 0 ? 'cell-pos' : 'cell-neg') + '">' + fmtPct(it.currentFromQvaCloseRate, 1) + '</div></div>' +
+      '<div class="metric"><div class="label">시가총액</div><div class="value">' + fmtMoney(it.marketValue) + '원</div><div class="sub">' + (it.market || '-') + '</div></div>' +
     '</div>' +
     '<div class="summary-line">💡 아직 새 VVI 조건 미충족 — QVA 고점을 다시 넘는지 지켜보는 단계입니다.</div>' +
   '</div>';
