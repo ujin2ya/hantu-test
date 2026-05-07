@@ -319,8 +319,15 @@ function loadStockMetaMap() {
 }
 
 // ── QVA / VVI 이력 lookup ──
+// qvaSignalMap (신규): code → { signalDate (YYYYMMDD, 가장 최근), stage, label }
+// 같은 코드가 여러 stage에 있으면 가장 최근(=큰 YYYYMMDD) 신호 선택.
+// 정식 추적 stages는 qvaSignalDate, EARLY 계열은 latestEarlyQvaDate/bestEarlyQvaDate/firstEarlyQvaDate를 fallback.
+function extractQvaDate(it) {
+  return it.qvaSignalDate || it.latestEarlyQvaDate || it.bestEarlyQvaDate || it.firstEarlyQvaDate || null;
+}
 function loadHistoryLookups() {
   const qvaCodes = new Map();
+  const qvaSignalMap = new Map();
   const vviCodes = new Map();
   if (fs.existsSync(QVA_BOARD_PATH)) {
     try {
@@ -335,7 +342,15 @@ function loadHistoryLookups() {
       ];
       for (const [stage, label] of order) {
         for (const it of (stages[stage] || [])) {
-          if (it.code && !qvaCodes.has(it.code)) qvaCodes.set(it.code, label);
+          if (!it.code) continue;
+          if (!qvaCodes.has(it.code)) qvaCodes.set(it.code, label);
+          const sd = extractQvaDate(it);
+          if (sd) {
+            const cur = qvaSignalMap.get(it.code);
+            if (!cur || sd > cur.signalDate) {
+              qvaSignalMap.set(it.code, { signalDate: sd, stage, label });
+            }
+          }
         }
       }
       for (const it of (b.recentVviHistory || [])) {
@@ -355,7 +370,47 @@ function loadHistoryLookups() {
       }
     } catch (_) {}
   }
-  return { qvaCodes, vviCodes };
+  return { qvaCodes, qvaSignalMap, vviCodes };
+}
+
+// ── QVA 보조 태그 (이전 수급 흔적) ──
+// 1DS 후보 baseDate 기준 최근 1~20 거래일 안에 QVA 신호가 있었는지 확인. display only — 점수 영향 X.
+// 거래일 차이는 calendar days × 5/7 근사 (정확한 거래일 캘린더 없이 충분).
+function tradingDaysBetween(d1Str, d2Str) {
+  if (!d1Str || !d2Str || d1Str.length !== 8 || d2Str.length !== 8) return null;
+  const a = new Date(Number(d1Str.slice(0,4)), Number(d1Str.slice(4,6))-1, Number(d1Str.slice(6,8)));
+  const b = new Date(Number(d2Str.slice(0,4)), Number(d2Str.slice(4,6))-1, Number(d2Str.slice(6,8)));
+  const calendarDays = Math.round((b - a) / (1000*60*60*24));
+  // 7 calendar days ≈ 5 trading days. 7→5, 14→10, 21→15, 28→20.
+  return Math.round(calendarDays * 5 / 7);
+}
+function classifyQvaWindow(daysAgo) {
+  if (daysAgo < 1 || daysAgo > 20) return null;
+  if (daysAgo <= 3)  return { label: '단기',       desc: '최근 며칠 안에 QVA 신호가 있었지만 급등 직전이라 의미가 약할 수 있습니다.' };
+  if (daysAgo <= 7)  return { label: '1주일 이내', desc: '최근 1주일 안에 QVA 신호가 발생했던 후보입니다.' };
+  if (daysAgo <= 14) return { label: '1~2주 전',   desc: '1~2주 전 QVA 신호가 발생했던 후보입니다.' };
+  return                   { label: '2~3주 전',   desc: '2~3주 전 QVA 신호가 발생했던 후보입니다.' };
+}
+function attachQvaHistory(candidates, qvaSignalMap) {
+  let tagged = 0;
+  for (const it of candidates) {
+    it.hasRecentQva = false;
+    const sig = qvaSignalMap.get(it.code);
+    if (!sig || !sig.signalDate) continue;
+    if (sig.signalDate > it.baseDate) continue; // 미래 시점 신호는 무시
+    const days = tradingDaysBetween(sig.signalDate, it.baseDate);
+    if (days == null || days < 1 || days > 20) continue;
+    const win = classifyQvaWindow(days);
+    if (!win) continue;
+    it.hasRecentQva = true;
+    it.qvaSignalDate = sig.signalDate;
+    it.qvaDaysAgo = days;
+    it.qvaWindowLabel = win.label;
+    it.qvaWindowDesc = win.desc;
+    it.qvaDisplayText = 'QVA · ' + days + '거래일 전';
+    tagged++;
+  }
+  return tagged;
 }
 
 // ── 쉬운 말 한 줄 해석 (GT 그룹별) ──
@@ -501,7 +556,7 @@ function main() {
 
   console.log('\n📊 1-Day Surge Board v5 (GOOD_TRADE 중심) 생성');
   const metaMap = loadStockMetaMap();
-  const { qvaCodes, vviCodes } = loadHistoryLookups();
+  const { qvaCodes, qvaSignalMap, vviCodes } = loadHistoryLookups();
   const naverCount = [...metaMap.values()].filter(x => x.marketCap > 0).length;
   console.log(`  종목 메타: ${metaMap.size}건 (시총 보유 ${naverCount}건) / QVA 이력: ${qvaCodes.size} / VVI 이력: ${vviCodes.size}`);
 
@@ -595,6 +650,10 @@ function main() {
   const { withMinute, missing, intradayDirs } = attachIntradayMetrics(candidates);
   console.log(`  장초 분봉 ENTRY_CONFIRM: ${withMinute}건 적용 / ${missing}건 분봉 없음 (디렉토리 ${intradayDirs.length}개)`);
 
+  // 3.6차: QVA 보조 태그 (이전 수급 흔적) 부착 — display only, 점수 영향 없음
+  const qvaTaggedAll = attachQvaHistory(candidates, qvaSignalMap);
+  console.log(`  📈 QVA 보조 태그 (이전 수급 흔적): ${qvaTaggedAll}건 / 1DS 후보 ${candidates.length}건 (qvaSignalMap ${qvaSignalMap.size}건)`);
+
   // 4차: 그룹별 정렬
   // 기본 gtSort: valueToMcRatio 높은 순, 거래대금 순위 높은 순(낮은 숫자), recent5Up15Count 작은 순, LOW_GAP_INTRADAY 우선
   function gtSort(a, b) {
@@ -684,6 +743,18 @@ function main() {
     strategyCounts[name] = all.filter((it) => (it.entryStrategies || []).includes(name)).length;
   }
 
+  // QVA 보조 태그 — 화면 노출 후보만 집계 (위험/숨김 후보는 카운트 X)
+  const qvaTaggedTopCount = topPriority.filter((it) => it.hasRecentQva).length;
+  const qvaTaggedExtraCount = extraPriority.filter((it) => it.hasRecentQva).length;
+  const qvaSummary = {
+    taggedTopCount: qvaTaggedTopCount,
+    taggedExtraCount: qvaTaggedExtraCount,
+    taggedTotalVisibleCount: qvaTaggedTopCount + qvaTaggedExtraCount,
+    totalCandidatesTagged: qvaTaggedAll,
+    qvaSignalMapSize: qvaSignalMap.size,
+    displayOnly: true,
+  };
+
   // 가시성 카운트 (요약 cards용)
   const totalRiskExcluded = Object.values(riskExcludeCounts).reduce((a, b) => a + b, 0);
   const visibilityCounts = {
@@ -760,6 +831,7 @@ function main() {
     },
     latestDayType,
     marketState,
+    qvaSummary,
     entryShelf: {
       // 신규 priorityRanked로 대체됐지만, strategyDefs/counts는 카드 chip + 요약에 계속 필요
       strategyDefs: Object.fromEntries(Object.entries(ENTRY_STRATEGY_DEFS).map(([k, v]) => [k, { label: v.label, chipLabel: v.chipLabel, desc: v.desc, isTopShelf: v.isTopShelf }])),
@@ -992,6 +1064,39 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .badge.breakout  { background: #064e3b; color: #6ee7b7; border-color: #10b981; }
 .badge.aux       { background: #1e293b; color: #cbd5e1; border-color: #334155; }
 .badge.qva       { background: #312e81; color: #c7d2fe; border-color: #818cf8; }
+.badge.qva-history { background: #042f2e; color: #5eead4; border-color: #14b8a6; font-size: 11px; font-weight: 600; }
+
+/* ── QVA 보조 태그 — 카드 상단에 눈에 띄는 strip + 카드 우측 highlight ── */
+.qva-strip {
+  display: flex; align-items: center; gap: 8px;
+  margin: 6px 0 10px;
+  padding: 7px 12px;
+  background: linear-gradient(90deg, #042f2e 0%, #064e3b 70%, #042f2e 100%);
+  border-left: 4px solid #14b8a6;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #6ee7b7;
+  box-shadow: 0 1px 2px -1px rgba(20, 184, 166, 0.4);
+}
+.qva-strip .qva-icon  { font-size: 15px; line-height: 1; }
+.qva-strip .qva-window { color: #99f6e4; font-weight: 700; }
+.qva-strip .qva-days   { color: #f0fdfa; opacity: 0.85; font-size: 11px; font-weight: 500; margin-left: auto; padding: 2px 8px; background: rgba(20,184,166,0.15); border-radius: 999px; }
+.qva-strip .qva-date   { color: #94a3b8; opacity: 0.75; font-size: 11px; font-weight: 400; }
+
+/* QVA 이력이 있는 카드는 우측 상단에 작은 시각 마크 + 우측 가장자리 subtle teal accent */
+.card[data-has-qva="1"] {
+  background: linear-gradient(90deg, #1e293b 0%, #1e293b 92%, #064e3b 100%);
+  position: relative;
+}
+.card[data-has-qva="1"]::after {
+  content: '📈';
+  position: absolute;
+  top: 10px; right: 12px;
+  font-size: 14px;
+  opacity: 0.7;
+  pointer-events: none;
+}
 .badge.vvi       { background: #1e3a8a; color: #bfdbfe; border-color: #3b82f6; }
 .badge.candle-low-gap { background: #4c1d95; color: #ddd6fe; border-color: #8b5cf6; font-weight: 700; }
 .badge.candle-gap-hold { background: #7c2d12; color: #fdba74; border-color: #f97316; }
@@ -1055,6 +1160,7 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 
 <h2>📊 화면 요약</h2>
 <div class="summary-grid" id="summary-grid"></div>
+<div id="qva-summary-line"></div>
 
 <!-- ① 최우선 5종목 -->
 <div id="top-priority-host"></div>
@@ -1125,6 +1231,25 @@ function renderSummary() {
   ).join('');
 }
 renderSummary();
+
+// QVA 보조 요약 — 이전 수급 흔적이 있는 후보 수를 카드형 안내 박스로 표시
+(function renderQvaSummaryLine() {
+  const host = document.getElementById('qva-summary-line');
+  if (!host) return;
+  const q = DATA.qvaSummary || {};
+  const top = q.taggedTopCount || 0;
+  const extra = q.taggedExtraCount || 0;
+  if (top + extra === 0) { host.style.display = 'none'; return; }
+  const topN = (DATA.priorityRanked && DATA.priorityRanked.topPriority || []).length;
+  const extraN = (DATA.priorityRanked && DATA.priorityRanked.extraPriority || []).length;
+  const parts = [];
+  if (top > 0)   parts.push('최우선 ' + topN + '종목 중 <strong style="color:#f0fdfa;">' + top + '개</strong>');
+  if (extra > 0) parts.push('추가 후보 ' + extraN + '개 중 <strong style="color:#f0fdfa;">' + extra + '개</strong>');
+  host.innerHTML = '<div style="background:linear-gradient(90deg,#042f2e 0%,#064e3b 100%);border-left:4px solid #14b8a6;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;color:#6ee7b7;line-height:1.6;">' +
+    '<strong style="color:#5eead4;">📈 QVA 신호 보유</strong> · ' + parts.join(' · ') +
+    '<br><span style="font-size:11px;color:#99f6e4;opacity:0.85;">최근 20거래일 안에 QVA 신호가 발생했던 후보입니다. 카드 상단의 초록 띠로 표시됩니다.</span>' +
+  '</div>';
+})();
 
 // ── 운영자 상단 상태 배너: 4종 상태 (시간 + 분봉 매칭 여부) ──
 // A. 전일 장마감 후보  (시간 < 09:00 또는 분봉 미매칭)
@@ -1378,8 +1503,8 @@ function buildCardHtml(it) {
     badges.push('<span class="badge overheat">최근 과열</span>');
   }
 
-  // QVA / VVI 참고 태그
-  if (it.qvaHistoryLabel) badges.push('<span class="badge qva" title="참고용: 본 보드 점수와 무관">QVA 이력: ' + it.qvaHistoryLabel + '</span>');
+  // 이전 수급 흔적은 카드 상단 별도 strip으로 표시 (눈에 띄게) — 메타 badges에 중복 추가 X
+  // VVI 이력 — 별도 보조 정보 (참고용, 점수 영향 없음)
   if (it.vviHistory && it.vviHistory.signalDate) {
     badges.push('<span class="badge vvi" title="참고용: 본 보드 점수와 무관">VVI 이력 ' + fmtDate(it.vviHistory.signalDate) + (it.vviHistory.daysAfterSignal != null ? ' (D+' + it.vviHistory.daysAfterSignal + ')' : '') + '</span>');
   }
@@ -1401,8 +1526,19 @@ function buildCardHtml(it) {
     intradayLine = '<div class="gap-note" style="border-left-color:#14b8a6;color:#cbd5e1;">🚪 장초 분봉 확인 (' + (DATA.entryShelf && DATA.entryShelf.entryConfirmDate || '-') + '): 시초가 갭 ' + gapPctTxt + ' · ' + mhTxt + ' · ' + phTxt + '</div>';
   }
 
-  return '<div class="card g-' + it.gtGroup + '" data-group="' + it.gtGroup + '" data-candle="' + (it.candleType || '') + '" data-qva="' + (it.qvaHistoryLabel ? '1' : '0') + '" data-vvi="' + (it.vviHistory ? '1' : '0') + '" data-strategies="' + ((it.entryStrategies || []).join(',')) + '">' +
+  // QVA 보조 태그 strip — H3 바로 아래 눈에 띄는 독립 줄로 표시
+  const qvaStrip = it.hasRecentQva
+    ? '<div class="qva-strip" title="' + (it.qvaWindowDesc || '').replace(/"/g, '&quot;') + '">' +
+        '<span class="qva-icon">📈</span>' +
+        '<span class="qva-window">QVA</span>' +
+        '<span class="qva-date">' + (it.qvaWindowLabel || '') + ' · ' + fmtDate(it.qvaSignalDate) + '</span>' +
+        '<span class="qva-days">' + it.qvaDaysAgo + '거래일 전</span>' +
+      '</div>'
+    : '';
+
+  return '<div class="card g-' + it.gtGroup + '" data-group="' + it.gtGroup + '" data-candle="' + (it.candleType || '') + '" data-qva="' + (it.qvaHistoryLabel ? '1' : '0') + '" data-has-qva="' + (it.hasRecentQva ? '1' : '0') + '" data-vvi="' + (it.vviHistory ? '1' : '0') + '" data-strategies="' + ((it.entryStrategies || []).join(',')) + '">' +
     '<h3>' + (it.name || '-') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' + entryStatusPill(it) + '</h3>' +
+    qvaStrip +
     '<div class="meta">' + strategyChips(it) + badges.join('') + '</div>' +
     '<div class="metrics-grid">' +
       '<div class="metric"><div class="label">기준일 종가</div><div class="value">' + fmtNum(it.close) + '원</div><div class="sub">' + fmtDate(it.baseDate) + '</div></div>' +

@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "1-Day Surge Board v5 · GOOD_TRADE 중심 단타 후보 보드",
-    "generatedAt": "2026-05-07T11:01:27.840Z",
+    "generatedAt": "2026-05-07T11:30:00.850Z",
     "analysisDate": "20260507",
     "analysisDateFmt": "2026-05-07",
     "stockUniverse": 4270,
@@ -93,6 +93,7 @@
         "gtGroup": "BALANCED-GT",
         "summaryLine": "거래대금이 평소보다 ×7.8배 폭증, 시총 대비 거래대금 60.9% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 9위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 39.82,
         "displayPriorityScore": 95
       },
@@ -150,6 +151,7 @@
         "gtGroup": "BALANCED-GT",
         "summaryLine": "시총 대비 거래대금 41.0% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 10위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 83.6,
         "displayPriorityScore": 35,
         "riskExcluded": "trap_risk_high"
@@ -209,6 +211,7 @@
         "summaryLine": "거래대금이 평소보다 ×3.0배 늘었음, 시총 대비 거래대금 36.0% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 3회 (과열 주의), 거래대금 시장 상위 1위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토.",
         "entryStatus": "INTRADAY_INVALID",
         "nextDayDir": "2026-04-28",
+        "hasRecentQva": false,
         "riskTrapScore": 106.49000000000001,
         "displayPriorityScore": 25,
         "riskExcluded": "trap_risk_high"
@@ -302,6 +305,7 @@
           "peakBeforeEntryLive": false
         },
         "entryStrategies": [],
+        "hasRecentQva": false,
         "riskTrapScore": 121.78999999999999,
         "displayPriorityScore": 35,
         "riskExcluded": "trap_risk_high"
@@ -360,6 +364,7 @@
         "gtGroup": "BALANCED-GT",
         "summaryLine": "시총 대비 거래대금 17.3% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 68%), 최근 5일 첫 급등형, 거래대금 시장 상위 30위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 68,
         "displayPriorityScore": 30,
         "riskExcluded": "trap_risk_high"
@@ -418,6 +423,7 @@
         "gtGroup": "BALANCED-GT",
         "summaryLine": "시총 대비 거래대금 6.7% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 86.9,
         "displayPriorityScore": 25,
         "riskExcluded": "trap_risk_high"
@@ -478,6 +484,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×7.1배 폭증, 시총 대비 거래대금 211.2% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 57%), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 2위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 63.48,
         "displayPriorityScore": 35,
         "riskExcluded": "trap_risk_high"
@@ -536,6 +543,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×17.5배 폭증, 시총 대비 거래대금 115.9% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 8위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260410",
+        "qvaDaysAgo": 19,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 19거래일 전",
         "riskTrapScore": 83.99000000000001,
         "displayPriorityScore": 35,
         "riskExcluded": "trap_risk_high"
@@ -594,6 +607,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×8.3배 폭증, 시총 대비 거래대금 112.0% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 11위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 22.8,
         "displayPriorityScore": 80
       },
@@ -651,6 +665,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×23.4배 폭증, 시총 대비 거래대금 77.0% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 42%), 최근 5일 첫 급등형, 거래대금 시장 상위 23위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260409",
+        "qvaDaysAgo": 20,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 20거래일 전",
         "riskTrapScore": 42.4,
         "displayPriorityScore": 50
       },
@@ -708,6 +728,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×3.0배 늘었음, 시총 대비 거래대금 68.4% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 57%), 최근 5일 첫 급등형, 거래대금 시장 상위 21위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 56.99999999999999,
         "displayPriorityScore": 40
       },
@@ -765,6 +786,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 48.4% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 74%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 74.4,
         "displayPriorityScore": 20,
         "riskExcluded": "trap_risk_high"
@@ -823,6 +845,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×24.3배 폭증, 시총 대비 거래대금 47.1% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 60%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 60.199999999999996,
         "displayPriorityScore": 20,
         "riskExcluded": "trap_risk_high"
@@ -881,6 +904,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×31.1배 폭증, 시총 대비 거래대금 43.5% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 78%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260427",
+        "qvaDaysAgo": 7,
+        "qvaWindowLabel": "1주일 이내",
+        "qvaWindowDesc": "최근 1주일 안에 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 7거래일 전",
         "riskTrapScore": 78.10000000000001,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -939,6 +968,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×13.7배 폭증, 시총 대비 거래대금 43.3% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 50%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 50,
         "displayPriorityScore": 40
       },
@@ -996,6 +1026,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×36.5배 폭증, 시총 대비 거래대금 41.8% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 50%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260422",
+        "qvaDaysAgo": 11,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 11거래일 전",
         "riskTrapScore": 50.1,
         "displayPriorityScore": 40
       },
@@ -1053,6 +1089,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×2.6배 늘었음, 시총 대비 거래대금 38.9% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 82%), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 82.3,
         "displayPriorityScore": 35,
         "riskExcluded": "trap_risk_high"
@@ -1111,6 +1148,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×8.7배 폭증, 시총 대비 거래대금 38.8% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260416",
+        "qvaDaysAgo": 15,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 15거래일 전",
         "riskTrapScore": 31.7,
         "displayPriorityScore": 70
       },
@@ -1168,6 +1211,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×2.7배 늘었음, 시총 대비 거래대금 37.2% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 92,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -1226,6 +1270,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 29.5% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 80%), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 79.5,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -1284,6 +1329,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×14.3배 폭증, 시총 대비 거래대금 28.1% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 73.7,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -1342,6 +1388,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×11.0배 폭증, 시총 대비 거래대금 21.8% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260422",
+        "qvaDaysAgo": 11,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 11거래일 전",
         "riskTrapScore": 96.6,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -1400,6 +1452,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×5.6배 폭증, 시총 대비 거래대금 19.6% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260423",
+        "qvaDaysAgo": 10,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 10거래일 전",
         "riskTrapScore": 95.19999999999999,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -1458,6 +1516,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×3.1배 강하게 증가, 시총 대비 거래대금 16.9% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 56%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260421",
+        "qvaDaysAgo": 11,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 11거래일 전",
         "riskTrapScore": 56.10000000000001,
         "displayPriorityScore": 30
       },
@@ -1515,6 +1579,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 16.6% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 81.6,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -1573,6 +1638,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×6.6배 폭증, 시총 대비 거래대금 15.6% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 36%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 38.56,
         "displayPriorityScore": 70
       },
@@ -1630,6 +1696,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 15.5% (회사 크기 대비 강한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 73.3,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -1689,6 +1756,7 @@
         "summaryLine": "시총 대비 거래대금 15.0% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 61%), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_MINUTE_DATA",
         "nextDayDir": "2026-03-24",
+        "hasRecentQva": false,
         "riskTrapScore": 60.9,
         "displayPriorityScore": 25,
         "riskExcluded": "trap_risk_high"
@@ -1747,6 +1815,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×5.6배 폭증, 시총 대비 거래대금 14.6% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 87%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260429",
+        "qvaDaysAgo": 6,
+        "qvaWindowLabel": "1주일 이내",
+        "qvaWindowDesc": "최근 1주일 안에 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 6거래일 전",
         "riskTrapScore": 87,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -1805,6 +1879,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×2.3배 늘었음, 시총 대비 거래대금 14.1% (회사 크기 대비 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 11.600000000000001,
         "displayPriorityScore": 70
       },
@@ -1862,6 +1937,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 13.5% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 56%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260422",
+        "qvaDaysAgo": 11,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 11거래일 전",
         "riskTrapScore": 55.7,
         "displayPriorityScore": 40
       },
@@ -1919,6 +2000,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×4.5배 강하게 증가, 시총 대비 거래대금 13.2% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260423",
+        "qvaDaysAgo": 10,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 10거래일 전",
         "riskTrapScore": 81.5,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -1977,6 +2064,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×3.5배 강하게 증가, 시총 대비 거래대금 12.8% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 86.7,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -2035,6 +2123,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 12.7% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 97.2,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -2093,6 +2182,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 12.6% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 22.400000000000002,
         "displayPriorityScore": 70
       },
@@ -2150,6 +2240,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 10.8% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 49%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 48.5,
         "displayPriorityScore": 30
       },
@@ -2207,6 +2298,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 10.5% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 95.8,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -2265,6 +2357,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 10.0% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 83.8,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -2323,6 +2416,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×2.5배 늘었음, 시총 대비 거래대금 10.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 42%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 41.8,
         "displayPriorityScore": 30
       },
@@ -2380,6 +2474,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 9.4% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260414",
+        "qvaDaysAgo": 16,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 16거래일 전",
         "riskTrapScore": 95.89999999999999,
         "displayPriorityScore": 0,
         "riskExcluded": "trap_risk_high"
@@ -2438,6 +2538,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 9.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 48%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260413",
+        "qvaDaysAgo": 17,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 17거래일 전",
         "riskTrapScore": 47.9,
         "displayPriorityScore": 20
       },
@@ -2495,6 +2601,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×3.8배 강하게 증가, 시총 대비 거래대금 8.7% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 79%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 79.2,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -2553,6 +2660,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 8.3% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260421",
+        "qvaDaysAgo": 11,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 11거래일 전",
         "riskTrapScore": 96.39999999999999,
         "displayPriorityScore": 0,
         "riskExcluded": "trap_risk_high"
@@ -2611,6 +2724,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 8.2% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260414",
+        "qvaDaysAgo": 16,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 16거래일 전",
         "riskTrapScore": 9.759999999999998,
         "displayPriorityScore": 60
       },
@@ -2668,6 +2787,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 7.7% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 65.3,
         "displayPriorityScore": 0,
         "riskExcluded": "trap_risk_high"
@@ -2726,6 +2846,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 7.6% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 85%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 85,
         "displayPriorityScore": 0,
         "riskExcluded": "trap_risk_high"
@@ -2784,6 +2905,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×3.1배 강하게 증가, 시총 대비 거래대금 7.4% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 33.300000000000004,
         "displayPriorityScore": 60
       },
@@ -2841,6 +2963,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×2.4배 늘었음, 시총 대비 거래대금 7.1% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260424",
+        "qvaDaysAgo": 9,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 9거래일 전",
         "riskTrapScore": 92.5,
         "displayPriorityScore": 0,
         "riskExcluded": "trap_risk_high"
@@ -2899,6 +3027,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×2.1배 늘었음, 시총 대비 거래대금 7.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 57%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260409",
+        "qvaDaysAgo": 20,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 20거래일 전",
         "riskTrapScore": 57.099999999999994,
         "displayPriorityScore": 20
       },
@@ -2956,6 +3090,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×7.2배 폭증, 시총 대비 거래대금 6.8% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 93.8,
         "displayPriorityScore": 0,
         "riskExcluded": "trap_risk_high"
@@ -3014,6 +3149,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 6.7% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260423",
+        "qvaDaysAgo": 10,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 10거래일 전",
         "riskTrapScore": 82.1,
         "displayPriorityScore": 0,
         "riskExcluded": "trap_risk_high"
@@ -3072,6 +3213,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 6.3% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 0,
         "displayPriorityScore": 50
       },
@@ -3129,6 +3271,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×29.6배 폭증, 시총 대비 거래대금 6.3% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 65%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 64.7,
         "displayPriorityScore": 10,
         "riskExcluded": "trap_risk_high"
@@ -3187,6 +3330,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 6.3% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260416",
+        "qvaDaysAgo": 15,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 15거래일 전",
         "riskTrapScore": 93.10000000000001,
         "displayPriorityScore": 0,
         "riskExcluded": "trap_risk_high"
@@ -3245,6 +3394,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 6.1% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 54%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 54,
         "displayPriorityScore": 20
       },
@@ -3302,6 +3452,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 5.8% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260416",
+        "qvaDaysAgo": 15,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 15거래일 전",
         "riskTrapScore": 64.60000000000001,
         "displayPriorityScore": 0,
         "riskExcluded": "trap_risk_high"
@@ -3360,6 +3516,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 5.6% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 100,
         "displayPriorityScore": 0,
         "riskExcluded": "trap_risk_high"
@@ -3418,6 +3575,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 5.5% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260421",
+        "qvaDaysAgo": 11,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 11거래일 전",
         "riskTrapScore": 74.4,
         "displayPriorityScore": 0,
         "riskExcluded": "trap_risk_high"
@@ -3476,6 +3639,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 5.5% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260424",
+        "qvaDaysAgo": 9,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 9거래일 전",
         "riskTrapScore": 0,
         "displayPriorityScore": 60
       },
@@ -3533,6 +3702,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×3.8배 강하게 증가, 시총 대비 거래대금 5.2% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 70%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 69.8,
         "displayPriorityScore": 0,
         "riskExcluded": "trap_risk_high"
@@ -3591,6 +3761,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 5.2% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 60%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 59.5,
         "displayPriorityScore": 20
       },
@@ -3648,6 +3819,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×2.0배 늘었음, 시총 대비 거래대금 5.2% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 69.1,
         "displayPriorityScore": 0,
         "riskExcluded": "trap_risk_high"
@@ -3706,6 +3878,12 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×2.7배 늘었음, 시총 대비 거래대금 5.2% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260417",
+        "qvaDaysAgo": 14,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 14거래일 전",
         "riskTrapScore": 28.1,
         "displayPriorityScore": 50
       },
@@ -3763,6 +3941,7 @@
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 5.1% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 32.1,
         "displayPriorityScore": 60
       }
@@ -3823,6 +4002,12 @@
         "gtGroup": "MOM-RISK",
         "summaryLine": "거래대금이 평소보다 ×3.9배 강하게 증가, 시총 대비 거래대금 150.2% (회사 크기 대비 매우 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형, 거래대금 시장 상위 19위. 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260409",
+        "qvaDaysAgo": 20,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 20거래일 전",
         "riskTrapScore": 1.129999999999999,
         "displayPriorityScore": 10,
         "riskExcluded": "group_off_pool"
@@ -3881,6 +4066,12 @@
         "gtGroup": "MOM-RISK",
         "summaryLine": "거래대금이 평소보다 ×78.9배 폭증, 시총 대비 거래대금 83.5% (회사 크기 대비 매우 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형, 거래대금 시장 상위 18위. 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260504",
+        "qvaDaysAgo": 2,
+        "qvaWindowLabel": "단기",
+        "qvaWindowDesc": "최근 며칠 안에 QVA 신호가 있었지만 급등 직전이라 의미가 약할 수 있습니다.",
+        "qvaDisplayText": "QVA · 2거래일 전",
         "riskTrapScore": 0,
         "displayPriorityScore": 10,
         "riskExcluded": "group_off_pool"
@@ -3939,6 +4130,7 @@
         "gtGroup": "MOM-RISK",
         "summaryLine": "거래대금이 평소보다 ×23.6배 폭증, 시총 대비 거래대금 8.0% (회사 크기에 비해 충분한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형. 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 0,
         "displayPriorityScore": -10,
         "riskExcluded": "group_off_pool"
@@ -3997,6 +4189,7 @@
         "gtGroup": "MOM-RISK",
         "summaryLine": "거래대금이 평소보다 ×4.0배 강하게 증가, 시총 대비 거래대금 90.7% (회사 크기 대비 매우 강한 수급), 갭상승 후 종가 유지형 (HIT10 높지만 시초가 추격 위험), 최근 5일 첫 급등형. 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 0,
         "displayPriorityScore": -30,
         "riskExcluded": "group_off_pool"
@@ -4055,6 +4248,12 @@
         "gtGroup": "MOM-RISK",
         "summaryLine": "거래대금이 평소보다 ×2.3배 늘었음, 시총 대비 거래대금 9.8% (회사 크기에 비해 충분한 수급), 갭상승 후 종가 유지형 (HIT10 높지만 시초가 추격 위험), 최근 5일 +15% 1회 (sweet spot). 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260417",
+        "qvaDaysAgo": 14,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 14거래일 전",
         "riskTrapScore": 33.19,
         "displayPriorityScore": -40,
         "riskExcluded": "group_off_pool"
@@ -4115,6 +4314,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "거래대금이 평소보다 ×2.5배 늘었음, 시총 대비 거래대금 75.7% (회사 크기 대비 매우 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 1위. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 20.669999999999998,
         "displayPriorityScore": 15,
         "riskExcluded": "group_off_pool"
@@ -4173,6 +4373,12 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "시총 대비 거래대금 7.0% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 24위. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260414",
+        "qvaDaysAgo": 16,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 16거래일 전",
         "riskTrapScore": 67.30000000000001,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -4231,6 +4437,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "시총 대비 거래대금 6.8% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 20위. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 89.2,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -4289,6 +4496,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 84.6,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -4347,6 +4555,12 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "윗꼬리 양봉 (윗꼬리 44%), 최근 5일 첫 급등형, 거래대금 시장 상위 26위. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260413",
+        "qvaDaysAgo": 17,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 17거래일 전",
         "riskTrapScore": 43.5,
         "displayPriorityScore": -50,
         "riskExcluded": "group_off_pool"
@@ -4405,6 +4619,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 78.4,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -4463,6 +4678,12 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260427",
+        "qvaDaysAgo": 7,
+        "qvaWindowLabel": "1주일 이내",
+        "qvaWindowDesc": "최근 1주일 안에 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 7거래일 전",
         "riskTrapScore": 100,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -4521,6 +4742,12 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260422",
+        "qvaDaysAgo": 11,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 11거래일 전",
         "riskTrapScore": 76.1,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -4579,6 +4806,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "윗꼬리 양봉 (윗꼬리 50%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 49.6,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -4637,6 +4865,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 79.3,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -4695,6 +4924,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 75.7,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -4753,6 +4983,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "거래대금이 평소보다 ×2.2배 늘었음, 최근 5일 +15% 1회 (sweet spot). 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 36.4,
         "displayPriorityScore": -30,
         "riskExcluded": "group_off_pool"
@@ -4811,6 +5042,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 16.400000000000002,
         "displayPriorityScore": -20,
         "riskExcluded": "group_off_pool"
@@ -4869,6 +5101,12 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "거래대금이 평소보다 ×3.5배 강하게 증가, 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260416",
+        "qvaDaysAgo": 15,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 15거래일 전",
         "riskTrapScore": 26.900000000000002,
         "displayPriorityScore": -20,
         "riskExcluded": "group_off_pool"
@@ -4927,6 +5165,12 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260422",
+        "qvaDaysAgo": 11,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 11거래일 전",
         "riskTrapScore": 45.1,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -4985,6 +5229,12 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260410",
+        "qvaDaysAgo": 19,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 19거래일 전",
         "riskTrapScore": 92.60000000000001,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -5043,6 +5293,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 71.8,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -5101,6 +5352,12 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "윗꼬리 양봉 (윗꼬리 74%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260423",
+        "qvaDaysAgo": 10,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 10거래일 전",
         "riskTrapScore": 74.1,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -5159,6 +5416,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 94.89999999999999,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -5217,6 +5475,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "윗꼬리 양봉 (윗꼬리 45%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 44.9,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -5275,6 +5534,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 99.2,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -5333,6 +5593,12 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 +15% 1회 (sweet spot). 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260422",
+        "qvaDaysAgo": 11,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 11거래일 전",
         "riskTrapScore": 57.730000000000004,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -5391,6 +5657,12 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "윗꼬리 양봉 (윗꼬리 39%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260415",
+        "qvaDaysAgo": 16,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 16거래일 전",
         "riskTrapScore": 38.7,
         "displayPriorityScore": -30,
         "riskExcluded": "group_off_pool"
@@ -5449,6 +5721,12 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "윗꼬리 양봉 (윗꼬리 37%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260430",
+        "qvaDaysAgo": 5,
+        "qvaWindowLabel": "1주일 이내",
+        "qvaWindowDesc": "최근 1주일 안에 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 5거래일 전",
         "riskTrapScore": 37.3,
         "displayPriorityScore": -20,
         "riskExcluded": "group_off_pool"
@@ -5507,6 +5785,12 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260424",
+        "qvaDaysAgo": 9,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 9거래일 전",
         "riskTrapScore": 91.3,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -5565,6 +5849,12 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260430",
+        "qvaDaysAgo": 5,
+        "qvaWindowLabel": "1주일 이내",
+        "qvaWindowDesc": "최근 1주일 안에 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 5거래일 전",
         "riskTrapScore": 87.5,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -5623,6 +5913,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 33.300000000000004,
         "displayPriorityScore": -30,
         "riskExcluded": "group_off_pool"
@@ -5681,6 +5972,12 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260417",
+        "qvaDaysAgo": 14,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 14거래일 전",
         "riskTrapScore": 81.3,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -5739,6 +6036,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 76.4,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -5797,6 +6095,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "윗꼬리 양봉 (윗꼬리 38%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 37.5,
         "displayPriorityScore": -30,
         "riskExcluded": "group_off_pool"
@@ -5855,6 +6154,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 42.1,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -5913,6 +6213,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 63.9,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -5971,6 +6272,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 80.80000000000001,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -6029,6 +6331,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 73.7,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -6087,6 +6390,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 7.9,
         "displayPriorityScore": -30,
         "riskExcluded": "group_off_pool"
@@ -6145,6 +6449,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 61.4,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -6203,6 +6508,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 25.900000000000002,
         "displayPriorityScore": -30,
         "riskExcluded": "group_off_pool"
@@ -6261,6 +6567,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 60,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -6319,6 +6626,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 65.10000000000001,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -6377,6 +6685,7 @@
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 66.3,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -6437,6 +6746,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×4.6배 강하게 증가, 시총 대비 거래대금 11.5% (회사 크기 대비 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 24.67,
         "displayPriorityScore": 0,
         "riskExcluded": "group_off_pool"
@@ -6495,6 +6805,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×4.2배 강하게 증가, 시총 대비 거래대금 83.1% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 91.03,
         "displayPriorityScore": -50,
         "riskExcluded": "group_off_pool"
@@ -6553,6 +6864,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×6.5배 폭증, 시총 대비 거래대금 81.2% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 35%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 35.3,
         "displayPriorityScore": 0,
         "riskExcluded": "group_off_pool"
@@ -6612,6 +6924,7 @@
         "summaryLine": "거래대금이 평소보다 ×130.5배 폭증, 시총 대비 거래대금 71.4% (회사 크기 대비 매우 강한 수급), 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_MINUTE_DATA",
         "nextDayDir": "2026-04-17",
+        "hasRecentQva": false,
         "riskTrapScore": 109.89000000000001,
         "displayPriorityScore": -55,
         "riskExcluded": "group_off_pool"
@@ -6670,6 +6983,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×3.5배 강하게 증가, 시총 대비 거래대금 69.1% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 85%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 84.7,
         "displayPriorityScore": -50,
         "riskExcluded": "group_off_pool"
@@ -6728,6 +7042,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×2.7배 늘었음, 시총 대비 거래대금 68.2% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 87.5,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -6786,6 +7101,12 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×5.3배 폭증, 시총 대비 거래대금 39.8% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 59%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260430",
+        "qvaDaysAgo": 5,
+        "qvaWindowLabel": "1주일 이내",
+        "qvaWindowDesc": "최근 1주일 안에 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 5거래일 전",
         "riskTrapScore": 59.199999999999996,
         "displayPriorityScore": -30,
         "riskExcluded": "group_off_pool"
@@ -6844,6 +7165,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×3.4배 강하게 증가, 시총 대비 거래대금 34.3% (회사 크기 대비 매우 강한 수급). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 90.96,
         "displayPriorityScore": -70,
         "riskExcluded": "group_off_pool"
@@ -6902,6 +7224,12 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×2.3배 늘었음, 시총 대비 거래대금 34.2% (회사 크기 대비 매우 강한 수급). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260427",
+        "qvaDaysAgo": 7,
+        "qvaWindowLabel": "1주일 이내",
+        "qvaWindowDesc": "최근 1주일 안에 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 7거래일 전",
         "riskTrapScore": 86.96000000000001,
         "displayPriorityScore": -70,
         "riskExcluded": "group_off_pool"
@@ -6960,6 +7288,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×4.4배 강하게 증가, 시총 대비 거래대금 32.1% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 68%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 67.5,
         "displayPriorityScore": -50,
         "riskExcluded": "group_off_pool"
@@ -7018,6 +7347,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 30.7% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 100,
         "displayPriorityScore": -45,
         "riskExcluded": "group_off_pool"
@@ -7076,6 +7406,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 28.3% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 90.5,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -7134,6 +7465,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 25.1% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 59%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 58.599999999999994,
         "displayPriorityScore": -30,
         "riskExcluded": "group_off_pool"
@@ -7193,6 +7525,7 @@
         "summaryLine": "거래대금이 평소보다 ×5.0배 강하게 증가, 시총 대비 거래대금 22.4% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_MINUTE_DATA",
         "nextDayDir": "2026-04-01",
+        "hasRecentQva": false,
         "riskTrapScore": 99.5,
         "displayPriorityScore": -45,
         "riskExcluded": "group_off_pool"
@@ -7251,6 +7584,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 18.9% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 58%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 58.3,
         "displayPriorityScore": -40,
         "riskExcluded": "group_off_pool"
@@ -7309,6 +7643,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×53.6배 폭증, 시총 대비 거래대금 17.1% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 42%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 42,
         "displayPriorityScore": -30,
         "riskExcluded": "group_off_pool"
@@ -7367,6 +7702,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 16.8% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 62%), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 61.5,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -7425,6 +7761,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 16.5% (회사 크기 대비 강한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 97.7,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -7483,6 +7820,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 14.2% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 82.6,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -7541,6 +7879,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 13.7% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 90%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 89.7,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -7599,6 +7938,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×9.3배 폭증, 시총 대비 거래대금 12.7% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 69%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 68.8,
         "displayPriorityScore": -50,
         "riskExcluded": "group_off_pool"
@@ -7657,6 +7997,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×4.1배 강하게 증가, 시총 대비 거래대금 12.4% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 91.4,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -7715,6 +8056,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 12.0% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 46%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 45.5,
         "displayPriorityScore": -30,
         "riskExcluded": "group_off_pool"
@@ -7773,6 +8115,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 11.6% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 44%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 44.3,
         "displayPriorityScore": -40,
         "riskExcluded": "group_off_pool"
@@ -7831,6 +8174,12 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 10.7% (회사 크기 대비 강한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260420",
+        "qvaDaysAgo": 12,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 12거래일 전",
         "riskTrapScore": 76.9,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -7890,6 +8239,7 @@
         "summaryLine": "시총 대비 거래대금 9.3% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_MINUTE_DATA",
         "nextDayDir": "2026-04-29",
+        "hasRecentQva": false,
         "riskTrapScore": 91.7,
         "displayPriorityScore": -55,
         "riskExcluded": "group_off_pool"
@@ -7948,6 +8298,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 9.3% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 62%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 61.7,
         "displayPriorityScore": -60,
         "riskExcluded": "group_off_pool"
@@ -8006,6 +8357,12 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×3.3배 강하게 증가, 시총 대비 거래대금 8.2% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 77%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260506",
+        "qvaDaysAgo": 1,
+        "qvaWindowLabel": "단기",
+        "qvaWindowDesc": "최근 며칠 안에 QVA 신호가 있었지만 급등 직전이라 의미가 약할 수 있습니다.",
+        "qvaDisplayText": "QVA · 1거래일 전",
         "riskTrapScore": 77.10000000000001,
         "displayPriorityScore": -70,
         "riskExcluded": "group_off_pool"
@@ -8064,6 +8421,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×6.3배 폭증, 시총 대비 거래대금 7.9% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 40%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 40.400000000000006,
         "displayPriorityScore": -40,
         "riskExcluded": "group_off_pool"
@@ -8122,6 +8480,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 7.2% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 79.5,
         "displayPriorityScore": -70,
         "riskExcluded": "group_off_pool"
@@ -8180,6 +8539,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 7.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 45%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 44.800000000000004,
         "displayPriorityScore": -50,
         "riskExcluded": "group_off_pool"
@@ -8238,6 +8598,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×4.6배 강하게 증가, 시총 대비 거래대금 6.1% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 29.7,
         "displayPriorityScore": -10,
         "riskExcluded": "group_off_pool"
@@ -8296,6 +8657,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 6.0% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 63.3,
         "displayPriorityScore": -70,
         "riskExcluded": "group_off_pool"
@@ -8355,6 +8717,7 @@
         "summaryLine": "시총 대비 거래대금 5.8% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 41%), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_MINUTE_DATA",
         "nextDayDir": "2026-05-04",
+        "hasRecentQva": false,
         "riskTrapScore": 41.199999999999996,
         "displayPriorityScore": -25,
         "riskExcluded": "group_off_pool"
@@ -8413,6 +8776,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×13.9배 폭증, 시총 대비 거래대금 5.7% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 92.4,
         "displayPriorityScore": -70,
         "riskExcluded": "group_off_pool"
@@ -8471,6 +8835,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 5.1% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 77.60000000000001,
         "displayPriorityScore": -70,
         "riskExcluded": "group_off_pool"
@@ -8529,6 +8894,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "시총 대비 거래대금 5.0% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 98.2,
         "displayPriorityScore": -70,
         "riskExcluded": "group_off_pool"
@@ -8587,6 +8953,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×2.5배 늘었음, 시총 대비 거래대금 5.0% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 56.89999999999999,
         "displayPriorityScore": -50,
         "riskExcluded": "group_off_pool"
@@ -8645,6 +9012,7 @@
         "gtGroup": "MICRO-RISK",
         "summaryLine": "윗꼬리 양봉 (윗꼬리 69%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 68.89999999999999,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -8704,6 +9072,7 @@
         "summaryLine": "최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
         "entryStatus": "NO_MINUTE_DATA",
         "nextDayDir": "2026-03-17",
+        "hasRecentQva": false,
         "riskTrapScore": 66.5,
         "displayPriorityScore": -65,
         "riskExcluded": "group_off_pool"
@@ -8765,6 +9134,7 @@
         "summaryLine": "거래대금이 평소보다 ×4.5배 강하게 증가, 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 1위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_MINUTE_DATA",
         "nextDayDir": "2026-05-07",
+        "hasRecentQva": false,
         "riskTrapScore": 46.239999999999995,
         "displayPriorityScore": -65,
         "riskExcluded": "group_off_pool"
@@ -8823,6 +9193,12 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "거래대금이 평소보다 ×2.4배 늘었음, 시총 대비 거래대금 10.5% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 6위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260421",
+        "qvaDaysAgo": 11,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 11거래일 전",
         "riskTrapScore": 34.35,
         "displayPriorityScore": -5,
         "riskExcluded": "group_off_pool"
@@ -8881,6 +9257,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "거래대금이 평소보다 ×5.2배 폭증, 시총 대비 거래대금 8.8% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 4위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 63.050000000000004,
         "displayPriorityScore": -65,
         "riskExcluded": "group_off_pool"
@@ -8939,6 +9316,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "거래대금이 평소보다 ×2.8배 늘었음, 시총 대비 거래대금 6.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 40%), 최근 5일 첫 급등형, 거래대금 시장 상위 14위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 40.2,
         "displayPriorityScore": -50,
         "riskExcluded": "group_off_pool"
@@ -8997,6 +9375,12 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "시총 대비 거래대금 5.8% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 12위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260423",
+        "qvaDaysAgo": 10,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 10거래일 전",
         "riskTrapScore": 100,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -9055,6 +9439,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "시총 대비 거래대금 5.7% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 17위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 27.900000000000002,
         "displayPriorityScore": -20,
         "riskExcluded": "group_off_pool"
@@ -9113,6 +9498,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형, 거래대금 시장 상위 16위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 19.6,
         "displayPriorityScore": -30,
         "riskExcluded": "group_off_pool"
@@ -9171,6 +9557,12 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형, 거래대금 시장 상위 13위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260421",
+        "qvaDaysAgo": 11,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 11거래일 전",
         "riskTrapScore": 94.3,
         "displayPriorityScore": -90,
         "riskExcluded": "group_off_pool"
@@ -9229,6 +9621,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 25위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 55.37,
         "displayPriorityScore": -70,
         "riskExcluded": "group_off_pool"
@@ -9287,6 +9680,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "장대양봉 마감, 최근 5일 첫 급등형, 거래대금 시장 상위 29위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 12.5,
         "displayPriorityScore": -30,
         "riskExcluded": "group_off_pool"
@@ -9345,6 +9739,12 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형, 거래대금 시장 상위 27위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260423",
+        "qvaDaysAgo": 10,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 10거래일 전",
         "riskTrapScore": 67.4,
         "displayPriorityScore": -90,
         "riskExcluded": "group_off_pool"
@@ -9403,6 +9803,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "거래대금이 평소보다 ×2.0배 늘었음, 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 93.30000000000001,
         "displayPriorityScore": -100,
         "riskExcluded": "group_off_pool"
@@ -9461,6 +9862,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 81.8,
         "displayPriorityScore": -100,
         "riskExcluded": "group_off_pool"
@@ -9519,6 +9921,12 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260429",
+        "qvaDaysAgo": 6,
+        "qvaWindowLabel": "1주일 이내",
+        "qvaWindowDesc": "최근 1주일 안에 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 6거래일 전",
         "riskTrapScore": 80.5,
         "displayPriorityScore": -100,
         "riskExcluded": "group_off_pool"
@@ -9577,6 +9985,12 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "거래대금이 평소보다 ×4.0배 강하게 증가, 최근 5일 +15% 1회 (sweet spot). 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260414",
+        "qvaDaysAgo": 16,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 16거래일 전",
         "riskTrapScore": 77.8,
         "displayPriorityScore": -90,
         "riskExcluded": "group_off_pool"
@@ -9635,6 +10049,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 93.60000000000001,
         "displayPriorityScore": -100,
         "riskExcluded": "group_off_pool"
@@ -9693,6 +10108,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "거래대금이 평소보다 ×3.4배 강하게 증가, 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 28.1,
         "displayPriorityScore": -50,
         "riskExcluded": "group_off_pool"
@@ -9751,6 +10167,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 90,
         "displayPriorityScore": -100,
         "riskExcluded": "group_off_pool"
@@ -9809,6 +10226,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "윗꼬리 양봉 (윗꼬리 85%), 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 84.89999999999999,
         "displayPriorityScore": -100,
         "riskExcluded": "group_off_pool"
@@ -9867,6 +10285,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 92.9,
         "displayPriorityScore": -100,
         "riskExcluded": "group_off_pool"
@@ -9925,6 +10344,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 68.60000000000001,
         "displayPriorityScore": -100,
         "riskExcluded": "group_off_pool"
@@ -9983,6 +10403,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 72.5,
         "displayPriorityScore": -100,
         "riskExcluded": "group_off_pool"
@@ -10041,6 +10462,12 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "윗꼬리 양봉 (윗꼬리 38%), 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260506",
+        "qvaDaysAgo": 1,
+        "qvaWindowLabel": "단기",
+        "qvaWindowDesc": "최근 며칠 안에 QVA 신호가 있었지만 급등 직전이라 의미가 약할 수 있습니다.",
+        "qvaDisplayText": "QVA · 1거래일 전",
         "riskTrapScore": 37.5,
         "displayPriorityScore": -50,
         "riskExcluded": "group_off_pool"
@@ -10099,6 +10526,12 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "윗꼬리 양봉 (윗꼬리 47%), 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260422",
+        "qvaDaysAgo": 11,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 11거래일 전",
         "riskTrapScore": 46.800000000000004,
         "displayPriorityScore": -80,
         "riskExcluded": "group_off_pool"
@@ -10157,6 +10590,12 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260417",
+        "qvaDaysAgo": 14,
+        "qvaWindowLabel": "1~2주 전",
+        "qvaWindowDesc": "1~2주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 14거래일 전",
         "riskTrapScore": 88.9,
         "displayPriorityScore": -100,
         "riskExcluded": "group_off_pool"
@@ -10215,6 +10654,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 +15% 1회 (sweet spot). 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 86.5,
         "displayPriorityScore": -100,
         "riskExcluded": "group_off_pool"
@@ -10273,6 +10713,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 28.999999999999996,
         "displayPriorityScore": -40,
         "riskExcluded": "group_off_pool"
@@ -10331,6 +10772,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 100,
         "displayPriorityScore": -100,
         "riskExcluded": "group_off_pool"
@@ -10389,6 +10831,12 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": true,
+        "qvaSignalDate": "20260416",
+        "qvaDaysAgo": 15,
+        "qvaWindowLabel": "2~3주 전",
+        "qvaWindowDesc": "2~3주 전 QVA 신호가 발생했던 후보입니다.",
+        "qvaDisplayText": "QVA · 15거래일 전",
         "riskTrapScore": 94.69999999999999,
         "displayPriorityScore": -100,
         "riskExcluded": "group_off_pool"
@@ -10451,6 +10899,7 @@
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
         "entryStatus": "NO_DIR",
+        "hasRecentQva": false,
         "riskTrapScore": 79.10000000000001,
         "displayPriorityScore": -100,
         "riskExcluded": "group_off_pool"
@@ -10541,7 +10990,7 @@
       "WEAK_DAY": 2,
       "MIXED_DAY": 19
     },
-    "generatedAt": "2026-05-07T10:14:55.593Z"
+    "generatedAt": "2026-05-07T11:09:28.987Z"
   },
   "marketState": {
     "state": "LARGE_CAP_LED",
@@ -10557,6 +11006,14 @@
       "close": 1199.18,
       "changeRate": -0.908136873331844
     }
+  },
+  "qvaSummary": {
+    "taggedTopCount": 1,
+    "taggedExtraCount": 4,
+    "taggedTotalVisibleCount": 5,
+    "totalCandidatesTagged": 439,
+    "qvaSignalMapSize": 600,
+    "displayOnly": true
   },
   "entryShelf": {
     "strategyDefs": {
