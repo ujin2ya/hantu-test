@@ -391,6 +391,49 @@ function classifyQvaWindow(daysAgo) {
   if (daysAgo <= 14) return { label: '1~2주 전',   desc: '1~2주 전 QVA 신호가 발생했던 후보입니다.' };
   return                   { label: '2~3주 전',   desc: '2~3주 전 QVA 신호가 발생했던 후보입니다.' };
 }
+// ── 후보 유형별 과거 검증 성과 (40 거래일 운영형 백테스트 결과) ──
+// 카드에 작은 박스로 노출 — 사용자가 후보 유형 성격을 즉시 이해할 수 있게 함.
+// 4 안전 전략에만 적용. 위험 전략은 보드 미노출이라 매핑 X. 분봉 미반영은 pending 안내.
+const PERFORMANCE_STATS = {
+  BALANCED_REBREAK: { label: '수급 균형 + 장초 재상승',     hit5: 75.3, closePos: 67.5, avgClose: 3.55, fail5: 39.0 },
+  SAFE_REBREAK:     { label: '장초 재상승 확인',             hit5: 57.5, closePos: 62.2, avgClose: 1.99, fail5: 24.9 },
+  CLEAN_REBREAK:    { label: '무리 없는 장초 재상승',        hit5: 57.1, closePos: 61.6, avgClose: 1.95, fail5: 24.7 },
+  LIGHT_REBREAK:    { label: '가벼운 종목의 장초 재상승',    hit5: 63.2, closePos: 61.0, avgClose: 1.82, fail5: 32.7 },
+};
+const PERFORMANCE_DISCLAIMER = '실제 대응은 본인의 판단입니다.';
+const PERFORMANCE_SOURCE     = '과거 40거래일 운영형 백테스트';
+function classifyPerformance(it) {
+  const tags = it.entryStrategies || [];
+  // 가장 강한 안전 전략 선택 (BAL > SAFE > CLEAN > LIGHT 순)
+  const safeOrder = ['BALANCED_REBREAK', 'SAFE_REBREAK', 'CLEAN_REBREAK', 'LIGHT_REBREAK'];
+  for (const k of safeOrder) {
+    if (tags.includes(k)) {
+      const s = PERFORMANCE_STATS[k];
+      return {
+        confirmed: true,
+        label: s.label,
+        stats: {
+          intradayHit5Rate:  s.hit5,
+          closePositiveRate: s.closePos,
+          avgCloseRate:      s.avgClose,
+          intradayFail5Rate: s.fail5,
+        },
+        source: PERFORMANCE_SOURCE,
+        disclaimer: PERFORMANCE_DISCLAIMER,
+      };
+    }
+  }
+  // 분봉 미반영 또는 안전 전략 미통과 — pending
+  return {
+    confirmed: false,
+    label: null,
+    stats: null,
+    source: null,
+    disclaimer: PERFORMANCE_DISCLAIMER,
+    pendingNote: '장초 재상승 확인 후 과거 성과가 표시됩니다.',
+  };
+}
+
 function attachQvaHistory(candidates, qvaSignalMap) {
   let tagged = 0;
   for (const it of candidates) {
@@ -713,10 +756,17 @@ function main() {
   const lowGapCount = all.filter(x => x.candleType === 'LOW_GAP_INTRADAY').length;
   const highVmcCount = all.filter(x => x.valueToMarketCapRatio >= 10).length;
 
-  // ── displayPriorityScore + riskTrapScore 계산 (모든 candidate, 장초 분봉 적용 후) ──
+  // ── displayPriorityScore + riskTrapScore + 후보 유형별 과거 성과 부착 ──
   for (const it of all) {
     it.riskTrapScore = calcRiskTrapScore(it);
     it.displayPriorityScore = calcDisplayPriorityScore(it);
+    const perf = classifyPerformance(it);
+    it.performanceConfirmed   = perf.confirmed;
+    it.performanceLabel       = perf.label;
+    it.performanceStats       = perf.stats;
+    it.performanceSource      = perf.source;
+    it.performanceDisclaimer  = perf.disclaimer;
+    it.performancePendingNote = perf.pendingNote || null;
   }
 
   // ── 화면 노출 우선순위 풀 구성 (추천 후보만) ──
@@ -1126,6 +1176,25 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .summary-line { margin-top: 8px; padding: 8px 12px; background: #0f172a; border-left: 2px solid #38bdf8; border-radius: 4px; font-size: 12px; line-height: 1.7; color: #cbd5e1; }
 .gap-note { margin-top: 8px; padding: 6px 10px; background: #0f172a; border-left: 2px solid #94a3b8; border-radius: 4px; font-size: 11px; color: #94a3b8; }
 
+/* ── 후보 유형별 과거 검증 성과 박스 (중립 배경, +/- 동등 표시) ── */
+.perf-box {
+  margin: 8px 0 6px;
+  padding: 8px 12px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  font-size: 11.5px;
+  line-height: 1.7;
+}
+.perf-box .perf-source { font-size: 10px; color: #64748b; margin-bottom: 3px; letter-spacing: 0.2px; }
+.perf-box .perf-stats  { color: #cbd5e1; }
+.perf-box .perf-stats .perf-pos  { color: #6ee7b7; font-weight: 600; }
+.perf-box .perf-stats .perf-warn { color: #fca5a5; font-weight: 600; }
+.perf-box .perf-stats .perf-sep  { color: #475569; margin: 0 2px; }
+.perf-box .perf-disclaimer { font-size: 10px; color: #64748b; margin-top: 5px; opacity: 0.9; }
+.perf-box.pending { background: #1e293b; border-style: dashed; }
+.perf-box.pending .perf-pending { color: #94a3b8; font-size: 11.5px; font-style: italic; }
+
 .empty-list { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; text-align: center; color: #64748b; }
 
 footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.7; }
@@ -1151,8 +1220,13 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 <div class="subtitle" id="subtitle"></div>
 
 <div class="purpose-box">
-  전체 후보를 모두 보여주지 않고, <strong>먼저 확인할 5종목만</strong> 추려서 보여줍니다.
-  추가 확인 10개는 접힘으로 두고, 위험 신호가 큰 후보는 운영 화면에서 제외했습니다.
+  이 보드는 <strong>과거 검증에서 장초 반응이 좋았던 유형만</strong> 추려 보여줍니다.
+  먼저 확인할 5종목 + 추가 확인 10개(접힘)만 노출하고, 위험 신호가 큰 후보는 화면에서 제외했습니다.
+  <br><br>
+  <span style="font-size:11.5px;color:#94a3b8;line-height:1.7;">
+    카드의 과거 성과 수치는 <strong>과거 40거래일 운영형 백테스트 결과</strong>입니다.
+    참고용이며 <strong>오늘도 그대로 된다는 뜻은 아닙니다.</strong> 실제 진입과 대응은 본인의 판단입니다.
+  </span>
 </div>
 <div id="market-banner-host"></div>
 <div id="daytype-banner-host"></div>
@@ -1536,10 +1610,34 @@ function buildCardHtml(it) {
       '</div>'
     : '';
 
+  // 후보 유형별 과거 검증 성과 박스 (4 안전 전략 통과 시만 확정 수치, 아니면 pending)
+  let perfBox = '';
+  if (it.performanceConfirmed && it.performanceStats) {
+    const s = it.performanceStats;
+    perfBox = '<div class="perf-box">' +
+      '<div class="perf-source">' + (it.performanceSource || '') + ' · 유형: ' + (it.performanceLabel || '') + '</div>' +
+      '<div class="perf-stats">' +
+        '<span class="perf-pos">장중 +5% 도달 ' + s.intradayHit5Rate.toFixed(0) + '%</span>' +
+        '<span class="perf-sep">·</span>' +
+        '<span class="perf-pos">종가 플러스 ' + s.closePositiveRate.toFixed(0) + '%</span><br>' +
+        '<span class="perf-pos">평균 종가 ' + (s.avgCloseRate > 0 ? '+' : '') + s.avgCloseRate.toFixed(1) + '%</span>' +
+        '<span class="perf-sep">·</span>' +
+        '<span class="perf-warn">-5% 흔들림 ' + s.intradayFail5Rate.toFixed(0) + '%</span>' +
+      '</div>' +
+      '<div class="perf-disclaimer">' + (it.performanceDisclaimer || '실제 대응은 본인의 판단입니다.') + '</div>' +
+    '</div>';
+  } else if (it.performancePendingNote) {
+    perfBox = '<div class="perf-box pending">' +
+      '<div class="perf-pending">' + it.performancePendingNote + '</div>' +
+      '<div class="perf-disclaimer">' + (it.performanceDisclaimer || '실제 대응은 본인의 판단입니다.') + '</div>' +
+    '</div>';
+  }
+
   return '<div class="card g-' + it.gtGroup + '" data-group="' + it.gtGroup + '" data-candle="' + (it.candleType || '') + '" data-qva="' + (it.qvaHistoryLabel ? '1' : '0') + '" data-has-qva="' + (it.hasRecentQva ? '1' : '0') + '" data-vvi="' + (it.vviHistory ? '1' : '0') + '" data-strategies="' + ((it.entryStrategies || []).join(',')) + '">' +
     '<h3>' + (it.name || '-') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' + entryStatusPill(it) + '</h3>' +
     qvaStrip +
     '<div class="meta">' + strategyChips(it) + badges.join('') + '</div>' +
+    perfBox +
     '<div class="metrics-grid">' +
       '<div class="metric"><div class="label">기준일 종가</div><div class="value">' + fmtNum(it.close) + '원</div><div class="sub">' + fmtDate(it.baseDate) + '</div></div>' +
       '<div class="metric"><div class="label">전일 등락률</div><div class="value ' + chgCls + '">' + fmtPct(it.changeRate, 2) + '</div><div class="sub">기준일 갭 ' + fmtPct(it.baseGapRate, 2) + '</div></div>' +
