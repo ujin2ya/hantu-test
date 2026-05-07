@@ -1053,6 +1053,12 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .status-banner.needs-refresh .reload-btn { background: #dc2626; border-color: #ef4444; color: #ffffff; font-weight: 800; }
 .status-banner.confirmed      { background: linear-gradient(180deg,#042f2e 0%,#0f172a 80%); border-color: #14b8a6; color: #99f6e4; }
 .status-banner.confirmed .reload-btn { background: #0d9488; border-color: #14b8a6; color: #f0fdfa; }
+.status-banner.late           { background: linear-gradient(180deg,#422006 0%,#0f172a 80%); border-color: #ea580c; color: #fed7aa; }
+.status-banner.late .reload-btn { background: #ea580c; border-color: #fb923c; color: #fff7ed; }
+.status-banner.past           { background: linear-gradient(180deg,#312e81 0%,#0f172a 80%); border-color: #818cf8; color: #c7d2fe; }
+.status-banner.past .reload-btn { background: #4f46e5; border-color: #818cf8; color: #eef2ff; }
+.status-banner.after-market   { background: linear-gradient(180deg,#1e3a8a 0%,#0f172a 80%); border-color: #3b82f6; color: #bfdbfe; }
+.status-banner.after-market .reload-btn { background: #2563eb; border-color: #3b82f6; color: #eff6ff; }
 
 @keyframes status-blink {
   0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.0); }
@@ -1351,14 +1357,51 @@ function formatSeoulNow() {
   const get = (t) => parts.find(p => p.type === t)?.value || '';
   return get('year') + '-' + get('month') + '-' + get('day') + ' ' + get('hour') + ':' + get('minute') + ':' + get('second');
 }
+// 다음 09:30 KST까지 남은 ms (오늘 09:30 미경과면 오늘, 지났으면 다음 거래일 — 주말 skip)
+function getRemainingToNext930() {
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  });
+  const parts = fmt.formatToParts(new Date());
+  const get = (t) => parts.find(p => p.type === t)?.value || '0';
+  const yy = parseInt(get('year'), 10);
+  const mm = parseInt(get('month'), 10);
+  const dd = parseInt(get('day'), 10);
+  // KST 09:30 = UTC 00:30 (시차 +9). UTC epoch로 계산해서 시차 영향 회피.
+  let target = Date.UTC(yy, mm - 1, dd, 0, 30, 0);
+  const nowEpoch = Date.now();
+  if (target <= nowEpoch) {
+    // 오늘 09:30 지남 → 다음 평일 09:30
+    let next = new Date(target);
+    do {
+      next.setUTCDate(next.getUTCDate() + 1);
+    } while (next.getUTCDay() === 0 || next.getUTCDay() === 6);
+    target = next.getTime();
+  }
+  return target - nowEpoch;
+}
+function fmtRemaining(ms) {
+  if (ms < 0 || !Number.isFinite(ms)) return '-';
+  const totalMin = Math.floor(ms / 60000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h > 0) return h + '시간 ' + m + '분';
+  return m + '분';
+}
+
+// 시간대 + 분봉 매칭 여부 → 8단계 status
 function computeBoardStatus() {
   const e = DATA.entryShelf || {};
   const hasIntraday = e.analysisDateConfirmReady === true && (e.withMinute || 0) > 0;
-  if (hasIntraday) return 'confirmed';
   const hhmm = getSeoulHHMM();
-  if (hhmm < 900)  return 'previous-close';
-  if (hhmm < 930)  return 'waiting';
-  return 'needs-refresh';
+  if (hhmm < 900)  return 'pre-market';
+  if (hhmm < 930)  return 'pre-open-waiting';
+  if (hhmm < 1000) return hasIntraday ? 'prime-confirmed' : 'prime-needs-refresh';
+  if (hhmm < 1030) return hasIntraday ? 'late-confirmed' : 'late-needs-refresh';
+  if (hhmm < 1530) return 'past-prime';
+  return 'after-market';
 }
 function renderStatusBanner() {
   const host = document.getElementById('status-banner-host');
@@ -1367,37 +1410,67 @@ function renderStatusBanner() {
   const e = DATA.entryShelf || {};
   const ms = DATA.marketState || {};
   const nowStr = formatSeoulNow();
-  const cfg = {
-    'previous-close': {
-      label: '현재 위치',
+  const remStr = fmtRemaining(getRemainingToNext930());
+  const cfgMap = {
+    'pre-market': {
+      label: '현재 위치', cls: 'previous-close',
       title: '장 시작 전 지켜볼 후보',
-      desc: '<strong>이 목록은 장초 진입 후보가 아닙니다.</strong> 장 시작 전에 미리 지켜볼 후보 리스트입니다. 장 시작 후 09:30 이후 장초 재상승 여부를 다시 확인하세요.',
-      action: '09:30 이후 보드를 새로고침하세요.',
+      desc: '<strong>아직 장초 움직임은 반영되지 않았습니다.</strong> 다음 장초 확인까지 약 <strong>' + remStr + '</strong> 남았습니다. 09:30 이후 다시 확인해야 합니다.',
+      action: '내일 09:30 이후 다시 확인하세요.',
       btn: '보드 새로고침',
     },
-    'waiting': {
-      label: '현재 위치',
+    'pre-open-waiting': {
+      label: '현재 위치', cls: 'waiting',
       title: '장초 확인 대기 중',
-      desc: '<strong>장초 움직임을 확인하는 시간입니다.</strong> 지금 보이는 후보는 아직 장초 확인 전 리스트이며, 09:30 이후 첫 고점 재돌파가 확인되면 후보가 더 좁혀집니다.',
+      desc: '<strong>장초 움직임을 확인 중입니다.</strong> 아직 첫 고점 재돌파 판단이 끝나지 않았습니다. 약 <strong>' + remStr + '</strong> 후 다시 확인하세요.',
       action: '09:30 이후 다시 확인하세요.',
       btn: '보드 새로고침',
     },
-    'needs-refresh': {
-      label: '현재 위치',
-      title: '장초 확인 필요 (09:30 경과)',
-      desc: '<strong>09:30이 지났습니다. 이 화면은 아직 장초 확인 전 리스트입니다.</strong> 장초 분봉 결과를 반영하려면 보드를 새로고침하세요.',
-      action: '보드 새로고침 또는 장초 분봉 수집 후 다시 확인.',
-      btn: '🔄 보드 새로고침',
-    },
-    'confirmed': {
-      label: '현재 위치',
-      title: '오늘 장초 재상승 확인 후보',
-      desc: '<strong>장초 움직임 반영 완료.</strong> 첫 고점 재돌파가 확인된 후보 중 위험 신호가 큰 종목은 제외하고 표시 중입니다.',
+    'prime-confirmed': {
+      label: '현재 위치', cls: 'confirmed',
+      title: '오늘 장초 재상승 확인 후보 (지금이 최적 시간)',
+      desc: '<strong>장초 움직임 반영 완료.</strong> 09:30~10:00 사이 — 장초 단타 확인 최적 구간입니다. 첫 고점 재돌파가 확인된 후보 중 위험 신호가 큰 종목은 제외하고 표시 중.',
       action: '아래 최우선 후보를 확인하세요.',
       btn: '보드 새로고침',
     },
-  }[status];
-  host.innerHTML = '<div class="status-banner ' + status + '">' +
+    'prime-needs-refresh': {
+      label: '현재 위치', cls: 'needs-refresh',
+      title: '장초 확인 필요 (지금이 최적 시간)',
+      desc: '<strong>09:30이 지났습니다. 이 화면은 아직 장초 확인 전 리스트입니다.</strong> 지금이 장초 단타 확인 최적 시간 — 장초 분봉 결과를 반영하려면 보드를 새로고침하세요.',
+      action: '보드 새로고침 또는 장초 분봉 수집 후 다시 확인.',
+      btn: '🔄 보드 새로고침',
+    },
+    'late-confirmed': {
+      label: '현재 위치', cls: 'late',
+      title: '장초 재상승 확인 후보 (신선도 약함)',
+      desc: '장초 움직임은 반영됐지만 <strong>장초 확인 최적 시간(09:30~10:00)은 지났습니다.</strong> 후보로서의 신선도가 조금 떨어졌으니 신중하게 판단하세요.',
+      action: '참고는 가능하지만 신중하게.',
+      btn: '보드 새로고침',
+    },
+    'late-needs-refresh': {
+      label: '현재 위치', cls: 'late',
+      title: '장초 확인 결과 미반영 (이미 늦음)',
+      desc: '<strong>장초 확인 결과가 아직 반영되지 않았습니다. 지금 확인하면 이미 늦을 수 있습니다.</strong> 새로고침은 가능하지만 신선도가 낮습니다.',
+      action: '신선도 낮음 — 신중하게 판단.',
+      btn: '보드 새로고침',
+    },
+    'past-prime': {
+      label: '현재 위치', cls: 'past',
+      title: '장초 확인 시간 지남',
+      desc: '<strong>장초 단타 확인 시간(09:30~10:30)은 지났습니다.</strong> 이 보드는 장 시작 전 후보와 09:30 전후 장초 재상승 확인을 위한 보드입니다. 지금은 새 진입 후보보다 <strong>참고용</strong>으로 보세요.',
+      action: '이미 장초 확인 시간이 지났습니다. 새 진입 후보로 보기는 늦을 수 있습니다.',
+      btn: '참고용 새로고침',
+    },
+    'after-market': {
+      label: '현재 위치', cls: 'after-market',
+      title: '장마감 후 (다음 거래일 09:30 대기)',
+      desc: '<strong>오늘 장초 확인 시간은 종료되었습니다.</strong> 현재 화면은 오늘 결과 복기 또는 다음 거래일 후보 준비용으로 보세요. 다음 확인은 다음 거래일 09:30 이후 (약 <strong>' + remStr + '</strong> 후) 입니다.',
+      action: '다음 거래일 09:30 이후 다시 확인하세요.',
+      btn: '보드 새로고침',
+    },
+  };
+  const cfg = cfgMap[status] || cfgMap['pre-market'];
+  host.innerHTML = '<div class="status-banner ' + cfg.cls + '">' +
     '<div class="status-body">' +
       '<div class="status-label">' + cfg.label + '</div>' +
       '<div class="status-title">' + cfg.title + '</div>' +
@@ -1409,31 +1482,39 @@ function renderStatusBanner() {
       '<button class="reload-btn" onclick="window.location.reload()">' + cfg.btn + '</button>' +
     '</div>' +
   '</div>';
-  // H1 제목도 상태에 맞춰 동적 변경 — 장초 확인 전에는 "장 시작 전 지켜볼 후보"로 명시
+  // H1 제목도 상태에 맞춰 동적 변경
   const h1 = document.getElementById('board-h1');
   if (h1) {
-    if (status === 'confirmed') h1.textContent = '🎯 오늘 장초 재상승 확인 후보';
+    if (status === 'prime-confirmed' || status === 'late-confirmed') h1.textContent = '🎯 오늘 장초 재상승 확인 후보';
+    else if (status === 'past-prime' || status === 'after-market') h1.textContent = '🎯 장초 확인 시간 지남 — 참고용 보드';
     else h1.textContent = '🎯 장 시작 전 지켜볼 후보 (5종목)';
   }
   // top-priority 섹션 설명도 상태에 따라 갱신
   const topDesc = document.getElementById('top-priority-desc');
   if (topDesc) {
-    if (status === 'confirmed') {
+    if (status === 'prime-confirmed' || status === 'late-confirmed') {
       topDesc.innerHTML = '<strong>장초 움직임 반영 완료.</strong> 첫 고점 재돌파가 확인된 후보만 표시 중. 위험 신호가 큰 종목은 자동 제외됨.';
-    } else if (status === 'needs-refresh') {
+    } else if (status === 'prime-needs-refresh' || status === 'late-needs-refresh') {
       topDesc.innerHTML = '<strong>⚠ 09:30이 지났습니다. 이 화면은 아직 장초 확인 전 리스트입니다.</strong> 보드를 새로고침하면 장초 분봉 확인 결과가 반영됩니다.';
+    } else if (status === 'past-prime' || status === 'after-market') {
+      topDesc.innerHTML = '<strong>장초 단타 확인 시간이 지났습니다.</strong> 새 진입 후보로 보기는 늦을 수 있으며, 현재 화면은 참고용 또는 다음 거래일 준비용입니다.';
     } else {
       topDesc.innerHTML = '아래 5종목은 <strong>내일 장 시작 전에 먼저 지켜볼 후보</strong>입니다. 09:30 이후 장초 움직임이 반영되면 실제 재상승 확인 후보로 다시 좁혀집니다.';
     }
   }
   // 카드별 작은 안내 문구도 일괄 업데이트
   document.querySelectorAll('.card-watch-note').forEach((el) => {
-    if (status === 'confirmed') el.style.display = 'none';
-    else {
+    if (status === 'prime-confirmed' || status === 'late-confirmed') {
+      el.style.display = 'none';
+    } else if (status === 'past-prime' || status === 'after-market') {
       el.style.display = '';
-      el.textContent = (status === 'needs-refresh')
-        ? '⚠ 장초 확인 전 · 09:30 경과, 새로고침 필요'
-        : '장초 확인 전 · 장 시작 후 09:30 이후 다시 확인 필요';
+      el.textContent = '장초 확인 시간이 지났습니다 · 새 진입보다는 참고용';
+    } else if (status === 'prime-needs-refresh' || status === 'late-needs-refresh') {
+      el.style.display = '';
+      el.textContent = '⚠ 장초 확인 전 · 09:30 경과, 새로고침 필요';
+    } else {
+      el.style.display = '';
+      el.textContent = '장 시작 전 지켜볼 후보 · 09:30 이후 다시 확인';
     }
   });
 }
