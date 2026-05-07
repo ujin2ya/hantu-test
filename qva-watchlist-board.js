@@ -1661,6 +1661,7 @@ const htmlTemplate = `<!DOCTYPE html>
     <a href="/qva-watchlist" class="active">📋 H그룹/VPR 보드</a>
     <a href="/rebreak">🔥 D+5 재돌파 운용</a>
     <a href="/one-day-surge-board">⚡ 1DS 단타 후보</a>
+    <a href="/qva-vvi-redefined-board">🎯 QVA 고점 재돌파</a>
   </nav>
   <h1>📋 QVA 매일 운영 보드<span class="sub">— 매일 장마감 후 갱신되는 후보 추적 보드 (백테스트 보고서 아님)</span></h1>
   <div class="subtitle" id="subtitle"></div>

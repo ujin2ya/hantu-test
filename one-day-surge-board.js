@@ -1217,6 +1217,7 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
   <a href="/qva-watchlist">📋 H그룹/VPR 보드</a>
   <a href="/rebreak">🔥 D+5 재돌파 운용</a>
   <a href="/one-day-surge-board" class="active">⚡ 1DS 단타 후보</a>
+  <a href="/qva-vvi-redefined-board">🎯 QVA 고점 재돌파</a>
 </nav>
 
 <!-- 운영자 상단 sticky 상태 배너 (스크롤 내려도 항상 보임) -->
