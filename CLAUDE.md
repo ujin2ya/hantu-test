@@ -13,6 +13,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - D+5 재돌파 보드/심층/수급 백테스트 재생성: `node hgroup-rebreak-operation-board.js`, `node hgroup-rebreak-deep-dive-report.js`, `node hgroup-rebreak-flow-backtest.js` → `reports/hgroup-rebreak-*-result.{html,json}` 생성. 라우트는 이 파일을 sendFile만 함
 - 1-Day Surge Board(단타 관심 후보) 재생성: `node one-day-surge-board.js` → `reports/one-day-surge-board-result.{html,json}` 생성. 라우트 `/one-day-surge-board`가 sendFile만 함
 - 1-Day Surge 다음날 검증 보고서: `node one-day-surge-nextday-validation-report.js` → `reports/one-day-surge-nextday-validation-result.{html,json}` 생성. 환경변수 `VALIDATION_DAYS`(기본 60), `VALIDATION_MAX_STOCKS`(기본 무제한) 지원
+- 1DS GT 후보 분봉 백필: `node collect-1ds-intraday.js [--target-date YYYYMMDD | --from YYYYMMDD --to YYYYMMDD]` → `data/intraday/1ds/{date}/{code}.json`에 09:00~10:00 분봉 저장. KIS `FHKST03010230`(과거 분봉) 기반, 멱등 저장 (이미 있으면 skip). 환경변수 대신 CLI 플래그: `--window-days`(기본 40), `--groups`, `--top-per-day`, `--sleep`(기본 350ms), `--retry`(기본 2), `--end-hour`(기본 100000), `--dry-run`. 누락 로그는 `reports/one-day-surge-intraday-missing.json`에 누적
+- 1DS ENTRY_CONFIRM 연구 보고서: `node one-day-surge-entry-confirm-report.js` → `reports/one-day-surge-entry-confirm-result.{html,json}` 생성. 라우트 `/one-day-surge-entry-confirm`. 환경변수 `ENTRY_VALIDATION_DAYS`(기본 40), `ENTRY_GROUPS`(기본 BALANCED-GT,LIGHT-GT,MID-CAP-GT,MOM-RISK). 분봉 데이터는 `data/intraday/1ds/`에서 read.
+- 1DS ENTRY 날짜별 운영형 백테스트: `node one-day-surge-entry-daily-backtest-report.js` → `reports/one-day-surge-entry-daily-backtest-result.{html,json}` 생성. 라우트 `/one-day-surge-entry-daily-backtest`. 환경변수 `ENTRY_BACKTEST_DAYS`(기본 40). ENTRY_CONFIRM 인프라(generateGtEventsByDate, applyEntryConditions, computeOutcomes, summarizeBucket) 재사용. SAFE_REBREAK / BALANCED_REBREAK / LIGHT_REBREAK / CLEAN_REBREAK / RISK_REBREAK / PREV_HIGH_SPIKE 6개 전략을 날짜별로 simulate.
 - **운영 서버 캐시 동기화 (push 전 필수)**: `bash scripts/sync-remote-cache.sh` — 운영 서버의 `cache/pattern-result.json` + `cache/flow-history/` + `cache/stock-charts-long/`를 로컬로 받는다. 이유는 [push 절차](#push-절차) 참고.
 
 테스트, 린터, 빌드 단계는 구성되어 있지 않다. 운영 배포는 GitHub Actions(`.github/workflows/deploy.yml`)가 ydata.co.kr 서버에 SSH로 push해 PM2(`hantu-test` 프로세스)로 재기동한다.
@@ -123,6 +126,11 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 | `GET /one-day-surge`, `/ods` | (redirect) | `/one-day-surge-board`로 |
 | `GET /one-day-surge-validation` | oneDaySurgeController.getValidation | 다음날 검증 백테스트 보고서 HTML sendFile (`reports/one-day-surge-nextday-validation-result.html`) |
 | `GET /ods-validation` | (redirect) | `/one-day-surge-validation`로 |
+| `GET /one-day-surge-entry-confirm` | oneDaySurgeController.getEntryConfirm | 분봉 ENTRY_CONFIRM 연구 보고서 HTML sendFile (`reports/one-day-surge-entry-confirm-result.html`) |
+| `GET /ods-entry-confirm` | (redirect) | `/one-day-surge-entry-confirm`로 |
+| `GET /one-day-surge-entry-daily-backtest` | oneDaySurgeController.getEntryDailyBacktest | 날짜별 운영형 백테스트 보고서 HTML sendFile (`reports/one-day-surge-entry-daily-backtest-result.html`) |
+| `GET /ods-entry-daily-backtest` | (redirect) | `/one-day-surge-entry-daily-backtest`로 |
+| `GET /stock/:code` | stockController.getStockDetail | 보드 어디서든 종목명 클릭 시 떠오르는 단순 종목 상세 페이지. naver/stocks.json 메타 + KIS 실시간 가격 + 60일 SVG 차트 + 보드 funnel 멤버십(QVA/D+5재돌파/1DS). `views/stock-detail.ejs` 렌더 |
 | `POST /ai/comment` | aiController.postComment | Gemini 호출. `/d5-rebreak/:code` 페이지가 lazy 호출 |
 | `GET/POST /login`, `GET /unsubscribe` | authController | 사이트 비밀번호 게이트, 메일 unsubscribe |
 | `GET/POST /admin/login`, `GET /admin/logout` | adminController | 관리자 인증 |
@@ -270,12 +278,16 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 | `cache/ai-comments/` | `/ai/comment` 라우트 ([src/services/ai/geminiComment.js](src/services/ai/geminiComment.js)) | UI 캐시 |
 | `cache/pattern-result.json` | 16:10/16:20 cron, `/admin/refresh-pattern-cache` | `qva-watchlist-board.js`, 패턴 메일 |
 | `cache/naver-stocks-list.json`, `cache/kospi-daily.json`, `cache/kosdaq-daily.json` | `naver-fetcher.js` 등 | 시드 단계 |
+| `data/intraday/1ds/{YYYY-MM-DD}/{code}.json` | `collect-1ds-intraday.js` (KIS `FHKST03010230`) | `one-day-surge-entry-confirm-report.js`, `one-day-surge-entry-daily-backtest-report.js` |
 
 루트의 정적 출력물:
 - `qva-watchlist-board.{html,json}` — `/qva-watchlist`가 sendFile하는 운영 보드
 - `reports/hgroup-rebreak-*-result.{html,json}` — `/rebreak`, `/rebreak-deep`, `/d5-rebreak-flow`가 sendFile
 - `reports/one-day-surge-board-result.{html,json}` — `/one-day-surge-board`가 sendFile하는 단타 관심 후보 보드 (QVA/VVI와 독립)
-- `reports/one-day-surge-nextday-validation-result.{html,json}` — 다음날 검증 백테스트 보고서 (라우트 미연결, 수동 확인용)
+- `reports/one-day-surge-nextday-validation-result.{html,json}` — 다음날 검증 백테스트 보고서 (`/one-day-surge-validation` sendFile)
+- `reports/one-day-surge-entry-confirm-result.{html,json}` — 분봉 ENTRY_CONFIRM 연구 보고서 (`/one-day-surge-entry-confirm` sendFile). morningHigh rebreak 단일 알파 검증 + V1~V5 비교 + 위험 그룹 + prevHigh 위험 분석
+- `reports/one-day-surge-entry-daily-backtest-result.{html,json}` — 날짜별 운영형 백테스트 보고서 (`/one-day-surge-entry-daily-backtest` sendFile). 6개 전략(SAFE/BALANCED/LIGHT/CLEAN/RISK/SPIKE)을 매일 simulate, 보드 반영 가능 여부 판단
+- `reports/one-day-surge-intraday-missing.json` — 분봉 백필 시 누락/실패 누적 로그 (`collect-1ds-intraday.js` 누적 append)
 
 ### 인증·구독·관리자
 

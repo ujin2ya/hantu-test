@@ -25,6 +25,7 @@
 const fs = require('fs');
 const path = require('path');
 const core = require('./one-day-surge-core');
+const entryReport = require('./one-day-surge-entry-confirm-report');
 
 const ROOT = __dirname;
 const CHART_DIR = path.join(ROOT, 'cache', 'stock-charts-long');
@@ -33,10 +34,78 @@ const STOCKS_PATH = path.join(ROOT, 'stocks.json');
 const NAVER_LIST_PATH = path.join(ROOT, 'cache', 'naver-stocks-list.json');
 const QVA_BOARD_PATH = path.join(ROOT, 'qva-watchlist-board.json');
 const PATTERN_RESULT_PATH = path.join(ROOT, 'cache', 'pattern-result.json');
+const INTRADAY_BASE = path.join(ROOT, 'data', 'intraday', '1ds');
 const OUT_JSON = path.join(REPORTS_DIR, 'one-day-surge-board-result.json');
 const OUT_HTML = path.join(REPORTS_DIR, 'one-day-surge-board-result.html');
 
-// 그룹별 화면 노출 상한
+// ── 장초 분봉 재상승 전략 정의 ── (운영자 친화 한국어 라벨)
+// 내부 키는 유지 (분석 보고서 호환), 화면 chipLabel만 친절 한국어로.
+const ENTRY_STRATEGY_DEFS = {
+  SAFE_REBREAK: {
+    label: '장초 재상승 확인',
+    chipLabel: '장초 재상승 ✓',
+    desc: '장초 첫 고점을 다시 넘겼고, 전일 고점 돌파 과열은 아직 없는 흐름.',
+    filter: (it) => (it.gtGroup === 'BALANCED-GT' || it.gtGroup === 'LIGHT-GT')
+                 && it.intraday?.rebreakMorningHigh_10_30 === true
+                 && it.intraday?.rebreakPrevHighBy0930 === false,
+    isTopShelf: true,
+  },
+  BALANCED_REBREAK: {
+    label: '수급 균형 + 장초 재상승',
+    chipLabel: '균형 재상승 ✓',
+    desc: '시총·수급 균형이 좋은 후보가 장초 첫 고점을 다시 넘긴 상태.',
+    filter: (it) => it.gtGroup === 'BALANCED-GT' && it.intraday?.rebreakMorningHigh_10_30 === true,
+    isTopShelf: true,
+  },
+  CLEAN_REBREAK: {
+    label: '무리 없는 장초 재상승',
+    chipLabel: '깨끗한 재상승 ✓',
+    desc: '장초 첫 고점을 다시 넘겼지만 전일 고점 돌파 과열은 아직 없는 흐름.',
+    filter: (it) => it.intraday?.rebreakMorningHigh_10_30 === true && it.intraday?.rebreakPrevHighBy0930 === false,
+    isTopShelf: true,
+  },
+  LIGHT_REBREAK: {
+    label: '가벼운 종목의 장초 재상승',
+    chipLabel: '가벼운 재상승 ✓',
+    desc: '가볍게 움직일 수 있는 후보가 장초 첫 고점을 다시 넘긴 상태.',
+    filter: (it) => it.gtGroup === 'LIGHT-GT' && it.intraday?.rebreakMorningHigh_10_30 === true,
+    isTopShelf: true,
+  },
+  // RISK / SPIKE는 운영 보드에서 hard 필터 제외 — 화면 노출 X. 내부 분류용으로만 유지.
+  RISK_REBREAK: {
+    label: '위험형 재상승 (보드 제외)',
+    chipLabel: '위험 재상승',
+    desc: '위험 그룹의 장초 재상승 — 보드에서 제외됨.',
+    filter: (it) => (it.gtGroup === 'MOM-RISK' || it.candleType === 'GAP_HOLD')
+                 && it.intraday?.rebreakMorningHigh_10_30 === true,
+    isTopShelf: false,
+  },
+  PREV_HIGH_SPIKE: {
+    label: '전일고가 돌파 spike (보드 제외)',
+    chipLabel: 'spike',
+    desc: '전일 고점 돌파 spike — 보드에서 제외됨.',
+    filter: (it) => it.intraday?.rebreakPrevHighBy0930 === true,
+    isTopShelf: false,
+  },
+};
+
+// 그룹 라벨도 운영자 친화 한국어로 override (core.GT_GROUP_LABEL은 다른 보드 호환을 위해 그대로 둠).
+const FRIENDLY_GROUP_LABELS = {
+  'BALANCED-GT': '🟢 수급 균형 후보 (3,000억~7,000억)',
+  'LIGHT-GT':    '🔵 가볍게 움직일 후보 (1,000억~3,000억)',
+  'MID-CAP-GT':  '🟣 중형 수급 후보 (7,000억~1.5조)',
+  // 위험 그룹은 보드에 노출되지 않지만 카드 fallback 대비
+  'MOM-RISK':    '🟠 위험형 (보드 제외)',
+  'HEAVY-WATCH': '⚪ 저탄력 (보드 제외)',
+  'MICRO-RISK':  '🟡 초경량 위험 (보드 제외)',
+  'HEAVY-RISK':  '🔴 대형 (보드 제외)',
+};
+// TOP shelf 정렬 우선순위 (낮을수록 위)
+const STRATEGY_PRIORITY = { SAFE_REBREAK: 0, BALANCED_REBREAK: 1, CLEAN_REBREAK: 2, LIGHT_REBREAK: 3 };
+const ENTRY_TOP_STRATEGIES = ['SAFE_REBREAK', 'BALANCED_REBREAK', 'CLEAN_REBREAK', 'LIGHT_REBREAK'];
+const ENTRY_BOTTOM_STRATEGIES = ['RISK_REBREAK', 'PREV_HIGH_SPIKE'];
+
+// 그룹별 정렬·보관 상한 (cap된 후 JSON에 들어가는 최대치 — 메인 노출 ≠ 보관 cap)
 const GT_CAP = {
   'BALANCED-GT': 80,
   'LIGHT-GT':    80,
@@ -48,6 +117,170 @@ const GT_CAP = {
 };
 
 const GT_GROUP_ORDER = ['BALANCED-GT', 'LIGHT-GT', 'MID-CAP-GT', 'MOM-RISK', 'HEAVY-WATCH', 'MICRO-RISK', 'HEAVY-RISK'];
+
+// 화면 노출 정책 — 1DS 보드는 "내일 장초에 실제로 볼 추천 후보만" 노출.
+// 위험 후보(MOM-RISK / GAP_HOLD / SPIKE / RISK_REBREAK / peakBefore / 저탄력 그룹)는 내부 필터로 제외.
+// 위험 분석은 연구 보고서(entry-confirm / daily-backtest)에서만 유지 — 보드는 깔끔하게.
+// UNCLASSIFIED는 결코 노출하지 않음 (이미 grouped에 들어가지 않음).
+const MAIN_POOL_GROUPS = ['BALANCED-GT', 'LIGHT-GT', 'MID-CAP-GT'];
+const TOP_PRIORITY_LIMIT   = 5;   // 최우선 노출 (기본 펼침)
+const EXTRA_PRIORITY_LIMIT = 10;  // 추가 후보 노출 (접힘, 최대)
+
+// 추천 후보에서 hard 제외할 위험 패턴 — passesRiskFilter()
+// (penalty가 아니라 완전 제외. 위험 분석은 연구 보고서에서만 한다.)
+function passesRiskFilter(it) {
+  // 1) 그룹이 추천 풀(BAL/LIGHT/MID-CAP) 아니면 제외
+  if (!MAIN_POOL_GROUPS.includes(it.gtGroup)) return { ok: false, reason: 'group_off_pool' };
+  // 2) GAP_HOLD 캔들 — 갭상승 후 종가 유지형, TRAP 위험. 백테스트에서 fail5 69%.
+  if (it.candleType === 'GAP_HOLD') return { ok: false, reason: 'gap_hold_candle' };
+  // 3) 분봉 위험 태그 — 전일고가 돌파 spike / 위험 그룹 morningHigh
+  const tags = it.entryStrategies || [];
+  if (tags.includes('PREV_HIGH_SPIKE')) return { ok: false, reason: 'prev_high_spike' };
+  if (tags.includes('RISK_REBREAK'))    return { ok: false, reason: 'risk_rebreak' };
+  // 4) peakBeforeEntry 라이브 추격 위험 — 09:10 진입 시점에 이미 09:00~10 max보다 1%↑ 아래
+  if (it.intraday && it.intraday.peakBeforeEntryLive === true) return { ok: false, reason: 'peak_before_entry' };
+  // 5) trap 위험 (윗꼬리 + 5d 과열) ≥ 60
+  if (calcRiskTrapScore(it) >= 60) return { ok: false, reason: 'trap_risk_high' };
+  return { ok: true, reason: null };
+}
+
+// ── 외부 데이터 lookup: 백테스트 dayType ──
+const DAILY_BACKTEST_PATH = path.join(REPORTS_DIR, 'one-day-surge-entry-daily-backtest-result.json');
+function loadLatestDayType() {
+  if (!fs.existsSync(DAILY_BACKTEST_PATH)) return null;
+  try {
+    const j = JSON.parse(fs.readFileSync(DAILY_BACKTEST_PATH, 'utf-8'));
+    const lt = j.autoConclusion?.latestDayType;
+    if (!lt) return null;
+    const labels = j.dayTypeAnalysis?.labels || {};
+    const descs  = j.dayTypeAnalysis?.descriptions || {};
+    return {
+      date: lt.date, nextDate: lt.nextDate, dayType: lt.dayType,
+      label: labels[lt.dayType] || lt.dayType,
+      desc:  descs[lt.dayType] || '',
+      hit5: lt.hit5, closePos: lt.closePos, avgClose: lt.avgClose, eventCount: lt.eventCount,
+      // backtest dayType 분포 (참고)
+      distribution: j.dayTypeAnalysis?.counts || null,
+      generatedAt: j.meta?.generatedAt || null,
+    };
+  } catch (_) { return null; }
+}
+
+// ── 외부 데이터 lookup: 시장 상태 (KOSPI/KOSDAQ daily) ──
+// 코스피만 보지 말고 코스닥 괴리 + 대형주 쏠림 여부를 함께 해석한다.
+// 데이터 없으면 state='UNKNOWN' + label="시장 상태 데이터 미연결" — 함수 구조만 유지.
+const KOSPI_DAILY_PATH  = path.join(ROOT, 'cache', 'kospi-daily.json');
+const KOSDAQ_DAILY_PATH = path.join(ROOT, 'cache', 'kosdaq-daily.json');
+function loadIndexLatestChange(filePath) {
+  if (!fs.existsSync(filePath)) return null;
+  try {
+    const j = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const rows = Array.isArray(j) ? j : (j.rows || j.data || []);
+    if (!Array.isArray(rows) || rows.length < 2) return null;
+    const last = rows[rows.length - 1];
+    const prev = rows[rows.length - 2];
+    const lastClose = Number(last.close ?? last.cls ?? last.value);
+    const prevClose = Number(prev.close ?? prev.cls ?? prev.value);
+    if (!Number.isFinite(lastClose) || !Number.isFinite(prevClose) || prevClose <= 0) return null;
+    return { date: last.date || last.dt || null, close: lastClose, changeRate: (lastClose / prevClose - 1) * 100 };
+  } catch (_) { return null; }
+}
+const MARKET_STATE_LABELS = {
+  BROAD_MARKET_UP: '🟢 코스피·코스닥 동반 상승 (1DS 우호)',
+  LARGE_CAP_LED:   '🟡 대형주 쏠림장 (1DS 친화 X)',
+  KOSDAQ_WEAK:     '🟠 코스닥 약세 (단타 후보 종가 유지 약화 가능)',
+  WEAK_MARKET:     '🔴 코스피·코스닥 동반 하락',
+  MIXED_MARKET:    '⚪ 혼합 (편차 큼)',
+  UNKNOWN:         '◯ 시장 상태 데이터 미연결',
+};
+const MARKET_STATE_DESCS = {
+  BROAD_MARKET_UP: '지수 동반 상승 + 중소형 우호. 1DS 후보의 종가 유지에도 도움.',
+  LARGE_CAP_LED:   '지수는 강하지만 1DS 친화 장은 아닐 수 있습니다. 코스닥/중소형주 흐름이 약하면 장중 고점 후 빠지는 후보가 늘어날 수 있습니다.',
+  KOSDAQ_WEAK:     '코스닥 약세 — 1DS 후보 다수가 코스닥 종목이라 종가 유지가 약해질 수 있음. 짧은 대응 우선.',
+  WEAK_MARKET:     '시장 전체 약세 — 매매 자체를 줄이는 것이 적절.',
+  MIXED_MARKET:    '지수 방향 혼재 — 종목별 편차 큼. 카드별 판단.',
+  UNKNOWN:         'cache/kospi-daily.json / cache/kosdaq-daily.json 미존재 또는 read 실패. 함수 구조만 유지.',
+};
+function classifyMarketState() {
+  const kospi = loadIndexLatestChange(KOSPI_DAILY_PATH);
+  const kosdaq = loadIndexLatestChange(KOSDAQ_DAILY_PATH);
+  if (!kospi && !kosdaq) {
+    return { state: 'UNKNOWN', label: MARKET_STATE_LABELS.UNKNOWN, desc: MARKET_STATE_DESCS.UNKNOWN, kospi: null, kosdaq: null };
+  }
+  const kr = kospi?.changeRate;
+  const dr = kosdaq?.changeRate;
+  let state;
+  if (kr != null && dr != null) {
+    if (kr > 0.3 && dr > 0.3) state = 'BROAD_MARKET_UP';
+    else if (kr > 0.3 && dr < -0.5) state = 'LARGE_CAP_LED';
+    else if (dr <= -1) state = 'KOSDAQ_WEAK';
+    else if (kr < -0.5 && dr < -0.5) state = 'WEAK_MARKET';
+    else state = 'MIXED_MARKET';
+  } else state = 'MIXED_MARKET';
+  return {
+    state,
+    label: MARKET_STATE_LABELS[state],
+    desc:  MARKET_STATE_DESCS[state],
+    kospi, kosdaq,
+  };
+}
+
+// trap 위험도 — 윗꼬리 비중(%) + 5일 과열 초과분(%). 60↑ 이면 진입 후 흔들림 큼.
+function calcRiskTrapScore(it) {
+  const tail = (it.upperTailRatio || 0) * 100;          // 윗꼬리 50%면 50
+  const overheat = Math.max(0, (it.ret5d || 0) - 30);   // 5일 +50%면 +20
+  return tail + overheat;
+}
+
+// 화면 우선순위 점수 — 후보 선정 점수(oneDaySurgeScore)와 별개. 노출 ranking 전용.
+// ENTRY_DAILY_BACKTEST 결과 반영 (40일):
+//   - BALANCED_REBREAK가 HIT_AND_FADE_DAY/MIXED_DAY에서 SAFE보다 강함 → BAL +85 / SAFE +75
+//   - peakBeforeEntry=true는 매우 강한 추격 위험 (avgClose -3.14% vs +2.59%) → -60 강한 감점
+function calcDisplayPriorityScore(it) {
+  let score = 0;
+  // ── 가점: 그룹 품질
+  if (it.gtGroup === 'BALANCED-GT') score += 40;
+  else if (it.gtGroup === 'LIGHT-GT') score += 30;
+  else if (it.gtGroup === 'MID-CAP-GT') score += 25;
+  // ── 가점: 수급 강도
+  const vmc = it.valueToMarketCapRatio || 0;
+  if (vmc >= 10) score += 20;
+  else if (vmc >= 5) score += 10;
+  // ── 가점: 거래대금 시장 순위
+  const rank = it.dailyValueRank || 9999;
+  if (rank <= 10) score += 15;
+  else if (rank <= 30) score += 10;
+  // ── 가점: 과열 회피 + sweet zone
+  if (it.recent5Up15Count != null && it.recent5Up15Count <= 1) score += 10;
+  if (it.changeRate != null && it.changeRate >= 5 && it.changeRate <= 25) score += 10;
+  // ── 가점: 장초 분봉 ENTRY_CONFIRM 통과 (최대 1개만 적용 — BAL > SAFE > CLEAN > LIGHT)
+  // [ENTRY_DAILY_BACKTEST] HIT_AND_FADE_DAY에서 SAFE +0.16% vs BAL +3.33%, MIXED_DAY 마찬가지로 BAL 우세
+  const tags = it.entryStrategies || [];
+  if (tags.includes('BALANCED_REBREAK'))   score += 85;
+  else if (tags.includes('SAFE_REBREAK'))  score += 75;
+  else if (tags.includes('CLEAN_REBREAK')) score += 60;
+  else if (tags.includes('LIGHT_REBREAK')) score += 50;
+  // ── 감점: 그룹 위험도
+  if (it.gtGroup === 'MOM-RISK') score -= 30;
+  if (it.candleType === 'GAP_HOLD') score -= 30;
+  if (it.gtGroup === 'MICRO-RISK') score -= 40;
+  if (it.gtGroup === 'HEAVY-RISK') score -= 40;
+  if (it.gtGroup === 'HEAVY-WATCH') score -= 20;
+  // ── 감점: 분봉 위험 태그
+  if (tags.includes('PREV_HIGH_SPIKE')) score -= 40;
+  if (tags.includes('RISK_REBREAK')) score -= 50;
+  // ── 감점: peakBeforeEntry 라이브 proxy (09:10 진입 시점에 이미 09:00~09:10 max 후)
+  // 백테스트 검증: peakBefore=true 후보는 종가>0 17.9% (vs 정상 66.6%), avgClose -3.14% (vs +2.59%) — 강한 추격 위험
+  if (it.intraday?.peakBeforeEntryLive === true) score -= 60;
+  // ── 감점: trap 위험
+  const trap = calcRiskTrapScore(it);
+  if (trap >= 60) score -= 50;
+  else if (trap >= 40) score -= 30;
+  // ── 감점: 시총 무거움
+  if (it.marketCap >= 1.5e12) score -= 20;
+  // 시총 5조 이상은 passesHardFilter에서 이미 제외됨
+  return score;
+}
 
 function fmtDate(d) {
   if (!d || d.length !== 8) return d || '-';
@@ -180,6 +413,85 @@ function buildSummaryLine(it) {
   return parts.join(', ') + '. ' + tail;
 }
 
+// ── 장초 분봉 lookup ──
+// data/intraday/1ds/{YYYY-MM-DD}/ 디렉토리들을 스캔. 각 candidate의 baseDate 다음 거래일 분봉이 있으면 사용.
+// 보드 cron이 D 장 종료 후(16:35) 실행되면 baseDate=D, D+1 분봉 없음 → 모두 NO_MINUTE_DATA 상태.
+// 다음날 09:35+ collect-1ds-intraday 실행 + 보드 재생성하면 D+1 분봉 채워짐 → 전략 태그 활성화.
+function loadIntradayDirs() {
+  if (!fs.existsSync(INTRADAY_BASE)) return [];
+  return fs.readdirSync(INTRADAY_BASE)
+    .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d))
+    .sort();
+}
+function findNextDayDir(baseDate, intradayDirs) {
+  const baseFmt = baseDate.slice(0, 4) + '-' + baseDate.slice(4, 6) + '-' + baseDate.slice(6, 8);
+  // 가장 가까운 다음 거래일 디렉토리. 단 baseDate에서 7일 이상 떨어지면 stale로 간주 (보드는 "오늘 뜰 후보" 보드)
+  const nextDir = intradayDirs.find((d) => d > baseFmt);
+  if (!nextDir) return null;
+  const baseMs = new Date(baseFmt + 'T00:00:00Z').getTime();
+  const nextMs = new Date(nextDir + 'T00:00:00Z').getTime();
+  if ((nextMs - baseMs) > 7 * 24 * 3600 * 1000) return null; // 7일 초과 = 데이터 fresh 매칭 X
+  return nextDir;
+}
+function loadMinuteBars(nextDayDir, code) {
+  if (!nextDayDir) return null;
+  const fp = path.join(INTRADAY_BASE, nextDayDir, code + '.json');
+  if (!fs.existsSync(fp)) return null;
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); }
+  catch (_) { return null; }
+}
+
+// 각 candidate에 분봉 ENTRY_CONFIRM 메트릭 + 전략 태그 부착.
+function attachIntradayMetrics(candidates) {
+  const intradayDirs = loadIntradayDirs();
+  let withMinute = 0, missing = 0;
+  for (const it of candidates) {
+    const nextDayDir = findNextDayDir(it.baseDate, intradayDirs);
+    if (!nextDayDir) { it.entryStatus = 'NO_DIR'; missing++; continue; }
+    const minuteData = loadMinuteBars(nextDayDir, it.code);
+    if (!minuteData) { it.entryStatus = 'NO_MINUTE_DATA'; it.nextDayDir = nextDayDir; missing++; continue; }
+    // ENTRY_CONFIRM 보고서와 동일 로직 재사용.
+    // computeIntradayMetrics는 eventBase에서 close/high/valueAmount/avg20Value를 사용 — candidate에 모두 있음.
+    const im = entryReport.computeIntradayMetrics(it, minuteData);
+    if (!im) { it.entryStatus = 'INTRADAY_INVALID'; it.nextDayDir = nextDayDir; continue; }
+    // 라이브 proxy: 09:10 close가 09:00~09:10 max보다 1%+ 낮으면 "이미 초반 고점 통과"
+    // (백테스트의 peakBeforeEntry는 D+1 일봉 high 비교라 라이브엔 못 씀 — 분봉으로만 추정)
+    im.peakBeforeEntryLive = im.preEntryMaxHigh != null && im.entryPrice != null
+      && im.preEntryMaxHigh > im.entryPrice * 1.01;
+    it.entryStatus = 'OK';
+    it.nextDayDir = nextDayDir;
+    it.intraday = im;
+    it.entryStrategies = classifyEntryStrategies(it);
+    withMinute++;
+  }
+  return { withMinute, missing, intradayDirs };
+}
+
+function classifyEntryStrategies(it) {
+  const tags = [];
+  for (const [name, def] of Object.entries(ENTRY_STRATEGY_DEFS)) {
+    if (def.filter(it)) tags.push(name);
+  }
+  return tags;
+}
+
+function isTopShelf(it) {
+  return (it.entryStrategies || []).some((s) => ENTRY_TOP_STRATEGIES.includes(s));
+}
+function isBottomShelf(it) {
+  if (isTopShelf(it)) return false; // TOP 우선
+  return (it.entryStrategies || []).some((s) => ENTRY_BOTTOM_STRATEGIES.includes(s));
+}
+function bestStrategyPriority(it) {
+  return Math.min(...(it.entryStrategies || []).map((s) => STRATEGY_PRIORITY[s] ?? 99));
+}
+function topShelfSort(a, b) {
+  const aBest = bestStrategyPriority(a);
+  const bBest = bestStrategyPriority(b);
+  if (aBest !== bBest) return aBest - bBest;
+  return (b.valueToMarketCapRatio || 0) - (a.valueToMarketCapRatio || 0);
+}
+
 function main() {
   if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR, { recursive: true });
   if (!fs.existsSync(CHART_DIR)) {
@@ -279,8 +591,12 @@ function main() {
     if (grouped[g]) grouped[g].push(it);
   }
 
+  // 3.5차: 장초 분봉 ENTRY_CONFIRM 메트릭 부착 + 전략 태그 (data/intraday/1ds/ 가 있을 때만 채워짐)
+  const { withMinute, missing, intradayDirs } = attachIntradayMetrics(candidates);
+  console.log(`  장초 분봉 ENTRY_CONFIRM: ${withMinute}건 적용 / ${missing}건 분봉 없음 (디렉토리 ${intradayDirs.length}개)`);
+
   // 4차: 그룹별 정렬
-  // 우선: valueToMcRatio 높은 순, 거래대금 순위 높은 순(낮은 숫자), recent5Up15Count 작은 순, LOW_GAP_INTRADAY 우선
+  // 기본 gtSort: valueToMcRatio 높은 순, 거래대금 순위 높은 순(낮은 숫자), recent5Up15Count 작은 순, LOW_GAP_INTRADAY 우선
   function gtSort(a, b) {
     const lowGapA = a.candleType === 'LOW_GAP_INTRADAY' ? 1 : 0;
     const lowGapB = b.candleType === 'LOW_GAP_INTRADAY' ? 1 : 0;
@@ -296,8 +612,33 @@ function main() {
     if (r5a !== r5b) return r5a - r5b;
     return (b.oneDaySurgeScore || 0) - (a.oneDaySurgeScore || 0);
   }
+  // LIGHT-GT 전용 정렬 — 메인 상위 20개만 노출하므로 더 엄격한 6 criteria
+  // 1) v/mc 높은 순 → 2) 거래대금 시장 순위 높은 순 → 3) changeRate 5~25% sweet 우선
+  // → 4) recent5Up15Count ≤ 1 우선 → 5) trapRisk 낮은 순(윗꼬리+5d과열)
+  // → 6) marketCap 1,000~3,000억은 그룹 정의 자체로 보장됨
+  function lightGtSort(a, b) {
+    const va = a.valueToMarketCapRatio || 0;
+    const vb = b.valueToMarketCapRatio || 0;
+    if (vb !== va) return vb - va;
+    const ra = a.dailyValueRank || 9999;
+    const rb = b.dailyValueRank || 9999;
+    if (ra !== rb) return ra - rb;
+    // sweet zone: changeRate 5~25%
+    const aSweet = (a.changeRate >= 5 && a.changeRate <= 25) ? 0 : 1;
+    const bSweet = (b.changeRate >= 5 && b.changeRate <= 25) ? 0 : 1;
+    if (aSweet !== bSweet) return aSweet - bSweet;
+    const aLow = (a.recent5Up15Count != null && a.recent5Up15Count <= 1) ? 0 : 1;
+    const bLow = (b.recent5Up15Count != null && b.recent5Up15Count <= 1) ? 0 : 1;
+    if (aLow !== bLow) return aLow - bLow;
+    // trap risk = 윗꼬리 비중 + 5일 과열 (30% 초과분만 가산) — 낮을수록 안전
+    const aRisk = (a.upperTailRatio || 0) + Math.max(0, ((a.ret5d || 0) - 30) / 100);
+    const bRisk = (b.upperTailRatio || 0) + Math.max(0, ((b.ret5d || 0) - 30) / 100);
+    if (aRisk !== bRisk) return aRisk - bRisk;
+    return (b.oneDaySurgeScore || 0) - (a.oneDaySurgeScore || 0);
+  }
   for (const g of GT_GROUP_ORDER) {
-    grouped[g].sort(gtSort);
+    const sortFn = g === 'LIGHT-GT' ? lightGtSort : gtSort;
+    grouped[g].sort(sortFn);
     if (grouped[g].length > GT_CAP[g]) grouped[g] = grouped[g].slice(0, GT_CAP[g]);
   }
 
@@ -312,6 +653,70 @@ function main() {
   const valueSurgeCount = all.filter(x => x.valueRatio >= 3).length;
   const lowGapCount = all.filter(x => x.candleType === 'LOW_GAP_INTRADAY').length;
   const highVmcCount = all.filter(x => x.valueToMarketCapRatio >= 10).length;
+
+  // ── displayPriorityScore + riskTrapScore 계산 (모든 candidate, 장초 분봉 적용 후) ──
+  for (const it of all) {
+    it.riskTrapScore = calcRiskTrapScore(it);
+    it.displayPriorityScore = calcDisplayPriorityScore(it);
+  }
+
+  // ── 화면 노출 우선순위 풀 구성 (추천 후보만) ──
+  // 위험 후보는 passesRiskFilter()로 hard 제외 — 보드는 추천만 노출, 위험 분석은 연구 보고서에서.
+  const riskExcludeCounts = { group_off_pool: 0, gap_hold_candle: 0, prev_high_spike: 0, risk_rebreak: 0, peak_before_entry: 0, trap_risk_high: 0 };
+  const mainPool = [];
+  for (const it of all) {
+    const filt = passesRiskFilter(it);
+    if (!filt.ok) {
+      it.riskExcluded = filt.reason;
+      riskExcludeCounts[filt.reason] = (riskExcludeCounts[filt.reason] || 0) + 1;
+      continue;
+    }
+    mainPool.push(it);
+  }
+  mainPool.sort((a, b) => (b.displayPriorityScore || 0) - (a.displayPriorityScore || 0));
+  const topPriority   = mainPool.slice(0, TOP_PRIORITY_LIMIT);
+  const extraPriority = mainPool.slice(TOP_PRIORITY_LIMIT, TOP_PRIORITY_LIMIT + EXTRA_PRIORITY_LIMIT);
+  const overflowPool  = mainPool.slice(TOP_PRIORITY_LIMIT + EXTRA_PRIORITY_LIMIT); // 메인 풀 안에 있어도 화면에선 숨김
+
+  // 전략별 카운트 (참고용 — 카드 chip rendering)
+  const strategyCounts = {};
+  for (const name of [...ENTRY_TOP_STRATEGIES, ...ENTRY_BOTTOM_STRATEGIES]) {
+    strategyCounts[name] = all.filter((it) => (it.entryStrategies || []).includes(name)).length;
+  }
+
+  // 가시성 카운트 (요약 cards용)
+  const totalRiskExcluded = Object.values(riskExcludeCounts).reduce((a, b) => a + b, 0);
+  const visibilityCounts = {
+    totalPool: candidates.length,        // 분류 가능한 모든 후보 (UNCLASSIFIED 포함 안 됨)
+    unclassified,                        // 화면 표시 X
+    mainPoolSize: mainPool.length,       // 위험 필터 통과 후 추천 풀 크기
+    topPriorityShown: topPriority.length,
+    extraPriorityShown: extraPriority.length,
+    overflowHidden: overflowPool.length, // 메인 풀 16+ 위 — 화면 숨김
+    riskExcluded: totalRiskExcluded,     // 위험 필터로 제외된 수
+    riskExcludeBreakdown: riskExcludeCounts,
+  };
+
+  // 백테스트 dayType + 시장 상태 로드
+  const latestDayType = loadLatestDayType();
+  const marketState = classifyMarketState();
+
+  // 분봉 적용 상태
+  const entryStatusCounts = { ok: 0, no_dir: 0, no_minute_data: 0, intraday_invalid: 0 };
+  for (const it of all) {
+    if (it.entryStatus === 'OK') entryStatusCounts.ok++;
+    else if (it.entryStatus === 'NO_DIR') entryStatusCounts.no_dir++;
+    else if (it.entryStatus === 'NO_MINUTE_DATA') entryStatusCounts.no_minute_data++;
+    else if (it.entryStatus === 'INTRADAY_INVALID') entryStatusCounts.intraday_invalid++;
+  }
+  // 분봉 적용된 candidate들이 가리키는 nextDayDir (모두 같은 거래일이어야 함; 다르면 가장 흔한 거 선택)
+  const nextDirFreq = new Map();
+  for (const it of all) {
+    if (!it.nextDayDir) continue;
+    nextDirFreq.set(it.nextDayDir, (nextDirFreq.get(it.nextDayDir) || 0) + 1);
+  }
+  let entryConfirmDate = null, entryConfirmFreq = 0;
+  for (const [d, n] of nextDirFreq) { if (n > entryConfirmFreq) { entryConfirmFreq = n; entryConfirmDate = d; } }
 
   const out = {
     meta: {
@@ -343,8 +748,32 @@ function main() {
     ),
     groups: grouped,
     groupOrder: GT_GROUP_ORDER,
-    groupLabels: core.GT_GROUP_LABEL,
+    groupLabels: FRIENDLY_GROUP_LABELS,        // 운영자 친화 라벨 (내부명 ENTRY_CONFIRM/SAFE 노출 방지)
     groupDescriptions: core.GT_GROUP_DESC,
+    visibilityCounts,
+    priorityRanked: {
+      topPriority:    topPriority.map((it) => it.code),
+      extraPriority:  extraPriority.map((it) => it.code),
+      overflowHiddenCount: overflowPool.length,
+      topPriorityLimit:   TOP_PRIORITY_LIMIT,
+      extraPriorityLimit: EXTRA_PRIORITY_LIMIT,
+    },
+    latestDayType,
+    marketState,
+    entryShelf: {
+      // 신규 priorityRanked로 대체됐지만, strategyDefs/counts는 카드 chip + 요약에 계속 필요
+      strategyDefs: Object.fromEntries(Object.entries(ENTRY_STRATEGY_DEFS).map(([k, v]) => [k, { label: v.label, chipLabel: v.chipLabel, desc: v.desc, isTopShelf: v.isTopShelf }])),
+      topStrategies: ENTRY_TOP_STRATEGIES,
+      bottomStrategies: ENTRY_BOTTOM_STRATEGIES,
+      strategyCounts,
+      entryStatusCounts,
+      entryConfirmDate,
+      entryConfirmDateFreq: entryConfirmFreq,
+      withMinute,
+      missing,
+      analysisDateConfirmReady: !!findNextDayDir(analysisDate || '', intradayDirs),
+      analysisDateNextDir: analysisDate ? findNextDayDir(analysisDate, intradayDirs) : null,
+    },
   };
 
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
@@ -355,6 +784,28 @@ function main() {
   console.log(`  후보 풀: ${candidates.length}건 / 노출: ${all.length}건 / 미분류: ${unclassified}건`);
   for (const g of GT_GROUP_ORDER) console.log(`    ${g.padEnd(13)} ${grouped[g].length}건`);
   console.log(`  거래대금 ×3↑ ${valueSurgeCount} / LOW_GAP_INTRADAY ${lowGapCount} / v/mc≥10% ${highVmcCount}`);
+  console.log(`  🎯 화면 노출 정책 (추천 후보만):`);
+  console.log(`     ① 최우선 ${topPriority.length}건 (메인 노출)`);
+  console.log(`     ② 추가 후보 ${extraPriority.length}건 (접힘, 최대 ${EXTRA_PRIORITY_LIMIT}개)`);
+  console.log(`     ③ 메인 풀 overflow ${overflowPool.length}건 (화면 숨김)`);
+  console.log(`     ④ 위험 필터로 제외 ${totalRiskExcluded}건 (보드 미노출, 위험 분석은 연구 보고서 참조):`);
+  for (const [reason, n] of Object.entries(riskExcludeCounts)) {
+    if (n > 0) console.log(`        - ${reason}: ${n}건`);
+  }
+  console.log(`     ⑤ UNCLASSIFIED ${unclassified}건 (영구 숨김)`);
+  if (latestDayType) console.log(`  🌊 최근 거래일 (${latestDayType.date} → ${latestDayType.nextDate}) 분류: ${latestDayType.dayType}`);
+  console.log(`  📈 시장 상태: ${marketState.label}` + (marketState.kospi ? ` (KOSPI ${marketState.kospi.changeRate.toFixed(2)}% / KOSDAQ ${marketState.kosdaq?.changeRate?.toFixed(2) || '-'}%)` : ''));
+  if (topPriority.length > 0) {
+    console.log(`  📋 최우선 ${topPriority.length}건 (displayPriorityScore):`);
+    for (const it of topPriority) {
+      const tagsStr = (it.entryStrategies || []).length > 0 ? ' [' + it.entryStrategies.join(',') + ']' : '';
+      console.log(`     ${it.displayPriorityScore.toString().padStart(4)} | ${it.code} ${(it.name || '').padEnd(15)} | ${it.gtGroup}${tagsStr}`);
+    }
+  }
+  console.log(`  🚪 장초 ENTRY_CONFIRM 적용: ${withMinute}건 / 분봉 누락 ${missing}건 (확인 거래일 ${entryConfirmDate || '없음'})`);
+  if (withMinute === 0) {
+    console.log(`     장초 분봉 확인 전 — 다음 거래일 09:35+ 분봉 수집 후 보드 재생성 시 적용됩니다.`);
+  }
   console.log(`\n✅ JSON: ${OUT_JSON}`);
   console.log(`✅ HTML: ${OUT_HTML}`);
 }
@@ -398,6 +849,105 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .summary-cell.heavy-w  { border-left: 4px solid #94a3b8; }
 .summary-cell.micro    { border-left: 4px solid #fbbf24; }
 .summary-cell.heavy-r  { border-left: 4px solid #ef4444; }
+.summary-cell.entry-safe     { border-left: 4px solid #14b8a6; background: #042f2e; }
+.summary-cell.entry-balanced { border-left: 4px solid #10b981; background: #052e1f; }
+.summary-cell.entry-clean    { border-left: 4px solid #818cf8; background: #1e1b4b; }
+.summary-cell.entry-light    { border-left: 4px solid #38bdf8; background: #0c2540; }
+.summary-cell.entry-warn     { border-left: 4px solid #f59e0b; background: #422006; }
+
+/* ── 장초 분봉 재상승 확인 섹션 ── */
+.entry-shelf-banner { padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 12px; line-height: 1.7; }
+.entry-shelf-banner.ok   { background: #042f2e; border-left: 4px solid #14b8a6; color: #99f6e4; }
+.entry-shelf-banner.warn { background: #1e293b; border-left: 4px solid #94a3b8; color: #cbd5e1; }
+.entry-shelf-banner strong { color: #67e8f9; }
+
+.entry-shelf-section { margin-bottom: 22px; padding: 14px 16px; border-radius: 10px; }
+.entry-shelf-section.top    { background: linear-gradient(180deg, #042f2e 0%, #0f172a 60%); border: 1px solid #14b8a6; }
+.entry-shelf-section.bottom { background: linear-gradient(180deg, #422006 0%, #0f172a 60%); border: 1px solid #f59e0b; }
+.entry-shelf-section h2 { margin-top: 0; color: #f1f5f9; }
+.entry-shelf-section .shelf-desc { font-size: 12px; color: #cbd5e1; margin-bottom: 12px; line-height: 1.7; }
+
+/* 전략 chip — 카드 안에 표시되는 작은 태그 */
+.strategy-chip { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 999px; font-size: 11px; font-weight: 700; line-height: 1.3; border: 1px solid; margin-right: 4px; }
+.strategy-chip.SAFE_REBREAK     { background: #042f2e; color: #5eead4; border-color: #14b8a6; }
+.strategy-chip.BALANCED_REBREAK { background: #052e1f; color: #6ee7b7; border-color: #10b981; }
+.strategy-chip.CLEAN_REBREAK    { background: #1e1b4b; color: #c7d2fe; border-color: #818cf8; }
+.strategy-chip.LIGHT_REBREAK    { background: #0c2540; color: #7dd3fc; border-color: #38bdf8; }
+.strategy-chip.RISK_REBREAK     { background: #7c2d12; color: #fdba74; border-color: #f97316; }
+.strategy-chip.PREV_HIGH_SPIKE  { background: #422006; color: #fbbf24; border-color: #ca8a04; }
+.strategy-chip.PEAK_BEFORE_WARN { background: #7f1d1d; color: #fca5a5; border-color: #ef4444; font-weight: 800; }
+
+/* 시장 상태 banner */
+.market-banner { padding: 10px 16px; border-radius: 8px; margin-bottom: 14px; font-size: 12px; line-height: 1.7; border-left: 4px solid; }
+.market-banner.broad   { background: #042f2e; border-color: #14b8a6; color: #99f6e4; }
+.market-banner.large   { background: #422006; border-color: #f59e0b; color: #fde68a; }
+.market-banner.kosdaq  { background: #422006; border-color: #f97316; color: #fed7aa; }
+.market-banner.weak    { background: #7f1d1d; border-color: #ef4444; color: #fca5a5; }
+.market-banner.mixed   { background: #1e293b; border-color: #94a3b8; color: #cbd5e1; }
+.market-banner.unknown { background: #1e293b; border-color: #475569; color: #94a3b8; }
+.market-banner strong { color: #f1f5f9; }
+.market-banner .idx-num { font-variant-numeric: tabular-nums; font-weight: 700; }
+.market-banner .idx-num.pos { color: #6ee7b7; }
+.market-banner .idx-num.neg { color: #fca5a5; }
+
+/* dayType banner — 백테스트 latestDayType 표시 */
+.daytype-banner { padding: 10px 16px; border-radius: 8px; margin-bottom: 14px; font-size: 12px; line-height: 1.7; border-left: 4px solid; }
+.daytype-banner.HIT_AND_FADE_DAY { background: #1e3a8a; border-color: #3b82f6; color: #bfdbfe; }
+.daytype-banner.HOLDING_DAY      { background: #064e3b; border-color: #10b981; color: #6ee7b7; }
+.daytype-banner.WEAK_DAY         { background: #7f1d1d; border-color: #ef4444; color: #fca5a5; }
+.daytype-banner.MIXED_DAY        { background: #1e293b; border-color: #94a3b8; color: #cbd5e1; }
+.daytype-banner strong { color: #f1f5f9; }
+
+/* ── 운영자 상단 상태 배너 (sticky 컴팩트 카드) ── */
+/* sticky: 카드 목록 아래로 스크롤해도 상단 고정 — 보드 상태 + 시계 + 새로고침 항상 보임 */
+.status-banner-host-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  margin-left: -24px;     /* body padding 24px를 상쇄 → viewport 양 끝까지 */
+  margin-right: -24px;
+  margin-top: -18px;       /* body padding-top 18px를 상쇄 → viewport 최상단 부착 */
+  margin-bottom: 14px;
+  background: #0f172a;     /* sticky 시 뒷배경 노출 방지 */
+  border-bottom: 1px solid #1e293b;
+  box-shadow: 0 2px 8px -4px rgba(0,0,0,0.6);
+}
+.status-banner { padding: 10px 24px; border-left: 5px solid; display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; }
+.status-banner .status-body .status-label { font-size: 10px; font-weight: 600; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px; }
+.status-banner .status-body .status-title { font-size: 15px; font-weight: 700; line-height: 1.3; margin-bottom: 3px; color: #f1f5f9; }
+.status-banner .status-body .status-desc  { font-size: 12px; line-height: 1.55; opacity: 0.92; }
+.status-banner .status-body .status-action { font-size: 11px; margin-top: 4px; padding: 3px 8px; border-radius: 4px; background: rgba(255,255,255,0.07); display: inline-block; }
+.status-banner .status-action-area { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+.status-banner .status-clock { font-size: 12px; font-variant-numeric: tabular-nums; color: #f1f5f9; font-weight: 600; opacity: 0.95; white-space: nowrap; }
+.status-banner .status-clock .lbl { font-size: 9px; font-weight: 400; opacity: 0.7; margin-right: 3px; text-transform: uppercase; letter-spacing: 0.4px; }
+.status-banner .reload-btn { padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 6px; border: 1px solid; cursor: pointer; transition: transform 0.1s; white-space: nowrap; }
+.status-banner .reload-btn:hover { transform: translateY(-1px); }
+
+.status-banner.previous-close { background: linear-gradient(180deg,#1e293b 0%,#0f172a 80%); border-color: #64748b; color: #cbd5e1; }
+.status-banner.previous-close .reload-btn { background: #475569; border-color: #64748b; color: #f1f5f9; }
+.status-banner.waiting        { background: linear-gradient(180deg,#422006 0%,#0f172a 80%); border-color: #f59e0b; color: #fde68a; }
+.status-banner.waiting .reload-btn { background: #d97706; border-color: #f59e0b; color: #fff8eb; }
+.status-banner.needs-refresh  { background: linear-gradient(180deg,#7c2d12 0%,#0f172a 80%); border-color: #ef4444; color: #fca5a5; animation: status-blink 1.4s ease-in-out infinite; }
+.status-banner.needs-refresh .reload-btn { background: #dc2626; border-color: #ef4444; color: #ffffff; font-weight: 800; }
+.status-banner.confirmed      { background: linear-gradient(180deg,#042f2e 0%,#0f172a 80%); border-color: #14b8a6; color: #99f6e4; }
+.status-banner.confirmed .reload-btn { background: #0d9488; border-color: #14b8a6; color: #f0fdfa; }
+
+@keyframes status-blink {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.0); }
+  50%      { box-shadow: 0 0 0 6px rgba(239,68,68,0.25); border-color: #f87171; }
+}
+
+@media (max-width: 700px) {
+  .status-banner { grid-template-columns: 1fr; padding: 8px 14px; gap: 6px; }
+  .status-banner .status-action-area { align-items: flex-start; flex-direction: row; gap: 10px; }
+  .status-banner-host-wrap { margin-left: -12px; margin-right: -12px; margin-top: -12px; }
+  .status-banner .status-body .status-title { font-size: 13px; }
+  .status-banner .status-body .status-desc { font-size: 11px; }
+}
+
+.entry-status-pill { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 3px; background: #1e293b; color: #94a3b8; border: 1px solid #334155; margin-left: 6px; }
+.entry-status-pill.confirmed { background: #042f2e; color: #5eead4; border-color: #14b8a6; }
+.entry-status-pill.pending   { background: #1e293b; color: #94a3b8; border-color: #475569; }
 
 .filter-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .filter-btn { padding: 6px 12px; border-radius: 999px; border: 1px solid #334155; background: #1e293b; color: #cbd5e1; font-size: 12px; cursor: pointer; }
@@ -486,32 +1036,34 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 <nav>
   <a href="/qva-watchlist">📋 H그룹/VPR 보드</a>
   <a href="/rebreak">🔥 D+5 재돌파 운용</a>
-  <a href="/rebreak-deep">🔬 재돌파 심층 검증</a>
-  <a href="/one-day-surge-board" class="active">⚡ 단타 관심 후보 v5</a>
-  <a href="/one-day-surge-validation">🔬 단타 다음날 검증</a>
+  <a href="/one-day-surge-board" class="active">⚡ 1DS 단타 후보</a>
 </nav>
 
-<h1>⚡ 1-Day Surge Board v5 · 단타 관심 후보 (GOOD_TRADE 중심)</h1>
+<!-- 운영자 상단 sticky 상태 배너 (스크롤 내려도 항상 보임) -->
+<div class="status-banner-host-wrap"><div id="status-banner-host"></div></div>
+
+<h1 id="board-h1">🎯 내일 장초 우선 확인 후보</h1>
 <div class="subtitle" id="subtitle"></div>
 
 <div class="purpose-box">
-  <strong>1DS는 초대형 우량주가 아니라, 시총 대비 거래대금이 강하게 들어온 단기 수급 후보를 찾는 보드입니다.</strong>
-  시총 5조 이상 초대형주는 단타 급등 탄력이 약해 기본 제외합니다.
-  ETF / ETN / 리츠 / 스팩 / 우선주 / 관리종목도 단타 후보 성격이 아니라 모두 제외합니다.
-  v4-extra2 검증 결과를 반영해 그룹을 <strong>BALANCED-GT / LIGHT-GT / MID-CAP-GT / MOM-RISK / HEAVY-WATCH / MICRO-RISK / HEAVY-RISK</strong>로 재편했습니다.
+  전체 후보를 모두 보여주지 않고, <strong>먼저 확인할 5종목만</strong> 추려서 보여줍니다.
+  추가 확인 10개는 접힘으로 두고, 위험 신호가 큰 후보는 운영 화면에서 제외했습니다.
 </div>
-<div class="warn-box">
-  ⚠ 보드는 <strong>전일 종가 기준 일봉 캐시</strong>로 후보를 뽑습니다. 다음날 시초가 이후에만 알 수 있는 갭(gapRate)은
-  <strong>"다음 거래일 시초가 확인 필요"</strong>로 표시됩니다. 갭 7% 이상이면 추격 위험, 12% 이상이면 강한 추격 주의로 봅니다.
-</div>
+<div id="market-banner-host"></div>
+<div id="daytype-banner-host"></div>
 <div class="filter-info" id="filter-info"></div>
 
-<h2>📊 오늘 후보 요약</h2>
+<h2>📊 화면 요약</h2>
 <div class="summary-grid" id="summary-grid"></div>
 
-<div class="filter-bar" id="filter-bar"></div>
+<!-- ① 최우선 5종목 -->
+<div id="top-priority-host"></div>
 
-<div id="groups-container"></div>
+<!-- ② 추가 확인 후보 (접힘, 최대 10개) -->
+<div id="extra-priority-host"></div>
+
+<!-- 위험 후보는 내부 필터로 제외 — 위험 분석은 연구 보고서(/one-day-surge-entry-confirm, /one-day-surge-entry-daily-backtest)에서 -->
+<div id="risk-excluded-note"></div>
 
 <footer class="foot" id="foot"></footer>
 
@@ -551,18 +1103,20 @@ document.getElementById('subtitle').textContent =
 })();
 
 function renderSummary() {
-  const c = DATA.counts;
+  const v = DATA.visibilityCounts || {};
+  const e = DATA.entryShelf || {};
+  const minuteState = e.analysisDateConfirmReady
+    ? '✅ 적용 중'
+    : (e.withMinute > 0 ? '⏳ 부분 적용' : '⏳ 확인 전');
   const cells = [
-    { lab: 'BALANCED-GT', val: c['BALANCED-GT'], sub: '균형형 단타 후보 (3,000억~7,000억)', cls: 'balanced' },
-    { lab: 'LIGHT-GT',    val: c['LIGHT-GT'],    sub: '경량 단타 후보 (1,000억~3,000억)', cls: 'light' },
-    { lab: 'MID-CAP-GT',  val: c['MID-CAP-GT'],  sub: '중형 LOW_GAP (7,000억~1.5조)', cls: 'mid' },
-    { lab: 'MOM-RISK',    val: c['MOM-RISK'],    sub: '상한가형 (전일 +29%↑)', cls: 'mom' },
-    { lab: 'HEAVY-WATCH', val: c['HEAVY-WATCH'], sub: '준중대형 (1.5~3조) 참고', cls: 'heavy-w' },
-    { lab: 'MICRO-RISK',  val: c['MICRO-RISK'],  sub: '초경량 (500억~1,000억) 위험 표시', cls: 'micro' },
-    { lab: 'HEAVY-RISK',  val: c['HEAVY-RISK'],  sub: '대형 (3~5조) 강한 감점', cls: 'heavy-r' },
-    { lab: '거래대금 ×3↑', val: c.valueSurgeCount, sub: '평소 대비 강한 돈 몰림' },
-    { lab: 'LOW_GAP_INTRADAY', val: c.lowGapCount, sub: '낮은 갭+장중 매수' },
-    { lab: 'v/mc ≥ 10%',  val: c.highVmcCount,    sub: '시총 대비 거래대금 매우 강함' },
+    { lab: '전체 후보 풀', val: v.totalPool, sub: '분류 가능 후보 (UNCLASSIFIED 제외)', cls: '' },
+    { lab: '최우선 노출',  val: v.topPriorityShown, sub: 'displayPriorityScore 상위, 메인 펼침', cls: 'entry-safe' },
+    { lab: '추가 후보',    val: v.extraPriorityShown, sub: '6~15위, 접힘', cls: 'entry-light' },
+    { lab: '추천 풀 합계',  val: v.mainPoolSize, sub: '위험 필터 통과 후', cls: '' },
+    { lab: '위험 필터 제외', val: v.riskExcluded, sub: 'MOM-RISK·GAP_HOLD·SPIKE·peakBefore 등', cls: 'entry-warn' },
+    { lab: '숨김',         val: (v.overflowHidden || 0) + (v.unclassified || 0),
+      sub: 'overflow ' + (v.overflowHidden || 0) + ' + 미분류 ' + (v.unclassified || 0), cls: '' },
+    { lab: '장초 분봉 상태', val: minuteState, sub: '분봉 적용 ' + (e.withMinute || 0) + '건', cls: 'entry-clean' },
   ];
   document.getElementById('summary-grid').innerHTML = cells.map(c =>
     '<div class="summary-cell ' + (c.cls || '') + '"><div class="label">' + c.lab + '</div>' +
@@ -572,30 +1126,175 @@ function renderSummary() {
 }
 renderSummary();
 
-const FILTERS = [
-  { key: 'all',         label: '전체' },
-  { key: 'BALANCED-GT', label: 'BALANCED-GT' },
-  { key: 'LIGHT-GT',    label: 'LIGHT-GT' },
-  { key: 'MID-CAP-GT',  label: 'MID-CAP-GT' },
-  { key: 'MOM-RISK',    label: 'MOM-RISK (상한가형)' },
-  { key: 'low-gap',     label: 'LOW_GAP_INTRADAY 만' },
-  { key: 'qva',         label: 'QVA 이력 있음' },
-  { key: 'vvi',         label: 'VVI 이력 있음' },
-];
-let currentFilter = 'all';
-function renderFilterBar() {
-  document.getElementById('filter-bar').innerHTML = FILTERS.map(f =>
-    '<button class="filter-btn' + (currentFilter === f.key ? ' active' : '') + '" data-key="' + f.key + '">' + f.label + '</button>'
-  ).join('');
-  document.querySelectorAll('.filter-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      currentFilter = b.dataset.key;
-      renderFilterBar();
-      renderGroups();
-    });
+// ── 운영자 상단 상태 배너: 4종 상태 (시간 + 분봉 매칭 여부) ──
+// A. 전일 장마감 후보  (시간 < 09:00 또는 분봉 미매칭)
+// B. 장초 확인 대기 중 (09:00 ~ 09:30)
+// C. 장초 확인 필요    (09:30 이후 + 분봉 미매칭) — blink + reload 버튼
+// D. 장초 움직임 반영 완료 (분봉 매칭 + analysisDateConfirmReady)
+function getSeoulHHMM() {
+  // Asia/Seoul 시간 HH*100+MM 정수 반환
+  const fmt = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false,
+  });
+  const parts = fmt.formatToParts(new Date());
+  const hh = parseInt(parts.find(p => p.type === 'hour').value, 10);
+  const mm = parseInt(parts.find(p => p.type === 'minute').value, 10);
+  return hh * 100 + mm;
+}
+function formatSeoulNow() {
+  const fmt = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  });
+  // ko-KR 포맷이 "2026. 05. 07. 17:32:18" 형태 — 깔끔하게 정리
+  const parts = fmt.formatToParts(new Date());
+  const get = (t) => parts.find(p => p.type === t)?.value || '';
+  return get('year') + '-' + get('month') + '-' + get('day') + ' ' + get('hour') + ':' + get('minute') + ':' + get('second');
+}
+function computeBoardStatus() {
+  const e = DATA.entryShelf || {};
+  const hasIntraday = e.analysisDateConfirmReady === true && (e.withMinute || 0) > 0;
+  if (hasIntraday) return 'confirmed';
+  const hhmm = getSeoulHHMM();
+  if (hhmm < 900)  return 'previous-close';
+  if (hhmm < 930)  return 'waiting';
+  return 'needs-refresh';
+}
+function renderStatusBanner() {
+  const host = document.getElementById('status-banner-host');
+  if (!host) return;
+  const status = computeBoardStatus();
+  const e = DATA.entryShelf || {};
+  const ms = DATA.marketState || {};
+  const nowStr = formatSeoulNow();
+  const cfg = {
+    'previous-close': {
+      label: '현재 위치',
+      title: '장 시작 전 지켜볼 후보',
+      desc: '<strong>이 목록은 장초 진입 후보가 아닙니다.</strong> 장 시작 전에 미리 지켜볼 후보 리스트입니다. 장 시작 후 09:30 이후 장초 재상승 여부를 다시 확인하세요.',
+      action: '09:30 이후 보드를 새로고침하세요.',
+      btn: '보드 새로고침',
+    },
+    'waiting': {
+      label: '현재 위치',
+      title: '장초 확인 대기 중',
+      desc: '<strong>장초 움직임을 확인하는 시간입니다.</strong> 지금 보이는 후보는 아직 장초 확인 전 리스트이며, 09:30 이후 첫 고점 재돌파가 확인되면 후보가 더 좁혀집니다.',
+      action: '09:30 이후 다시 확인하세요.',
+      btn: '보드 새로고침',
+    },
+    'needs-refresh': {
+      label: '현재 위치',
+      title: '장초 확인 필요 (09:30 경과)',
+      desc: '<strong>09:30이 지났습니다. 이 화면은 아직 장초 확인 전 리스트입니다.</strong> 장초 분봉 결과를 반영하려면 보드를 새로고침하세요.',
+      action: '보드 새로고침 또는 장초 분봉 수집 후 다시 확인.',
+      btn: '🔄 보드 새로고침',
+    },
+    'confirmed': {
+      label: '현재 위치',
+      title: '오늘 장초 재상승 확인 후보',
+      desc: '<strong>장초 움직임 반영 완료.</strong> 첫 고점 재돌파가 확인된 후보 중 위험 신호가 큰 종목은 제외하고 표시 중입니다.',
+      action: '아래 최우선 후보를 확인하세요.',
+      btn: '보드 새로고침',
+    },
+  }[status];
+  host.innerHTML = '<div class="status-banner ' + status + '">' +
+    '<div class="status-body">' +
+      '<div class="status-label">' + cfg.label + '</div>' +
+      '<div class="status-title">' + cfg.title + '</div>' +
+      '<div class="status-desc">' + cfg.desc + '</div>' +
+      '<div class="status-action">→ ' + cfg.action + '</div>' +
+    '</div>' +
+    '<div class="status-action-area">' +
+      '<div class="status-clock"><span class="lbl">현재 시간</span><span id="status-clock-text">' + nowStr + '</span></div>' +
+      '<button class="reload-btn" onclick="window.location.reload()">' + cfg.btn + '</button>' +
+    '</div>' +
+  '</div>';
+  // H1 제목도 상태에 맞춰 동적 변경 — 장초 확인 전에는 "장 시작 전 지켜볼 후보"로 명시
+  const h1 = document.getElementById('board-h1');
+  if (h1) {
+    if (status === 'confirmed') h1.textContent = '🎯 오늘 장초 재상승 확인 후보';
+    else h1.textContent = '🎯 장 시작 전 지켜볼 후보 (5종목)';
+  }
+  // top-priority 섹션 설명도 상태에 따라 갱신
+  const topDesc = document.getElementById('top-priority-desc');
+  if (topDesc) {
+    if (status === 'confirmed') {
+      topDesc.innerHTML = '<strong>장초 움직임 반영 완료.</strong> 첫 고점 재돌파가 확인된 후보만 표시 중. 위험 신호가 큰 종목은 자동 제외됨.';
+    } else if (status === 'needs-refresh') {
+      topDesc.innerHTML = '<strong>⚠ 09:30이 지났습니다. 이 화면은 아직 장초 확인 전 리스트입니다.</strong> 보드를 새로고침하면 장초 분봉 확인 결과가 반영됩니다.';
+    } else {
+      topDesc.innerHTML = '아래 5종목은 <strong>내일 장 시작 전에 먼저 지켜볼 후보</strong>입니다. 09:30 이후 장초 움직임이 반영되면 실제 재상승 확인 후보로 다시 좁혀집니다.';
+    }
+  }
+  // 카드별 작은 안내 문구도 일괄 업데이트
+  document.querySelectorAll('.card-watch-note').forEach((el) => {
+    if (status === 'confirmed') el.style.display = 'none';
+    else {
+      el.style.display = '';
+      el.textContent = (status === 'needs-refresh')
+        ? '⚠ 장초 확인 전 · 09:30 경과, 새로고침 필요'
+        : '장초 확인 전 · 장 시작 후 09:30 이후 다시 확인 필요';
+    }
   });
 }
-renderFilterBar();
+renderStatusBanner();
+// 시계 1초마다 갱신 + 매 분 status 재평가
+setInterval(function() {
+  const el = document.getElementById('status-clock-text');
+  if (el) el.textContent = formatSeoulNow();
+}, 1000);
+setInterval(function() {
+  // 시간이 09:30 등 임계값을 지났을 때 자동 상태 갱신
+  renderStatusBanner();
+}, 30 * 1000);
+
+// 시장 상태 banner — 코스피/코스닥 + 대형주 쏠림 분류
+(function renderMarketBanner() {
+  const ms = DATA.marketState || {};
+  const host = document.getElementById('market-banner-host');
+  if (!host) return;
+  const stateMap = {
+    BROAD_MARKET_UP: 'broad', LARGE_CAP_LED: 'large', KOSDAQ_WEAK: 'kosdaq',
+    WEAK_MARKET: 'weak', MIXED_MARKET: 'mixed', UNKNOWN: 'unknown',
+  };
+  const cls = stateMap[ms.state] || 'unknown';
+  const idxFmt = (idx, name) => idx
+    ? name + ' <span class="idx-num ' + (idx.changeRate > 0 ? 'pos' : 'neg') + '">' + (idx.changeRate > 0 ? '+' : '') + idx.changeRate.toFixed(2) + '%</span>'
+    : name + ' <span class="muted">-</span>';
+  const indices = (ms.kospi || ms.kosdaq) ? '<br>' + idxFmt(ms.kospi, 'KOSPI') + ' · ' + idxFmt(ms.kosdaq, 'KOSDAQ') : '';
+  host.innerHTML = '<div class="market-banner ' + cls + '">' +
+    '<strong>📈 시장 상태:</strong> ' + (ms.label || '시장 상태 미확인') + indices +
+    (ms.desc ? '<br><span style="font-size:11px;opacity:0.85;">' + ms.desc + '</span>' : '') +
+  '</div>';
+})();
+
+// 최근 거래일 성격 banner (장마감 후 확정 — 장중에는 참고용)
+// 내부 수치(hit5/closePos/avgClose)는 운영 화면에서 제거. 서술 중심.
+(function renderDayTypeBanner() {
+  const lt = DATA.latestDayType;
+  const host = document.getElementById('daytype-banner-host');
+  if (!host || !lt) return;
+  host.innerHTML = '<div class="daytype-banner ' + lt.dayType + '">' +
+    '<strong>🌊 최근 거래일 성격</strong> (' + lt.date + ' → ' + lt.nextDate + ')<br>' +
+    '<span style="font-size:12px;line-height:1.7;">' + (lt.desc || lt.label || '') + '</span>' +
+    ' <span class="muted" style="font-size:10px;">— 장중에는 참고용</span>' +
+  '</div>';
+})();
+
+// (구 entry-shelf-banner는 새로운 운영자 status banner로 대체됨 — 렌더 X)
+
+// 모든 candidate를 code → item으로 lookup (각 섹션이 priority list의 코드로 카드 가져옴)
+const CODE_MAP = (function() {
+  const m = new Map();
+  for (const g of (DATA.groupOrder || [])) {
+    for (const it of (DATA.groups[g] || [])) m.set(it.code, it);
+  }
+  return m;
+})();
+function itemsByCodes(codes) {
+  return (codes || []).map((c) => CODE_MAP.get(c)).filter(Boolean);
+}
 
 const CANDLE_LABEL = {
   LOW_GAP_INTRADAY: '🟣 낮은 갭 + 장중 끌어올림',
@@ -606,6 +1305,26 @@ const CANDLE_LABEL = {
   OTHER:            '⚪ 기타',
 };
 
+function strategyChips(it) {
+  const list = it.entryStrategies || [];
+  const defs = (DATA.entryShelf && DATA.entryShelf.strategyDefs) || {};
+  const chips = list.map((s) => {
+    const d = defs[s] || {};
+    return '<span class="strategy-chip ' + s + '" title="' + (d.desc || '').replace(/"/g, '&quot;') + '">' + (d.chipLabel || s) + '</span>';
+  });
+  // peakBeforeEntryLive 라이브 추격 위험 — 별도 강조 chip
+  if (it.intraday && it.intraday.peakBeforeEntryLive === true) {
+    chips.push('<span class="strategy-chip PEAK_BEFORE_WARN" title="09:10 기준으로는 장중 고점이 이미 나온 뒤일 가능성이 큽니다. 추격 주의가 필요합니다.">⚠ 이미 초반 고점 통과</span>');
+  }
+  return chips.join('');
+}
+
+function entryStatusPill(it) {
+  if (it.entryStatus === 'OK') return '';
+  // 분봉 확인 전인 경우만 명시 (개별 카드 너무 시끄러우면 제거 가능)
+  return '<span class="entry-status-pill pending" title="장초 분봉 데이터 아직 없음 — 다음 거래일 09:35+ 분봉 수집 후 표시">장초 분봉 확인 전</span>';
+}
+
 function buildCardHtml(it) {
   const badges = [];
   // 그룹 라벨
@@ -614,6 +1333,12 @@ function buildCardHtml(it) {
   // 시총 + 점수
   badges.push('<span class="badge aux" title="' + (it.gtBandLabel || '') + '">' + fmtMoney(it.marketCap) + '</span>');
   badges.push('<span class="badge score">총점 ' + it.oneDaySurgeScore + '</span>');
+  // displayPriorityScore (화면 우선순위) — 디버그/투명성
+  if (typeof it.displayPriorityScore === 'number') {
+    const ps = it.displayPriorityScore;
+    const psCls = ps >= 80 ? 'value-strong' : (ps >= 50 ? 'value-mid' : (ps < 0 ? 'overheat' : 'aux'));
+    badges.push('<span class="badge ' + psCls + '" title="화면 우선순위 점수 (그룹 + 수급 + 분봉 가산 - 위험 감점)">우선순위 ' + ps + '</span>');
+  }
 
   // v/mc 비율
   if (it.valueToMarketCapRatio != null) {
@@ -664,9 +1389,21 @@ function buildCardHtml(it) {
   const tailCls = it.upperTailRatio >= 0.4 ? 'cell-warn' : '';
   const distCls = it.distFromHigh20 == null ? '' : (it.distFromHigh20 >= 0 ? 'cell-pos' : (it.distFromHigh20 < -10 ? 'cell-neg' : ''));
 
-  return '<div class="card g-' + it.gtGroup + '" data-group="' + it.gtGroup + '" data-candle="' + (it.candleType || '') + '" data-qva="' + (it.qvaHistoryLabel ? '1' : '0') + '" data-vvi="' + (it.vviHistory ? '1' : '0') + '">' +
-    '<h3>' + (it.name || '-') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span></h3>' +
-    '<div class="meta">' + badges.join('') + '</div>' +
+  // 장초 ENTRY_CONFIRM 분봉 메트릭 메시지 (있을 때만)
+  let intradayLine = '';
+  if (it.entryStatus === 'OK' && it.intraday) {
+    const im = it.intraday;
+    const mh = im.rebreakMorningHigh_10_30;
+    const ph = im.rebreakPrevHighBy0930;
+    const mhTxt = mh ? '<span class="cell-pos">✓ 09:10~30 첫 10분 고점 재돌파</span>' : '<span class="muted">· 첫 10분 고점 미돌파</span>';
+    const phTxt = ph ? '<span class="cell-warn">⚠ 전일 고점 돌파(spike 위험)</span>' : '<span class="muted">· 전일 고점 미돌파</span>';
+    const gapPctTxt = im.gapRate != null ? fmtPct(im.gapRate, 2) : '-';
+    intradayLine = '<div class="gap-note" style="border-left-color:#14b8a6;color:#cbd5e1;">🚪 장초 분봉 확인 (' + (DATA.entryShelf && DATA.entryShelf.entryConfirmDate || '-') + '): 시초가 갭 ' + gapPctTxt + ' · ' + mhTxt + ' · ' + phTxt + '</div>';
+  }
+
+  return '<div class="card g-' + it.gtGroup + '" data-group="' + it.gtGroup + '" data-candle="' + (it.candleType || '') + '" data-qva="' + (it.qvaHistoryLabel ? '1' : '0') + '" data-vvi="' + (it.vviHistory ? '1' : '0') + '" data-strategies="' + ((it.entryStrategies || []).join(',')) + '">' +
+    '<h3>' + (it.name || '-') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' + entryStatusPill(it) + '</h3>' +
+    '<div class="meta">' + strategyChips(it) + badges.join('') + '</div>' +
     '<div class="metrics-grid">' +
       '<div class="metric"><div class="label">기준일 종가</div><div class="value">' + fmtNum(it.close) + '원</div><div class="sub">' + fmtDate(it.baseDate) + '</div></div>' +
       '<div class="metric"><div class="label">전일 등락률</div><div class="value ' + chgCls + '">' + fmtPct(it.changeRate, 2) + '</div><div class="sub">기준일 갭 ' + fmtPct(it.baseGapRate, 2) + '</div></div>' +
@@ -682,73 +1419,97 @@ function buildCardHtml(it) {
       '<div class="metric"><div class="label">캔들 구조</div><div class="value">' + (CANDLE_LABEL[it.candleType] || '-') + '</div><div class="sub">실전 단타 우선 = LOW_GAP</div></div>' +
     '</div>' +
     '<div class="summary-line">💡 ' + (it.summaryLine || '') + '</div>' +
-    '<div class="gap-note">🚪 다음 거래일 시초가가 나오면 갭 7% 이상은 "갭 과열 주의", 12% 이상은 "강한 추격 주의", 20% 이상은 "초고위험 갭"으로 표시됩니다. 7% 미만이면 "장초 확인 가능 구간".</div>' +
+    intradayLine +
+    (intradayLine ? '' : '<div class="gap-note">🚪 다음 거래일 시초가가 나오면 갭 7% 이상은 "갭 과열 주의", 12% 이상은 "강한 추격 주의", 20% 이상은 "초고위험 갭"으로 표시됩니다. 7% 미만이면 "장초 확인 가능 구간".</div>') +
+    // 장초 확인 전 카드 하단 작은 안내 — status에 따라 JS가 텍스트 갱신/숨김
+    '<div class="card-watch-note" style="margin-top:6px;font-size:11px;color:#94a3b8;border-top:1px dashed #334155;padding-top:6px;">' +
+      '장초 확인 전 · 장 시작 후 09:30 이후 다시 확인 필요' +
+    '</div>' +
     '</div>';
 }
 
-function renderGroups() {
-  const html = [];
-  for (const g of (DATA.groupOrder || [])) {
-    let list = (DATA.groups[g] || []).slice();
-    list = list.filter(it => {
-      if (currentFilter === 'all') return true;
-      if (currentFilter === 'qva') return !!it.qvaHistoryLabel;
-      if (currentFilter === 'vvi') return !!it.vviHistory;
-      if (currentFilter === 'low-gap') return it.candleType === 'LOW_GAP_INTRADAY';
-      return it.gtGroup === currentFilter;
-    });
-    const title = (DATA.groupLabels && DATA.groupLabels[g]) || g;
-    const desc  = (DATA.groupDescriptions && DATA.groupDescriptions[g]) || '';
-    const opened = ['BALANCED-GT', 'LIGHT-GT', 'MID-CAP-GT'].includes(g);
-    html.push(
-      '<section class="group-section">' +
-        '<div class="group-header" data-grp="' + g + '">' +
-          '<h2>' + title + ' <span style="color:#64748b;font-size:13px;font-weight:400;">(' + list.length + '건)</span></h2>' +
-          '<span class="toggle">' + (opened ? '▼' : '▶') + '</span>' +
-        '</div>' +
-        '<div class="group-desc">' + desc + '</div>' +
-        '<div class="group-body' + (opened ? '' : ' collapsed') + '" data-grp-body="' + g + '">' +
-          (list.length === 0 ? '<div class="empty-list">조건에 맞는 후보가 없습니다.</div>' : list.map(buildCardHtml).join('')) +
-        '</div>' +
-      '</section>'
-    );
+// ── ① 최우선 5종목 (메인 펼침) ──
+// 섹션 설명은 status banner 렌더 시점에 다시 update됨 (장초 확인 전/후 다른 문구).
+(function renderTopPriority() {
+  const host = document.getElementById('top-priority-host');
+  if (!host) return;
+  const items = itemsByCodes(DATA.priorityRanked && DATA.priorityRanked.topPriority);
+  if (items.length === 0) {
+    host.innerHTML = '<section class="entry-shelf-section top"><h2>🎯 장 시작 전 지켜볼 후보 (5종목)</h2>' +
+      '<div class="empty-list">조건을 만족하는 후보가 없습니다.</div></section>';
+    return;
   }
-  document.getElementById('groups-container').innerHTML = html.join('') || '<div class="empty-list">조건에 맞는 후보가 없습니다.</div>';
-  document.querySelectorAll('.group-header').forEach(h => {
-    h.addEventListener('click', () => {
-      const g = h.dataset.grp;
-      const body = document.querySelector('[data-grp-body="' + g + '"]');
-      const toggle = h.querySelector('.toggle');
-      if (body) {
-        body.classList.toggle('collapsed');
-        if (toggle) toggle.textContent = body.classList.contains('collapsed') ? '▶' : '▼';
-      }
-    });
-  });
-}
-renderGroups();
+  host.innerHTML = '<section class="entry-shelf-section top">' +
+    '<h2 id="top-priority-h2">🎯 장 시작 전 지켜볼 후보 (' + items.length + '종목)</h2>' +
+    '<div class="shelf-desc" id="top-priority-desc">아래 ' + items.length + '종목은 <strong>장 시작 전에 먼저 지켜볼 후보</strong>입니다. 09:30 이후 장초 움직임이 반영되면 실제 재상승 확인 후보로 다시 좁혀집니다.</div>' +
+    items.map(buildCardHtml).join('') +
+  '</section>';
+})();
+
+// ── ② 추가 확인 후보 (접힘, 6~15위, 최대 10) ──
+(function renderExtraPriority() {
+  const host = document.getElementById('extra-priority-host');
+  if (!host) return;
+  const items = itemsByCodes(DATA.priorityRanked && DATA.priorityRanked.extraPriority);
+  if (items.length === 0) return;
+  const overflow = (DATA.priorityRanked && DATA.priorityRanked.overflowHiddenCount) || 0;
+  host.innerHTML = '<section class="entry-shelf-section" style="border:1px solid #475569;background:#0f172a;">' +
+    '<details><summary style="cursor:pointer;font-size:15px;font-weight:700;color:#cbd5e1;padding:6px 0;">' +
+      '📋 추가 확인 후보 (' + items.length + '건' + (overflow > 0 ? ', overflow ' + overflow + '건 숨김' : '') + ') — 펼쳐서 보기</summary>' +
+    '<div style="margin-top:10px;">' +
+    '<div class="shelf-desc">조건은 맞지만 최우선 5종목에는 들지 못한 후보입니다. displayPriorityScore 6~' + (5 + items.length) + '위.</div>' +
+      items.map(buildCardHtml).join('') +
+    '</div></details>' +
+  '</section>';
+})();
+
+// ── 위험 후보 제외 안내 (보드는 추천만 노출 — 위험 분석은 연구 보고서) ──
+(function renderRiskExcludedNote() {
+  const host = document.getElementById('risk-excluded-note');
+  if (!host) return;
+  const v = DATA.visibilityCounts || {};
+  const breakdown = v.riskExcludeBreakdown || {};
+  const total = v.riskExcluded || 0;
+  if (total === 0) return;
+  const reasonLabels = {
+    group_off_pool:    '위험형/저탄력 그룹 (상한가형·초경량·대형·준중대형)',
+    gap_hold_candle:   '갭상승 후 종가 유지형 (시초가 추격 위험)',
+    prev_high_spike:   '전일 고점 돌파 spike (단발성 급등 후 흔들림 큼)',
+    risk_rebreak:      '위험 그룹의 장초 재상승',
+    peak_before_entry: '이미 초반 고점 통과 (09:10 진입 시점에 고점 후)',
+    trap_risk_high:    '윗꼬리·최근 과열 누적 위험',
+  };
+  const items = Object.entries(breakdown).filter(([_, n]) => n > 0)
+    .map(([reason, n]) => '<li>' + (reasonLabels[reason] || reason) + ': <strong>' + n + '건</strong></li>').join('');
+  host.innerHTML = '<section class="entry-shelf-section" style="border:1px solid #475569;background:#0f172a;margin-top:14px;">' +
+    '<details><summary style="cursor:pointer;font-size:13px;font-weight:600;color:#94a3b8;padding:6px 0;">' +
+      '🛡 위험 신호가 큰 후보는 운영 화면에서 제외됨 (' + total + '건) — 사유만 보기</summary>' +
+    '<div style="margin-top:10px;font-size:12px;color:#cbd5e1;line-height:1.7;">' +
+      '<div style="color:#94a3b8;margin-bottom:8px;">제외된 종목명은 운영 화면에 노출하지 않습니다. 사유와 건수만 표시합니다.</div>' +
+      '<ul style="margin:0;padding-left:20px;">' + items + '</ul>' +
+    '</div></details>' +
+  '</section>';
+})();
 
 document.getElementById('foot').innerHTML =
-  '<strong>v5 GT 그룹 분류 (검증 보고서 v4-extra2 권고 반영)</strong><br>' +
-  '• <strong>BALANCED-GT</strong> — 시총 3,000억~7,000억 + valueToMcRatio ≥ 5% + (LOW_GAP_INTRADAY 또는 거래대금 시장 상위 30위)<br>' +
-  '• <strong>LIGHT-GT</strong> — 시총 1,000억~3,000억 + valueToMcRatio ≥ 5% + recent5Up15Count ≤ 1회<br>' +
-  '• <strong>MID-CAP-GT</strong> — 시총 7,000억~1.5조 + valueToMcRatio ≥ 5% + LOW_GAP_INTRADAY 한정<br>' +
-  '• <strong>MOM-RISK</strong> — 전일 +29% 이상 (상한가형 — HIT10 높지만 TRAP 큼, 추격 금지)<br>' +
-  '• <strong>HEAVY-WATCH</strong> — 시총 1.5조~3조 (단타 탄력 약화, 참고)<br>' +
-  '• <strong>MICRO-RISK</strong> — 시총 500억~1,000억 (실전 진입 비추천, 위험 표시)<br>' +
-  '• <strong>HEAVY-RISK</strong> — 시총 3조~5조 (강한 감점, 보드 하단)<br>' +
-  '<br><strong>제외 조건 (one-day-surge-core.js passesHardFilter)</strong><br>' +
-  '• ETF / ETN / 리츠 / 스팩 / 우선주 / 관리종목 (naver isEtf · isSpecial 플래그 + 키워드 매칭)<br>' +
-  '• 키워드 매칭: ETF, ETN, KODEX, TIGER, ACE, SOL, KBSTAR, HANARO, ARIRANG, TIMEFOLIO, KOSEF, 히어로즈, PLUS, 인버스, 레버리지, 리츠, 스팩, 제1호~제4호, 종목명 끝 우/우B/숫자우/숫자우B/숫자우C<br>' +
-  '• 시가총액 500억 미만 / 5조 이상 → 제외 · 시총 미확인 → 제외<br>' +
-  '<br><strong>정렬 기준 (각 그룹 내)</strong><br>' +
-  '• LOW_GAP_INTRADAY 우선 → valueToMcRatio 높은 순 → 일자내 거래대금 순위 높은 순(낮은 숫자) → recent5Up15Count 작은 순<br>' +
-  '<br><strong>다음 거래일 갭(gapRate) 처리</strong><br>' +
-  '• 보드는 전일 종가 기준이라 다음날 시초가 없음 — 카드 하단 "다음 거래일 시초가 확인 필요" 표시<br>' +
-  '• 다음날 장초에 gapRate < 7% 면 장초 확인 가능 구간, 7%↑ 갭 과열 주의, 12%↑ 강한 추격 주의, 20%↑ 초고위험 갭<br>' +
-  '<br>' +
-  '• <strong>QVA / VVI 이력은 참고 태그</strong>이며 본 보드 점수에는 들어가지 않습니다. (검증 보고서 v3 결론 — QVA 단독 가점 금지)<br>' +
-  '• <strong>매수 확정 신호가 아닙니다.</strong> 다음 거래일 장초 흐름 확인용 매수후보 좁히기 보드입니다.';
+  '<strong>이 보드의 후보 선정 기준</strong><br>' +
+  '• <strong>수급 균형 후보</strong> — 시총 3,000억~7,000억 + 시총 대비 거래대금 5% 이상 + 낮은 갭에서 장중 끌어올림 또는 거래대금 시장 상위 30위<br>' +
+  '• <strong>가볍게 움직일 후보</strong> — 시총 1,000억~3,000억 + 시총 대비 거래대금 5% 이상 + 최근 급등이 1회 이하<br>' +
+  '• <strong>중형 수급 후보</strong> — 시총 7,000억~1.5조 + 시총 대비 거래대금 5% 이상 + 낮은 갭 한정<br>' +
+  '<br><strong>운영 화면에서 자동 제외하는 후보</strong><br>' +
+  '• ETF / ETN / 리츠 / 스팩 / 우선주 / 관리종목 / 시가총액 500억 미만·5조 이상<br>' +
+  '• 위험형(상한가형) · 갭상승 후 종가 유지형 · 전일 고점 돌파 spike · 이미 초반 고점 통과 · 윗꼬리·과열 trap 위험<br>' +
+  '<br><strong>장초 분봉 확인이 반영되면</strong><br>' +
+  '• 첫 10분 고점을 다시 넘긴 후보가 우선 노출됩니다 (장초 재상승 ✓ / 균형 재상승 ✓ / 깨끗한 재상승 ✓ / 가벼운 재상승 ✓ 칩).<br>' +
+  '• 09:10 시점에 이미 고점이 지난 후보는 추격 위험으로 제외됩니다.<br>' +
+  '<br><strong>참고/주의</strong><br>' +
+  '• <strong>매수 확정 신호가 아닙니다.</strong> 내일 장초에 먼저 볼 후보를 좁혀주는 보드입니다.<br>' +
+  '<br><div style="margin-top:10px;font-size:11px;color:#64748b;">' +
+  '연구/복기 보고서: ' +
+  '<a href="/one-day-surge-validation" style="color:#7dd3fc;">날짜별 복기 보고서 보기</a> · ' +
+  '<a href="/one-day-surge-entry-confirm" style="color:#7dd3fc;">장초 조건 연구 보기</a> · ' +
+  '<a href="/one-day-surge-entry-daily-backtest" style="color:#7dd3fc;">날짜별 운영 검증 보기</a>' +
+  '</div>';
 </script>
 
 </body>

@@ -723,6 +723,7 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 <nav>
   <a href="/qva-watchlist">📋 H그룹/VPR 보드</a>
   <a href="/rebreak" class="active">🔥 D+5 재돌파 운용</a>
+  <a href="/one-day-surge-board">⚡ 1DS 단타 후보</a>
   <a href="/rebreak-deep">🔬 재돌파 심층 검증</a>
 </nav>
 

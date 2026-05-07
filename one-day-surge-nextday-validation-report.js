@@ -2536,8 +2536,8 @@ table.rules tr.high-r td { background: #7f1d1d15; }
 <nav>
   <a href="/qva-watchlist">📋 H그룹/VPR 보드</a>
   <a href="/rebreak">🔥 D+5 재돌파 운용</a>
-  <a href="/one-day-surge-board">⚡ 단타 관심 후보</a>
-  <a href="/one-day-surge-validation" class="active">🔬 HIT10 연구 v3</a>
+  <a href="/one-day-surge-board">⚡ 1DS 단타 후보</a>
+  <a href="/one-day-surge-validation" class="active">🔬 1DS 다음날 검증</a>
 </nav>
 
 <h1>🔬 1-Day Surge HIT10 연구 보고서 v3</h1>

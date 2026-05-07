@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "1-Day Surge Board v5 · GOOD_TRADE 중심 단타 후보 보드",
-    "generatedAt": "2026-05-07T08:28:38.755Z",
+    "generatedAt": "2026-05-07T11:01:27.840Z",
     "analysisDate": "20260507",
     "analysisDateFmt": "2026-05-07",
     "stockUniverse": 4270,
@@ -91,7 +91,10 @@
         "vviHistory": null,
         "dailyValueRank": 9,
         "gtGroup": "BALANCED-GT",
-        "summaryLine": "거래대금이 평소보다 ×7.8배 폭증, 시총 대비 거래대금 60.9% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 9위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×7.8배 폭증, 시총 대비 거래대금 60.9% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 9위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 39.82,
+        "displayPriorityScore": 95
       },
       {
         "code": "006910",
@@ -145,7 +148,11 @@
         "vviHistory": null,
         "dailyValueRank": 10,
         "gtGroup": "BALANCED-GT",
-        "summaryLine": "시총 대비 거래대금 41.0% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 10위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토."
+        "summaryLine": "시총 대비 거래대금 41.0% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 10위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 83.6,
+        "displayPriorityScore": 35,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "092220",
@@ -199,7 +206,12 @@
         "vviHistory": null,
         "dailyValueRank": 1,
         "gtGroup": "BALANCED-GT",
-        "summaryLine": "거래대금이 평소보다 ×3.0배 늘었음, 시총 대비 거래대금 36.0% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 3회 (과열 주의), 거래대금 시장 상위 1위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×3.0배 늘었음, 시총 대비 거래대금 36.0% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 3회 (과열 주의), 거래대금 시장 상위 1위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토.",
+        "entryStatus": "INTRADAY_INVALID",
+        "nextDayDir": "2026-04-28",
+        "riskTrapScore": 106.49000000000001,
+        "displayPriorityScore": 25,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "092190",
@@ -253,7 +265,46 @@
         "vviHistory": null,
         "dailyValueRank": 2,
         "gtGroup": "BALANCED-GT",
-        "summaryLine": "거래대금이 평소보다 ×13.0배 폭증, 시총 대비 거래대금 23.4% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 3회 (과열 주의), 거래대금 시장 상위 2위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×13.0배 폭증, 시총 대비 거래대금 23.4% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 3회 (과열 주의), 거래대금 시장 상위 2위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토.",
+        "entryStatus": "OK",
+        "nextDayDir": "2026-05-07",
+        "intraday": {
+          "nextOpen": 12110,
+          "gapRate": 0,
+          "bars_0_10_count": 10,
+          "bars_total": 60,
+          "highFromOpen_0_10": 0,
+          "lowFromOpen_0_10": 0,
+          "closeFromOpen_0910": 0,
+          "value_0_10": 0,
+          "volume_0_10": 0,
+          "vwap_0_10": null,
+          "value_0_10_to_prevValue": 0,
+          "value_0_10_to_avg20Value": 0,
+          "isAboveOpenAt0910": false,
+          "isAboveVwapAt0910": false,
+          "isLowDropLessThan3At0910": true,
+          "highFrom0910_10_30": 0,
+          "lowFrom0910_10_30": 0,
+          "rebreakMorningHigh_10_30": false,
+          "rebreakPrevHighBy0930": false,
+          "isAboveVwapAt0930": false,
+          "vwap_0_30": null,
+          "isAbovePrevHighAt0930": false,
+          "prevDayHigh": 13630,
+          "highFromOpen_0_60": 0,
+          "lowFromOpen_0_60": 0,
+          "rebreakPrevHighBy1000": false,
+          "maxGainBefore1000": 0,
+          "maxDropBefore1000": 0,
+          "entryPrice": 12110,
+          "preEntryMaxHigh": 12110,
+          "peakBeforeEntryLive": false
+        },
+        "entryStrategies": [],
+        "riskTrapScore": 121.78999999999999,
+        "displayPriorityScore": 35,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "017900",
@@ -307,7 +358,11 @@
         "vviHistory": null,
         "dailyValueRank": 30,
         "gtGroup": "BALANCED-GT",
-        "summaryLine": "시총 대비 거래대금 17.3% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 68%), 최근 5일 첫 급등형, 거래대금 시장 상위 30위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토."
+        "summaryLine": "시총 대비 거래대금 17.3% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 68%), 최근 5일 첫 급등형, 거래대금 시장 상위 30위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 68,
+        "displayPriorityScore": 30,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "001570",
@@ -361,64 +416,14 @@
         "vviHistory": null,
         "dailyValueRank": 1,
         "gtGroup": "BALANCED-GT",
-        "summaryLine": "시총 대비 거래대금 6.7% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토."
+        "summaryLine": "시총 대비 거래대금 6.7% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 균형형 단타 후보. 다음 거래일 장초 시초가가 갭 7% 미만이면 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 86.9,
+        "displayPriorityScore": 25,
+        "riskExcluded": "trap_risk_high"
       }
     ],
     "LIGHT-GT": [
-      {
-        "code": "004710",
-        "name": "한솔테크닉스",
-        "market": "KOSPI",
-        "marketCap": 258500000000,
-        "baseIdx": 814,
-        "baseDate": "20260507",
-        "open": 7940,
-        "high": 9350,
-        "low": 7630,
-        "close": 9150,
-        "volume": 3983023,
-        "valueAmount": 36444660450,
-        "prevClose": 7900,
-        "avg20Value": 16073210113.3,
-        "avg20Volume": 2183089.5,
-        "valueRatio": 2.27,
-        "volumeRatio": 1.82,
-        "closePosition": 0.884,
-        "upperTailRatio": 0.116,
-        "changeRate": 15.82,
-        "gapPct": 0.51,
-        "ret3d": 12.55,
-        "ret5d": 12.68,
-        "high20": 8940,
-        "distFromHigh20": 2.35,
-        "isBreakoutOf20": true,
-        "nearHigh20": false,
-        "valueSurgeScore": 15,
-        "volumeSurgeScore": 5,
-        "closeStrengthScore": 20,
-        "priceMomentumScore": 15,
-        "breakoutPotentialScore": 15,
-        "upperTailPenalty": 0,
-        "overheatPenalty": 0,
-        "riskPenalty": 0,
-        "marketCapPenalty": 0,
-        "marketCapBand": "CORE",
-        "oneDaySurgeScore": 70,
-        "marketCapBandLabel": "시총 1,000억~1.5조 (핵심 구간)",
-        "gtBand": "LIGHT",
-        "gtBandLabel": "경량 1,000억~3,000억 (LIGHT-GT 후보)",
-        "valueToMarketCapRatio": 14.1,
-        "candleType": "LOW_GAP_INTRADAY",
-        "recent5Up7Count": 0,
-        "recent5Up15Count": 0,
-        "recent10Up15Count": 1,
-        "baseGapRate": 0.51,
-        "qvaHistoryLabel": null,
-        "vviHistory": null,
-        "dailyValueRank": 109,
-        "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×2.3배 늘었음, 시총 대비 거래대금 14.1% (회사 크기 대비 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
-      },
       {
         "code": "203650",
         "name": "드림시큐리티",
@@ -471,7 +476,11 @@
         "vviHistory": null,
         "dailyValueRank": 2,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×7.1배 폭증, 시총 대비 거래대금 211.2% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 57%), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 2위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×7.1배 폭증, 시총 대비 거래대금 211.2% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 57%), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 2위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 63.48,
+        "displayPriorityScore": 35,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "078150",
@@ -525,7 +534,11 @@
         "vviHistory": null,
         "dailyValueRank": 8,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×17.5배 폭증, 시총 대비 거래대금 115.9% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 8위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×17.5배 폭증, 시총 대비 거래대금 115.9% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 8위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 83.99000000000001,
+        "displayPriorityScore": 35,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "017550",
@@ -579,7 +592,10 @@
         "vviHistory": null,
         "dailyValueRank": 11,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×8.3배 폭증, 시총 대비 거래대금 112.0% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 11위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×8.3배 폭증, 시총 대비 거래대금 112.0% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 11위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 22.8,
+        "displayPriorityScore": 80
       },
       {
         "code": "041440",
@@ -633,7 +649,10 @@
         "vviHistory": null,
         "dailyValueRank": 23,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×23.4배 폭증, 시총 대비 거래대금 77.0% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 42%), 최근 5일 첫 급등형, 거래대금 시장 상위 23위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×23.4배 폭증, 시총 대비 거래대금 77.0% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 42%), 최근 5일 첫 급등형, 거래대금 시장 상위 23위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 42.4,
+        "displayPriorityScore": 50
       },
       {
         "code": "054920",
@@ -687,7 +706,10 @@
         "vviHistory": null,
         "dailyValueRank": 21,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×3.0배 늘었음, 시총 대비 거래대금 68.4% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 57%), 최근 5일 첫 급등형, 거래대금 시장 상위 21위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×3.0배 늘었음, 시총 대비 거래대금 68.4% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 57%), 최근 5일 첫 급등형, 거래대금 시장 상위 21위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 56.99999999999999,
+        "displayPriorityScore": 40
       },
       {
         "code": "115440",
@@ -741,7 +763,11 @@
         "vviHistory": null,
         "dailyValueRank": 46,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 48.4% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 74%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 48.4% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 74%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 74.4,
+        "displayPriorityScore": 20,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "381620",
@@ -795,7 +821,11 @@
         "vviHistory": null,
         "dailyValueRank": 57,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×24.3배 폭증, 시총 대비 거래대금 47.1% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 60%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×24.3배 폭증, 시총 대비 거래대금 47.1% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 60%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 60.199999999999996,
+        "displayPriorityScore": 20,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "101170",
@@ -849,7 +879,11 @@
         "vviHistory": null,
         "dailyValueRank": 36,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×31.1배 폭증, 시총 대비 거래대금 43.5% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 78%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×31.1배 폭증, 시총 대비 거래대금 43.5% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 78%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 78.10000000000001,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "013310",
@@ -903,7 +937,10 @@
         "vviHistory": null,
         "dailyValueRank": 58,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×13.7배 폭증, 시총 대비 거래대금 43.3% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 50%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×13.7배 폭증, 시총 대비 거래대금 43.3% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 50%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 50,
+        "displayPriorityScore": 40
       },
       {
         "code": "377480",
@@ -957,7 +994,10 @@
         "vviHistory": null,
         "dailyValueRank": 83,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×36.5배 폭증, 시총 대비 거래대금 41.8% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 50%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×36.5배 폭증, 시총 대비 거래대금 41.8% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 50%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 50.1,
+        "displayPriorityScore": 40
       },
       {
         "code": "016790",
@@ -1011,7 +1051,11 @@
         "vviHistory": null,
         "dailyValueRank": 1,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×2.6배 늘었음, 시총 대비 거래대금 38.9% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 82%), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×2.6배 늘었음, 시총 대비 거래대금 38.9% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 82%), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 82.3,
+        "displayPriorityScore": 35,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "078890",
@@ -1065,7 +1109,10 @@
         "vviHistory": null,
         "dailyValueRank": 81,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×8.7배 폭증, 시총 대비 거래대금 38.8% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×8.7배 폭증, 시총 대비 거래대금 38.8% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 31.7,
+        "displayPriorityScore": 70
       },
       {
         "code": "053260",
@@ -1119,7 +1166,11 @@
         "vviHistory": null,
         "dailyValueRank": 87,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×2.7배 늘었음, 시총 대비 거래대금 37.2% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×2.7배 늘었음, 시총 대비 거래대금 37.2% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 92,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "065440",
@@ -1173,7 +1224,11 @@
         "vviHistory": null,
         "dailyValueRank": 123,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 29.5% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 80%), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 29.5% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 80%), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 79.5,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "396470",
@@ -1227,7 +1282,11 @@
         "vviHistory": null,
         "dailyValueRank": 113,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×14.3배 폭증, 시총 대비 거래대금 28.1% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×14.3배 폭증, 시총 대비 거래대금 28.1% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 73.7,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "079430",
@@ -1281,7 +1340,11 @@
         "vviHistory": null,
         "dailyValueRank": 112,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×11.0배 폭증, 시총 대비 거래대금 21.8% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×11.0배 폭증, 시총 대비 거래대금 21.8% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 96.6,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "011700",
@@ -1335,7 +1398,11 @@
         "vviHistory": null,
         "dailyValueRank": 135,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×5.6배 폭증, 시총 대비 거래대금 19.6% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×5.6배 폭증, 시총 대비 거래대금 19.6% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 95.19999999999999,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "250060",
@@ -1389,7 +1456,10 @@
         "vviHistory": null,
         "dailyValueRank": 156,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×3.1배 강하게 증가, 시총 대비 거래대금 16.9% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 56%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×3.1배 강하게 증가, 시총 대비 거래대금 16.9% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 56%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 56.10000000000001,
+        "displayPriorityScore": 30
       },
       {
         "code": "042500",
@@ -1443,7 +1513,11 @@
         "vviHistory": null,
         "dailyValueRank": 176,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 16.6% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 16.6% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 81.6,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "159010",
@@ -1497,7 +1571,10 @@
         "vviHistory": null,
         "dailyValueRank": 177,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×6.6배 폭증, 시총 대비 거래대금 15.6% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 36%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×6.6배 폭증, 시총 대비 거래대금 15.6% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 36%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 38.56,
+        "displayPriorityScore": 70
       },
       {
         "code": "452190",
@@ -1551,7 +1628,11 @@
         "vviHistory": null,
         "dailyValueRank": 134,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 15.5% (회사 크기 대비 강한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 15.5% (회사 크기 대비 강한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 73.3,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "380540",
@@ -1605,7 +1686,12 @@
         "vviHistory": null,
         "dailyValueRank": 1,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 15.0% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 61%), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 15.0% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 61%), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_MINUTE_DATA",
+        "nextDayDir": "2026-03-24",
+        "riskTrapScore": 60.9,
+        "displayPriorityScore": 25,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "306620",
@@ -1659,7 +1745,68 @@
         "vviHistory": null,
         "dailyValueRank": 179,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×5.6배 폭증, 시총 대비 거래대금 14.6% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 87%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×5.6배 폭증, 시총 대비 거래대금 14.6% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 87%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 87,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
+      },
+      {
+        "code": "004710",
+        "name": "한솔테크닉스",
+        "market": "KOSPI",
+        "marketCap": 258500000000,
+        "baseIdx": 814,
+        "baseDate": "20260507",
+        "open": 7940,
+        "high": 9350,
+        "low": 7630,
+        "close": 9150,
+        "volume": 3983023,
+        "valueAmount": 36444660450,
+        "prevClose": 7900,
+        "avg20Value": 16073210113.3,
+        "avg20Volume": 2183089.5,
+        "valueRatio": 2.27,
+        "volumeRatio": 1.82,
+        "closePosition": 0.884,
+        "upperTailRatio": 0.116,
+        "changeRate": 15.82,
+        "gapPct": 0.51,
+        "ret3d": 12.55,
+        "ret5d": 12.68,
+        "high20": 8940,
+        "distFromHigh20": 2.35,
+        "isBreakoutOf20": true,
+        "nearHigh20": false,
+        "valueSurgeScore": 15,
+        "volumeSurgeScore": 5,
+        "closeStrengthScore": 20,
+        "priceMomentumScore": 15,
+        "breakoutPotentialScore": 15,
+        "upperTailPenalty": 0,
+        "overheatPenalty": 0,
+        "riskPenalty": 0,
+        "marketCapPenalty": 0,
+        "marketCapBand": "CORE",
+        "oneDaySurgeScore": 70,
+        "marketCapBandLabel": "시총 1,000억~1.5조 (핵심 구간)",
+        "gtBand": "LIGHT",
+        "gtBandLabel": "경량 1,000억~3,000억 (LIGHT-GT 후보)",
+        "valueToMarketCapRatio": 14.1,
+        "candleType": "LOW_GAP_INTRADAY",
+        "recent5Up7Count": 0,
+        "recent5Up15Count": 0,
+        "recent10Up15Count": 1,
+        "baseGapRate": 0.51,
+        "qvaHistoryLabel": null,
+        "vviHistory": null,
+        "dailyValueRank": 109,
+        "gtGroup": "LIGHT-GT",
+        "summaryLine": "거래대금이 평소보다 ×2.3배 늘었음, 시총 대비 거래대금 14.1% (회사 크기 대비 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 11.600000000000001,
+        "displayPriorityScore": 70
       },
       {
         "code": "002780",
@@ -1713,7 +1860,10 @@
         "vviHistory": null,
         "dailyValueRank": 145,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 13.5% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 56%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 13.5% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 56%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 55.7,
+        "displayPriorityScore": 40
       },
       {
         "code": "453450",
@@ -1767,7 +1917,11 @@
         "vviHistory": null,
         "dailyValueRank": 152,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×4.5배 강하게 증가, 시총 대비 거래대금 13.2% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×4.5배 강하게 증가, 시총 대비 거래대금 13.2% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 81.5,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "008830",
@@ -1821,7 +1975,11 @@
         "vviHistory": null,
         "dailyValueRank": 170,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×3.5배 강하게 증가, 시총 대비 거래대금 12.8% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×3.5배 강하게 증가, 시총 대비 거래대금 12.8% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 86.7,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "388050",
@@ -1875,7 +2033,11 @@
         "vviHistory": null,
         "dailyValueRank": 118,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 12.7% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 12.7% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 97.2,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "062970",
@@ -1929,7 +2091,10 @@
         "vviHistory": null,
         "dailyValueRank": 193,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 12.6% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 12.6% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 22.400000000000002,
+        "displayPriorityScore": 70
       },
       {
         "code": "209640",
@@ -1983,7 +2148,10 @@
         "vviHistory": null,
         "dailyValueRank": 158,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 10.8% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 49%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 10.8% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 49%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 48.5,
+        "displayPriorityScore": 30
       },
       {
         "code": "049080",
@@ -2037,7 +2205,11 @@
         "vviHistory": null,
         "dailyValueRank": 207,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 10.5% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 10.5% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 95.8,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "042510",
@@ -2091,7 +2263,11 @@
         "vviHistory": null,
         "dailyValueRank": 263,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 10.0% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 10.0% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 83.8,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "129920",
@@ -2145,7 +2321,10 @@
         "vviHistory": null,
         "dailyValueRank": 255,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×2.5배 늘었음, 시총 대비 거래대금 10.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 42%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×2.5배 늘었음, 시총 대비 거래대금 10.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 42%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 41.8,
+        "displayPriorityScore": 30
       },
       {
         "code": "158430",
@@ -2199,7 +2378,11 @@
         "vviHistory": null,
         "dailyValueRank": 206,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 9.4% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 9.4% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 95.89999999999999,
+        "displayPriorityScore": 0,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "115500",
@@ -2253,7 +2436,10 @@
         "vviHistory": null,
         "dailyValueRank": 222,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 9.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 48%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 9.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 48%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 47.9,
+        "displayPriorityScore": 20
       },
       {
         "code": "025950",
@@ -2307,7 +2493,11 @@
         "vviHistory": null,
         "dailyValueRank": 301,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×3.8배 강하게 증가, 시총 대비 거래대금 8.7% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 79%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×3.8배 강하게 증가, 시총 대비 거래대금 8.7% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 79%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 79.2,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "267320",
@@ -2361,7 +2551,11 @@
         "vviHistory": null,
         "dailyValueRank": 230,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 8.3% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 8.3% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 96.39999999999999,
+        "displayPriorityScore": 0,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "488280",
@@ -2415,7 +2609,10 @@
         "vviHistory": null,
         "dailyValueRank": 173,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 8.2% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 8.2% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 9.759999999999998,
+        "displayPriorityScore": 60
       },
       {
         "code": "066310",
@@ -2469,7 +2666,11 @@
         "vviHistory": null,
         "dailyValueRank": 326,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 7.7% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 7.7% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 65.3,
+        "displayPriorityScore": 0,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "412350",
@@ -2523,7 +2724,11 @@
         "vviHistory": null,
         "dailyValueRank": 375,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 7.6% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 85%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 7.6% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 85%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 85,
+        "displayPriorityScore": 0,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "365330",
@@ -2577,7 +2782,10 @@
         "vviHistory": null,
         "dailyValueRank": 266,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×3.1배 강하게 증가, 시총 대비 거래대금 7.4% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×3.1배 강하게 증가, 시총 대비 거래대금 7.4% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 33.300000000000004,
+        "displayPriorityScore": 60
       },
       {
         "code": "019990",
@@ -2631,7 +2839,11 @@
         "vviHistory": null,
         "dailyValueRank": 423,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×2.4배 늘었음, 시총 대비 거래대금 7.1% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×2.4배 늘었음, 시총 대비 거래대금 7.1% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 92.5,
+        "displayPriorityScore": 0,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "047770",
@@ -2685,7 +2897,10 @@
         "vviHistory": null,
         "dailyValueRank": 300,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×2.1배 늘었음, 시총 대비 거래대금 7.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 57%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×2.1배 늘었음, 시총 대비 거래대금 7.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 57%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 57.099999999999994,
+        "displayPriorityScore": 20
       },
       {
         "code": "105550",
@@ -2739,7 +2954,11 @@
         "vviHistory": null,
         "dailyValueRank": 435,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×7.2배 폭증, 시총 대비 거래대금 6.8% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×7.2배 폭증, 시총 대비 거래대금 6.8% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 93.8,
+        "displayPriorityScore": 0,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "307180",
@@ -2793,7 +3012,11 @@
         "vviHistory": null,
         "dailyValueRank": 254,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 6.7% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 6.7% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 82.1,
+        "displayPriorityScore": 0,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "017510",
@@ -2847,7 +3070,10 @@
         "vviHistory": null,
         "dailyValueRank": 265,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 6.3% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 6.3% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 0,
+        "displayPriorityScore": 50
       },
       {
         "code": "102460",
@@ -2901,7 +3127,11 @@
         "vviHistory": null,
         "dailyValueRank": 294,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×29.6배 폭증, 시총 대비 거래대금 6.3% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 65%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×29.6배 폭증, 시총 대비 거래대금 6.3% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 65%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 64.7,
+        "displayPriorityScore": 10,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "125020",
@@ -2955,7 +3185,11 @@
         "vviHistory": null,
         "dailyValueRank": 205,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 6.3% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 6.3% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 93.10000000000001,
+        "displayPriorityScore": 0,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "024060",
@@ -3009,7 +3243,10 @@
         "vviHistory": null,
         "dailyValueRank": 232,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 6.1% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 54%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 6.1% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 54%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 54,
+        "displayPriorityScore": 20
       },
       {
         "code": "053080",
@@ -3063,7 +3300,11 @@
         "vviHistory": null,
         "dailyValueRank": 328,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 5.8% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 5.8% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 64.60000000000001,
+        "displayPriorityScore": 0,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "006660",
@@ -3117,7 +3358,11 @@
         "vviHistory": null,
         "dailyValueRank": 480,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 5.6% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 5.6% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 100,
+        "displayPriorityScore": 0,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "102120",
@@ -3171,7 +3416,11 @@
         "vviHistory": null,
         "dailyValueRank": 273,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 5.5% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 5.5% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 74.4,
+        "displayPriorityScore": 0,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "147830",
@@ -3225,7 +3474,10 @@
         "vviHistory": null,
         "dailyValueRank": 293,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 5.5% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 5.5% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 0,
+        "displayPriorityScore": 60
       },
       {
         "code": "014280",
@@ -3279,7 +3531,11 @@
         "vviHistory": null,
         "dailyValueRank": 388,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×3.8배 강하게 증가, 시총 대비 거래대금 5.2% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 70%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×3.8배 강하게 증가, 시총 대비 거래대금 5.2% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 70%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 69.8,
+        "displayPriorityScore": 0,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "187790",
@@ -3333,7 +3589,10 @@
         "vviHistory": null,
         "dailyValueRank": 345,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 5.2% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 60%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 5.2% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 60%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 59.5,
+        "displayPriorityScore": 20
       },
       {
         "code": "123330",
@@ -3387,7 +3646,11 @@
         "vviHistory": null,
         "dailyValueRank": 317,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×2.0배 늘었음, 시총 대비 거래대금 5.2% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×2.0배 늘었음, 시총 대비 거래대금 5.2% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 69.1,
+        "displayPriorityScore": 0,
+        "riskExcluded": "trap_risk_high"
       },
       {
         "code": "317770",
@@ -3441,7 +3704,10 @@
         "vviHistory": null,
         "dailyValueRank": 430,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "거래대금이 평소보다 ×2.7배 늘었음, 시총 대비 거래대금 5.2% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "거래대금이 평소보다 ×2.7배 늘었음, 시총 대비 거래대금 5.2% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 28.1,
+        "displayPriorityScore": 50
       },
       {
         "code": "187870",
@@ -3495,7 +3761,10 @@
         "vviHistory": null,
         "dailyValueRank": 417,
         "gtGroup": "LIGHT-GT",
-        "summaryLine": "시총 대비 거래대금 5.1% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토."
+        "summaryLine": "시총 대비 거래대금 5.1% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 32.1,
+        "displayPriorityScore": 60
       }
     ],
     "MID-CAP-GT": [],
@@ -3552,7 +3821,11 @@
         "vviHistory": null,
         "dailyValueRank": 19,
         "gtGroup": "MOM-RISK",
-        "summaryLine": "거래대금이 평소보다 ×3.9배 강하게 증가, 시총 대비 거래대금 150.2% (회사 크기 대비 매우 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형, 거래대금 시장 상위 19위. 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지."
+        "summaryLine": "거래대금이 평소보다 ×3.9배 강하게 증가, 시총 대비 거래대금 150.2% (회사 크기 대비 매우 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형, 거래대금 시장 상위 19위. 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 1.129999999999999,
+        "displayPriorityScore": 10,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "264850",
@@ -3606,7 +3879,11 @@
         "vviHistory": null,
         "dailyValueRank": 18,
         "gtGroup": "MOM-RISK",
-        "summaryLine": "거래대금이 평소보다 ×78.9배 폭증, 시총 대비 거래대금 83.5% (회사 크기 대비 매우 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형, 거래대금 시장 상위 18위. 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지."
+        "summaryLine": "거래대금이 평소보다 ×78.9배 폭증, 시총 대비 거래대금 83.5% (회사 크기 대비 매우 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형, 거래대금 시장 상위 18위. 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 0,
+        "displayPriorityScore": 10,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "223250",
@@ -3660,7 +3937,11 @@
         "vviHistory": null,
         "dailyValueRank": 349,
         "gtGroup": "MOM-RISK",
-        "summaryLine": "거래대금이 평소보다 ×23.6배 폭증, 시총 대비 거래대금 8.0% (회사 크기에 비해 충분한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형. 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지."
+        "summaryLine": "거래대금이 평소보다 ×23.6배 폭증, 시총 대비 거래대금 8.0% (회사 크기에 비해 충분한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형. 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 0,
+        "displayPriorityScore": -10,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "037440",
@@ -3714,7 +3995,11 @@
         "vviHistory": null,
         "dailyValueRank": 43,
         "gtGroup": "MOM-RISK",
-        "summaryLine": "거래대금이 평소보다 ×4.0배 강하게 증가, 시총 대비 거래대금 90.7% (회사 크기 대비 매우 강한 수급), 갭상승 후 종가 유지형 (HIT10 높지만 시초가 추격 위험), 최근 5일 첫 급등형. 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지."
+        "summaryLine": "거래대금이 평소보다 ×4.0배 강하게 증가, 시총 대비 거래대금 90.7% (회사 크기 대비 매우 강한 수급), 갭상승 후 종가 유지형 (HIT10 높지만 시초가 추격 위험), 최근 5일 첫 급등형. 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 0,
+        "displayPriorityScore": -30,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "229000",
@@ -3768,7 +4053,11 @@
         "vviHistory": null,
         "dailyValueRank": 505,
         "gtGroup": "MOM-RISK",
-        "summaryLine": "거래대금이 평소보다 ×2.3배 늘었음, 시총 대비 거래대금 9.8% (회사 크기에 비해 충분한 수급), 갭상승 후 종가 유지형 (HIT10 높지만 시초가 추격 위험), 최근 5일 +15% 1회 (sweet spot). 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지."
+        "summaryLine": "거래대금이 평소보다 ×2.3배 늘었음, 시총 대비 거래대금 9.8% (회사 크기에 비해 충분한 수급), 갭상승 후 종가 유지형 (HIT10 높지만 시초가 추격 위험), 최근 5일 +15% 1회 (sweet spot). 상한가형(전일 +29%↑). HIT10률은 높지만 시초가 진입자에게 TRAP 위험이 큼 — 추격 금지.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 33.19,
+        "displayPriorityScore": -40,
+        "riskExcluded": "group_off_pool"
       }
     ],
     "HEAVY-WATCH": [
@@ -3824,7 +4113,11 @@
         "vviHistory": null,
         "dailyValueRank": 1,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "거래대금이 평소보다 ×2.5배 늘었음, 시총 대비 거래대금 75.7% (회사 크기 대비 매우 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 1위. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "거래대금이 평소보다 ×2.5배 늘었음, 시총 대비 거래대금 75.7% (회사 크기 대비 매우 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 1위. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 20.669999999999998,
+        "displayPriorityScore": 15,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "080220",
@@ -3878,7 +4171,11 @@
         "vviHistory": null,
         "dailyValueRank": 24,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "시총 대비 거래대금 7.0% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 24위. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "시총 대비 거래대금 7.0% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 24위. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 67.30000000000001,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "417200",
@@ -3932,7 +4229,11 @@
         "vviHistory": null,
         "dailyValueRank": 20,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "시총 대비 거래대금 6.8% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 20위. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "시총 대비 거래대금 6.8% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 20위. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 89.2,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "003530",
@@ -3986,7 +4287,11 @@
         "vviHistory": null,
         "dailyValueRank": 38,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 84.6,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "005290",
@@ -4040,7 +4345,11 @@
         "vviHistory": null,
         "dailyValueRank": 26,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "윗꼬리 양봉 (윗꼬리 44%), 최근 5일 첫 급등형, 거래대금 시장 상위 26위. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "윗꼬리 양봉 (윗꼬리 44%), 최근 5일 첫 급등형, 거래대금 시장 상위 26위. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 43.5,
+        "displayPriorityScore": -50,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "322000",
@@ -4094,7 +4403,11 @@
         "vviHistory": null,
         "dailyValueRank": 31,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 78.4,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "090710",
@@ -4148,7 +4461,11 @@
         "vviHistory": null,
         "dailyValueRank": 70,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 100,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "098460",
@@ -4202,7 +4519,11 @@
         "vviHistory": null,
         "dailyValueRank": 33,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 76.1,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "218410",
@@ -4256,7 +4577,11 @@
         "vviHistory": null,
         "dailyValueRank": 37,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "윗꼬리 양봉 (윗꼬리 50%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "윗꼬리 양봉 (윗꼬리 50%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 49.6,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "027360",
@@ -4310,7 +4635,11 @@
         "vviHistory": null,
         "dailyValueRank": 69,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 79.3,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "089030",
@@ -4364,7 +4693,11 @@
         "vviHistory": null,
         "dailyValueRank": 62,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 75.7,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "229640",
@@ -4418,7 +4751,11 @@
         "vviHistory": null,
         "dailyValueRank": 51,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "거래대금이 평소보다 ×2.2배 늘었음, 최근 5일 +15% 1회 (sweet spot). 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "거래대금이 평소보다 ×2.2배 늘었음, 최근 5일 +15% 1회 (sweet spot). 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 36.4,
+        "displayPriorityScore": -30,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "007810",
@@ -4472,7 +4809,11 @@
         "vviHistory": null,
         "dailyValueRank": 65,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 16.400000000000002,
+        "displayPriorityScore": -20,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "028670",
@@ -4526,7 +4867,11 @@
         "vviHistory": null,
         "dailyValueRank": 42,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "거래대금이 평소보다 ×3.5배 강하게 증가, 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "거래대금이 평소보다 ×3.5배 강하게 증가, 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 26.900000000000002,
+        "displayPriorityScore": -20,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "067310",
@@ -4580,7 +4925,11 @@
         "vviHistory": null,
         "dailyValueRank": 56,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 45.1,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "038500",
@@ -4634,7 +4983,11 @@
         "vviHistory": null,
         "dailyValueRank": 95,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 92.60000000000001,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "100790",
@@ -4688,7 +5041,11 @@
         "vviHistory": null,
         "dailyValueRank": 64,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 71.8,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "043260",
@@ -4742,7 +5099,11 @@
         "vviHistory": null,
         "dailyValueRank": 61,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "윗꼬리 양봉 (윗꼬리 74%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "윗꼬리 양봉 (윗꼬리 74%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 74.1,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "078600",
@@ -4796,7 +5157,11 @@
         "vviHistory": null,
         "dailyValueRank": 77,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 94.89999999999999,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "257720",
@@ -4850,7 +5215,11 @@
         "vviHistory": null,
         "dailyValueRank": 71,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "윗꼬리 양봉 (윗꼬리 45%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "윗꼬리 양봉 (윗꼬리 45%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 44.9,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "476830",
@@ -4904,7 +5273,11 @@
         "vviHistory": null,
         "dailyValueRank": 88,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 99.2,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "060370",
@@ -4958,7 +5331,11 @@
         "vviHistory": null,
         "dailyValueRank": 110,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 +15% 1회 (sweet spot). 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 +15% 1회 (sweet spot). 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 57.730000000000004,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "319660",
@@ -5012,7 +5389,11 @@
         "vviHistory": null,
         "dailyValueRank": 92,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "윗꼬리 양봉 (윗꼬리 39%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "윗꼬리 양봉 (윗꼬리 39%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 38.7,
+        "displayPriorityScore": -30,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "084370",
@@ -5066,7 +5447,11 @@
         "vviHistory": null,
         "dailyValueRank": 76,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "윗꼬리 양봉 (윗꼬리 37%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "윗꼬리 양봉 (윗꼬리 37%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 37.3,
+        "displayPriorityScore": -20,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "058610",
@@ -5120,7 +5505,11 @@
         "vviHistory": null,
         "dailyValueRank": 86,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 91.3,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "475150",
@@ -5174,7 +5563,11 @@
         "vviHistory": null,
         "dailyValueRank": 127,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 87.5,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "077970",
@@ -5228,7 +5621,11 @@
         "vviHistory": null,
         "dailyValueRank": 103,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 33.300000000000004,
+        "displayPriorityScore": -30,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "097230",
@@ -5282,7 +5679,11 @@
         "vviHistory": null,
         "dailyValueRank": 101,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 81.3,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "232140",
@@ -5336,7 +5737,11 @@
         "vviHistory": null,
         "dailyValueRank": 151,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 76.4,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "008770",
@@ -5390,7 +5795,11 @@
         "vviHistory": null,
         "dailyValueRank": 107,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "윗꼬리 양봉 (윗꼬리 38%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "윗꼬리 양봉 (윗꼬리 38%), 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 37.5,
+        "displayPriorityScore": -30,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "095610",
@@ -5444,7 +5853,11 @@
         "vviHistory": null,
         "dailyValueRank": 174,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 42.1,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "290650",
@@ -5498,7 +5911,11 @@
         "vviHistory": null,
         "dailyValueRank": 186,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 63.9,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "483650",
@@ -5552,7 +5969,11 @@
         "vviHistory": null,
         "dailyValueRank": 105,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 80.80000000000001,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "030530",
@@ -5606,7 +6027,11 @@
         "vviHistory": null,
         "dailyValueRank": 121,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 73.7,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "082920",
@@ -5660,7 +6085,11 @@
         "vviHistory": null,
         "dailyValueRank": 122,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 7.9,
+        "displayPriorityScore": -30,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "101490",
@@ -5714,7 +6143,11 @@
         "vviHistory": null,
         "dailyValueRank": 146,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 61.4,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "139480",
@@ -5768,7 +6201,11 @@
         "vviHistory": null,
         "dailyValueRank": 108,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 25.900000000000002,
+        "displayPriorityScore": -30,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "120110",
@@ -5822,7 +6259,11 @@
         "vviHistory": null,
         "dailyValueRank": 116,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 60,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "131970",
@@ -5876,7 +6317,11 @@
         "vviHistory": null,
         "dailyValueRank": 137,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 65.10000000000001,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "099320",
@@ -5930,7 +6375,11 @@
         "vviHistory": null,
         "dailyValueRank": 189,
         "gtGroup": "HEAVY-WATCH",
-        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다."
+        "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 66.3,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       }
     ],
     "MICRO-RISK": [
@@ -5986,7 +6435,11 @@
         "vviHistory": null,
         "dailyValueRank": 324,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×4.6배 강하게 증가, 시총 대비 거래대금 11.5% (회사 크기 대비 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×4.6배 강하게 증가, 시총 대비 거래대금 11.5% (회사 크기 대비 강한 수급), 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 24.67,
+        "displayPriorityScore": 0,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "038060",
@@ -6040,7 +6493,11 @@
         "vviHistory": null,
         "dailyValueRank": 82,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×4.2배 강하게 증가, 시총 대비 거래대금 83.1% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×4.2배 강하게 증가, 시총 대비 거래대금 83.1% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 91.03,
+        "displayPriorityScore": -50,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "003010",
@@ -6094,7 +6551,11 @@
         "vviHistory": null,
         "dailyValueRank": 48,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×6.5배 폭증, 시총 대비 거래대금 81.2% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 35%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×6.5배 폭증, 시총 대비 거래대금 81.2% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 35%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 35.3,
+        "displayPriorityScore": 0,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "223310",
@@ -6148,7 +6609,12 @@
         "vviHistory": null,
         "dailyValueRank": 1,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×130.5배 폭증, 시총 대비 거래대금 71.4% (회사 크기 대비 매우 강한 수급), 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×130.5배 폭증, 시총 대비 거래대금 71.4% (회사 크기 대비 매우 강한 수급), 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_MINUTE_DATA",
+        "nextDayDir": "2026-04-17",
+        "riskTrapScore": 109.89000000000001,
+        "displayPriorityScore": -55,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "042940",
@@ -6202,7 +6668,11 @@
         "vviHistory": null,
         "dailyValueRank": 74,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×3.5배 강하게 증가, 시총 대비 거래대금 69.1% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 85%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×3.5배 강하게 증가, 시총 대비 거래대금 69.1% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 85%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 84.7,
+        "displayPriorityScore": -50,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "150900",
@@ -6256,7 +6726,11 @@
         "vviHistory": null,
         "dailyValueRank": 85,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×2.7배 늘었음, 시총 대비 거래대금 68.2% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×2.7배 늘었음, 시총 대비 거래대금 68.2% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 87.5,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "041910",
@@ -6310,7 +6784,11 @@
         "vviHistory": null,
         "dailyValueRank": 98,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×5.3배 폭증, 시총 대비 거래대금 39.8% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 59%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×5.3배 폭증, 시총 대비 거래대금 39.8% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 59%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 59.199999999999996,
+        "displayPriorityScore": -30,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "076610",
@@ -6364,7 +6842,11 @@
         "vviHistory": null,
         "dailyValueRank": 124,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×3.4배 강하게 증가, 시총 대비 거래대금 34.3% (회사 크기 대비 매우 강한 수급). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×3.4배 강하게 증가, 시총 대비 거래대금 34.3% (회사 크기 대비 매우 강한 수급). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 90.96,
+        "displayPriorityScore": -70,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "189860",
@@ -6418,7 +6900,11 @@
         "vviHistory": null,
         "dailyValueRank": 171,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×2.3배 늘었음, 시총 대비 거래대금 34.2% (회사 크기 대비 매우 강한 수급). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×2.3배 늘었음, 시총 대비 거래대금 34.2% (회사 크기 대비 매우 강한 수급). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 86.96000000000001,
+        "displayPriorityScore": -70,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "317850",
@@ -6472,7 +6958,11 @@
         "vviHistory": null,
         "dailyValueRank": 164,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×4.4배 강하게 증가, 시총 대비 거래대금 32.1% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 68%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×4.4배 강하게 증가, 시총 대비 거래대금 32.1% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 68%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 67.5,
+        "displayPriorityScore": -50,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "073640",
@@ -6526,7 +7016,11 @@
         "vviHistory": null,
         "dailyValueRank": 1,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 30.7% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 30.7% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 100,
+        "displayPriorityScore": -45,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "026940",
@@ -6580,7 +7074,11 @@
         "vviHistory": null,
         "dailyValueRank": 231,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 28.3% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 28.3% (회사 크기 대비 매우 강한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 90.5,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "215790",
@@ -6634,7 +7132,11 @@
         "vviHistory": null,
         "dailyValueRank": 235,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 25.1% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 59%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 25.1% (회사 크기 대비 매우 강한 수급), 윗꼬리 양봉 (윗꼬리 59%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 58.599999999999994,
+        "displayPriorityScore": -30,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "340930",
@@ -6688,7 +7190,12 @@
         "vviHistory": null,
         "dailyValueRank": 1,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×5.0배 강하게 증가, 시총 대비 거래대금 22.4% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×5.0배 강하게 증가, 시총 대비 거래대금 22.4% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_MINUTE_DATA",
+        "nextDayDir": "2026-04-01",
+        "riskTrapScore": 99.5,
+        "displayPriorityScore": -45,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "038680",
@@ -6742,7 +7249,11 @@
         "vviHistory": null,
         "dailyValueRank": 227,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 18.9% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 58%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 18.9% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 58%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 58.3,
+        "displayPriorityScore": -40,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "170030",
@@ -6796,7 +7307,11 @@
         "vviHistory": null,
         "dailyValueRank": 250,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×53.6배 폭증, 시총 대비 거래대금 17.1% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 42%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×53.6배 폭증, 시총 대비 거래대금 17.1% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 42%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 42,
+        "displayPriorityScore": -30,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "071090",
@@ -6850,7 +7365,11 @@
         "vviHistory": null,
         "dailyValueRank": 242,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 16.8% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 62%), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 16.8% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 62%), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 61.5,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "321260",
@@ -6904,7 +7423,11 @@
         "vviHistory": null,
         "dailyValueRank": 318,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 16.5% (회사 크기 대비 강한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 16.5% (회사 크기 대비 강한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 97.7,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "056360",
@@ -6958,7 +7481,11 @@
         "vviHistory": null,
         "dailyValueRank": 277,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 14.2% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 14.2% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 82.6,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "253840",
@@ -7012,7 +7539,11 @@
         "vviHistory": null,
         "dailyValueRank": 290,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 13.7% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 90%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 13.7% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 90%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 89.7,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "023350",
@@ -7066,7 +7597,11 @@
         "vviHistory": null,
         "dailyValueRank": 411,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×9.3배 폭증, 시총 대비 거래대금 12.7% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 69%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×9.3배 폭증, 시총 대비 거래대금 12.7% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 69%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 68.8,
+        "displayPriorityScore": -50,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "290660",
@@ -7120,7 +7655,11 @@
         "vviHistory": null,
         "dailyValueRank": 304,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×4.1배 강하게 증가, 시총 대비 거래대금 12.4% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×4.1배 강하게 증가, 시총 대비 거래대금 12.4% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 91.4,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "434480",
@@ -7174,7 +7713,11 @@
         "vviHistory": null,
         "dailyValueRank": 461,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 12.0% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 46%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 12.0% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 46%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 45.5,
+        "displayPriorityScore": -30,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "035460",
@@ -7228,7 +7771,11 @@
         "vviHistory": null,
         "dailyValueRank": 442,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 11.6% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 44%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 11.6% (회사 크기 대비 강한 수급), 윗꼬리 양봉 (윗꼬리 44%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 44.3,
+        "displayPriorityScore": -40,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "008420",
@@ -7282,7 +7829,11 @@
         "vviHistory": null,
         "dailyValueRank": 452,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 10.7% (회사 크기 대비 강한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 10.7% (회사 크기 대비 강한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 76.9,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "078590",
@@ -7336,7 +7887,12 @@
         "vviHistory": null,
         "dailyValueRank": 1,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 9.3% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 9.3% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_MINUTE_DATA",
+        "nextDayDir": "2026-04-29",
+        "riskTrapScore": 91.7,
+        "displayPriorityScore": -55,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "109070",
@@ -7390,7 +7946,11 @@
         "vviHistory": null,
         "dailyValueRank": 386,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 9.3% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 62%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 9.3% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 62%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 61.7,
+        "displayPriorityScore": -60,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "047400",
@@ -7444,7 +8004,11 @@
         "vviHistory": null,
         "dailyValueRank": 466,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×3.3배 강하게 증가, 시총 대비 거래대금 8.2% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 77%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×3.3배 강하게 증가, 시총 대비 거래대금 8.2% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 77%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 77.10000000000001,
+        "displayPriorityScore": -70,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "025560",
@@ -7498,7 +8062,11 @@
         "vviHistory": null,
         "dailyValueRank": 459,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×6.3배 폭증, 시총 대비 거래대금 7.9% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 40%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×6.3배 폭증, 시총 대비 거래대금 7.9% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 40%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 40.400000000000006,
+        "displayPriorityScore": -40,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "340440",
@@ -7552,7 +8120,11 @@
         "vviHistory": null,
         "dailyValueRank": 523,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 7.2% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 7.2% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 79.5,
+        "displayPriorityScore": -70,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "430690",
@@ -7606,7 +8178,11 @@
         "vviHistory": null,
         "dailyValueRank": 630,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 7.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 45%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 7.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 45%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 44.800000000000004,
+        "displayPriorityScore": -50,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "302430",
@@ -7660,7 +8236,11 @@
         "vviHistory": null,
         "dailyValueRank": 534,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×4.6배 강하게 증가, 시총 대비 거래대금 6.1% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×4.6배 강하게 증가, 시총 대비 거래대금 6.1% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 29.7,
+        "displayPriorityScore": -10,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "263020",
@@ -7714,7 +8294,11 @@
         "vviHistory": null,
         "dailyValueRank": 669,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 6.0% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 6.0% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 63.3,
+        "displayPriorityScore": -70,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "184230",
@@ -7768,7 +8352,12 @@
         "vviHistory": null,
         "dailyValueRank": 1,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 5.8% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 41%), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 5.8% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 41%), 최근 5일 첫 급등형, 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_MINUTE_DATA",
+        "nextDayDir": "2026-05-04",
+        "riskTrapScore": 41.199999999999996,
+        "displayPriorityScore": -25,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "199550",
@@ -7822,7 +8411,11 @@
         "vviHistory": null,
         "dailyValueRank": 618,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×13.9배 폭증, 시총 대비 거래대금 5.7% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×13.9배 폭증, 시총 대비 거래대금 5.7% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 92.4,
+        "displayPriorityScore": -70,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "095910",
@@ -7876,7 +8469,11 @@
         "vviHistory": null,
         "dailyValueRank": 528,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 5.1% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 5.1% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot). 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 77.60000000000001,
+        "displayPriorityScore": -70,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "192250",
@@ -7930,7 +8527,11 @@
         "vviHistory": null,
         "dailyValueRank": 563,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "시총 대비 거래대금 5.0% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "시총 대비 거래대금 5.0% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 98.2,
+        "displayPriorityScore": -70,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "089790",
@@ -7984,7 +8585,11 @@
         "vviHistory": null,
         "dailyValueRank": 668,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "거래대금이 평소보다 ×2.5배 늘었음, 시총 대비 거래대금 5.0% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "거래대금이 평소보다 ×2.5배 늘었음, 시총 대비 거래대금 5.0% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 56.89999999999999,
+        "displayPriorityScore": -50,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "109080",
@@ -8038,7 +8643,11 @@
         "vviHistory": null,
         "dailyValueRank": 602,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "윗꼬리 양봉 (윗꼬리 69%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "윗꼬리 양봉 (윗꼬리 69%), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 68.89999999999999,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "049180",
@@ -8092,7 +8701,12 @@
         "vviHistory": null,
         "dailyValueRank": 1,
         "gtGroup": "MICRO-RISK",
-        "summaryLine": "최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천."
+        "summaryLine": "최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 1위. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
+        "entryStatus": "NO_MINUTE_DATA",
+        "nextDayDir": "2026-03-17",
+        "riskTrapScore": 66.5,
+        "displayPriorityScore": -65,
+        "riskExcluded": "group_off_pool"
       }
     ],
     "HEAVY-RISK": [
@@ -8148,7 +8762,12 @@
         "vviHistory": null,
         "dailyValueRank": 1,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "거래대금이 평소보다 ×4.5배 강하게 증가, 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 1위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "거래대금이 평소보다 ×4.5배 강하게 증가, 낮은 갭에서 장중 매수세로 끌어올린 캔들 (실전 단타에 유리), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 1위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_MINUTE_DATA",
+        "nextDayDir": "2026-05-07",
+        "riskTrapScore": 46.239999999999995,
+        "displayPriorityScore": -65,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "178320",
@@ -8202,7 +8821,11 @@
         "vviHistory": null,
         "dailyValueRank": 6,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "거래대금이 평소보다 ×2.4배 늘었음, 시총 대비 거래대금 10.5% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 6위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "거래대금이 평소보다 ×2.4배 늘었음, 시총 대비 거래대금 10.5% (회사 크기 대비 강한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 6위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 34.35,
+        "displayPriorityScore": -5,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "011790",
@@ -8256,7 +8879,11 @@
         "vviHistory": null,
         "dailyValueRank": 4,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "거래대금이 평소보다 ×5.2배 폭증, 시총 대비 거래대금 8.8% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 4위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "거래대금이 평소보다 ×5.2배 폭증, 시총 대비 거래대금 8.8% (회사 크기에 비해 충분한 수급), 최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 4위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 63.050000000000004,
+        "displayPriorityScore": -65,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "222800",
@@ -8310,7 +8937,11 @@
         "vviHistory": null,
         "dailyValueRank": 14,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "거래대금이 평소보다 ×2.8배 늘었음, 시총 대비 거래대금 6.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 40%), 최근 5일 첫 급등형, 거래대금 시장 상위 14위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "거래대금이 평소보다 ×2.8배 늘었음, 시총 대비 거래대금 6.0% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 40%), 최근 5일 첫 급등형, 거래대금 시장 상위 14위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 40.2,
+        "displayPriorityScore": -50,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "032820",
@@ -8364,7 +8995,11 @@
         "vviHistory": null,
         "dailyValueRank": 12,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "시총 대비 거래대금 5.8% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 12위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "시총 대비 거래대금 5.8% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 12위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 100,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "006360",
@@ -8418,7 +9053,11 @@
         "vviHistory": null,
         "dailyValueRank": 17,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "시총 대비 거래대금 5.7% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 17위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "시총 대비 거래대금 5.7% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 17위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 27.900000000000002,
+        "displayPriorityScore": -20,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "375500",
@@ -8472,7 +9111,11 @@
         "vviHistory": null,
         "dailyValueRank": 16,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형, 거래대금 시장 상위 16위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형, 거래대금 시장 상위 16위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 19.6,
+        "displayPriorityScore": -30,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "018880",
@@ -8526,7 +9169,11 @@
         "vviHistory": null,
         "dailyValueRank": 13,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형, 거래대금 시장 상위 13위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형, 거래대금 시장 상위 13위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 94.3,
+        "displayPriorityScore": -90,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "336260",
@@ -8580,7 +9227,11 @@
         "vviHistory": null,
         "dailyValueRank": 25,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 25위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 +15% 1회 (sweet spot), 거래대금 시장 상위 25위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 55.37,
+        "displayPriorityScore": -70,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "440110",
@@ -8634,7 +9285,11 @@
         "vviHistory": null,
         "dailyValueRank": 29,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "장대양봉 마감, 최근 5일 첫 급등형, 거래대금 시장 상위 29위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "장대양봉 마감, 최근 5일 첫 급등형, 거래대금 시장 상위 29위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 12.5,
+        "displayPriorityScore": -30,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "403870",
@@ -8688,7 +9343,11 @@
         "vviHistory": null,
         "dailyValueRank": 27,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형, 거래대금 시장 상위 27위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형, 거래대금 시장 상위 27위. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 67.4,
+        "displayPriorityScore": -90,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "083650",
@@ -8742,7 +9401,11 @@
         "vviHistory": null,
         "dailyValueRank": 47,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "거래대금이 평소보다 ×2.0배 늘었음, 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "거래대금이 평소보다 ×2.0배 늘었음, 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 93.30000000000001,
+        "displayPriorityScore": -100,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "112610",
@@ -8796,7 +9459,11 @@
         "vviHistory": null,
         "dailyValueRank": 59,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 81.8,
+        "displayPriorityScore": -100,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "489790",
@@ -8850,7 +9517,11 @@
         "vviHistory": null,
         "dailyValueRank": 35,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 80.5,
+        "displayPriorityScore": -100,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "004800",
@@ -8904,7 +9575,11 @@
         "vviHistory": null,
         "dailyValueRank": 55,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "거래대금이 평소보다 ×4.0배 강하게 증가, 최근 5일 +15% 1회 (sweet spot). 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "거래대금이 평소보다 ×4.0배 강하게 증가, 최근 5일 +15% 1회 (sweet spot). 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 77.8,
+        "displayPriorityScore": -90,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "108490",
@@ -8958,7 +9633,11 @@
         "vviHistory": null,
         "dailyValueRank": 52,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 93.60000000000001,
+        "displayPriorityScore": -100,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "145020",
@@ -9012,7 +9691,11 @@
         "vviHistory": null,
         "dailyValueRank": 111,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "거래대금이 평소보다 ×3.4배 강하게 증가, 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "거래대금이 평소보다 ×3.4배 강하게 증가, 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 28.1,
+        "displayPriorityScore": -50,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "214450",
@@ -9066,7 +9749,11 @@
         "vviHistory": null,
         "dailyValueRank": 106,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 90,
+        "displayPriorityScore": -100,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "226950",
@@ -9120,7 +9807,11 @@
         "vviHistory": null,
         "dailyValueRank": 104,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "윗꼬리 양봉 (윗꼬리 85%), 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "윗꼬리 양봉 (윗꼬리 85%), 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 84.89999999999999,
+        "displayPriorityScore": -100,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "088350",
@@ -9174,7 +9865,11 @@
         "vviHistory": null,
         "dailyValueRank": 93,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 92.9,
+        "displayPriorityScore": -100,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "071970",
@@ -9228,7 +9923,11 @@
         "vviHistory": null,
         "dailyValueRank": 114,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 68.60000000000001,
+        "displayPriorityScore": -100,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "457190",
@@ -9282,7 +9981,11 @@
         "vviHistory": null,
         "dailyValueRank": 130,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 72.5,
+        "displayPriorityScore": -100,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "051900",
@@ -9336,7 +10039,11 @@
         "vviHistory": null,
         "dailyValueRank": 128,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "윗꼬리 양봉 (윗꼬리 38%), 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "윗꼬리 양봉 (윗꼬리 38%), 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 37.5,
+        "displayPriorityScore": -50,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "357780",
@@ -9390,7 +10097,11 @@
         "vviHistory": null,
         "dailyValueRank": 141,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "윗꼬리 양봉 (윗꼬리 47%), 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "윗꼬리 양봉 (윗꼬리 47%), 최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 46.800000000000004,
+        "displayPriorityScore": -80,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "319400",
@@ -9444,7 +10155,11 @@
         "vviHistory": null,
         "dailyValueRank": 143,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 88.9,
+        "displayPriorityScore": -100,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "020150",
@@ -9498,7 +10213,11 @@
         "vviHistory": null,
         "dailyValueRank": 144,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 +15% 1회 (sweet spot). 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 +15% 1회 (sweet spot). 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 86.5,
+        "displayPriorityScore": -100,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "004170",
@@ -9552,7 +10271,11 @@
         "vviHistory": null,
         "dailyValueRank": 132,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 28.999999999999996,
+        "displayPriorityScore": -40,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "263750",
@@ -9606,7 +10329,11 @@
         "vviHistory": null,
         "dailyValueRank": 136,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 100,
+        "displayPriorityScore": -100,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "347850",
@@ -9660,7 +10387,11 @@
         "vviHistory": null,
         "dailyValueRank": 159,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 94.69999999999999,
+        "displayPriorityScore": -100,
+        "riskExcluded": "group_off_pool"
       },
       {
         "code": "011780",
@@ -9718,7 +10449,11 @@
         },
         "dailyValueRank": 154,
         "gtGroup": "HEAVY-RISK",
-        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치."
+        "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
+        "entryStatus": "NO_DIR",
+        "riskTrapScore": 79.10000000000001,
+        "displayPriorityScore": -100,
+        "riskExcluded": "group_off_pool"
       }
     ]
   },
@@ -9732,13 +10467,13 @@
     "HEAVY-RISK"
   ],
   "groupLabels": {
-    "BALANCED-GT": "🟢 균형형 단타 후보 (3,000억~7,000억)",
-    "LIGHT-GT": "🔵 경량 단타 후보 (1,000억~3,000억)",
-    "MID-CAP-GT": "🟣 중형 단타 후보 (7,000억~1.5조, LOW_GAP_INTRADAY)",
-    "MOM-RISK": "🟠 상한가형 장초 확인 후보 (전일 +29%↑)",
-    "HEAVY-WATCH": "⚪ 준중대형 (1.5조~3조, 단타 탄력 약화)",
-    "MICRO-RISK": "🟡 초경량 고위험 (500억~1,000억, 표시만)",
-    "HEAVY-RISK": "🔴 대형 (3조~5조, 강한 감점)"
+    "BALANCED-GT": "🟢 수급 균형 후보 (3,000억~7,000억)",
+    "LIGHT-GT": "🔵 가볍게 움직일 후보 (1,000억~3,000억)",
+    "MID-CAP-GT": "🟣 중형 수급 후보 (7,000억~1.5조)",
+    "MOM-RISK": "🟠 위험형 (보드 제외)",
+    "HEAVY-WATCH": "⚪ 저탄력 (보드 제외)",
+    "MICRO-RISK": "🟡 초경량 위험 (보드 제외)",
+    "HEAVY-RISK": "🔴 대형 (보드 제외)"
   },
   "groupDescriptions": {
     "BALANCED-GT": "시총과 수급 강도의 균형이 좋은 단타 후보입니다. v/mc≥5% + LOW_GAP_INTRADAY 또는 거래대금 시장 상위 30위.",
@@ -9748,5 +10483,149 @@
     "HEAVY-WATCH": "준중대형주(1.5조~3조)는 단타 탄력이 약해질 수 있어 참고로만 봅니다.",
     "MICRO-RISK": "가볍게 튈 수는 있지만 장중 흔들림이 큰 초경량 고위험 후보입니다. 실전 진입보다는 위험 표시 중심으로 봅니다.",
     "HEAVY-RISK": "대형주(3조~5조)는 단타 탄력이 더 약해 보드 하단 배치합니다."
+  },
+  "visibilityCounts": {
+    "totalPool": 1376,
+    "unclassified": 943,
+    "mainPoolSize": 24,
+    "topPriorityShown": 5,
+    "extraPriorityShown": 10,
+    "overflowHidden": 9,
+    "riskExcluded": 155,
+    "riskExcludeBreakdown": {
+      "group_off_pool": 115,
+      "gap_hold_candle": 0,
+      "prev_high_spike": 0,
+      "risk_rebreak": 0,
+      "peak_before_entry": 0,
+      "trap_risk_high": 40
+    }
+  },
+  "priorityRanked": {
+    "topPriority": [
+      "138080",
+      "017550",
+      "078890",
+      "159010",
+      "004710"
+    ],
+    "extraPriority": [
+      "062970",
+      "488280",
+      "365330",
+      "147830",
+      "187870",
+      "041440",
+      "017510",
+      "317770",
+      "054920",
+      "013310"
+    ],
+    "overflowHiddenCount": 9,
+    "topPriorityLimit": 5,
+    "extraPriorityLimit": 10
+  },
+  "latestDayType": {
+    "date": "2026-05-06",
+    "nextDate": "2026-05-07",
+    "dayType": "HIT_AND_FADE_DAY",
+    "label": "🌊 장중 한 번 튀었지만 종가 유지 약함",
+    "desc": "장초 한 번은 잘 튀었지만 후반부에 빠짐. 짧은 익절형으로만 사용하고 종가 유지에는 베팅하지 않음.",
+    "hit5": 62.5,
+    "closePos": 29.166666666666668,
+    "avgClose": -1.2664166057834085,
+    "eventCount": 48,
+    "distribution": {
+      "HIT_AND_FADE_DAY": 12,
+      "HOLDING_DAY": 7,
+      "WEAK_DAY": 2,
+      "MIXED_DAY": 19
+    },
+    "generatedAt": "2026-05-07T10:14:55.593Z"
+  },
+  "marketState": {
+    "state": "LARGE_CAP_LED",
+    "label": "🟡 대형주 쏠림장 (1DS 친화 X)",
+    "desc": "지수는 강하지만 1DS 친화 장은 아닐 수 있습니다. 코스닥/중소형주 흐름이 약하면 장중 고점 후 빠지는 후보가 늘어날 수 있습니다.",
+    "kospi": {
+      "date": "20260507",
+      "close": 7490.05,
+      "changeRate": 1.4285211305751444
+    },
+    "kosdaq": {
+      "date": "20260507",
+      "close": 1199.18,
+      "changeRate": -0.908136873331844
+    }
+  },
+  "entryShelf": {
+    "strategyDefs": {
+      "SAFE_REBREAK": {
+        "label": "장초 재상승 확인",
+        "chipLabel": "장초 재상승 ✓",
+        "desc": "장초 첫 고점을 다시 넘겼고, 전일 고점 돌파 과열은 아직 없는 흐름.",
+        "isTopShelf": true
+      },
+      "BALANCED_REBREAK": {
+        "label": "수급 균형 + 장초 재상승",
+        "chipLabel": "균형 재상승 ✓",
+        "desc": "시총·수급 균형이 좋은 후보가 장초 첫 고점을 다시 넘긴 상태.",
+        "isTopShelf": true
+      },
+      "CLEAN_REBREAK": {
+        "label": "무리 없는 장초 재상승",
+        "chipLabel": "깨끗한 재상승 ✓",
+        "desc": "장초 첫 고점을 다시 넘겼지만 전일 고점 돌파 과열은 아직 없는 흐름.",
+        "isTopShelf": true
+      },
+      "LIGHT_REBREAK": {
+        "label": "가벼운 종목의 장초 재상승",
+        "chipLabel": "가벼운 재상승 ✓",
+        "desc": "가볍게 움직일 수 있는 후보가 장초 첫 고점을 다시 넘긴 상태.",
+        "isTopShelf": true
+      },
+      "RISK_REBREAK": {
+        "label": "위험형 재상승 (보드 제외)",
+        "chipLabel": "위험 재상승",
+        "desc": "위험 그룹의 장초 재상승 — 보드에서 제외됨.",
+        "isTopShelf": false
+      },
+      "PREV_HIGH_SPIKE": {
+        "label": "전일고가 돌파 spike (보드 제외)",
+        "chipLabel": "spike",
+        "desc": "전일 고점 돌파 spike — 보드에서 제외됨.",
+        "isTopShelf": false
+      }
+    },
+    "topStrategies": [
+      "SAFE_REBREAK",
+      "BALANCED_REBREAK",
+      "CLEAN_REBREAK",
+      "LIGHT_REBREAK"
+    ],
+    "bottomStrategies": [
+      "RISK_REBREAK",
+      "PREV_HIGH_SPIKE"
+    ],
+    "strategyCounts": {
+      "SAFE_REBREAK": 0,
+      "BALANCED_REBREAK": 0,
+      "CLEAN_REBREAK": 0,
+      "LIGHT_REBREAK": 0,
+      "RISK_REBREAK": 0,
+      "PREV_HIGH_SPIKE": 0
+    },
+    "entryStatusCounts": {
+      "ok": 1,
+      "no_dir": 170,
+      "no_minute_data": 7,
+      "intraday_invalid": 1
+    },
+    "entryConfirmDate": "2026-05-07",
+    "entryConfirmDateFreq": 2,
+    "withMinute": 1,
+    "missing": 1374,
+    "analysisDateConfirmReady": false,
+    "analysisDateNextDir": null
   }
 }

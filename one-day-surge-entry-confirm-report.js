@@ -154,6 +154,8 @@ function computeIntradayMetrics(eventBase, minuteData) {
   const prevHigh = eventBase.high; // D-day high
   const rebreakPrevHighBy0930 = max10_30 != null ? max10_30 > prevHigh : (max0_10 > prevHigh);
   const isAboveVwapAt0930 = vwap_0_30 != null && close0930 >= vwap_0_30;
+  // prevHigh 돌파 후 09:30 종가 유지 여부 (spike vs 유지 판별)
+  const isAbovePrevHighAt0930 = close0930 > prevHigh;
 
   // 09:00~10:00
   const max0_60 = bars0_60.length ? Math.max(...bars0_60.map((b) => b.high || 0)) : max0_10;
@@ -177,6 +179,7 @@ function computeIntradayMetrics(eventBase, minuteData) {
     isAboveOpenAt0910, isAboveVwapAt0910, isLowDropLessThan3At0910,
     highFrom0910_10_30, lowFrom0910_10_30,
     rebreakMorningHigh_10_30, rebreakPrevHighBy0930, isAboveVwapAt0930, vwap_0_30,
+    isAbovePrevHighAt0930, prevDayHigh: prevHigh,
     highFromOpen_0_60, lowFromOpen_0_60, rebreakPrevHighBy1000,
     maxGainBefore1000: highFromOpen_0_60, maxDropBefore1000: lowFromOpen_0_60,
     entryPrice: close0910,
@@ -236,12 +239,13 @@ function summarizeBucket(events) {
   if (n === 0) {
     return {
       count: 0,
-      hit3: 0, hit5: 0, hit7: 0, fail3: 0, fail5: 0, closePositive: 0,
-      hit3Rate: null, hit5Rate: null, hit7Rate: null, fail3Rate: null, fail5Rate: null, closePositiveRate: null,
+      hit3: 0, hit5: 0, hit7: 0, fail3: 0, fail5: 0, closePositive: 0, peakBeforeEntry: 0,
+      hit3Rate: null, hit5Rate: null, hit7Rate: null, fail3Rate: null, fail5Rate: null,
+      closePositiveRate: null, peakBeforeEntryRate: null,
       avgAfterHigh: null, avgAfterLow: null, avgAfterClose: null,
     };
   }
-  let h3=0, h5=0, h7=0, f3=0, f5=0, cp=0;
+  let h3=0, h5=0, h7=0, f3=0, f5=0, cp=0, pbe=0;
   let sumHigh=0, sumLow=0, sumClose=0;
   for (const e of events) {
     if (e.outcome) {
@@ -251,6 +255,7 @@ function summarizeBucket(events) {
       if (e.outcome.fail3) f3++;
       if (e.outcome.fail5) f5++;
       if (e.outcome.closePositive) cp++;
+      if (e.outcome.peakBeforeEntry) pbe++;
       if (isNum(e.outcome.afterEntryHighRate))  sumHigh  += e.outcome.afterEntryHighRate;
       if (isNum(e.outcome.afterEntryLowRate))   sumLow   += e.outcome.afterEntryLowRate;
       if (isNum(e.outcome.afterEntryCloseRate)) sumClose += e.outcome.afterEntryCloseRate;
@@ -258,9 +263,10 @@ function summarizeBucket(events) {
   }
   return {
     count: n,
-    hit3: h3, hit5: h5, hit7: h7, fail3: f3, fail5: f5, closePositive: cp,
+    hit3: h3, hit5: h5, hit7: h7, fail3: f3, fail5: f5, closePositive: cp, peakBeforeEntry: pbe,
     hit3Rate: safeRate(h3, n), hit5Rate: safeRate(h5, n), hit7Rate: safeRate(h7, n),
     fail3Rate: safeRate(f3, n), fail5Rate: safeRate(f5, n), closePositiveRate: safeRate(cp, n),
+    peakBeforeEntryRate: safeRate(pbe, n),
     avgAfterHigh: sumHigh / n, avgAfterLow: sumLow / n, avgAfterClose: sumClose / n,
   };
 }
@@ -419,23 +425,105 @@ function main() {
     neither:       summarizeBucket(eventsWithMinute.filter((e) => e.intraday && !e.intraday.rebreakPrevHighBy0930 && !e.intraday.rebreakMorningHigh_10_30)),
   };
 
-  // 5) 위험 후보 개선 (MOM-RISK + GAP_HOLD candleType)
-  const riskGroupCodes = ['MOM-RISK'];
-  const riskEvents = eventsWithMinute.filter((e) => riskGroupCodes.includes(e.gtGroup) || e.candleType === 'GAP_HOLD');
-  const riskWithEntry = {};
-  for (const v of ENTRY_VERSIONS) {
-    riskWithEntry[v] = summarizeBucket(riskEvents.filter((e) => e.entry && e.entry[v]));
+  // 5) 위험 후보 개선 — MOM-RISK / GAP_HOLD candleType / 통합 각각에 대해
+  //    V1~V5 ENTRY + morningHigh rebreak 통과 시 성과 정상 집계 (구조 재정비)
+  const riskBuckets = {
+    momRisk: eventsWithMinute.filter((e) => e.gtGroup === 'MOM-RISK'),
+    gapHold: eventsWithMinute.filter((e) => e.candleType === 'GAP_HOLD'),
+    allRisk: eventsWithMinute.filter((e) => e.gtGroup === 'MOM-RISK' || e.candleType === 'GAP_HOLD'),
+  };
+  function buildRiskBucketSummary(events) {
+    const byEntry = {};
+    for (const v of ENTRY_VERSIONS) {
+      byEntry[v] = summarizeBucket(events.filter((e) => e.entry && e.entry[v]));
+    }
+    return {
+      all: summarizeBucket(events),
+      byEntry,
+      morningHigh: summarizeBucket(events.filter((e) => e.intraday?.rebreakMorningHigh_10_30)),
+    };
   }
-  const riskAll = summarizeBucket(riskEvents);
+  const riskCheck = {
+    momRisk: { label: 'MOM-RISK 단독', ...buildRiskBucketSummary(riskBuckets.momRisk) },
+    gapHold: { label: 'GAP_HOLD candleType', ...buildRiskBucketSummary(riskBuckets.gapHold) },
+    allRisk: { label: 'MOM-RISK + GAP_HOLD 통합', ...buildRiskBucketSummary(riskBuckets.allRisk) },
+  };
+  // legacy 키 유지 (외부 caller 호환)
+  const riskAll = riskCheck.allRisk.all;
+  const riskWithEntry = riskCheck.allRisk.byEntry;
 
-  // 6) ENTRY 통과 종목 리스트 (V1 통과만, 상위 100건 by afterEntryHighRate)
+  // 6) morningHigh 재돌파 중심 detail (작업 2)
+  //    A~I 9 조건의 cross-cut 성과. 핵심 알파인 morningHigh를 다양한 보조 필터와 결합해서 비교.
+  const mh = (e) => e.intraday?.rebreakMorningHigh_10_30 === true;
+  const morningHighDetail = {
+    A_morningHighOnly:    summarizeBucket(eventsWithMinute.filter(mh)),
+    B_withLowSafe:        summarizeBucket(eventsWithMinute.filter((e) => mh(e) && isNum(e.intraday.lowFromOpen_0_10) && e.intraday.lowFromOpen_0_10 > -3)),
+    C_withVolume:         summarizeBucket(eventsWithMinute.filter((e) => mh(e) && isNum(e.intraday.value_0_10_to_prevValue) && e.intraday.value_0_10_to_prevValue >= 0.05)),
+    D_withGapSafe:        summarizeBucket(eventsWithMinute.filter((e) => mh(e) && isNum(e.intraday.gapRate) && e.intraday.gapRate < 7)),
+    E_balancedGt:         summarizeBucket(eventsWithMinute.filter((e) => e.gtGroup === 'BALANCED-GT' && mh(e))),
+    F_lightGt:            summarizeBucket(eventsWithMinute.filter((e) => e.gtGroup === 'LIGHT-GT' && mh(e))),
+    G_excludeMomRisk:     summarizeBucket(eventsWithMinute.filter((e) => e.gtGroup !== 'MOM-RISK' && mh(e))),
+    H_withoutPrevHigh:    summarizeBucket(eventsWithMinute.filter((e) => mh(e) && e.intraday.rebreakPrevHighBy0930 === false)),
+    I_withPrevHigh:       summarizeBucket(eventsWithMinute.filter((e) => mh(e) && e.intraday.rebreakPrevHighBy0930 === true)),
+  };
+
+  // 7) prevHigh 돌파 위험 분석 (작업 3)
+  //    전일고가 돌파가 spike 위험 태그인지 진입 신호로 쓸 수 있는지 판별.
+  const ph = (e) => e.intraday?.rebreakPrevHighBy0930 === true;
+  const prevHighAnalysis = {
+    alone:           summarizeBucket(eventsWithMinute.filter(ph)),
+    withMorning:     summarizeBucket(eventsWithMinute.filter((e) => ph(e) && mh(e))),
+    sustainedTo0930: summarizeBucket(eventsWithMinute.filter((e) => ph(e) && e.intraday.isAbovePrevHighAt0930 === true)),
+    closePositive:   summarizeBucket(eventsWithMinute.filter((e) => ph(e) && e.outcome.closePositive)),
+    fail5Cases:      summarizeBucket(eventsWithMinute.filter((e) => ph(e) && e.outcome.fail5)),
+  };
+  // fail5 발생 사례 worst 10 (afterEntryLowRate 기준)
+  const prevHighFail5Worst = eventsWithMinute
+    .filter((e) => ph(e) && e.outcome.fail5)
+    .sort((a, b) => (a.outcome.afterEntryLowRate || 0) - (b.outcome.afterEntryLowRate || 0))
+    .slice(0, 10)
+    .map((e) => ({
+      code: e.code, name: e.name, baseDate: e.baseDate, nextDate: e.nextDateStr,
+      gtGroup: e.gtGroup, candleType: e.candleType,
+      gapRate: e.intraday.gapRate, prevDayHigh: e.intraday.prevDayHigh,
+      morningHigh: e.intraday.rebreakMorningHigh_10_30,
+      sustained: e.intraday.isAbovePrevHighAt0930,
+      afterEntryLowRate: e.outcome.afterEntryLowRate,
+      afterEntryHighRate: e.outcome.afterEntryHighRate,
+      afterEntryCloseRate: e.outcome.afterEntryCloseRate,
+    }));
+
+  // 8) 그룹별 morningHigh 재돌파 효과 (작업 4) — 통과/미통과 비교로 어떤 그룹에서 알파가 진짜 살아있는지
+  const morningRebreakByGroup = {};
+  const groupBuckets = [
+    { key: 'BALANCED-GT', filter: (e) => e.gtGroup === 'BALANCED-GT' },
+    { key: 'LIGHT-GT',    filter: (e) => e.gtGroup === 'LIGHT-GT' },
+    { key: 'MID-CAP-GT',  filter: (e) => e.gtGroup === 'MID-CAP-GT' },
+    { key: 'MOM-RISK',    filter: (e) => e.gtGroup === 'MOM-RISK' },
+    { key: 'GAP_HOLD',    filter: (e) => e.candleType === 'GAP_HOLD' },
+    // 기타 = GROUPS_FILTER에 의해 모두 제거되므로 사실상 빈 버킷이지만 구조 유지를 위해 노출
+    { key: '기타',         filter: (e) => !['BALANCED-GT','LIGHT-GT','MID-CAP-GT','MOM-RISK'].includes(e.gtGroup) && e.candleType !== 'GAP_HOLD' },
+  ];
+  for (const g of groupBuckets) {
+    const subset = eventsWithMinute.filter(g.filter);
+    morningRebreakByGroup[g.key] = {
+      all:  summarizeBucket(subset),
+      pass: summarizeBucket(subset.filter(mh)),
+      fail: summarizeBucket(subset.filter((e) => e.intraday && !mh(e))),
+    };
+  }
+
+  // 9) ENTRY 통과 종목 리스트 (V1 통과만, 상위 100건 by afterEntryHighRate)
   const passedV1 = eventsWithMinute
     .filter((e) => e.entry && e.entry.entryV1)
     .sort((a, b) => (b.outcome?.afterEntryHighRate || 0) - (a.outcome?.afterEntryHighRate || 0))
     .slice(0, 100);
 
   // ── 자동 결론 ──
-  const autoConclusion = buildAutoConclusion({ baseSum, byEntry, by0910Cond, byRebreak, byGroup, riskAll, riskWithEntry });
+  const autoConclusion = buildAutoConclusion({
+    baseSum, byEntry, by0910Cond, byRebreak, byGroup,
+    riskCheck, morningHighDetail, prevHighAnalysis, morningRebreakByGroup,
+  });
 
   // 분석 윈도우
   const allDates = [...eventsByDate.keys()].sort();
@@ -469,7 +557,11 @@ function main() {
     byGroup,
     by0910Cond,
     byRebreak,
-    riskCheck: { allRisk: riskAll, byEntry: riskWithEntry },
+    riskCheck,
+    morningHighDetail,
+    prevHighAnalysis,
+    prevHighFail5Worst,
+    morningRebreakByGroup,
     passedV1Top: passedV1.map((e) => ({
       code: e.code, name: e.name,
       baseDate: e.baseDate, nextDate: e.nextDateStr,
@@ -498,30 +590,76 @@ function main() {
   console.log(`✅ HTML: ${OUT_HTML}`);
 }
 
-function buildAutoConclusion({ baseSum, byEntry, by0910Cond, byRebreak, byGroup, riskAll, riskWithEntry }) {
+function buildAutoConclusion({
+  baseSum, byEntry, by0910Cond, byRebreak, byGroup,
+  riskCheck, morningHighDetail, prevHighAnalysis, morningRebreakByGroup,
+}) {
   const c = {};
-  // 1) ENTRY가 GOOD_TRADE 대비 개선?
-  if (baseSum.count >= 30 && byEntry.entryV1 && byEntry.entryV1.count >= 30) {
-    const liftHit5 = (byEntry.entryV1.hit5Rate || 0) - (baseSum.hit5Rate || 0);
-    const liftFail5 = (byEntry.entryV1.fail5Rate || 0) - (baseSum.fail5Rate || 0);
-    c.entryImprovement = `ENTRY_V1 통과 후 hit5률 ${liftHit5 > 0 ? '+' : ''}${liftHit5.toFixed(1)}pp / fail5률 ${liftFail5 > 0 ? '+' : ''}${liftFail5.toFixed(1)}pp (n=${byEntry.entryV1.count} vs base ${baseSum.count})`;
+  const fmt = (v) => isNum(v) ? v.toFixed(1) : '-';
+  const fmtSign = (v) => isNum(v) ? (v > 0 ? '+' : '') + v.toFixed(2) : '-';
+
+  // ── 1) 핵심 알파 = morningHigh rebreak 단독 ──
+  const mhAll = morningHighDetail.A_morningHighOnly || {};
+  if (mhAll.count >= 30) {
+    const liftClosePos = (mhAll.closePositiveRate || 0) - (baseSum.closePositiveRate || 0);
+    const liftAvgClose = (mhAll.avgAfterClose || 0) - (baseSum.avgAfterClose || 0);
+    c.morningHighAlpha =
+      `morningHigh rebreak 단독 (n=${mhAll.count}): ` +
+      `hit5 ${fmt(mhAll.hit5Rate)}% / fail5 ${fmt(mhAll.fail5Rate)}% / ` +
+      `종가>0 ${fmt(mhAll.closePositiveRate)}% / 평균종가 ${fmtSign(mhAll.avgAfterClose)}% — ` +
+      `baseline 대비 종가>0 ${liftClosePos > 0 ? '+' : ''}${liftClosePos.toFixed(1)}pp, ` +
+      `평균종가 ${liftAvgClose > 0 ? '+' : ''}${liftAvgClose.toFixed(2)}pp`;
   }
-  // 2) ENTRY 버전 best
+
+  // ── 2) ENTRY 버전 best (참고용 — 핵심은 morningHigh) ──
   const entryRanked = Object.entries(byEntry)
     .filter(([_, v]) => v.count >= 20 && isNum(v.hit5Rate))
-    .map(([k, v]) => ({ ver: k, n: v.count, hit5: v.hit5Rate, fail5: v.fail5Rate, score: (v.hit5Rate || 0) - (v.fail5Rate || 0) * 0.7 }))
+    .map(([k, v]) => ({ ver: k, n: v.count, hit5: v.hit5Rate, fail5: v.fail5Rate, closePos: v.closePositiveRate, avgClose: v.avgAfterClose, score: (v.hit5Rate || 0) - (v.fail5Rate || 0) * 0.7 }))
     .sort((a, b) => b.score - a.score);
   c.bestEntryVersion = entryRanked[0] || null;
   c.allEntryVersions = entryRanked;
-  // 3) 09:10 조건이 fail5 줄였는가
-  if (baseSum.count >= 30 && by0910Cond.allFour.count >= 20) {
-    c.openConditionEffect = `09:10 4조건 모두 통과 후 fail5률 ${(by0910Cond.allFour.fail5Rate || 0).toFixed(1)}% (base ${(baseSum.fail5Rate || 0).toFixed(1)}%)`;
+
+  // ── 3) 09:10 단순 조건 한계 (작업 5) ──
+  const allFour = by0910Cond.allFour || {};
+  if (allFour.count >= 20) {
+    c.open0910Limit =
+      `09:10 단순 4조건(시초가 위·VWAP 위·저가 안전·거래대금) 모두 통과해도 ` +
+      `fail5 ${fmt(allFour.fail5Rate)}%, 평균종가 ${fmtSign(allFour.avgAfterClose)}% — ` +
+      `강한 출발 ≠ 지속 상승. 09:10 시점 단순 조건만으로는 진입 신호로 부족.`;
   }
-  // 4) 재돌파가 hit5 올렸는가
-  if (byRebreak.both.count >= 20 && baseSum.count >= 30) {
-    c.rebreakEffect = `재돌파 둘 다 통과 hit5률 ${(byRebreak.both.hit5Rate || 0).toFixed(1)}% (base ${(baseSum.hit5Rate || 0).toFixed(1)}%, n=${byRebreak.both.count})`;
+
+  // ── 4) prevHigh 돌파 단독은 spike 위험 ──
+  const phAlone = prevHighAnalysis.alone || {};
+  const phSustained = prevHighAnalysis.sustainedTo0930 || {};
+  if (phAlone.count >= 20) {
+    c.prevHighSpike =
+      `전일고가 돌파 단독 (n=${phAlone.count}): hit5 ${fmt(phAlone.hit5Rate)}%지만 fail5 ${fmt(phAlone.fail5Rate)}%, 평균종가 ${fmtSign(phAlone.avgAfterClose)}% — spike 위험 큼. ` +
+      (phSustained.count >= 10
+        ? `09:30 종가 유지 시 (n=${phSustained.count}) 평균종가 ${fmtSign(phSustained.avgAfterClose)}% — 유지 여부가 진입 신호 vs 위험 태그를 가름.`
+        : '');
   }
-  // 5) 그룹별 베스트
+
+  // ── 5) BALANCED-GT가 morningHigh와 가장 잘 맞음 ──
+  const balMh = morningHighDetail.E_balancedGt || {};
+  if (balMh.count >= 10) {
+    c.balancedGtIsBest =
+      `BALANCED-GT + morningHigh rebreak (n=${balMh.count}): ` +
+      `hit5 ${fmt(balMh.hit5Rate)}% / fail5 ${fmt(balMh.fail5Rate)}% / ` +
+      `종가>0 ${fmt(balMh.closePositiveRate)}% / 평균종가 ${fmtSign(balMh.avgAfterClose)}% — 가장 실전형에 가까움.`;
+  }
+
+  // ── 6) MOM-RISK 경고 ──
+  const momRiskCheck = riskCheck.momRisk || {};
+  const momMh = momRiskCheck.morningHigh || {};
+  const momAll = momRiskCheck.all || {};
+  if (momMh.count >= 10 && momAll.count >= 20) {
+    c.momRiskWarning =
+      `MOM-RISK 그룹 (n=${momAll.count}, 전체 fail5 ${fmt(momAll.fail5Rate)}%) — ` +
+      `morningHigh rebreak 통과 후도 fail5 ${fmt(momMh.fail5Rate)}% (n=${momMh.count}). ` +
+      `평균종가 ${fmtSign(momMh.avgAfterClose)}%. rebreak 통과로도 위험이 완전히 줄지 않음 — 별도 위험 태그 유지 필요.`;
+  }
+
+  // ── 7) 그룹별 V1 개선 (legacy 호환 — 보드 추후 활용용) ──
   const groupRanked = Object.values(byGroup)
     .filter((g) => g.all.count >= 20)
     .map((g) => ({
@@ -531,15 +669,32 @@ function buildAutoConclusion({ baseSum, byEntry, by0910Cond, byRebreak, byGroup,
     }))
     .sort((a, b) => b.improvement - a.improvement);
   c.groupEntryImprovement = groupRanked;
-  // 6) 위험 후보 살릴 수 있는가
-  if (riskAll.count >= 20 && riskWithEntry.entryV1 && riskWithEntry.entryV1.count >= 10) {
-    c.riskGroupRescue = `MOM-RISK/GAP_HOLD 전체 hit5률 ${(riskAll.hit5Rate || 0).toFixed(1)}% (n=${riskAll.count}) → ENTRY_V1 통과 후 hit5률 ${(riskWithEntry.entryV1.hit5Rate || 0).toFixed(1)}% (n=${riskWithEntry.entryV1.count})`;
-  }
-  // 7) 권고
-  c.recommendations = [];
-  if (entryRanked[0]) {
-    c.recommendations.push(`최우선 ENTRY 조건: ${entryRanked[0].ver} (hit5 ${entryRanked[0].hit5.toFixed(1)}% / fail5 ${entryRanked[0].fail5.toFixed(1)}%, n=${entryRanked[0].n})`);
-  }
+
+  // ── 8) 그룹별 morningHigh 효과 (작업 4 결론) ──
+  c.morningRebreakByGroupSummary = Object.entries(morningRebreakByGroup)
+    .filter(([_, g]) => g.all.count >= 10)
+    .map(([k, g]) => ({
+      group: k,
+      n: g.all.count,
+      baseClosePos: g.all.closePositiveRate,
+      passN: g.pass.count,
+      passClosePos: g.pass.closePositiveRate,
+      passAvgClose: g.pass.avgAfterClose,
+      lift: (g.pass.closePositiveRate || 0) - (g.all.closePositiveRate || 0),
+    }))
+    .sort((a, b) => (b.lift || 0) - (a.lift || 0));
+
+  // ── 9) 권고 (사용자 요청 7가지 핵심 결론) ──
+  c.recommendations = [
+    `최우선 ENTRY_CONFIRM 후보는 morningHigh rebreak (09:10~30 사이 첫 10분 고점 재돌파). 단순한데 강함.`,
+    `V3가 좋은 이유는 morningHigh rebreak 조건을 핵심으로 포함하기 때문.`,
+    `BALANCED-GT + morningHigh rebreak가 가장 실전형에 가까움.`,
+    `MOM-RISK는 rebreak 통과해도 fail5가 충분히 줄지 않음 — 별도 위험 태그 유지.`,
+    `prevHigh(전일고가) 돌파는 단독으로는 spike 위험이 커서 진입 신호로 부적절. 유지 여부와 morningHigh 결합이 필요.`,
+    `09:10 단순 조건(시초가 위/VWAP 위/저가 안전/거래대금)은 단독 알파가 약하거나 오히려 진폭만 키움. "강한 출발 ≠ 지속 상승".`,
+    `다음 보드에서는 "장초 재돌파 확인" 태그를 우선 도입할 수 있음.`,
+    `이번 작업은 ENTRY_CONFIRM 연구 보고서 고도화 단계 — 아직 날짜별 운영형 백테스트는 하지 않음.`,
+  ];
   return c;
 }
 
@@ -598,8 +753,8 @@ details.section > .section-body { padding: 12px 14px; }
   <a href="/qva-watchlist">📋 H그룹/VPR 보드</a>
   <a href="/rebreak">🔥 D+5 재돌파 운용</a>
   <a href="/one-day-surge-board">⚡ 1DS 단타 후보</a>
-  <a href="/one-day-surge-validation">🔬 1DS 일봉 검증</a>
-  <a href="/one-day-surge-entry-confirm" class="active">🚪 1DS ENTRY_CONFIRM</a>
+  <a href="/one-day-surge-validation">🔬 1DS 다음날 검증</a>
+  <a href="/one-day-surge-entry-confirm" class="active">🚪 1DS 장초 조건 연구</a>
 </nav>
 
 <h1>🚪 1-Day Surge ENTRY_CONFIRM 연구 보고서</h1>
@@ -653,9 +808,56 @@ details.section > .section-body { padding: 12px 14px; }
   <th>평균 진입후 고가</th>
 </tr></thead><tbody></tbody></table>
 
+<h2>🌅 morningHigh 재돌파 중심 detail (단일 알파 + 보조 필터 cross-tab)</h2>
+<div class="muted" style="font-size:11px;margin-bottom:6px;">
+  핵심 단일 알파 = 09:10~09:30 사이 첫 10분 고점 재돌파. 다양한 보조 필터와 결합해서 알파가 어떻게 변하는지 본다.
+</div>
+<table id="t-mh-detail"><thead><tr>
+  <th class="left">조건</th><th>n</th>
+  <th>HIT3</th><th>HIT5</th><th>HIT7</th><th>FAIL3</th><th>FAIL5</th><th>종가&gt;0</th>
+  <th>평균 고가</th><th>평균 저가</th><th>평균 종가</th><th>peakBefore</th>
+</tr></thead><tbody></tbody></table>
+
+<h2>🚨 prevHigh(전일고가) 돌파 위험 분석</h2>
+<div class="muted" style="font-size:11px;margin-bottom:6px;">
+  전일고가 돌파는 hit5 자체는 높지만 fail5도 높아 spike 위험 큼. 어떤 조건과 결합해야 알파가 살아나는지 분리.
+</div>
+<table id="t-prevhigh"><thead><tr>
+  <th class="left">조건</th><th>n</th>
+  <th>HIT5</th><th>FAIL5</th><th>종가&gt;0</th>
+  <th>평균 고가</th><th>평균 저가</th><th>평균 종가</th>
+</tr></thead><tbody></tbody></table>
+
+<h3>📉 prevHigh 돌파 후 fail5 발생 worst 10 (afterEntryLowRate 순)</h3>
+<details class="section" open><summary>worst 10 펼쳐보기</summary><div class="section-body">
+<table id="t-prevhigh-fail"><thead><tr>
+  <th class="left">종목</th><th class="left">코드</th>
+  <th class="left">기준일</th><th class="left">다음일</th>
+  <th class="left">그룹</th><th class="left">캔들</th>
+  <th>gap%</th><th>전일고가</th>
+  <th>morningHigh</th><th>유지</th>
+  <th>진입 후 고가%</th><th>진입 후 저가%</th><th>진입 후 종가%</th>
+</tr></thead><tbody></tbody></table>
+</div></details>
+
+<h2>📂 그룹별 morningHigh 재돌파 효과 (통과 vs 미통과)</h2>
+<div class="muted" style="font-size:11px;margin-bottom:6px;">
+  "기타" 버킷은 GROUPS_FILTER에 의해 모두 제거되므로 사실상 비어있음 (구조 호환용).
+</div>
+<table id="t-mh-group"><thead><tr>
+  <th class="left">그룹</th><th class="left">상태</th>
+  <th>n</th>
+  <th>HIT5</th><th>FAIL5</th><th>종가&gt;0</th>
+  <th>평균 고가</th><th>평균 종가</th><th>peakBefore</th>
+</tr></thead><tbody></tbody></table>
+
 <h2>⚠ 위험 후보 ENTRY 통과 후 개선 여부</h2>
+<div class="muted" style="font-size:11px;margin-bottom:6px;">
+  MOM-RISK / GAP_HOLD candleType / 통합 각각에 대해 V1~V5 + morningHigh rebreak 통과 시 성과를 정상 집계.
+</div>
 <table id="t-risk"><thead><tr>
-  <th class="left">구분</th><th>n</th><th>HIT5</th><th>FAIL5</th><th>평균 고가</th><th>평균 종가</th>
+  <th class="left">버킷</th><th class="left">조건</th>
+  <th>n</th><th>HIT5</th><th>FAIL5</th><th>종가&gt;0</th><th>평균 고가</th><th>평균 종가</th>
 </tr></thead><tbody></tbody></table>
 
 <h2>🏆 ENTRY_V1 통과 종목 상위 100 (afterEntryHighRate 순)</h2>
@@ -797,23 +999,168 @@ document.getElementById('meta-line').innerHTML =
   tb.innerHTML = rows.join('');
 })();
 
+// ── morningHigh detail (작업 2) ──
 (function() {
-  const tb = document.querySelector('#t-risk tbody');
-  const all = DATA.riskCheck?.allRisk || {};
-  const rows = ['<tr><td class="left">위험 전체 (MOM-RISK + GAP_HOLD)</td>' +
-    '<td>' + fmtNum(all.count) + '</td>' +
-    '<td>' + fmtRate(all.hit5Rate) + '</td>' +
-    '<td>' + fmtRate(all.fail5Rate) + '</td>' +
-    '<td>' + fmtPct(all.avgAfterHigh) + '</td>' +
-    '<td>' + fmtPct(all.avgAfterClose) + '</td></tr>'];
-  for (const v of ['entryV1','entryV2','entryV3','entryV4','entryV5']) {
-    const x = DATA.riskCheck?.byEntry?.[v] || {};
-    rows.push('<tr><td class="left">위험 + ' + v + '</td>' +
+  const tb = document.querySelector('#t-mh-detail tbody');
+  const d = DATA.morningHighDetail || {};
+  const labels = {
+    A_morningHighOnly: 'A. morningHigh 단독',
+    B_withLowSafe:     'B. + 09:10 저가 -3% 이내',
+    C_withVolume:      'C. + 09:10 거래대금 ≥ 전일 5%',
+    D_withGapSafe:     'D. + gap < 7%',
+    E_balancedGt:      'E. + BALANCED-GT',
+    F_lightGt:         'F. + LIGHT-GT',
+    G_excludeMomRisk:  'G. + MOM-RISK 제외',
+    H_withoutPrevHigh: 'H. + prevHigh 돌파 X (morningHigh만)',
+    I_withPrevHigh:    'I. + prevHigh 돌파 ○ (둘 다)',
+  };
+  const rows = [];
+  for (const [k, lab] of Object.entries(labels)) {
+    const x = d[k] || {};
+    rows.push('<tr><td class="left">' + lab + '</td>' +
+      '<td>' + fmtNum(x.count) + '</td>' +
+      '<td>' + fmtRate(x.hit3Rate) + '</td>' +
+      '<td><strong>' + fmtRate(x.hit5Rate) + '</strong></td>' +
+      '<td>' + fmtRate(x.hit7Rate) + '</td>' +
+      '<td>' + fmtRate(x.fail3Rate) + '</td>' +
+      '<td>' + fmtRate(x.fail5Rate) + '</td>' +
+      '<td>' + fmtRate(x.closePositiveRate) + '</td>' +
+      '<td>' + fmtPct(x.avgAfterHigh) + '</td>' +
+      '<td>' + fmtPct(x.avgAfterLow) + '</td>' +
+      '<td>' + fmtPct(x.avgAfterClose) + '</td>' +
+      '<td class="muted">' + fmtRate(x.peakBeforeEntryRate) + '</td></tr>');
+  }
+  tb.innerHTML = rows.join('');
+})();
+
+// ── prevHigh 위험 분석 (작업 3) ──
+(function() {
+  const tb = document.querySelector('#t-prevhigh tbody');
+  const d = DATA.prevHighAnalysis || {};
+  const labels = {
+    alone:           'prevHigh 돌파 단독 (전일고가 ≥)',
+    withMorning:     '+ morningHigh 재돌파 결합',
+    sustainedTo0930: '+ 09:30 종가 prevHigh 위 유지',
+    closePositive:   '+ D+1 종가 양수 (사후)',
+    fail5Cases:      'prevHigh 돌파 후 fail5 발생 케이스 (분포)',
+  };
+  const rows = [];
+  for (const [k, lab] of Object.entries(labels)) {
+    const x = d[k] || {};
+    rows.push('<tr><td class="left">' + lab + '</td>' +
       '<td>' + fmtNum(x.count) + '</td>' +
       '<td><strong>' + fmtRate(x.hit5Rate) + '</strong></td>' +
-      '<td>' + fmtRate(x.fail5Rate) + '</td>' +
+      '<td class="' + (isNum(x.fail5Rate) && x.fail5Rate >= 50 ? 'neg' : '') + '">' + fmtRate(x.fail5Rate) + '</td>' +
+      '<td>' + fmtRate(x.closePositiveRate) + '</td>' +
       '<td>' + fmtPct(x.avgAfterHigh) + '</td>' +
+      '<td>' + fmtPct(x.avgAfterLow) + '</td>' +
       '<td>' + fmtPct(x.avgAfterClose) + '</td></tr>');
+  }
+  tb.innerHTML = rows.join('');
+})();
+
+// ── prevHigh fail5 worst 10 ──
+(function() {
+  const tb = document.querySelector('#t-prevhigh-fail tbody');
+  const list = DATA.prevHighFail5Worst || [];
+  if (!list.length) {
+    tb.innerHTML = '<tr><td class="left muted" colspan="13">prevHigh 돌파 후 fail5 사례 없음</td></tr>';
+    return;
+  }
+  const rows = list.map(e => '<tr>' +
+    '<td class="left">' + (e.name||'-') + '</td>' +
+    '<td class="left muted">' + (e.code||'-') + '</td>' +
+    '<td class="left">' + fmtDate(e.baseDate) + '</td>' +
+    '<td class="left">' + (e.nextDate||'-') + '</td>' +
+    '<td class="left">' + (e.gtGroup||'-') + '</td>' +
+    '<td class="left muted">' + (e.candleType||'-') + '</td>' +
+    '<td>' + fmtPct(e.gapRate, 1) + '</td>' +
+    '<td>' + fmtNum(e.prevDayHigh) + '</td>' +
+    '<td>' + (e.morningHigh ? '✓' : '·') + '</td>' +
+    '<td>' + (e.sustained ? '✓' : '·') + '</td>' +
+    '<td>' + fmtPct(e.afterEntryHighRate, 1) + '</td>' +
+    '<td class="neg">' + fmtPct(e.afterEntryLowRate, 1) + '</td>' +
+    '<td>' + fmtPct(e.afterEntryCloseRate, 1) + '</td>' +
+  '</tr>');
+  tb.innerHTML = rows.join('');
+})();
+
+// ── 그룹별 morningHigh 효과 (작업 4) ──
+(function() {
+  const tb = document.querySelector('#t-mh-group tbody');
+  const g = DATA.morningRebreakByGroup || {};
+  const rows = [];
+  for (const [k, info] of Object.entries(g)) {
+    const all = info.all || {};
+    const pass = info.pass || {};
+    const fail = info.fail || {};
+    if (all.count === 0) continue; // 비어있으면 스킵
+    rows.push('<tr><td class="left" rowspan="3"><strong>' + k + '</strong></td>' +
+      '<td class="left muted">전체</td>' +
+      '<td>' + fmtNum(all.count) + '</td>' +
+      '<td>' + fmtRate(all.hit5Rate) + '</td>' +
+      '<td>' + fmtRate(all.fail5Rate) + '</td>' +
+      '<td>' + fmtRate(all.closePositiveRate) + '</td>' +
+      '<td>' + fmtPct(all.avgAfterHigh) + '</td>' +
+      '<td>' + fmtPct(all.avgAfterClose) + '</td>' +
+      '<td class="muted">' + fmtRate(all.peakBeforeEntryRate) + '</td></tr>');
+    rows.push('<tr><td class="left pos">rebreak ✓</td>' +
+      '<td>' + fmtNum(pass.count) + '</td>' +
+      '<td><strong>' + fmtRate(pass.hit5Rate) + '</strong></td>' +
+      '<td>' + fmtRate(pass.fail5Rate) + '</td>' +
+      '<td><strong>' + fmtRate(pass.closePositiveRate) + '</strong></td>' +
+      '<td>' + fmtPct(pass.avgAfterHigh) + '</td>' +
+      '<td><strong>' + fmtPct(pass.avgAfterClose) + '</strong></td>' +
+      '<td class="muted">' + fmtRate(pass.peakBeforeEntryRate) + '</td></tr>');
+    rows.push('<tr><td class="left muted">rebreak ✗</td>' +
+      '<td>' + fmtNum(fail.count) + '</td>' +
+      '<td>' + fmtRate(fail.hit5Rate) + '</td>' +
+      '<td>' + fmtRate(fail.fail5Rate) + '</td>' +
+      '<td>' + fmtRate(fail.closePositiveRate) + '</td>' +
+      '<td>' + fmtPct(fail.avgAfterHigh) + '</td>' +
+      '<td>' + fmtPct(fail.avgAfterClose) + '</td>' +
+      '<td class="muted">' + fmtRate(fail.peakBeforeEntryRate) + '</td></tr>');
+  }
+  tb.innerHTML = rows.join('') || '<tr><td class="left muted" colspan="9">데이터 없음</td></tr>';
+})();
+
+// ── 위험 후보 ENTRY × morningHigh (작업 1 — 정상 집계) ──
+(function() {
+  const tb = document.querySelector('#t-risk tbody');
+  const rc = DATA.riskCheck || {};
+  const buckets = ['momRisk', 'gapHold', 'allRisk'];
+  const versions = ['entryV1','entryV2','entryV3','entryV4','entryV5'];
+  const rows = [];
+  for (const b of buckets) {
+    const info = rc[b];
+    if (!info) continue;
+    const all = info.all || {};
+    const mh = info.morningHigh || {};
+    rows.push('<tr><td class="left" rowspan="' + (2 + versions.length) + '"><strong>' + (info.label||b) + '</strong></td>' +
+      '<td class="left muted">전체</td>' +
+      '<td>' + fmtNum(all.count) + '</td>' +
+      '<td>' + fmtRate(all.hit5Rate) + '</td>' +
+      '<td class="' + (isNum(all.fail5Rate) && all.fail5Rate >= 50 ? 'neg' : '') + '">' + fmtRate(all.fail5Rate) + '</td>' +
+      '<td>' + fmtRate(all.closePositiveRate) + '</td>' +
+      '<td>' + fmtPct(all.avgAfterHigh) + '</td>' +
+      '<td>' + fmtPct(all.avgAfterClose) + '</td></tr>');
+    rows.push('<tr><td class="left pos">+ morningHigh ✓</td>' +
+      '<td>' + fmtNum(mh.count) + '</td>' +
+      '<td><strong>' + fmtRate(mh.hit5Rate) + '</strong></td>' +
+      '<td class="' + (isNum(mh.fail5Rate) && mh.fail5Rate >= 50 ? 'neg' : '') + '">' + fmtRate(mh.fail5Rate) + '</td>' +
+      '<td><strong>' + fmtRate(mh.closePositiveRate) + '</strong></td>' +
+      '<td>' + fmtPct(mh.avgAfterHigh) + '</td>' +
+      '<td>' + fmtPct(mh.avgAfterClose) + '</td></tr>');
+    for (const v of versions) {
+      const x = info.byEntry?.[v] || {};
+      rows.push('<tr><td class="left">+ ' + v + '</td>' +
+        '<td>' + fmtNum(x.count) + '</td>' +
+        '<td>' + fmtRate(x.hit5Rate) + '</td>' +
+        '<td class="' + (isNum(x.fail5Rate) && x.fail5Rate >= 50 ? 'neg' : '') + '">' + fmtRate(x.fail5Rate) + '</td>' +
+        '<td>' + fmtRate(x.closePositiveRate) + '</td>' +
+        '<td>' + fmtPct(x.avgAfterHigh) + '</td>' +
+        '<td>' + fmtPct(x.avgAfterClose) + '</td></tr>');
+    }
   }
   tb.innerHTML = rows.join('');
 })();
@@ -850,23 +1197,47 @@ document.getElementById('meta-line').innerHTML =
 (function() {
   const c = DATA.autoConclusion || {};
   const html = [];
-  if (c.entryImprovement) html.push('<div class="callout"><strong>① ENTRY 통과 후 개선</strong><br>' + c.entryImprovement + '</div>');
-  if (c.bestEntryVersion) html.push('<div class="callout success"><strong>② Best ENTRY 버전</strong><br>' + c.bestEntryVersion.ver + ' (n=' + c.bestEntryVersion.n + ', hit5 ' + c.bestEntryVersion.hit5.toFixed(1) + '% / fail5 ' + c.bestEntryVersion.fail5.toFixed(1) + '%, score ' + c.bestEntryVersion.score.toFixed(1) + ')</div>');
+  // 핵심 알파 — morningHigh rebreak가 사실상 단일 알파임을 강조
+  if (c.morningHighAlpha) {
+    html.push('<div class="callout success"><strong>① 핵심 단일 알파 = morningHigh rebreak</strong><br>' + c.morningHighAlpha + '</div>');
+  }
+  // 09:10 단순 조건 한계
+  if (c.open0910Limit) {
+    html.push('<div class="callout warn"><strong>② 09:10 단순 조건의 한계</strong><br>' + c.open0910Limit + '</div>');
+  }
+  // prevHigh spike 위험
+  if (c.prevHighSpike) {
+    html.push('<div class="callout warn"><strong>③ prevHigh 돌파는 단독 진입 신호 부적절</strong><br>' + c.prevHighSpike + '</div>');
+  }
+  // BALANCED-GT + morningHigh가 실전형
+  if (c.balancedGtIsBest) {
+    html.push('<div class="callout success"><strong>④ BALANCED-GT + morningHigh가 가장 실전형</strong><br>' + c.balancedGtIsBest + '</div>');
+  }
+  // MOM-RISK 경고
+  if (c.momRiskWarning) {
+    html.push('<div class="callout warn"><strong>⑤ MOM-RISK는 rebreak로도 위험 안 줄음</strong><br>' + c.momRiskWarning + '</div>');
+  }
+  // ENTRY 버전 비교 (참고)
   if ((c.allEntryVersions||[]).length) {
-    html.push('<div class="callout"><strong>③ ENTRY V1~V5 비교</strong><br>' +
-      c.allEntryVersions.map(v => '• ' + v.ver + ' n=' + v.n + ' / hit5 ' + v.hit5.toFixed(1) + '% / fail5 ' + v.fail5.toFixed(1) + '% / score ' + v.score.toFixed(1)).join('<br>') +
+    html.push('<div class="callout"><strong>⑥ ENTRY V1~V5 비교 (참고)</strong> — V3가 좋은 이유는 morningHigh rebreak를 핵심으로 포함하기 때문<br>' +
+      c.allEntryVersions.map(v => '• ' + v.ver + ' n=' + v.n + ' / hit5 ' + v.hit5.toFixed(1) + '% / fail5 ' + v.fail5.toFixed(1) + '% / 종가>0 ' + (v.closePos!=null ? v.closePos.toFixed(1) : '-') + '% / 평균종가 ' + (v.avgClose!=null ? (v.avgClose>0?'+':'')+v.avgClose.toFixed(2) : '-') + '% / score ' + v.score.toFixed(1)).join('<br>') +
     '</div>');
   }
-  if (c.openConditionEffect) html.push('<div class="callout"><strong>④ 09:10 4 조건 효과</strong><br>' + c.openConditionEffect + '</div>');
-  if (c.rebreakEffect) html.push('<div class="callout"><strong>⑤ 재돌파 효과</strong><br>' + c.rebreakEffect + '</div>');
+  // 그룹별 morningHigh 효과 요약
+  if ((c.morningRebreakByGroupSummary||[]).length) {
+    html.push('<div class="callout"><strong>⑦ 그룹별 morningHigh 효과</strong> (종가>0 lift 기준)<br>' +
+      c.morningRebreakByGroupSummary.map(g => '• ' + g.group + ' (n=' + g.n + ', rebreak ✓ n=' + (g.passN||0) + ') 종가>0 ' + (g.baseClosePos||0).toFixed(1) + '% → ' + (g.passClosePos||0).toFixed(1) + '% (' + (g.lift >= 0 ? '+' : '') + g.lift.toFixed(1) + 'pp) · 평균종가 ' + (g.passAvgClose>0?'+':'') + (g.passAvgClose||0).toFixed(2) + '%').join('<br>') +
+    '</div>');
+  }
+  // 그룹별 V1 개선 (legacy 호환)
   if ((c.groupEntryImprovement||[]).length) {
-    html.push('<div class="callout"><strong>⑥ 그룹별 ENTRY_V1 개선</strong><br>' +
+    html.push('<div class="callout"><strong>⑧ 그룹별 ENTRY_V1 개선 (legacy 참고)</strong><br>' +
       c.groupEntryImprovement.map(g => '• ' + g.group + ' (n=' + g.n + ', V1 n=' + (g.v1n||0) + ') hit5 ' + (g.baseHit5||0).toFixed(1) + '% → ' + (g.v1Hit5||0).toFixed(1) + '% (' + (g.improvement >= 0 ? '+' : '') + g.improvement.toFixed(1) + 'pp)').join('<br>') +
     '</div>');
   }
-  if (c.riskGroupRescue) html.push('<div class="callout warn"><strong>⑦ 위험 후보 ENTRY 살림</strong><br>' + c.riskGroupRescue + '</div>');
+  // 핵심 권고 (사용자 지정 7개 takeaway)
   if ((c.recommendations||[]).length) {
-    html.push('<div class="callout success"><strong>⑧ 보드 반영 권고</strong><br>' + c.recommendations.map(s => '• ' + s).join('<br>') + '</div>');
+    html.push('<div class="callout success"><strong>⑨ 핵심 결론 / 보드 반영 권고</strong><br>' + c.recommendations.map((s,i) => (i+1) + '. ' + s).join('<br>') + '</div>');
   }
   if (!html.length) html.push('<div class="callout warn">분봉 데이터가 부족해 자동 결론을 산출하지 못했습니다. 별도 수집 스크립트로 분봉을 누적한 뒤 다시 실행하세요.</div>');
   document.getElementById('auto-conclusion').innerHTML = html.join('');
@@ -882,10 +1253,13 @@ if (require.main === module) main();
 module.exports = {
   generateGtEventsByDate,
   loadStockMetaMap,
+  loadMinuteBars,
   computeIntradayMetrics,
   applyEntryConditions,
   computeOutcomes,
+  summarizeBucket,
   GROUPS_FILTER,
   CHART_DIR,
   INTRADAY_BASE,
+  REPORTS_DIR,
 };
