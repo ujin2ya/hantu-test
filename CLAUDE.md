@@ -16,6 +16,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 1DS GT 후보 분봉 백필: `node collect-1ds-intraday.js [--target-date YYYYMMDD | --from YYYYMMDD --to YYYYMMDD]` → `data/intraday/1ds/{date}/{code}.json`에 09:00~10:00 분봉 저장. KIS `FHKST03010230`(과거 분봉) 기반, 멱등 저장 (이미 있으면 skip). 환경변수 대신 CLI 플래그: `--window-days`(기본 40), `--groups`, `--top-per-day`, `--sleep`(기본 350ms), `--retry`(기본 2), `--end-hour`(기본 100000), `--dry-run`. 누락 로그는 `reports/one-day-surge-intraday-missing.json`에 누적
 - 1DS ENTRY_CONFIRM 연구 보고서: `node one-day-surge-entry-confirm-report.js` → `reports/one-day-surge-entry-confirm-result.{html,json}` 생성. 라우트 `/one-day-surge-entry-confirm`. 환경변수 `ENTRY_VALIDATION_DAYS`(기본 40), `ENTRY_GROUPS`(기본 BALANCED-GT,LIGHT-GT,MID-CAP-GT,MOM-RISK). 분봉 데이터는 `data/intraday/1ds/`에서 read.
 - 1DS ENTRY 날짜별 운영형 백테스트: `node one-day-surge-entry-daily-backtest-report.js` → `reports/one-day-surge-entry-daily-backtest-result.{html,json}` 생성. 라우트 `/one-day-surge-entry-daily-backtest`. 환경변수 `ENTRY_BACKTEST_DAYS`(기본 40). ENTRY_CONFIRM 인프라(generateGtEventsByDate, applyEntryConditions, computeOutcomes, summarizeBucket) 재사용. SAFE_REBREAK / BALANCED_REBREAK / LIGHT_REBREAK / CLEAN_REBREAK / RISK_REBREAK / PREV_HIGH_SPIKE 6개 전략을 날짜별로 simulate.
+- QVA 고점 재돌파 후보 보드 (새 VVI 정의): `node qva-vvi-redefined-board.js` → `reports/qva-vvi-redefined-board-result.{html,json}` 생성. 라우트 `/qva-vvi-redefined-board`. 환경변수 `VVI_LOOKBACK_DAYS`(기본 20), `VVI_TOP_LIMIT`(기본 10). 새 VVI 정의 = QVA 고가 재돌파 + QVA 이상 거래량 + QVA 이상 거래대금. 기존 VVI/QVA 보드와 별개의 신규 보드. **이 보드 관련 새 파일은 더 만들지 말고 동일 파일에 섹션 추가/덮어쓰기로 관리.**
+- 새 VVI 정의 1차 백테스트: `node qva-vvi-redefined-backtest-report.js` → `reports/qva-vvi-redefined-backtest-result.{html,json}` 생성. 라우트 `/qva-vvi-redefined-backtest`. 환경변수 `BACKTEST_LOOKBACK_DAYS`(기본 60). 5 그룹(A~E) 비교 + D+1/3/5/10/20 outcome (평균 최고가/최저가/종가, 도달률, 종가 양수율) + TOP 20 + WORST 20 + 자동 결론 5문항. **이 파일 1개만 사용 — v2/final/new 사본 만들지 않음. 새 실험은 동일 파일에 섹션 추가/덮어쓰기.**
 - **운영 서버 캐시 동기화 (push 전 필수)**: `bash scripts/sync-remote-cache.sh` — 운영 서버의 `cache/pattern-result.json` + `cache/flow-history/` + `cache/stock-charts-long/`를 로컬로 받는다. 이유는 [push 절차](#push-절차) 참고.
 
 테스트, 린터, 빌드 단계는 구성되어 있지 않다. 운영 배포는 GitHub Actions(`.github/workflows/deploy.yml`)가 ydata.co.kr 서버에 SSH로 push해 PM2(`hantu-test` 프로세스)로 재기동한다.
@@ -130,6 +132,8 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 | `GET /ods-entry-confirm` | (redirect) | `/one-day-surge-entry-confirm`로 |
 | `GET /one-day-surge-entry-daily-backtest` | oneDaySurgeController.getEntryDailyBacktest | 날짜별 운영형 백테스트 보고서 HTML sendFile (`reports/one-day-surge-entry-daily-backtest-result.html`) |
 | `GET /ods-entry-daily-backtest` | (redirect) | `/one-day-surge-entry-daily-backtest`로 |
+| `GET /qva-vvi-redefined-board` | qvaVviRedefinedController.getRedefinedVviBoard | 새 VVI 정의 (QVA 고가 + 거래량 + 거래대금 동시 재돌파) 후보 보드 HTML sendFile (`reports/qva-vvi-redefined-board-result.html`) |
+| `GET /qva-vvi-redefined-backtest` | qvaVviRedefinedController.getRedefinedVviBacktest | 새 VVI 정의 1차 백테스트 HTML sendFile (`reports/qva-vvi-redefined-backtest-result.html`) |
 | `GET /stock/:code` | stockController.getStockDetail | 보드 어디서든 종목명 클릭 시 떠오르는 단순 종목 상세 페이지. naver/stocks.json 메타 + KIS 실시간 가격 + 60일 SVG 차트 + 보드 funnel 멤버십(QVA/D+5재돌파/1DS). `views/stock-detail.ejs` 렌더 |
 | `POST /ai/comment` | aiController.postComment | Gemini 호출. `/d5-rebreak/:code` 페이지가 lazy 호출 |
 | `GET/POST /login`, `GET /unsubscribe` | authController | 사이트 비밀번호 게이트, 메일 unsubscribe |
@@ -288,6 +292,8 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 - `reports/one-day-surge-entry-confirm-result.{html,json}` — 분봉 ENTRY_CONFIRM 연구 보고서 (`/one-day-surge-entry-confirm` sendFile). morningHigh rebreak 단일 알파 검증 + V1~V5 비교 + 위험 그룹 + prevHigh 위험 분석
 - `reports/one-day-surge-entry-daily-backtest-result.{html,json}` — 날짜별 운영형 백테스트 보고서 (`/one-day-surge-entry-daily-backtest` sendFile). 6개 전략(SAFE/BALANCED/LIGHT/CLEAN/RISK/SPIKE)을 매일 simulate, 보드 반영 가능 여부 판단
 - `reports/one-day-surge-intraday-missing.json` — 분봉 백필 시 누락/실패 누적 로그 (`collect-1ds-intraday.js` 누적 append)
+- `reports/qva-vvi-redefined-board-result.{html,json}` — 새 VVI 정의 (QVA 고가 + 거래량 + 거래대금 동시 재돌파) 후보 보드 (`/qva-vvi-redefined-board` sendFile). 기존 QVA/VVI/H그룹/재돌파 보드와 분리된 신규 보드.
+- `reports/qva-vvi-redefined-backtest-result.{html,json}` — 새 VVI 정의 1차 백테스트 (`/qva-vvi-redefined-backtest` sendFile). 5 그룹 비교 + D+1~D+20 outcome. **새 VVI 관련 파일은 보드 1개 + 백테스트 1개만 사용 — v2/final/new 같은 사본 만들지 않음. 새 실험은 동일 파일에 섹션 추가/덮어쓰기.**
 
 ### 인증·구독·관리자
 

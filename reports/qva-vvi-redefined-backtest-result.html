@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>새 VVI 정의 1차 백테스트</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0 auto; padding: 18px 24px 80px; max-width: 1500px;
+  font-family: -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  background: #0f172a; color: #e2e8f0; font-size: 13px;
+}
+nav { display:flex; gap:10px; flex-wrap:wrap; padding:8px 0 14px; border-bottom:1px solid #1e293b; margin-bottom:14px; }
+nav a { color:#94a3b8; text-decoration:none; font-size:12px; padding:4px 8px; border-radius:4px; }
+nav a:hover { color:#e2e8f0; background:#1e293b; }
+nav a.active { color:#f1f5f9; background:#1e293b; }
+h1 { font-size: 22px; margin: 0 0 4px; color: #f1f5f9; font-weight: 700; }
+h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
+h3 { font-size: 14px; margin: 18px 0 8px; color: #cbd5e1; }
+.subtitle { font-size: 13px; color: #94a3b8; margin-bottom: 14px; }
+.purpose-box { background: #0f172a; border-left: 3px solid #14b8a6; padding: 12px 16px; border-radius: 6px; margin-bottom: 14px; line-height: 1.7; color: #cbd5e1; font-size: 13px; }
+.purpose-box strong { color: #5eead4; }
+.warn-box { background: #1e293b; border-left: 3px solid #94a3b8; padding: 8px 14px; border-radius: 6px; font-size: 11.5px; color: #94a3b8; margin-bottom: 14px; line-height: 1.6; }
+
+table { width: 100%; border-collapse: collapse; margin-bottom: 14px; background: #1e293b; border-radius: 8px; overflow: hidden; font-size: 12px; }
+th, td { padding: 7px 8px; text-align: right; border-bottom: 1px solid #334155; font-variant-numeric: tabular-nums; }
+th { background: #0f172a; color: #94a3b8; font-weight: 600; }
+th.left, td.left { text-align: left; }
+tr:last-child td { border-bottom: none; }
+tr:hover { background: #233044; }
+.pos { color: #6ee7b7; }
+.neg { color: #fca5a5; }
+.muted { color: #64748b; }
+
+.callout { background: #1e293b; border-left: 4px solid #14b8a6; padding: 10px 14px; border-radius: 6px; font-size: 12px; line-height: 1.7; color: #cbd5e1; margin-bottom: 12px; }
+.callout strong { color: #5eead4; }
+.callout.warn { border-left-color: #f59e0b; }
+.callout.warn strong { color: #fbbf24; }
+.callout.info { border-left-color: #38bdf8; }
+.callout.info strong { color: #67e8f9; }
+
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.summary-cell { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; }
+.summary-cell .label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px; }
+.summary-cell .value { font-size: 18px; font-weight: 700; color: #f1f5f9; font-variant-numeric: tabular-nums; margin-top: 4px; }
+.summary-cell .sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+.summary-cell.A { border-left: 4px solid #14b8a6; }
+.summary-cell.B { border-left: 4px solid #10b981; }
+.summary-cell.C { border-left: 4px solid #ef4444; }
+.summary-cell.D { border-left: 4px solid #f59e0b; }
+.summary-cell.E { border-left: 4px solid #94a3b8; }
+
+footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.7; }
+footer.foot strong { color: #cbd5e1; }
+</style>
+</head>
+<body>
+<nav>
+  <a href="/qva-watchlist">📋 H그룹/VPR 보드</a>
+  <a href="/rebreak">🔥 D+5 재돌파 운용</a>
+  <a href="/one-day-surge-board">⚡ 1DS 단타 후보</a>
+  <a href="/qva-vvi-redefined-board">🎯 QVA 고점 재돌파</a>
+  <a href="/qva-vvi-redefined-backtest" class="active">🔬 새 VVI 1차 백테스트</a>
+</nav>
+
+<h1>🔬 새 VVI 정의 1차 백테스트</h1>
+<div class="subtitle" id="subtitle"></div>
+
+<div class="purpose-box">
+  <strong>새 VVI 정의:</strong> QVA 고가 재돌파 + QVA 이상 거래량 + QVA 이상 거래대금. 셋 다 만족하는 첫 거래일.<br>
+  이 1차 백테스트는 단순한 그룹 비교 — 새 VVI 발생 후 D+1~D+20 outcome이 거래대금 부족·VVI 대기 그룹보다 좋은지 본다.
+</div>
+<div class="warn-box">
+  ⚠ <strong>1차 검증입니다.</strong> 표본이 작고 QVA 윈도우(<code>BACKTEST_LOOKBACK_DAYS</code>)가 제한적. 운영 반영 전 단계 — 표본 확대 + 추가 분할 필요. 실제 진입과 대응은 본인의 판단입니다.
+</div>
+
+<h2>📊 그룹별 후보 수</h2>
+<div class="summary-grid" id="summary-grid"></div>
+
+<h2>📋 표 1. 그룹별 성과 비교</h2>
+<table id="t-group-summary"><thead><tr>
+  <th class="left">그룹</th><th>n</th>
+  <th>D+5 평균 고가</th><th>D+10 평균 고가</th><th>D+20 평균 고가</th>
+  <th>D+10 +10%</th><th>D+20 +20%</th><th>D+20 +30%</th>
+  <th>D+10 -10%</th><th>D+20 종가&gt;0</th>
+</tr></thead><tbody></tbody></table>
+
+<h2>📋 표 2. 새 VVI 상위 성과 TOP 20 (B 그룹 기준, D+20 최고가 순)</h2>
+<table id="t-top"><thead><tr>
+  <th class="left">종목</th><th class="left">코드</th>
+  <th class="left">QVA일</th><th class="left">VVI일</th>
+  <th>QVA→VVI</th><th>거래대금 ×</th><th>거래량 ×</th>
+  <th>VVI 종가 vs QVA 종가</th>
+  <th>D+5 고가</th><th>D+10 고가</th><th>D+20 고가</th><th>D+20 저가</th>
+</tr></thead><tbody></tbody></table>
+
+<h2>📋 표 3. 실패 사례 TOP 20 (B 그룹 기준, D+20 최저가 낮은 순)</h2>
+<table id="t-worst"><thead><tr>
+  <th class="left">종목</th><th class="left">코드</th>
+  <th class="left">QVA일</th><th class="left">VVI일</th>
+  <th>거래대금 ×</th><th>QVA 대비 위치</th>
+  <th>D+10 저가</th><th>D+20 저가</th>
+</tr></thead><tbody></tbody></table>
+
+<h2>🧠 자동 결론 (1차)</h2>
+<div id="conclusion"></div>
+
+<hr style="border-color:#1e293b;margin:32px 0 18px;">
+
+<h2>🔬 추격 부담 후보 세분화 (V2)</h2>
+<div class="purpose-box">
+  C 그룹 (추격 부담 후보)을 무조건 제외하지 않고, 그 안에서 의미 있는 "강한 추세형 재돌파"만 골라낼 수 있는지 본다.
+  C1 강한 추세형 / C2 과열 / C3 고점 돌파 후 밀림 / C4 기타로 세분화 + 평균 착시 검증 (중앙값 + 상위 제거 평균 + 상위 기여도).
+</div>
+<div class="warn-box">
+  ⚠ <strong>평균은 일부 급등 종목의 영향을 받을 수 있으므로 중앙값과 상위 제거 평균을 함께 봅니다.</strong>
+</div>
+
+<h3>📋 표 1. C그룹 세부 유형별 성과 (D+10)</h3>
+<table id="t-overheat-breakdown"><thead><tr>
+  <th class="left">유형</th><th>n</th>
+  <th>D+10 평균 고가</th><th>D+10 중앙값</th><th>상위 10% 제거 평균</th>
+  <th>+10% 도달</th><th>+20% 도달</th>
+  <th>-10% 하락</th><th>종가&gt;0</th><th>먹을자리</th>
+</tr></thead><tbody></tbody></table>
+
+<h3>📋 표 2. C1 강한 추세형 후보 TOP 20 (D+10 최고가 순)</h3>
+<table id="t-c1-top"><thead><tr>
+  <th class="left">종목</th><th class="left">코드</th>
+  <th class="left">QVA일</th><th class="left">VVI일</th>
+  <th>QVA→VVI</th><th>거래대금 ×</th><th>거래량 ×</th>
+  <th>VVI 종가 vs QVA 종가</th>
+  <th>종가 위치</th><th>윗꼬리</th>
+  <th>D+5 고가</th><th>D+10 고가</th><th>D+10 저가</th><th>D+10 종가</th>
+</tr></thead><tbody></tbody></table>
+
+<h3>📋 표 3. C3 고점 돌파 후 밀린 후보 TOP 20 (D+10 최저가 낮은 순)</h3>
+<table id="t-c3-worst"><thead><tr>
+  <th class="left">종목</th><th class="left">코드</th>
+  <th class="left">QVA일</th><th class="left">VVI일</th>
+  <th>거래대금 ×</th><th>QVA 대비 위치</th>
+  <th>윗꼬리</th><th>종가 위치</th>
+  <th>D+10 저가</th><th>D+10 고가</th><th>D+10 종가</th>
+</tr></thead><tbody></tbody></table>
+
+<h3>📋 표 4. 거래대금 배율별 성과 (A 그룹 기준, D+10)</h3>
+<table id="t-value-buckets"><thead><tr>
+  <th class="left">구간</th><th>n</th>
+  <th>D+10 평균 고가</th><th>중앙값</th>
+  <th>+10% 도달</th><th>+20% 도달</th>
+  <th>-10% 하락</th><th>종가&gt;0</th>
+</tr></thead><tbody></tbody></table>
+
+<h3>📋 표 5. QVA→VVI 소요일별 성과 (A 그룹 기준, D+10)</h3>
+<table id="t-days-buckets"><thead><tr>
+  <th class="left">구간</th><th>n</th>
+  <th>D+10 평균 고가</th><th>중앙값</th>
+  <th>+10% 도달</th><th>+20% 도달</th>
+  <th>-10% 하락</th><th>종가&gt;0</th>
+</tr></thead><tbody></tbody></table>
+
+<h2>🧠 자동 결론 V2 (추격 부담 세분화 해석)</h2>
+<div id="conclusion-v2"></div>
+
+<footer class="foot" id="foot"></footer>
+
+<script>
+const DATA = {"meta":{"title":"새 VVI 정의 1차 백테스트","subtitle":"QVA 고가 + 거래량 + 거래대금 동시 재돌파의 D+1~D+20 outcome — 단순 검증 (1차)","generatedAt":"2026-05-07T13:57:43.649Z","lookbackDays":60,"analysisDate":"20260507","analysisDateFmt":"2026-05-07","definition":"VVI = QVA 고가 재돌파 + QVA 이상 거래량 + QVA 이상 거래대금. 셋 다 만족하는 첫 거래일.","horizons":[1,3,5,10,20],"groupNames":{"A":"새 VVI 발생 (전체)","B":"새 VVI 발생 · 추격 부담 제외","C":"추격 부담 후보","D":"가격은 넘었지만 거래대금 부족","E":"고점 재돌파 대기 (참고)"}},"counts":{"raw":624,"deduped":624,"A":240,"B":180,"C":60,"D":106,"E":278},"summary":{"A":{"count":240,"n1":230,"avgHigh1":7.0363094101421035,"avgLow1":-2.226986519762347,"avgClose1":2.370881463415831,"hit5_1":43.04347826086957,"hit10_1":26.08695652173913,"hit15_1":16.08695652173913,"hit20_1":8.695652173913043,"hit30_1":0.43478260869565216,"fail5_1":18.695652173913043,"fail10_1":2.1739130434782608,"closePos1":56.086956521739125,"n3":202,"avgHigh3":13.178170638413562,"avgLow3":-4.179701643561521,"avgClose3":4.7598996938880465,"hit5_3":62.37623762376238,"hit10_3":42.07920792079208,"hit15_3":27.22772277227723,"hit20_3":17.326732673267326,"hit30_3":9.900990099009901,"fail5_3":41.089108910891085,"fail10_3":8.91089108910891,"closePos3":50,"n5":179,"avgHigh5":17.94782950573917,"avgLow5":-4.836094183448374,"avgClose5":7.343762664381539,"hit5_5":74.86033519553072,"hit10_5":53.072625698324025,"hit15_5":36.87150837988827,"hit20_5":26.256983240223462,"hit30_5":15.083798882681565,"fail5_5":48.04469273743017,"fail10_5":15.64245810055866,"closePos5":57.54189944134078,"n10":75,"avgHigh10":28.54770637873328,"avgLow10":-5.128386146684126,"avgClose10":11.662508176786321,"hit5_10":92,"hit10_10":70.66666666666667,"hit15_10":60,"hit20_10":53.333333333333336,"hit30_10":32,"fail5_10":52,"fail10_10":17.333333333333336,"closePos10":72,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"B":{"count":180,"n1":171,"avgHigh1":5.2793372262623794,"avgLow1":-2.805665249199592,"avgClose1":0.6302673470378993,"hit5_1":35.08771929824561,"hit10_1":18.71345029239766,"hit15_1":9.35672514619883,"hit20_1":3.508771929824561,"hit30_1":0,"fail5_1":19.298245614035086,"fail10_1":1.7543859649122806,"closePos1":48.53801169590643,"n3":146,"avgHigh3":7.672252666499631,"avgLow3":-5.235481010103601,"avgClose3":-0.5237579023288812,"hit5_3":52.73972602739726,"hit10_3":28.767123287671232,"hit15_3":13.013698630136986,"hit20_3":6.164383561643835,"hit30_3":2.054794520547945,"fail5_3":45.89041095890411,"fail10_3":8.904109589041095,"closePos3":39.04109589041096,"n5":125,"avgHigh5":9.67231049060463,"avgLow5":-6.1020001862752045,"avgClose5":0.2845077130630662,"hit5_5":68.8,"hit10_5":39.2,"hit15_5":19.2,"hit20_5":8,"hit30_5":2.4,"fail5_5":53.6,"fail10_5":17.599999999999998,"closePos5":44,"n10":43,"avgHigh10":14.938676308490823,"avgLow10":-7.612920361239722,"avgClose10":-0.13835150001869556,"hit5_10":86.04651162790698,"hit10_10":48.837209302325576,"hit15_10":32.55813953488372,"hit20_10":25.581395348837212,"hit30_10":6.976744186046512,"fail5_10":65.11627906976744,"fail10_10":23.25581395348837,"closePos10":53.48837209302325,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"C":{"count":60,"n1":59,"avgHigh1":12.128550824437548,"avgLow1":-0.549799015800163,"avgClose1":7.415712207494246,"hit5_1":66.10169491525424,"hit10_1":47.45762711864407,"hit15_1":35.59322033898305,"hit20_1":23.728813559322035,"hit30_1":1.694915254237288,"fail5_1":16.94915254237288,"fail10_1":3.389830508474576,"closePos1":77.96610169491525,"n3":56,"avgHigh3":27.532885350903427,"avgLow3":-1.4271340093625344,"avgClose3":18.535149855453614,"hit5_3":87.5,"hit10_3":76.78571428571429,"hit15_3":64.28571428571429,"hit20_3":46.42857142857143,"hit30_3":30.357142857142854,"fail5_3":28.57142857142857,"fail10_3":8.928571428571429,"closePos3":78.57142857142857,"n5":54,"avgHigh5":37.104123522254284,"avgLow5":-1.9057562139418267,"avgClose5":23.68463060724837,"hit5_5":88.88888888888889,"hit10_5":85.18518518518519,"hit15_5":77.77777777777779,"hit20_5":68.51851851851852,"hit30_5":44.44444444444444,"fail5_5":35.18518518518518,"fail10_5":11.11111111111111,"closePos5":88.88888888888889,"n10":32,"avgHigh10":46.834840535621595,"avgLow10":-1.7897932958750424,"avgClose10":27.519913367493064,"hit5_10":100,"hit10_10":100,"hit15_10":96.875,"hit20_10":90.625,"hit30_10":65.625,"fail5_10":34.375,"fail10_10":9.375,"closePos10":96.875,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"D":{"count":106,"n1":94,"avgHigh1":2.578061662155116,"avgLow1":-2.470414757473279,"avgClose1":-0.5235956301583669,"hit5_1":13.829787234042554,"hit10_1":3.1914893617021276,"hit15_1":1.0638297872340425,"hit20_1":0,"hit30_1":0,"fail5_1":7.446808510638298,"fail10_1":1.0638297872340425,"closePos1":34.04255319148936,"n3":82,"avgHigh3":3.467919620069302,"avgLow3":-4.46789138447888,"avgClose3":-1.1862945277721275,"hit5_3":23.170731707317074,"hit10_3":6.097560975609756,"hit15_3":1.2195121951219512,"hit20_3":0,"hit30_3":0,"fail5_3":31.70731707317073,"fail10_3":6.097560975609756,"closePos3":34.146341463414636,"n5":68,"avgHigh5":4.981904246248496,"avgLow5":-4.753028148042513,"avgClose5":0.11316860021223815,"hit5_5":35.294117647058826,"hit10_5":11.76470588235294,"hit15_5":5.88235294117647,"hit20_5":1.4705882352941175,"hit30_5":0,"fail5_5":36.76470588235294,"fail10_5":7.352941176470589,"closePos5":44.11764705882353,"n10":40,"avgHigh10":7.870787704573765,"avgLow10":-5.882700909759784,"avgClose10":0.25303026099757486,"hit5_10":55.00000000000001,"hit10_10":27.500000000000004,"hit15_10":17.5,"hit20_10":7.5,"hit30_10":2.5,"fail5_10":42.5,"fail10_10":12.5,"closePos10":42.5,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"E":{"count":278,"n1":0,"avgHigh1":null,"avgLow1":null,"avgClose1":null,"hit5_1":null,"hit10_1":null,"hit15_1":null,"hit20_1":null,"hit30_1":null,"fail5_1":null,"fail10_1":null,"closePos1":null,"n3":0,"avgHigh3":null,"avgLow3":null,"avgClose3":null,"hit5_3":null,"hit10_3":null,"hit15_3":null,"hit20_3":null,"hit30_3":null,"fail5_3":null,"fail10_3":null,"closePos3":null,"n5":0,"avgHigh5":null,"avgLow5":null,"avgClose5":null,"hit5_5":null,"hit10_5":null,"hit15_5":null,"hit20_5":null,"hit30_5":null,"fail5_5":null,"fail10_5":null,"closePos5":null,"n10":0,"avgHigh10":null,"avgLow10":null,"avgClose10":null,"hit5_10":null,"hit10_10":null,"hit15_10":null,"hit20_10":null,"hit30_10":null,"fail5_10":null,"fail10_10":null,"closePos10":null,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null}},"top20":[],"worst20":[],"conclusion":{"qVsPriceOnly":"새 VVI 발생 D+10 평균 최고가 +28.55% / 종가>0 72.0% vs 거래대금 부족 +7.87% / 42.5%. 거래대금 재확인이 의미 있음 (1차).","overheatFilter":"추격 부담 제외 D+20 종가>0 - / 평균종가 - vs 추격 부담 후보 - / -. 필터 효과 모호 — 임계값 조정 필요.","upsidePresent":"새 VVI 발생 후 D+10 평균 최고가 +28.55% / D+20 평균 최고가 - / +10% 도달률 D+20 - / +20% 도달률 D+20 -. 상승 여지 약함 — 추가 분할 분석 필요.","lateRebreakComment":"새 VVI 정의는 거래대금 동반 첫 돌파만 보므로, 횡보 유지 조건 없이 더 빠른 신호를 잡을 가능성. 단, 1차 데이터(QVA 윈도우 60일)에서는 표본이 작아 단정 어려움.","furtherSplits":["거래대금 배율 (×1.5↑ vs ×3↑ vs ×5↑) 별 outcome","QVA → VVI 걸린 거래일 수 (1~3일 vs 4~10일 vs 11~20일)","VVI 발생일 종가 vs 고가 차이 (윗꼬리 비중)","시가총액 구간 (1,000억~5,000억 vs 5,000억~3조 vs 3조↑)","QVA 종가 대비 VVI 종가 위치 (5% 이내 vs 5~15% vs 15%↑)"],"disclaimer":"1차 검증 — 표본 작음, 운영 반영 전. 실제 진입과 대응은 본인의 판단입니다."},"overheatBreakdown":{"C1":{"count":3,"summary":{"count":3,"n1":3,"avgHigh1":14.611419159619677,"avgLow1":-1.944287620305533,"avgClose1":6.378677877955504,"hit5_1":66.66666666666666,"hit10_1":33.33333333333333,"hit15_1":33.33333333333333,"hit20_1":33.33333333333333,"hit30_1":0,"fail5_1":33.33333333333333,"fail10_1":0,"closePos1":100,"n3":3,"avgHigh3":18.851112784309922,"avgLow3":-2.188786397811645,"avgClose3":10.586882439545901,"hit5_3":100,"hit10_3":100,"hit15_3":66.66666666666666,"hit20_3":33.33333333333333,"hit30_3":0,"fail5_3":33.33333333333333,"fail10_3":0,"closePos3":100,"n5":3,"avgHigh5":25.73404437550914,"avgLow5":-2.188786397811645,"avgClose5":21.8589508088729,"hit5_5":100,"hit10_5":100,"hit15_5":100,"hit20_5":100,"hit30_5":0,"fail5_5":33.33333333333333,"fail10_5":0,"closePos5":100,"n10":2,"avgHigh10":33.58301419238566,"avgLow10":-5.850416760531651,"avgClose10":25.47814823158369,"hit5_10":100,"hit10_10":100,"hit15_10":100,"hit20_10":100,"hit30_10":50,"fail5_10":50,"fail10_10":0,"closePos10":100,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":2,"avgHigh":33.58301419238566,"medianHigh":33.58301419238566,"p25High":29.182811444018917,"p75High":37.98321694075241,"p90High":40.623338589772466,"medianClose":25.47814823158369,"medianLow":-5.850416760531651,"p25Low":-7.27303446722235,"trimmedAvgHigh_top10":33.58301419238566,"trimmedAvgHigh_top5":33.58301419238566,"trimmedAvgClose_top10":25.47814823158369,"top3ContributionPct":100,"top5ContributionPct":100,"top10PctContributionPct":63.10246520207951,"hit10":100,"hit20":100,"hit30":50,"fail5":50,"fail10":0,"closePos":100,"eatScore":100}},"C2":{"count":17,"summary":{"count":17,"n1":16,"avgHigh1":15.59248217252589,"avgLow1":-1.622544784442687,"avgClose1":7.521127677474322,"hit5_1":81.25,"hit10_1":62.5,"hit15_1":50,"hit20_1":37.5,"hit30_1":0,"fail5_1":25,"fail10_1":6.25,"closePos1":81.25,"n3":16,"avgHigh3":25.058223283955957,"avgLow3":-3.214336042331693,"avgClose3":13.883161847214327,"hit5_3":93.75,"hit10_3":68.75,"hit15_3":62.5,"hit20_3":50,"hit30_3":25,"fail5_3":43.75,"fail10_3":6.25,"closePos3":68.75,"n5":16,"avgHigh5":34.94030547309967,"avgLow5":-3.7278368474547463,"avgClose5":17.426568906810147,"hit5_5":93.75,"hit10_5":81.25,"hit15_5":75,"hit20_5":68.75,"hit30_5":37.5,"fail5_5":50,"fail10_5":12.5,"closePos5":87.5,"n10":9,"avgHigh10":46.36847787016935,"avgLow10":-3.73187152734915,"avgClose10":19.358925123911465,"hit5_10":100,"hit10_10":100,"hit15_10":88.88888888888889,"hit20_10":88.88888888888889,"hit30_10":66.66666666666666,"fail5_10":44.44444444444444,"fail10_10":11.11111111111111,"closePos10":88.88888888888889,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":9,"avgHigh":46.36847787016935,"medianHigh":37.295081967213115,"p25High":28.242424242424246,"p75High":48.575712143928044,"p90High":69.07932359956854,"medianClose":18.257645968489335,"medianLow":-4.947526236881561,"p25Low":-7.129798903107865,"trimmedAvgHigh_top10":46.36847787016934,"trimmedAvgHigh_top5":46.36847787016934,"trimmedAvgClose_top10":19.35892512391146,"top3ContributionPct":57.165870012949135,"top5ContributionPct":76.0428137823941,"top10PctContributionPct":33.112414484746104,"hit10":100,"hit20":88.88888888888889,"hit30":66.66666666666666,"fail5":44.44444444444444,"fail10":11.11111111111111,"closePos":88.88888888888889,"eatScore":88.88888888888889}},"C3":{"count":6,"summary":{"count":6,"n1":6,"avgHigh1":9.635445418921215,"avgLow1":0.877710916375768,"avgClose1":6.339204343764105,"hit5_1":50,"hit10_1":33.33333333333333,"hit15_1":16.666666666666664,"hit20_1":16.666666666666664,"hit30_1":0,"fail5_1":0,"fail10_1":0,"closePos1":66.66666666666666,"n3":6,"avgHigh3":51.41830724128883,"avgLow3":-0.9157199119254757,"avgClose3":39.70090879532341,"hit5_3":83.33333333333334,"hit10_3":83.33333333333334,"hit15_3":66.66666666666666,"hit20_3":66.66666666666666,"hit30_3":66.66666666666666,"fail5_3":33.33333333333333,"fail10_3":16.666666666666664,"closePos3":66.66666666666666,"n5":5,"avgHigh5":71.99905523925909,"avgLow5":-0.40162589808632376,"avgClose5":45.78035246782997,"hit5_5":80,"hit10_5":80,"hit15_5":60,"hit20_5":60,"hit30_5":60,"fail5_5":40,"fail10_5":20,"closePos5":100,"n10":1,"avgHigh10":161.15859449192783,"avgLow10":20.89268755935423,"avgClose10":51.28205128205128,"hit5_10":100,"hit10_10":100,"hit15_10":100,"hit20_10":100,"hit30_10":100,"fail5_10":0,"fail10_10":0,"closePos10":100,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":1,"avgHigh":161.15859449192783,"medianHigh":161.15859449192783,"p25High":161.15859449192783,"p75High":161.15859449192783,"p90High":161.15859449192783,"medianClose":51.28205128205128,"medianLow":20.89268755935423,"p25Low":20.89268755935423,"trimmedAvgHigh_top10":161.15859449192783,"trimmedAvgHigh_top5":161.15859449192783,"trimmedAvgClose_top10":51.28205128205128,"top3ContributionPct":100,"top5ContributionPct":100,"top10PctContributionPct":100,"hit10":100,"hit20":100,"hit30":100,"fail5":0,"fail10":0,"closePos":100,"eatScore":100}},"C4":{"count":34,"summary":{"count":34,"n1":34,"avgHigh1":10.719348643794554,"avgLow1":-0.17384788289601905,"avgClose1":7.647579932532945,"hit5_1":61.76470588235294,"hit10_1":44.11764705882353,"hit15_1":32.35294117647059,"hit20_1":17.647058823529413,"hit30_1":2.941176470588235,"fail5_1":14.705882352941178,"fail10_1":2.941176470588235,"closePos1":76.47058823529412,"n3":31,"avgHigh3":25.027316945375286,"avgLow3":-0.5299822316776466,"avgClose3":17.60876458901275,"hit5_3":83.87096774193549,"hit10_3":77.41935483870968,"hit15_3":64.51612903225806,"hit20_3":41.935483870967744,"hit30_3":29.03225806451613,"fail5_3":19.35483870967742,"fail10_3":9.67741935483871,"closePos3":83.87096774193549,"n5":30,"avgHigh5":33.5793457769771,"avgLow5":-1.1563652436572045,"avgClose5":23.522211183889386,"hit5_5":86.66666666666667,"hit10_5":86.66666666666667,"hit15_5":80,"hit20_5":66.66666666666666,"hit30_5":50,"fail5_5":26.666666666666668,"fail10_5":10,"closePos5":86.66666666666667,"n10":20,"avgHigh10":42.653698671583385,"avgLow10":-1.6439197880074972,"avgClose10":30.20842769496781,"hit5_10":100,"hit10_10":100,"hit15_10":100,"hit20_10":90,"hit30_10":65,"fail5_10":30,"fail10_10":10,"closePos10":100,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":20,"avgHigh":42.653698671583385,"medianHigh":36.41639761315033,"p25High":28.541809514480683,"p75High":46.675808053448904,"p90High":60.70094870725604,"medianClose":29.62389810733731,"medianLow":-2.378303462940462,"p25Low":-5.378845222591547,"trimmedAvgHigh_top10":35.72527199899967,"trimmedAvgHigh_top5":37.07575700287129,"trimmedAvgClose_top10":26.17741695192926,"top3ContributionPct":31.72574546624033,"top5ContributionPct":44.25148978176055,"top10PctContributionPct":24.61909330146694,"hit10":100,"hit20":90,"hit30":65,"fail5":30,"fail10":10,"closePos":100,"eatScore":90}},"B":{"count":180,"summary":{"count":180,"n1":171,"avgHigh1":5.2793372262623794,"avgLow1":-2.805665249199592,"avgClose1":0.6302673470378993,"hit5_1":35.08771929824561,"hit10_1":18.71345029239766,"hit15_1":9.35672514619883,"hit20_1":3.508771929824561,"hit30_1":0,"fail5_1":19.298245614035086,"fail10_1":1.7543859649122806,"closePos1":48.53801169590643,"n3":146,"avgHigh3":7.672252666499631,"avgLow3":-5.235481010103601,"avgClose3":-0.5237579023288812,"hit5_3":52.73972602739726,"hit10_3":28.767123287671232,"hit15_3":13.013698630136986,"hit20_3":6.164383561643835,"hit30_3":2.054794520547945,"fail5_3":45.89041095890411,"fail10_3":8.904109589041095,"closePos3":39.04109589041096,"n5":125,"avgHigh5":9.67231049060463,"avgLow5":-6.1020001862752045,"avgClose5":0.2845077130630662,"hit5_5":68.8,"hit10_5":39.2,"hit15_5":19.2,"hit20_5":8,"hit30_5":2.4,"fail5_5":53.6,"fail10_5":17.599999999999998,"closePos5":44,"n10":43,"avgHigh10":14.938676308490823,"avgLow10":-7.612920361239722,"avgClose10":-0.13835150001869556,"hit5_10":86.04651162790698,"hit10_10":48.837209302325576,"hit15_10":32.55813953488372,"hit20_10":25.581395348837212,"hit30_10":6.976744186046512,"fail5_10":65.11627906976744,"fail10_10":23.25581395348837,"closePos10":53.48837209302325,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":43,"avgHigh":14.938676308490823,"medianHigh":9.976976208749043,"p25High":7.3431357914116475,"p75High":18.726847950723513,"p90High":29.38836294011276,"medianClose":0.31897926634769647,"medianLow":-6.656346749226005,"p25Low":-9.354820602164665,"trimmedAvgHigh_top10":11.742699109827551,"trimmedAvgHigh_top5":12.664809425135251,"trimmedAvgClose_top10":-2.2446416243179117,"top3ContributionPct":24.122231462072598,"top5ContributionPct":33.28484885317892,"top10PctContributionPct":28.70616655282673,"hit10":48.837209302325576,"hit20":25.581395348837212,"hit30":6.976744186046512,"fail5":65.11627906976744,"fail10":23.25581395348837,"closePos":53.48837209302325,"eatScore":25.581395348837205}},"C":{"count":60,"summary":{"count":60,"n1":59,"avgHigh1":12.128550824437548,"avgLow1":-0.549799015800163,"avgClose1":7.415712207494246,"hit5_1":66.10169491525424,"hit10_1":47.45762711864407,"hit15_1":35.59322033898305,"hit20_1":23.728813559322035,"hit30_1":1.694915254237288,"fail5_1":16.94915254237288,"fail10_1":3.389830508474576,"closePos1":77.96610169491525,"n3":56,"avgHigh3":27.532885350903427,"avgLow3":-1.4271340093625344,"avgClose3":18.535149855453614,"hit5_3":87.5,"hit10_3":76.78571428571429,"hit15_3":64.28571428571429,"hit20_3":46.42857142857143,"hit30_3":30.357142857142854,"fail5_3":28.57142857142857,"fail10_3":8.928571428571429,"closePos3":78.57142857142857,"n5":54,"avgHigh5":37.104123522254284,"avgLow5":-1.9057562139418267,"avgClose5":23.68463060724837,"hit5_5":88.88888888888889,"hit10_5":85.18518518518519,"hit15_5":77.77777777777779,"hit20_5":68.51851851851852,"hit30_5":44.44444444444444,"fail5_5":35.18518518518518,"fail10_5":11.11111111111111,"closePos5":88.88888888888889,"n10":32,"avgHigh10":46.834840535621595,"avgLow10":-1.7897932958750424,"avgClose10":27.519913367493064,"hit5_10":100,"hit10_10":100,"hit15_10":96.875,"hit20_10":90.625,"hit30_10":65.625,"fail5_10":34.375,"fail10_10":9.375,"closePos10":96.875,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":32,"avgHigh":46.834840535621595,"medianHigh":37.03967516521442,"p25High":27.975660216624075,"p75High":48.081428035982015,"p90High":61.30853836530441,"medianClose":28.025793650793652,"medianLow":-3.4252831567409547,"p25Low":-6.782449725776965,"trimmedAvgHigh_top10":36.23235203541744,"trimmedAvgHigh_top5":43.14697750477301,"trimmedAvgClose_top10":23.949037323337627,"top3ContributionPct":29.89072097486269,"top5ContributionPct":38.03166141025838,"top10PctContributionPct":29.89072097486269,"hit10":100,"hit20":90.625,"hit30":65.625,"fail5":34.375,"fail10":9.375,"closePos":96.875,"eatScore":90.625}},"D":{"count":106,"summary":{"count":106,"n1":94,"avgHigh1":2.578061662155116,"avgLow1":-2.470414757473279,"avgClose1":-0.5235956301583669,"hit5_1":13.829787234042554,"hit10_1":3.1914893617021276,"hit15_1":1.0638297872340425,"hit20_1":0,"hit30_1":0,"fail5_1":7.446808510638298,"fail10_1":1.0638297872340425,"closePos1":34.04255319148936,"n3":82,"avgHigh3":3.467919620069302,"avgLow3":-4.46789138447888,"avgClose3":-1.1862945277721275,"hit5_3":23.170731707317074,"hit10_3":6.097560975609756,"hit15_3":1.2195121951219512,"hit20_3":0,"hit30_3":0,"fail5_3":31.70731707317073,"fail10_3":6.097560975609756,"closePos3":34.146341463414636,"n5":68,"avgHigh5":4.981904246248496,"avgLow5":-4.753028148042513,"avgClose5":0.11316860021223815,"hit5_5":35.294117647058826,"hit10_5":11.76470588235294,"hit15_5":5.88235294117647,"hit20_5":1.4705882352941175,"hit30_5":0,"fail5_5":36.76470588235294,"fail10_5":7.352941176470589,"closePos5":44.11764705882353,"n10":40,"avgHigh10":7.870787704573765,"avgLow10":-5.882700909759784,"avgClose10":0.25303026099757486,"hit5_10":55.00000000000001,"hit10_10":27.500000000000004,"hit15_10":17.5,"hit20_10":7.5,"hit30_10":2.5,"fail5_10":42.5,"fail10_10":12.5,"closePos10":42.5,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":40,"avgHigh":7.870787704573765,"medianHigh":5.572944444657613,"p25High":3.4093150252663627,"p75High":10.308929327126531,"p90High":17.716284987277344,"medianClose":-0.7680422610858106,"medianLow":-4.423660015649455,"p25Low":-6.212401818569732,"trimmedAvgHigh_top10":6.0999848750500965,"trimmedAvgHigh_top5":6.811260107875455,"trimmedAvgClose_top10":-1.5265999469041647,"top3ContributionPct":24.267754070316542,"top5ContributionPct":35.83651646714363,"top10PctContributionPct":30.248577479039106,"hit10":27.500000000000004,"hit20":7.5,"hit30":2.5,"fail5":42.5,"fail10":12.5,"closePos":42.5,"eatScore":15.000000000000004}}},"valueRatioBuckets":{"1~1.5×":{"count":77,"summary":{"count":77,"n1":72,"avgHigh1":5.188177716087626,"avgLow1":-1.7595971129935324,"avgClose1":1.8991448240997022,"hit5_1":29.166666666666668,"hit10_1":16.666666666666664,"hit15_1":8.333333333333332,"hit20_1":4.166666666666666,"hit30_1":1.3888888888888888,"fail5_1":6.944444444444445,"fail10_1":1.3888888888888888,"closePos1":58.333333333333336,"n3":61,"avgHigh3":10.74265630078606,"avgLow3":-3.1984808034363086,"avgClose3":4.614049937313558,"hit5_3":57.377049180327866,"hit10_3":37.704918032786885,"hit15_3":19.672131147540984,"hit20_3":11.475409836065573,"hit30_3":6.557377049180328,"fail5_3":24.59016393442623,"fail10_3":6.557377049180328,"closePos3":54.09836065573771,"n5":52,"avgHigh5":14.91069646923873,"avgLow5":-3.7662961045998893,"avgClose5":6.3459972493555785,"hit5_5":76.92307692307693,"hit10_5":51.92307692307693,"hit15_5":32.69230769230769,"hit20_5":15.384615384615385,"hit30_5":11.538461538461538,"fail5_5":38.46153846153847,"fail10_5":7.6923076923076925,"closePos5":63.46153846153846,"n10":21,"avgHigh10":21.531887676399077,"avgLow10":-3.807279773977997,"avgClose10":13.213667094819884,"hit5_10":95.23809523809523,"hit10_10":66.66666666666666,"hit15_10":52.38095238095239,"hit20_10":38.095238095238095,"hit30_10":23.809523809523807,"fail5_10":33.33333333333333,"fail10_10":0,"closePos10":85.71428571428571,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":21,"avgHigh":21.531887676399077,"medianHigh":15.899825276645307,"p25High":9.38166311300639,"p75High":29.41176470588236,"p90High":39.48967193195625,"medianClose":5.330490405117261,"medianLow":-4.026845637583898,"p25Low":-5.309734513274334,"trimmedAvgHigh_top10":17.465681898115132,"trimmedAvgHigh_top5":19.539257706591016,"trimmedAvgClose_top10":9.656816993769334,"top3ContributionPct":35.343230174958784,"top5ContributionPct":51.0353766989004,"top10PctContributionPct":26.609854836717773,"hit10":66.66666666666666,"hit20":38.095238095238095,"hit30":23.809523809523807,"fail5":33.33333333333333,"fail10":0,"closePos":85.71428571428571,"eatScore":66.66666666666666}},"1.5~3×":{"count":85,"summary":{"count":85,"n1":84,"avgHigh1":6.981964441138833,"avgLow1":-1.8702107684749674,"avgClose1":2.699155246329398,"hit5_1":46.42857142857143,"hit10_1":28.57142857142857,"hit15_1":16.666666666666664,"hit20_1":7.142857142857142,"hit30_1":0,"fail5_1":21.428571428571427,"fail10_1":2.380952380952381,"closePos1":54.761904761904766,"n3":71,"avgHigh3":14.532390108519913,"avgLow3":-3.489137946173854,"avgClose3":6.664558264345894,"hit5_3":66.19718309859155,"hit10_3":45.07042253521127,"hit15_3":28.169014084507044,"hit20_3":15.492957746478872,"hit30_3":12.676056338028168,"fail5_3":39.436619718309856,"fail10_3":5.633802816901409,"closePos3":53.52112676056338,"n5":65,"avgHigh5":19.20813765741533,"avgLow5":-3.636733485385597,"avgClose5":9.193148197122058,"hit5_5":73.84615384615385,"hit10_5":56.92307692307692,"hit15_5":35.38461538461539,"hit20_5":26.153846153846157,"hit30_5":18.461538461538463,"fail5_5":40,"fail10_5":9.230769230769232,"closePos5":60,"n10":26,"avgHigh10":33.95120020813769,"avgLow10":-3.1793310021440777,"avgClose10":12.69620762690047,"hit5_10":96.15384615384616,"hit10_10":69.23076923076923,"hit15_10":61.53846153846154,"hit20_10":57.692307692307686,"hit30_10":34.61538461538461,"fail5_10":42.30769230769231,"fail10_10":15.384615384615385,"closePos10":76.92307692307693,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":26,"avgHigh":33.95120020813769,"medianHigh":25.366162868110543,"p25High":8.836153208327362,"p75High":38.95168414471469,"p90High":66.37310606060606,"medianClose":6.58840937352394,"medianLow":-3.9926758113907335,"p25Low":-7.19425120684275,"trimmedAvgHigh_top10":24.829712991280115,"trimmedAvgHigh_top5":29.363864601378676,"trimmedAvgClose_top10":8.213597897282614,"top3ContributionPct":40.66235605375607,"top5ContributionPct":53.30603309033586,"top10PctContributionPct":32.49212125531761,"hit10":69.23076923076923,"hit20":57.692307692307686,"hit30":34.61538461538461,"fail5":42.30769230769231,"fail10":15.384615384615385,"closePos":76.92307692307693,"eatScore":53.84615384615384}},"3~5×":{"count":32,"summary":{"count":32,"n1":32,"avgHigh1":8.639232796621302,"avgLow1":-2.014226610471832,"avgClose1":3.0562113092899774,"hit5_1":50,"hit10_1":34.375,"hit15_1":18.75,"hit20_1":12.5,"hit30_1":0,"fail5_1":21.875,"fail10_1":3.125,"closePos1":56.25,"n3":30,"avgHigh3":15.942793660638738,"avgLow3":-4.185247877178736,"avgClose3":6.048993424235976,"hit5_3":63.33333333333333,"hit10_3":43.333333333333336,"hit15_3":30,"hit20_3":23.333333333333332,"hit30_3":13.333333333333334,"fail5_3":43.333333333333336,"fail10_3":10,"closePos3":46.666666666666664,"n5":26,"avgHigh5":22.544527892889707,"avgLow5":-5.37102167208157,"avgClose5":8.977748510408613,"hit5_5":73.07692307692307,"hit10_5":50,"hit15_5":34.61538461538461,"hit20_5":30.76923076923077,"hit30_5":19.230769230769234,"fail5_5":50,"fail10_5":15.384615384615385,"closePos5":46.15384615384615,"n10":8,"avgHigh10":39.10159642293169,"avgLow10":-6.316800474280886,"avgClose10":11.366477343828436,"hit5_10":87.5,"hit10_10":87.5,"hit15_10":62.5,"hit20_10":50,"hit30_10":25,"fail5_10":62.5,"fail10_10":25,"closePos10":62.5,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":8,"avgHigh":39.10159642293169,"medianHigh":21.573445003597,"p25High":14.305691609835836,"p75High":31.537776193870272,"p90High":84.60987342954554,"medianClose":9.816735380819253,"medianLow":-7.912725538510457,"p25Low":-9.41251884062993,"trimmedAvgHigh_top10":39.10159642293169,"trimmedAvgHigh_top5":39.10159642293169,"trimmedAvgClose_top10":11.366477343828436,"top3ContributionPct":76.00216603198454,"top5ContributionPct":89.79536565627465,"top10PctContributionPct":51.5191863104514,"hit10":87.5,"hit20":50,"hit30":25,"fail5":62.5,"fail10":25,"closePos":62.5,"eatScore":62.5}},"5~10×":{"count":26,"summary":{"count":26,"n1":25,"avgHigh1":7.679973419039177,"avgLow1":-4.157986617294661,"avgClose1":1.4416140835051683,"hit5_1":44,"hit10_1":24,"hit15_1":20,"hit20_1":16,"hit30_1":0,"fail5_1":28.000000000000004,"fail10_1":0,"closePos1":48,"n3":24,"avgHigh3":10.429686232714214,"avgLow3":-7.274929143099087,"avgClose3":-1.3203774485922752,"hit5_3":54.166666666666664,"hit10_3":37.5,"hit15_3":29.166666666666668,"hit20_3":20.833333333333336,"hit30_3":8.333333333333332,"fail5_3":66.66666666666666,"fail10_3":20.833333333333336,"closePos3":33.33333333333333,"n5":21,"avgHigh5":17.042834135212722,"avgLow5":-8.331595514581835,"avgClose5":3.7337619407842007,"hit5_5":71.42857142857143,"hit10_5":42.857142857142854,"hit15_5":38.095238095238095,"hit20_5":33.33333333333333,"hit30_5":14.285714285714285,"fail5_5":76.19047619047619,"fail10_5":42.857142857142854,"closePos5":47.61904761904761,"n10":11,"avgHigh10":23.128114199250998,"avgLow10":-8.595421487859968,"avgClose10":8.38947198805823,"hit5_10":81.81818181818183,"hit10_10":63.63636363636363,"hit15_10":54.54545454545454,"hit20_10":54.54545454545454,"hit30_10":45.45454545454545,"fail5_10":81.81818181818183,"fail10_10":36.36363636363637,"closePos10":54.54545454545454,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":11,"avgHigh":23.128114199250998,"medianHigh":29.294755877034362,"p25High":6.4714381885949805,"p75High":35.54344501722021,"p90High":42.383419689119165,"medianClose":0.8525149190110826,"medianLow":-8.1555834378921,"p25Low":-10.453911309477988,"trimmedAvgHigh_top10":20.814706767605138,"trimmedAvgHigh_top5":23.128114199251005,"trimmedAvgClose_top10":5.208917561728624,"top3ContributionPct":49.01320688344984,"top5ContributionPct":75.99976144577249,"top10PctContributionPct":18.184160909947206,"hit10":63.63636363636363,"hit20":54.54545454545454,"hit30":45.45454545454545,"fail5":81.81818181818183,"fail10":36.36363636363637,"closePos":54.54545454545454,"eatScore":27.272727272727266}},"10×↑":{"count":20,"summary":{"count":20,"n1":17,"avgHigh1":11.1683865147559,"avgLow1":-3.530193287673115,"avgClose1":2.8233032102285174,"hit5_1":70.58823529411765,"hit10_1":41.17647058823529,"hit15_1":35.294117647058826,"hit20_1":17.647058823529413,"hit30_1":0,"fail5_1":35.294117647058826,"fail10_1":5.88235294117647,"closePos1":64.70588235294117,"n3":16,"avgHigh3":15.393278593898199,"avgLow3":-6.331742066358045,"avgClose3":3.567394453739741,"hit5_3":75,"hit10_3":50,"hit15_3":43.75,"hit20_3":31.25,"hit30_3":6.25,"fail5_3":68.75,"fail10_3":12.5,"closePos3":50,"n5":15,"avgHigh5":16.314605022686596,"avgLow5":-7.92104770451076,"avgClose5":5.010437674518644,"hit5_5":80,"hit10_5":60,"hit15_5":60,"hit20_5":46.666666666666664,"hit30_5":6.666666666666667,"fail5_5":73.33333333333333,"fail10_5":33.33333333333333,"closePos5":60,"n10":9,"avgHigh10":26.550567134868977,"avgLow10":-8.547715503479857,"avgClose10":9.320410594341816,"hit5_10":88.88888888888889,"hit10_10":77.77777777777779,"hit15_10":77.77777777777779,"hit20_10":77.77777777777779,"hit30_10":33.33333333333333,"fail5_10":77.77777777777779,"fail10_10":33.33333333333333,"closePos10":55.55555555555556,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":9,"avgHigh":26.550567134868977,"medianHigh":28.242424242424246,"p25High":21.88841201716738,"p75High":37.295081967213115,"p90High":42.90032761397079,"medianClose":5.572755417956654,"medianLow":-9.07407407407408,"p25Low":-10.770975056689347,"trimmedAvgHigh_top10":26.550567134868977,"trimmedAvgHigh_top5":26.550567134868977,"trimmedAvgClose_top10":9.320410594341816,"top3ContributionPct":53.29548243450193,"top5ContributionPct":77.21377832372984,"top10PctContributionPct":20.328384406663154,"hit10":77.77777777777779,"hit20":77.77777777777779,"hit30":33.33333333333333,"fail5":77.77777777777779,"fail10":33.33333333333333,"closePos":55.55555555555556,"eatScore":44.44444444444446}}},"daysFromQvaToVviBuckets":{"1~3일":{"count":157,"summary":{"count":157,"n1":153,"avgHigh1":6.83318764135172,"avgLow1":-1.9661621319710658,"avgClose1":2.358094469695967,"hit5_1":40.52287581699346,"hit10_1":23.52941176470588,"hit15_1":15.686274509803921,"hit20_1":9.15032679738562,"hit30_1":0,"fail5_1":18.30065359477124,"fail10_1":1.9607843137254901,"closePos1":57.51633986928104,"n3":140,"avgHigh3":13.058630552190992,"avgLow3":-3.7434277308398327,"avgClose3":4.752358439435941,"hit5_3":60.71428571428571,"hit10_3":38.57142857142858,"hit15_3":25,"hit20_3":15.714285714285714,"hit30_3":9.285714285714286,"fail5_3":37.142857142857146,"fail10_3":7.857142857142857,"closePos3":50,"n5":127,"avgHigh5":17.042181481497163,"avgLow5":-4.497677317525187,"avgClose5":7.0465334528435335,"hit5_5":74.80314960629921,"hit10_5":51.181102362204726,"hit15_5":35.43307086614173,"hit20_5":24.409448818897637,"hit30_5":11.811023622047244,"fail5_5":47.24409448818898,"fail10_5":13.385826771653544,"closePos5":60.629921259842526,"n10":62,"avgHigh10":29.801604576119537,"avgLow10":-4.6376709704669175,"avgClose10":12.34807042515731,"hit5_10":91.93548387096774,"hit10_10":70.96774193548387,"hit15_10":61.29032258064516,"hit20_10":54.83870967741935,"hit30_10":33.87096774193548,"fail5_10":51.61290322580645,"fail10_10":17.741935483870968,"closePos10":69.35483870967742,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":62,"avgHigh":29.801604576119537,"medianHigh":22.98250970215414,"p25High":8.695640281138061,"p75High":37.16737856621377,"p90High":51.72141909100692,"medianClose":5.082251609081634,"medianLow":-5.152255195011968,"p25Low":-9.038671023965145,"trimmedAvgHigh_top10":21.572131882460372,"trimmedAvgHigh_top5":23.724115179773317,"trimmedAvgClose_top10":8.001930240595465,"top3ContributionPct":24.245105443825203,"top5ContributionPct":31.42951033709251,"top10PctContributionPct":34.61927136625037,"hit10":70.96774193548387,"hit20":54.83870967741935,"hit30":33.87096774193548,"fail5":51.61290322580645,"fail10":17.741935483870968,"closePos":69.35483870967742,"eatScore":53.225806451612904}},"4~10일":{"count":68,"summary":{"count":68,"n1":64,"avgHigh1":7.248081202209487,"avgLow1":-2.6467044377920614,"avgClose1":2.247577053409402,"hit5_1":46.875,"hit10_1":29.6875,"hit15_1":17.1875,"hit20_1":7.8125,"hit30_1":1.5625,"fail5_1":18.75,"fail10_1":3.125,"closePos1":53.125,"n3":55,"avgHigh3":12.241559131517176,"avgLow3":-5.002541508768614,"avgClose3":3.863428964636135,"hit5_3":61.81818181818181,"hit10_3":47.27272727272727,"hit15_3":30.909090909090907,"hit20_3":21.818181818181817,"hit30_3":10.909090909090908,"fail5_3":50.90909090909091,"fail10_3":9.090909090909092,"closePos3":47.27272727272727,"n5":47,"avgHigh5":18.59158592222791,"avgLow5":-5.690626511865753,"avgClose5":7.134638781228359,"hit5_5":72.3404255319149,"hit10_5":55.319148936170215,"hit15_5":38.297872340425535,"hit20_5":29.78723404255319,"hit30_5":21.27659574468085,"fail5_5":51.06382978723404,"fail10_5":21.27659574468085,"closePos5":46.808510638297875,"n10":13,"avgHigh10":22.567576514275796,"avgLow10":-7.4687200640277265,"avgClose10":8.392903607632357,"hit5_10":92.3076923076923,"hit10_10":69.23076923076923,"hit15_10":53.84615384615385,"hit20_10":46.15384615384615,"hit30_10":23.076923076923077,"fail5_10":53.84615384615385,"fail10_10":15.384615384615385,"closePos10":84.61538461538461,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":13,"avgHigh":22.567576514275796,"medianHigh":18.714555765595463,"p25High":9.976976208749043,"p75High":29.445506692160617,"p90High":40.630321663782,"medianClose":7.750472589792068,"medianLow":-5.656350053361791,"p25Low":-7.129798903107865,"trimmedAvgHigh_top10":19.33283396775207,"trimmedAvgHigh_top5":22.567576514275792,"trimmedAvgClose_top10":5.686696450664827,"top3ContributionPct":46.82887083163673,"top5ContributionPct":65.52398207739827,"top10PctContributionPct":20.923308348945763,"hit10":69.23076923076923,"hit20":46.15384615384615,"hit30":23.076923076923077,"fail5":53.84615384615385,"fail10":15.384615384615385,"closePos":84.61538461538461,"eatScore":53.84615384615384}},"11~20일":{"count":15,"summary":{"count":15,"n1":13,"avgHigh1":8.384327558804781,"avgLow1":-3.2303853334672823,"avgClose1":3.1284116387658973,"hit5_1":53.84615384615385,"hit10_1":38.46153846153847,"hit15_1":15.384615384615385,"hit20_1":7.6923076923076925,"hit30_1":0,"fail5_1":23.076923076923077,"fail10_1":0,"closePos1":53.84615384615385,"n3":7,"avgHigh3":22.928062774193478,"avgLow3":-6.440009528511024,"avgClose3":11.954423369909494,"hit5_3":100,"hit10_3":71.42857142857143,"hit15_3":42.857142857142854,"hit20_3":14.285714285714285,"hit30_3":14.285714285714285,"fail5_3":42.857142857142854,"fail10_3":28.57142857142857,"closePos3":71.42857142857143,"n5":5,"avgHigh5":34.899979006491805,"avgLow5":-5.399278690773974,"avgClose5":16.859149139086774,"hit5_5":100,"hit10_5":80,"hit15_5":60,"hit20_5":40,"hit30_5":40,"fail5_5":40,"fail10_5":20,"closePos5":80,"n10":0,"avgHigh10":null,"avgLow10":null,"avgClose10":null,"hit5_10":null,"hit10_10":null,"hit15_10":null,"hit20_10":null,"hit30_10":null,"fail5_10":null,"fail10_10":null,"closePos10":null,"n20":0,"avgHigh20":null,"avgLow20":null,"avgClose20":null,"hit5_20":null,"hit10_20":null,"hit15_20":null,"hit20_20":null,"hit30_20":null,"fail5_20":null,"fail10_20":null,"closePos20":null},"distribution":{"n":0,"avgHigh":null,"medianHigh":null,"p25High":null,"p75High":null,"p90High":null,"medianClose":null,"medianLow":null,"p25Low":null,"trimmedAvgHigh_top10":null,"trimmedAvgHigh_top5":null,"trimmedAvgClose_top10":null,"top3ContributionPct":null,"top5ContributionPct":null,"top10PctContributionPct":null,"hit10":null,"hit20":null,"hit30":null,"fail5":null,"fail10":null,"closePos":null,"eatScore":null}},"21일↑":{"count":0,"summary":{"count":0},"distribution":{"n":0,"avgHigh":null,"medianHigh":null,"p25High":null,"p75High":null,"p90High":null,"medianClose":null,"medianLow":null,"p25Low":null,"trimmedAvgHigh_top10":null,"trimmedAvgHigh_top5":null,"trimmedAvgClose_top10":null,"top3ContributionPct":null,"top5ContributionPct":null,"top10PctContributionPct":null,"hit10":null,"hit20":null,"hit30":null,"fail5":null,"fail10":null,"closePos":null,"eatScore":null}}},"c1Top20":[{"code":"003720","name":"삼영","market":"KOSPI","qvaSignalDate":"20260414","qvaHigh":8390,"qvaClose":8130,"qvaVolume":1715523,"qvaValue":13908602722,"vviDate":"20260420","vviClose":9650,"vviHigh":9980,"vviVolume":8067588,"vviValue":73697416380,"vviValueRatio":5.298693035744615,"vviVolumeRatio":4.702698827121525,"daysFromQvaToVvi":4,"vviCloseFromQvaCloseRate":18.69618696186961,"currentClose":12840,"currentFromQvaCloseRate":57.933579335793354,"status":"OVERHEATED","statusLabel":"추격 부담 큼 (참고)","baselineDate":"20260420","baselineClose":9650,"outcome":{"high1":9.222797927461146,"low1":-3.005181347150254,"close1":7.0466321243523256,"high3":15.85492227979275,"low3":-3.005181347150254,"close3":10.05181347150259,"high5":22.59067357512954,"low5":-3.005181347150254,"close5":19.17098445595855,"high10":42.383419689119165,"low10":-3.005181347150254,"close10":33.78238341968911,"high20":null,"low20":null,"close20":null}},{"code":"443060","name":"HD현대마린솔루션","market":"KOSPI","qvaSignalDate":"20260417","qvaHigh":191700,"qvaClose":189000,"qvaVolume":243788,"qvaValue":45228768700,"vviDate":"20260421","vviClose":230000,"vviHigh":234000,"vviVolume":718701,"vviValue":154233234600,"vviValueRatio":3.4100692774331485,"vviVolumeRatio":2.9480573284985314,"daysFromQvaToVvi":2,"vviCloseFromQvaCloseRate":21.693121693121697,"currentClose":269500,"currentFromQvaCloseRate":42.59259259259258,"status":"OVERHEATED","statusLabel":"추격 부담 큼 (참고)","baselineDate":"20260421","baselineClose":230000,"outcome":{"high1":4.7826086956521685,"low1":-8.695652173913048,"close1":1.0869565217391353,"high3":10.869565217391308,"low3":-8.695652173913048,"close3":10.217391304347823,"high5":24.782608695652165,"low5":-8.695652173913048,"close5":19.999999999999996,"high10":24.782608695652165,"low10":-8.695652173913048,"close10":17.17391304347826,"high20":null,"low20":null,"close20":null}}],"c3Worst20":[{"code":"115500","name":"케이씨에스","market":"KOSDAQ","qvaSignalDate":"20260413","qvaHigh":10000,"qvaClose":9890,"qvaVolume":273924,"qvaValue":2645421030,"vviDate":"20260414","vviClose":10530,"vviHigh":11160,"vviVolume":1236006,"vviValue":13203634095,"vviValueRatio":4.9911276674926865,"vviVolumeRatio":4.5122223682481275,"daysFromQvaToVvi":1,"vviCloseFromQvaCloseRate":6.471183013144599,"currentClose":17200,"currentFromQvaCloseRate":73.91304347826086,"status":"OVERHEATED","statusLabel":"추격 부담 큼 (참고)","baselineDate":"20260414","baselineClose":10530,"outcome":{"high1":29.91452991452992,"low1":20.89268755935423,"close1":29.91452991452992,"high3":92.78252611585944,"low3":20.89268755935423,"close3":68.85090218423551,"high5":161.15859449192783,"low5":20.89268755935423,"close5":106.07787274453942,"high10":161.15859449192783,"low10":20.89268755935423,"close10":51.28205128205128,"high20":null,"low20":null,"close20":null}}],"conclusionV2":{"avgVsMedian":"C 그룹 D+10 평균 +46.83% vs 중앙값 +37.04% (gap +9.80%). 상위 10% 제거 평균 +36.23% · 상위 5건 기여도 38.0%. 약간 평균 착시 가능 — 추가 검증 필요.","c2Verdict":"C2 과열 재돌파 (n=17) D+10 평균 +46.37% / 중앙값 +37.30% / +30% 도달 66.7% / -10% 하락 11.1%. 평균은 높지만 중앙값과 fail rate를 함께 봐야.","c3Verdict":"C3 고점 돌파 후 밀린 (n=6) D+10 평균 +161.16% / 중앙값 +161.16% / -10% 하락 0.0% / 종가>0 100.0%. 의외로 수익 — 추가 분석.","valueRatioRanking":[{"bucket":"1~1.5×","n":77,"avgHigh":21.531887676399077,"medianHigh":15.899825276645307,"hit10":66.66666666666666,"hit20":38.095238095238095,"fail10":0,"closePos":85.71428571428571},{"bucket":"1.5~3×","n":85,"avgHigh":33.95120020813769,"medianHigh":25.366162868110543,"hit10":69.23076923076923,"hit20":57.692307692307686,"fail10":15.384615384615385,"closePos":76.92307692307693},{"bucket":"3~5×","n":32,"avgHigh":39.10159642293169,"medianHigh":21.573445003597,"hit10":87.5,"hit20":50,"fail10":25,"closePos":62.5},{"bucket":"5~10×","n":26,"avgHigh":23.128114199250998,"medianHigh":29.294755877034362,"hit10":63.63636363636363,"hit20":54.54545454545454,"fail10":36.36363636363637,"closePos":54.54545454545454},{"bucket":"10×↑","n":20,"avgHigh":26.550567134868977,"medianHigh":28.242424242424246,"hit10":77.77777777777779,"hit20":77.77777777777779,"fail10":33.33333333333333,"closePos":55.55555555555556}],"valueRatioBest":{"bucket":"5~10×","n":26,"avgHigh":23.128114199250998,"medianHigh":29.294755877034362,"hit10":63.63636363636363,"hit20":54.54545454545454,"fail10":36.36363636363637,"closePos":54.54545454545454},"daysToVviRanking":[{"bucket":"1~3일","n":157,"avgHigh":29.801604576119537,"medianHigh":22.98250970215414,"hit10":70.96774193548387,"hit20":54.83870967741935,"fail10":17.741935483870968,"closePos":69.35483870967742},{"bucket":"4~10일","n":68,"avgHigh":22.567576514275796,"medianHigh":18.714555765595463,"hit10":69.23076923076923,"hit20":46.15384615384615,"fail10":15.384615384615385,"closePos":84.61538461538461},{"bucket":"11~20일","n":15,"avgHigh":null,"medianHigh":null,"hit10":null,"hit20":null,"fail10":null,"closePos":null}],"daysToVviBest":{"bucket":"1~3일","n":157,"avgHigh":29.801604576119537,"medianHigh":22.98250970215414,"hit10":70.96774193548387,"hit20":54.83870967741935,"fail10":17.741935483870968,"closePos":69.35483870967742},"c1Verdict":"C1 강한 추세형 표본 부족 (n=3) — 추가 표본 확보 후 재평가.","boardRecommendation":["B 추격 부담 제외 새 VVI — 안정적 메인 후보","C2 과열 — 별도 \"고위험 급등 가능\" 섹션 (보드 메인 X)","C3 고점 돌파 후 밀림 — 보드 제외 또는 경고 태그","D 거래대금 부족 돌파 — 보드 제외"],"disclaimer":"1차 세분화 결과 — 표본 작음, 운영 반영 전 단계. 실제 진입과 대응은 본인의 판단입니다."}};
+function isNum(v) { return v != null && Number.isFinite(v); }
+function fmtPct(v, p) { return isNum(v) ? (v > 0 ? '+' : '') + v.toFixed(p || 2) + '%' : '-'; }
+function fmtRate(v, p) { return isNum(v) ? v.toFixed(p || 1) + '%' : '-'; }
+function fmtRatio(v) { return isNum(v) ? '×' + v.toFixed(2) : '-'; }
+function fmtDate(d) { if (!d || String(d).length !== 8) return d || '-'; const s = String(d); return s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8); }
+
+document.getElementById('subtitle').innerHTML =
+  '분석 기준일 <strong style="color:#5eead4;">' + (DATA.meta.analysisDateFmt || '-') + '</strong>' +
+  ' · QVA 윈도우 ' + DATA.meta.lookbackDays + '거래일' +
+  ' · 분석 이벤트 ' + DATA.counts.raw + '건 (종목 dedup ' + DATA.counts.deduped + ')' +
+  ' · 생성: ' + new Date(DATA.meta.generatedAt).toLocaleString('ko-KR');
+
+(function renderGroupCounts() {
+  const groupNames = DATA.meta.groupNames;
+  const cells = ['A', 'B', 'C', 'D', 'E'].map(k => ({
+    lab: k + '. ' + groupNames[k],
+    val: DATA.counts[k],
+    sub: 'n=' + DATA.summary[k].count,
+    cls: k,
+  }));
+  document.getElementById('summary-grid').innerHTML = cells.map(c =>
+    '<div class="summary-cell ' + c.cls + '"><div class="label">' + c.lab + '</div>' +
+    '<div class="value">' + c.val + '</div><div class="sub">' + c.sub + '</div></div>'
+  ).join('');
+})();
+
+(function renderGroupSummary() {
+  const tb = document.querySelector('#t-group-summary tbody');
+  const groupNames = DATA.meta.groupNames;
+  const order = ['A', 'B', 'C', 'D', 'E'];
+  const rows = [];
+  for (const k of order) {
+    const s = DATA.summary[k];
+    const cls = (v) => isNum(v) && v > 0 ? 'pos' : (isNum(v) && v < 0 ? 'neg' : '');
+    rows.push('<tr>' +
+      '<td class="left"><strong>' + k + '. ' + groupNames[k] + '</strong></td>' +
+      '<td>' + s.count + '</td>' +
+      '<td class="' + cls(s.avgHigh5) + '">' + fmtPct(s.avgHigh5) + '</td>' +
+      '<td class="' + cls(s.avgHigh10) + '"><strong>' + fmtPct(s.avgHigh10) + '</strong></td>' +
+      '<td class="' + cls(s.avgHigh20) + '"><strong>' + fmtPct(s.avgHigh20) + '</strong></td>' +
+      '<td>' + fmtRate(s.hit10_10) + '</td>' +
+      '<td>' + fmtRate(s.hit20_20) + '</td>' +
+      '<td>' + fmtRate(s.hit30_20) + '</td>' +
+      '<td class="' + (isNum(s.fail10_10) && s.fail10_10 >= 30 ? 'neg' : '') + '">' + fmtRate(s.fail10_10) + '</td>' +
+      '<td class="' + (isNum(s.closePos20) && s.closePos20 >= 50 ? 'pos' : '') + '">' + fmtRate(s.closePos20) + '</td>' +
+    '</tr>');
+  }
+  tb.innerHTML = rows.join('');
+})();
+
+(function renderTop20() {
+  const tb = document.querySelector('#t-top tbody');
+  const list = DATA.top20 || [];
+  if (list.length === 0) { tb.innerHTML = '<tr><td class="muted left" colspan="12">데이터 없음 (B 그룹 표본 부족 또는 D+20 미도달)</td></tr>'; return; }
+  tb.innerHTML = list.map(e => '<tr>' +
+    '<td class="left">' + (e.name || '-') + '</td>' +
+    '<td class="left muted">' + e.code + '</td>' +
+    '<td class="left">' + fmtDate(e.qvaSignalDate) + '</td>' +
+    '<td class="left">' + fmtDate(e.vviDate) + '</td>' +
+    '<td>' + (isNum(e.daysFromQvaToVvi) ? e.daysFromQvaToVvi + '일' : '-') + '</td>' +
+    '<td>' + fmtRatio(e.vviValueRatio) + '</td>' +
+    '<td>' + fmtRatio(e.vviVolumeRatio) + '</td>' +
+    '<td class="' + (isNum(e.vviCloseFromQvaCloseRate) && e.vviCloseFromQvaCloseRate > 0 ? 'pos' : '') + '">' + fmtPct(e.vviCloseFromQvaCloseRate, 1) + '</td>' +
+    '<td class="pos">' + fmtPct(e.outcome.high5, 1) + '</td>' +
+    '<td class="pos">' + fmtPct(e.outcome.high10, 1) + '</td>' +
+    '<td class="pos"><strong>' + fmtPct(e.outcome.high20, 1) + '</strong></td>' +
+    '<td class="' + (isNum(e.outcome.low20) && e.outcome.low20 <= -5 ? 'neg' : '') + '">' + fmtPct(e.outcome.low20, 1) + '</td>' +
+  '</tr>').join('');
+})();
+
+(function renderWorst20() {
+  const tb = document.querySelector('#t-worst tbody');
+  const list = DATA.worst20 || [];
+  if (list.length === 0) { tb.innerHTML = '<tr><td class="muted left" colspan="8">데이터 없음 (B 그룹 표본 부족 또는 D+20 미도달)</td></tr>'; return; }
+  tb.innerHTML = list.map(e => '<tr>' +
+    '<td class="left">' + (e.name || '-') + '</td>' +
+    '<td class="left muted">' + e.code + '</td>' +
+    '<td class="left">' + fmtDate(e.qvaSignalDate) + '</td>' +
+    '<td class="left">' + fmtDate(e.vviDate) + '</td>' +
+    '<td>' + fmtRatio(e.vviValueRatio) + '</td>' +
+    '<td class="' + (isNum(e.currentFromQvaCloseRate) && e.currentFromQvaCloseRate > 0 ? 'pos' : 'neg') + '">' + fmtPct(e.currentFromQvaCloseRate, 1) + '</td>' +
+    '<td class="neg">' + fmtPct(e.outcome.low10, 1) + '</td>' +
+    '<td class="neg"><strong>' + fmtPct(e.outcome.low20, 1) + '</strong></td>' +
+  '</tr>').join('');
+})();
+
+(function renderConclusion() {
+  const c = DATA.conclusion || {};
+  const html = [];
+  if (c.upsidePresent)     html.push('<div class="callout"><strong>① 새 VVI 발생 후 상승 여지</strong><br>' + c.upsidePresent + '</div>');
+  if (c.qVsPriceOnly)      html.push('<div class="callout info"><strong>② 거래대금 재확인 효과 (A vs D)</strong><br>' + c.qVsPriceOnly + '</div>');
+  if (c.overheatFilter)    html.push('<div class="callout info"><strong>③ 추격 부담 필터 효과 (B vs C)</strong><br>' + c.overheatFilter + '</div>');
+  if (c.lateRebreakComment)html.push('<div class="callout"><strong>④ 늦은 재돌파 문제 가능성</strong><br>' + c.lateRebreakComment + '</div>');
+  if ((c.furtherSplits || []).length) {
+    html.push('<div class="callout"><strong>⑤ 추가로 나눠봐야 할 조건 (다음 단계)</strong><br>' +
+      c.furtherSplits.map((s, i) => (i+1) + '. ' + s).join('<br>') + '</div>');
+  }
+  if (c.disclaimer) html.push('<div class="callout warn"><strong>⚠ 1차 검증 한계</strong><br>' + c.disclaimer + '</div>');
+  document.getElementById('conclusion').innerHTML = html.join('') || '<div class="callout warn">자동 결론 산출 실패 — 데이터 확인 필요.</div>';
+})();
+
+// ── V2: C 그룹 세분화 비교표 ──
+(function renderOverheatBreakdown() {
+  const tb = document.querySelector('#t-overheat-breakdown tbody');
+  if (!tb) return;
+  const ob = DATA.overheatBreakdown || {};
+  const labels = {
+    B:  'B. 추격 부담 제외 새 VVI',
+    C:  'C. 추격 부담 후보 전체',
+    C1: 'C1. 강한 추세형 재돌파',
+    C2: 'C2. 과열 재돌파',
+    C3: 'C3. 고점 돌파 후 밀림',
+    C4: 'C4. 기타 추격 부담',
+    D:  'D. 가격은 넘었지만 거래대금 부족',
+  };
+  const order = ['B', 'C', 'C1', 'C2', 'C3', 'C4', 'D'];
+  const rows = [];
+  for (const k of order) {
+    const info = ob[k];
+    if (!info) continue;
+    const d = info.distribution || {};
+    rows.push('<tr>' +
+      '<td class="left"><strong>' + labels[k] + '</strong></td>' +
+      '<td>' + info.count + '</td>' +
+      '<td class="' + (isNum(d.avgHigh) && d.avgHigh > 0 ? 'pos' : 'neg') + '">' + fmtPct(d.avgHigh) + '</td>' +
+      '<td class="' + (isNum(d.medianHigh) && d.medianHigh > 0 ? 'pos' : 'neg') + '"><strong>' + fmtPct(d.medianHigh) + '</strong></td>' +
+      '<td>' + fmtPct(d.trimmedAvgHigh_top10) + '</td>' +
+      '<td>' + fmtRate(d.hit10) + '</td>' +
+      '<td>' + fmtRate(d.hit20) + '</td>' +
+      '<td class="' + (isNum(d.fail10) && d.fail10 >= 30 ? 'neg' : '') + '">' + fmtRate(d.fail10) + '</td>' +
+      '<td class="' + (isNum(d.closePos) && d.closePos >= 50 ? 'pos' : '') + '">' + fmtRate(d.closePos) + '</td>' +
+      '<td class="' + (isNum(d.eatScore) && d.eatScore > 0 ? 'pos' : 'neg') + '">' + fmtPct(d.eatScore) + '</td>' +
+    '</tr>');
+  }
+  tb.innerHTML = rows.join('');
+})();
+
+// ── V2: C1 TOP 20 ──
+(function renderC1Top() {
+  const tb = document.querySelector('#t-c1-top tbody');
+  if (!tb) return;
+  const list = DATA.c1Top20 || [];
+  if (!list.length) { tb.innerHTML = '<tr><td class="muted left" colspan="14">C1 강한 추세형 표본 부족</td></tr>'; return; }
+  tb.innerHTML = list.map(e => {
+    const v = e.vviExtras || {};
+    return '<tr>' +
+      '<td class="left">' + (e.name || '-') + '</td>' +
+      '<td class="left muted">' + e.code + '</td>' +
+      '<td class="left">' + fmtDate(e.qvaSignalDate) + '</td>' +
+      '<td class="left">' + fmtDate(e.vviDate) + '</td>' +
+      '<td>' + (isNum(e.daysFromQvaToVvi) ? e.daysFromQvaToVvi + '일' : '-') + '</td>' +
+      '<td>' + fmtRatio(e.vviValueRatio) + '</td>' +
+      '<td>' + fmtRatio(e.vviVolumeRatio) + '</td>' +
+      '<td class="' + (isNum(e.vviCloseFromQvaCloseRate) && e.vviCloseFromQvaCloseRate > 0 ? 'pos' : '') + '">' + fmtPct(e.vviCloseFromQvaCloseRate, 1) + '</td>' +
+      '<td>' + (isNum(v.closePosition) ? (v.closePosition * 100).toFixed(0) + '%' : '-') + '</td>' +
+      '<td>' + (isNum(v.upperTailRatio) ? (v.upperTailRatio * 100).toFixed(0) + '%' : '-') + '</td>' +
+      '<td class="pos">' + fmtPct(e.outcome.high5, 1) + '</td>' +
+      '<td class="pos"><strong>' + fmtPct(e.outcome.high10, 1) + '</strong></td>' +
+      '<td class="' + (isNum(e.outcome.low10) && e.outcome.low10 <= -5 ? 'neg' : '') + '">' + fmtPct(e.outcome.low10, 1) + '</td>' +
+      '<td class="' + (isNum(e.outcome.close10) && e.outcome.close10 > 0 ? 'pos' : 'neg') + '">' + fmtPct(e.outcome.close10, 1) + '</td>' +
+    '</tr>';
+  }).join('');
+})();
+
+// ── V2: C3 WORST 20 ──
+(function renderC3Worst() {
+  const tb = document.querySelector('#t-c3-worst tbody');
+  if (!tb) return;
+  const list = DATA.c3Worst20 || [];
+  if (!list.length) { tb.innerHTML = '<tr><td class="muted left" colspan="11">C3 고점 돌파 후 밀린 후보 표본 부족</td></tr>'; return; }
+  tb.innerHTML = list.map(e => {
+    const v = e.vviExtras || {};
+    return '<tr>' +
+      '<td class="left">' + (e.name || '-') + '</td>' +
+      '<td class="left muted">' + e.code + '</td>' +
+      '<td class="left">' + fmtDate(e.qvaSignalDate) + '</td>' +
+      '<td class="left">' + fmtDate(e.vviDate) + '</td>' +
+      '<td>' + fmtRatio(e.vviValueRatio) + '</td>' +
+      '<td class="' + (isNum(e.currentFromQvaCloseRate) && e.currentFromQvaCloseRate > 0 ? 'pos' : 'neg') + '">' + fmtPct(e.currentFromQvaCloseRate, 1) + '</td>' +
+      '<td>' + (isNum(v.upperTailRatio) ? (v.upperTailRatio * 100).toFixed(0) + '%' : '-') + '</td>' +
+      '<td>' + (isNum(v.closePosition) ? (v.closePosition * 100).toFixed(0) + '%' : '-') + '</td>' +
+      '<td class="neg"><strong>' + fmtPct(e.outcome.low10, 1) + '</strong></td>' +
+      '<td>' + fmtPct(e.outcome.high10, 1) + '</td>' +
+      '<td class="' + (isNum(e.outcome.close10) && e.outcome.close10 > 0 ? 'pos' : 'neg') + '">' + fmtPct(e.outcome.close10, 1) + '</td>' +
+    '</tr>';
+  }).join('');
+})();
+
+// ── V2: 거래대금 배율 / QVA→VVI 소요일 buckets ──
+function renderBucketTable(tbId, buckets) {
+  const tb = document.querySelector('#' + tbId + ' tbody');
+  if (!tb) return;
+  const rows = [];
+  for (const [name, info] of Object.entries(buckets || {})) {
+    const d = info.distribution || {};
+    rows.push('<tr>' +
+      '<td class="left"><strong>' + name + '</strong></td>' +
+      '<td>' + info.count + '</td>' +
+      '<td class="' + (isNum(d.avgHigh) && d.avgHigh > 0 ? 'pos' : 'neg') + '">' + fmtPct(d.avgHigh) + '</td>' +
+      '<td class="' + (isNum(d.medianHigh) && d.medianHigh > 0 ? 'pos' : 'neg') + '"><strong>' + fmtPct(d.medianHigh) + '</strong></td>' +
+      '<td>' + fmtRate(d.hit10) + '</td>' +
+      '<td>' + fmtRate(d.hit20) + '</td>' +
+      '<td class="' + (isNum(d.fail10) && d.fail10 >= 30 ? 'neg' : '') + '">' + fmtRate(d.fail10) + '</td>' +
+      '<td class="' + (isNum(d.closePos) && d.closePos >= 50 ? 'pos' : '') + '">' + fmtRate(d.closePos) + '</td>' +
+    '</tr>');
+  }
+  tb.innerHTML = rows.join('');
+}
+renderBucketTable('t-value-buckets', DATA.valueRatioBuckets);
+renderBucketTable('t-days-buckets', DATA.daysFromQvaToVviBuckets);
+
+// ── V2: 자동 결론 ──
+(function renderConclusionV2() {
+  const c = DATA.conclusionV2 || {};
+  const html = [];
+  if (c.avgVsMedian)  html.push('<div class="callout warn"><strong>① 평균 착시 검증</strong><br>' + c.avgVsMedian + '</div>');
+  if (c.c1VsB)        html.push('<div class="callout"><strong>② C1 강한 추세형 vs B 비교</strong><br>' + c.c1VsB + '</div>');
+  if (c.c2Verdict)    html.push('<div class="callout warn"><strong>③ C2 과열 — 대박 vs 위험</strong><br>' + c.c2Verdict + '</div>');
+  if (c.c3Verdict)    html.push('<div class="callout warn"><strong>④ C3 피해야 할 유형 검증</strong><br>' + c.c3Verdict + '</div>');
+  if ((c.valueRatioRanking || []).length) {
+    html.push('<div class="callout info"><strong>⑤ 거래대금 배율별 성과 (D+10 중앙값 순)</strong><br>' +
+      c.valueRatioRanking.map(r => '• ' + r.bucket + ' (n=' + r.n + ') 평균 ' + (r.avgHigh>0?'+':'') + (r.avgHigh||0).toFixed(1) + '% / 중앙값 ' + (r.medianHigh>0?'+':'') + (r.medianHigh||0).toFixed(1) + '% / +10% ' + (r.hit10||0).toFixed(0) + '% / -10% ' + (r.fail10||0).toFixed(0) + '%').join('<br>') +
+      (c.valueRatioBest ? '<br><strong>→ 최선 구간: ' + c.valueRatioBest.bucket + '</strong>' : '') +
+    '</div>');
+  }
+  if ((c.daysToVviRanking || []).length) {
+    html.push('<div class="callout info"><strong>⑥ QVA → VVI 소요일별 성과 (D+10 중앙값 순)</strong><br>' +
+      c.daysToVviRanking.map(r => '• ' + r.bucket + ' (n=' + r.n + ') 평균 ' + (r.avgHigh>0?'+':'') + (r.avgHigh||0).toFixed(1) + '% / 중앙값 ' + (r.medianHigh>0?'+':'') + (r.medianHigh||0).toFixed(1) + '% / +10% ' + (r.hit10||0).toFixed(0) + '% / -10% ' + (r.fail10||0).toFixed(0) + '%').join('<br>') +
+      (c.daysToVviBest ? '<br><strong>→ 최선 구간: ' + c.daysToVviBest.bucket + '</strong>' : '') +
+    '</div>');
+  }
+  if (c.c1Verdict) html.push('<div class="callout"><strong>⑦ 강한 추세형 살릴 가치</strong><br>' + c.c1Verdict + '</div>');
+  if ((c.boardRecommendation || []).length) {
+    html.push('<div class="callout"><strong>⑧ 운영 보드 반영 시 추천 노출 우선순위</strong><br>' +
+      c.boardRecommendation.map((s, i) => (i + 1) + '. ' + s).join('<br>') + '</div>');
+  }
+  if (c.disclaimer) html.push('<div class="callout warn"><strong>⚠ 1차 세분화 한계</strong><br>' + c.disclaimer + '</div>');
+  document.getElementById('conclusion-v2').innerHTML = html.join('') || '<div class="callout warn">V2 자동 결론 산출 실패.</div>';
+})();
+
+document.getElementById('foot').innerHTML =
+  '<strong>새 VVI 정의 (이번 백테스트 한정):</strong><br>' +
+  '• QVA 발생일 (high, volume, value) → 그 이후 첫 번째 거래일 중 high &gt; qvaHigh AND volume ≥ qvaVolume AND value ≥ qvaValue 만족하는 날.<br>' +
+  '• 추격 부담 = QVA 종가 +25% 이상 또는 VVI 발생일 +20% 이상 위 (현재가 기준).<br>' +
+  '<br><strong>baseline (진입 기준) 정의:</strong><br>' +
+  '• A/B/C: VVI 발생일 종가 · D: 가격만 돌파한 첫날 종가 · E: 분석 기준일 종가 (참고용).<br>' +
+  '<br><strong>주의:</strong> 1차 백테스트 — 표본 작음, 운영 반영 전. 실제 진입과 대응은 본인의 판단입니다.';
+</script>
+</body>
+</html>
