@@ -1,12 +1,14 @@
-// 일일 cron 스케줄 — 16:10 분석 / 16:20 일일 갱신(평일) / 16:35 보드 갱신(평일) / 18:00 메일(MAIL_CRON_ENABLED).
+// 일일 cron 스케줄 — 16:10 분석 / 16:20 일일 갱신(평일) / 16:35 보드 갱신(평일) / 평일 09:30:30 1DS 메일(MAIL_CRON_ENABLED).
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 const cron = require("node-cron");
 const patternScreener = require("../../../pattern-screener");
-const { ROOT, CACHE_DIR } = require("../../utils/paths");
+const { ROOT, CACHE_DIR, REPORTS_DIR } = require("../../utils/paths");
 const { patternState, PATTERN_RESULT_PATH, BOARD_SCRIPTS } = require("./adminTriggers");
-const { sendPatternMail } = require("../mail/patternMail");
+const { sendOneDaySurgeMail } = require("../mail/oneDaySurgeMail");
+
+const ONE_DAY_SURGE_RESULT_PATH = path.join(REPORTS_DIR, "one-day-surge-board-result.json");
 
 function registerSchedules() {
   // 16:10 매일 — 종가 기준 신호 갱신
@@ -79,30 +81,23 @@ function registerSchedules() {
   }, { scheduled: true, timezone: "Asia/Seoul" });
   console.log(`[스케줄] 매일 평일 16:35 전체 보드 갱신 활성화 (${BOARD_SCRIPTS.length}개 — QVA + 재돌파 × 3 + 1DS)`);
 
-  // 18:00 매일 — VVI 신호 메일 (옵션, MAIL_CRON_ENABLED=1 일 때만)
+  // 평일 09:30:30 — 1-Day Surge 보드 메일 (MAIL_CRON_ENABLED=1 일 때만)
+  // 6-field cron: 초 분 시 일 월 요일. 직전 평일 16:35에 생성된 1DS 보드를 다음 거래일 장초에 발송.
   if (process.env.MAIL_CRON_ENABLED === "1") {
-    cron.schedule("0 18 * * *", async () => {
-      console.log("[메일발송] 18:00 — pattern-result.json 기반 VVI 신호 메일 발송 시작");
+    cron.schedule("30 30 9 * * 1-5", async () => {
+      console.log("[1DS메일] 09:30:30 — one-day-surge-board-result.json 기반 단타 후보 메일 발송 시작");
       try {
-        if (!fs.existsSync(PATTERN_RESULT_PATH)) {
-          console.log("[메일발송] pattern-result.json 없음 — 스킵");
+        if (!fs.existsSync(ONE_DAY_SURGE_RESULT_PATH)) {
+          console.log("[1DS메일] one-day-surge-board-result.json 없음 — 스킵");
           return;
         }
-        const result = JSON.parse(fs.readFileSync(PATTERN_RESULT_PATH, "utf-8"));
-        if (result.analyzeFinishedAt) {
-          const resultDate = new Date(result.analyzeFinishedAt).toDateString();
-          const today = new Date().toDateString();
-          if (resultDate !== today) {
-            console.log(`[메일발송] 결과가 오늘자 아님 (${resultDate}) — 스킵`);
-            return;
-          }
-        }
-        await sendPatternMail(result);
+        const result = JSON.parse(fs.readFileSync(ONE_DAY_SURGE_RESULT_PATH, "utf-8"));
+        await sendOneDaySurgeMail(result);
       } catch (e) {
-        console.error("[메일발송] 에러:", e.message);
+        console.error("[1DS메일] 에러:", e.message);
       }
     }, { scheduled: true, timezone: "Asia/Seoul" });
-    console.log("[스케줄] 매일 18:00 VVI 신호 메일 자동 발송 활성화 (한국 시간)");
+    console.log("[스케줄] 평일 09:30:30 1DS 단타 후보 메일 자동 발송 활성화 (한국 시간)");
   }
 }
 

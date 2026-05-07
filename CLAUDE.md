@@ -63,7 +63,7 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 **메일/구독**
 - `SMTP_USER`, `SMTP_PASS` — Gmail SMTP. 둘 다 설정돼야 `mailTransporter`가 켜짐
 - `PUBLIC_URL` — 메일 본문의 unsubscribe 링크 base (기본 `http://localhost:3012`)
-- `MAIL_CRON_ENABLED=1` — 일일 패턴 메일 cron 활성화
+- `MAIL_CRON_ENABLED=1` — 평일 09:30:30 1DS 단타 후보 메일 cron 활성화
 
 **튜닝/오버라이드**
 - `PATTERN_MAX_MARKETCAP` (기본 5천억), `PATTERN_MIN_MARKETCAP` (기본 50억) — `naver-fetcher.js`의 시드 시총 필터. 운영은 9천억으로 ramp
@@ -261,7 +261,7 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 | 16:10 | 매일 | `pattern-screener.analyzeAll()` 호출 → `cache/pattern-result.json` 갱신 (종가 기준 신호 재계산만) | 항상 |
 | 16:20 | 평일 (월-금) | `node run-daily-analysis.js` 외부 실행 (차트+수급 갱신 + 재분석) | `patternState.analyzing`이 false일 때만 |
 | 16:35 | 평일 (월-금) | **전체 보드 갱신** — `BOARD_SCRIPTS` 5개 순차 실행: `qva-watchlist-board.js` → `hgroup-rebreak-operation-board.js` → `hgroup-rebreak-deep-dive-report.js` → `hgroup-rebreak-flow-backtest.js` → `one-day-surge-board.js` | 항상 (보드별 실패는 다음 보드로 진행) |
-| 18:00 | 매일 | `pattern-result.json` 기반 메일 발송. 결과가 오늘자가 아니면 skip | `MAIL_CRON_ENABLED=1`일 때만 |
+| 09:30:30 | 평일 (월-금) | `reports/one-day-surge-board-result.json` 기반 단타 후보 메일 발송 ([sendOneDaySurgeMail](src/services/mail/oneDaySurgeMail.js) — TOP 5 + 추가 10 = 최대 15종목, manualTargets 매수/매도가 포함). 6-field cron 표현식 `30 30 9 * * 1-5` 사용 | `MAIL_CRON_ENABLED=1`일 때만 |
 
 각 스크립트의 역할:
 - `update-flow-daily.js` — KIS API로 최근 외국인/기관 수급 → `cache/flow-history/{code}.json` 증분 병합
