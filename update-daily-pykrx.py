@@ -189,14 +189,20 @@ def get_period_chart(access_token: str, stock_code: str, period: str = "D") -> L
                 if not date_str or len(date_str) != 8:
                     continue
 
+                close = int(item.get("stck_clpr", 0))
+                volume = int(item.get("acml_vol", 0))
+                # valueApprox = 종가 × 거래량 (간이 거래대금).
+                # 신규 row 생성 시 항상 함께 채워서 merge 단계의 dict.update가 stale valueApprox(=0)를
+                # 새 값으로 덮어쓰도록 보장. (이전엔 신규 분기에서만 set해 갱신 분기에서 0 박힘 버그 있었음.)
                 rows.append(
                     {
                         "date": date_str,
                         "open": int(item.get("stck_oprc", 0)),
                         "high": int(item.get("stck_hgpr", 0)),
                         "low": int(item.get("stck_lwpr", 0)),
-                        "close": int(item.get("stck_clpr", 0)),
-                        "volume": int(item.get("acml_vol", 0)),
+                        "close": close,
+                        "volume": volume,
+                        "valueApprox": close * volume,
                     }
                 )
 
@@ -251,12 +257,12 @@ def merge_chart_data(cached: Dict[str, Any], new_rows: List[Dict]) -> Dict[str, 
     existing_dates = {r["date"]: r for r in existing_rows}
 
     # 새 데이터 추가/업데이트
+    # new_row는 get_period_chart에서 valueApprox까지 채워서 옴 → 갱신/신규 둘 다 valueApprox 정상 반영.
     for new_row in new_rows:
         date = new_row["date"]
         if date in existing_dates:
             existing_dates[date].update(new_row)
         else:
-            new_row["valueApprox"] = new_row["close"] * new_row["volume"]
             existing_dates[date] = new_row
 
     # 정렬 및 중복 제거
