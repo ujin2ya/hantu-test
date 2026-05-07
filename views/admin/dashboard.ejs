@@ -78,6 +78,7 @@
 
     <% if (flash) { %>
       <%
+        const qs = (typeof query !== "undefined" && query) ? query : {};
         const flashMap = {
           missing_email: { type: "danger", msg: "이메일이 비어 있습니다." },
           not_found: { type: "danger", msg: "해당 이메일을 찾을 수 없습니다." },
@@ -86,8 +87,12 @@
           pattern_seed_started: { type: "success", msg: "패턴 시드를 시작했습니다 (4~8분 소요). 새로고침으로 진행 확인." },
           pattern_analyzing: { type: "warning", msg: "패턴 분석이 이미 진행 중입니다." },
           pattern_analyze_started: { type: "success", msg: "패턴 분석을 시작했습니다 (~1분). pattern-result.json 재생성." },
-          mail_sent: { type: "success", msg: "VVI 신호 메일을 발송했습니다." },
-          no_result: { type: "danger", msg: "pattern-result.json 파일이 없습니다. 먼저 분석을 실행하세요." },
+          "1ds_mail_sent": { type: "success", msg: `1DS 단타 후보 메일을 발송했습니다 (${qs.n || ""}).` },
+          "1ds_mail_one_sent": { type: "success", msg: `${qs.email ? decodeURIComponent(qs.email) : ""}에게 1DS 메일을 발송했습니다.` },
+          no_1ds_result: { type: "danger", msg: "one-day-surge-board-result.json 파일이 없습니다. 먼저 보드를 생성하세요 (전체 보드 갱신 버튼)." },
+          no_1ds_candidates: { type: "warning", msg: "1DS 보드에 후보가 0건입니다. 발송할 내용이 없습니다." },
+          no_subscribers: { type: "warning", msg: "구독자가 없습니다." },
+          no_smtp: { type: "danger", msg: "SMTP 설정이 안 되어 있습니다 (SMTP_USER / SMTP_PASS)." },
           mail_error: { type: "danger", msg: "메일 발송 중 오류가 발생했습니다." },
         };
         const f = flashMap[flash];
@@ -264,6 +269,21 @@
     </div>
 
     <div class="card-soft">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="mb-0"><i class="bi bi-envelope me-1"></i>1DS 단타 메일 발송</h2>
+      </div>
+      <div class="small text-secondary mb-3">
+        평일 09:30:30 cron이 자동 발송하지만, 즉시 발송하고 싶을 때 아래 버튼을 사용하세요.
+        보드는 직전 평일 16:35에 갱신된 <code>reports/one-day-surge-board-result.json</code>을 사용합니다.
+      </div>
+      <form method="post" action="/admin/send-1ds-mail" class="m-0 d-inline" onsubmit="return confirm('전체 구독자(<%= subscribers.length %>명)에게 1DS 단타 메일을 지금 발송할까요?');">
+        <button type="submit" class="btn btn-warning btn-sm" <%= subscribers.length === 0 ? 'disabled' : '' %>>
+          <i class="bi bi-send me-1"></i>📧 전체 구독자에게 1DS 메일 발송 (<%= subscribers.length %>명)
+        </button>
+      </form>
+    </div>
+
+    <div class="card-soft">
       <h2><i class="bi bi-people me-1"></i>구독자 (<%= subscribers.length %>)</h2>
       <% if (subscribers.length === 0) { %>
         <div class="small text-muted">구독자가 없습니다.</div>
@@ -289,9 +309,15 @@
                     <% } %>
                   </td>
                   <td class="text-end">
+                    <form method="post" action="/admin/send-1ds-mail-one" class="d-inline me-1" onsubmit="return confirm('<%= sub.email %> 한 명에게만 1DS 단타 메일을 보낼까요?');">
+                      <input type="hidden" name="email" value="<%= sub.email %>" />
+                      <button type="submit" class="btn btn-outline-warning btn-sm" title="1DS 메일 보내기">
+                        <i class="bi bi-envelope-arrow-up"></i>
+                      </button>
+                    </form>
                     <form method="post" action="/admin/unsubscribe" class="d-inline" onsubmit="return confirm('<%= sub.email %> 을(를) 구독 해제할까요?');">
                       <input type="hidden" name="email" value="<%= sub.email %>" />
-                      <button type="submit" class="btn btn-outline-danger btn-sm">
+                      <button type="submit" class="btn btn-outline-danger btn-sm" title="구독 해제">
                         <i class="bi bi-x-circle"></i>
                       </button>
                     </form>

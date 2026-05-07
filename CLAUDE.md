@@ -142,7 +142,8 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 | `GET/POST /admin/login`, `GET /admin/logout` | adminController | 관리자 인증 |
 | `GET /admin` | adminController.getDashboard | 대시보드 (구독자 / stocks 마스터 / 패턴 상태) |
 | `POST /admin/unsubscribe` | adminController.postUnsubscribe | 관리자 수동 구독 해제 |
-| `POST /admin/send-pattern-mail` | adminController.postSendPatternMail | `pattern-result.json` 기반 즉시 메일 |
+| `POST /admin/send-1ds-mail` | adminController.postSend1dsMailAll | `reports/one-day-surge-board-result.json` 기반 1DS 단타 메일을 **전체 구독자**에게 즉시 발송 (대시보드의 "📧 전체 구독자에게 1DS 메일 발송" 버튼) |
+| `POST /admin/send-1ds-mail-one` | adminController.postSend1dsMailOne | 같은 1DS 메일을 **특정 구독자 한 명**에게만 발송 (구독자 그리드 행의 envelope 아이콘 버튼). `email` form field로 대상 지정 |
 | `POST /admin/pattern/seed`, `/admin/pattern/analyze`, `/admin/backtest/qva` | adminController + adminTriggers | 패턴 시드/분석/QVA 백테스트 비동기 트리거 |
 | `POST /admin/refresh-pattern-cache` | adminController | pattern-result.json 강제 재생성 (JSON 응답) |
 | `POST /admin/refresh-watchlist-board` | adminController | `qva-watchlist-board.js` 만 강제 재실행 |

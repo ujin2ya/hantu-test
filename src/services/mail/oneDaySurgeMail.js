@@ -1,4 +1,4 @@
-// 1-Day Surge 보드 일일 메일 — 평일 09:30:30 cron이 호출.
+// 1-Day Surge 보드 일일 메일 — 평일 09:30:30 cron + admin 수동 트리거에서 호출.
 // reports/one-day-surge-board-result.json의 priorityRanked(top 5 + extra 10)를 단일 표로 발송.
 const { mailTransporter } = require("./patternMail");
 const { loadSubscribers } = require("./subscribers");
@@ -17,11 +17,9 @@ function fmtRatio(n) {
   return `×${n.toFixed(1)}`;
 }
 
-async function sendOneDaySurgeMail(boardResult) {
-  if (!mailTransporter) return;
-  const subscribers = loadSubscribers();
-  if (!subscribers.length) return;
-
+// 보드 결과를 메일 본문으로 변환. 발송 대상이 0이면 null. transport는 신경쓰지 않음.
+// {{UNSUBSCRIBE_LINK}} placeholder는 발송 시점에 구독자별로 치환.
+function renderOneDaySurgeMailHtml(boardResult) {
   const groups = ["BALANCED-GT", "LIGHT-GT", "MID-CAP-GT"];
   const byCode = new Map();
   for (const g of groups) {
@@ -33,10 +31,7 @@ async function sendOneDaySurgeMail(boardResult) {
   const extraCodes = ranked.extraPriority || [];
   const allCodes = [...topCodes, ...extraCodes];
   const items = allCodes.map(c => byCode.get(c)).filter(Boolean);
-  if (!items.length) {
-    console.log("[1DS메일] 후보 0건 — 스킵");
-    return;
-  }
+  if (!items.length) return null;
 
   const meta = boardResult.meta || {};
   const analysisDate = meta.analysisDateFmt || meta.analysisDate || "-";
@@ -89,23 +84,61 @@ async function sendOneDaySurgeMail(boardResult) {
     </p>
   </body></html>`;
 
+  return { subject, html, count: items.length, baseUrl };
+}
+
+async function sendToOne(rendered, sub) {
+  const personalHtml = rendered.html.replace("{{UNSUBSCRIBE_LINK}}",
+    `<a href="${rendered.baseUrl}/unsubscribe?token=${sub.unsubscribeToken}">수신거부</a>`);
+  await mailTransporter.sendMail({
+    from: `"한투신호" <${process.env.SMTP_USER}>`,
+    to: sub.email,
+    subject: rendered.subject,
+    html: personalHtml,
+  });
+}
+
+async function sendOneDaySurgeMail(boardResult) {
+  if (!mailTransporter) return { sent: 0, total: 0, reason: "no_transporter" };
+  const subscribers = loadSubscribers();
+  if (!subscribers.length) return { sent: 0, total: 0, reason: "no_subscribers" };
+
+  const rendered = renderOneDaySurgeMailHtml(boardResult);
+  if (!rendered) {
+    console.log("[1DS메일] 후보 0건 — 스킵");
+    return { sent: 0, total: subscribers.length, reason: "no_candidates" };
+  }
+
   let sent = 0;
   for (const sub of subscribers) {
     try {
-      const personalHtml = html.replace("{{UNSUBSCRIBE_LINK}}",
-        `<a href="${baseUrl}/unsubscribe?token=${sub.unsubscribeToken}">수신거부</a>`);
-      await mailTransporter.sendMail({
-        from: `"한투신호" <${process.env.SMTP_USER}>`,
-        to: sub.email,
-        subject,
-        html: personalHtml,
-      });
+      await sendToOne(rendered, sub);
       sent++;
     } catch (e) {
       console.error(`[1DS메일] ${sub.email} 실패:`, e.message);
     }
   }
   console.log(`[1DS메일] 완료: ${sent}/${subscribers.length}명`);
+  return { sent, total: subscribers.length, reason: null };
 }
 
-module.exports = { sendOneDaySurgeMail };
+async function sendOneDaySurgeMailToOne(boardResult, email) {
+  if (!mailTransporter) return { ok: false, reason: "no_transporter" };
+  const subscribers = loadSubscribers();
+  const sub = subscribers.find(s => s.email === email);
+  if (!sub) return { ok: false, reason: "not_found" };
+
+  const rendered = renderOneDaySurgeMailHtml(boardResult);
+  if (!rendered) return { ok: false, reason: "no_candidates" };
+
+  try {
+    await sendToOne(rendered, sub);
+    console.log(`[1DS메일·개별] ${email} 발송 완료`);
+    return { ok: true };
+  } catch (e) {
+    console.error(`[1DS메일·개별] ${email} 실패:`, e.message);
+    return { ok: false, reason: "send_error", message: e.message };
+  }
+}
+
+module.exports = { sendOneDaySurgeMail, sendOneDaySurgeMailToOne, renderOneDaySurgeMailHtml };

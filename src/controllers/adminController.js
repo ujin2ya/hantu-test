@@ -4,10 +4,19 @@ const patternScreener = require("../../pattern-screener");
 const {
   setAdminCookie, clearAdminCookie, isAdminAuthed,
 } = require("../services/auth/adminAuth");
+const path = require("path");
 const { loadSubscribers, saveSubscribers, MAX_SUBSCRIBERS } = require("../services/mail/subscribers");
-const { sendPatternMail } = require("../services/mail/patternMail");
+const { sendOneDaySurgeMail, sendOneDaySurgeMailToOne } = require("../services/mail/oneDaySurgeMail");
 const { getStocksMasterAge } = require("../services/stocks/stocksLoader");
+const { REPORTS_DIR } = require("../utils/paths");
 const triggers = require("../services/pattern/adminTriggers");
+
+const ONE_DAY_SURGE_RESULT_PATH = path.join(REPORTS_DIR, "one-day-surge-board-result.json");
+
+function readOneDaySurgeResult() {
+  if (!fs.existsSync(ONE_DAY_SURGE_RESULT_PATH)) return null;
+  return JSON.parse(fs.readFileSync(ONE_DAY_SURGE_RESULT_PATH, "utf-8"));
+}
 
 function getLogin(req, res) {
   if (isAdminAuthed(req)) return res.redirect("/admin");
@@ -33,6 +42,7 @@ function getDashboard(req, res) {
     subscribers: loadSubscribers(),
     maxSubscribers: MAX_SUBSCRIBERS,
     flash: req.query.flash || null,
+    query: req.query,
     stocksMaster: getStocksMasterAge(),
     patternState: triggers.patternState,
     seededCount: patternScreener.listSeededStocks().length,
@@ -50,15 +60,36 @@ function postUnsubscribe(req, res) {
   res.redirect("/admin?flash=removed");
 }
 
-async function postSendPatternMail(req, res) {
+async function postSend1dsMailAll(req, res) {
   try {
-    if (!fs.existsSync(triggers.PATTERN_RESULT_PATH)) return res.redirect("/admin?flash=no_result");
-    const result = JSON.parse(fs.readFileSync(triggers.PATTERN_RESULT_PATH, "utf-8"));
-    await sendPatternMail(result);
-    res.redirect("/admin?flash=mail_sent");
+    const result = readOneDaySurgeResult();
+    if (!result) return res.redirect("/admin?flash=no_1ds_result");
+    const r = await sendOneDaySurgeMail(result);
+    if (r.reason === "no_subscribers") return res.redirect("/admin?flash=no_subscribers");
+    if (r.reason === "no_candidates") return res.redirect("/admin?flash=no_1ds_candidates");
+    if (r.reason === "no_transporter") return res.redirect("/admin?flash=no_smtp");
+    return res.redirect(`/admin?flash=1ds_mail_sent&n=${r.sent}/${r.total}`);
   } catch (e) {
-    console.error("[수동발송] 에러:", e.message);
-    res.redirect("/admin?flash=mail_error");
+    console.error("[1DS메일·수동] 에러:", e.message);
+    return res.redirect("/admin?flash=mail_error");
+  }
+}
+
+async function postSend1dsMailOne(req, res) {
+  try {
+    const email = String(req.body.email || "").trim().toLowerCase();
+    if (!email) return res.redirect("/admin?flash=missing_email");
+    const result = readOneDaySurgeResult();
+    if (!result) return res.redirect("/admin?flash=no_1ds_result");
+    const r = await sendOneDaySurgeMailToOne(result, email);
+    if (r.ok) return res.redirect(`/admin?flash=1ds_mail_one_sent&email=${encodeURIComponent(email)}`);
+    if (r.reason === "not_found") return res.redirect("/admin?flash=not_found");
+    if (r.reason === "no_candidates") return res.redirect("/admin?flash=no_1ds_candidates");
+    if (r.reason === "no_transporter") return res.redirect("/admin?flash=no_smtp");
+    return res.redirect("/admin?flash=mail_error");
+  } catch (e) {
+    console.error("[1DS메일·개별] 에러:", e.message);
+    return res.redirect("/admin?flash=mail_error");
   }
 }
 
@@ -100,7 +131,8 @@ function postRunDailyUpdate(req, res) {
 
 module.exports = {
   getLogin, postLogin, getLogout,
-  getDashboard, postUnsubscribe, postSendPatternMail,
+  getDashboard, postUnsubscribe,
+  postSend1dsMailAll, postSend1dsMailOne,
   postPatternSeed, postPatternAnalyze, postQvaBacktest,
   postRefreshPatternCache, postRefreshWatchlistBoard, postRefreshAllBoards, postRunDailyUpdate,
 };

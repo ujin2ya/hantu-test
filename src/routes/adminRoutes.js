@@ -12,7 +12,8 @@ router.get("/admin/logout", c.getLogout);
 // 이하 모든 관리자 라우트는 ADMIN_TOKEN 게이트 필요
 router.get("/admin", requireAdmin, c.getDashboard);
 router.post("/admin/unsubscribe", requireAdmin, c.postUnsubscribe);
-router.post("/admin/send-pattern-mail", requireAdmin, c.postSendPatternMail);
+router.post("/admin/send-1ds-mail", requireAdmin, c.postSend1dsMailAll);
+router.post("/admin/send-1ds-mail-one", requireAdmin, c.postSend1dsMailOne);
 router.post("/admin/pattern/seed", requireAdmin, c.postPatternSeed);
 router.post("/admin/pattern/analyze", requireAdmin, c.postPatternAnalyze);
 router.post("/admin/backtest/qva", requireAdmin, c.postQvaBacktest);
