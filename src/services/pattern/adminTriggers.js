@@ -16,6 +16,10 @@ const patternState = {
   // 전체 보드 갱신 (QVA + D+5 재돌파 × 3 + 1DS) — cron 16:35 + /admin/refresh-all-boards
   refreshingAllBoards: false, allBoardsRefreshStartedAt: null, allBoardsRefreshFinishedAt: null,
   allBoardsRefreshError: null, allBoardsCurrent: null, allBoardsResults: [],
+  // 1DS 분봉 수집 + 보드 재생성 — cron 평일 09:31 + /admin/refresh-1ds-intraday
+  refreshing1dsIntraday: false, oneDsIntradayStartedAt: null, oneDsIntradayFinishedAt: null,
+  oneDsIntradayError: null, oneDsIntradayPhase: null,
+  oneDsIntradayCollected: 0, oneDsIntradayFailed: 0,
 };
 
 // 16:35 cron + admin 트리거가 같은 순서로 갱신하는 보드 스크립트 목록.
@@ -239,6 +243,78 @@ function refreshAllBoards() {
   };
 }
 
+// 1DS 분봉 수집 + 1DS 보드 재생성 — cron 평일 09:31 + /admin/refresh-1ds-intraday 가 호출.
+// (1) collect-1ds-intraday.js --from-board 으로 보드 mainPool 코드만 KIS에서 분봉 수집
+// (2) one-day-surge-board.js 로 보드 재생성 (수집된 분봉이 trade plan에 반영됨)
+function refresh1dsIntraday() {
+  if (patternState.refreshing1dsIntraday) {
+    return { ok: false, message: "이미 1DS 분봉 수집 중입니다", startedAt: patternState.oneDsIntradayStartedAt };
+  }
+  patternState.refreshing1dsIntraday = true;
+  patternState.oneDsIntradayStartedAt = new Date().toISOString();
+  patternState.oneDsIntradayFinishedAt = null;
+  patternState.oneDsIntradayError = null;
+  patternState.oneDsIntradayPhase = "collect";
+  patternState.oneDsIntradayCollected = 0;
+  patternState.oneDsIntradayFailed = 0;
+
+  (async () => {
+    try {
+      // Phase 1: 분봉 수집
+      const collectScript = path.join(ROOT, "collect-1ds-intraday.js");
+      console.log("[1DS Intraday] 분봉 수집 시작");
+      const collectRes = await new Promise((resolve) => {
+        const proc = spawn("node", [collectScript, "--from-board"], { cwd: ROOT });
+        let stdout = "", stderr = "";
+        proc.stdout.on("data", (d) => { const s = d.toString(); stdout += s; process.stdout.write("[1DS-COL] " + s); });
+        proc.stderr.on("data", (d) => { const s = d.toString(); stderr += s; process.stderr.write("[1DS-COL ERR] " + s); });
+        proc.on("close", (code) => resolve({ ok: code === 0, code, stdout, stderr }));
+        proc.on("error", (err) => resolve({ ok: false, code: -1, stdout, stderr: err.message }));
+      });
+      // collect 출력에서 success/fail 카운트 파싱 (best-effort)
+      const okMatch = collectRes.stdout.match(/수집 성공:\s*(\d+)/);
+      const failMatch = collectRes.stdout.match(/실패\/누락:\s*(\d+)/);
+      patternState.oneDsIntradayCollected = okMatch ? parseInt(okMatch[1], 10) : 0;
+      patternState.oneDsIntradayFailed    = failMatch ? parseInt(failMatch[1], 10) : 0;
+
+      if (!collectRes.ok) {
+        patternState.oneDsIntradayError = `collect 실패 (exit ${collectRes.code}): ${collectRes.stderr.slice(0, 300)}`;
+        // collect 실패해도 보드는 재생성 시도 (이전 분봉 데이터는 살아있음)
+      }
+
+      // Phase 2: 보드 재생성
+      patternState.oneDsIntradayPhase = "regen";
+      console.log("[1DS Intraday] 보드 재생성 시작");
+      const regenScript = path.join(ROOT, "one-day-surge-board.js");
+      const regenRes = await new Promise((resolve) => {
+        const proc = spawn("node", [regenScript], { cwd: ROOT });
+        let stderr = "";
+        proc.stdout.on("data", (d) => process.stdout.write("[1DS-BD] " + d.toString()));
+        proc.stderr.on("data", (d) => { stderr += d.toString(); process.stderr.write("[1DS-BD ERR] " + d.toString()); });
+        proc.on("close", (code) => resolve({ ok: code === 0, code, stderr }));
+        proc.on("error", (err) => resolve({ ok: false, code: -1, stderr: err.message }));
+      });
+      if (!regenRes.ok) {
+        const prev = patternState.oneDsIntradayError ? patternState.oneDsIntradayError + " / " : "";
+        patternState.oneDsIntradayError = prev + `regen 실패 (exit ${regenRes.code}): ${regenRes.stderr.slice(0, 300)}`;
+      }
+    } catch (e) {
+      patternState.oneDsIntradayError = e.message;
+    } finally {
+      patternState.refreshing1dsIntraday = false;
+      patternState.oneDsIntradayPhase = null;
+      patternState.oneDsIntradayFinishedAt = new Date().toISOString();
+      console.log(`[1DS Intraday] 완료: 수집 ${patternState.oneDsIntradayCollected}건 / 실패 ${patternState.oneDsIntradayFailed}건` + (patternState.oneDsIntradayError ? ` / 에러: ${patternState.oneDsIntradayError}` : ""));
+    }
+  })();
+
+  return {
+    ok: true,
+    message: "1DS 분봉 수집 + 보드 재생성 시작 (백그라운드, 약 30초~1분)",
+    startedAt: patternState.oneDsIntradayStartedAt,
+  };
+}
+
 module.exports = {
   patternState,
   BOARD_SCRIPTS,
@@ -247,6 +323,7 @@ module.exports = {
   startQvaBacktest,
   refreshPatternCache,
   refreshWatchlistBoard,
+  refresh1dsIntraday,
   refreshAllBoards,
   runDailyUpdate,
   PATTERN_RESULT_PATH,

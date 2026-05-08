@@ -60,6 +60,7 @@ function parseArgs(argv) {
     retry: 2,                // retries per stock on failure
     endHour: '100000',       // KIS hour parameter (returns 120 bars going back)
     dryRun: false,
+    fromBoard: false,        // reports/one-day-surge-board-result.json의 mainPoolCodes만 수집 (라이브 운영용)
   };
   for (let i = 2; i < argv.length; i++) {
     const k = argv[i];
@@ -73,6 +74,7 @@ function parseArgs(argv) {
     else if (k === '--retry') a.retry = parseInt(argv[++i], 10) || 2;
     else if (k === '--end-hour') a.endHour = argv[++i];
     else if (k === '--dry-run') a.dryRun = true;
+    else if (k === '--from-board') a.fromBoard = true;
     else if (k === '--help' || k === '-h') { printHelp(); process.exit(0); }
   }
   return a;
@@ -88,7 +90,8 @@ function printHelp() {
   --sleep 350                  KIS 콜 사이 대기 (ms)
   --retry 2                    실패 시 재시도 횟수
   --end-hour 100000            KIS hour 파라미터
-  --dry-run                    후보만 카운트, KIS 호출 X`);
+  --dry-run                    후보만 카운트, KIS 호출 X
+  --from-board                 reports/one-day-surge-board-result.json의 mainPoolCodes만 수집 (라이브 운영용 — target-date는 보드 analysisDate로 자동 설정)`);
 }
 
 // ── 유틸 ──
@@ -142,15 +145,46 @@ async function main() {
   console.log('\n📡 1DS 분봉 백필 (ENTRY_CONFIRM 연구용)');
   if (args.dryRun) console.log('  ⚠ DRY RUN — 후보 카운트만, KIS 호출 X');
 
-  // 1) 후보 산출 (report.js helper 재사용)
+  // --from-board: 보드 JSON에서 mainPool 코드 + analysisDate를 읽어 target-date 자동 세팅
+  let boardMainPoolCodes = null;
+  if (args.fromBoard) {
+    const boardPath = path.join(REPORTS_DIR, 'one-day-surge-board-result.json');
+    if (!fs.existsSync(boardPath)) {
+      console.error(`  [ERROR] --from-board 모드인데 ${boardPath} 가 없습니다. 먼저 보드를 생성하세요.`);
+      process.exit(1);
+    }
+    const board = JSON.parse(fs.readFileSync(boardPath, 'utf-8'));
+    boardMainPoolCodes = new Set(board.priorityRanked && board.priorityRanked.mainPoolCodes || []);
+    if (boardMainPoolCodes.size === 0) {
+      console.warn(`  ⚠ 보드 mainPoolCodes 0건 — 분봉 수집 대상 없음. 보드 후보가 생기면 다시 실행.`);
+      return;
+    }
+    if (!args.targetDate) {
+      const ad = board.meta && board.meta.analysisDate;
+      if (!ad) {
+        console.error(`  [ERROR] 보드에 analysisDate가 없습니다.`);
+        process.exit(1);
+      }
+      args.targetDate = ad.slice(0, 4) + '-' + ad.slice(4, 6) + '-' + ad.slice(6, 8);
+    }
+    console.log(`  📌 --from-board: ${boardMainPoolCodes.size}개 코드 / target-date=${args.targetDate}`);
+  }
+
+  // 1) 후보 산출
   const metaMap = report.loadStockMetaMap();
   const files = fs.readdirSync(CHART_DIR).filter((f) => f.endsWith('.json'));
-  // 기간/타겟에 따라 사용할 windowDays 결정 (D-day filter는 후처리)
-  const effectiveWindow = args.targetDate || args.from || args.to ? Math.max(args.windowDays, 60) : args.windowDays;
-  const { allEvents, eventsByDate, stocksProcessed, stocksFiltered } =
-    report.generateGtEventsByDate({ windowDays: effectiveWindow, groupsFilter: args.groups, metaMap, files, requireNextDay: false });
   console.log(`  메타: ${metaMap.size}건 / 차트 파일: ${files.length}건`);
-  console.log(`  처리 종목: ${stocksProcessed} / 필터 제외: ${stocksFiltered} / 그룹 후보 이벤트: ${allEvents.length}건 (${eventsByDate.size}일)`);
+
+  // from-board 모드는 generateGtEventsByDate 우회 — 보드의 그룹 분류(classifyGtGroup)와 events의 그룹
+  // 분류(classifyGroup)가 달라 매칭이 누락될 수 있으므로 mainPoolCodes를 직접 iterate한다.
+  let allEvents = [], eventsByDate = new Map(), stocksProcessed = 0, stocksFiltered = 0;
+  if (!boardMainPoolCodes) {
+    const effectiveWindow = args.targetDate || args.from || args.to ? Math.max(args.windowDays, 60) : args.windowDays;
+    const r = report.generateGtEventsByDate({ windowDays: effectiveWindow, groupsFilter: args.groups, metaMap, files, requireNextDay: false });
+    allEvents = r.allEvents; eventsByDate = r.eventsByDate;
+    stocksProcessed = r.stocksProcessed; stocksFiltered = r.stocksFiltered;
+    console.log(`  처리 종목: ${stocksProcessed} / 필터 제외: ${stocksFiltered} / 그룹 후보 이벤트: ${allEvents.length}건 (${eventsByDate.size}일)`);
+  }
 
   // 2) D일 필터 적용
   let targetBaseDates;
@@ -173,7 +207,37 @@ async function main() {
   let totalCandidates = 0;
   const tasks = []; // [{ baseDate, nextDateNum, nextDateStr, code, name, gtGroup, ev }]
   for (const d of sortedTargetDates) {
-    let evs = (eventsByDate.get(d) || []).filter((e) => args.groups.includes(e.gtGroup) && e.gtGroup !== 'UNCLASSIFIED');
+    let evs;
+    if (boardMainPoolCodes) {
+      // from-board 모드: D-day 차트에서 mainPoolCodes 코드들의 last row 정보를 직접 만들어 evs로 사용
+      evs = [];
+      for (const code of boardMainPoolCodes) {
+        const meta = metaMap.get(code);
+        if (!meta) continue;
+        const fp = path.join(CHART_DIR, code + '.json');
+        if (!fs.existsSync(fp)) continue;
+        let chart;
+        try { chart = JSON.parse(fs.readFileSync(fp, 'utf-8')); }
+        catch (_) { continue; }
+        const rows = chart && chart.rows;
+        if (!Array.isArray(rows) || rows.length < 2) continue;
+        // D-day가 차트의 마지막 row와 일치하는지 확인
+        const dayRowIdx = rows.findIndex((r) => r.date === d);
+        if (dayRowIdx < 0) continue;
+        const dayRow = rows[dayRowIdx];
+        const nextRow = rows[dayRowIdx + 1] || null; // 차트에 D+1이 있으면 사용, 없으면 null (라이브 수집 fallback이 today로 채움)
+        evs.push({
+          code, name: chart.name || meta.name || code, market: chart.market || meta.market || '',
+          marketCap: meta.marketCap, gtGroup: 'BOARD_MAIN_POOL', // sort 시 사용 안 됨 (모두 같은 우선순위)
+          baseDate: d, nextDayRow: nextRow,
+          // sort 보조 필드 (없으면 0/9999 fallback)
+          valueToMarketCapRatio: 0, dailyValueRank: 9999,
+          changeRate: 0, recent5Up15Count: 0, candleType: null,
+        });
+      }
+    } else {
+      evs = (eventsByDate.get(d) || []).filter((e) => args.groups.includes(e.gtGroup) && e.gtGroup !== 'UNCLASSIFIED');
+    }
     // 정렬: 그룹 우선순위 → valueToMcRatio 내림차순 → dailyValueRank 오름차순
     const groupRank = { 'BALANCED-GT': 1, 'LIGHT-GT': 2, 'MID-CAP-GT': 3, 'MOM-RISK': 4 };
     evs.sort((a, b) => {

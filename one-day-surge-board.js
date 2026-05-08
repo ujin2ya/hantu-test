@@ -935,6 +935,8 @@ function main() {
       overflowHiddenCount: overflowPool.length,
       topPriorityLimit:   TOP_PRIORITY_LIMIT,
       extraPriorityLimit: EXTRA_PRIORITY_LIMIT,
+      // 위험 필터 통과한 추천 풀 전체 코드 (top + extra + overflow). collect-1ds-intraday.js --from-board 가 이 리스트로 분봉 수집.
+      mainPoolCodes: mainPool.map((it) => it.code),
     },
     latestDayType,
     marketState,

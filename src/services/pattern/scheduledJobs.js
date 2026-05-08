@@ -1,11 +1,11 @@
-// 일일 cron 스케줄 — 16:10 분석 / 16:20 일일 갱신(평일) / 16:35 보드 갱신(평일) / 평일 09:30:30 1DS 메일(MAIL_CRON_ENABLED).
+// 일일 cron 스케줄 — 16:10 분석 / 16:20 일일 갱신(평일) / 16:35 보드 갱신(평일) / 평일 09:31 1DS 분봉+보드 / 평일 09:32 1DS 메일(MAIL_CRON_ENABLED).
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 const cron = require("node-cron");
 const patternScreener = require("../../../pattern-screener");
 const { ROOT, CACHE_DIR, REPORTS_DIR } = require("../../utils/paths");
-const { patternState, PATTERN_RESULT_PATH, BOARD_SCRIPTS } = require("./adminTriggers");
+const { patternState, PATTERN_RESULT_PATH, BOARD_SCRIPTS, refresh1dsIntraday } = require("./adminTriggers");
 const { sendOneDaySurgeMail } = require("../mail/oneDaySurgeMail");
 
 const ONE_DAY_SURGE_RESULT_PATH = path.join(REPORTS_DIR, "one-day-surge-board-result.json");
@@ -81,11 +81,21 @@ function registerSchedules() {
   }, { scheduled: true, timezone: "Asia/Seoul" });
   console.log(`[스케줄] 매일 평일 16:35 전체 보드 갱신 활성화 (${BOARD_SCRIPTS.length}개 — QVA + 재돌파 × 3 + 1DS)`);
 
-  // 평일 09:30:30 — 1-Day Surge 보드 메일 (MAIL_CRON_ENABLED=1 일 때만)
-  // 6-field cron: 초 분 시 일 월 요일. 직전 평일 16:35에 생성된 1DS 보드를 다음 거래일 장초에 발송.
+  // 평일 09:31 — 1DS 분봉 수집 + 보드 재생성
+  // 09:00~09:30 분봉을 KIS에서 수집해 보드 mainPool 후보에 attach → trade plan이 분봉 기반으로 재계산.
+  // 메일 발송(09:32) 직전에 끝나도록 09:31에 시작 (collect ~10초 + regen ~5초).
+  cron.schedule("0 31 9 * * 1-5", () => {
+    console.log("[1DS Intraday cron] 09:31 시작");
+    const r = refresh1dsIntraday();
+    if (!r.ok) console.warn("[1DS Intraday cron] 실행 거부:", r.message);
+  }, { scheduled: true, timezone: "Asia/Seoul" });
+  console.log("[스케줄] 평일 09:31 1DS 분봉 수집 + 보드 재생성 활성화 (한국 시간)");
+
+  // 평일 09:32 — 1-Day Surge 보드 메일 (MAIL_CRON_ENABLED=1 일 때만)
+  // 09:31 분봉 수집·보드 재생성이 끝난 직후 발송 → 메일에 분봉 반영된 trade plan 포함.
   if (process.env.MAIL_CRON_ENABLED === "1") {
-    cron.schedule("30 30 9 * * 1-5", async () => {
-      console.log("[1DS메일] 09:30:30 — one-day-surge-board-result.json 기반 단타 후보 메일 발송 시작");
+    cron.schedule("0 32 9 * * 1-5", async () => {
+      console.log("[1DS메일] 09:32 — one-day-surge-board-result.json 기반 단타 후보 메일 발송 시작");
       try {
         if (!fs.existsSync(ONE_DAY_SURGE_RESULT_PATH)) {
           console.log("[1DS메일] one-day-surge-board-result.json 없음 — 스킵");
@@ -97,7 +107,7 @@ function registerSchedules() {
         console.error("[1DS메일] 에러:", e.message);
       }
     }, { scheduled: true, timezone: "Asia/Seoul" });
-    console.log("[스케줄] 평일 09:30:30 1DS 단타 후보 메일 자동 발송 활성화 (한국 시간)");
+    console.log("[스케줄] 평일 09:32 1DS 단타 후보 메일 자동 발송 활성화 (한국 시간)");
   }
 }
 
