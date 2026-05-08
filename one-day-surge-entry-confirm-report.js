@@ -274,7 +274,7 @@ function summarizeBucket(events) {
 // ── 공용: D일별 GT 후보 이벤트 생성 (collect script와 공유) ──
 // 주어진 윈도우 일수만큼 historical baseIdx를 walk하면서 각 일자의 GT 후보를 분류한다.
 // returns { allEvents, eventsByDate, stocksProcessed, stocksFiltered }
-function generateGtEventsByDate({ windowDays, groupsFilter, metaMap, files }) {
+function generateGtEventsByDate({ windowDays, groupsFilter, metaMap, files, requireNextDay = true }) {
   const eventsByDate = new Map();
   let stocksProcessed = 0, stocksFiltered = 0;
 
@@ -289,7 +289,8 @@ function generateGtEventsByDate({ windowDays, groupsFilter, metaMap, files }) {
     const rows = chart && chart.rows;
     if (!Array.isArray(rows) || rows.length < core.CONFIG.MIN_HISTORY) continue;
 
-    const lastUsableIdx = rows.length - 2; // D+1 outcome 있어야 함
+    // 백테스트 path는 D+1 outcome row가 필요. 라이브 분봉 수집 path는 D+1이 아직 없어도 D-day 후보를 그대로 써야 함.
+    const lastUsableIdx = requireNextDay ? rows.length - 2 : rows.length - 1;
     const startIdx = Math.max(20, lastUsableIdx - windowDays + 1);
     for (let bi = startIdx; bi <= lastUsableIdx; bi++) {
       const m = core.analyzeAt(rows, bi);

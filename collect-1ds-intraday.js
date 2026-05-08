@@ -148,7 +148,7 @@ async function main() {
   // 기간/타겟에 따라 사용할 windowDays 결정 (D-day filter는 후처리)
   const effectiveWindow = args.targetDate || args.from || args.to ? Math.max(args.windowDays, 60) : args.windowDays;
   const { allEvents, eventsByDate, stocksProcessed, stocksFiltered } =
-    report.generateGtEventsByDate({ windowDays: effectiveWindow, groupsFilter: args.groups, metaMap, files });
+    report.generateGtEventsByDate({ windowDays: effectiveWindow, groupsFilter: args.groups, metaMap, files, requireNextDay: false });
   console.log(`  메타: ${metaMap.size}건 / 차트 파일: ${files.length}건`);
   console.log(`  처리 종목: ${stocksProcessed} / 필터 제외: ${stocksFiltered} / 그룹 후보 이벤트: ${allEvents.length}건 (${eventsByDate.size}일)`);
 
@@ -184,11 +184,24 @@ async function main() {
       return (a.dailyValueRank || 9999) - (b.dailyValueRank || 9999);
     });
     if (args.topPerDay > 0 && evs.length > args.topPerDay) evs = evs.slice(0, args.topPerDay);
+    // 라이브 수집 path: D+1 row가 아직 차트에 없으면 시스템 날짜(오늘)를 nextDate로 가정.
+    // YYYYMMDD 형식 (KST 기준).
+    const todayParts = new Date().toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).split('. ');
+    const todayNum = todayParts[0] + (todayParts[1] || '').padStart(2, '0') + ((todayParts[2] || '').replace('.', '')).padStart(2, '0');
     for (const ev of evs) {
       const next = ev.nextDayRow;
-      if (!next || !next.date) continue;
+      let nextDateNum, nextDateStr;
+      if (next && next.date) {
+        nextDateNum = next.date;
+        nextDateStr = dateNumToStr(next.date);
+      } else {
+        // D+1 row 미존재 — 오늘 분봉을 라이브로 수집한다고 가정
+        if (todayNum <= d) continue; // 오늘이 D-day 이하면 D+1 분봉이 아직 없음 (skip)
+        nextDateNum = todayNum;
+        nextDateStr = dateNumToStr(todayNum);
+      }
       tasks.push({
-        baseDate: d, nextDateNum: next.date, nextDateStr: dateNumToStr(next.date),
+        baseDate: d, nextDateNum, nextDateStr,
         code: ev.code, name: ev.name, gtGroup: ev.gtGroup,
         marketCap: ev.marketCap, valueToMarketCapRatio: ev.valueToMarketCapRatio,
         dailyValueRank: ev.dailyValueRank, candleType: ev.candleType,
