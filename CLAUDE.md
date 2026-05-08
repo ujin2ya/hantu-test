@@ -266,8 +266,8 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 | 16:10 | 매일 | `pattern-screener.analyzeAll()` 호출 → `cache/pattern-result.json` 갱신 (종가 기준 신호 재계산만) | 항상 |
 | 16:20 | 평일 (월-금) | `node run-daily-analysis.js` 외부 실행 (차트+수급 갱신 + 재분석) | `patternState.analyzing`이 false일 때만 |
 | 16:35 | 평일 (월-금) | **전체 보드 갱신** — `BOARD_SCRIPTS` 5개 순차 실행: `qva-watchlist-board.js` → `hgroup-rebreak-operation-board.js` → `hgroup-rebreak-deep-dive-report.js` → `hgroup-rebreak-flow-backtest.js` → `one-day-surge-board.js` | 항상 (보드별 실패는 다음 보드로 진행) |
-| 09:31 | 평일 (월-금) | **1DS 분봉 수집 + 보드 재생성** ([refresh1dsIntraday](src/services/pattern/adminTriggers.js)) — `collect-1ds-intraday.js --from-board`로 보드 mainPool 코드의 09:00~09:30 분봉을 KIS API에서 받아 `data/intraday/1ds/{오늘}/`에 저장 → `one-day-surge-board.js` 재실행. 분봉 들어오면 trade plan이 분봉 기반(`strategySource: intraday`)으로 갱신되고, peak_before_entry/trap_risk 등 위험 태그가 걸리는 후보는 mainPool에서 빠짐 | 항상 |
-| 09:32 | 평일 (월-금) | `reports/one-day-surge-board-result.json` 기반 단타 후보 메일 발송 ([sendOneDaySurgeMail](src/services/mail/oneDaySurgeMail.js) — TOP 5 + 추가 10 = 최대 15종목, manualTargets 매수/매도가 포함). 09:31 분봉 수집·보드 재생성 직후 발송 → 메일에 분봉 반영된 trade plan 포함. 6-field cron 표현식 `0 32 9 * * 1-5` | `MAIL_CRON_ENABLED=1`일 때만 |
+| 09:30:00 | 평일 (월-금) | **1DS 분봉 수집 + 보드 재생성** ([refresh1dsIntraday](src/services/pattern/adminTriggers.js)) — `collect-1ds-intraday.js --from-board`로 보드 mainPool 코드의 09:00~09:30 분봉을 KIS API에서 받아 `data/intraday/1ds/{오늘}/`에 저장 → `one-day-surge-board.js` 재실행. 사용자가 09:30 정각 새로고침할 때 분봉 반영된 후보를 보도록 정각 시작. 보통 09:30:15~30 사이 완료, 사용자는 09:30:30+ 새로고침에서 확인 가능. 분봉 들어오면 trade plan이 분봉 기반(`strategySource: intraday`)으로 갱신되고, peak_before_entry/trap_risk 등 위험 태그가 걸리는 후보는 mainPool에서 빠짐 (단 morningHigh 재돌파 ✓ 면제) | 항상 |
+| 09:32 | 평일 (월-금) | `reports/one-day-surge-board-result.json` 기반 단타 후보 메일 발송 ([sendOneDaySurgeMail](src/services/mail/oneDaySurgeMail.js) — TOP 5 + 추가 10 = 최대 15종목, manualTargets 매수/매도가 포함). 09:30 분봉 수집·보드 재생성 후 90초 마진 두고 발송 → 메일에 분봉 반영된 trade plan 포함. 6-field cron 표현식 `0 32 9 * * 1-5` | `MAIL_CRON_ENABLED=1`일 때만 |
 
 각 스크립트의 역할:
 - `update-flow-daily.js` — KIS API로 최근 외국인/기관 수급 → `cache/flow-history/{code}.json` 증분 병합

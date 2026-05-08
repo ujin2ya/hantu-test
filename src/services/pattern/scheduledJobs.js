@@ -1,4 +1,4 @@
-// 일일 cron 스케줄 — 16:10 분석 / 16:20 일일 갱신(평일) / 16:35 보드 갱신(평일) / 평일 09:31 1DS 분봉+보드 / 평일 09:32 1DS 메일(MAIL_CRON_ENABLED).
+// 일일 cron 스케줄 — 16:10 분석 / 16:20 일일 갱신(평일) / 16:35 보드 갱신(평일) / 평일 09:30 1DS 분봉+보드 / 평일 09:32 1DS 메일(MAIL_CRON_ENABLED).
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
@@ -81,18 +81,19 @@ function registerSchedules() {
   }, { scheduled: true, timezone: "Asia/Seoul" });
   console.log(`[스케줄] 매일 평일 16:35 전체 보드 갱신 활성화 (${BOARD_SCRIPTS.length}개 — QVA + 재돌파 × 3 + 1DS)`);
 
-  // 평일 09:31 — 1DS 분봉 수집 + 보드 재생성
-  // 09:00~09:30 분봉을 KIS에서 수집해 보드 mainPool 후보에 attach → trade plan이 분봉 기반으로 재계산.
-  // 메일 발송(09:32) 직전에 끝나도록 09:31에 시작 (collect ~10초 + regen ~5초).
-  cron.schedule("0 31 9 * * 1-5", () => {
-    console.log("[1DS Intraday cron] 09:31 시작");
+  // 평일 09:30:00 — 1DS 분봉 수집 + 보드 재생성
+  // 사용자가 09:30 정각에 보드 새로고침할 때 분봉 반영된 후보를 보도록 정각에 시작.
+  // KIS API의 09:30 1분봉 반영이 약간 지연되더라도 collect retry로 흡수, 보통 09:30:15~30 사이 완료.
+  // 사용자는 09:30:30 정도에 새로고침하면 분봉 반영 결과 확인 가능.
+  cron.schedule("0 30 9 * * 1-5", () => {
+    console.log("[1DS Intraday cron] 09:30 시작");
     const r = refresh1dsIntraday();
     if (!r.ok) console.warn("[1DS Intraday cron] 실행 거부:", r.message);
   }, { scheduled: true, timezone: "Asia/Seoul" });
-  console.log("[스케줄] 평일 09:31 1DS 분봉 수집 + 보드 재생성 활성화 (한국 시간)");
+  console.log("[스케줄] 평일 09:30 1DS 분봉 수집 + 보드 재생성 활성화 (한국 시간)");
 
   // 평일 09:32 — 1-Day Surge 보드 메일 (MAIL_CRON_ENABLED=1 일 때만)
-  // 09:31 분봉 수집·보드 재생성이 끝난 직후 발송 → 메일에 분봉 반영된 trade plan 포함.
+  // 09:30 분봉 수집·보드 재생성이 끝난 후(약 90초 마진) 발송 → 메일에 분봉 반영된 trade plan 포함.
   if (process.env.MAIL_CRON_ENABLED === "1") {
     cron.schedule("0 32 9 * * 1-5", async () => {
       console.log("[1DS메일] 09:32 — one-day-surge-board-result.json 기반 단타 후보 메일 발송 시작");
