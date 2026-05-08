@@ -147,19 +147,34 @@ const EXTRA_PRIORITY_LIMIT = 10;  // 추가 후보 노출 (접힘, 최대)
 
 // 추천 후보에서 hard 제외할 위험 패턴 — passesRiskFilter()
 // (penalty가 아니라 완전 제외. 위험 분석은 연구 보고서에서만 한다.)
+//
+// 면제 규칙: 09:10~30 morningHigh 재돌파(rebreakMorningHigh_10_30 ✓) 한 후보는
+//   prev_high_spike / peak_before_entry 위험을 면제한다.
+//   - "전일 고가 돌파 spike + 첫 10분 고점 재돌파" = 강한 한입 패턴
+//   - "9:10에 한번 빠졌다가 첫 10분 고점 재돌파" = 회복 흐름
+//   둘 다 단독 spike/peakBefore와는 완전히 다른 패턴이지만 기존 필터는 단독 조건만 보고 자동 제외했음.
+//   사용자 단타 성공 실증 데이터 기반으로 morningHigh 재돌파 ✓ 면제 추가.
 function passesRiskFilter(it) {
   // 1) 그룹이 추천 풀(BAL/LIGHT/MID-CAP) 아니면 제외
   if (!MAIN_POOL_GROUPS.includes(it.gtGroup)) return { ok: false, reason: 'group_off_pool' };
-  // 2) GAP_HOLD 캔들 — 갭상승 후 종가 유지형, TRAP 위험. 백테스트에서 fail5 69%.
+  // 2) GAP_HOLD 캔들 — 갭상승 후 종가 유지형, TRAP 위험. 백테스트에서 fail5 69%. (면제 X)
   if (it.candleType === 'GAP_HOLD') return { ok: false, reason: 'gap_hold_candle' };
-  // 3) 분봉 위험 태그 — 전일고가 돌파 spike / 위험 그룹 morningHigh
-  const tags = it.entryStrategies || [];
-  if (tags.includes('PREV_HIGH_SPIKE')) return { ok: false, reason: 'prev_high_spike' };
-  if (tags.includes('RISK_REBREAK'))    return { ok: false, reason: 'risk_rebreak' };
-  // 4) peakBeforeEntry 라이브 추격 위험 — 09:10 진입 시점에 이미 09:00~10 max보다 1%↑ 아래
-  if (it.intraday && it.intraday.peakBeforeEntryLive === true) return { ok: false, reason: 'peak_before_entry' };
-  // 5) trap 위험 (윗꼬리 + 5d 과열) ≥ 60
+  // 3) trap 위험 (윗꼬리 + 5d 과열) ≥ 60 — 일봉 기반, morningHigh와 무관 (면제 X)
   if (calcRiskTrapScore(it) >= 60) return { ok: false, reason: 'trap_risk_high' };
+  // 4) RISK_REBREAK — MOM-RISK 그룹 morningHigh, 그룹 자체가 위험 (면제 X — 그룹이 위험 그룹)
+  const tags = it.entryStrategies || [];
+  if (tags.includes('RISK_REBREAK')) return { ok: false, reason: 'risk_rebreak' };
+
+  // 5) prev_high_spike / peak_before_entry — morningHigh 재돌파 ✓이면 면제
+  const morningRebreak = it.intraday && it.intraday.rebreakMorningHigh_10_30 === true;
+  if (tags.includes('PREV_HIGH_SPIKE')) {
+    if (!morningRebreak) return { ok: false, reason: 'prev_high_spike' };
+    it.riskExempted = (it.riskExempted || []).concat(['prev_high_spike']);
+  }
+  if (it.intraday && it.intraday.peakBeforeEntryLive === true) {
+    if (!morningRebreak) return { ok: false, reason: 'peak_before_entry' };
+    it.riskExempted = (it.riskExempted || []).concat(['peak_before_entry']);
+  }
   return { ok: true, reason: null };
 }
 
@@ -864,6 +879,8 @@ function main() {
 
   // 가시성 카운트 (요약 cards용)
   const totalRiskExcluded = Object.values(riskExcludeCounts).reduce((a, b) => a + b, 0);
+  // morningHigh 재돌파 ✓로 위험 면제된 후보 수 (mainPool 통과)
+  const riskExemptedCount = mainPool.filter((it) => it.riskExempted && it.riskExempted.length > 0).length;
   const visibilityCounts = {
     totalPool: candidates.length,        // 분류 가능한 모든 후보 (UNCLASSIFIED 포함 안 됨)
     unclassified,                        // 화면 표시 X
@@ -873,6 +890,7 @@ function main() {
     overflowHidden: overflowPool.length, // 메인 풀 16+ 위 — 화면 숨김
     riskExcluded: totalRiskExcluded,     // 위험 필터로 제외된 수
     riskExcludeBreakdown: riskExcludeCounts,
+    riskExemptedCount,                   // morningHigh 재돌파로 위험 면제된 mainPool 후보 수
   };
 
   // 백테스트 dayType + 시장 상태 로드
@@ -1060,6 +1078,7 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .strategy-chip.RISK_REBREAK     { background: #7c2d12; color: #fdba74; border-color: #f97316; }
 .strategy-chip.PREV_HIGH_SPIKE  { background: #422006; color: #fbbf24; border-color: #ca8a04; }
 .strategy-chip.PEAK_BEFORE_WARN { background: #7f1d1d; color: #fca5a5; border-color: #ef4444; font-weight: 800; }
+.strategy-chip.RISK_EXEMPTED    { background: #422006; color: #fcd34d; border-color: #d97706; font-weight: 700; }
 
 /* 시장 상태 banner */
 .market-banner { padding: 10px 16px; border-radius: 8px; margin-bottom: 14px; font-size: 12px; line-height: 1.7; border-left: 4px solid; }
@@ -1479,8 +1498,8 @@ function renderSummary() {
     { lab: '전체 후보 풀', val: v.totalPool, sub: '분류 가능 후보 (UNCLASSIFIED 제외)', cls: '' },
     { lab: '최우선 노출',  val: v.topPriorityShown, sub: 'displayPriorityScore 상위, 메인 펼침', cls: 'entry-safe' },
     { lab: '추가 후보',    val: v.extraPriorityShown, sub: '6~15위, 접힘', cls: 'entry-light' },
-    { lab: '추천 풀 합계',  val: v.mainPoolSize, sub: '위험 필터 통과 후', cls: '' },
-    { lab: '위험 필터 제외', val: v.riskExcluded, sub: 'MOM-RISK·GAP_HOLD·SPIKE·peakBefore 등', cls: 'entry-warn' },
+    { lab: '추천 풀 합계',  val: v.mainPoolSize, sub: '위험 필터 통과 후' + (v.riskExemptedCount ? ' · 면제 ' + v.riskExemptedCount + '건' : ''), cls: '' },
+    { lab: '위험 필터 제외', val: v.riskExcluded, sub: 'MOM-RISK·GAP_HOLD·SPIKE·peakBefore 등 (morningHigh 재돌파 ✓는 면제)', cls: 'entry-warn' },
     { lab: '숨김',         val: (v.overflowHidden || 0) + (v.unclassified || 0),
       sub: 'overflow ' + (v.overflowHidden || 0) + ' + 미분류 ' + (v.unclassified || 0), cls: '' },
     { lab: '장초 분봉 상태', val: minuteState, sub: '분봉 적용 ' + (e.withMinute || 0) + '건', cls: 'entry-clean' },
@@ -1874,9 +1893,16 @@ function strategyChips(it) {
     const d = defs[s] || {};
     return '<span class="strategy-chip ' + s + '" title="' + (d.desc || '').replace(/"/g, '&quot;') + '">' + (d.chipLabel || s) + '</span>';
   });
-  // peakBeforeEntryLive 라이브 추격 위험 — 별도 강조 chip
-  if (it.intraday && it.intraday.peakBeforeEntryLive === true) {
+  // morningHigh 재돌파 ✓로 면제된 위험 표시 — 사용자가 위험을 인지하면서 선택할 수 있게
+  const exempted = it.riskExempted || [];
+  if (exempted.includes('peak_before_entry')) {
+    chips.push('<span class="strategy-chip RISK_EXEMPTED" title="09:10에 첫 10분 고점 통과했지만 09:10~30 사이에 그 고점을 다시 재돌파해 회복 흐름. 위험 자동 제외에서 면제됨 — 다만 추격 시점 주의.">↗ 재돌파 회복 (peakBefore 면제)</span>');
+  } else if (it.intraday && it.intraday.peakBeforeEntryLive === true) {
+    // 면제 안 된 경우만 (즉 morningHigh 재돌파 X) — 기존 경고 유지
     chips.push('<span class="strategy-chip PEAK_BEFORE_WARN" title="09:10 기준으로는 장중 고점이 이미 나온 뒤일 가능성이 큽니다. 추격 주의가 필요합니다.">⚠ 이미 초반 고점 통과</span>');
+  }
+  if (exempted.includes('prev_high_spike')) {
+    chips.push('<span class="strategy-chip RISK_EXEMPTED" title="전일 고가 돌파 spike이지만 첫 10분 고점 재돌파도 함께 — 강한 한입 패턴. 위험 자동 제외에서 면제됨 — 다만 spike 후 빠질 가능성 인지.">↗ 강한 한입 (spike 면제)</span>');
   }
   return chips.join('');
 }

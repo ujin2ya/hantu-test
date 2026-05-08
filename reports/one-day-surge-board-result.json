@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "1-Day Surge Board v5 · GOOD_TRADE 중심 단타 후보 보드",
-    "generatedAt": "2026-05-08T01:14:42.309Z",
+    "generatedAt": "2026-05-08T01:32:20.052Z",
     "analysisDate": "20260507",
     "analysisDateFmt": "2026-05-07",
     "stockUniverse": 4270,
@@ -146,11 +146,24 @@
         "performanceSource": "과거 40거래일 운영형 백테스트",
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": null,
-        "riskExcluded": "peak_before_entry",
+        "riskExempted": [
+          "peak_before_entry"
+        ],
         "tradePlan": {
-          "mode": "NONE",
-          "status": "AUTO_EXCLUDED_RISK",
-          "reason": "위험 태그로 자동 계산 제외"
+          "mode": "AUTO",
+          "status": "ENTRY_INVALIDATED",
+          "strategy": "BALANCED_REBREAK",
+          "strategySource": "intraday",
+          "baseEntryPrice": 54500,
+          "baseEntrySource": "rebreakPrice",
+          "buyPrice": null,
+          "sellPrice1": null,
+          "sellPrice2": null,
+          "stopPrice": null,
+          "reason": "기준가를 이탈해 자동 진입 보류",
+          "riskNote": "현재가 52,400원이 기준가 54,500원 대비 -3.85% — 흐름 약화",
+          "rewardRisk1": null,
+          "rewardRisk2": null
         },
         "manualTargets": {
           "code": "138080",
@@ -742,7 +755,7 @@
         "performanceSource": "과거 40거래일 운영형 백테스트",
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": null,
-        "riskExcluded": "prev_high_spike",
+        "riskExcluded": "trap_risk_high",
         "tradePlan": {
           "mode": "NONE",
           "status": "AUTO_EXCLUDED_RISK",
@@ -1365,7 +1378,7 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "peak_before_entry",
+        "riskExcluded": "trap_risk_high",
         "tradePlan": {
           "mode": "NONE",
           "status": "AUTO_EXCLUDED_RISK",
@@ -1882,7 +1895,7 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "peak_before_entry",
+        "riskExcluded": "trap_risk_high",
         "tradePlan": {
           "mode": "NONE",
           "status": "AUTO_EXCLUDED_RISK",
@@ -2058,7 +2071,7 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "peak_before_entry",
+        "riskExcluded": "trap_risk_high",
         "tradePlan": {
           "mode": "NONE",
           "status": "AUTO_EXCLUDED_RISK",
@@ -2168,7 +2181,7 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "peak_before_entry",
+        "riskExcluded": "trap_risk_high",
         "tradePlan": {
           "mode": "NONE",
           "status": "AUTO_EXCLUDED_RISK",
@@ -2278,7 +2291,7 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "peak_before_entry",
+        "riskExcluded": "trap_risk_high",
         "tradePlan": {
           "mode": "NONE",
           "status": "AUTO_EXCLUDED_RISK",
@@ -2573,11 +2586,24 @@
         "performanceSource": "과거 40거래일 운영형 백테스트",
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": null,
-        "riskExcluded": "peak_before_entry",
+        "riskExempted": [
+          "peak_before_entry"
+        ],
         "tradePlan": {
-          "mode": "NONE",
-          "status": "AUTO_EXCLUDED_RISK",
-          "reason": "위험 태그로 자동 계산 제외"
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "intraday",
+          "baseEntryPrice": 14070,
+          "baseEntrySource": "rebreakPrice",
+          "buyPrice": 13920,
+          "sellPrice1": 14270,
+          "sellPrice2": 14620,
+          "stopPrice": 13500,
+          "reason": "기준가 근처 눌림 지정가",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하) / 09:10 저가 시초가 대비 -2.56%",
+          "rewardRisk1": 0.83,
+          "rewardRisk2": 1.67
         },
         "manualTargets": {
           "code": "159010",
@@ -2842,7 +2868,7 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "peak_before_entry",
+        "riskExcluded": "trap_risk_high",
         "tradePlan": {
           "mode": "NONE",
           "status": "AUTO_EXCLUDED_RISK",
@@ -2955,11 +2981,24 @@
         "performanceSource": "과거 40거래일 운영형 백테스트",
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": null,
-        "riskExcluded": "prev_high_spike",
+        "riskExempted": [
+          "prev_high_spike"
+        ],
         "tradePlan": {
-          "mode": "NONE",
-          "status": "AUTO_EXCLUDED_RISK",
-          "reason": "위험 태그로 자동 계산 제외"
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "intraday",
+          "baseEntryPrice": 9740,
+          "baseEntrySource": "rebreakPrice",
+          "buyPrice": 9640,
+          "sellPrice1": 9890,
+          "sellPrice2": 10130,
+          "stopPrice": 9350,
+          "reason": "기준가 근처 눌림 지정가",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하) / 09:10 저가 시초가 대비 -2.73%",
+          "rewardRisk1": 0.86,
+          "rewardRisk2": 1.69
         },
         "manualTargets": {
           "code": "004710",
@@ -4033,11 +4072,24 @@
         "performanceSource": "과거 40거래일 운영형 백테스트",
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": null,
-        "riskExcluded": "peak_before_entry",
+        "riskExempted": [
+          "peak_before_entry"
+        ],
         "tradePlan": {
-          "mode": "NONE",
-          "status": "AUTO_EXCLUDED_RISK",
-          "reason": "위험 태그로 자동 계산 제외"
+          "mode": "AUTO",
+          "status": "ENTRY_INVALIDATED",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "intraday",
+          "baseEntryPrice": 17000,
+          "baseEntrySource": "rebreakPrice",
+          "buyPrice": null,
+          "sellPrice1": null,
+          "sellPrice2": null,
+          "stopPrice": null,
+          "reason": "기준가를 이탈해 자동 진입 보류",
+          "riskNote": "현재가 16,390원이 기준가 17,000원 대비 -3.59% — 흐름 약화",
+          "rewardRisk1": null,
+          "rewardRisk2": null
         }
       },
       {
@@ -4138,7 +4190,7 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "peak_before_entry",
+        "riskExcluded": "trap_risk_high",
         "tradePlan": {
           "mode": "NONE",
           "status": "AUTO_EXCLUDED_RISK",
@@ -4683,7 +4735,7 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "peak_before_entry",
+        "riskExcluded": "trap_risk_high",
         "tradePlan": {
           "mode": "NONE",
           "status": "AUTO_EXCLUDED_RISK",
@@ -4802,11 +4854,24 @@
         "performanceSource": "과거 40거래일 운영형 백테스트",
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": null,
-        "riskExcluded": "peak_before_entry",
+        "riskExempted": [
+          "peak_before_entry"
+        ],
         "tradePlan": {
-          "mode": "NONE",
-          "status": "AUTO_EXCLUDED_RISK",
-          "reason": "위험 태그로 자동 계산 제외"
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "intraday",
+          "baseEntryPrice": 5510,
+          "baseEntrySource": "rebreakPrice",
+          "buyPrice": 5450,
+          "sellPrice1": 5590,
+          "sellPrice2": 5730,
+          "stopPrice": 5280,
+          "reason": "기준가 근처 눌림 지정가",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하) / 09:10 저가 시초가 대비 -0.56%",
+          "rewardRisk1": 0.82,
+          "rewardRisk2": 1.65
         }
       },
       {
@@ -4907,7 +4972,7 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "peak_before_entry",
+        "riskExcluded": "trap_risk_high",
         "tradePlan": {
           "mode": "NONE",
           "status": "AUTO_EXCLUDED_RISK",
@@ -5096,11 +5161,24 @@
         "performanceSource": "과거 40거래일 운영형 백테스트",
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": null,
-        "riskExcluded": "prev_high_spike",
+        "riskExempted": [
+          "prev_high_spike"
+        ],
         "tradePlan": {
-          "mode": "NONE",
-          "status": "AUTO_EXCLUDED_RISK",
-          "reason": "위험 태그로 자동 계산 제외"
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "intraday",
+          "baseEntryPrice": 15800,
+          "baseEntrySource": "rebreakPrice",
+          "buyPrice": 15640,
+          "sellPrice1": 16040,
+          "sellPrice2": 16430,
+          "stopPrice": 15170,
+          "reason": "기준가 근처 눌림 지정가",
+          "riskNote": "09:10 저가 시초가 대비 -1.65%",
+          "rewardRisk1": 0.85,
+          "rewardRisk2": 1.68
         }
       },
       {
@@ -5733,11 +5811,24 @@
         "performanceSource": "과거 40거래일 운영형 백테스트",
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": null,
-        "riskExcluded": "peak_before_entry",
+        "riskExempted": [
+          "peak_before_entry"
+        ],
         "tradePlan": {
-          "mode": "NONE",
-          "status": "AUTO_EXCLUDED_RISK",
-          "reason": "위험 태그로 자동 계산 제외"
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "intraday",
+          "baseEntryPrice": 12890,
+          "baseEntrySource": "rebreakPrice",
+          "buyPrice": 12760,
+          "sellPrice1": 13080,
+          "sellPrice2": 13400,
+          "stopPrice": 12370,
+          "reason": "기준가 근처 눌림 지정가",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하) / 09:10 저가 시초가 대비 -3.07%",
+          "rewardRisk1": 0.82,
+          "rewardRisk2": 1.64
         }
       },
       {
@@ -5838,7 +5929,7 @@
         "performanceSource": null,
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
-        "riskExcluded": "peak_before_entry",
+        "riskExcluded": "trap_risk_high",
         "tradePlan": {
           "mode": "NONE",
           "status": "AUTO_EXCLUDED_RISK",
@@ -6237,11 +6328,24 @@
         "performanceSource": "과거 40거래일 운영형 백테스트",
         "performanceDisclaimer": "실제 대응은 본인의 판단입니다.",
         "performancePendingNote": null,
-        "riskExcluded": "prev_high_spike",
+        "riskExempted": [
+          "prev_high_spike"
+        ],
         "tradePlan": {
-          "mode": "NONE",
-          "status": "AUTO_EXCLUDED_RISK",
-          "reason": "위험 태그로 자동 계산 제외"
+          "mode": "AUTO",
+          "status": "READY",
+          "strategy": "LIGHT_REBREAK",
+          "strategySource": "intraday",
+          "baseEntryPrice": 21100,
+          "baseEntrySource": "rebreakPrice",
+          "buyPrice": 20850,
+          "sellPrice1": 21400,
+          "sellPrice2": 21900,
+          "stopPrice": 20200,
+          "reason": "기준가 근처 눌림 지정가",
+          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하) / 09:10 저가 시초가 대비 -4.15%",
+          "rewardRisk1": 0.85,
+          "rewardRisk2": 1.62
         }
       }
     ],
@@ -14608,27 +14712,47 @@
   "visibilityCounts": {
     "totalPool": 1376,
     "unclassified": 943,
-    "mainPoolSize": 0,
-    "topPriorityShown": 0,
-    "extraPriorityShown": 0,
+    "mainPoolSize": 8,
+    "topPriorityShown": 5,
+    "extraPriorityShown": 3,
     "overflowHidden": 0,
-    "riskExcluded": 179,
+    "riskExcluded": 171,
     "riskExcludeBreakdown": {
       "group_off_pool": 115,
       "gap_hold_candle": 0,
-      "prev_high_spike": 7,
+      "prev_high_spike": 3,
       "risk_rebreak": 0,
-      "peak_before_entry": 28,
-      "trap_risk_high": 29
-    }
+      "peak_before_entry": 13,
+      "trap_risk_high": 40
+    },
+    "riskExemptedCount": 8
   },
   "priorityRanked": {
-    "topPriority": [],
-    "extraPriority": [],
+    "topPriority": [
+      "138080",
+      "159010",
+      "004710",
+      "147830",
+      "187870"
+    ],
+    "extraPriority": [
+      "017510",
+      "115500",
+      "047770"
+    ],
     "overflowHiddenCount": 0,
     "topPriorityLimit": 5,
     "extraPriorityLimit": 10,
-    "mainPoolCodes": []
+    "mainPoolCodes": [
+      "138080",
+      "159010",
+      "004710",
+      "147830",
+      "187870",
+      "017510",
+      "115500",
+      "047770"
+    ]
   },
   "latestDayType": {
     "date": "2026-05-06",
@@ -14664,22 +14788,22 @@
     }
   },
   "qvaSummary": {
-    "taggedTopCount": 0,
-    "taggedExtraCount": 0,
-    "taggedTotalVisibleCount": 0,
+    "taggedTopCount": 1,
+    "taggedExtraCount": 2,
+    "taggedTotalVisibleCount": 3,
     "totalCandidatesTagged": 439,
     "qvaSignalMapSize": 600,
     "displayOnly": true
   },
   "summary": {
     "tradePlan": {
-      "autoCount": 0,
-      "readyCount": 0,
+      "autoCount": 8,
+      "readyCount": 6,
       "waitPullbackCount": 0,
-      "invalidatedCount": 0,
-      "excludedRiskCount": 179,
+      "invalidatedCount": 2,
+      "excludedRiskCount": 171,
       "missingPriceCount": 0,
-      "intradayConfirmedCount": 0,
+      "intradayConfirmedCount": 8,
       "groupFallbackCount": 0,
       "autoPlanLimit": 10
     }

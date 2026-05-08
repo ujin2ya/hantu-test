@@ -249,6 +249,8 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 
 **그룹 분류 (배타)**: D(과열·위험) → A(강한 단타) → B(장초 확인) → C(눌림 후 재상승) → null(드롭). 그룹별 상한 `CAP = { A: 80, B: 80, C: 60, D: 60 }`.
 
+**위험 필터 면제 (`passesRiskFilter`)**: `prev_high_spike` / `peak_before_entry` 단독은 위험 자동 제외이나, **09:10~30 morningHigh 재돌파(`rebreakMorningHigh_10_30 ✓`)**가 함께 있으면 면제 → mainPool 진입 (`it.riskExempted = ['peak_before_entry', ...]`로 표시). 근거: "전일고가 돌파 + 첫10분고점 재돌파"는 강한 한입 패턴, "09:10에 빠졌다가 첫10분고점 재돌파"는 회복 흐름. 카드에는 `↗ 재돌파 회복 (peakBefore 면제)` / `↗ 강한 한입 (spike 면제)` chip 표시. `gap_hold_candle` / `trap_risk_high` / `risk_rebreak`는 면제 없음 (그룹 자체가 위험).
+
 **검증 보고서 (`one-day-surge-nextday-validation-report.js`)**: 라이브 보드와 **동일한 core 함수**로 과거 N거래일 시뮬레이션. 각 분류 이벤트에 대해 D+1의 +3%/+5%/+10% 도달률, 종가 -3%↓ 실패율, 평균/중앙값 다음날 시초·고가·종가를 그룹/점수구간/거래대금배율/시총구간/일자별로 cross-tab. 환경변수 `VALIDATION_DAYS`(기본 60), `VALIDATION_MAX_STOCKS`(기본 무제한). 출력 `reports/one-day-surge-nextday-validation-result.{html,json}` — 라우트 `/one-day-surge-validation` (alias `/ods-validation`).
 
 **트리거**: 현재는 수동 실행만. cron 등록 / `/admin` 강제 재생성 / 검증 보고서 라우트 연결은 2차에서.
