@@ -2033,7 +2033,6 @@ function buildCardHtml(it) {
     '<h3>' + (it.name || '-') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' + entryStatusPill(it) + '</h3>' +
     qvaStrip +
     '<div class="meta">' + strategyChips(it) + badges.join('') + '</div>' +
-    manualTargetsBox +
     perfBox +
     '<div class="metrics-grid">' +
       '<div class="metric"><div class="label">기준일 종가</div><div class="value">' + fmtNum(it.close) + '원</div><div class="sub">' + fmtDate(it.baseDate) + '</div></div>' +
@@ -2052,7 +2051,8 @@ function buildCardHtml(it) {
     '<div class="summary-line">💡 ' + (it.summaryLine || '') + '</div>' +
     intradayLine +
     (intradayLine ? '' : '<div class="gap-note">🚪 다음 거래일 시초가가 나오면 갭 7% 이상은 "갭 과열 주의", 12% 이상은 "강한 추격 주의", 20% 이상은 "초고위험 갭"으로 표시됩니다. 7% 미만이면 "장초 확인 가능 구간".</div>') +
-    // 🤖 자동 참고 매매가 — 카드 하단에 가격 박스 (참고 매수가/1차/2차/손절). 매수 추천 X, 시장가 매수 지시 X.
+    // ── 카드 하단 가격 박스 묶음 (위: 사용자 수동 분석가 → 아래: 프로그램 자동 참고 예상가) ──
+    manualTargetsBox +
     tradePlanBox +
     // 장초 확인 전 카드 하단 작은 안내 — status에 따라 JS가 텍스트 갱신/숨김
     '<div class="card-watch-note" style="margin-top:6px;font-size:11px;color:#94a3b8;border-top:1px dashed #334155;padding-top:6px;">' +
