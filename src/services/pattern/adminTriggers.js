@@ -23,13 +23,19 @@ const patternState = {
 };
 
 // 16:35 cron + admin 트리거가 같은 순서로 갱신하는 보드 스크립트 목록.
-// 의존성 순서: QVA 보드(qva-watchlist-board.json 생성) → D+5 재돌파(QVA 결과 read) → 1DS(독립)
+// 의존성 순서:
+//   - QVA 보드(qva-watchlist-board.json 생성) → D+5 재돌파(QVA 결과 read) → 1DS(독립)
+//   - QVA2 watchlist → QVA2 VVI2(watchlist json read) → QVA2 VPR2(watchlist + VVI2 json read)
+// 차트/수급/펀더멘탈 캐시는 16:20 일일 업데이트에서 이미 갱신됨. 보드는 캐시 read만 한다.
 const BOARD_SCRIPTS = [
   { name: "QVA Watchlist Board",          file: "qva-watchlist-board.js" },
   { name: "D+5 재돌파 운용 보드",            file: "hgroup-rebreak-operation-board.js" },
   { name: "D+5 재돌파 심층 검증 보고서",       file: "hgroup-rebreak-deep-dive-report.js" },
   { name: "D+5 재돌파 수급 백테스트",          file: "hgroup-rebreak-flow-backtest.js" },
   { name: "1-Day Surge Board",            file: "one-day-surge-board.js" },
+  { name: "QVA2 H그룹/VPR 보드",            file: "qva2-watchlist-board.js" },
+  { name: "QVA2 D+5 재돌파 운용보드",        file: "qva2-d5-rebreak-board.js" },
+  { name: "QVA2 고점 재돌파 보드",           file: "qva2-vvi-board.js" },
 ];
 
 const PATTERN_RESULT_PATH = path.join(CACHE_DIR, "pattern-result.json");
@@ -238,7 +244,7 @@ function refreshAllBoards() {
 
   return {
     ok: true,
-    message: `전체 보드 갱신 시작 (${BOARD_SCRIPTS.length}개 — QVA + 재돌파 × 3 + 1DS, 백그라운드 30~90초 예상)`,
+    message: `전체 보드 갱신 시작 (${BOARD_SCRIPTS.length}개 — QVA + 재돌파 × 3 + 1DS + QVA2 × 3, 백그라운드 30~90초 예상)`,
     startedAt: patternState.allBoardsRefreshStartedAt,
   };
 }

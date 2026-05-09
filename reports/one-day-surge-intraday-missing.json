@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-08T01:14:34.989Z",
+  "lastUpdated": "2026-05-08T04:22:46.297Z",
   "entries": [
     {
       "date": "2026-03-26",
@@ -7,13 +7,6 @@
       "name": "우리로",
       "reason": "empty_bars (likely halted)",
       "recordedAt": "2026-05-07T08:47:41.933Z"
-    },
-    {
-      "date": "2026-03-31",
-      "code": "046970",
-      "name": "우리로",
-      "reason": "empty_bars (likely halted)",
-      "recordedAt": "2026-05-07T08:48:05.360Z"
     },
     {
       "date": "2026-04-03",
@@ -30,20 +23,6 @@
       "recordedAt": "2026-05-07T08:48:41.618Z"
     },
     {
-      "date": "2026-04-08",
-      "code": "215790",
-      "name": "이노인스트루먼트",
-      "reason": "empty_bars (likely halted)",
-      "recordedAt": "2026-05-07T08:49:05.446Z"
-    },
-    {
-      "date": "2026-04-10",
-      "code": "017900",
-      "name": "광전자",
-      "reason": "empty_bars (likely halted)",
-      "recordedAt": "2026-05-07T08:49:25.854Z"
-    },
-    {
       "date": "2026-04-15",
       "code": "069540",
       "name": "빛과전자",
@@ -51,18 +30,46 @@
       "recordedAt": "2026-05-07T08:50:11.161Z"
     },
     {
+      "date": "2026-03-31",
+      "code": "046970",
+      "name": "우리로",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-08T04:10:23.571Z"
+    },
+    {
+      "date": "2026-04-08",
+      "code": "215790",
+      "name": "이노인스트루먼트",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-08T04:13:24.216Z"
+    },
+    {
+      "date": "2026-04-10",
+      "code": "017900",
+      "name": "광전자",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-08T04:14:20.360Z"
+    },
+    {
       "date": "2026-04-16",
       "code": "046970",
       "name": "우리로",
       "reason": "empty_bars (likely halted)",
-      "recordedAt": "2026-05-07T08:50:15.362Z"
+      "recordedAt": "2026-05-08T04:15:47.199Z"
     },
     {
       "date": "2026-04-28",
       "code": "092220",
       "name": "KEC",
       "reason": "empty_bars (likely halted)",
-      "recordedAt": "2026-05-07T08:52:30.443Z"
+      "recordedAt": "2026-05-08T04:19:32.811Z"
+    },
+    {
+      "date": "2026-05-07",
+      "code": "092190",
+      "name": "서울바이오시스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-08T04:21:58.992Z"
     }
   ]
 }

@@ -79,7 +79,7 @@ function registerSchedules() {
     }
     console.log(`[Boards] 16:35 완료 — 성공 ${okCount} / 실패 ${failCount}`);
   }, { scheduled: true, timezone: "Asia/Seoul" });
-  console.log(`[스케줄] 매일 평일 16:35 전체 보드 갱신 활성화 (${BOARD_SCRIPTS.length}개 — QVA + 재돌파 × 3 + 1DS)`);
+  console.log(`[스케줄] 매일 평일 16:35 전체 보드 갱신 활성화 (${BOARD_SCRIPTS.length}개 — QVA + 재돌파 × 3 + 1DS + QVA2 × 3)`);
 
   // 평일 09:30:00 — 1DS 분봉 수집 + 보드 재생성
   // 사용자가 09:30 정각에 보드 새로고침할 때 분봉 반영된 후보를 보도록 정각에 시작.

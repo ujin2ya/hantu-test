@@ -2,7 +2,7 @@
   "meta": {
     "title": "1-Day Surge HIT10 연구 보고서 v3 (시초가/갭/QVA 교차)",
     "subtitle": "상따 검증 + 다음날 시초가 진입 시뮬레이션 + QVA 선행 신호 교차분석",
-    "generatedAt": "2026-05-07T11:09:39.318Z",
+    "generatedAt": "2026-05-09T05:22:49.972Z",
     "windowDays": 60,
     "windowFrom": "20260204",
     "windowFromFmt": "2026-02-04",
@@ -22,7 +22,7 @@
     "qvaCallsTotal": 83585,
     "qvaPassedTotal": 383,
     "eventsWithQvaCount": 598,
-    "elapsedMs": 9933
+    "elapsedMs": 9840
   },
   "summary": {
     "totalEvents": 7424,

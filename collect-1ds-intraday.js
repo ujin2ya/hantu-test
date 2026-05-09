@@ -61,6 +61,7 @@ function parseArgs(argv) {
     endHour: '100000',       // KIS hour parameter (returns 120 bars going back)
     dryRun: false,
     fromBoard: false,        // reports/one-day-surge-board-result.json의 mainPoolCodes만 수집 (라이브 운영용)
+    fullDay: false,          // 09:00~15:30 전체 분봉 수집 (4 calls/stock-day) — pullback 백테스트용
   };
   for (let i = 2; i < argv.length; i++) {
     const k = argv[i];
@@ -75,6 +76,7 @@ function parseArgs(argv) {
     else if (k === '--end-hour') a.endHour = argv[++i];
     else if (k === '--dry-run') a.dryRun = true;
     else if (k === '--from-board') a.fromBoard = true;
+    else if (k === '--full-day') a.fullDay = true;
     else if (k === '--help' || k === '-h') { printHelp(); process.exit(0); }
   }
   return a;
@@ -91,7 +93,8 @@ function printHelp() {
   --retry 2                    실패 시 재시도 횟수
   --end-hour 100000            KIS hour 파라미터
   --dry-run                    후보만 카운트, KIS 호출 X
-  --from-board                 reports/one-day-surge-board-result.json의 mainPoolCodes만 수집 (라이브 운영용 — target-date는 보드 analysisDate로 자동 설정)`);
+  --from-board                 reports/one-day-surge-board-result.json의 mainPoolCodes만 수집 (라이브 운영용 — target-date는 보드 analysisDate로 자동 설정)
+  --full-day                   09:00~15:30 전체 분봉 수집 (default 09:00~10:00). 종목당 4 KIS 호출. pullback 백테스트용`);
 }
 
 // ── 유틸 ──
@@ -133,6 +136,32 @@ async function fetchWithRetry(token, code, dateNum, endHour, retries) {
     }
   }
   throw lastErr;
+}
+
+// 09:00~15:30 전체 분봉 수집 — KIS는 콜당 120 bars 반환, 6.5h × 60 = 390 bars 위해 4번 호출
+// endHours: [110000, 130000, 150000, 153000] = 11:00 / 13:00 / 15:00 / 15:30 종료 시점에서 거꾸로 120bar씩
+const FULL_DAY_END_HOURS = ['110000', '130000', '150000', '153000'];
+async function fetchFullDayWithRetry(token, code, dateNum, retries, callSleepMs) {
+  const allRaw = [];
+  let lastMeta = null;
+  for (const endHour of FULL_DAY_END_HOURS) {
+    const { meta, raw } = await fetchWithRetry(token, code, dateNum, endHour, retries);
+    if (meta && !lastMeta) lastMeta = meta;
+    for (const b of raw) allRaw.push(b);
+    await sleep(callSleepMs);
+  }
+  // 시간 키 dedupe + 오름차순 (raw는 이미 stck_bsop_date 필터됨, getMinuteBarsForDate에서)
+  const map = new Map();
+  for (const b of allRaw) {
+    const key = (b.stck_bsop_date || '') + (b.stck_cntg_hour || '');
+    if (!map.has(key)) map.set(key, b);
+  }
+  const sorted = [...map.values()].sort((a, b) => {
+    const ka = (a.stck_bsop_date || '') + (a.stck_cntg_hour || '');
+    const kb = (b.stck_bsop_date || '') + (b.stck_cntg_hour || '');
+    return ka < kb ? -1 : ka > kb ? 1 : 0;
+  });
+  return { meta: lastMeta, raw: sorted };
 }
 
 // ── main ──
@@ -305,23 +334,37 @@ async function main() {
     const dirPath = path.join(INTRADAY_BASE, t.nextDateStr);
     if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
     const outPath = path.join(dirPath, `${t.code}.json`);
+    // skip 조건: 파일 존재 + (full-day 모드면 마지막 bar가 15:00 이후, default 모드면 그냥 존재)
     if (fs.existsSync(outPath)) {
-      skipped++;
-      if ((i + 1) % 100 === 0) console.log(`  [${i + 1}/${tasks.length}] (진행률 ${((i + 1) / tasks.length * 100).toFixed(1)}% / 성공 ${success} / skip ${skipped} / 실패 ${failed})`);
-      continue;
+      let alreadyComplete = true;
+      if (args.fullDay) {
+        try {
+          const existing = JSON.parse(fs.readFileSync(outPath, 'utf-8'));
+          const lastBar = (existing.bars || []).slice(-1)[0];
+          alreadyComplete = lastBar && lastBar.time >= '15:00';
+        } catch (_) { alreadyComplete = false; }
+      }
+      if (alreadyComplete) {
+        skipped++;
+        if ((i + 1) % 100 === 0) console.log(`  [${i + 1}/${tasks.length}] (진행률 ${((i + 1) / tasks.length * 100).toFixed(1)}% / 성공 ${success} / skip ${skipped} / 실패 ${failed})`);
+        continue;
+      }
     }
 
     try {
-      const { meta, raw } = await fetchWithRetry(token, t.code, t.nextDateNum, args.endHour, args.retry);
+      const { meta, raw } = args.fullDay
+        ? await fetchFullDayWithRetry(token, t.code, t.nextDateNum, args.retry, args.sleepMs)
+        : await fetchWithRetry(token, t.code, t.nextDateNum, args.endHour, args.retry);
       const bars = normalizeBars(raw);
-      // 09:00~10:00 윈도우만 저장 (10:00 초과 bar는 우리 분석 범위 밖)
-      const windowBars = bars.filter((b) => b.time <= '10:00');
+      // full-day 모드는 09:00~15:30, 기본은 09:00~10:00
+      const windowTo = args.fullDay ? '15:30' : '10:00';
+      const windowBars = bars.filter((b) => b.time <= windowTo);
       const out = {
         code: t.code, name: t.name, market: t.market || null,
         date: t.nextDateStr, interval: '1m',
         source: 'kis', tr: 'FHKST03010230',
         fetchedAt: new Date().toISOString(),
-        windowFrom: '09:00', windowTo: '10:00',
+        windowFrom: '09:00', windowTo,
         boardSnapshot: {
           baseDate: t.baseDate, gtGroup: t.gtGroup,
           marketCap: t.marketCap, valueToMarketCapRatio: t.valueToMarketCapRatio,

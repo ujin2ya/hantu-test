@@ -2,7 +2,7 @@
   "meta": {
     "title": "새 VVI 정의 1차 백테스트",
     "subtitle": "QVA 고가 + 거래량 + 거래대금 동시 재돌파의 D+1~D+20 outcome — 단순 검증 (1차)",
-    "generatedAt": "2026-05-07T13:57:43.649Z",
+    "generatedAt": "2026-05-09T05:22:31.178Z",
     "lookbackDays": 60,
     "analysisDate": "20260507",
     "analysisDateFmt": "2026-05-07",
@@ -1772,7 +1772,7 @@
       "currentClose": 12840,
       "currentFromQvaCloseRate": 57.933579335793354,
       "status": "OVERHEATED",
-      "statusLabel": "추격 부담 큼 (참고)",
+      "statusLabel": "강한 거래대금 재돌파",
       "baselineDate": "20260420",
       "baselineClose": 9650,
       "outcome": {
@@ -1814,7 +1814,7 @@
       "currentClose": 269500,
       "currentFromQvaCloseRate": 42.59259259259258,
       "status": "OVERHEATED",
-      "statusLabel": "추격 부담 큼 (참고)",
+      "statusLabel": "강한 거래대금 재돌파",
       "baselineDate": "20260421",
       "baselineClose": 230000,
       "outcome": {
@@ -1858,7 +1858,7 @@
       "currentClose": 17200,
       "currentFromQvaCloseRate": 73.91304347826086,
       "status": "OVERHEATED",
-      "statusLabel": "추격 부담 큼 (참고)",
+      "statusLabel": "강한 거래대금 재돌파",
       "baselineDate": "20260414",
       "baselineClose": 10530,
       "outcome": {

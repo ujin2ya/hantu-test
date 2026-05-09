@@ -18,6 +18,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 1DS ENTRY 날짜별 운영형 백테스트: `node one-day-surge-entry-daily-backtest-report.js` → `reports/one-day-surge-entry-daily-backtest-result.{html,json}` 생성. 라우트 `/one-day-surge-entry-daily-backtest`. 환경변수 `ENTRY_BACKTEST_DAYS`(기본 40). ENTRY_CONFIRM 인프라(generateGtEventsByDate, applyEntryConditions, computeOutcomes, summarizeBucket) 재사용. SAFE_REBREAK / BALANCED_REBREAK / LIGHT_REBREAK / CLEAN_REBREAK / RISK_REBREAK / PREV_HIGH_SPIKE 6개 전략을 날짜별로 simulate.
 - QVA 고점 재돌파 후보 보드 (새 VVI 정의): `node qva-vvi-redefined-board.js` → `reports/qva-vvi-redefined-board-result.{html,json}` 생성. 라우트 `/qva-vvi-redefined-board`. 환경변수 `VVI_LOOKBACK_DAYS`(기본 20), `VVI_TOP_LIMIT`(기본 10). 새 VVI 정의 = QVA 고가 재돌파 + QVA 이상 거래량 + QVA 이상 거래대금. 기존 VVI/QVA 보드와 별개의 신규 보드. **이 보드 관련 새 파일은 더 만들지 말고 동일 파일에 섹션 추가/덮어쓰기로 관리.**
 - 새 VVI 정의 1차 백테스트: `node qva-vvi-redefined-backtest-report.js` → `reports/qva-vvi-redefined-backtest-result.{html,json}` 생성. 라우트 `/qva-vvi-redefined-backtest`. 환경변수 `BACKTEST_LOOKBACK_DAYS`(기본 60). 5 그룹(A~E) 비교 + D+1/3/5/10/20 outcome (평균 최고가/최저가/종가, 도달률, 종가 양수율) + TOP 20 + WORST 20 + 자동 결론 5문항. **이 파일 1개만 사용 — v2/final/new 사본 만들지 않음. 새 실험은 동일 파일에 섹션 추가/덮어쓰기.**
+- **QVA2 실험 라인 (기존 운영 3 보드의 1:1 mirror, 기존 QVA/VVI/VPR 무수정)**: 기존 QVA(`calculateRedefinedQVA`)는 약세 마감을 `notWeakClose` 필터로 컷하는 안정형. QVA2는 그 반대편 — "종가는 약했지만 거래대금이 강하게 들어왔고 장중 회복 흔적이 있는" 후보를 별도로 잡는 실험. 보드 3개는 기존 `/qva-watchlist`, `/rebreak`, `/qva-vvi-redefined-board`의 1:1 mirror로 만든다.
+  - 공통 모듈: [qva2-screener.js](qva2-screener.js) — `calculateQVA2(rows, idx, meta, overrides)` + `findQVA2Events()` + `findVvi2AfterQva2(rows, qva2Idx, maxDays)`. 임계값은 `QVA2_CONFIG` / `VVI2_CONFIG`에서 단일 관리.
+  - QVA2 H그룹/VPR 보드 (mirror of /qva-watchlist): `node qva2-watchlist-board.js` → `reports/qva2-watchlist-board.{html,json}`. 라우트 `/qva2-watchlist`. 종목당 단일 funnel 상태(QVA2_NEW / QVA2_TRACKING / VVI2_FIRED / BREAKOUT_SUCCESS / FAILED) + 보조 태그(PRICE_HOLD / LOW_RISING / VALUE_REACTIVATION). TRACKING_DAYS=20, RECENT_BREAKOUT_DAYS=5, RECENT_FAILED_DAYS=5, EXIT_THRESHOLD_PCT=-15. 환경변수 `QVA2_MAX_MARKETCAP`(기본 5e12).
+  - QVA2 D+5 재돌파 운용보드 (mirror of /rebreak): `node qva2-d5-rebreak-board.js` → `reports/qva2-d5-rebreak-board.{html,json}`. 라우트 `/qva2-d5-rebreak`. 입력은 `qva2-watchlist-board.json`의 BREAKOUT_SUCCESS 후보. D+0 = BREAKOUT 일자, D+1~D+5 동안 D+0 고가 종가 재돌파 추적. 상태: CLOSE_REBREAK / TODAY_INITIAL_BREAKOUT / INTRADAY_PUSHBACK / BREACH_NO_RECOVER / NO_REBREAK. 환경변수 `QVA2_REBREAK_MAX_DAYS`(기본 5).
+  - QVA2 고점 재돌파 보드 (mirror of /qva-vvi-redefined-board): `node qva2-vvi-board.js` → `reports/qva2-vvi-board.{html,json}`. 라우트 `/qva2-vvi`. QVA2 발생일의 (high, volume, value)를 기준으로 첫 재돌파일 탐지. `qva2-watchlist-board.json`의 `allEvents`를 입력으로 사용. 환경변수 `VVI2_LOOKBACK_DAYS`(기본 30), `VVI2_TOP_LIMIT`(기본 30).
+  - QVA2 검증 보고서: `node qva2-validation-report.js` → `reports/qva2-validation-result.{html,json}`. 라우트 `/qva2-validation`. 전 종목 × 과거 N거래일 시뮬레이션 → D+1/3/5/10/20 종가, MFE/MAE D+5/10/20, +5/10/15/20/30% 도달률을 등급별·점수구간별·약세폭별·거래대금배율별·종가위치별·시총별 cohort로 비교. 환경변수 `QVA2_VALIDATION_DAYS`(기본 180), `QVA2_VALIDATION_MAX_STOCKS`(기본 0=무제한), `QVA2_VALIDATION_MAX_MARKETCAP`(기본 5e12). **기존 reports/qva-* 파일은 읽기만, 수정 안 함.**
+  - 의존성 순서 (16:35 cron + admin trigger): qva2-watchlist → qva2-d5-rebreak → qva2-vvi (각자 독립이지만 d5-rebreak이 watchlist json을 read하므로 순서 유지).
+  - 컨트롤러/라우터: [src/controllers/qva2Controller.js](src/controllers/qva2Controller.js), [src/routes/qva2Routes.js](src/routes/qva2Routes.js). [src/routes/index.js](src/routes/index.js)에 mount.
+  - 기존 10개 운영 보드의 HTML 상단에 보라색 QVA2 nav banner를 추가했다 (보드 generator의 HTML 템플릿에 inline). 기존 nav/데이터/조건은 무수정 — 배너만 nav 위에 1줄 inject.
+  - **임계값 튜닝은 `qva2-screener.js`의 `QVA2_CONFIG`만 수정**. 보드 3개 모두 동일 screener를 import하므로 단일 진입점에서 동기화됨. 새 파일 만들지 말고 같은 파일에 섹션 추가/덮어쓰기로 관리. ❌ qva2-vpr-board.js는 더 이상 사용하지 않음 (D+5 재돌파로 대체됨, 2026-05).
 - **운영 서버 캐시 동기화 (push 전 필수)**: `bash scripts/sync-remote-cache.sh` — 운영 서버의 `cache/pattern-result.json` + `cache/flow-history/` + `cache/stock-charts-long/`를 로컬로 받는다. 이유는 [push 절차](#push-절차) 참고.
 
 테스트, 린터, 빌드 단계는 구성되어 있지 않다. 운영 배포는 GitHub Actions(`.github/workflows/deploy.yml`)가 ydata.co.kr 서버에 SSH로 push해 PM2(`hantu-test` 프로세스)로 재기동한다.
@@ -136,6 +146,10 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 | `GET /qva-vvi-redefined-backtest` | qvaVviRedefinedController.getRedefinedVviBacktest | 새 VVI 정의 1차 백테스트 HTML sendFile (`reports/qva-vvi-redefined-backtest-result.html`) |
 | `GET /qva-vvi-redefined/:code` | qvaVviRedefinedController.getRedefinedVviStockDetail | 새 VVI 종목 상세 페이지 — naver 메타 + KIS 실시간 + 60일 SVG 차트 + DART 재무 + Naver 뉴스 8건 + DART 공시 10건 + 새 VVI funnel 위치 + AI 분석 버튼. `views/qva-vvi-redefined-detail.ejs` 렌더. 보드 카드의 종목명이 이 라우트로 링크 |
 | `POST /qva-vvi-redefined/:code/ai` | qvaVviRedefinedController.postCompanyAnalysis | 상세 페이지 AI 버튼이 fetch로 호출. Gemini가 기업분석/사업내용/최근이슈 3섹션 생성 (in-memory 30분 TTL 캐시). `geminiCompanyAnalysis.js` |
+| `GET /qva2-watchlist` | qva2Controller.getWatchlistBoard | QVA2 H그룹/VPR 보드 sendFile (`reports/qva2-watchlist-board.html`). 기존 `/qva-watchlist`의 funnel 구조 mirror. 실험 라인 |
+| `GET /qva2-d5-rebreak` | qva2Controller.getD5RebreakBoard | QVA2 D+5 재돌파 운용보드 sendFile (`reports/qva2-d5-rebreak-board.html`). 기존 `/rebreak`의 mirror, 입력은 qva2-watchlist의 BREAKOUT_SUCCESS. 실험 라인 |
+| `GET /qva2-vvi` | qva2Controller.getVviBoard | QVA2 고점 재돌파 보드 sendFile (`reports/qva2-vvi-board.html`). 기존 `/qva-vvi-redefined-board` mirror. 실험 라인 |
+| `GET /qva2-validation` | qva2Controller.getValidation | QVA2 검증 보고서 sendFile (`reports/qva2-validation-result.html`). 실험 라인 |
 | `GET /stock/:code` | stockController.getStockDetail | 보드 어디서든 종목명 클릭 시 떠오르는 단순 종목 상세 페이지. naver/stocks.json 메타 + KIS 실시간 가격 + 60일 SVG 차트 + 보드 funnel 멤버십(QVA/D+5재돌파/1DS). `views/stock-detail.ejs` 렌더 |
 | `POST /ai/comment` | aiController.postComment | Gemini 호출. `/d5-rebreak/:code` 페이지가 lazy 호출 (단타·스윙용 4섹션) |
 | `GET/POST /login`, `GET /unsubscribe` | authController | 사이트 비밀번호 게이트, 메일 unsubscribe |
@@ -147,7 +161,7 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 | `POST /admin/pattern/seed`, `/admin/pattern/analyze`, `/admin/backtest/qva` | adminController + adminTriggers | 패턴 시드/분석/QVA 백테스트 비동기 트리거 |
 | `POST /admin/refresh-pattern-cache` | adminController | pattern-result.json 강제 재생성 (JSON 응답) |
 | `POST /admin/refresh-watchlist-board` | adminController | `qva-watchlist-board.js` 만 강제 재실행 |
-| `POST /admin/refresh-all-boards` | adminController.postRefreshAllBoards | **전체 보드 갱신** — `adminTriggers.BOARD_SCRIPTS` 5개를 백그라운드 순차 실행. cron 16:35와 동일한 sequence를 admin에서 트리거. `patternState.refreshingAllBoards` / `allBoardsCurrent` / `allBoardsResults`로 진행 추적 |
+| `POST /admin/refresh-all-boards` | adminController.postRefreshAllBoards | **전체 보드 갱신** — `adminTriggers.BOARD_SCRIPTS` 8개를 백그라운드 순차 실행 (QVA + 재돌파 × 3 + 1DS + QVA2 × 3). cron 16:35와 동일한 sequence를 admin에서 트리거. `patternState.refreshingAllBoards` / `allBoardsCurrent` / `allBoardsResults`로 진행 추적 |
 | `POST /admin/refresh-1ds-intraday` | adminController.postRefresh1dsIntraday | **1DS 분봉 수집 + 보드 재생성** — `collect-1ds-intraday.js --from-board` → `one-day-surge-board.js` 백그라운드 순차. cron 09:31과 동일한 sequence를 admin "⚡ 1DS 분봉 수집 + 보드 갱신" 버튼에서 트리거. `patternState.refreshing1dsIntraday` / `oneDsIntradayPhase` / `oneDsIntradayCollected` / `oneDsIntradayFailed`로 진행 추적 |
 | `POST /admin/run-daily-update` | adminController | `run-daily-analysis.js` 강제 실행 |
 
@@ -265,7 +279,7 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 |-----|------|------|------|
 | 16:10 | 매일 | `pattern-screener.analyzeAll()` 호출 → `cache/pattern-result.json` 갱신 (종가 기준 신호 재계산만) | 항상 |
 | 16:20 | 평일 (월-금) | `node run-daily-analysis.js` 외부 실행 (차트+수급 갱신 + 재분석) | `patternState.analyzing`이 false일 때만 |
-| 16:35 | 평일 (월-금) | **전체 보드 갱신** — `BOARD_SCRIPTS` 5개 순차 실행: `qva-watchlist-board.js` → `hgroup-rebreak-operation-board.js` → `hgroup-rebreak-deep-dive-report.js` → `hgroup-rebreak-flow-backtest.js` → `one-day-surge-board.js` | 항상 (보드별 실패는 다음 보드로 진행) |
+| 16:35 | 평일 (월-금) | **전체 보드 갱신** — `BOARD_SCRIPTS` 8개 순차 실행: `qva-watchlist-board.js` → `hgroup-rebreak-operation-board.js` → `hgroup-rebreak-deep-dive-report.js` → `hgroup-rebreak-flow-backtest.js` → `one-day-surge-board.js` → `qva2-watchlist-board.js` → `qva2-d5-rebreak-board.js` → `qva2-vvi-board.js`. 차트/수급 캐시는 16:20 일일 업데이트에서 이미 갱신됨 — 보드는 캐시 read만. QVA2 검증(`qva2-validation-report.js`)은 cron 미등록 (수동 실행 또는 추후 별도 cron) | 항상 (보드별 실패는 다음 보드로 진행) |
 | 09:30:00 | 평일 (월-금) | **1DS 분봉 수집 + 보드 재생성** ([refresh1dsIntraday](src/services/pattern/adminTriggers.js)) — `collect-1ds-intraday.js --from-board`로 보드 mainPool 코드의 09:00~09:30 분봉을 KIS API에서 받아 `data/intraday/1ds/{오늘}/`에 저장 → `one-day-surge-board.js` 재실행. 사용자가 09:30 정각 새로고침할 때 분봉 반영된 후보를 보도록 정각 시작. 보통 09:30:15~30 사이 완료, 사용자는 09:30:30+ 새로고침에서 확인 가능. 분봉 들어오면 trade plan이 분봉 기반(`strategySource: intraday`)으로 갱신되고, peak_before_entry/trap_risk 등 위험 태그가 걸리는 후보는 mainPool에서 빠짐 (단 morningHigh 재돌파 ✓ 면제) | 항상 |
 | 09:32 | 평일 (월-금) | `reports/one-day-surge-board-result.json` 기반 단타 후보 메일 발송 ([sendOneDaySurgeMail](src/services/mail/oneDaySurgeMail.js) — TOP 5 + 추가 10 = 최대 15종목, manualTargets 매수/매도가 포함). 09:30 분봉 수집·보드 재생성 후 90초 마진 두고 발송 → 메일에 분봉 반영된 trade plan 포함. 6-field cron 표현식 `0 32 9 * * 1-5` | `MAIL_CRON_ENABLED=1`일 때만 |
 
@@ -302,6 +316,10 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 - `reports/one-day-surge-intraday-missing.json` — 분봉 백필 시 누락/실패 누적 로그 (`collect-1ds-intraday.js` 누적 append)
 - `reports/qva-vvi-redefined-board-result.{html,json}` — 새 VVI 정의 (QVA 고가 + 거래량 + 거래대금 동시 재돌파) 후보 보드 (`/qva-vvi-redefined-board` sendFile). 기존 QVA/VVI/H그룹/재돌파 보드와 분리된 신규 보드.
 - `reports/qva-vvi-redefined-backtest-result.{html,json}` — 새 VVI 정의 1차 백테스트 (`/qva-vvi-redefined-backtest` sendFile). 5 그룹 비교 + D+1~D+20 outcome. **새 VVI 관련 파일은 보드 1개 + 백테스트 1개만 사용 — v2/final/new 같은 사본 만들지 않음. 새 실험은 동일 파일에 섹션 추가/덮어쓰기.**
+- `reports/qva2-watchlist-board.{html,json}` — QVA2 H그룹/VPR 보드 (`/qva2-watchlist` sendFile). 기존 `/qva-watchlist` mirror — funnel(QVA2_NEW/QVA2_TRACKING/VVI2_FIRED/BREAKOUT_SUCCESS/FAILED) + 보조 태그. JSON의 `stages.BREAKOUT_SUCCESS`는 downstream `/qva2-d5-rebreak`이 입력으로 사용.
+- `reports/qva2-d5-rebreak-board.{html,json}` — QVA2 D+5 재돌파 운용보드 (`/qva2-d5-rebreak` sendFile). 기존 `/rebreak` mirror — D+0(BREAKOUT)부터 D+1~D+5 재돌파 추적.
+- `reports/qva2-vvi-board.{html,json}` — QVA2 고점 재돌파 보드 (`/qva2-vvi` sendFile). 기존 `/qva-vvi-redefined-board` mirror.
+- `reports/qva2-validation-result.{html,json}` — QVA2 시그널 검증 (`/qva2-validation` sendFile). D+5/10/20 outcome × 등급/점수/약세폭/거래대금배율/시총/closeLocation cohort. **기존 QVA reports는 읽기만, 수정 안 함. QVA2 관련 새 파일/사본 만들지 말고 같은 파일에 섹션 덮어쓰기.** ❌ qva2-vpr-board.* 는 더 이상 생성 안 함 (D+5 재돌파로 대체됨, 2026-05).
 
 ### 인증·구독·관리자
 
