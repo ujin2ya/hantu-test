@@ -3,9 +3,9 @@
     "title": "QVA2 D+5 재돌파 운용 보드",
     "subtitle": "QVA2 BREAKOUT 후보의 D+0 고가를 D+1~D+5 안에 다시 종가 돌파했는지 추적",
     "caution": "실험 라인. 매수 확정 신호 아님.",
-    "generatedAt": "2026-05-09T11:59:35.977Z",
-    "baseDate": "20260507",
-    "baseDateFmt": "2026-05-07",
+    "generatedAt": "2026-05-09T14:40:51.274Z",
+    "baseDate": "20260508",
+    "baseDateFmt": "2026-05-08",
     "maxDays": 5,
     "statusLabels": {
       "TODAY_INITIAL_BREAKOUT": "오늘 D+0 돌파",
