@@ -137,7 +137,7 @@
     <div class="card-soft">
       <h2><i class="bi bi-graph-up-arrow me-1"></i>보드 운영 (QVA / D+5 재돌파 / 1DS)</h2>
       <div class="small text-secondary mb-3">
-        매일 평일 16:10 cron이 차트/수급 갱신 → 16:20 분석 → <strong>16:35 전체 보드 갱신 (QVA + D+5 재돌파 × 3 + 1DS = 5개 보드 순차)</strong>을 자동 실행합니다.
+        매일 평일 16:10 cron이 차트/수급 갱신 → 16:20 분석 → <strong>16:35 전체 보드 갱신 (QVA + D+5 재돌파 × 3 + 1DS + QVA2 × 3 = 8개 보드 순차)</strong>을 자동 실행합니다.
         cron이 부분 실패하거나 로컬에서 캐시를 sync한 후 보드를 다시 만들고 싶을 때 아래 버튼을 사용하세요.
       </div>
       <% if (typeof patternState !== 'undefined' && patternState) { %>
@@ -225,7 +225,7 @@
           </div>
           <div class="col-12">
             <div class="meta-cell">
-              <div class="label">전체 보드 갱신 상태 (QVA + 재돌파 × 3 + 1DS)</div>
+              <div class="label">전체 보드 갱신 상태 (8개: QVA + 재돌파 × 3 + 1DS + QVA2 × 3)</div>
               <div class="value">
                 <% if (patternState.refreshingAllBoards) { %>
                   <span class="badge-soft run">진행중</span>
@@ -264,7 +264,7 @@
         <button type="button" class="btn btn-success btn-sm"
           <%= (typeof patternState !== 'undefined' && patternState?.refreshingAllBoards) ? 'disabled' : '' %>
           onclick="refreshAllBoards()">
-          <i class="bi bi-clipboard2-data me-1"></i>📋 전체 보드 갱신 (QVA + 재돌파 × 3 + 1DS)
+          <i class="bi bi-clipboard2-data me-1"></i>📋 전체 보드 갱신 (8개: QVA + 재돌파 × 3 + 1DS + QVA2 × 3)
         </button>
         <button type="button" class="btn btn-outline-success btn-sm"
           <%= (typeof patternState !== 'undefined' && patternState?.refreshingBoard) ? 'disabled' : '' %>
@@ -290,10 +290,22 @@
         <a href="/one-day-surge-board" class="btn btn-outline-primary btn-sm">
           <i class="bi bi-eye me-1"></i>1DS 단타
         </a>
+        <a href="/qva2-watchlist" class="btn btn-outline-secondary btn-sm" style="border-color:#7c3aed;color:#a78bfa;">
+          <i class="bi bi-eye me-1"></i>🟣 QVA2 H그룹/VPR
+        </a>
+        <a href="/qva2-d5-rebreak" class="btn btn-outline-secondary btn-sm" style="border-color:#7c3aed;color:#a78bfa;">
+          <i class="bi bi-eye me-1"></i>🟣 QVA2 D+5
+        </a>
+        <a href="/qva2-vvi" class="btn btn-outline-secondary btn-sm" style="border-color:#7c3aed;color:#a78bfa;">
+          <i class="bi bi-eye me-1"></i>🟣 QVA2 고점 재돌파
+        </a>
+        <a href="/qva2-validation" class="btn btn-outline-secondary btn-sm" style="border-color:#7c3aed;color:#a78bfa;">
+          <i class="bi bi-eye me-1"></i>🟣 QVA2 검증
+        </a>
       </div>
       <div class="small text-secondary mt-2">
         <strong>⚡ 일일 업데이트</strong>: KIS API로 차트/수급 새로 받아오고 분석+보드까지 한번에 (~20~30분). cron 실패 시 백업.<br>
-        <strong>📋 전체 보드 갱신</strong>: 캐시는 그대로 두고 5개 보드 스크립트(QVA → D+5 재돌파 운용/심층/수급 → 1DS) 순차 실행 (~30~90초). 캐시 sync 후 모든 보드를 한 번에 갱신하고 싶을 때.<br>
+        <strong>📋 전체 보드 갱신</strong>: 캐시는 그대로 두고 8개 보드 스크립트(QVA → D+5 재돌파 운용/심층/수급 → 1DS → QVA2 H그룹/VPR → QVA2 D+5 → QVA2 고점 재돌파) 순차 실행 (~40~120초). 캐시 sync 후 모든 보드를 한 번에 갱신하고 싶을 때.<br>
         <strong>QVA 보드만 갱신</strong>: <code>qva-watchlist-board.js</code>만 재실행 (~10초).<br>
         <strong>패턴 분석만 재실행</strong>: <code>pattern-result.json</code>만 재생성. 새 코드 배포 후 즉시 반영하고 싶을 때.
       </div>
@@ -436,13 +448,16 @@
     }
 
     async function refreshAllBoards() {
-      const msg = '전체 보드를 다시 만들까요? (5개 보드 순차 — 약 30~90초)\n\n' +
+      const msg = '전체 보드를 다시 만들까요? (8개 보드 순차 — 약 40~120초)\n\n' +
         '실행 순서:\n' +
-        '  1. QVA Watchlist Board\n' +
+        '  1. QVA Watchlist Board (H그룹/VPR)\n' +
         '  2. D+5 재돌파 운용 보드\n' +
         '  3. D+5 재돌파 심층 검증 보고서\n' +
         '  4. D+5 재돌파 수급 백테스트\n' +
-        '  5. 1-Day Surge Board (단타)\n\n' +
+        '  5. 1-Day Surge Board (단타)\n' +
+        '  6. QVA2 H그룹/VPR 보드 (실험)\n' +
+        '  7. QVA2 D+5 재돌파 운용 (실험)\n' +
+        '  8. QVA2 고점 재돌파 (실험)\n\n' +
         '※ pattern-result.json / cache는 건드리지 않습니다 (보드 스크립트만 재실행).';
       if (!confirm(msg)) return;
       try {
@@ -453,7 +468,7 @@
         }
         const data = await resp.json();
         if (data.success) {
-          alert('전체 보드 갱신 시작됨 (백그라운드). 30~90초 후 페이지 새로고침해서 진행 상태 확인.');
+          alert('전체 보드 갱신 시작됨 (백그라운드). 40~120초 후 페이지 새로고침해서 진행 상태 확인.');
           // 5초 뒤 자동 새로고침해서 진행 상태 보여주기
           setTimeout(() => { location.reload(); }, 5000);
         } else {
