@@ -25,14 +25,13 @@
  *   - VVI_TOP_LIMIT (기본 10): 상단 노출 후보 수
  *
  * 향후 파일 관리:
- *   새 VVI 관련 파일은 이 파일과 (예정) qva-vvi-redefined-backtest-report.js 만 사용.
  *   v2/final/new 같은 사본 만들지 말고 이 파일에 섹션 추가 또는 결과 덮어쓰기.
  */
 
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = __dirname;
+const ROOT = path.join(__dirname, '..', '..');
 const QVA_BOARD_PATH = path.join(ROOT, 'qva-watchlist-board.json');
 const CHART_DIR      = path.join(ROOT, 'cache', 'stock-charts-long');
 const REPORTS_DIR    = path.join(ROOT, 'reports');
@@ -439,7 +438,6 @@ function main() {
       backtestSummary: {
         stable:  { D10AvgHigh: 14.94, D10HitPlus10: 48.8, D10Fail10: 23.3, D10ClosePos: 53.5 },
         strong:  { D10AvgHigh: 46.83, D10MedianHigh: 37.04, D10HitPlus20: 90.6, D10Fail10: 9.4 },
-        sourceFile: 'reports/qva-vvi-redefined-backtest-result.{html,json}',
       },
     },
     limits: {
@@ -585,7 +583,7 @@ footer.foot strong { color: #cbd5e1; }
 </style>
 </head>
 <body>
-<div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인 (QVA2)</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR (QVA2)</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (QVA2)</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (QVA2)</a><a href="/qva2-validation" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📊 검증</a></div>
+<div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인 (QVA2)</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR (QVA2)</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (QVA2)</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (QVA2)</a></div>
 <nav>
   <a href="/qva-watchlist">📋 H그룹/VPR 보드</a>
   <a href="/rebreak">🔥 D+5 재돌파 운용</a>

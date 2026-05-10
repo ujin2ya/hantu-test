@@ -299,13 +299,10 @@
         <a href="/qva2-vvi" class="btn btn-outline-secondary btn-sm" style="border-color:#7c3aed;color:#a78bfa;">
           <i class="bi bi-eye me-1"></i>🟣 QVA2 고점 재돌파
         </a>
-        <a href="/qva2-validation" class="btn btn-outline-secondary btn-sm" style="border-color:#7c3aed;color:#a78bfa;">
-          <i class="bi bi-eye me-1"></i>🟣 QVA2 검증
-        </a>
       </div>
       <div class="small text-secondary mt-2">
         <strong>⚡ 일일 업데이트</strong>: KIS API로 차트/수급 새로 받아오고 분석+보드까지 한번에 (~20~30분). cron 실패 시 백업.<br>
-        <strong>📋 전체 보드 갱신</strong>: 캐시는 그대로 두고 8개 보드 스크립트(QVA → D+5 재돌파 운용/심층/수급 → 1DS → QVA2 H그룹/VPR → QVA2 D+5 → QVA2 고점 재돌파) 순차 실행 (~40~120초). 캐시 sync 후 모든 보드를 한 번에 갱신하고 싶을 때.<br>
+        <strong>📋 전체 보드 갱신</strong>: 캐시는 그대로 두고 7개 보드 스크립트(QVA → QVA 고점 재돌파 → D+5 재돌파 운용 → 1DS → QVA2 H그룹/VPR → QVA2 D+5 → QVA2 고점 재돌파) 순차 실행 (~30~90초). 캐시 sync 후 모든 보드를 한 번에 갱신하고 싶을 때.<br>
         <strong>QVA 보드만 갱신</strong>: <code>qva-watchlist-board.js</code>만 재실행 (~10초).<br>
         <strong>패턴 분석만 재실행</strong>: <code>pattern-result.json</code>만 재생성. 새 코드 배포 후 즉시 반영하고 싶을 때.
       </div>

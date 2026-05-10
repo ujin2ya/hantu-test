@@ -33,7 +33,7 @@ const fs = require('fs');
 const path = require('path');
 const core = require('./one-day-surge-core');
 
-const ROOT = __dirname;
+const ROOT = path.join(__dirname, '..', '..');
 const CHART_DIR = path.join(ROOT, 'cache', 'stock-charts-long');
 const REPORTS_DIR = path.join(ROOT, 'reports');
 const STOCKS_PATH = path.join(ROOT, 'stocks.json');

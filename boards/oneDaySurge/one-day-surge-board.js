@@ -28,7 +28,7 @@ const core = require('./one-day-surge-core');
 const entryReport = require('./one-day-surge-entry-confirm-report');
 const tradePlanModule = require('./one-day-surge-trade-plan');
 
-const ROOT = __dirname;
+const ROOT = path.join(__dirname, '..', '..');
 const CHART_DIR = path.join(ROOT, 'cache', 'stock-charts-long');
 const REPORTS_DIR = path.join(ROOT, 'reports');
 const STOCKS_PATH = path.join(ROOT, 'stocks.json');
@@ -1411,7 +1411,7 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 </head>
 <body>
 
-<div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인 (QVA2)</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR (QVA2)</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (QVA2)</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (QVA2)</a><a href="/qva2-validation" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📊 검증</a></div>
+<div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인 (QVA2)</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR (QVA2)</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (QVA2)</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (QVA2)</a></div>
 <nav>
   <a href="/qva-watchlist">📋 H그룹/VPR 보드</a>
   <a href="/rebreak">🔥 D+5 재돌파 운용</a>
@@ -1449,7 +1449,7 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 <!-- ② 추가 확인 후보 (접힘, 최대 10개) -->
 <div id="extra-priority-host"></div>
 
-<!-- 위험 후보는 내부 필터로 제외 — 위험 분석은 연구 보고서(/one-day-surge-entry-confirm, /one-day-surge-entry-daily-backtest)에서 -->
+<!-- 위험 후보는 내부 필터로 제외 -->
 <div id="risk-excluded-note"></div>
 
 <footer class="foot" id="foot"></footer>
@@ -2165,13 +2165,7 @@ document.getElementById('foot').innerHTML =
   '• 첫 10분 고점을 다시 넘긴 후보가 우선 노출됩니다 (장초 재상승 ✓ / 균형 재상승 ✓ / 깨끗한 재상승 ✓ / 가벼운 재상승 ✓ 칩).<br>' +
   '• 09:10 시점에 이미 고점이 지난 후보는 추격 위험으로 제외됩니다.<br>' +
   '<br><strong>참고/주의</strong><br>' +
-  '• <strong>매수 확정 신호가 아닙니다.</strong> 내일 장초에 먼저 볼 후보를 좁혀주는 보드입니다.<br>' +
-  '<br><div style="margin-top:10px;font-size:11px;color:#64748b;">' +
-  '연구/복기 보고서: ' +
-  '<a href="/one-day-surge-validation" style="color:#7dd3fc;">날짜별 복기 보고서 보기</a> · ' +
-  '<a href="/one-day-surge-entry-confirm" style="color:#7dd3fc;">장초 조건 연구 보기</a> · ' +
-  '<a href="/one-day-surge-entry-daily-backtest" style="color:#7dd3fc;">날짜별 운영 검증 보기</a>' +
-  '</div>';
+  '• <strong>매수 확정 신호가 아닙니다.</strong> 내일 장초에 먼저 볼 후보를 좁혀주는 보드입니다.';
 </script>
 
 </body>

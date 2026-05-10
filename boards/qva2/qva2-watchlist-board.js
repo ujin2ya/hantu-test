@@ -27,7 +27,7 @@ const fs = require('fs');
 const path = require('path');
 const { calculateQVA2, findVvi2AfterQva2, QVA2_CONFIG } = require('./qva2-screener');
 
-const ROOT = __dirname;
+const ROOT = path.join(__dirname, '..', '..');
 const CHART_DIR    = path.join(ROOT, 'cache', 'stock-charts-long');
 const NAVER_LIST   = path.join(ROOT, 'cache', 'naver-stocks-list.json');
 const REPORTS_DIR  = path.join(ROOT, 'reports');
@@ -557,7 +557,7 @@ footer.foot { margin-top:30px; padding:14px; background:#1e293b; border-radius:8
 </style>
 </head>
 <body>
-<div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인 (QVA2)</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.18);border:1px solid #a78bfa;">📋 H그룹/VPR (QVA2)</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (QVA2)</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (QVA2)</a><a href="/qva2-validation" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📊 검증</a></div>
+<div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인 (QVA2)</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.18);border:1px solid #a78bfa;">📋 H그룹/VPR (QVA2)</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (QVA2)</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (QVA2)</a></div>
 <nav class="boards">
   <span class="group-label">운영</span>
   <a href="/qva-watchlist" class="live">📋 H그룹/VPR 보드</a>
@@ -581,7 +581,7 @@ footer.foot { margin-top:30px; padding:14px; background:#1e293b; border-radius:8
 </div>
 
 <div class="caution-box">
-  ⚠️ <strong>QVA2는 매수 확정 신호가 아닙니다.</strong> 최근 고점 대비 많이 내려온 자리에서 돈이 다시 들어온 흔적을 찾는 관찰용 신호입니다. <strong>저점을 정확히 맞히는 모델이 아닙니다.</strong> 검증은 <a href="/qva2-validation" style="color:#fcd34d;text-decoration:underline;">QVA2 검증 보고서</a> 참고.
+  ⚠️ <strong>QVA2는 매수 확정 신호가 아닙니다.</strong> 최근 고점 대비 많이 내려온 자리에서 돈이 다시 들어온 흔적을 찾는 관찰용 신호입니다. <strong>저점을 정확히 맞히는 모델이 아닙니다.</strong>
 </div>
 
 <h2>📊 단계별 카운트</h2>
@@ -704,7 +704,7 @@ document.getElementById('foot').innerHTML =
   '<strong>위치 필터:</strong> 고점 대비 ≥' + DATA.meta.qva2Thresholds.minDrawdownFromHigh60 + '% (60일) 또는 ≥' + DATA.meta.qva2Thresholds.minDrawdownFromHigh120 + '% (120일) / 가격 위치 ≤' + (DATA.meta.qva2Thresholds.maxPricePosition60*100).toFixed(0) + '% (60일) 또는 ≤' + (DATA.meta.qva2Thresholds.maxPricePosition120*100).toFixed(0) + '% (120일) / 고점 거리 ≥' + DATA.meta.qva2Thresholds.minDistanceFromHigh60 + '% / 저점 대비 ≤' + DATA.meta.qva2Thresholds.maxRiseFromLow60 + '%. ' +
   '<br><strong>absorption:</strong> changePct ' + DATA.meta.qva2Thresholds.absorptionMinChangePct + '% ~ ' + DATA.meta.qva2Thresholds.absorptionMaxChangePct + '% · closeLoc ≥' + DATA.meta.qva2Thresholds.absorptionMinCloseLocation + ' · vol ≥×' + DATA.meta.qva2Thresholds.absorptionMinVolumeRatio + ' · val ≥×' + DATA.meta.qva2Thresholds.absorptionMinValueRatio + ' · upperWick ≤' + DATA.meta.qva2Thresholds.absorptionMaxUpperWickRatio + ' · body ≤' + DATA.meta.qva2Thresholds.absorptionMaxBodyRatio + '. ' +
   '<br><strong>spike:</strong> 장중 +' + DATA.meta.qva2Thresholds.spikeMinIntradayHighPct + '% ↑ · val ≥×' + DATA.meta.qva2Thresholds.spikeMinValueRatio + ' · closeLoc ≥' + DATA.meta.qva2Thresholds.spikeMinCloseLocation + '. ' +
-  '<br>임계값은 qva2-screener.js의 QVA2_CONFIG에서 조정. 검증은 <a href="/qva2-validation" style="color:#c4b5fd;">/qva2-validation</a>.';
+  '<br>임계값은 qva2-screener.js의 QVA2_CONFIG에서 조정.';
 
 function renderCards(hostId, items, emptyHtmlOrMsg) {
   const host = document.getElementById(hostId);

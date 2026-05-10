@@ -16,13 +16,13 @@ const axios = require("axios");
 const dart = require("./dart-fetcher");
 const korea = require("./korea-filter");
 
-const CACHE_DIR = path.join(__dirname, "cache", "stock-charts");
-const LONG_CACHE_DIR = path.join(__dirname, "cache", "stock-charts-long");
-const WEEKLY_CACHE_DIR = path.join(__dirname, "cache", "stock-charts-weekly");
-const FLOW_CACHE_DIR = path.join(__dirname, "cache", "flow-history");
-const KOSPI_CACHE = path.join(__dirname, "cache", "kospi-daily.json");
-const KOSDAQ_CACHE = path.join(__dirname, "cache", "kosdaq-daily.json");
-const PATTERN_RESULT_CACHE = path.join(__dirname, "cache", "pattern-result.json");
+const CACHE_DIR = path.join(__dirname, "..", "cache", "stock-charts");
+const LONG_CACHE_DIR = path.join(__dirname, "..", "cache", "stock-charts-long");
+const WEEKLY_CACHE_DIR = path.join(__dirname, "..", "cache", "stock-charts-weekly");
+const FLOW_CACHE_DIR = path.join(__dirname, "..", "cache", "flow-history");
+const KOSPI_CACHE = path.join(__dirname, "..", "cache", "kospi-daily.json");
+const KOSDAQ_CACHE = path.join(__dirname, "..", "cache", "kosdaq-daily.json");
+const PATTERN_RESULT_CACHE = path.join(__dirname, "..", "cache", "pattern-result.json");
 const H = { "User-Agent": "Mozilla/5.0" };
 
 // ─────────── 헬퍼 ───────────
@@ -709,7 +709,7 @@ function listSeededStocks() {
 
 // ─────────── 메인 분석 ───────────
 async function analyzeAll({ logProgress = false } = {}) {
-  const stocksListPath = path.join(__dirname, "cache", "naver-stocks-list.json");
+  const stocksListPath = path.join(__dirname, "..", "cache", "naver-stocks-list.json");
   const stocksList = JSON.parse(fs.readFileSync(stocksListPath, "utf-8")).stocks;
   const stockMeta = new Map(stocksList.map((s) => [s.code, s]));
   const kospi = await getKospiCached();
@@ -1553,7 +1553,7 @@ function detectMarketRegime(kospiRows, kosdaqRows) {
 // ─────────── 백테스트 ───────────
 // VCP breakout 의 실제 예측력 측정 — lift > 1.5x 목표
 async function backtestMinervini({ daysBack = 100, forwardDays = [1, 5, 20] } = {}) {
-  const stocksListPath = path.join(__dirname, "cache", "naver-stocks-list.json");
+  const stocksListPath = path.join(__dirname, "..", "cache", "naver-stocks-list.json");
   const stocksList = JSON.parse(fs.readFileSync(stocksListPath, "utf-8")).stocks;
   const kospi = await getKospiCached();
   const kosdaq = await getKosdaqCached();
@@ -1650,7 +1650,7 @@ async function backtestTotalScore({
 } = {}) {
   // 호환: true → "current"
   if (useFinancials === true) useFinancials = "current";
-  const stocksListPath = path.join(__dirname, "cache", "naver-stocks-list.json");
+  const stocksListPath = path.join(__dirname, "..", "cache", "naver-stocks-list.json");
   const stocksList = JSON.parse(fs.readFileSync(stocksListPath, "utf-8")).stocks;
   const kospi = await getKospiCached();
   const kosdaq = await getKosdaqCached();
@@ -5223,7 +5223,7 @@ async function backtestQVA(options = {}) {
   };
 
   try {
-    const rootDir = __dirname;
+    const rootDir = path.join(__dirname, "..");
     const LONG_STOCKS = path.join(rootDir, 'cache', 'stock-charts-long');
     const stocksFile = path.join(rootDir, 'cache', 'naver-stocks-list.json');
 

@@ -10,9 +10,10 @@ const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
 
-const CORP_CODE_PATH = path.join(__dirname, ".dart-corp-code.json");
-const FINANCIALS_DIR = path.join(__dirname, "cache", "dart-financials");
-const FINANCIALS_HISTORY_DIR = path.join(__dirname, "cache", "dart-financials-history");
+const ROOT = path.join(__dirname, "..");
+const CORP_CODE_PATH = path.join(ROOT, ".dart-corp-code.json");
+const FINANCIALS_DIR = path.join(ROOT, "cache", "dart-financials");
+const FINANCIALS_HISTORY_DIR = path.join(ROOT, "cache", "dart-financials-history");
 const TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30일
 
 let corpMap = null;

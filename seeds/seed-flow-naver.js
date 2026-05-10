@@ -22,7 +22,7 @@ const path = require('path');
 const axios = require('axios');
 const iconv = require('iconv-lite');
 
-const ROOT = __dirname;
+const ROOT = path.join(__dirname, '..');
 const CHART_DIR = path.join(ROOT, 'cache', 'stock-charts-long');
 const FLOW_DIR = path.join(ROOT, 'cache', 'flow-history');
 if (!fs.existsSync(FLOW_DIR)) fs.mkdirSync(FLOW_DIR, { recursive: true });

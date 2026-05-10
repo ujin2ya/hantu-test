@@ -1,5 +1,5 @@
 // /qva-vvi-redefined-* 라우트 컨트롤러.
-// - getRedefinedVviBoard / getRedefinedVviBacktest: 정적 HTML sendFile
+// - getRedefinedVviBoard: 정적 HTML sendFile
 // - getRedefinedVviStockDetail: 새 VVI 종목 상세 페이지 (CompanyGuide 스타일 기업정보 영역)
 // - postCompanyAnalysis: AI 사업내용 요약 lazy 호출
 const fs = require("fs");
@@ -15,10 +15,9 @@ const { computeSharesInfo } = require("../utils/sharesInfo");
 const { fetchRecentNews } = require("../services/news/naverNewsFetcher");
 const { fetchRecentDisclosures } = require("../services/dart/dartDisclosureFetcher");
 const { generateCompanyAnalysis } = require("../services/ai/geminiCompanyAnalysis");
-const dartFetcher = require("../../dart-fetcher");
+const dartFetcher = require("../../screeners/dart-fetcher");
 
 const BOARD_HTML    = path.join(REPORTS_DIR, "qva-vvi-redefined-board-result.html");
-const BACKTEST_HTML = path.join(REPORTS_DIR, "qva-vvi-redefined-backtest-result.html");
 const BOARD_JSON    = path.join(REPORTS_DIR, "qva-vvi-redefined-board-result.json");
 const NAVER_LIST    = path.join(CACHE_DIR, "naver-stocks-list.json");
 const FINANCIALS_DIR = path.join(CACHE_DIR, "dart-financials");
@@ -28,13 +27,6 @@ function getRedefinedVviBoard(req, res) {
     return res.status(404).send("reports/qva-vvi-redefined-board-result.html 파일이 없습니다. `node qva-vvi-redefined-board.js`를 먼저 실행하세요.");
   }
   res.sendFile(BOARD_HTML);
-}
-
-function getRedefinedVviBacktest(req, res) {
-  if (!fs.existsSync(BACKTEST_HTML)) {
-    return res.status(404).send("reports/qva-vvi-redefined-backtest-result.html 파일이 없습니다. `node qva-vvi-redefined-backtest-report.js`를 먼저 실행하세요.");
-  }
-  res.sendFile(BACKTEST_HTML);
 }
 
 // ── 종목 메타·재무 lookup ──
@@ -301,7 +293,6 @@ async function postCompanyAnalysis(req, res) {
 
 module.exports = {
   getRedefinedVviBoard,
-  getRedefinedVviBacktest,
   getRedefinedVviStockDetail,
   postCompanyAnalysis,
 };

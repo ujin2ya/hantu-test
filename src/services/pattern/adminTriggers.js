@@ -3,8 +3,8 @@
 const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
-const naverFetcher = require("../../../naver-fetcher");
-const patternScreener = require("../../../pattern-screener");
+const naverFetcher = require("../../../screeners/naver-fetcher");
+const patternScreener = require("../../../screeners/pattern-screener");
 const { ROOT, CACHE_DIR } = require("../../utils/paths");
 
 const patternState = {
@@ -25,17 +25,16 @@ const patternState = {
 // 16:35 cron + admin 트리거가 같은 순서로 갱신하는 보드 스크립트 목록.
 // 의존성 순서:
 //   - QVA 보드(qva-watchlist-board.json 생성) → D+5 재돌파(QVA 결과 read) → 1DS(독립)
-//   - QVA2 watchlist → QVA2 VVI2(watchlist json read) → QVA2 VPR2(watchlist + VVI2 json read)
+//   - QVA2 watchlist → QVA2 D+5 재돌파(watchlist json read) → QVA2 고점 재돌파(watchlist + VVI2 json read)
 // 차트/수급/펀더멘탈 캐시는 16:20 일일 업데이트에서 이미 갱신됨. 보드는 캐시 read만 한다.
 const BOARD_SCRIPTS = [
-  { name: "QVA Watchlist Board",          file: "qva-watchlist-board.js" },
-  { name: "D+5 재돌파 운용 보드",            file: "hgroup-rebreak-operation-board.js" },
-  { name: "D+5 재돌파 심층 검증 보고서",       file: "hgroup-rebreak-deep-dive-report.js" },
-  { name: "D+5 재돌파 수급 백테스트",          file: "hgroup-rebreak-flow-backtest.js" },
-  { name: "1-Day Surge Board",            file: "one-day-surge-board.js" },
-  { name: "QVA2 H그룹/VPR 보드",            file: "qva2-watchlist-board.js" },
-  { name: "QVA2 D+5 재돌파 운용보드",        file: "qva2-d5-rebreak-board.js" },
-  { name: "QVA2 고점 재돌파 보드",           file: "qva2-vvi-board.js" },
+  { name: "QVA Watchlist Board",          file: "boards/qva/qva-watchlist-board.js" },
+  { name: "QVA 고점 재돌파 보드",            file: "boards/qva/qva-vvi-redefined-board.js" },
+  { name: "D+5 재돌파 운용 보드",            file: "boards/rebreak/hgroup-rebreak-operation-board.js" },
+  { name: "1-Day Surge Board",            file: "boards/oneDaySurge/one-day-surge-board.js" },
+  { name: "QVA2 H그룹/VPR 보드",            file: "boards/qva2/qva2-watchlist-board.js" },
+  { name: "QVA2 D+5 재돌파 운용보드",        file: "boards/qva2/qva2-d5-rebreak-board.js" },
+  { name: "QVA2 고점 재돌파 보드",           file: "boards/qva2/qva2-vvi-board.js" },
 ];
 
 const PATTERN_RESULT_PATH = path.join(CACHE_DIR, "pattern-result.json");
@@ -129,7 +128,7 @@ function refreshWatchlistBoard() {
   patternState.boardRefreshError = null;
   (async () => {
     try {
-      const scriptPath = path.join(ROOT, "qva-watchlist-board.js");
+      const scriptPath = path.join(ROOT, "boards", "qva", "qva-watchlist-board.js");
       console.log("[Watchlist Refresh] 시작:", new Date().toISOString());
       const proc = spawn("node", [scriptPath], { cwd: ROOT });
       let stderr = "";
@@ -160,7 +159,7 @@ function runDailyUpdate() {
 
   (async () => {
     try {
-      const scriptPath = path.join(ROOT, "run-daily-analysis.js");
+      const scriptPath = path.join(ROOT, "pipeline", "run-daily-analysis.js");
       console.log("[Daily Update] 시작:", new Date().toISOString());
       const proc = spawn("node", [scriptPath], { cwd: ROOT });
       proc.stdout.on("data", (data) => console.log("[Daily Update stdout]", data.toString().trim()));
@@ -207,7 +206,7 @@ function spawnBoardScript(scriptFile) {
 }
 
 // 전체 보드 갱신 (cron 16:35 + /admin/refresh-all-boards 가 호출).
-// QVA → D+5 재돌파(operation/deep-dive/flow) → 1DS 순서로 순차 실행. 한 보드 실패해도 다음 진행.
+// QVA → QVA 고점 재돌파 → D+5 재돌파 운용 → 1DS → QVA2 × 3 순서로 순차 실행. 한 보드 실패해도 다음 진행.
 function refreshAllBoards() {
   if (patternState.refreshingAllBoards) {
     return { ok: false, message: "이미 전체 보드 갱신 중입니다", startedAt: patternState.allBoardsRefreshStartedAt };
@@ -244,7 +243,7 @@ function refreshAllBoards() {
 
   return {
     ok: true,
-    message: `전체 보드 갱신 시작 (${BOARD_SCRIPTS.length}개 — QVA + 재돌파 × 3 + 1DS + QVA2 × 3, 백그라운드 30~90초 예상)`,
+    message: `전체 보드 갱신 시작 (${BOARD_SCRIPTS.length}개 — QVA + QVA 고점 재돌파 + D+5 재돌파 + 1DS + QVA2 × 3, 백그라운드 30~90초 예상)`,
     startedAt: patternState.allBoardsRefreshStartedAt,
   };
 }
@@ -267,7 +266,7 @@ function refresh1dsIntraday() {
   (async () => {
     try {
       // Phase 1: 분봉 수집
-      const collectScript = path.join(ROOT, "collect-1ds-intraday.js");
+      const collectScript = path.join(ROOT, "pipeline", "collect-1ds-intraday.js");
       console.log("[1DS Intraday] 분봉 수집 시작");
       const collectRes = await new Promise((resolve) => {
         const proc = spawn("node", [collectScript, "--from-board"], { cwd: ROOT });
@@ -291,7 +290,7 @@ function refresh1dsIntraday() {
       // Phase 2: 보드 재생성
       patternState.oneDsIntradayPhase = "regen";
       console.log("[1DS Intraday] 보드 재생성 시작");
-      const regenScript = path.join(ROOT, "one-day-surge-board.js");
+      const regenScript = path.join(ROOT, "boards", "oneDaySurge", "one-day-surge-board.js");
       const regenRes = await new Promise((resolve) => {
         const proc = spawn("node", [regenScript], { cwd: ROOT });
         let stderr = "";

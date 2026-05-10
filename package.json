@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "generate-stocks": "node generate-stocks.js"
+    "generate-stocks": "node pipeline/generate-stocks.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

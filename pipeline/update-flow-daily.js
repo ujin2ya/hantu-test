@@ -19,7 +19,7 @@
  */
 
 const path = require('path');
-const ROOT = __dirname;
+const ROOT = path.join(__dirname, '..');
 
 require('dotenv').config({ path: path.join(ROOT, '.env') });
 const fs = require('fs');

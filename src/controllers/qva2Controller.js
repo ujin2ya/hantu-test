@@ -1,9 +1,7 @@
-// QVA2 실험 라인 — 기존 운영 보드 3개 (/qva-watchlist, /rebreak, /qva-vvi-redefined-board)의 QVA2 버전을 sendFile.
-//   - /qva2-watchlist     → reports/qva2-watchlist-board.html (H그룹/VPR mirror)
-//   - /qva2-d5-rebreak    → reports/qva2-d5-rebreak-board.html (/rebreak mirror)
-//   - /qva2-vvi           → reports/qva2-vvi-board.html (/qva-vvi-redefined-board mirror)
-//   - /qva2-validation    → reports/qva2-validation-result.html (자체 검증)
-// 기존 컨트롤러는 건드리지 않는다.
+// QVA2 실험 라인 — 살아있는 보드 3개의 sendFile 컨트롤러.
+//   - /qva2-watchlist     → reports/qva2-watchlist-board.html
+//   - /qva2-d5-rebreak    → reports/qva2-d5-rebreak-board.html
+//   - /qva2-vvi           → reports/qva2-vvi-board.html
 const path = require("path");
 const fs = require("fs");
 const { REPORTS_DIR } = require("../utils/paths");
@@ -11,7 +9,6 @@ const { REPORTS_DIR } = require("../utils/paths");
 const QVA2_WATCHLIST_HTML  = path.join(REPORTS_DIR, "qva2-watchlist-board.html");
 const QVA2_D5_REBREAK_HTML = path.join(REPORTS_DIR, "qva2-d5-rebreak-board.html");
 const QVA2_VVI_HTML        = path.join(REPORTS_DIR, "qva2-vvi-board.html");
-const QVA2_VAL_HTML        = path.join(REPORTS_DIR, "qva2-validation-result.html");
 
 function notReady(res, fileName, generateCmd) {
   res.status(503).type("html").send(
@@ -38,14 +35,8 @@ function getVviBoard(req, res) {
   res.sendFile(QVA2_VVI_HTML);
 }
 
-function getValidation(req, res) {
-  if (!fs.existsSync(QVA2_VAL_HTML)) return notReady(res, "qva2-validation-result", "node qva2-validation-report.js");
-  res.sendFile(QVA2_VAL_HTML);
-}
-
 module.exports = {
   getWatchlistBoard,
   getD5RebreakBoard,
   getVviBoard,
-  getValidation,
 };

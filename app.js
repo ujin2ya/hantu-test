@@ -44,8 +44,10 @@ registerSchedules();
 
 app.listen(PORT, () => {
   console.log(`서버 실행: http://localhost:${PORT}`);
-  console.log(`📋 H그룹/VPR 운영 보드: http://localhost:${PORT}/qva-watchlist`);
-  console.log(`🔥 D+5 재돌파 운용 보드: http://localhost:${PORT}/rebreak`);
-  console.log(`🔬 재돌파 심층 검증: http://localhost:${PORT}/rebreak-deep`);
+  console.log(`📋 QVA Watchlist: http://localhost:${PORT}/qva-watchlist`);
+  console.log(`🎯 QVA 고점 재돌파: http://localhost:${PORT}/qva-vvi-redefined-board`);
+  console.log(`🔥 D+5 재돌파 운용: http://localhost:${PORT}/rebreak`);
+  console.log(`⚡ 1DS 단타 후보: http://localhost:${PORT}/one-day-surge-board`);
+  console.log(`🟣 QVA2 보드: /qva2-watchlist  /qva2-d5-rebreak  /qva2-vvi`);
   console.log(`⚙ 관리자: http://localhost:${PORT}/admin`);
 });

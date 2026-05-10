@@ -20,10 +20,10 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 // ─── Config ───
-const ROOT = __dirname;
+const ROOT = path.join(__dirname, '..');
 const PATTERN_RESULT_CACHE = path.join(ROOT, 'cache', 'pattern-result.json');
 const UPDATE_CHART_SCRIPT = path.join(ROOT, 'update-daily-pykrx.py');
-const UPDATE_FLOW_SCRIPT = path.join(ROOT, 'update-flow-daily.js');
+const UPDATE_FLOW_SCRIPT = path.join(__dirname, 'update-flow-daily.js');
 const PYTHON_CMD = process.platform === 'win32' ? 'python' : 'python3';
 
 // ─── Helpers ───
@@ -70,7 +70,7 @@ async function runAnalysis() {
   try {
     log('시작: 패턴 분석 (analyzeAll)');
 
-    const { analyzeAll } = require('./pattern-screener');
+    const { analyzeAll } = require('../screeners/pattern-screener');
     const result = await analyzeAll();
 
     // 파일 저장

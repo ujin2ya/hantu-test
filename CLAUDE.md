@@ -2,32 +2,80 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 폴더 구조 (2026-05-11 분류)
+
+루트는 부트스트랩(`app.js`)과 데이터/views/src만 둔다. 모든 보드 generator·screener·일일 갱신 스크립트는 도메인별 폴더로 분류:
+
+```
+app.js                              # Express 부트스트랩 (루트 유지)
+boards/                             # 7개 보드 generator + 보드 전용 라이브러리
+  qva/
+    qva-watchlist-board.js          # /qva-watchlist
+    qva-vvi-redefined-board.js      # /qva-vvi-redefined-board
+    vpr-analyzer.js                 # qva-watchlist 의존
+  rebreak/
+    hgroup-rebreak-operation-board.js  # /rebreak
+  oneDaySurge/
+    one-day-surge-board.js          # /one-day-surge-board
+    one-day-surge-core.js           # 점수/필터 core
+    one-day-surge-trade-plan.js     # 매매 가격 모듈
+    one-day-surge-entry-confirm-report.js  # computeIntradayMetrics 라이브러리 (보고서 라우트는 제거됨)
+  qva2/
+    qva2-watchlist-board.js         # /qva2-watchlist
+    qva2-d5-rebreak-board.js        # /qva2-d5-rebreak
+    qva2-vvi-board.js               # /qva2-vvi
+    qva2-screener.js                # 임계값 단일 진입점
+screeners/                          # 일일 분석 엔진
+  pattern-screener.js               # 5,000줄급 메인 분석 → cache/pattern-result.json
+  korea-filter.js                   # valueMomentumScore / liquidityScore / marketCapScore
+  dart-fetcher.js                   # DART 펀더멘탈
+  naver-fetcher.js                  # 네이버 메타 + 시드
+pipeline/                           # 일일 갱신 / 마스터 / 분봉 수집
+  run-daily-analysis.js             # 16:20 cron 일일 갱신 (차트+수급+분석)
+  update-flow-daily.js              # 외국인/기관 수급 증분
+  collect-1ds-intraday.js           # 09:30 cron 1DS 분봉 수집
+  generate-stocks.js                # 종목 마스터 재생성 (수동)
+  update-daily-pykrx.py             # KIS API 차트 갱신 (.py — 위치 동일)
+seeds/                              # 일회성 시드 (require 0건, 데이터 복구용)
+  seed-financials-history.js
+  seed-flow-naver.js
+src/                                # webapp 코드 (라우트/컨트롤러/서비스/미들웨어/유틸)
+views/                              # EJS 템플릿
+master/                             # KIS 종목 마스터 zip
+cache/                              # 캐시 데이터 (gitignore 화이트리스트)
+reports/                            # 보드 generator 출력 HTML/JSON
+data/intraday/1ds/                  # 1DS 분봉 누적
+scripts/                            # sync-remote-cache.sh 등 ops
+```
+
+**ROOT 정의 규칙**: 보드 파일(`boards/<family>/*.js`)은 `const ROOT = path.join(__dirname, '..', '..');`, 1단계 폴더 파일(`screeners/*.js`, `pipeline/*.js`, `seeds/*.js`)은 `const ROOT = path.join(__dirname, '..');`. 모든 cache/reports 경로는 ROOT 기준으로 작성한다 — 직접 `__dirname`을 cache path에 쓰지 말 것.
+
+**폴더 간 require 규칙**: 같은 폴더 안에서는 `require('./foo')` 그대로. 폴더 간은 상대 경로 — 보드 → screener는 `require('../../screeners/xxx')`, pipeline → screener는 `require('../screeners/xxx')`, seeds → screener는 `require('../screeners/xxx')`.
+
+**spawn 규칙**: `src/services/pattern/adminTriggers.js`의 `BOARD_SCRIPTS` + `runDailyUpdate` + `refresh1dsIntraday`는 모두 `path.join(ROOT, 'boards', '<family>', 'xxx.js')` 형태로 새 path 사용. 단순 파일명만 쓰지 말 것.
+
 ## 명령어
 
 - 의존성 설치: `npm install`
 - Python 의존성 설치: `python -m venv .venv && .venv\Scripts\pip install -r requirements.txt` (Windows) — pykrx/pandas 기반 시드/갱신 스크립트용
 - 웹 앱 실행: `node app.js` (포트는 `PORT` 환경변수, 기본값 `3012`). app.js는 부트스트랩 전용이고 라우터/서비스/cron은 `src/` 하위.
-- 종목 마스터 재생성: `npm run generate-stocks` (`master/`의 zip을 읽어 `stocks.json` 작성)
-- 일일 갱신을 수동 트리거: `node run-daily-analysis.js` (또는 `/admin/run-daily-update`)
-- QVA 운영 보드 재생성: `node qva-watchlist-board.js` → `qva-watchlist-board.html` 생성. 라우트 `/qva-watchlist`가 이 정적 HTML을 서빙
-- D+5 재돌파 보드/심층/수급 백테스트 재생성: `node hgroup-rebreak-operation-board.js`, `node hgroup-rebreak-deep-dive-report.js`, `node hgroup-rebreak-flow-backtest.js` → `reports/hgroup-rebreak-*-result.{html,json}` 생성. 라우트는 이 파일을 sendFile만 함
-- 1-Day Surge Board(단타 관심 후보) 재생성: `node one-day-surge-board.js` → `reports/one-day-surge-board-result.{html,json}` 생성. 라우트 `/one-day-surge-board`가 sendFile만 함
-- 1-Day Surge 다음날 검증 보고서: `node one-day-surge-nextday-validation-report.js` → `reports/one-day-surge-nextday-validation-result.{html,json}` 생성. 환경변수 `VALIDATION_DAYS`(기본 60), `VALIDATION_MAX_STOCKS`(기본 무제한) 지원
-- 1DS GT 후보 분봉 백필: `node collect-1ds-intraday.js [--target-date YYYYMMDD | --from YYYYMMDD --to YYYYMMDD | --from-board]` → `data/intraday/1ds/{date}/{code}.json`에 09:00~10:00 분봉 저장. KIS `FHKST03010230`(과거 분봉) 기반, 멱등 저장 (이미 있으면 skip). 환경변수 대신 CLI 플래그: `--window-days`(기본 40), `--groups`, `--top-per-day`, `--sleep`(기본 350ms), `--retry`(기본 2), `--end-hour`(기본 100000), `--dry-run`, `--from-board`. **`--from-board`는 라이브 운영용** — `reports/one-day-surge-board-result.json`의 `priorityRanked.mainPoolCodes`만 읽어 그 코드들(~15~25개)에 한해 수집. target-date를 보드의 analysisDate로 자동 설정. 09:31 cron이 이 모드로 호출. 누락 로그는 `reports/one-day-surge-intraday-missing.json`에 누적
-- 1DS ENTRY_CONFIRM 연구 보고서: `node one-day-surge-entry-confirm-report.js` → `reports/one-day-surge-entry-confirm-result.{html,json}` 생성. 라우트 `/one-day-surge-entry-confirm`. 환경변수 `ENTRY_VALIDATION_DAYS`(기본 40), `ENTRY_GROUPS`(기본 BALANCED-GT,LIGHT-GT,MID-CAP-GT,MOM-RISK). 분봉 데이터는 `data/intraday/1ds/`에서 read.
-- 1DS ENTRY 날짜별 운영형 백테스트: `node one-day-surge-entry-daily-backtest-report.js` → `reports/one-day-surge-entry-daily-backtest-result.{html,json}` 생성. 라우트 `/one-day-surge-entry-daily-backtest`. 환경변수 `ENTRY_BACKTEST_DAYS`(기본 40). ENTRY_CONFIRM 인프라(generateGtEventsByDate, applyEntryConditions, computeOutcomes, summarizeBucket) 재사용. SAFE_REBREAK / BALANCED_REBREAK / LIGHT_REBREAK / CLEAN_REBREAK / RISK_REBREAK / PREV_HIGH_SPIKE 6개 전략을 날짜별로 simulate.
-- QVA 고점 재돌파 후보 보드 (새 VVI 정의): `node qva-vvi-redefined-board.js` → `reports/qva-vvi-redefined-board-result.{html,json}` 생성. 라우트 `/qva-vvi-redefined-board`. 환경변수 `VVI_LOOKBACK_DAYS`(기본 20), `VVI_TOP_LIMIT`(기본 10). 새 VVI 정의 = QVA 고가 재돌파 + QVA 이상 거래량 + QVA 이상 거래대금. 기존 VVI/QVA 보드와 별개의 신규 보드. **이 보드 관련 새 파일은 더 만들지 말고 동일 파일에 섹션 추가/덮어쓰기로 관리.**
-- 새 VVI 정의 1차 백테스트: `node qva-vvi-redefined-backtest-report.js` → `reports/qva-vvi-redefined-backtest-result.{html,json}` 생성. 라우트 `/qva-vvi-redefined-backtest`. 환경변수 `BACKTEST_LOOKBACK_DAYS`(기본 60). 5 그룹(A~E) 비교 + D+1/3/5/10/20 outcome (평균 최고가/최저가/종가, 도달률, 종가 양수율) + TOP 20 + WORST 20 + 자동 결론 5문항. **이 파일 1개만 사용 — v2/final/new 사본 만들지 않음. 새 실험은 동일 파일에 섹션 추가/덮어쓰기.**
+- 종목 마스터 재생성: `npm run generate-stocks` ([pipeline/generate-stocks.js](pipeline/generate-stocks.js)가 `master/`의 zip을 읽어 `stocks.json` 작성)
+- 일일 갱신을 수동 트리거: `node pipeline/run-daily-analysis.js` (또는 `/admin/run-daily-update`)
+- QVA 운영 보드 재생성: `node boards/qva/qva-watchlist-board.js` → `qva-watchlist-board.html` 생성. 라우트 `/qva-watchlist`가 이 정적 HTML을 서빙
+- D+5 재돌파 운용 보드 재생성: `node boards/rebreak/hgroup-rebreak-operation-board.js` → `reports/hgroup-rebreak-operation-board-result.{html,json}` 생성. 라우트 `/rebreak`(= `/hgroup-rebreak-operation`)가 sendFile만 함. 심층 검증/수급 백테스트는 2026-05-10에 제거됨.
+- 1-Day Surge Board(단타 관심 후보) 재생성: `node boards/oneDaySurge/one-day-surge-board.js` → `reports/one-day-surge-board-result.{html,json}` 생성. 라우트 `/one-day-surge-board`가 sendFile만 함. 다음날 검증/ENTRY_CONFIRM/날짜별 백테스트 보고서는 2026-05-10에 제거됨 (단, [boards/oneDaySurge/one-day-surge-entry-confirm-report.js](boards/oneDaySurge/one-day-surge-entry-confirm-report.js)는 라이브 보드의 `computeIntradayMetrics` 라이브러리 dependency로 보존됨 — main 함수가 호출되지 않을 뿐).
+- 1DS GT 후보 분봉 백필: `node pipeline/collect-1ds-intraday.js [--target-date YYYYMMDD | --from YYYYMMDD --to YYYYMMDD | --from-board]` → `data/intraday/1ds/{date}/{code}.json`에 09:00~10:00 분봉 저장. KIS `FHKST03010230`(과거 분봉) 기반, 멱등 저장 (이미 있으면 skip). 환경변수 대신 CLI 플래그: `--window-days`(기본 40), `--groups`, `--top-per-day`, `--sleep`(기본 350ms), `--retry`(기본 2), `--end-hour`(기본 100000), `--dry-run`, `--from-board`. **`--from-board`는 라이브 운영용** — `reports/one-day-surge-board-result.json`의 `priorityRanked.mainPoolCodes`만 읽어 그 코드들(~15~25개)에 한해 수집. target-date를 보드의 analysisDate로 자동 설정. 09:31 cron이 이 모드로 호출. 누락 로그는 `reports/one-day-surge-intraday-missing.json`에 누적
+- QVA 고점 재돌파 후보 보드 (새 VVI 정의): `node boards/qva/qva-vvi-redefined-board.js` → `reports/qva-vvi-redefined-board-result.{html,json}` 생성. 라우트 `/qva-vvi-redefined-board`. 환경변수 `VVI_LOOKBACK_DAYS`(기본 20), `VVI_TOP_LIMIT`(기본 10). 새 VVI 정의 = QVA 고가 재돌파 + QVA 이상 거래량 + QVA 이상 거래대금. 기존 VVI/QVA 보드와 별개의 신규 보드. 1차 백테스트는 2026-05-10에 제거됨.
 - **QVA2 실험 라인 (기존 운영 3 보드의 1:1 mirror, 기존 QVA/VVI/VPR 무수정)**: 기존 QVA(`calculateRedefinedQVA`)는 약세 마감을 `notWeakClose` 필터로 컷하는 안정형. QVA2는 그 반대편 — "종가는 약했지만 거래대금이 강하게 들어왔고 장중 회복 흔적이 있는" 후보를 별도로 잡는 실험. 보드 3개는 기존 `/qva-watchlist`, `/rebreak`, `/qva-vvi-redefined-board`의 1:1 mirror로 만든다.
-  - 공통 모듈: [qva2-screener.js](qva2-screener.js) — `calculateQVA2(rows, idx, meta, overrides)` + `findQVA2Events()` + `findVvi2AfterQva2(rows, qva2Idx, maxDays)`. 임계값은 `QVA2_CONFIG` / `VVI2_CONFIG`에서 단일 관리.
-  - QVA2 H그룹/VPR 보드 (mirror of /qva-watchlist): `node qva2-watchlist-board.js` → `reports/qva2-watchlist-board.{html,json}`. 라우트 `/qva2-watchlist`. 종목당 단일 funnel 상태(QVA2_NEW / QVA2_TRACKING / VVI2_FIRED / BREAKOUT_SUCCESS / FAILED) + 보조 태그(PRICE_HOLD / LOW_RISING / VALUE_REACTIVATION). TRACKING_DAYS=20, RECENT_BREAKOUT_DAYS=5, RECENT_FAILED_DAYS=5, EXIT_THRESHOLD_PCT=-15. 환경변수 `QVA2_MAX_MARKETCAP`(기본 5e12).
-  - QVA2 D+5 재돌파 운용보드 (mirror of /rebreak): `node qva2-d5-rebreak-board.js` → `reports/qva2-d5-rebreak-board.{html,json}`. 라우트 `/qva2-d5-rebreak`. 입력은 `qva2-watchlist-board.json`의 BREAKOUT_SUCCESS 후보. D+0 = BREAKOUT 일자, D+1~D+5 동안 D+0 고가 종가 재돌파 추적. 상태: CLOSE_REBREAK / TODAY_INITIAL_BREAKOUT / INTRADAY_PUSHBACK / BREACH_NO_RECOVER / NO_REBREAK. 환경변수 `QVA2_REBREAK_MAX_DAYS`(기본 5).
-  - QVA2 고점 재돌파 보드 (mirror of /qva-vvi-redefined-board): `node qva2-vvi-board.js` → `reports/qva2-vvi-board.{html,json}`. 라우트 `/qva2-vvi`. QVA2 발생일의 (high, volume, value)를 기준으로 첫 재돌파일 탐지. `qva2-watchlist-board.json`의 `allEvents`를 입력으로 사용. 환경변수 `VVI2_LOOKBACK_DAYS`(기본 30), `VVI2_TOP_LIMIT`(기본 30).
-  - QVA2 검증 보고서: `node qva2-validation-report.js` → `reports/qva2-validation-result.{html,json}`. 라우트 `/qva2-validation`. 전 종목 × 과거 N거래일 시뮬레이션 → D+1/3/5/10/20 종가, MFE/MAE D+5/10/20, +5/10/15/20/30% 도달률을 등급별·점수구간별·약세폭별·거래대금배율별·종가위치별·시총별 cohort로 비교. 환경변수 `QVA2_VALIDATION_DAYS`(기본 180), `QVA2_VALIDATION_MAX_STOCKS`(기본 0=무제한), `QVA2_VALIDATION_MAX_MARKETCAP`(기본 5e12). **기존 reports/qva-* 파일은 읽기만, 수정 안 함.**
-  - 의존성 순서 (16:35 cron + admin trigger): qva2-watchlist → qva2-d5-rebreak → qva2-vvi (각자 독립이지만 d5-rebreak이 watchlist json을 read하므로 순서 유지).
+  - 공통 모듈: [boards/qva2/qva2-screener.js](boards/qva2/qva2-screener.js) — `calculateQVA2(rows, idx, meta, overrides)` + `findQVA2Events()` + `findVvi2AfterQva2(rows, qva2Idx, maxDays)`. 임계값은 `QVA2_CONFIG` / `VVI2_CONFIG`에서 단일 관리.
+  - QVA2 H그룹/VPR 보드: `node boards/qva2/qva2-watchlist-board.js` → `reports/qva2-watchlist-board.{html,json}`. 라우트 `/qva2-watchlist`. 종목당 단일 funnel 상태(QVA2_NEW / QVA2_TRACKING / VVI2_FIRED / BREAKOUT_SUCCESS / FAILED) + 보조 태그(PRICE_HOLD / LOW_RISING / VALUE_REACTIVATION). TRACKING_DAYS=20, RECENT_BREAKOUT_DAYS=5, RECENT_FAILED_DAYS=5, EXIT_THRESHOLD_PCT=-15. 환경변수 `QVA2_MAX_MARKETCAP`(기본 5e12).
+  - QVA2 D+5 재돌파 운용보드: `node boards/qva2/qva2-d5-rebreak-board.js` → `reports/qva2-d5-rebreak-board.{html,json}`. 라우트 `/qva2-d5-rebreak`. 입력은 `boards/qva2/qva2-watchlist-board.json`의 BREAKOUT_SUCCESS 후보. D+0 = BREAKOUT 일자, D+1~D+5 동안 D+0 고가 종가 재돌파 추적.
+  - QVA2 고점 재돌파 보드: `node boards/qva2/qva2-vvi-board.js` → `reports/qva2-vvi-board.{html,json}`. 라우트 `/qva2-vvi`. QVA2 발생일의 (high, volume, value)를 기준으로 첫 재돌파일 탐지.
+  - QVA2 검증/백테스트/사전감시 보고서들은 모두 2026-05-10에 제거됨.
+  - 의존성 순서 (16:35 cron + admin trigger): qva2-watchlist → qva2-d5-rebreak → qva2-vvi.
   - 컨트롤러/라우터: [src/controllers/qva2Controller.js](src/controllers/qva2Controller.js), [src/routes/qva2Routes.js](src/routes/qva2Routes.js). [src/routes/index.js](src/routes/index.js)에 mount.
-  - 기존 10개 운영 보드의 HTML 상단에 보라색 QVA2 nav banner를 추가했다 (보드 generator의 HTML 템플릿에 inline). 기존 nav/데이터/조건은 무수정 — 배너만 nav 위에 1줄 inject.
-  - **임계값 튜닝은 `qva2-screener.js`의 `QVA2_CONFIG`만 수정**. 보드 3개 모두 동일 screener를 import하므로 단일 진입점에서 동기화됨. 새 파일 만들지 말고 같은 파일에 섹션 추가/덮어쓰기로 관리. ❌ qva2-vpr-board.js는 더 이상 사용하지 않음 (D+5 재돌파로 대체됨, 2026-05).
+  - 살아있는 7개 보드의 HTML 상단에 보라색 QVA2 nav banner가 inline으로 들어가 있다.
+  - **임계값 튜닝은 `boards/qva2/qva2-screener.js`의 `QVA2_CONFIG`만 수정**. 보드 3개 모두 동일 screener를 import하므로 단일 진입점에서 동기화됨.
 - **운영 서버 캐시 동기화 (push 전 필수)**: `bash scripts/sync-remote-cache.sh` — 운영 서버의 `cache/pattern-result.json` + `cache/flow-history/` + `cache/stock-charts-long/`를 로컬로 받는다. 이유는 [push 절차](#push-절차) 참고.
 
 테스트, 린터, 빌드 단계는 구성되어 있지 않다. 운영 배포는 GitHub Actions(`.github/workflows/deploy.yml`)가 ydata.co.kr 서버에 SSH로 push해 PM2(`hantu-test` 프로세스)로 재기동한다.
@@ -62,7 +110,7 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 **외부 API**
 - `GEMINI_API_KEY` — Gemini API. AI 코멘트(`/ai/comment`)에 사용. 미설정 시 `/ai/comment`가 503 반환
 - `GEMINI_MODEL` (기본 `gemini-2.5-flash-lite`) — 모델 오버라이드
-- `DART_API_KEY` — 공시·재무 조회 (`dart-fetcher.js`, `seed-financials-history.js`, pattern-screener의 펀더멘탈 스코어). 미설정 시 공시·재무 단계 skip
+- `DART_API_KEY` — 공시·재무 조회 (`screeners/dart-fetcher.js`, `seeds/seed-financials-history.js`, pattern-screener의 펀더멘탈 스코어). 미설정 시 공시·재무 단계 skip
 
 **인증/접근 제어**
 - `SITE_PASSWORD` — 사이트 전체 비밀번호 게이트 (`/login`이 검증, 쿠키로 유지). 운영 환경에서만 활성
@@ -76,8 +124,8 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 - `MAIL_CRON_ENABLED=1` — 평일 09:30:30 1DS 단타 후보 메일 cron 활성화
 
 **튜닝/오버라이드**
-- `PATTERN_MAX_MARKETCAP` (기본 5천억), `PATTERN_MIN_MARKETCAP` (기본 50억) — `naver-fetcher.js`의 시드 시총 필터. 운영은 9천억으로 ramp
-- `ANALYSIS_DATE` — `pattern-screener.js`가 분석 기준일을 강제 (재현 백테스트용)
+- `PATTERN_MAX_MARKETCAP` (기본 5천억), `PATTERN_MIN_MARKETCAP` (기본 50억) — `screeners/naver-fetcher.js`의 시드 시총 필터. 운영은 9천억으로 ramp
+- `ANALYSIS_DATE` — `screeners/pattern-screener.js`가 분석 기준일을 강제 (재현 백테스트용)
 - `PORT` — 웹 서버 포트
 
 **운영 서버 SSH (`scripts/sync-remote-cache.sh`용)**
@@ -89,12 +137,12 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 단일 프로세스 Node/Express 앱이 KIS Open Trading API, 네이버 모바일 API, DART API, Gemini를 조합해서 한국 주식(KOSPI/KOSDAQ)을 점수화·스크리닝한다. 결과는 정적 HTML과 EJS 템플릿으로 렌더링한다.
 
 크게 세 개의 축이 한 코드베이스에 공존한다:
-1. **패턴 스크리너 + 일일 분석 캐시** (`pattern-screener.js`, QVA/VVI/CSB/Rebound/Trend Template/펀더멘탈 등을 결합한 5,000줄급 단일 모듈) → `cache/pattern-result.json`
+1. **패턴 스크리너 + 일일 분석 캐시** (`screeners/pattern-screener.js`, QVA/VVI/CSB/Rebound/Trend Template/펀더멘탈 등을 결합한 5,000줄급 단일 모듈) → `cache/pattern-result.json`
 2. **운영 보드** — 패턴 결과를 funnel 단계별 운용 화면으로 재가공
-   - QVA Watchlist Board (`qva-watchlist-board.js` → `/qva-watchlist`)
-   - D+5 재돌파 운용 보드 가족 (`hgroup-rebreak-*.js` → `/rebreak`, `/rebreak-deep`, `/d5-rebreak-flow`, `/d5-rebreak/:code`)
-   - 1-Day Surge Board — **QVA/VVI/BMS와 분리된 독립 단타 후보 보드** (`one-day-surge-board.js` → `/one-day-surge-board`). 본체 점수에는 QVA/VVI/BMS 조건을 섞지 않고, QVA/VVI 이력은 카드 참고 태그로만 부착.
-3. **일일 갱신 파이프라인** (`update-flow-daily.js`, `update-daily-pykrx.py`, `run-daily-analysis.js` + node-cron 4개)
+   - QVA Watchlist Board (`boards/qva/qva-watchlist-board.js` → `/qva-watchlist`)
+   - D+5 재돌파 운용 보드 (`boards/rebreak/hgroup-rebreak-operation-board.js` → `/rebreak`, `/d5-rebreak/:code`)
+   - 1-Day Surge Board — **QVA/VVI/BMS와 분리된 독립 단타 후보 보드** (`boards/oneDaySurge/one-day-surge-board.js` → `/one-day-surge-board`). 본체 점수에는 QVA/VVI/BMS 조건을 섞지 않고, QVA/VVI 이력은 카드 참고 태그로만 부착.
+3. **일일 갱신 파이프라인** (`pipeline/update-flow-daily.js`, `update-daily-pykrx.py`, `pipeline/run-daily-analysis.js` + node-cron 4개)
 
 운영 UI(관리자 대시보드, 구독 메일)는 위 세 축이 만든 결과물 위에 얇게 얹힌다.
 
@@ -130,27 +178,16 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 | `GET /qva-watchlist-board` | (redirect) | `/qva-watchlist`로 |
 | `GET /rebreak`, `/d5-rebreak-board` | rebreakController (redirect) | `/hgroup-rebreak-operation`로 |
 | `GET /hgroup-rebreak-operation` | rebreakController.getOperationBoard | D+5 재돌파 운용 보드 HTML sendFile |
-| `GET /rebreak-deep`, `/d5-rebreak-deep-dive` | (redirect) | `/hgroup-rebreak-deep-dive`로 |
-| `GET /hgroup-rebreak-deep-dive` | rebreakController.getDeepDive | 심층 검증 보고서 sendFile |
-| `GET /d5-rebreak-flow`, `/rebreak-flow` | rebreakController.getFlowBacktest | 수급 결합 백테스트 보고서 sendFile |
 | `GET /d5-rebreak/:code` | qvaVviRedefinedController.getRedefinedVviStockDetail | 모든 보드 상세 페이지가 공유하는 통일 페이지. `/qva-vvi-redefined/:code`와 동일 |
 | `POST /d5-rebreak/:code/ai` | qvaVviRedefinedController.postCompanyAnalysis | 통일 상세 페이지의 AI 사업내용 요약 lazy 호출 |
 | `GET /one-day-surge-board` | oneDaySurgeController.getBoard | 단타 관심 후보 보드 HTML sendFile (`reports/one-day-surge-board-result.html`) |
 | `GET /one-day-surge`, `/ods` | (redirect) | `/one-day-surge-board`로 |
-| `GET /one-day-surge-validation` | oneDaySurgeController.getValidation | 다음날 검증 백테스트 보고서 HTML sendFile (`reports/one-day-surge-nextday-validation-result.html`) |
-| `GET /ods-validation` | (redirect) | `/one-day-surge-validation`로 |
-| `GET /one-day-surge-entry-confirm` | oneDaySurgeController.getEntryConfirm | 분봉 ENTRY_CONFIRM 연구 보고서 HTML sendFile (`reports/one-day-surge-entry-confirm-result.html`) |
-| `GET /ods-entry-confirm` | (redirect) | `/one-day-surge-entry-confirm`로 |
-| `GET /one-day-surge-entry-daily-backtest` | oneDaySurgeController.getEntryDailyBacktest | 날짜별 운영형 백테스트 보고서 HTML sendFile (`reports/one-day-surge-entry-daily-backtest-result.html`) |
-| `GET /ods-entry-daily-backtest` | (redirect) | `/one-day-surge-entry-daily-backtest`로 |
 | `GET /qva-vvi-redefined-board` | qvaVviRedefinedController.getRedefinedVviBoard | 새 VVI 정의 (QVA 고가 + 거래량 + 거래대금 동시 재돌파) 후보 보드 HTML sendFile (`reports/qva-vvi-redefined-board-result.html`) |
-| `GET /qva-vvi-redefined-backtest` | qvaVviRedefinedController.getRedefinedVviBacktest | 새 VVI 정의 1차 백테스트 HTML sendFile (`reports/qva-vvi-redefined-backtest-result.html`) |
 | `GET /qva-vvi-redefined/:code` | qvaVviRedefinedController.getRedefinedVviStockDetail | 새 VVI 종목 상세 페이지 — naver 메타 + KIS 실시간 + 60일 SVG 차트 + DART 재무 + Naver 뉴스 8건 + DART 공시 10건 + 새 VVI funnel 위치 + AI 분석 버튼. `views/qva-vvi-redefined-detail.ejs` 렌더. 보드 카드의 종목명이 이 라우트로 링크 |
 | `POST /qva-vvi-redefined/:code/ai` | qvaVviRedefinedController.postCompanyAnalysis | 상세 페이지 AI 버튼이 fetch로 호출. Gemini가 기업분석/사업내용/최근이슈 3섹션 생성 (in-memory 30분 TTL 캐시). `geminiCompanyAnalysis.js` |
 | `GET /qva2-watchlist` | qva2Controller.getWatchlistBoard | QVA2 H그룹/VPR 보드 sendFile (`reports/qva2-watchlist-board.html`). 기존 `/qva-watchlist`의 funnel 구조 mirror. 실험 라인 |
 | `GET /qva2-d5-rebreak` | qva2Controller.getD5RebreakBoard | QVA2 D+5 재돌파 운용보드 sendFile (`reports/qva2-d5-rebreak-board.html`). 기존 `/rebreak`의 mirror, 입력은 qva2-watchlist의 BREAKOUT_SUCCESS. 실험 라인 |
 | `GET /qva2-vvi` | qva2Controller.getVviBoard | QVA2 고점 재돌파 보드 sendFile (`reports/qva2-vvi-board.html`). 기존 `/qva-vvi-redefined-board` mirror. 실험 라인 |
-| `GET /qva2-validation` | qva2Controller.getValidation | QVA2 검증 보고서 sendFile (`reports/qva2-validation-result.html`). 실험 라인 |
 | `GET /stock/:code` | qvaVviRedefinedController.getRedefinedVviStockDetail | 모든 보드 상세 페이지가 공유하는 통일 페이지. `/qva-vvi-redefined/:code`와 동일 |
 | `POST /stock/:code/ai` | qvaVviRedefinedController.postCompanyAnalysis | 통일 상세 페이지의 AI 사업내용 요약 lazy 호출 |
 | `POST /ai/comment` | aiController.postComment | Gemini 짧은 코멘트 호출. (현재 통일 상세 페이지는 `/qva-vvi-redefined/:code/ai` 등 컨트롤러 전용 AI 라우트를 사용하므로 사용처가 줄었다) |
@@ -162,16 +199,16 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 | `POST /admin/send-1ds-mail-one` | adminController.postSend1dsMailOne | 같은 1DS 메일을 **특정 구독자 한 명**에게만 발송 (구독자 그리드 행의 envelope 아이콘 버튼). `email` form field로 대상 지정 |
 | `POST /admin/pattern/seed`, `/admin/pattern/analyze`, `/admin/backtest/qva` | adminController + adminTriggers | 패턴 시드/분석/QVA 백테스트 비동기 트리거 |
 | `POST /admin/refresh-pattern-cache` | adminController | pattern-result.json 강제 재생성 (JSON 응답) |
-| `POST /admin/refresh-watchlist-board` | adminController | `qva-watchlist-board.js` 만 강제 재실행 |
-| `POST /admin/refresh-all-boards` | adminController.postRefreshAllBoards | **전체 보드 갱신** — `adminTriggers.BOARD_SCRIPTS` 8개를 백그라운드 순차 실행 (QVA + 재돌파 × 3 + 1DS + QVA2 × 3). cron 16:35와 동일한 sequence를 admin에서 트리거. `patternState.refreshingAllBoards` / `allBoardsCurrent` / `allBoardsResults`로 진행 추적 |
-| `POST /admin/refresh-1ds-intraday` | adminController.postRefresh1dsIntraday | **1DS 분봉 수집 + 보드 재생성** — `collect-1ds-intraday.js --from-board` → `one-day-surge-board.js` 백그라운드 순차. cron 09:31과 동일한 sequence를 admin "⚡ 1DS 분봉 수집 + 보드 갱신" 버튼에서 트리거. `patternState.refreshing1dsIntraday` / `oneDsIntradayPhase` / `oneDsIntradayCollected` / `oneDsIntradayFailed`로 진행 추적 |
-| `POST /admin/run-daily-update` | adminController | `run-daily-analysis.js` 강제 실행 |
+| `POST /admin/refresh-watchlist-board` | adminController | `boards/qva/qva-watchlist-board.js` 만 강제 재실행 |
+| `POST /admin/refresh-all-boards` | adminController.postRefreshAllBoards | **전체 보드 갱신** — `adminTriggers.BOARD_SCRIPTS` 7개를 백그라운드 순차 실행 (QVA + QVA 고점 재돌파 + D+5 재돌파 운용 + 1DS + QVA2 × 3). cron 16:35와 동일한 sequence를 admin에서 트리거. `patternState.refreshingAllBoards` / `allBoardsCurrent` / `allBoardsResults`로 진행 추적 |
+| `POST /admin/refresh-1ds-intraday` | adminController.postRefresh1dsIntraday | **1DS 분봉 수집 + 보드 재생성** — `pipeline/collect-1ds-intraday.js --from-board` → `boards/oneDaySurge/one-day-surge-board.js` 백그라운드 순차. cron 09:31과 동일한 sequence를 admin "⚡ 1DS 분봉 수집 + 보드 갱신" 버튼에서 트리거. `patternState.refreshing1dsIntraday` / `oneDsIntradayPhase` / `oneDsIntradayCollected` / `oneDsIntradayFailed`로 진행 추적 |
+| `POST /admin/run-daily-update` | adminController | `pipeline/run-daily-analysis.js` 강제 실행 |
 
 기존에 있었지만 **현재는 없는** 라우트: `POST /search`, `/pattern`, `/scan`, `/backtest`, `/pdf`, `/pdf-viewer`, `/simple-report`, `/report`, `POST /subscribe`, `POST /ai/adjust`. UI는 단건 가중치 검색 모델에서 운영 보드 모델로 이전됐다.
 
 ### 종목 마스터 파이프라인
 
-`generate-stocks.js`는 KIS가 새 마스터 파일을 배포할 때 한 번씩 돌리는 일회성 도구다:
+`pipeline/generate-stocks.js`는 KIS가 새 마스터 파일을 배포할 때 한 번씩 돌리는 일회성 도구다:
 - `master/kospi_code.mst.zip`, `master/kosdaq_code.mst.zip`을 읽음
 - `.mst` 엔트리를 **cp949**(UTF-8 아님)로 디코드 (iconv-lite 사용)
 - `line.slice(0, len-228)`의 0/9/21 오프셋에서 고정폭 슬라이스 — 끝의 228바이트는 무시되므로, KIS가 레코드 포맷을 바꾸면 파서가 조용히 필드를 누락한다
@@ -184,9 +221,9 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 - [kisToken.js](src/services/kis/kisToken.js) — `getAccessToken`. `.kis-token.json`에 24시간 토큰을 캐시. 만료 5분 전까지 재사용, 동시 호출은 `inflightIssue` 프로미스로 coalesce. KIS 토큰 발급 엔드포인트는 **1분당 1회** 제한(`EGW00133`)이 있어서 캐싱이 없으면 연속 호출 시 즉시 블록된다. 캐시 파일은 토큰 평문을 담으므로 `.gitignore` 처리.
 - [kisApi.js](src/services/kis/kisApi.js) — `getCurrentPrice`, `getPeriodChart` 래퍼. KIS는 초당 호출 제한이 있어서 호출 사이 sleep이 **기능적으로 필수적**이다. 병렬화 금지.
 
-현재 KIS 호출은 통일 상세 페이지(`qvaVviRedefinedController.getRedefinedVviStockDetail` — `/qva-vvi-redefined/:code`, `/qva2-*/:code`, `/stock/:code`, `/d5-rebreak/:code`가 공유)의 실시간 가격 1회 + `update-flow-daily.js`/`update-daily-pykrx.py`(일일 갱신) 두 곳에서만 발생한다.
+현재 KIS 호출은 통일 상세 페이지(`qvaVviRedefinedController.getRedefinedVviStockDetail` — `/qva-vvi-redefined/:code`, `/qva2-*/:code`, `/stock/:code`, `/d5-rebreak/:code`가 공유)의 실시간 가격 1회 + `pipeline/update-flow-daily.js`/`update-daily-pykrx.py`(일일 갱신) 두 곳에서만 발생한다.
 
-### 패턴 스크리너 (`pattern-screener.js`)
+### 패턴 스크리너 (`screeners/pattern-screener.js`)
 
 일일 갱신 파이프라인의 핵심 엔진. 약 5,000줄짜리 단일 모듈로, Minervini SEPA + Weinstein Stage 2 변형 (Trend Template, VCP, Breakout) + QVA(Quiet Volume Anomaly) + VVI + CSB + Rebound + 펀더멘탈을 결합해 후보군을 스코어링한다.
 
@@ -194,13 +231,13 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 - **출력**: `cache/pattern-result.json` (5MB+)
 - **트리거**: 16:10/16:20 cron 또는 `/admin/pattern/analyze`, `/admin/refresh-pattern-cache`
 - **백테스트 재현**: `ANALYSIS_DATE` 환경변수로 기준일 강제
-- **시총 필터**: `PATTERN_MAX_MARKETCAP` / `PATTERN_MIN_MARKETCAP`은 `naver-fetcher.js`에서 read
+- **시총 필터**: `PATTERN_MAX_MARKETCAP` / `PATTERN_MIN_MARKETCAP`은 `screeners/naver-fetcher.js`에서 read
 
-`pattern-screener.js`는 라우트 핸들러에 직접 노출되지 않는다 — 컨트롤러는 cache 파일을 읽어 렌더만 한다. seed/analyze는 [src/services/pattern/adminTriggers.js](src/services/pattern/adminTriggers.js)가 비동기로 띄우고 `patternState`로 진행 상태를 추적한다.
+`screeners/pattern-screener.js`는 라우트 핸들러에 직접 노출되지 않는다 — 컨트롤러는 cache 파일을 읽어 렌더만 한다. seed/analyze는 [src/services/pattern/adminTriggers.js](src/services/pattern/adminTriggers.js)가 비동기로 띄우고 `patternState`로 진행 상태를 추적한다.
 
-라이브 QVA 구현은 `pattern-screener.js`의 `calculateQuietVolumeAnomaly()`. 5가설(FIRST/2DAY/ABSORB/HIGHER_LOW/HOLD) 검증은 별도 일회성 스크립트 가족에서 했었지만 현재는 정리됐고, 라이브 boardgenerator (`qva-watchlist-board.js`)가 funnel 단계 시각화로 대체.
+라이브 QVA 구현은 `screeners/pattern-screener.js`의 `calculateQuietVolumeAnomaly()`. 5가설(FIRST/2DAY/ABSORB/HIGHER_LOW/HOLD) 검증은 별도 일회성 스크립트 가족에서 했었지만 현재는 정리됐고, 라이브 boardgenerator (`boards/qva/qva-watchlist-board.js`)가 funnel 단계 시각화로 대체.
 
-### 운영 보드 — QVA Watchlist (`qva-watchlist-board.js`)
+### 운영 보드 — QVA Watchlist (`boards/qva/qva-watchlist-board.js`)
 
 매일 장마감 후 갱신되는 추적 보드. funnel은 **단방향**이다: `QVA → VVI → H그룹(돌파 성공)`. 한 번 다음 단계로 넘어간 종목은 **앞 단계로 되돌아가지 않는다.**
 
@@ -218,39 +255,37 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 
 **보조 태그(다중 적용):** `PRICE_HOLD`, `LOW_RISING`, `VALUE_REACTIVATION`. 설계 의도는 "H그룹(돌파 성공)이 1년 90개라 너무 적으니 추적 중·VVI 발생 후보도 같은 화면에 보이게 한다."
 
-상수는 [qva-watchlist-board.js:33-39](qva-watchlist-board.js#L33-L39)에 모여있다 (`TRACKING_DAYS`, `LONG_QVA_START/END`, `RECENT_BREAKOUT_DAYS`, `RECENT_FAILED_DAYS`, `EXIT_THRESHOLD_PCT`). 백테스트 윈도우를 바꿀 때 이 상수만 건드리고 라이브 의미를 바꾸지 말 것.
+상수는 [boards/qva/qva-watchlist-board.js:33-39](boards/qva/qva-watchlist-board.js#L33-L39)에 모여있다 (`TRACKING_DAYS`, `LONG_QVA_START/END`, `RECENT_BREAKOUT_DAYS`, `RECENT_FAILED_DAYS`, `EXIT_THRESHOLD_PCT`). 백테스트 윈도우를 바꿀 때 이 상수만 건드리고 라이브 의미를 바꾸지 말 것.
 
-`pattern-screener` + [vpr-analyzer.js](vpr-analyzer.js)를 사용해 funnel 단계와 후속 분석 태그를 계산하고, `qva-watchlist-board.html` + `qva-watchlist-board.json`을 ROOT에 정적 파일로 쓴다. `/qva-watchlist`는 sendFile만.
+`pattern-screener` + [boards/qva/vpr-analyzer.js](boards/qva/vpr-analyzer.js)를 사용해 funnel 단계와 후속 분석 태그를 계산하고, `qva-watchlist-board.html` + `boards/qva/qva-watchlist-board.json`을 ROOT에 정적 파일로 쓴다. `/qva-watchlist`는 sendFile만.
 
 ### 운영 보드 — D+5 재돌파 가족 (`hgroup-rebreak-*.js`)
 
 H돌파일 고가 재돌파 = 강한 시그널 (n=186, 승률 75.27%, +6.83%) 이라는 검증 결과 위에 만든 운용 화면.
 
-**중요한 D 기준의 차이**: D+5 재돌파의 D+0은 **H돌파일**이지 QVA 신호일이 아니다. `MAX_DAYS=5` ([hgroup-rebreak-operation-board.js:34](hgroup-rebreak-operation-board.js#L34))는 H돌파일로부터의 거래일 수. 입력은 `qva-watchlist-board.json`의 BREAKOUT_SUCCESS 종목만이고, 그 자체가 위 보드에서 5일 컷이므로 두 보드의 윈도우가 자연스럽게 일치한다.
+**중요한 D 기준의 차이**: D+5 재돌파의 D+0은 **H돌파일**이지 QVA 신호일이 아니다. `MAX_DAYS=5` ([boards/rebreak/hgroup-rebreak-operation-board.js:34](boards/rebreak/hgroup-rebreak-operation-board.js#L34))는 H돌파일로부터의 거래일 수. 입력은 `boards/qva/qva-watchlist-board.json`의 BREAKOUT_SUCCESS 종목만이고, 그 자체가 위 보드에서 5일 컷이므로 두 보드의 윈도우가 자연스럽게 일치한다.
 
 | 스크립트 | 입력 | 출력 (under `reports/`) | 라우트 |
 |---------|------|------------------------|--------|
-| `hgroup-rebreak-operation-board.js` | `qva-watchlist-board.json` + `cache/stock-charts-long/` | `hgroup-rebreak-operation-board-result.{html,json}` | `/rebreak` |
-| `hgroup-rebreak-deep-dive-report.js` | `reports/vpr-hgroup-three-year-with-flow-backtest-result.json` (events 448건) + 차트 | `hgroup-rebreak-deep-dive-result.{html,json}` | `/rebreak-deep` |
-| `hgroup-rebreak-flow-backtest.js` | 위 두 결과 + `cache/flow-history/` | `hgroup-rebreak-flow-result.{html,json}` | `/d5-rebreak-flow` |
+| `boards/rebreak/hgroup-rebreak-operation-board.js` | `boards/qva/qva-watchlist-board.json` + `cache/stock-charts-long/` | `hgroup-rebreak-operation-board-result.{html,json}` | `/rebreak` |
 
-스크립트들은 `qva-watchlist-board.json`을 **읽기만 하고 수정하지 않는다.** 운영 보드는 D+0~D+5 H그룹 후보의 H돌파일 고가 재돌파 상태와 기준 종가 이탈 여부를 추적하지, 매수 등급표를 만들지 않는다.
+스크립트들은 `boards/qva/qva-watchlist-board.json`을 **읽기만 하고 수정하지 않는다.** 운영 보드는 D+0~D+5 H그룹 후보의 H돌파일 고가 재돌파 상태와 기준 종가 이탈 여부를 추적하지, 매수 등급표를 만들지 않는다.
 
 **D+5가 지난 종목은 어디로?** 어디로도 이관되지 않는다 — `/rebreak`에서 사라지고 QVA Watchlist의 BREAKOUT_SUCCESS에서도 빠진다. QVA_TRACKING은 "VVI 전" 조건 때문에 영구히 자격 없음. 장기 QVA는 위에서 본 배타 조건 때문에 자격 없음. 같은 종목에서 새 QVA가 발화하면 새 사이클로 처음부터 다시 들어온다.
 
 종목별 상세(`/d5-rebreak/:code`)는 통일 상세 페이지(qva-vvi-redefined-detail.ejs)로 이관됐고, 보드/심층/백테스트 페이지는 모두 정적 HTML sendFile.
 
-### 운영 보드 — 1-Day Surge Board (`one-day-surge-board.js` + `one-day-surge-core.js`)
+### 운영 보드 — 1-Day Surge Board (`boards/oneDaySurge/one-day-surge-board.js` + `boards/oneDaySurge/one-day-surge-core.js`)
 
 QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조건을 섞지 않으며, QVA/VVI 이력은 카드 참고 태그로만 부착한다. 1차 버전은 일봉 캐시 기준 "다음 거래일 장초 단타 관심 후보 예비 보드"로, 실시간 분봉/호가/VI는 사용하지 않는다.
 
 **파일 구조 (튜닝 시 한 곳만 고치면 보드+검증이 자동 동기화):**
-- [one-day-surge-core.js](one-day-surge-core.js) — `CONFIG` 상수, `passesHardFilter`, `analyzeAt`, `scoreMetrics`, `classifyGroup` 등 점수/분류/필터 로직 일체. **임계값을 튜닝할 때는 이 파일만 고친다.**
-- [one-day-surge-board.js](one-day-surge-board.js) — 라이브 보드 (오늘 후보 카드)
+- [boards/oneDaySurge/one-day-surge-core.js](boards/oneDaySurge/one-day-surge-core.js) — `CONFIG` 상수, `passesHardFilter`, `analyzeAt`, `scoreMetrics`, `classifyGroup` 등 점수/분류/필터 로직 일체. **임계값을 튜닝할 때는 이 파일만 고친다.**
+- [boards/oneDaySurge/one-day-surge-board.js](boards/oneDaySurge/one-day-surge-board.js) — 라이브 보드 (오늘 후보 카드)
 - [one-day-surge-nextday-validation-report.js](one-day-surge-nextday-validation-report.js) — 과거 N거래일 백테스트 검증 보고서
-- [one-day-surge-trade-plan.js](one-day-surge-trade-plan.js) — 자동 참고 매매가 모듈. mainPool 상위 10개에 한해 SAFE/BALANCED/CLEAN/LIGHT 전략별 buyPrice(0.5~1.0% 눌림 지정가) / sellPrice1/2 / stopPrice + 손익비를 계산. 한국 호가 단위 round, CHASE_LIMIT_RATE=4% / INVALID_DROP_RATE=-3% 게이트로 WAIT_PULLBACK / ENTRY_INVALIDATED 분기. 기존 후보 선정/정렬은 무수정. **매수 추천이 아닌 참고 가격 — 시장가 매수 전제 X.**
+- [boards/oneDaySurge/one-day-surge-trade-plan.js](boards/oneDaySurge/one-day-surge-trade-plan.js) — 자동 참고 매매가 모듈. mainPool 상위 10개에 한해 SAFE/BALANCED/CLEAN/LIGHT 전략별 buyPrice(0.5~1.0% 눌림 지정가) / sellPrice1/2 / stopPrice + 손익비를 계산. 한국 호가 단위 round, CHASE_LIMIT_RATE=4% / INVALID_DROP_RATE=-3% 게이트로 WAIT_PULLBACK / ENTRY_INVALIDATED 분기. 기존 후보 선정/정렬은 무수정. **매수 추천이 아닌 참고 가격 — 시장가 매수 전제 X.**
 
-- **입력**: `cache/stock-charts-long/{code}.json` (전 종목 일봉) + `cache/naver-stocks-list.json` (시총·`isEtf`·`isSpecial`) + `stocks.json` (보조) + (선택) `qva-watchlist-board.json` funnel + `cache/pattern-result.json`의 `vviRecentSignals`
+- **입력**: `cache/stock-charts-long/{code}.json` (전 종목 일봉) + `cache/naver-stocks-list.json` (시총·`isEtf`·`isSpecial`) + `stocks.json` (보조) + (선택) `boards/qva/qva-watchlist-board.json` funnel + `cache/pattern-result.json`의 `vviRecentSignals`
 - **출력**: `reports/one-day-surge-board-result.{html,json}` — 라우트 `/one-day-surge-board` (alias `/one-day-surge`, `/ods`)가 sendFile만
 - **기준일**: 각 종목의 chart 캐시에서 가장 최근 volume>0 row. 보드 상단의 "분석 기준일"은 후보 풀에서 가장 흔한 baseDate.
 
@@ -267,7 +302,7 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 
 **위험 필터 면제 (`passesRiskFilter`)**: `prev_high_spike` / `peak_before_entry` 단독은 위험 자동 제외이나, **09:10~30 morningHigh 재돌파(`rebreakMorningHigh_10_30 ✓`)**가 함께 있으면 면제 → mainPool 진입 (`it.riskExempted = ['peak_before_entry', ...]`로 표시). 근거: "전일고가 돌파 + 첫10분고점 재돌파"는 강한 한입 패턴, "09:10에 빠졌다가 첫10분고점 재돌파"는 회복 흐름. 카드에는 `↗ 재돌파 회복 (peakBefore 면제)` / `↗ 강한 한입 (spike 면제)` chip 표시. `gap_hold_candle` / `trap_risk_high` / `risk_rebreak`는 면제 없음 (그룹 자체가 위험).
 
-**검증 보고서 (`one-day-surge-nextday-validation-report.js`)**: 라이브 보드와 **동일한 core 함수**로 과거 N거래일 시뮬레이션. 각 분류 이벤트에 대해 D+1의 +3%/+5%/+10% 도달률, 종가 -3%↓ 실패율, 평균/중앙값 다음날 시초·고가·종가를 그룹/점수구간/거래대금배율/시총구간/일자별로 cross-tab. 환경변수 `VALIDATION_DAYS`(기본 60), `VALIDATION_MAX_STOCKS`(기본 무제한). 출력 `reports/one-day-surge-nextday-validation-result.{html,json}` — 라우트 `/one-day-surge-validation` (alias `/ods-validation`).
+**검증 보고서 / ENTRY_CONFIRM 연구 / 날짜별 운영형 백테스트는 모두 제거됨**. `boards/oneDaySurge/one-day-surge-entry-confirm-report.js` 파일만 보존되어 라이브 보드의 분봉 분석 라이브러리(`computeIntradayMetrics`)로 사용된다.
 
 **트리거**: 현재는 수동 실행만. cron 등록 / `/admin` 강제 재생성 / 검증 보고서 라우트 연결은 2차에서.
 
@@ -280,15 +315,15 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 | 시각 | 요일 | 작업 | 조건 |
 |-----|------|------|------|
 | 16:10 | 매일 | `pattern-screener.analyzeAll()` 호출 → `cache/pattern-result.json` 갱신 (종가 기준 신호 재계산만) | 항상 |
-| 16:20 | 평일 (월-금) | `node run-daily-analysis.js` 외부 실행 (차트+수급 갱신 + 재분석) | `patternState.analyzing`이 false일 때만 |
-| 16:35 | 평일 (월-금) | **전체 보드 갱신** — `BOARD_SCRIPTS` 8개 순차 실행: `qva-watchlist-board.js` → `hgroup-rebreak-operation-board.js` → `hgroup-rebreak-deep-dive-report.js` → `hgroup-rebreak-flow-backtest.js` → `one-day-surge-board.js` → `qva2-watchlist-board.js` → `qva2-d5-rebreak-board.js` → `qva2-vvi-board.js`. 차트/수급 캐시는 16:20 일일 업데이트에서 이미 갱신됨 — 보드는 캐시 read만. QVA2 검증(`qva2-validation-report.js`)은 cron 미등록 (수동 실행 또는 추후 별도 cron) | 항상 (보드별 실패는 다음 보드로 진행) |
-| 09:30:00 | 평일 (월-금) | **1DS 분봉 수집 + 보드 재생성** ([refresh1dsIntraday](src/services/pattern/adminTriggers.js)) — `collect-1ds-intraday.js --from-board`로 보드 mainPool 코드의 09:00~09:30 분봉을 KIS API에서 받아 `data/intraday/1ds/{오늘}/`에 저장 → `one-day-surge-board.js` 재실행. 사용자가 09:30 정각 새로고침할 때 분봉 반영된 후보를 보도록 정각 시작. 보통 09:30:15~30 사이 완료, 사용자는 09:30:30+ 새로고침에서 확인 가능. 분봉 들어오면 trade plan이 분봉 기반(`strategySource: intraday`)으로 갱신되고, peak_before_entry/trap_risk 등 위험 태그가 걸리는 후보는 mainPool에서 빠짐 (단 morningHigh 재돌파 ✓ 면제) | 항상 |
+| 16:20 | 평일 (월-금) | `node pipeline/run-daily-analysis.js` 외부 실행 (차트+수급 갱신 + 재분석) | `patternState.analyzing`이 false일 때만 |
+| 16:35 | 평일 (월-금) | **전체 보드 갱신** — `BOARD_SCRIPTS` 7개 순차 실행: `boards/qva/qva-watchlist-board.js` → `boards/qva/qva-vvi-redefined-board.js` → `boards/rebreak/hgroup-rebreak-operation-board.js` → `boards/oneDaySurge/one-day-surge-board.js` → `boards/qva2/qva2-watchlist-board.js` → `boards/qva2/qva2-d5-rebreak-board.js` → `boards/qva2/qva2-vvi-board.js`. 차트/수급 캐시는 16:20 일일 업데이트에서 이미 갱신됨 — 보드는 캐시 read만 | 항상 (보드별 실패는 다음 보드로 진행) |
+| 09:30:00 | 평일 (월-금) | **1DS 분봉 수집 + 보드 재생성** ([refresh1dsIntraday](src/services/pattern/adminTriggers.js)) — `pipeline/collect-1ds-intraday.js --from-board`로 보드 mainPool 코드의 09:00~09:30 분봉을 KIS API에서 받아 `data/intraday/1ds/{오늘}/`에 저장 → `boards/oneDaySurge/one-day-surge-board.js` 재실행. 사용자가 09:30 정각 새로고침할 때 분봉 반영된 후보를 보도록 정각 시작. 보통 09:30:15~30 사이 완료, 사용자는 09:30:30+ 새로고침에서 확인 가능. 분봉 들어오면 trade plan이 분봉 기반(`strategySource: intraday`)으로 갱신되고, peak_before_entry/trap_risk 등 위험 태그가 걸리는 후보는 mainPool에서 빠짐 (단 morningHigh 재돌파 ✓ 면제) | 항상 |
 | 09:32 | 평일 (월-금) | `reports/one-day-surge-board-result.json` 기반 단타 후보 메일 발송 ([sendOneDaySurgeMail](src/services/mail/oneDaySurgeMail.js) — TOP 5 + 추가 10 = 최대 15종목, manualTargets 매수/매도가 포함). 09:30 분봉 수집·보드 재생성 후 90초 마진 두고 발송 → 메일에 분봉 반영된 trade plan 포함. 6-field cron 표현식 `0 32 9 * * 1-5` | `MAIL_CRON_ENABLED=1`일 때만 |
 
 각 스크립트의 역할:
-- `update-flow-daily.js` — KIS API로 최근 외국인/기관 수급 → `cache/flow-history/{code}.json` 증분 병합
+- `pipeline/update-flow-daily.js` — KIS API로 최근 외국인/기관 수급 → `cache/flow-history/{code}.json` 증분 병합
 - `update-daily-pykrx.py` — KIS API(파일명만 레거시)로 60일 일봉 → `cache/stock-charts-long/{code}.json` 병합. ThreadPoolExecutor 8 워커
-- `run-daily-analysis.js` — 위 두 캐시가 갱신된 뒤 pattern-screener를 호출, `cache/pattern-result.json`을 새로 쓴다
+- `pipeline/run-daily-analysis.js` — 위 두 캐시가 갱신된 뒤 pattern-screener를 호출, `cache/pattern-result.json`을 새로 쓴다
 - `seed-historical-pykrx.py`, `seed-index-pykrx.py` — **일회성** 시드. FinanceDataReader 기반 (pykrx의 cp949/응답 버그 우회)
 
 운영 서버에서 cron이 실패해도 `/admin/run-daily-update`, `/admin/refresh-pattern-cache`, `/admin/refresh-watchlist-board`로 수동 실행 가능.
@@ -299,31 +334,28 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 
 | 경로 | 생산자 | 소비자 |
 |------|--------|--------|
-| `cache/stock-charts-long/{code}.json` | `update-daily-pykrx.py`, `seed-historical-pykrx.py` | `pattern-screener.js`, `qva-watchlist-board.js`, `hgroup-rebreak-*.js` |
-| `cache/stock-charts/{code}.json` | `naver-fetcher.js` | 단기 분석 |
-| `cache/flow-history/{code}.json` | `update-flow-daily.js`, `seed-flow-naver.js` | `pattern-screener.js`, `hgroup-rebreak-flow-backtest.js` |
-| `cache/dart-financials/`, `cache/material-analysis/` | `dart-fetcher.js`, `seed-financials-history.js` | `pattern-screener.js` 펀더멘탈 |
+| `cache/stock-charts-long/{code}.json` | `update-daily-pykrx.py`, `seed-historical-pykrx.py` | `screeners/pattern-screener.js`, `boards/qva/qva-watchlist-board.js`, `hgroup-rebreak-*.js` |
+| `cache/stock-charts/{code}.json` | `screeners/naver-fetcher.js` | 단기 분석 |
+| `cache/flow-history/{code}.json` | `pipeline/update-flow-daily.js`, `seeds/seed-flow-naver.js` | `screeners/pattern-screener.js` |
+| `cache/dart-financials/`, `cache/material-analysis/` | `screeners/dart-fetcher.js`, `seeds/seed-financials-history.js` | `screeners/pattern-screener.js` 펀더멘탈 |
 | `cache/dart-shareholders/{code}.json` | `src/services/dart/dartShareholders.js` (DART hyslrSttus, 30일 TTL) | 종목 상세 페이지 — 최대주주+특수관계인 지분율, 유동주식수 추정 |
 | `cache/dart-company-overview/{code}.json` | `src/services/dart/dartCompanyOverview.js` (DART cmpnyOvrviw, 30일 TTL) | 종목 상세 페이지 — 보통주 발행주식 총수(stk_total_no), 기타주식(vstk_total_no) |
 | `cache/ai-comments/` | `/ai/comment` 라우트 ([src/services/ai/geminiComment.js](src/services/ai/geminiComment.js)) | UI 캐시 |
-| `cache/pattern-result.json` | 16:10/16:20 cron, `/admin/refresh-pattern-cache` | `qva-watchlist-board.js`, 패턴 메일 |
-| `cache/naver-stocks-list.json`, `cache/kospi-daily.json`, `cache/kosdaq-daily.json` | `naver-fetcher.js` 등 | 시드 단계 |
-| `data/intraday/1ds/{YYYY-MM-DD}/{code}.json` | `collect-1ds-intraday.js` (KIS `FHKST03010230`) | `one-day-surge-entry-confirm-report.js`, `one-day-surge-entry-daily-backtest-report.js` |
+| `cache/pattern-result.json` | 16:10/16:20 cron, `/admin/refresh-pattern-cache` | `boards/qva/qva-watchlist-board.js`, 패턴 메일 |
+| `cache/naver-stocks-list.json`, `cache/kospi-daily.json`, `cache/kosdaq-daily.json` | `screeners/naver-fetcher.js` 등 | 시드 단계 |
+| `data/intraday/1ds/{YYYY-MM-DD}/{code}.json` | `pipeline/collect-1ds-intraday.js` (KIS `FHKST03010230`) | `boards/oneDaySurge/one-day-surge-board.js` (라이브 분봉 분석 — `one-day-surge-entry-confirm-report.computeIntradayMetrics` 라이브러리 호출) |
 
 루트의 정적 출력물:
 - `qva-watchlist-board.{html,json}` — `/qva-watchlist`가 sendFile하는 운영 보드
-- `reports/hgroup-rebreak-*-result.{html,json}` — `/rebreak`, `/rebreak-deep`, `/d5-rebreak-flow`가 sendFile
+- `reports/hgroup-rebreak-operation-board-result.{html,json}` — `/rebreak`(= `/hgroup-rebreak-operation`)가 sendFile하는 D+5 재돌파 운용 보드
 - `reports/one-day-surge-board-result.{html,json}` — `/one-day-surge-board`가 sendFile하는 단타 관심 후보 보드 (QVA/VVI와 독립)
-- `reports/one-day-surge-nextday-validation-result.{html,json}` — 다음날 검증 백테스트 보고서 (`/one-day-surge-validation` sendFile)
-- `reports/one-day-surge-entry-confirm-result.{html,json}` — 분봉 ENTRY_CONFIRM 연구 보고서 (`/one-day-surge-entry-confirm` sendFile). morningHigh rebreak 단일 알파 검증 + V1~V5 비교 + 위험 그룹 + prevHigh 위험 분석
-- `reports/one-day-surge-entry-daily-backtest-result.{html,json}` — 날짜별 운영형 백테스트 보고서 (`/one-day-surge-entry-daily-backtest` sendFile). 6개 전략(SAFE/BALANCED/LIGHT/CLEAN/RISK/SPIKE)을 매일 simulate, 보드 반영 가능 여부 판단
-- `reports/one-day-surge-intraday-missing.json` — 분봉 백필 시 누락/실패 누적 로그 (`collect-1ds-intraday.js` 누적 append)
+- `reports/one-day-surge-intraday-missing.json` — 분봉 백필 시 누락/실패 누적 로그 (`pipeline/collect-1ds-intraday.js` 누적 append)
 - `reports/qva-vvi-redefined-board-result.{html,json}` — 새 VVI 정의 (QVA 고가 + 거래량 + 거래대금 동시 재돌파) 후보 보드 (`/qva-vvi-redefined-board` sendFile). 기존 QVA/VVI/H그룹/재돌파 보드와 분리된 신규 보드.
-- `reports/qva-vvi-redefined-backtest-result.{html,json}` — 새 VVI 정의 1차 백테스트 (`/qva-vvi-redefined-backtest` sendFile). 5 그룹 비교 + D+1~D+20 outcome. **새 VVI 관련 파일은 보드 1개 + 백테스트 1개만 사용 — v2/final/new 같은 사본 만들지 않음. 새 실험은 동일 파일에 섹션 추가/덮어쓰기.**
 - `reports/qva2-watchlist-board.{html,json}` — QVA2 H그룹/VPR 보드 (`/qva2-watchlist` sendFile). 기존 `/qva-watchlist` mirror — funnel(QVA2_NEW/QVA2_TRACKING/VVI2_FIRED/BREAKOUT_SUCCESS/FAILED) + 보조 태그. JSON의 `stages.BREAKOUT_SUCCESS`는 downstream `/qva2-d5-rebreak`이 입력으로 사용.
 - `reports/qva2-d5-rebreak-board.{html,json}` — QVA2 D+5 재돌파 운용보드 (`/qva2-d5-rebreak` sendFile). 기존 `/rebreak` mirror — D+0(BREAKOUT)부터 D+1~D+5 재돌파 추적.
 - `reports/qva2-vvi-board.{html,json}` — QVA2 고점 재돌파 보드 (`/qva2-vvi` sendFile). 기존 `/qva-vvi-redefined-board` mirror.
-- `reports/qva2-validation-result.{html,json}` — QVA2 시그널 검증 (`/qva2-validation` sendFile). D+5/10/20 outcome × 등급/점수/약세폭/거래대금배율/시총/closeLocation cohort. **기존 QVA reports는 읽기만, 수정 안 함. QVA2 관련 새 파일/사본 만들지 말고 같은 파일에 섹션 덮어쓰기.** ❌ qva2-vpr-board.* 는 더 이상 생성 안 함 (D+5 재돌파로 대체됨, 2026-05).
+
+**2026-05-10 정리**: 7개 운영/실험 보드(QVA Watchlist / QVA 고점 재돌파 / D+5 재돌파 운용 / 1DS / QVA2 H그룹·D+5·고점 재돌파)와 어드민만 살리고, 나머지 보고서/백테스트(QVA2 validation·VVI2 backtest·pre-vvi2-watch·BMS audit·BMS forward validation·rebreak deep-dive·rebreak flow backtest·1DS validation·1DS entry-confirm·1DS entry-daily-backtest·QVA-VVI redefined backtest·dormant-spike-audit)와 그 라우트를 모두 제거했다. `boards/oneDaySurge/one-day-surge-entry-confirm-report.js` 파일만 라이브 1DS 보드의 `computeIntradayMetrics` 라이브러리 dependency로 보존 (보고서 라우트는 제거).
 
 ### 인증·구독·관리자
 

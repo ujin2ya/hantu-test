@@ -34,13 +34,12 @@
 
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env'), override: true });
+const ROOT = path.join(__dirname, '..');
+require('dotenv').config({ path: path.join(ROOT, '.env'), override: true });
 
-const { getAccessToken } = require('./src/services/kis/kisToken');
-const { getMinuteBarsForDate, normalizeBars } = require('./src/services/kis/kisMinuteBars');
-const report = require('./one-day-surge-entry-confirm-report');
-
-const ROOT = __dirname;
+const { getAccessToken } = require('../src/services/kis/kisToken');
+const { getMinuteBarsForDate, normalizeBars } = require('../src/services/kis/kisMinuteBars');
+const report = require('../boards/oneDaySurge/one-day-surge-entry-confirm-report');
 const REPORTS_DIR = path.join(ROOT, 'reports');
 const NAVER_LIST_PATH = path.join(ROOT, 'cache', 'naver-stocks-list.json');
 const STOCKS_PATH = path.join(ROOT, 'stocks.json');

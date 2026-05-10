@@ -24,7 +24,7 @@ const fs = require('fs');
 const path = require('path');
 const { findQVA2Events } = require('./qva2-screener');
 
-const ROOT = __dirname;
+const ROOT = path.join(__dirname, '..', '..');
 const CHART_DIR    = path.join(ROOT, 'cache', 'stock-charts-long');
 const NAVER_LIST   = path.join(ROOT, 'cache', 'naver-stocks-list.json');
 const REPORTS_DIR  = path.join(ROOT, 'reports');
@@ -512,7 +512,6 @@ footer.foot { margin-top:30px; padding:14px; background:#1e293b; border-radius:8
   <a href="/qva2-watchlist" class="experiment">📋 H그룹/VPR (QVA2)</a>
   <a href="/qva2-d5-rebreak" class="experiment">🔥 D+5 재돌파 (QVA2)</a>
   <a href="/qva2-vvi" class="experiment active">🎯 고점 재돌파 (QVA2)</a>
-  <a href="/qva2-validation" class="experiment">📊 검증</a>
 </nav>
 
 <h1>🟣 QVA2 → VVI2: 약했던 마감을 다시 뚫는 후보 <span class="exp-pill">실험 라인</span></h1>

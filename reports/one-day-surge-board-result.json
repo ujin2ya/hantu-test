@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "1-Day Surge Board v5 · GOOD_TRADE 중심 단타 후보 보드",
-    "generatedAt": "2026-05-10T07:38:39.168Z",
+    "generatedAt": "2026-05-10T15:17:29.328Z",
     "analysisDate": "20260508",
     "analysisDateFmt": "2026-05-08",
     "stockUniverse": 4270,
@@ -13377,24 +13377,7 @@
       "049080"
     ]
   },
-  "latestDayType": {
-    "date": "2026-05-06",
-    "nextDate": "2026-05-07",
-    "dayType": "HIT_AND_FADE_DAY",
-    "label": "🌊 장중 한 번 튀었지만 종가 유지 약함",
-    "desc": "장초 한 번은 잘 튀었지만 후반부에 빠짐. 짧은 익절형으로만 사용하고 종가 유지에는 베팅하지 않음.",
-    "hit5": 63.829787234042556,
-    "closePos": 29.78723404255319,
-    "avgClose": -1.293361639949013,
-    "eventCount": 47,
-    "distribution": {
-      "HIT_AND_FADE_DAY": 12,
-      "HOLDING_DAY": 7,
-      "WEAK_DAY": 2,
-      "MIXED_DAY": 19
-    },
-    "generatedAt": "2026-05-09T05:22:39.946Z"
-  },
+  "latestDayType": null,
   "marketState": {
     "state": "LARGE_CAP_LED",
     "label": "🟡 대형주 쏠림장 (1DS 친화 X)",

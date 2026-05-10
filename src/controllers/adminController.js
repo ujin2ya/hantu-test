@@ -1,6 +1,6 @@
 // /admin/* — 로그인 + 대시보드 + 패턴 트리거.
 const fs = require("fs");
-const patternScreener = require("../../pattern-screener");
+const patternScreener = require("../../screeners/pattern-screener");
 const {
   setAdminCookie, clearAdminCookie, isAdminAuthed,
 } = require("../services/auth/adminAuth");

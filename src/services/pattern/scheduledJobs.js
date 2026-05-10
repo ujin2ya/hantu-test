@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 const cron = require("node-cron");
-const patternScreener = require("../../../pattern-screener");
+const patternScreener = require("../../../screeners/pattern-screener");
 const { ROOT, CACHE_DIR, REPORTS_DIR } = require("../../utils/paths");
 const { patternState, PATTERN_RESULT_PATH, BOARD_SCRIPTS, refresh1dsIntraday } = require("./adminTriggers");
 const { sendOneDaySurgeMail } = require("../mail/oneDaySurgeMail");
@@ -46,7 +46,7 @@ function registerSchedules() {
     patternState.analyzeStartedAt = new Date().toISOString();
     patternState.analyzeError = null;
     try {
-      const scriptPath = path.join(ROOT, "run-daily-analysis.js");
+      const scriptPath = path.join(ROOT, "pipeline", "run-daily-analysis.js");
       execSync(`node ${scriptPath}`, { stdio: "pipe" });
       patternState.analyzeFinishedAt = new Date().toISOString();
       console.log(`[일일업데이트] 완료: ${patternState.analyzeFinishedAt}`);
@@ -59,7 +59,7 @@ function registerSchedules() {
   }, { scheduled: true, timezone: "Asia/Seoul" });
   console.log("[스케줄] 매일 평일 16:20 일일 데이터 업데이트 + 재분석 활성화 (한국 시간)");
 
-  // 16:35 평일 — 전체 보드 갱신 (QVA + D+5 재돌파 × 3 + 1DS)
+  // 16:35 평일 — 전체 보드 갱신 (QVA + QVA 고점 재돌파 + D+5 재돌파 운용 + 1DS + QVA2 × 3)
   // 각 보드를 순차 실행. 한 보드가 실패해도 다음 보드로 진행해서 부분 갱신은 보장한다.
   cron.schedule("35 16 * * 1-5", () => {
     console.log(`[Boards] 16:35 시작 — 전체 보드 갱신 (${BOARD_SCRIPTS.length}개)`);
@@ -79,7 +79,7 @@ function registerSchedules() {
     }
     console.log(`[Boards] 16:35 완료 — 성공 ${okCount} / 실패 ${failCount}`);
   }, { scheduled: true, timezone: "Asia/Seoul" });
-  console.log(`[스케줄] 매일 평일 16:35 전체 보드 갱신 활성화 (${BOARD_SCRIPTS.length}개 — QVA + 재돌파 × 3 + 1DS + QVA2 × 3)`);
+  console.log(`[스케줄] 매일 평일 16:35 전체 보드 갱신 활성화 (${BOARD_SCRIPTS.length}개 — QVA + QVA 고점 재돌파 + D+5 재돌파 운용 + 1DS + QVA2 × 3)`);
 
   // 평일 09:30:00 — 1DS 분봉 수집 + 보드 재생성
   // 사용자가 09:30 정각에 보드 새로고침할 때 분봉 반영된 후보를 보도록 정각에 시작.

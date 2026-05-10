@@ -13,9 +13,10 @@ const path = require("path");
 const axios = require("axios");
 
 const H = { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" };
-const CACHE_DIR = path.join(__dirname, "cache", "stock-charts");
-const WEEKLY_CACHE_DIR = path.join(__dirname, "cache", "stock-charts-weekly");
-const STOCKS_LIST_PATH = path.join(__dirname, "cache", "naver-stocks-list.json");
+const ROOT = path.join(__dirname, "..");
+const CACHE_DIR = path.join(ROOT, "cache", "stock-charts");
+const WEEKLY_CACHE_DIR = path.join(ROOT, "cache", "stock-charts-weekly");
+const STOCKS_LIST_PATH = path.join(ROOT, "cache", "naver-stocks-list.json");
 
 function ensureDir(p) {
   if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });

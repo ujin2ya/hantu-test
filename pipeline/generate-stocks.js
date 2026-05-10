@@ -3,8 +3,9 @@ const path = require('path');
 const AdmZip = require('adm-zip');
 const iconv = require('iconv-lite');
 
-const MASTER_DIR = path.join(__dirname, 'master');
-const OUTPUT_FILE = path.join(__dirname, 'stocks.json');
+const ROOT = path.join(__dirname, '..');
+const MASTER_DIR = path.join(ROOT, 'master');
+const OUTPUT_FILE = path.join(ROOT, 'stocks.json');
 
 const inputs = [
   { zipName: 'kospi_code.mst.zip', market: 'KOSPI' },

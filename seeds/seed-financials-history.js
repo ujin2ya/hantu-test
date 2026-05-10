@@ -13,7 +13,7 @@
 require('dotenv').config({ quiet: true });
 const fs = require("fs");
 const path = require("path");
-const dart = require("./dart-fetcher");
+const dart = require("../screeners/dart-fetcher");
 
 const lookbackYears = parseInt(process.argv[2] || "3", 10);
 const throttleMs = parseInt(process.argv[3] || "60", 10);
@@ -25,7 +25,7 @@ if (!apiKey) {
 }
 
 (async () => {
-  const stocksListPath = path.join(__dirname, "cache", "naver-stocks-list.json");
+  const stocksListPath = path.join(__dirname, "..", "cache", "naver-stocks-list.json");
   const stocksList = JSON.parse(fs.readFileSync(stocksListPath, "utf-8")).stocks;
   console.log(`총 ${stocksList.length} 종목, lookback=${lookbackYears}년, throttle=${throttleMs}ms`);
   console.log(`예상 시간: ~${Math.round(stocksList.length * lookbackYears * 4 * throttleMs / 1000 / 60)} 분 (resume 미고려)`);
