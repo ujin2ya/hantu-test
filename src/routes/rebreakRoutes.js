@@ -1,5 +1,6 @@
 const express = require("express");
 const c = require("../controllers/rebreakController");
+const qvaVviRedefined = require("../controllers/qvaVviRedefinedController");
 
 const router = express.Router();
 
@@ -17,7 +18,8 @@ router.get("/rebreak-deep", (req, res) => res.redirect("/hgroup-rebreak-deep-div
 router.get("/d5-rebreak-flow", c.getFlowBacktest);
 router.get("/rebreak-flow", (req, res) => res.redirect("/d5-rebreak-flow"));
 
-// 종목 상세 — KIS 실시간 가격 + 차트 + AI lazy 호출
-router.get("/d5-rebreak/:code", c.getDetail);
+// 종목 상세 — QVA2 고점돌파 상세 페이지(qvaVviRedefined)를 공유한다.
+router.get("/d5-rebreak/:code",      qvaVviRedefined.getRedefinedVviStockDetail);
+router.post("/d5-rebreak/:code/ai",  qvaVviRedefined.postCompanyAnalysis);
 
 module.exports = router;

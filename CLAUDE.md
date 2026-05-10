@@ -133,7 +133,8 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 | `GET /rebreak-deep`, `/d5-rebreak-deep-dive` | (redirect) | `/hgroup-rebreak-deep-dive`로 |
 | `GET /hgroup-rebreak-deep-dive` | rebreakController.getDeepDive | 심층 검증 보고서 sendFile |
 | `GET /d5-rebreak-flow`, `/rebreak-flow` | rebreakController.getFlowBacktest | 수급 결합 백테스트 보고서 sendFile |
-| `GET /d5-rebreak/:code` | rebreakController.getDetail | 종목 상세 — JSON에서 항목 찾기 + 차트 60일 + KIS 실시간 가격 + `d5-rebreak-detail.ejs` 렌더 |
+| `GET /d5-rebreak/:code` | qvaVviRedefinedController.getRedefinedVviStockDetail | 모든 보드 상세 페이지가 공유하는 통일 페이지. `/qva-vvi-redefined/:code`와 동일 |
+| `POST /d5-rebreak/:code/ai` | qvaVviRedefinedController.postCompanyAnalysis | 통일 상세 페이지의 AI 사업내용 요약 lazy 호출 |
 | `GET /one-day-surge-board` | oneDaySurgeController.getBoard | 단타 관심 후보 보드 HTML sendFile (`reports/one-day-surge-board-result.html`) |
 | `GET /one-day-surge`, `/ods` | (redirect) | `/one-day-surge-board`로 |
 | `GET /one-day-surge-validation` | oneDaySurgeController.getValidation | 다음날 검증 백테스트 보고서 HTML sendFile (`reports/one-day-surge-nextday-validation-result.html`) |
@@ -150,8 +151,9 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 | `GET /qva2-d5-rebreak` | qva2Controller.getD5RebreakBoard | QVA2 D+5 재돌파 운용보드 sendFile (`reports/qva2-d5-rebreak-board.html`). 기존 `/rebreak`의 mirror, 입력은 qva2-watchlist의 BREAKOUT_SUCCESS. 실험 라인 |
 | `GET /qva2-vvi` | qva2Controller.getVviBoard | QVA2 고점 재돌파 보드 sendFile (`reports/qva2-vvi-board.html`). 기존 `/qva-vvi-redefined-board` mirror. 실험 라인 |
 | `GET /qva2-validation` | qva2Controller.getValidation | QVA2 검증 보고서 sendFile (`reports/qva2-validation-result.html`). 실험 라인 |
-| `GET /stock/:code` | stockController.getStockDetail | 보드 어디서든 종목명 클릭 시 떠오르는 단순 종목 상세 페이지. naver/stocks.json 메타 + KIS 실시간 가격 + 60일 SVG 차트 + 보드 funnel 멤버십(QVA/D+5재돌파/1DS). `views/stock-detail.ejs` 렌더 |
-| `POST /ai/comment` | aiController.postComment | Gemini 호출. `/d5-rebreak/:code` 페이지가 lazy 호출 (단타·스윙용 4섹션) |
+| `GET /stock/:code` | qvaVviRedefinedController.getRedefinedVviStockDetail | 모든 보드 상세 페이지가 공유하는 통일 페이지. `/qva-vvi-redefined/:code`와 동일 |
+| `POST /stock/:code/ai` | qvaVviRedefinedController.postCompanyAnalysis | 통일 상세 페이지의 AI 사업내용 요약 lazy 호출 |
+| `POST /ai/comment` | aiController.postComment | Gemini 짧은 코멘트 호출. (현재 통일 상세 페이지는 `/qva-vvi-redefined/:code/ai` 등 컨트롤러 전용 AI 라우트를 사용하므로 사용처가 줄었다) |
 | `GET/POST /login`, `GET /unsubscribe` | authController | 사이트 비밀번호 게이트, 메일 unsubscribe |
 | `GET/POST /admin/login`, `GET /admin/logout` | adminController | 관리자 인증 |
 | `GET /admin` | adminController.getDashboard | 대시보드 (구독자 / stocks 마스터 / 패턴 상태) |
@@ -182,7 +184,7 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 - [kisToken.js](src/services/kis/kisToken.js) — `getAccessToken`. `.kis-token.json`에 24시간 토큰을 캐시. 만료 5분 전까지 재사용, 동시 호출은 `inflightIssue` 프로미스로 coalesce. KIS 토큰 발급 엔드포인트는 **1분당 1회** 제한(`EGW00133`)이 있어서 캐싱이 없으면 연속 호출 시 즉시 블록된다. 캐시 파일은 토큰 평문을 담으므로 `.gitignore` 처리.
 - [kisApi.js](src/services/kis/kisApi.js) — `getCurrentPrice`, `getPeriodChart` 래퍼. KIS는 초당 호출 제한이 있어서 호출 사이 sleep이 **기능적으로 필수적**이다. 병렬화 금지.
 
-현재 KIS 호출은 `/d5-rebreak/:code` 상세 페이지(실시간 가격 1회) + `update-flow-daily.js`/`update-daily-pykrx.py`(일일 갱신) 두 곳에서만 발생한다.
+현재 KIS 호출은 통일 상세 페이지(`qvaVviRedefinedController.getRedefinedVviStockDetail` — `/qva-vvi-redefined/:code`, `/qva2-*/:code`, `/stock/:code`, `/d5-rebreak/:code`가 공유)의 실시간 가격 1회 + `update-flow-daily.js`/`update-daily-pykrx.py`(일일 갱신) 두 곳에서만 발생한다.
 
 ### 패턴 스크리너 (`pattern-screener.js`)
 
@@ -236,7 +238,7 @@ H돌파일 고가 재돌파 = 강한 시그널 (n=186, 승률 75.27%, +6.83%) �
 
 **D+5가 지난 종목은 어디로?** 어디로도 이관되지 않는다 — `/rebreak`에서 사라지고 QVA Watchlist의 BREAKOUT_SUCCESS에서도 빠진다. QVA_TRACKING은 "VVI 전" 조건 때문에 영구히 자격 없음. 장기 QVA는 위에서 본 배타 조건 때문에 자격 없음. 같은 종목에서 새 QVA가 발화하면 새 사이클로 처음부터 다시 들어온다.
 
-종목별 상세(`/d5-rebreak/:code`)만 EJS 렌더(`d5-rebreak-detail.ejs`)이고, 보드/심층/백테스트 페이지는 모두 정적 HTML sendFile.
+종목별 상세(`/d5-rebreak/:code`)는 통일 상세 페이지(qva-vvi-redefined-detail.ejs)로 이관됐고, 보드/심층/백테스트 페이지는 모두 정적 HTML sendFile.
 
 ### 운영 보드 — 1-Day Surge Board (`one-day-surge-board.js` + `one-day-surge-core.js`)
 
@@ -339,15 +341,15 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 
 EJS 템플릿:
 - `views/site-login.ejs` — `/login`
-- `views/d5-rebreak-detail.ejs` — `/d5-rebreak/:code` (단타·스윙 4섹션 AI)
-- `views/stock-detail.ejs` — `/stock/:code` (보드 공용 단순 상세)
-- `views/qva-vvi-redefined-detail.ejs` — `/qva-vvi-redefined/:code` (재무·뉴스·공시 + 기업분석 3섹션 AI)
+- `views/qva-vvi-redefined-detail.ejs` — **모든 종목 상세 페이지의 단일 템플릿** (재무·뉴스·공시 + 기업분석 3섹션 AI + Lightweight Charts)
 - `views/admin/login.ejs` — `/admin/login`
 - `views/admin/dashboard.ejs` — `/admin`
 
-**3개 종목 상세 페이지의 공통 차트 + 발행주식 정보 (2026-05-10 통일)**:
-- 차트: TradingView Lightweight Charts v4 (CDN: `unpkg.com/lightweight-charts@4.2.0`). 3-pane 동기화 (캔들+MA6 / 거래량+MA20 / 거래대금+MA20), 기간 선택 1M/3M/6M/200D/1Y/ALL, 봉 개수에 따른 모드 자동 전환 (detail/mid/wide), 흰 배경 KIS 스타일. d5-rebreak-detail에는 추가로 H돌파일 마커(setMarkers)와 H고/기준선/기준종가 가로 점선(createPriceLine) 3개를 더 그린다.
-- 발행 주식 정보: 보통주식수(DART cmpnyOvrviw `stk_total_no` 우선, 없으면 KIS `lstn_stcn` fallback) + 유동주식수(보통주식수 × (1 − 최대주주+특수관계인 지분율 / 100), DART hyslrSttus 기반 추정 — 5% 임원·우리사주 추가 lock-up 미반영). [src/utils/sharesInfo.js](src/utils/sharesInfo.js)의 `computeSharesInfo()`가 단일 진입점이며 3개 컨트롤러가 공유.
+**모든 종목 상세 페이지를 QVA2 고점돌파 상세(qvaVviRedefinedController.getRedefinedVviStockDetail)로 통일 (2026-05-10)**:
+다음 8개 라우트 모두 동일 컨트롤러·동일 EJS를 공유한다 — `/qva-vvi-redefined/:code`, `/qva2-vvi/:code`, `/qva2-watchlist/:code`, `/qva2-d5-rebreak/:code`, `/stock/:code`, `/d5-rebreak/:code`, AI POST는 모두 `/<route>/:code/ai`. 보드 generator의 종목명 링크가 어느 라우트로 가도 같은 페이지를 보게 된다 (URL은 진입 보드 컨텍스트 보존, 페이지는 동일).
+- 차트: TradingView Lightweight Charts v4 (CDN: `unpkg.com/lightweight-charts@4.2.0`). 3-pane 동기화 (캔들+MA6 / 거래량+MA20 / 거래대금+MA20), 기간 선택 1M/3M/6M/200D/1Y/ALL, 봉 개수에 따른 모드 자동 전환 (detail/mid/wide), 흰 배경 KIS 스타일.
+- 발행 주식 정보: 보통주식수(DART cmpnyOvrviw `stk_total_no` 우선, 없으면 KIS `lstn_stcn` fallback) + 유동주식수(보통주식수 × (1 − 최대주주+특수관계인 지분율 / 100), DART hyslrSttus 기반 추정 — 5% 임원·우리사주 추가 lock-up 미반영). [src/utils/sharesInfo.js](src/utils/sharesInfo.js)의 `computeSharesInfo()`가 단일 진입점.
+- D+5 재돌파의 H돌파일 마커·기준선 3개는 통일 과정에서 빠졌다 (qvaVviRedefined 컨트롤러는 보드 컨텍스트를 받지 않음). 운용에 다시 필요하면 lookupRebreakItem 같은 보강을 별도로 추가.
 
 나머지는 모두 정적 HTML sendFile (운영 보드, D+5 재돌파 보드/심층/백테스트, qva-watchlist).
 
