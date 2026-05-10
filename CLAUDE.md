@@ -301,6 +301,8 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 | `cache/stock-charts/{code}.json` | `naver-fetcher.js` | 단기 분석 |
 | `cache/flow-history/{code}.json` | `update-flow-daily.js`, `seed-flow-naver.js` | `pattern-screener.js`, `hgroup-rebreak-flow-backtest.js` |
 | `cache/dart-financials/`, `cache/material-analysis/` | `dart-fetcher.js`, `seed-financials-history.js` | `pattern-screener.js` 펀더멘탈 |
+| `cache/dart-shareholders/{code}.json` | `src/services/dart/dartShareholders.js` (DART hyslrSttus, 30일 TTL) | 종목 상세 페이지 — 최대주주+특수관계인 지분율, 유동주식수 추정 |
+| `cache/dart-company-overview/{code}.json` | `src/services/dart/dartCompanyOverview.js` (DART cmpnyOvrviw, 30일 TTL) | 종목 상세 페이지 — 보통주 발행주식 총수(stk_total_no), 기타주식(vstk_total_no) |
 | `cache/ai-comments/` | `/ai/comment` 라우트 ([src/services/ai/geminiComment.js](src/services/ai/geminiComment.js)) | UI 캐시 |
 | `cache/pattern-result.json` | 16:10/16:20 cron, `/admin/refresh-pattern-cache` | `qva-watchlist-board.js`, 패턴 메일 |
 | `cache/naver-stocks-list.json`, `cache/kospi-daily.json`, `cache/kosdaq-daily.json` | `naver-fetcher.js` 등 | 시드 단계 |
@@ -342,6 +344,10 @@ EJS 템플릿:
 - `views/qva-vvi-redefined-detail.ejs` — `/qva-vvi-redefined/:code` (재무·뉴스·공시 + 기업분석 3섹션 AI)
 - `views/admin/login.ejs` — `/admin/login`
 - `views/admin/dashboard.ejs` — `/admin`
+
+**3개 종목 상세 페이지의 공통 차트 + 발행주식 정보 (2026-05-10 통일)**:
+- 차트: TradingView Lightweight Charts v4 (CDN: `unpkg.com/lightweight-charts@4.2.0`). 3-pane 동기화 (캔들+MA6 / 거래량+MA20 / 거래대금+MA20), 기간 선택 1M/3M/6M/200D/1Y/ALL, 봉 개수에 따른 모드 자동 전환 (detail/mid/wide), 흰 배경 KIS 스타일. d5-rebreak-detail에는 추가로 H돌파일 마커(setMarkers)와 H고/기준선/기준종가 가로 점선(createPriceLine) 3개를 더 그린다.
+- 발행 주식 정보: 보통주식수(DART cmpnyOvrviw `stk_total_no` 우선, 없으면 KIS `lstn_stcn` fallback) + 유동주식수(보통주식수 × (1 − 최대주주+특수관계인 지분율 / 100), DART hyslrSttus 기반 추정 — 5% 임원·우리사주 추가 lock-up 미반영). [src/utils/sharesInfo.js](src/utils/sharesInfo.js)의 `computeSharesInfo()`가 단일 진입점이며 3개 컨트롤러가 공유.
 
 나머지는 모두 정적 HTML sendFile (운영 보드, D+5 재돌파 보드/심층/백테스트, qva-watchlist).
 

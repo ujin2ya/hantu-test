@@ -5,6 +5,9 @@ const path = require("path");
 const { ROOT, REPORTS_DIR, CHART_DIR, STOCKS_PATH } = require("../utils/paths");
 const { getAccessToken } = require("../services/kis/kisToken");
 const { getCurrentPrice } = require("../services/kis/kisApi");
+const { fetchCompanyOverview } = require("../services/dart/dartCompanyOverview");
+const { fetchShareholders } = require("../services/dart/dartShareholders");
+const { computeSharesInfo } = require("../utils/sharesInfo");
 
 const NAVER_LIST_PATH = path.join(ROOT, "cache", "naver-stocks-list.json");
 const QVA_BOARD_JSON = path.join(ROOT, "qva-watchlist-board.json");
@@ -30,14 +33,13 @@ function lookupStockMeta(code) {
   return null;
 }
 
-// 최근 N일 차트
-function loadRecentChart(code, days = 60) {
+// 전체 일봉 차트 (TradingView 차트가 200D/1Y/ALL 토글을 지원하므로 전체 행 그대로 넘긴다)
+function loadFullChart(code) {
   const fp = path.join(CHART_DIR, `${code}.json`);
   if (!fs.existsSync(fp)) return null;
   try {
     const c = JSON.parse(fs.readFileSync(fp, "utf-8"));
-    const rows = (c.rows || []).slice(-days);
-    return { name: c.name, market: c.market, rows };
+    return { name: c.name, market: c.market, rows: c.rows || [] };
   } catch (_) { return null; }
 }
 
@@ -99,29 +101,36 @@ async function getStockDetail(req, res) {
     const meta = lookupStockMeta(code);
     if (!meta) return res.status(404).send(`종목 ${code}을(를) 찾을 수 없습니다.`);
 
-    const chart = loadRecentChart(code, 60);
+    const chart = loadFullChart(code);
     const memberships = lookupBoardMembership(code);
 
-    // KIS 실시간 가격 (실패해도 페이지는 나가야 함)
-    let kisLive = null;
-    try {
-      const _token = await getAccessToken();
-      const _kis = await getCurrentPrice(_token, code);
-      const _o = _kis && _kis.output;
-      if (_o) {
-        kisLive = {
-          price: Number(_o.stck_prpr) || null,
-          prevClose: Number(_o.stck_sdpr) || null,
-          changeRate: Number(_o.prdy_ctrt),
-          changeAbs: Number(_o.prdy_vrss) || null,
-          open: Number(_o.stck_oprc) || null,
-          high: Number(_o.stck_hgpr) || null,
-          low: Number(_o.stck_lwpr) || null,
-          volume: Number(_o.acml_vol) || null,
-          fetchedAt: new Date().toISOString(),
-        };
-      }
-    } catch (_) {}
+    // 외부 호출 병렬 — KIS 실시간 + DART 보통주식수/주주현황 (모두 실패해도 페이지는 나가야 함)
+    const [kisLive, companyOverview, shareholders] = await Promise.all([
+      (async () => {
+        try {
+          const _token = await getAccessToken();
+          const _kis = await getCurrentPrice(_token, code);
+          const _o = _kis && _kis.output;
+          if (!_o) return null;
+          return {
+            price: Number(_o.stck_prpr) || null,
+            prevClose: Number(_o.stck_sdpr) || null,
+            changeRate: Number(_o.prdy_ctrt),
+            changeAbs: Number(_o.prdy_vrss) || null,
+            open: Number(_o.stck_oprc) || null,
+            high: Number(_o.stck_hgpr) || null,
+            low: Number(_o.stck_lwpr) || null,
+            volume: Number(_o.acml_vol) || null,
+            listedShares: Number(_o.lstn_stcn) || null,
+            fetchedAt: new Date().toISOString(),
+          };
+        } catch (_) { return null; }
+      })(),
+      fetchCompanyOverview(code).catch(() => null),
+      fetchShareholders(code).catch(() => null),
+    ]);
+
+    const sharesInfo = computeSharesInfo({ companyOverview, kisLive, shareholders });
 
     res.render("stock-detail", {
       code,
@@ -129,6 +138,7 @@ async function getStockDetail(req, res) {
       chartRows: (chart && chart.rows) || [],
       kisLive,
       memberships,
+      sharesInfo,
       from: req.query.from || null,
     });
   } catch (e) {

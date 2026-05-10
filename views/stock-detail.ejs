@@ -33,6 +33,7 @@ const backUrl = (function() {
 <meta charset="UTF-8">
 <title><%= meta.name %> · 종목 상세</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 * { box-sizing: border-box; }
 body { margin: 0 auto; padding: 18px 24px 80px; max-width: 1200px;
@@ -52,8 +53,8 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .price-big { font-size: 32px; font-weight: 700; color: #f1f5f9; font-variant-numeric: tabular-nums; }
 .price-unit { font-size: 14px; font-weight: 400; color: #94a3b8; margin-left: 2px; }
 .price-change { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.price-change.pos { color: #6ee7b7; }
-.price-change.neg { color: #fca5a5; }
+.price-change.pos { color: #fca5a5; }
+.price-change.neg { color: #93c5fd; }
 .price-meta { color: #94a3b8; font-size: 12px; margin-top: 6px; }
 .price-meta .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; background: #0f172a; border: 1px solid #334155; margin-right: 4px; font-size: 11px; }
 .price-meta .badge.live { background: #064e3b; color: #6ee7b7; border-color: #10b981; font-weight: 600; }
@@ -63,8 +64,57 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .price-cell .label { font-size: 11px; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
 .price-cell .value { font-size: 16px; font-weight: 600; color: #e2e8f0; font-variant-numeric: tabular-nums; }
 
-.chart-wrap { background: #1e293b; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
-.chart-svg { width: 100%; height: 360px; }
+/* ── 발행 주식 정보 ── */
+.shares-section { background: #1e293b; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; border-left: 4px solid #f59e0b; }
+.shares-section h3 { font-size: 13px; margin: 0 0 8px; color: #cbd5e1; font-weight: 600; }
+.shares-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+.shares-cell { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 9px 12px; }
+.shares-cell .label { font-size: 11px; color: #94a3b8; margin-bottom: 3px; }
+.shares-cell .value { font-size: 15px; font-weight: 600; color: #e2e8f0; font-variant-numeric: tabular-nums; }
+.shares-cell .sub { font-size: 10.5px; color: #64748b; margin-top: 2px; }
+.shares-source { font-size: 10.5px; color: #64748b; margin-top: 8px; }
+
+/* ── 메인 차트 카드 (Lightweight Charts · KIS 흰 카드) ── */
+.chart-card {
+  background: #ffffff; color: #1f2937;
+  border-radius: 12px; padding: 14px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+.chart-info-bar {
+  display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: baseline;
+  padding-bottom: 10px; margin-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 12px; color: #4b5563; font-variant-numeric: tabular-nums;
+}
+.chart-info-bar .ci-name { font-size: 14px; font-weight: 700; color: #111827; }
+.chart-info-bar .ci-code { color: #9ca3af; font-size: 11px; margin-left: 4px; }
+.chart-info-bar .ci-mkt { font-size: 10px; padding: 1px 6px; border: 1px solid #d1d5db; border-radius: 3px; color: #6b7280; }
+.chart-info-bar .ci-date { color: #6b7280; }
+.chart-info-bar .ci-ohlc strong, .chart-info-bar .ci-volval strong { color: #1f2937; font-weight: 600; }
+.chart-info-bar .ci-chg.pos { color: #ef4444; font-weight: 600; }
+.chart-info-bar .ci-chg.neg { color: #3b82f6; font-weight: 600; }
+.ma-legend { display: flex; gap: 6px; flex-wrap: wrap; padding-bottom: 10px; font-size: 11px; }
+.ma-legend label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none;
+  padding: 3px 9px; border-radius: 4px; background: #f9fafb; border: 1px solid #e5e7eb; font-variant-numeric: tabular-nums; }
+.ma-legend label.off { opacity: 0.4; }
+.ma-legend .dot { width: 10px; height: 2px; display: inline-block; }
+.ma-legend .ma-label { font-weight: 600; }
+.ma-legend .ma-value { color: #6b7280; }
+.period-tabs { display: flex; gap: 4px; flex-wrap: wrap; padding-bottom: 10px; }
+.period-tabs button {
+  background: #f3f4f6; border: 1px solid #e5e7eb; color: #4b5563;
+  padding: 5px 14px; border-radius: 4px; font-size: 11.5px; cursor: pointer; font-weight: 500;
+}
+.period-tabs button:hover { background: #e5e7eb; }
+.period-tabs button.active { background: #1f2937; color: #fff; border-color: #1f2937; }
+.chart-mode-note { font-size: 10.5px; color: #6b7280; padding: 0 0 8px; font-style: italic; line-height: 1.5; }
+.chart-mode-note:empty { display: none; }
+.pane-label { font-size: 10px; color: #9ca3af; padding: 2px 0; font-weight: 600; letter-spacing: 0.3px; }
+.chart-pane { position: relative; background: #ffffff; }
+.chart-pane.price  { height: 380px; }
+.chart-pane.volume { height: 100px; }
+.chart-pane.value  { height: 100px; }
 
 .member-section { background: #1e293b; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; }
 .member-section h3 { font-size: 13px; margin: 0 0 8px; color: #cbd5e1; font-weight: 600; }
@@ -83,8 +133,8 @@ table.daily th:first-child { text-align: left; }
 table.daily td { padding: 5px 8px; text-align: right; border-bottom: 1px solid #1e293b; font-variant-numeric: tabular-nums; color: #e2e8f0; }
 table.daily td:first-child { text-align: left; color: #94a3b8; }
 table.daily tr:hover { background: #1e293b; }
-.cell-pos { color: #6ee7b7; }
-.cell-neg { color: #fca5a5; }
+.cell-pos { color: #fca5a5; }
+.cell-neg { color: #93c5fd; }
 
 .empty-msg { padding: 12px; background: #1e293b; border-radius: 6px; color: #94a3b8; font-size: 12px; }
 
@@ -95,6 +145,9 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
   .price-grid { grid-template-columns: repeat(2, 1fr); }
   h1 { font-size: 20px; }
   .price-big { font-size: 28px; }
+  .chart-pane.price  { height: 360px; }
+  .chart-pane.volume { height: 90px; }
+  .chart-pane.value  { height: 90px; }
 }
 </style>
 </head>
@@ -148,6 +201,46 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
   <% } %>
 </div>
 
+<!-- 발행 주식 정보 -->
+<% if (sharesInfo && (sharesInfo.issuedShares || sharesInfo.freeFloatShares)) { %>
+<div class="shares-section">
+  <h3>📊 발행 주식 정보</h3>
+  <div class="shares-grid">
+    <div class="shares-cell">
+      <div class="label">보통주식수</div>
+      <div class="value"><%= sharesInfo.issuedShares != null ? fmtNum(sharesInfo.issuedShares) + '주' : '-' %></div>
+      <% if (sharesInfo.issuedSource) { %><div class="sub">출처: <%= sharesInfo.issuedSource === 'dart' ? 'DART 기업개황' : 'KIS 상장주식수' %></div><% } %>
+    </div>
+    <div class="shares-cell">
+      <div class="label">유동주식수 <span style="color:#94a3b8;font-weight:400;">(추정)</span></div>
+      <div class="value"><%= sharesInfo.freeFloatShares != null ? fmtNum(sharesInfo.freeFloatShares) + '주' : '-' %></div>
+      <% if (sharesInfo.topShareholderRate != null) { %><div class="sub">최대주주+특수관계인 <%= Number(sharesInfo.topShareholderRate).toFixed(2) %>% 제외</div><% } %>
+    </div>
+    <% if (sharesInfo.issuedShares && sharesInfo.freeFloatShares) { %>
+    <div class="shares-cell">
+      <div class="label">유동비율</div>
+      <div class="value"><%= (sharesInfo.freeFloatShares / sharesInfo.issuedShares * 100).toFixed(2) %>%</div>
+      <div class="sub">유동주식수 / 보통주식수</div>
+    </div>
+    <% } %>
+    <% if (sharesInfo.otherShares) { %>
+    <div class="shares-cell">
+      <div class="label">기타주식 (우선주 등)</div>
+      <div class="value"><%= fmtNum(sharesInfo.otherShares) %>주</div>
+      <div class="sub">DART vstk_total_no</div>
+    </div>
+    <% } %>
+  </div>
+  <% if (sharesInfo.reportLabel || sharesInfo.settlementDate) { %>
+  <div class="shares-source">
+    유동주식수 추정 기준: <%= sharesInfo.reportLabel || '-' %>
+    <% if (sharesInfo.settlementDate) { %> · 결산기준일 <%= sharesInfo.settlementDate %><% } %>
+    · 5% 임원·우리사주 등 추가 lock-up은 미반영.
+  </div>
+  <% } %>
+</div>
+<% } %>
+
 <!-- 보드 funnel 멤버십 -->
 <% if (memberships.qva || memberships.rebreak || memberships.oneDaySurge) { %>
 <div class="member-section">
@@ -191,11 +284,26 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 </div>
 <% } %>
 
-<!-- 차트 (간단 SVG candlestick) -->
+<!-- ★ 메인 차트 (Lightweight Charts · 3-pane 동기화) -->
 <% if (rows.length > 0) { %>
-<h2>📈 일봉 차트 (최근 <%= rows.length %>일)</h2>
-<div class="chart-wrap">
-  <svg id="ohlc-chart" class="chart-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+<div class="chart-card">
+  <div class="chart-info-bar" id="chart-info-bar"></div>
+  <div class="ma-legend" id="ma-legend"></div>
+  <div class="period-tabs" id="period-tabs">
+    <button data-period="1M">1개월</button>
+    <button data-period="3M">3개월</button>
+    <button data-period="6M">6개월</button>
+    <button data-period="200D" class="active">200일</button>
+    <button data-period="1Y">1년</button>
+    <button data-period="ALL">전체</button>
+  </div>
+  <div class="chart-mode-note" id="chart-mode-note"></div>
+  <div class="pane-label">📊 일봉 + 이동평균선</div>
+  <div class="chart-pane price"  id="chart-price"></div>
+  <div class="pane-label">📦 거래량 (20일 평균선)</div>
+  <div class="chart-pane volume" id="chart-volume"></div>
+  <div class="pane-label">💰 거래대금 (20일 평균선)</div>
+  <div class="chart-pane value"  id="chart-value"></div>
 </div>
 
 <h2>📋 일봉 raw (최근 20일)</h2>
@@ -234,58 +342,296 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 
 <% if (rows.length > 0) { %>
 <script>
-const CHART = <%- JSON.stringify(rows) %>;
+const ROWS = <%- JSON.stringify(rows) %>;
+const STOCK_NAME = <%- JSON.stringify(meta.name) %>;
+const STOCK_MARKET = <%- JSON.stringify(meta.market || '') %>;
+const STOCK_CODE_VIEW = <%- JSON.stringify(code) %>;
 
-function renderChart() {
-  const svg = document.getElementById('ohlc-chart');
-  if (!svg || CHART.length === 0) return;
-  const W = svg.clientWidth, H = svg.clientHeight;
-  const PAD_L = 60, PAD_R = 12, PAD_T = 12, PAD_B = 30;
-  const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
+(function buildChart() {
+  if (!window.LightweightCharts || ROWS.length === 0) return;
 
-  const highs = CHART.map(r => r.high);
-  const lows = CHART.map(r => r.low);
-  const yMaxRaw = Math.max(...highs);
-  const yMinRaw = Math.min(...lows);
-  const yMax = yMaxRaw * 1.02;
-  const yMin = yMinRaw * 0.98;
-  const xStep = plotW / Math.max(1, CHART.length);
-  const cw = Math.max(2, xStep * 0.6);
+  const toLwTime = (d) => { const s = String(d); return s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8); };
+  const fmtN = v => v != null ? Math.round(Number(v)).toLocaleString() : '-';
+  const fmtMoney = v => {
+    if (!v) return '-';
+    const n = Number(v);
+    if (n >= 1e12) return (n/1e12).toFixed(2)+'조';
+    if (n >= 1e8)  return (n/1e8).toFixed(1)+'억';
+    if (n >= 1e4)  return (n/1e4).toFixed(0)+'만';
+    return Math.round(n).toLocaleString();
+  };
+  const fmtVol = v => {
+    if (!v) return '-';
+    if (v >= 1e8) return (v/1e8).toFixed(2)+'억';
+    if (v >= 1e4) return (v/1e4).toFixed(0)+'만';
+    return Math.round(v).toLocaleString();
+  };
+  const fmtPctL = v => v == null ? '-' : (v>0?'+':'') + Number(v).toFixed(2) + '%';
 
-  const yToPx = (y) => PAD_T + plotH * (1 - (y - yMin) / (yMax - yMin));
-  const xToPx = (i) => PAD_L + xStep * (i + 0.5);
+  const MA = [
+    { p: 5,   label: 'MA5',   color: '#ec4899' },
+    { p: 10,  label: 'MA10',  color: '#f59e0b' },
+    { p: 20,  label: 'MA20',  color: '#22c55e' },
+    { p: 60,  label: 'MA60',  color: '#3b82f6' },
+    { p: 120, label: 'MA120', color: '#8b5cf6' },
+    { p: 240, label: 'MA240', color: '#737373' },
+  ];
+  function calcMa(period) {
+    const out = []; let sum = 0;
+    for (let i = 0; i < ROWS.length; i++) {
+      sum += ROWS[i].close;
+      if (i >= period) sum -= ROWS[i-period].close;
+      if (i >= period - 1) out.push({ time: toLwTime(ROWS[i].date), value: sum / period });
+    }
+    return out;
+  }
+  function rollingAvg(period, key) {
+    const out = []; let sum = 0;
+    for (let i = 0; i < ROWS.length; i++) {
+      const v = (Number(ROWS[i][key]) || 0); sum += v;
+      if (i >= period) sum -= (Number(ROWS[i-period][key]) || 0);
+      if (i >= period - 1) out.push({ time: toLwTime(ROWS[i].date), value: sum / period });
+    }
+    return out;
+  }
 
-  let svgContent = '';
+  const candles = ROWS.map(r => ({ time: toLwTime(r.date), open: r.open, high: r.high, low: r.low, close: r.close }));
+  const volBars = ROWS.map(r => ({
+    time: toLwTime(r.date), value: r.volume,
+    color: r.close >= r.open ? 'rgba(239,68,68,0.7)' : 'rgba(59,130,246,0.7)',
+  }));
+  const valBars = ROWS.map(r => ({
+    time: toLwTime(r.date), value: r.valueApprox || (r.close * r.volume),
+    color: r.close >= r.open ? 'rgba(239,68,68,0.7)' : 'rgba(59,130,246,0.7)',
+  }));
+  const avgVol20 = rollingAvg(20, 'volume');
+  const avgVal20 = ROWS.map((r, i) => {
+    let sum = 0, cnt = 0;
+    for (let j = Math.max(0, i-19); j <= i; j++) { sum += (ROWS[j].valueApprox || (ROWS[j].close*ROWS[j].volume)); cnt++; }
+    return i >= 19 ? { time: toLwTime(r.date), value: sum / cnt } : null;
+  }).filter(x => x);
 
-  CHART.forEach((r, i) => {
-    const x = xToPx(i);
-    const oy = yToPx(r.open), cy = yToPx(r.close);
-    const hy = yToPx(r.high), ly = yToPx(r.low);
-    const isUp = r.close >= r.open;
-    const color = isUp ? '#ef4444' : '#3b82f6';
-    svgContent += '<line x1="' + x + '" x2="' + x + '" y1="' + hy + '" y2="' + ly + '" stroke="' + color + '" stroke-width="1"/>';
-    const bodyTop = Math.min(oy, cy), bodyH = Math.max(1, Math.abs(oy - cy));
-    svgContent += '<rect x="' + (x - cw/2) + '" y="' + bodyTop + '" width="' + cw + '" height="' + bodyH + '" fill="' + color + '"/>';
+  const baseOpts = {
+    layout: { background: { type: 'solid', color: '#ffffff' }, textColor: '#1f2937',
+      fontFamily: '-apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif' },
+    grid: { vertLines: { color: '#f3f4f6' }, horzLines: { color: '#f3f4f6' } },
+    rightPriceScale: { borderColor: '#e5e7eb' },
+    timeScale: { borderColor: '#e5e7eb', minBarSpacing: 0.5, rightOffset: 4 },
+    crosshair: { mode: 0, vertLine: { width: 1, color: '#9ca3af', style: 0 }, horzLine: { width: 1, color: '#9ca3af', style: 0 } },
+  };
+
+  function withAlpha(hexColor, alpha) {
+    const m = String(hexColor).match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+    if (!m) return hexColor;
+    return 'rgba(' + parseInt(m[1],16) + ',' + parseInt(m[2],16) + ',' + parseInt(m[3],16) + ',' + alpha + ')';
+  }
+  function determineMode(visibleBars) {
+    if (visibleBars >= 120) return 'wide';
+    if (visibleBars >= 80) return 'mid';
+    return 'detail';
+  }
+  const MODE_CONFIG = {
+    detail: {
+      candle: { borderVisible: true, wickVisible: true },
+      ma: { 5:{width:1.2,alpha:1.0}, 10:{width:1.2,alpha:1.0}, 20:{width:1.5,alpha:1.0}, 60:{width:1.5,alpha:1.0}, 120:{width:1.5,alpha:1.0}, 240:{width:1.5,alpha:1.0} },
+      modeNote: '',
+    },
+    mid: {
+      candle: { borderVisible: false, wickVisible: true },
+      ma: { 5:{width:1,alpha:0.5}, 10:{width:1,alpha:0.5}, 20:{width:1.5,alpha:1.0}, 60:{width:1.5,alpha:1.0}, 120:{width:1.5,alpha:1.0}, 240:{width:1.5,alpha:1.0} },
+      modeNote: '',
+    },
+    wide: {
+      candle: { borderVisible: false, wickVisible: true },
+      ma: { 5:{width:1,alpha:0.3}, 10:{width:1,alpha:0.3}, 20:{width:1.8,alpha:1.0}, 60:{width:2,alpha:1.0}, 120:{width:2,alpha:1.0}, 240:{width:2,alpha:1.0} },
+      modeNote: '넓은 기간 보기에서는 개별 봉보다 추세선과 거래대금 흐름을 중심으로 보세요.',
+    },
+  };
+  let currentMode = null;
+  function applyMode(mode) {
+    if (mode === currentMode) return;
+    currentMode = mode;
+    const cfg = MODE_CONFIG[mode];
+    candleSeries.applyOptions({ borderVisible: cfg.candle.borderVisible, wickVisible: cfg.candle.wickVisible });
+    for (const m of MA) {
+      const ma = cfg.ma[m.p];
+      maSeriesMap[m.p].applyOptions({ lineWidth: ma.width, color: withAlpha(m.color, ma.alpha) });
+    }
+    const noteEl = document.getElementById('chart-mode-note');
+    if (noteEl) noteEl.textContent = cfg.modeNote || '';
+  }
+  const priceContainer = document.getElementById('chart-price');
+  const volContainer   = document.getElementById('chart-volume');
+  const valContainer   = document.getElementById('chart-value');
+
+  const priceChart = LightweightCharts.createChart(priceContainer, {
+    ...baseOpts, width: priceContainer.clientWidth, height: priceContainer.clientHeight,
+    rightPriceScale: { ...baseOpts.rightPriceScale, scaleMargins: { top: 0.08, bottom: 0.08 } },
+    timeScale: { ...baseOpts.timeScale, visible: false },
+  });
+  const volChart = LightweightCharts.createChart(volContainer, {
+    ...baseOpts, width: volContainer.clientWidth, height: volContainer.clientHeight,
+    rightPriceScale: { ...baseOpts.rightPriceScale, scaleMargins: { top: 0.1, bottom: 0.05 } },
+    timeScale: { ...baseOpts.timeScale, visible: false },
+  });
+  const valChart = LightweightCharts.createChart(valContainer, {
+    ...baseOpts, width: valContainer.clientWidth, height: valContainer.clientHeight,
+    rightPriceScale: { ...baseOpts.rightPriceScale, scaleMargins: { top: 0.1, bottom: 0.05 } },
+    timeScale: { ...baseOpts.timeScale, visible: true },
   });
 
-  const labels = [0, Math.floor(CHART.length/3), Math.floor(CHART.length*2/3), CHART.length - 1];
-  for (const i of labels) {
-    if (i < 0 || i >= CHART.length) continue;
-    const x = xToPx(i);
-    const d = CHART[i].date;
-    const label = d.slice(4,6) + '/' + d.slice(6,8);
-    svgContent += '<text x="' + x + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10" fill="#94a3b8">' + label + '</text>';
-  }
-  for (let k = 0; k <= 4; k++) {
-    const v = yMin + (yMax - yMin) * k / 4;
-    const y = yToPx(v);
-    svgContent += '<text x="' + (PAD_L - 4) + '" y="' + (y + 3) + '" text-anchor="end" font-size="10" fill="#64748b">' + Math.round(v).toLocaleString() + '</text>';
+  const candleSeries = priceChart.addCandlestickSeries({
+    upColor: '#ef4444', downColor: '#3b82f6',
+    borderUpColor: '#ef4444', borderDownColor: '#3b82f6',
+    wickUpColor: '#ef4444', wickDownColor: '#3b82f6',
+    priceFormat: { type: 'price', precision: 0, minMove: 1 },
+  });
+  candleSeries.setData(candles);
+
+  const maSeriesMap = {};
+  for (const m of MA) {
+    const s = priceChart.addLineSeries({
+      color: m.color, lineWidth: 1.2,
+      priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
+    });
+    s.setData(calcMa(m.p));
+    maSeriesMap[m.p] = s;
   }
 
-  svg.innerHTML = svgContent;
-}
-renderChart();
-window.addEventListener('resize', renderChart);
+  const volSeries = volChart.addHistogramSeries({ priceFormat: { type: 'volume' }, priceLineVisible: false });
+  volSeries.setData(volBars);
+  const volAvgSeries = volChart.addLineSeries({ color: '#737373', lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+  volAvgSeries.setData(avgVol20);
+
+  const valSeries = valChart.addHistogramSeries({ priceFormat: { type: 'volume' }, priceLineVisible: false });
+  valSeries.setData(valBars);
+  const valAvgSeries = valChart.addLineSeries({ color: '#737373', lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+  valAvgSeries.setData(avgVal20);
+
+  const charts = [priceChart, volChart, valChart];
+  const primarySeries = new Map([[priceChart, candleSeries], [volChart, volSeries], [valChart, valSeries]]);
+  let suppressSync = false;
+  charts.forEach(c => {
+    c.timeScale().subscribeVisibleLogicalRangeChange(range => {
+      if (suppressSync || range == null) return;
+      suppressSync = true;
+      charts.forEach(other => { if (other !== c) other.timeScale().setVisibleLogicalRange(range); });
+      suppressSync = false;
+    });
+  });
+  priceChart.timeScale().subscribeVisibleLogicalRangeChange(range => {
+    if (range == null) return;
+    const visibleBars = Math.ceil(range.to - range.from);
+    applyMode(determineMode(visibleBars));
+  });
+
+  const infoBar = document.getElementById('chart-info-bar');
+  const maLegend = document.getElementById('ma-legend');
+  const maToggleState = { 5: true, 10: true, 20: true, 60: true, 120: true, 240: true };
+
+  function infoBarHtml(idx) {
+    if (idx < 0 || idx >= ROWS.length) return '';
+    const r = ROWS[idx];
+    const prev = idx > 0 ? ROWS[idx-1] : null;
+    const chg = prev ? ((r.close / prev.close - 1) * 100) : null;
+    const chgCls = chg == null ? '' : (chg > 0 ? 'pos' : 'neg');
+    const dt = String(r.date).slice(0,4)+'-'+String(r.date).slice(4,6)+'-'+String(r.date).slice(6,8);
+    return [
+      '<span class="ci-name">' + STOCK_NAME + '</span>',
+      '<span class="ci-code">' + STOCK_CODE_VIEW + '</span>',
+      '<span class="ci-mkt">' + STOCK_MARKET + '</span>',
+      '<span class="ci-date">' + dt + '</span>',
+      '<span class="ci-ohlc">시 <strong>' + fmtN(r.open) + '</strong> 고 <strong>' + fmtN(r.high) + '</strong> 저 <strong>' + fmtN(r.low) + '</strong> 종 <strong>' + fmtN(r.close) + '</strong></span>',
+      chg != null ? '<span class="ci-chg ' + chgCls + '">' + fmtPctL(chg) + '</span>' : '',
+      '<span class="ci-volval">거래량 <strong>' + fmtVol(r.volume) + '</strong> · 거래대금 <strong>' + fmtMoney(r.valueApprox || (r.close*r.volume)) + '</strong></span>',
+    ].filter(Boolean).join(' ');
+  }
+  function maAtIdx(period, idx) {
+    const startIdx = period - 1;
+    if (idx < startIdx) return null;
+    let sum = 0;
+    for (let j = idx - period + 1; j <= idx; j++) sum += ROWS[j].close;
+    return sum / period;
+  }
+  function maLegendHtml(idx) {
+    return MA.map(m => {
+      const v = maAtIdx(m.p, idx);
+      const off = maToggleState[m.p] === false ? ' off' : '';
+      return '<label class="ma-tog' + off + '" data-ma="' + m.p + '">' +
+             '<span class="dot" style="background:' + m.color + ';"></span>' +
+             '<span class="ma-label" style="color:' + m.color + '">' + m.label + '</span>' +
+             '<span class="ma-value">' + (v != null ? fmtN(v) : '-') + '</span>' +
+             '</label>';
+    }).join('');
+  }
+
+  const lastIdx = ROWS.length - 1;
+  let currentIdx = lastIdx;
+  infoBar.innerHTML = infoBarHtml(currentIdx);
+  maLegend.innerHTML = maLegendHtml(currentIdx);
+
+  function findIdxByTime(time) {
+    if (!time) return -1;
+    let dateNum;
+    if (typeof time === 'string') dateNum = time.replace(/-/g, '');
+    else if (typeof time === 'object' && time.year)
+      dateNum = String(time.year) + String(time.month).padStart(2,'0') + String(time.day).padStart(2,'0');
+    else return -1;
+    return ROWS.findIndex(r => r.date === dateNum);
+  }
+  function onCrosshair(param) {
+    if (!param || !param.time) {
+      currentIdx = lastIdx;
+      infoBar.innerHTML = infoBarHtml(currentIdx);
+      maLegend.innerHTML = maLegendHtml(currentIdx);
+      charts.forEach(other => { try { other.clearCrosshairPosition(); } catch (_) {} });
+      return;
+    }
+    const idx = findIdxByTime(param.time);
+    if (idx < 0) return;
+    currentIdx = idx;
+    infoBar.innerHTML = infoBarHtml(currentIdx);
+    maLegend.innerHTML = maLegendHtml(currentIdx);
+    const time = param.time;
+    charts.forEach(other => {
+      const s = primarySeries.get(other);
+      if (s && other !== this) { try { other.setCrosshairPosition(NaN, time, s); } catch (_) {} }
+    });
+  }
+  charts.forEach(c => c.subscribeCrosshairMove(onCrosshair));
+
+  maLegend.addEventListener('click', (e) => {
+    const lab = e.target.closest('label[data-ma]');
+    if (!lab) return;
+    const p = Number(lab.dataset.ma);
+    maToggleState[p] = !(maToggleState[p] !== false);
+    maSeriesMap[p].applyOptions({ visible: maToggleState[p] });
+    maLegend.innerHTML = maLegendHtml(currentIdx);
+  });
+
+  const PERIOD_DAYS = { '1M': 22, '3M': 65, '6M': 130, '200D': 200, '1Y': 250, 'ALL': ROWS.length };
+  function setPeriod(p) {
+    const n = PERIOD_DAYS[p] || ROWS.length;
+    const from = Math.max(0, ROWS.length - n);
+    const to = ROWS.length - 1;
+    suppressSync = true;
+    charts.forEach(c => c.timeScale().setVisibleLogicalRange({ from, to }));
+    suppressSync = false;
+    document.querySelectorAll('#period-tabs button').forEach(b => b.classList.toggle('active', b.dataset.period === p));
+    applyMode(determineMode(n));
+  }
+  document.getElementById('period-tabs').addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON' && e.target.dataset.period) setPeriod(e.target.dataset.period);
+  });
+  setPeriod('200D');
+
+  function resizeAll() {
+    [[priceChart, priceContainer], [volChart, volContainer], [valChart, valContainer]].forEach(([c, el]) => {
+      c.applyOptions({ width: el.clientWidth, height: el.clientHeight });
+    });
+  }
+  window.addEventListener('resize', resizeAll);
+})();
 </script>
 <% } %>
 

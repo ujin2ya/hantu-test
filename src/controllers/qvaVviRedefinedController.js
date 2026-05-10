@@ -10,6 +10,8 @@ const { getCurrentPrice } = require("../services/kis/kisApi");
 const { fetchStockInfo: fetchKisStockInfo } = require("../services/kis/kisStockInfo");
 const { fetchCompanyInfo: fetchDartCompanyInfo } = require("../services/dart/dartCompanyInfo");
 const { fetchShareholders: fetchDartShareholders } = require("../services/dart/dartShareholders");
+const { fetchCompanyOverview: fetchDartCompanyOverview } = require("../services/dart/dartCompanyOverview");
+const { computeSharesInfo } = require("../utils/sharesInfo");
 const { fetchRecentNews } = require("../services/news/naverNewsFetcher");
 const { fetchRecentDisclosures } = require("../services/dart/dartDisclosureFetcher");
 const { generateCompanyAnalysis } = require("../services/ai/geminiCompanyAnalysis");
@@ -185,8 +187,8 @@ async function getRedefinedVviStockDetail(req, res) {
     const vviMembership = lookupVviMembership(code);
     const periodReturns = chart ? computePeriodReturns(chart.rows) : null;
 
-    // 7개 외부 호출 병렬
-    const [financials, kisRaw, kisStockInfo, companyInfo, shareholders, newsRes, disclosureRes] = await Promise.all([
+    // 8개 외부 호출 병렬
+    const [financials, kisRaw, kisStockInfo, companyInfo, shareholders, companyOverview, newsRes, disclosureRes] = await Promise.all([
       loadOrFetchFinancials(code),
       (async () => {
         try {
@@ -198,11 +200,14 @@ async function getRedefinedVviStockDetail(req, res) {
       fetchKisStockInfo(code),
       fetchDartCompanyInfo(code),
       fetchDartShareholders(code),
+      fetchDartCompanyOverview(code).catch(() => null),
       fetchRecentNews(code, 8),
       fetchRecentDisclosures(code, { days: 90, limit: 10 }),
     ]);
 
     const priceQuote = extractPriceQuoteFromKis(kisRaw);
+    const kisLiveForShares = priceQuote ? { listedShares: priceQuote.listedShares } : null;
+    const sharesInfo = computeSharesInfo({ companyOverview, kisLive: kisLiveForShares, shareholders });
 
     res.render("qva-vvi-redefined-detail", {
       code,
@@ -217,6 +222,7 @@ async function getRedefinedVviStockDetail(req, res) {
       companyInfoError: companyInfo && companyInfo.error ? companyInfo.error : null,
       shareholders: shareholders && !shareholders.error ? shareholders : null,
       shareholdersError: shareholders && shareholders.error ? shareholders.error : null,
+      sharesInfo,
       periodReturns,
       news: (newsRes && newsRes.news) || [],
       newsError: (newsRes && newsRes.error) || null,

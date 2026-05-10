@@ -335,10 +335,30 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
     <div class="info-label">액면가</div>
     <div class="info-value"><%= priceQuote && priceQuote.faceValue ? fmtNum(priceQuote.faceValue) + '원' : '–' %></div>
 
-    <div class="info-label">상장주식수</div>
-    <div class="info-value"><%= priceQuote && priceQuote.listedShares ? Number(priceQuote.listedShares).toLocaleString() + '주' : '–' %></div>
+    <div class="info-label">보통주식수</div>
+    <div class="info-value">
+      <% var issuedFromShares = sharesInfo && sharesInfo.issuedShares; %>
+      <% var issuedFromKis = priceQuote && priceQuote.listedShares; %>
+      <%= issuedFromShares ? Number(issuedFromShares).toLocaleString() + '주' : (issuedFromKis ? Number(issuedFromKis).toLocaleString() + '주' : '–') %>
+      <% if (sharesInfo && sharesInfo.issuedSource) { %><span class="date-meta">(<%= sharesInfo.issuedSource === 'dart' ? 'DART' : 'KIS' %>)</span><% } %>
+    </div>
     <div class="info-label">시가총액</div>
     <div class="info-value"><%= fmtMarketCap(meta.marketCap) %></div>
+
+    <div class="info-label">유동주식수</div>
+    <div class="info-value">
+      <% if (sharesInfo && sharesInfo.freeFloatShares) { %>
+        <%= Number(sharesInfo.freeFloatShares).toLocaleString() %>주
+        <% if (sharesInfo.issuedShares) { %><span class="date-meta">(유동비율 <%= (sharesInfo.freeFloatShares / sharesInfo.issuedShares * 100).toFixed(2) %>%)</span><% } %>
+      <% } else { %>–<% } %>
+    </div>
+    <div class="info-label">최대주주+특수관계인</div>
+    <div class="info-value"><%= sharesInfo && sharesInfo.topShareholderRate != null ? Number(sharesInfo.topShareholderRate).toFixed(2) + '%' : '–' %><% if (sharesInfo && sharesInfo.reportLabel) { %><span class="date-meta">(<%= sharesInfo.reportLabel %>)</span><% } %></div>
+
+    <% if (sharesInfo && sharesInfo.otherShares) { %>
+    <div class="info-label">기타주식 (우선주 등)</div>
+    <div class="info-value span-3"><%= Number(sharesInfo.otherShares).toLocaleString() %>주<span class="date-meta">DART vstk_total_no</span></div>
+    <% } %>
 
     <% if (kisStockInfo) { %>
     <div class="info-label">업종 (대분류)</div>
