@@ -124,12 +124,17 @@ function calculateQVA2(chartRows, dayIdx, meta = {}, overrides = {}) {
   const medianPrev20Volume = median(prev20Volumes);
   const medianPrev20Value  = median(prev20Values);
 
-  if (avg20Value < TH.minAvgValue20) {
-    return reject('avg20_value_below_floor', [`평균 거래대금 ${(avg20Value / 1e8).toFixed(1)}억 < ${(TH.minAvgValue20 / 1e8).toFixed(0)}억`]);
-  }
-
   const todayVolume = today.volume || 0;
   const todayValue  = today.valueApprox || (close * todayVolume) || 0;
+
+  // 유동성 floor — 직전 20일 평균이 낮아도 당일 거래대금이 충분히 크면 통과.
+  // QVA2의 본질("휴면 → 폭발 첫 흔적")을 살리기 위함. 진짜 거래정지·초저유동성
+  // 종목 (당일도 10억 미만)만 컷한다.
+  if (avg20Value < TH.minAvgValue20 && todayValue < TH.minAvgValue20) {
+    return reject('avg20_and_today_value_below_floor', [
+      `직전 20일 평균 거래대금 ${(avg20Value / 1e8).toFixed(1)}억 < ${(TH.minAvgValue20 / 1e8).toFixed(0)}억 AND 당일 거래대금 ${(todayValue / 1e8).toFixed(1)}억 < ${(TH.minAvgValue20 / 1e8).toFixed(0)}억`,
+    ]);
+  }
   const volumeRatio = medianPrev20Volume > 0 ? todayVolume / medianPrev20Volume : 0;
   const valueRatio  = medianPrev20Value  > 0 ? todayValue  / medianPrev20Value  : 0;
 
