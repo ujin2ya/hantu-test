@@ -7,10 +7,12 @@
 # 이때 운영 서버의 최신 cache가 git의 옛 cache로 덮어써져 데이터가 손실된다.
 # 이 스크립트는 push 전에 운영 서버 cache를 git에 먼저 commit해서 그 손실을 막는다.
 #
-# 동기화 대상 (cache/* 화이트리스트):
+# 동기화 대상:
 #   - cache/pattern-result.json
 #   - cache/flow-history/{code}.json
 #   - cache/stock-charts-long/{code}.json
+#   - data/intraday/1ds/{YYYY-MM-DD}/{code}.json  (1DS 분봉 — gitignore되어 git에는 안 들어가지만,
+#                                                  로컬에서 1DS 보드 재생성 시 입력으로 필요)
 #
 # 비밀번호: .env의 REMOTE_SSH_PASSWORD에서 읽는다 (공백 줄·따옴표 모두 OK).
 #
@@ -62,17 +64,17 @@ echo "🔄 운영 서버 캐시 동기화 시작 ($REMOTE_TARGET:$REMOTE_PORT)"
 echo
 
 # 1) 원격에서 tar.gz 만들기
-echo "[1/4] 원격에서 cache tar.gz 만들기..."
+echo "[1/4] 원격에서 cache + intraday tar.gz 만들기..."
 plink -P "$REMOTE_PORT" -pw "$PASSWORD" -batch "$REMOTE_TARGET" \
-  "cd '$REMOTE_PATH/cache' && tar -czf '$REMOTE_TMP' flow-history stock-charts-long pattern-result.json && ls -la '$REMOTE_TMP'"
+  "cd '$REMOTE_PATH' && tar -czf '$REMOTE_TMP' cache/flow-history cache/stock-charts-long cache/pattern-result.json data/intraday/1ds && ls -la '$REMOTE_TMP'"
 
 # 2) 로컬로 다운로드
 echo "[2/4] tar.gz 다운로드..."
 pscp -P "$REMOTE_PORT" -pw "$PASSWORD" -batch -q "$REMOTE_TARGET:$REMOTE_TMP" "$LOCAL_TMP"
 
-# 3) 압축 풀기
+# 3) 압축 풀기 (ROOT 기준 — cache/, data/intraday/1ds/ 둘 다 풂)
 echo "[3/4] 압축 풀기..."
-tar -xzf "$LOCAL_TMP" -C cache/
+tar -xzf "$LOCAL_TMP" -C .
 rm -f "$LOCAL_TMP"
 
 # 4) 원격 cleanup
@@ -86,6 +88,8 @@ echo "동기화된 핵심 파일:"
 ls -la cache/pattern-result.json 2>/dev/null | sed 's/^/  /'
 ls -la cache/flow-history/000020.json 2>/dev/null | sed 's/^/  /' || true
 ls -la cache/stock-charts-long/018880.json 2>/dev/null | sed 's/^/  /' || true
+echo "동기화된 1DS 분봉 (최근 3거래일):"
+ls -1 data/intraday/1ds/ 2>/dev/null | sort | tail -3 | sed 's/^/  /' || true
 
 # 옵션: --commit 으로 자동 commit
 if [ "${1:-}" = "--commit" ]; then
