@@ -480,8 +480,8 @@ function card(e) {
       m('진입가',       fmtNum(e.entryPrice)) +
       (e.rebreakDate
         ? m('재돌파일',  fmtDate(e.rebreakDate) + ' (D+' + e.rebreakDayOffset + ')', 'cell-pos')
-        : (e.intradayDate ? m('장중 도달', fmtDate(e.intradayDate), 'cell-warn') : null)) +
-      (e.rebreakValueRatio != null ? m('재돌파 거래대금 ×', e.rebreakValueRatio.toFixed(2), e.rebreakValueRatio >= 3 ? 'cell-pos' : '') : null) +
+        : (e.intradayDate ? m('장중 도달', fmtDate(e.intradayDate), 'cell-warn') : '')) +
+      (e.rebreakValueRatio != null ? m('재돌파 거래대금 ×', e.rebreakValueRatio.toFixed(2), e.rebreakValueRatio >= 3 ? 'cell-pos' : '') : '') +
       m('현재 종가',    fmtNum(e.currentClose)) +
       m('vs D+0 고가', (e.currentVsBreakoutHighPct >= 0 ? '+' : '') + (e.currentVsBreakoutHighPct ?? 0).toFixed(2) + '%', pctClass(e.currentVsBreakoutHighPct)) +
       m('vs 진입가',    (e.currentVsEntryPct >= 0 ? '+' : '') + (e.currentVsEntryPct ?? 0).toFixed(2) + '%', pctClass(e.currentVsEntryPct)) +
