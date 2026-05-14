@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "1-Day Surge Board v5 · GOOD_TRADE 중심 단타 후보 보드",
-    "generatedAt": "2026-05-14T01:49:50.058Z",
+    "generatedAt": "2026-05-14T02:04:30.408Z",
     "analysisDate": "20260514",
     "analysisDateFmt": "2026-05-14",
     "stockUniverse": 4270,
@@ -9950,7 +9950,14 @@
     ],
     "scanner0930": {
       "nextDate": "2026-05-14",
-      "generatedAt": "2026-05-14T01:49:45.560Z",
+      "mode": "full",
+      "candidatesTarget": 300,
+      "scannedCount": 25,
+      "successCount": 25,
+      "startedAt": "2026-05-14T02:04:17.016Z",
+      "finishedAt": "2026-05-14T02:04:17.158Z",
+      "elapsedSec": 0.14,
+      "generatedAt": "2026-05-14T02:04:17.158Z",
       "counts": {
         "intradayFiles": 25,
         "liquidityRejected": 0,

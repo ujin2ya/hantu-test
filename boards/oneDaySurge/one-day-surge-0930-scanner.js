@@ -70,16 +70,21 @@ const STATUS_LABEL = {
 };
 
 function parseArgs(argv) {
-  const args = { nextDate: null, top: 50 };
+  const args = { nextDate: null, top: 50, mode: 'quick', candidatesTarget: null };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--next-date') args.nextDate = argv[++i];
     else if (a === '--top') args.top = Number(argv[++i]) || 50;
+    else if (a === '--mode') args.mode = argv[++i] || 'quick';
+    else if (a === '--candidates-target') args.candidatesTarget = Number(argv[++i]) || null;
     else if (a === '--help' || a === '-h') {
-      console.log(`Usage: node one-day-surge-0930-scanner.js [--next-date YYYY-MM-DD] [--top N]`);
+      console.log(`Usage: node one-day-surge-0930-scanner.js [--next-date YYYY-MM-DD] [--top N] [--mode quick|full] [--candidates-target N]`);
+      console.log(`  --mode quick: 빠른 결과 (메인풀 분봉만, default). --mode full: 확장 스캐너 후보 분봉까지 반영.`);
+      console.log(`  --candidates-target N: 분봉 수집 단계에서 시도한 후보 수 (메타 표시용).`);
       process.exit(0);
     }
   }
+  if (!['quick', 'full'].includes(args.mode)) args.mode = 'quick';
   return args;
 }
 
@@ -216,6 +221,8 @@ function fmtDate(d) {
 
 function main() {
   const args = parseArgs(process.argv);
+  const startedAt = new Date();
+  const t0 = Date.now();
   if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR, { recursive: true });
   if (!fs.existsSync(CHART_DIR)) {
     console.error('[ERROR] cache/stock-charts-long 디렉토리가 없습니다.');
@@ -228,7 +235,8 @@ function main() {
     process.exit(1);
   }
   const intradayDir = path.join(INTRADAY_BASE, nextDate);
-  console.log(`\n📡 1DS 09:30 실시간 스캐너 — 분봉 디렉토리: ${nextDate}`);
+  console.log(`\n📡 1DS 09:30 실시간 스캐너 [mode=${args.mode}] — 분봉 디렉토리: ${nextDate}`);
+  if (args.candidatesTarget) console.log(`  (확장 스캔 후보 목표 ${args.candidatesTarget}개)`);
 
   const metaMap = loadStockMetaMap();
   const intradayFiles = fs.existsSync(intradayDir)
@@ -308,10 +316,20 @@ function main() {
   const weak     = statusBuckets.WEAK.slice(0, Math.min(TOP, 50));
   const insuff   = statusBuckets.INSUFFICIENT_BARS;
 
+  const finishedAt = new Date();
+  const elapsedSec = Number(((Date.now() - t0) / 1000).toFixed(2));
+  const totalAnalyzed = statusBuckets.READY.length + statusBuckets.WAIT_PULLBACK.length + statusBuckets.FADED.length + statusBuckets.WEAK.length + statusBuckets.INSUFFICIENT_BARS.length;
   const out = {
     meta: {
       title: '1-Day Surge — 09:30 실시간 포착 스캐너',
-      generatedAt: new Date().toISOString(),
+      mode: args.mode,                                  // 'quick' | 'full'
+      candidatesTarget: args.candidatesTarget || null,  // 분봉 수집 단계에서 시도한 후보 수 (외부 정보)
+      scannedCount: intradayFiles.length,               // 분봉 파일 수 (= 분봉 수집 성공 종목 수)
+      successCount: totalAnalyzed,                       // 유동성 통과 + 메트릭 계산 성공 종목 수
+      startedAt: startedAt.toISOString(),
+      finishedAt: finishedAt.toISOString(),
+      elapsedSec,
+      generatedAt: finishedAt.toISOString(),
       nextDate,
       intradayDir,
       config: CONFIG,
@@ -337,6 +355,11 @@ function main() {
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
 
   // 콘솔 로그
+  if (args.candidatesTarget) {
+    console.log(`  📊 mode=${args.mode} / 확장 스캔 ${args.candidatesTarget}개 시도 → 분봉 수집 ${intradayFiles.length}개 (${(intradayFiles.length / args.candidatesTarget * 100).toFixed(1)}%)`);
+  } else {
+    console.log(`  📊 mode=${args.mode} / 분봉 파일 ${intradayFiles.length}개`);
+  }
   console.log(`  09:30 스캔 대상: ${intradayFiles.length}개 (분봉 파일 기준)`);
   console.log(`  유동성 필터 제외: ${out.counts.liquidityRejected}개`);
   for (const [reason, n] of Object.entries(liquidityRejectCounts)) {
@@ -355,7 +378,8 @@ function main() {
       console.log(`     score ${e.score.toFixed(1).padStart(6)} | ${e.code} ${(e.name || '').padEnd(15)} | +${(m.openToLastRate || 0).toFixed(2)}% | v ${(m.value_0930 / 1e8).toFixed(0)}억 (x${(m.valueToAvgRatio_0930 || 0).toFixed(1)}) | cp ${(m.closePosition0930 * 100).toFixed(0)}% | drop ${(m.highToLastDrop || 0).toFixed(2)}%`);
     }
   }
-  console.log(`\n✅ JSON: ${OUT_JSON}`);
+  console.log(`\n  ⏱ 소요 ${elapsedSec}s`);
+  console.log(`✅ JSON: ${OUT_JSON}`);
 }
 
 if (require.main === module) {

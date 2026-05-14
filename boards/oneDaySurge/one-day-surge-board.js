@@ -1014,9 +1014,17 @@ function main() {
       scanner0930: (function () {
         const sc = loadScanner0930();
         if (!sc) return null;
+        const m = sc.meta || {};
         return {
-          nextDate: sc.meta && sc.meta.nextDate,
-          generatedAt: sc.meta && sc.meta.generatedAt,
+          nextDate: m.nextDate,
+          mode: m.mode || 'quick',
+          candidatesTarget: m.candidatesTarget || null,
+          scannedCount: m.scannedCount || 0,
+          successCount: m.successCount || 0,
+          startedAt: m.startedAt,
+          finishedAt: m.finishedAt,
+          elapsedSec: m.elapsedSec,
+          generatedAt: m.generatedAt,
           counts: sc.counts,
           statusLabels: sc.statusLabels,
           ready:    sc.scanner0930Ready    || [],
@@ -1101,7 +1109,10 @@ function main() {
   const sc0930 = out.priorityRanked.scanner0930;
   if (sc0930) {
     const c = sc0930.counts || {};
-    console.log(`  📡 09:30 실시간 스캐너 (분봉 ${c.intradayFiles || 0}건 대상):`);
+    const modeTxt = sc0930.candidatesTarget
+      ? `mode=${sc0930.mode} / 확장 ${sc0930.candidatesTarget}개 시도 → 분봉 ${sc0930.scannedCount}개 (${(sc0930.scannedCount / sc0930.candidatesTarget * 100).toFixed(1)}%)`
+      : `mode=${sc0930.mode} / 분봉 ${sc0930.scannedCount || 0}개`;
+    console.log(`  📡 09:30 실시간 스캐너 [${modeTxt}, ${sc0930.elapsedSec || 0}s]:`);
     console.log(`     READY              ${c.READY || 0}개`);
     console.log(`     WAIT_PULLBACK      ${c.WAIT_PULLBACK || 0}개`);
     console.log(`     FADED              ${c.FADED || 0}개`);
@@ -2257,7 +2268,19 @@ function buildCardHtml(it) {
     '<span class="tps-pill faded">FADED <span class="num">' + (c.FADED || 0) + '</span></span>' +
     '<span class="tps-pill missing">WEAK <span class="num">' + (c.WEAK || 0) + '</span></span>' +
     '<span class="tps-pill insufficient">분봉 부족 <span class="num">' + (c.INSUFFICIENT_BARS || 0) + '</span></span>';
-  const headerInfo = '<div class="shelf-desc">이 구역은 전일 후보가 아니라 오늘 ' + (sc.nextDate || '') + ' 09:00~09:30 분봉 기준으로 새로 잡힌 종목입니다. <strong>유동성 통과 분봉 수집 대상 ' + (c.intradayFiles || 0) + '개</strong> 중 위 상태로 분류.</div>' +
+  // 스캐너 모드 + 후보/수집 메타 표시
+  const modeLabel = sc.mode === 'full' ? '🔭 확장 스캔 (full)' : '⚡ 빠른 스캔 (quick)';
+  const scanRange = sc.candidatesTarget
+    ? '확장 스캔 ' + sc.candidatesTarget + '개 중 분봉 수집 ' + (sc.scannedCount || 0) + '개 완료 (' + ((sc.scannedCount || 0) / sc.candidatesTarget * 100).toFixed(1) + '%)'
+    : '분봉 수집 ' + (sc.scannedCount || 0) + '개 (메인풀 기준)';
+  const elapsedTxt = sc.elapsedSec != null ? ' · 스캐너 소요 ' + sc.elapsedSec + 's' : '';
+  const headerInfo = '<div class="shelf-desc">' +
+    '<div style="font-size:12px;margin-bottom:6px;">' +
+      '<span style="color:#5eead4;font-weight:700;">' + modeLabel + '</span> · ' + scanRange + elapsedTxt +
+    '</div>' +
+    '이 구역은 전일 후보가 아니라 오늘 ' + (sc.nextDate || '') + ' 09:00~09:30 분봉 기준으로 새로 잡힌 종목입니다. ' +
+    '<strong>유동성 통과 + 메트릭 계산 ' + (sc.successCount || 0) + '개</strong> 중 위 상태로 분류.' +
+    '</div>' +
     '<div style="margin:8px 0 14px;">' + breakdown + '</div>';
   let body = '';
   if ((sc.ready || []).length > 0) {
@@ -2274,8 +2297,11 @@ function buildCardHtml(it) {
     body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:13px;color:#94a3b8;padding:6px 0;">😴 WEAK ' + sc.rejected.length + '건 — 펼쳐서 보기 (참고용)</summary>' +
       '<div style="margin-top:8px;">' + sc.rejected.map((e) => renderCard(e, 'aux')).join('') + '</div></details>';
   }
+  const headerTitle = sc.candidatesTarget
+    ? '📡 오늘 09:30 실제 포착 후보 — ' + (sc.ready ? sc.ready.length : 0) + '개 READY <span style="font-size:13px;color:#94a3b8;font-weight:400;">(확장 스캔 ' + sc.candidatesTarget + '개 중 분봉 ' + (sc.scannedCount || 0) + '개)</span>'
+    : '📡 오늘 09:30 실제 포착 후보 — ' + (sc.ready ? sc.ready.length : 0) + '개 READY <span style="font-size:13px;color:#94a3b8;font-weight:400;">(분봉 ' + (sc.scannedCount || 0) + '개)</span>';
   host.innerHTML = '<section class="entry-shelf-section top" style="border:2px solid #5eead4;background:linear-gradient(135deg,#042f2e 0%,#1e293b 100%);">' +
-    '<h2>📡 오늘 09:30 실제 포착 후보 — ' + (sc.ready ? sc.ready.length : 0) + '개 READY</h2>' +
+    '<h2>' + headerTitle + '</h2>' +
     headerInfo + body +
   '</section>';
 })();

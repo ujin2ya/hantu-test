@@ -1,7 +1,14 @@
 {
   "meta": {
     "title": "1-Day Surge — 09:30 실시간 포착 스캐너",
-    "generatedAt": "2026-05-14T01:49:45.560Z",
+    "mode": "full",
+    "candidatesTarget": 300,
+    "scannedCount": 25,
+    "successCount": 25,
+    "startedAt": "2026-05-14T02:04:17.016Z",
+    "finishedAt": "2026-05-14T02:04:17.158Z",
+    "elapsedSec": 0.14,
+    "generatedAt": "2026-05-14T02:04:17.158Z",
     "nextDate": "2026-05-14",
     "intradayDir": "C:\\Users\\eugen\\Documents\\hantu-test\\data\\intraday\\1ds\\2026-05-14",
     "config": {

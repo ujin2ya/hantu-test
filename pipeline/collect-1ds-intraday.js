@@ -40,6 +40,7 @@ require('dotenv').config({ path: path.join(ROOT, '.env'), override: true });
 const { getAccessToken } = require('../src/services/kis/kisToken');
 const { getMinuteBarsForDate, normalizeBars } = require('../src/services/kis/kisMinuteBars');
 const report = require('../boards/oneDaySurge/one-day-surge-entry-confirm-report');
+const core = require('../boards/oneDaySurge/one-day-surge-core');
 const REPORTS_DIR = path.join(ROOT, 'reports');
 const NAVER_LIST_PATH = path.join(ROOT, 'cache', 'naver-stocks-list.json');
 const STOCKS_PATH = path.join(ROOT, 'stocks.json');
@@ -60,6 +61,8 @@ function parseArgs(argv) {
     endHour: '100000',       // KIS hour parameter (returns 120 bars going back)
     dryRun: false,
     fromBoard: false,        // reports/one-day-surge-board-result.json의 mainPoolCodes만 수집 (라이브 운영용)
+    fromScannerCandidates: false, // 유동성 통과 종목 전체 대상 (09:30 실시간 스캐너용 넓은 후보군)
+    scannerLimit: 300,       // 스캐너 후보 상한 (priorityScore 상위 N개)
     fullDay: false,          // 09:00~15:30 전체 분봉 수집 (4 calls/stock-day) — pullback 백테스트용
   };
   for (let i = 2; i < argv.length; i++) {
@@ -75,6 +78,8 @@ function parseArgs(argv) {
     else if (k === '--end-hour') a.endHour = argv[++i];
     else if (k === '--dry-run') a.dryRun = true;
     else if (k === '--from-board') a.fromBoard = true;
+    else if (k === '--from-scanner-candidates') a.fromScannerCandidates = true;
+    else if (k === '--scanner-limit') a.scannerLimit = parseInt(argv[++i], 10) || 300;
     else if (k === '--full-day') a.fullDay = true;
     else if (k === '--help' || k === '-h') { printHelp(); process.exit(0); }
   }
@@ -93,6 +98,8 @@ function printHelp() {
   --end-hour 100000            KIS hour 파라미터
   --dry-run                    후보만 카운트, KIS 호출 X
   --from-board                 reports/one-day-surge-board-result.json의 mainPoolCodes만 수집 (라이브 운영용 — target-date는 보드 analysisDate로 자동 설정)
+  --from-scanner-candidates    유동성 통과 종목 전체 대상 (09:30 실시간 스캐너용 넓은 후보군). priorityScore 상위 N개 수집
+  --scanner-limit 300          스캐너 후보 상한 (default 300)
   --full-day                   09:00~15:30 전체 분봉 수집 (default 09:00~10:00). 종목당 4 KIS 호출. pullback 백테스트용`);
 }
 
@@ -163,6 +170,85 @@ async function fetchFullDayWithRetry(token, code, dateNum, retries, callSleepMs)
   return { meta: lastMeta, raw: sorted };
 }
 
+// ── 스캐너 후보군 빌더 ──
+// 유동성 + 시총 + 종목 자격 통과 종목을 priorityScore 상위 N개로 추리는 함수.
+// --from-scanner-candidates 모드에서 사용. 보드 mainPool과 무관하게 넓은 후보를 수집한다.
+//
+// 후보 조건:
+//   - avg20Value ≥ 10억 OR baseValue ≥ 20억
+//   - 시가총액 500억~5조
+//   - ETF/ETN/스팩/우선주/리츠/관리종목성 이름 제외
+//   - 최근 차트 데이터 (baseIdx ≥ 20) 있는 종목
+//
+// 정렬 priorityScore (사용자 명시 4개 가중치):
+//   baseValue/1억 + avg20/1억*0.3 + max(0,changeRate)*10 + vmc*100
+//   = 전일 거래대금 + 최근 평균 거래대금 + 전일 양봉 보너스 + 시총 대비 거래대금 비율
+function buildScannerCandidates({ metaMap, files, limit, chartDir, debug = false }) {
+  const candidates = [];
+  const rejectCounts = { no_meta: 0, etf: 0, special: 0, excluded_name: 0, no_marketcap: 0, mc_outside: 0, no_chart: 0, short_history: 0, low_liquidity: 0 };
+  // 오늘 KST yyyymmdd — 운영 서버가 장중에 부분 일봉을 받았을 수 있어 baseDate가 오늘로 잡히면
+  // 09:30 스캐너 의도(어제 baseDate → 오늘 분봉)와 어긋남. 그래서 baseRow.date === todayNum 이면
+  // 한 행 앞 (어제 영업일)을 baseRow로 본다.
+  const todayParts = new Date().toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).split('. ');
+  const todayNum = todayParts[0] + (todayParts[1] || '').padStart(2, '0') + ((todayParts[2] || '').replace('.', '')).padStart(2, '0');
+  for (const f of files) {
+    const code = f.replace(/\.json$/, '');
+    const meta = metaMap.get(code);
+    if (!meta) { rejectCounts.no_meta++; continue; }
+    if (meta.isEtf) { rejectCounts.etf++; continue; }
+    if (meta.isSpecial) { rejectCounts.special++; continue; }
+    if (core.isExcludedByName(meta.name)) { rejectCounts.excluded_name++; continue; }
+    const mc = Number(meta.marketCap) || 0;
+    if (mc <= 0) { rejectCounts.no_marketcap++; continue; }
+    if (mc < 5e10 || mc >= 5e12) { rejectCounts.mc_outside++; continue; }
+    let chart;
+    try { chart = JSON.parse(fs.readFileSync(path.join(chartDir, f), 'utf-8')); }
+    catch (_) { rejectCounts.no_chart++; continue; }
+    const rows = chart && chart.rows;
+    if (!Array.isArray(rows) || rows.length < 25) { rejectCounts.short_history++; continue; }
+    let baseIdx = core.pickLatestBaseIdx(rows);
+    if (baseIdx < 20) { rejectCounts.short_history++; continue; }
+    // 오늘 부분 일봉이 latest로 잡힌 경우 한 행 앞 (어제)으로 — 09:30 스캐너 흐름과 일치시킴
+    if (rows[baseIdx] && rows[baseIdx].date === todayNum && baseIdx >= 21) {
+      baseIdx = baseIdx - 1;
+    }
+    let sum = 0, n = 0;
+    for (let i = baseIdx - 20; i < baseIdx; i++) {
+      const r = rows[i];
+      if (r && r.volume > 0) { sum += (r.valueApprox || 0); n++; }
+    }
+    const avg20 = n > 0 ? sum / n : 0;
+    const baseRow = rows[baseIdx];
+    const baseValue = baseRow.valueApprox || 0;
+    if (avg20 < 1e9 && baseValue < 2e9) { rejectCounts.low_liquidity++; continue; }
+    const prevRow = rows[baseIdx - 1];
+    const changeRate = prevRow && prevRow.close > 0 ? (baseRow.close / prevRow.close - 1) * 100 : 0;
+    const vmc = mc > 0 ? (baseValue / mc) * 100 : 0;
+    const priorityScore =
+      baseValue / 1e8                  // 전일 거래대금 (1억 단위)
+      + (avg20 / 1e8) * 0.3            // 평균 거래대금 (보조 가중)
+      + Math.max(0, changeRate) * 10   // 양봉 보너스 (음봉은 0)
+      + vmc;                           // 시총 대비 거래대금 비율
+    candidates.push({
+      code, name: chart.name || meta.name || code,
+      market: chart.market || meta.market || '',
+      marketCap: mc, baseDate: baseRow.date,
+      avg20Value: avg20, baseValue, changeRate, vmc, priorityScore,
+    });
+  }
+  candidates.sort((a, b) => b.priorityScore - a.priorityScore);
+  const top = candidates.slice(0, limit);
+  if (debug) {
+    console.log(`  스캐너 후보군 산정:`);
+    console.log(`    전체 차트: ${files.length} / 유동성 통과: ${candidates.length} / 상한 ${limit} 적용 후 ${top.length}개`);
+    console.log(`    필터 제외:`);
+    for (const [r, n] of Object.entries(rejectCounts)) {
+      if (n > 0) console.log(`      ${r}: ${n}개`);
+    }
+  }
+  return { candidates: top, rejectCounts, totalCandidates: candidates.length };
+}
+
 // ── main ──
 async function main() {
   const args = parseArgs(process.argv);
@@ -172,6 +258,11 @@ async function main() {
   const t0 = Date.now();
   console.log('\n📡 1DS 분봉 백필 (ENTRY_CONFIRM 연구용)');
   if (args.dryRun) console.log('  ⚠ DRY RUN — 후보 카운트만, KIS 호출 X');
+
+  if (args.fromBoard && args.fromScannerCandidates) {
+    console.error('  [ERROR] --from-board 와 --from-scanner-candidates 는 동시 사용 불가.');
+    process.exit(1);
+  }
 
   // --from-board: 보드 JSON에서 mainPool 코드 + analysisDate를 읽어 target-date 자동 세팅
   let boardMainPoolCodes = null;
@@ -203,10 +294,39 @@ async function main() {
   const files = fs.readdirSync(CHART_DIR).filter((f) => f.endsWith('.json'));
   console.log(`  메타: ${metaMap.size}건 / 차트 파일: ${files.length}건`);
 
-  // from-board 모드는 generateGtEventsByDate 우회 — 보드의 그룹 분류(classifyGtGroup)와 events의 그룹
-  // 분류(classifyGroup)가 달라 매칭이 누락될 수 있으므로 mainPoolCodes를 직접 iterate한다.
+  // --from-scanner-candidates: 유동성 통과 종목 전체 대상 (보드 mainPool 무관, 넓은 09:30 스캐너용)
+  let scannerCandidateCodes = null;
+  let scannerCandidateMeta = null;
+  if (args.fromScannerCandidates) {
+    const { candidates, rejectCounts, totalCandidates } = buildScannerCandidates({
+      metaMap, files, limit: args.scannerLimit, chartDir: CHART_DIR, debug: true,
+    });
+    scannerCandidateCodes = new Set(candidates.map((c) => c.code));
+    scannerCandidateMeta = { totalCandidates, rejectCounts, picked: candidates.length, limit: args.scannerLimit };
+    if (scannerCandidateCodes.size === 0) {
+      console.warn('  ⚠ --from-scanner-candidates: 후보 0건. 종료.');
+      return;
+    }
+    if (!args.targetDate) {
+      // 가장 흔한 baseDate를 자동 산정 (운영 09:30 cron에서는 거의 어제 영업일이 됨)
+      const freq = new Map();
+      for (const c of candidates) freq.set(c.baseDate, (freq.get(c.baseDate) || 0) + 1);
+      let maxDate = null, maxFreq = 0;
+      for (const [d, n] of freq) { if (n > maxFreq) { maxFreq = n; maxDate = d; } }
+      if (!maxDate) {
+        console.error('  [ERROR] --from-scanner-candidates: baseDate 자동 산정 실패.');
+        process.exit(1);
+      }
+      args.targetDate = dateNumToStr(maxDate);
+    }
+    console.log(`  📡 --from-scanner-candidates: ${scannerCandidateCodes.size}개 코드 / target-date=${args.targetDate}`);
+  }
+
+  // from-board / from-scanner-candidates 모드는 generateGtEventsByDate 우회 —
+  // 코드 list를 직접 받아 D-day 차트의 last row를 ev로 만든다.
+  const directCodes = boardMainPoolCodes || scannerCandidateCodes;
   let allEvents = [], eventsByDate = new Map(), stocksProcessed = 0, stocksFiltered = 0;
-  if (!boardMainPoolCodes) {
+  if (!directCodes) {
     const effectiveWindow = args.targetDate || args.from || args.to ? Math.max(args.windowDays, 60) : args.windowDays;
     const r = report.generateGtEventsByDate({ windowDays: effectiveWindow, groupsFilter: args.groups, metaMap, files, requireNextDay: false });
     allEvents = r.allEvents; eventsByDate = r.eventsByDate;
@@ -236,10 +356,11 @@ async function main() {
   const tasks = []; // [{ baseDate, nextDateNum, nextDateStr, code, name, gtGroup, ev }]
   for (const d of sortedTargetDates) {
     let evs;
-    if (boardMainPoolCodes) {
-      // from-board 모드: D-day 차트에서 mainPoolCodes 코드들의 last row 정보를 직접 만들어 evs로 사용
+    if (directCodes) {
+      // from-board / from-scanner-candidates 모드: D-day 차트에서 직접 list된 코드들의 last row 정보를 ev로 사용
+      const groupLabel = boardMainPoolCodes ? 'BOARD_MAIN_POOL' : 'SCANNER_CANDIDATE';
       evs = [];
-      for (const code of boardMainPoolCodes) {
+      for (const code of directCodes) {
         const meta = metaMap.get(code);
         if (!meta) continue;
         const fp = path.join(CHART_DIR, code + '.json');
@@ -256,7 +377,7 @@ async function main() {
         const nextRow = rows[dayRowIdx + 1] || null; // 차트에 D+1이 있으면 사용, 없으면 null (라이브 수집 fallback이 today로 채움)
         evs.push({
           code, name: chart.name || meta.name || code, market: chart.market || meta.market || '',
-          marketCap: meta.marketCap, gtGroup: 'BOARD_MAIN_POOL', // sort 시 사용 안 됨 (모두 같은 우선순위)
+          marketCap: meta.marketCap, gtGroup: groupLabel, // sort 시 사용 안 됨 (모두 같은 우선순위)
           baseDate: d, nextDayRow: nextRow,
           // sort 보조 필드 (없으면 0/9999 fallback)
           valueToMarketCapRatio: 0, dailyValueRank: 9999,
