@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>1DS 10시 생존 후보의 돌파 예측력 검증</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px; max-width: 1700px; margin: 0 auto; color: #222; background: #fafafa; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 24px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #ddd; }
+  h3 { font-size: 14px; margin: 16px 0 6px; color: #444; }
+  .meta { color: #666; font-size: 12px; margin-bottom: 16px; }
+  table { border-collapse: collapse; width: 100%; background: #fff; font-size: 11.5px; margin-bottom: 12px; }
+  th, td { border: 1px solid #ddd; padding: 4px 7px; text-align: left; white-space: nowrap; }
+  th { background: #f0f0f0; font-weight: 600; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pos { color: #c62828; }
+  .neg { color: #1565c0; }
+  .summary { background: #fff; padding: 12px 16px; border-radius: 6px; border: 1px solid #e0e0e0; margin-bottom: 18px; }
+  .summary strong { color: #d84315; }
+  ul { padding-left: 22px; } li { margin: 4px 0; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>1DS — 10시 생존 후보의 돌파 예측력 검증</h1>
+<div class="meta">생성 2026-05-14T15:07:34.093Z · 60거래일 (2026-02-12 ~ 2026-05-14) · 소요 11.99s · 후보 408건</div>
+
+<div class="summary">
+  <h2 style="margin-top:0;border:none;">1. 요약 결론</h2>
+  <ul><li><strong>분석 대상</strong>: 60거래일 (2026-02-12 ~ 2026-05-14), <strong>READY + 10시 생존 후보 408건</strong> (일평균 6.80개)</li><li><strong>핵심 결과</strong>: 10시 생존 후보 중 <strong style="color:#d84315;">82.8% (338건)</strong>이 10시 이후 09:31~10:00 high를 돌파. 미돌파 <strong>17.2% (70건)</strong></li><li><strong>돌파 시점 분포</strong>: 10:15 이전 228건 (55.9%) · 10:30 이전 추가 36건 · 11:00 이전 추가 24건 · 13:00 이전 추가 33건 · 13:00 이후 17건</li><li><strong>성공 vs 실패</strong>: 돌파 성공 평균 MFE <strong><span class="pos">+6.39%</span></strong> / 종가 <span class="pos">+3.18%</span> 승률 77.8% · 돌파 실패 평균 MFE <strong><span class="pos">+2.93%</span></strong> / 종가 <span class="neg">-0.85%</span> 승률 30.0%</li><li><strong>10:00 즉시 진입 vs 돌파 대기</strong>: 09:30 close 진입 평균 종가 <span class="pos">+2.49%</span> 승률 69.6% · 돌파 후 진입(돌파 가격 기준, 추가 상승) 평균 <span class="pos">+0.28%</span> 도달 +2% 이상 57.1%</li></ul>
+</div>
+
+<h2>2. 10시 생존 후보의 돌파율</h2>
+    <p>전체 408건 중:</p>
+    <ul>
+      <li><strong>09:31~10:00 high 돌파 성공:</strong> 338건 (<strong>82.8%</strong>) — 핵심 기준</li>
+      <li><strong>09:30 high 돌파(post-10:00):</strong> 384건 (94.1%)</li>
+      <li><strong>10:00 bar high 돌파:</strong> 373건 (91.4%)</li>
+      <li><strong>미돌파(어느 기준에서도 안 깨짐):</strong> 70건 (17.2%)</li>
+    </ul>
+
+<h2>3. 돌파 성공 vs 실패 성과 비교 (post-10:00 ~ 종가, 09:30 close 기준)</h2>
+<table><thead><tr>
+      <th>구분</th><th>n</th><th>비율</th>
+      <th>avg MFE</th><th>median MFE</th><th>avg 종가</th><th>종가+</th>
+      <th>+3%</th><th>+5%</th><th>+7%</th><th>+10%</th>
+      <th>-2%</th><th>-3%</th><th>-5%</th><th>worst</th>
+    </tr></thead><tbody><tr>
+        <td><strong>10시 생존 + 돌파 성공</strong></td>
+        <td class="num">338</td>
+        <td class="num">82.8%</td>
+        <td class="num"><span class="pos">+6.39%</span></td>
+        <td class="num"><span class="pos">+5.33%</span></td>
+        <td class="num"><span class="pos">+3.18%</span></td>
+        <td class="num">77.8%</td>
+        <td class="num">78.4%</td>
+        <td class="num">54.1%</td>
+        <td class="num">34.6%</td>
+        <td class="num">17.5%</td>
+        <td class="num">18.6%</td>
+        <td class="num">8.9%</td>
+        <td class="num">2.7%</td>
+        <td class="num"><span class="neg">-7.30%</span></td>
+      </tr><tr>
+        <td><strong>10시 생존 + 돌파 실패</strong></td>
+        <td class="num">70</td>
+        <td class="num">17.2%</td>
+        <td class="num"><span class="pos">+2.93%</span></td>
+        <td class="num"><span class="pos">+1.72%</span></td>
+        <td class="num"><span class="neg">-0.85%</span></td>
+        <td class="num">30.0%</td>
+        <td class="num">24.3%</td>
+        <td class="num">15.7%</td>
+        <td class="num">11.4%</td>
+        <td class="num">5.7%</td>
+        <td class="num">58.6%</td>
+        <td class="num">45.7%</td>
+        <td class="num">18.6%</td>
+        <td class="num"><span class="neg">-9.08%</span></td>
+      </tr><tr>
+        <td><strong>전체 (참고)</strong></td>
+        <td class="num">408</td>
+        <td class="num">100.0%</td>
+        <td class="num"><span class="pos">+5.79%</span></td>
+        <td class="num"><span class="pos">+4.62%</span></td>
+        <td class="num"><span class="pos">+2.49%</span></td>
+        <td class="num">69.6%</td>
+        <td class="num">69.1%</td>
+        <td class="num">47.5%</td>
+        <td class="num">30.6%</td>
+        <td class="num">15.4%</td>
+        <td class="num">25.5%</td>
+        <td class="num">15.2%</td>
+        <td class="num">5.4%</td>
+        <td class="num"><span class="neg">-9.08%</span></td>
+      </tr></tbody></table>
+
+<h2>4. 돌파 시간대별 성과</h2>
+<table><thead><tr>
+      <th>구분</th><th>n</th><th>비율</th>
+      <th>avg MFE</th><th>median MFE</th><th>avg 종가</th><th>종가+</th>
+      <th>+3%</th><th>+5%</th><th>+7%</th><th>+10%</th>
+      <th>-2%</th><th>-3%</th><th>-5%</th><th>worst</th>
+    </tr></thead><tbody><tr>
+        <td><strong>10:15 이전 돌파</strong></td>
+        <td class="num">228</td>
+        <td class="num">55.9%</td>
+        <td class="num"><span class="pos">+6.94%</span></td>
+        <td class="num"><span class="pos">+6.04%</span></td>
+        <td class="num"><span class="pos">+3.43%</span></td>
+        <td class="num">76.8%</td>
+        <td class="num">78.1%</td>
+        <td class="num">61.0%</td>
+        <td class="num">42.5%</td>
+        <td class="num">21.5%</td>
+        <td class="num">18.4%</td>
+        <td class="num">11.0%</td>
+        <td class="num">3.5%</td>
+        <td class="num"><span class="neg">-7.30%</span></td>
+      </tr><tr>
+        <td><strong>10:30 이전 돌파</strong></td>
+        <td class="num">36</td>
+        <td class="num">8.8%</td>
+        <td class="num"><span class="pos">+5.79%</span></td>
+        <td class="num"><span class="pos">+5.22%</span></td>
+        <td class="num"><span class="pos">+3.03%</span></td>
+        <td class="num">77.8%</td>
+        <td class="num">83.3%</td>
+        <td class="num">52.8%</td>
+        <td class="num">19.4%</td>
+        <td class="num">8.3%</td>
+        <td class="num">11.1%</td>
+        <td class="num">0.0%</td>
+        <td class="num">0.0%</td>
+        <td class="num"><span class="neg">-2.31%</span></td>
+      </tr><tr>
+        <td><strong>11:00 이전 돌파</strong></td>
+        <td class="num">24</td>
+        <td class="num">5.9%</td>
+        <td class="num"><span class="pos">+5.65%</span></td>
+        <td class="num"><span class="pos">+4.75%</span></td>
+        <td class="num"><span class="pos">+3.33%</span></td>
+        <td class="num">83.3%</td>
+        <td class="num">70.8%</td>
+        <td class="num">41.7%</td>
+        <td class="num">20.8%</td>
+        <td class="num">12.5%</td>
+        <td class="num">20.8%</td>
+        <td class="num">12.5%</td>
+        <td class="num">0.0%</td>
+        <td class="num"><span class="neg">-3.30%</span></td>
+      </tr><tr>
+        <td><strong>13:00 이전 돌파</strong></td>
+        <td class="num">33</td>
+        <td class="num">8.1%</td>
+        <td class="num"><span class="pos">+5.04%</span></td>
+        <td class="num"><span class="pos">+4.13%</span></td>
+        <td class="num"><span class="pos">+2.19%</span></td>
+        <td class="num">72.7%</td>
+        <td class="num">75.8%</td>
+        <td class="num">36.4%</td>
+        <td class="num">24.2%</td>
+        <td class="num">12.1%</td>
+        <td class="num">27.3%</td>
+        <td class="num">6.1%</td>
+        <td class="num">3.0%</td>
+        <td class="num"><span class="neg">-2.03%</span></td>
+      </tr><tr>
+        <td><strong>13:00 이후 돌파</strong></td>
+        <td class="num">17</td>
+        <td class="num">4.2%</td>
+        <td class="num"><span class="pos">+3.86%</span></td>
+        <td class="num"><span class="pos">+3.69%</span></td>
+        <td class="num"><span class="pos">+1.91%</span></td>
+        <td class="num">94.1%</td>
+        <td class="num">88.2%</td>
+        <td class="num">17.6%</td>
+        <td class="num">0.0%</td>
+        <td class="num">0.0%</td>
+        <td class="num">17.6%</td>
+        <td class="num">0.0%</td>
+        <td class="num">0.0%</td>
+        <td class="num"><span class="neg">-0.53%</span></td>
+      </tr><tr>
+        <td><strong>돌파 실패</strong></td>
+        <td class="num">70</td>
+        <td class="num">17.2%</td>
+        <td class="num"><span class="pos">+2.93%</span></td>
+        <td class="num"><span class="pos">+1.72%</span></td>
+        <td class="num"><span class="neg">-0.85%</span></td>
+        <td class="num">30.0%</td>
+        <td class="num">24.3%</td>
+        <td class="num">15.7%</td>
+        <td class="num">11.4%</td>
+        <td class="num">5.7%</td>
+        <td class="num">58.6%</td>
+        <td class="num">45.7%</td>
+        <td class="num">18.6%</td>
+        <td class="num"><span class="neg">-9.08%</span></td>
+      </tr></tbody></table>
+
+<h2>5. 돌파 후 추가 상승 (돌파 가격 = 09:31~10:00 high 기준 진입 시뮬)</h2>
+<table><thead><tr>
+    <th>그룹</th><th>n</th>
+    <th>avg 추가↑(고가)</th><th>median</th>
+    <th>avg 추가↑(종가)</th><th>종가+</th>
+    <th>+1%↑</th><th>+2%↑</th><th>+3%↑</th><th>+5%↑</th>
+  </tr></thead><tbody>
+    <tr>
+        <td><strong>10:15 이전 돌파</strong></td>
+        <td class="num">228</td>
+        <td class="num"><span class="pos">+3.70%</span></td>
+        <td class="num"><span class="pos">+2.56%</span></td>
+        <td class="num"><span class="pos">+0.32%</span></td>
+        <td class="num">47.8%</td>
+        <td class="num">78.1%</td>
+        <td class="num">60.5%</td>
+        <td class="num">45.2%</td>
+        <td class="num">29.8%</td>
+      </tr><tr>
+        <td><strong>10:30 이전 돌파</strong></td>
+        <td class="num">36</td>
+        <td class="num"><span class="pos">+3.39%</span></td>
+        <td class="num"><span class="pos">+2.75%</span></td>
+        <td class="num"><span class="pos">+0.71%</span></td>
+        <td class="num">58.3%</td>
+        <td class="num">80.6%</td>
+        <td class="num">58.3%</td>
+        <td class="num">47.2%</td>
+        <td class="num">22.2%</td>
+      </tr><tr>
+        <td><strong>11:00 이전 돌파</strong></td>
+        <td class="num">24</td>
+        <td class="num"><span class="pos">+2.73%</span></td>
+        <td class="num"><span class="pos">+2.34%</span></td>
+        <td class="num"><span class="pos">+0.52%</span></td>
+        <td class="num">62.5%</td>
+        <td class="num">70.8%</td>
+        <td class="num">58.3%</td>
+        <td class="num">41.7%</td>
+        <td class="num">12.5%</td>
+      </tr><tr>
+        <td><strong>13:00 이전 돌파</strong></td>
+        <td class="num">33</td>
+        <td class="num"><span class="pos">+2.48%</span></td>
+        <td class="num"><span class="pos">+1.72%</span></td>
+        <td class="num"><span class="neg">-0.26%</span></td>
+        <td class="num">33.3%</td>
+        <td class="num">63.6%</td>
+        <td class="num">45.5%</td>
+        <td class="num">24.2%</td>
+        <td class="num">18.2%</td>
+      </tr><tr>
+        <td><strong>13:00 이후 돌파</strong></td>
+        <td class="num">17</td>
+        <td class="num"><span class="pos">+1.30%</span></td>
+        <td class="num"><span class="pos">+0.76%</span></td>
+        <td class="num"><span class="neg">-0.54%</span></td>
+        <td class="num">47.1%</td>
+        <td class="num">47.1%</td>
+        <td class="num">29.4%</td>
+        <td class="num">11.8%</td>
+        <td class="num">0.0%</td>
+      </tr><tr>
+        <td><strong>전체 돌파 성공</strong></td>
+        <td class="num">338</td>
+        <td class="num"><span class="pos">+3.36%</span></td>
+        <td class="num"><span class="pos">+2.34%</span></td>
+        <td class="num"><span class="pos">+0.28%</span></td>
+        <td class="num">48.5%</td>
+        <td class="num">74.9%</td>
+        <td class="num">57.1%</td>
+        <td class="num">41.4%</td>
+        <td class="num">25.1%</td>
+      </tr>
+  </tbody></table>
+<p style="font-size:11px;color:#888;">"avg 추가↑(고가)" = 돌파 시점 가격 대비 이후 최고가 도달 %. "avg 추가↑(종가)" = 돌파 시점 가격 대비 종가 수익률.</p>
+
+<h2>6. 태그/조건별 비교 (10시 생존 후보 내 subgroup)</h2>
+<table><thead><tr>
+      <th>구분</th><th>n</th><th>비율</th>
+      <th>avg MFE</th><th>median MFE</th><th>avg 종가</th><th>종가+</th>
+      <th>+3%</th><th>+5%</th><th>+7%</th><th>+10%</th>
+      <th>-2%</th><th>-3%</th><th>-5%</th><th>worst</th>
+    </tr></thead><tbody><tr>
+        <td><strong>explosiveTop동시</strong></td>
+        <td class="num">65</td>
+        <td class="num">15.9%</td>
+        <td class="num"><span class="pos">+6.97%</span></td>
+        <td class="num"><span class="pos">+6.04%</span></td>
+        <td class="num"><span class="pos">+3.55%</span></td>
+        <td class="num">80.0%</td>
+        <td class="num">86.2%</td>
+        <td class="num">64.6%</td>
+        <td class="num">43.1%</td>
+        <td class="num">21.5%</td>
+        <td class="num">24.6%</td>
+        <td class="num">13.8%</td>
+        <td class="num">7.7%</td>
+        <td class="num"><span class="neg">-7.30%</span></td>
+      </tr><tr>
+        <td><strong>I조건동시</strong></td>
+        <td class="num">310</td>
+        <td class="num">76.0%</td>
+        <td class="num"><span class="pos">+6.16%</span></td>
+        <td class="num"><span class="pos">+5.19%</span></td>
+        <td class="num"><span class="pos">+2.87%</span></td>
+        <td class="num">74.5%</td>
+        <td class="num">73.5%</td>
+        <td class="num">51.9%</td>
+        <td class="num">33.5%</td>
+        <td class="num">16.8%</td>
+        <td class="num">21.0%</td>
+        <td class="num">11.9%</td>
+        <td class="num">4.2%</td>
+        <td class="num"><span class="neg">-7.30%</span></td>
+      </tr><tr>
+        <td><strong>explosiveTop_I동시</strong></td>
+        <td class="num">65</td>
+        <td class="num">15.9%</td>
+        <td class="num"><span class="pos">+6.97%</span></td>
+        <td class="num"><span class="pos">+6.04%</span></td>
+        <td class="num"><span class="pos">+3.55%</span></td>
+        <td class="num">80.0%</td>
+        <td class="num">86.2%</td>
+        <td class="num">64.6%</td>
+        <td class="num">43.1%</td>
+        <td class="num">21.5%</td>
+        <td class="num">24.6%</td>
+        <td class="num">13.8%</td>
+        <td class="num">7.7%</td>
+        <td class="num"><span class="neg">-7.30%</span></td>
+      </tr><tr>
+        <td><strong>둘다없음</strong></td>
+        <td class="num">98</td>
+        <td class="num">24.0%</td>
+        <td class="num"><span class="pos">+4.63%</span></td>
+        <td class="num"><span class="pos">+3.34%</span></td>
+        <td class="num"><span class="pos">+1.29%</span></td>
+        <td class="num">54.1%</td>
+        <td class="num">55.1%</td>
+        <td class="num">33.7%</td>
+        <td class="num">21.4%</td>
+        <td class="num">11.2%</td>
+        <td class="num">39.8%</td>
+        <td class="num">25.5%</td>
+        <td class="num">9.2%</td>
+        <td class="num"><span class="neg">-9.08%</span></td>
+      </tr><tr>
+        <td><strong>rebreakMH있음</strong></td>
+        <td class="num">356</td>
+        <td class="num">87.3%</td>
+        <td class="num"><span class="pos">+5.81%</span></td>
+        <td class="num"><span class="pos">+4.68%</span></td>
+        <td class="num"><span class="pos">+2.57%</span></td>
+        <td class="num">71.3%</td>
+        <td class="num">69.7%</td>
+        <td class="num">48.0%</td>
+        <td class="num">30.9%</td>
+        <td class="num">15.2%</td>
+        <td class="num">24.2%</td>
+        <td class="num">14.3%</td>
+        <td class="num">5.1%</td>
+        <td class="num"><span class="neg">-9.08%</span></td>
+      </tr><tr>
+        <td><strong>rebreakMH없음</strong></td>
+        <td class="num">52</td>
+        <td class="num">12.7%</td>
+        <td class="num"><span class="pos">+5.68%</span></td>
+        <td class="num"><span class="pos">+4.29%</span></td>
+        <td class="num"><span class="pos">+1.98%</span></td>
+        <td class="num">57.7%</td>
+        <td class="num">65.4%</td>
+        <td class="num">44.2%</td>
+        <td class="num">28.8%</td>
+        <td class="num">17.3%</td>
+        <td class="num">34.6%</td>
+        <td class="num">21.2%</td>
+        <td class="num">7.7%</td>
+        <td class="num"><span class="neg">-6.09%</span></td>
+      </tr><tr>
+        <td><strong>valueToAvgRatio상위30</strong></td>
+        <td class="num">123</td>
+        <td class="num">30.1%</td>
+        <td class="num"><span class="pos">+6.84%</span></td>
+        <td class="num"><span class="pos">+5.33%</span></td>
+        <td class="num"><span class="pos">+3.46%</span></td>
+        <td class="num">74.0%</td>
+        <td class="num">78.0%</td>
+        <td class="num">52.8%</td>
+        <td class="num">39.0%</td>
+        <td class="num">23.6%</td>
+        <td class="num">22.0%</td>
+        <td class="num">13.0%</td>
+        <td class="num">1.6%</td>
+        <td class="num"><span class="neg">-6.73%</span></td>
+      </tr><tr>
+        <td><strong>value_0930상위30</strong></td>
+        <td class="num">123</td>
+        <td class="num">30.1%</td>
+        <td class="num"><span class="pos">+7.39%</span></td>
+        <td class="num"><span class="pos">+5.96%</span></td>
+        <td class="num"><span class="pos">+3.63%</span></td>
+        <td class="num">77.2%</td>
+        <td class="num">82.1%</td>
+        <td class="num">61.0%</td>
+        <td class="num">43.9%</td>
+        <td class="num">24.4%</td>
+        <td class="num">26.0%</td>
+        <td class="num">17.1%</td>
+        <td class="num">4.1%</td>
+        <td class="num"><span class="neg">-7.30%</span></td>
+      </tr><tr>
+        <td><strong>10:00close_고점대비_1%이내</strong></td>
+        <td class="num">299</td>
+        <td class="num">73.3%</td>
+        <td class="num"><span class="pos">+5.63%</span></td>
+        <td class="num"><span class="pos">+4.55%</span></td>
+        <td class="num"><span class="pos">+2.61%</span></td>
+        <td class="num">71.2%</td>
+        <td class="num">65.9%</td>
+        <td class="num">46.5%</td>
+        <td class="num">30.1%</td>
+        <td class="num">14.4%</td>
+        <td class="num">21.7%</td>
+        <td class="num">13.4%</td>
+        <td class="num">5.4%</td>
+        <td class="num"><span class="neg">-9.08%</span></td>
+      </tr><tr>
+        <td><strong>10:00close_09:30대비_1%이상</strong></td>
+        <td class="num">267</td>
+        <td class="num">65.4%</td>
+        <td class="num"><span class="pos">+7.12%</span></td>
+        <td class="num"><span class="pos">+6.03%</span></td>
+        <td class="num"><span class="pos">+3.46%</span></td>
+        <td class="num">77.5%</td>
+        <td class="num">82.8%</td>
+        <td class="num">62.2%</td>
+        <td class="num">41.2%</td>
+        <td class="num">22.5%</td>
+        <td class="num">19.1%</td>
+        <td class="num">12.0%</td>
+        <td class="num">4.1%</td>
+        <td class="num"><span class="neg">-7.30%</span></td>
+      </tr><tr>
+        <td><strong>10:00close_09:30대비_3%이상</strong></td>
+        <td class="num">107</td>
+        <td class="num">26.2%</td>
+        <td class="num"><span class="pos">+9.90%</span></td>
+        <td class="num"><span class="pos">+9.11%</span></td>
+        <td class="num"><span class="pos">+5.48%</span></td>
+        <td class="num">85.0%</td>
+        <td class="num">100.0%</td>
+        <td class="num">93.5%</td>
+        <td class="num">69.2%</td>
+        <td class="num">41.1%</td>
+        <td class="num">13.1%</td>
+        <td class="num">11.2%</td>
+        <td class="num">6.5%</td>
+        <td class="num"><span class="neg">-6.73%</span></td>
+      </tr></tbody></table>
+
+<h2>7. 실패 사례 분석 (100건 — 미돌파 OR -3% 이탈 OR 종가 -3% 이하)</h2>
+<p>전체 408건 중 100건 (24.5%)이 실패. 상위 20건 표시:</p>
+<table style="font-size:11px;"><thead><tr>
+      <th>날짜</th><th>코드</th><th>종목</th><th>시총</th>
+      <th>alive%</th><th>10:00 close vs high</th><th>09:31~10:00 v</th><th>10:30~11:00 v 비율</th>
+      <th>태그</th><th>open%</th><th>v/avg</th>
+      <th>돌파시간</th><th>MFE</th><th>MAE</th><th>종가수익</th>
+    </tr></thead><tbody>
+      <tr>
+        <td>2026-03-04</td>
+        <td>003540</td>
+        <td>대신증권</td>
+        <td class="num">1.87조</td>
+        <td class="num"><span class="pos">+0.38%</span></td>
+        <td class="num"><span class="neg">-0.62%</span></td>
+        <td class="num">19억</td>
+        <td class="num">55%</td>
+        <td></td>
+        <td class="num"><span class="pos">+3.93%</span></td>
+        <td class="num">3.8×</td>
+        <td>미돌파</td>
+        <td class="num"><span class="pos">+1.01%</span></td>
+        <td class="num"><span class="neg">-10.47%</span></td>
+        <td class="num"><span class="neg">-9.08%</span></td>
+      </tr>
+      <tr>
+        <td>2026-03-03</td>
+        <td>403870</td>
+        <td>HPSP</td>
+        <td class="num">4.33조</td>
+        <td class="num"><span class="pos">+1.72%</span></td>
+        <td class="num"><span class="neg">-0.11%</span></td>
+        <td class="num">428억</td>
+        <td class="num">55%</td>
+        <td>EXP I</td>
+        <td class="num"><span class="pos">+6.51%</span></td>
+        <td class="num">4.5×</td>
+        <td>10:01</td>
+        <td class="num"><span class="pos">+4.08%</span></td>
+        <td class="num"><span class="neg">-7.73%</span></td>
+        <td class="num"><span class="neg">-7.30%</span></td>
+      </tr>
+      <tr>
+        <td>2026-05-06</td>
+        <td>458870</td>
+        <td>씨어스</td>
+        <td class="num">1.81조</td>
+        <td class="num"><span class="pos">+1.13%</span></td>
+        <td class="num"><span class="neg">-0.51%</span></td>
+        <td class="num">17억</td>
+        <td class="num">222%</td>
+        <td> I</td>
+        <td class="num"><span class="pos">+2.63%</span></td>
+        <td class="num">3.1×</td>
+        <td>미돌파</td>
+        <td class="num"><span class="pos">+1.33%</span></td>
+        <td class="num"><span class="neg">-8.83%</span></td>
+        <td class="num"><span class="neg">-6.78%</span></td>
+      </tr>
+      <tr>
+        <td>2026-04-22</td>
+        <td>008350</td>
+        <td>남선알미늄</td>
+        <td class="num">2717억</td>
+        <td class="num"><span class="pos">+3.65%</span></td>
+        <td class="num"><span class="neg">-1.82%</span></td>
+        <td class="num">511억</td>
+        <td class="num">30%</td>
+        <td>EXP I</td>
+        <td class="num"><span class="pos">+5.05%</span></td>
+        <td class="num">22.6×</td>
+        <td>미돌파</td>
+        <td class="num"><span class="pos">+4.62%</span></td>
+        <td class="num"><span class="neg">-6.92%</span></td>
+        <td class="num"><span class="neg">-6.73%</span></td>
+      </tr>
+      <tr>
+        <td>2026-03-03</td>
+        <td>079900</td>
+        <td>전진건설로봇</td>
+        <td class="num">9354억</td>
+        <td class="num"><span class="pos">+0.50%</span></td>
+        <td class="num"><span class="neg">-0.33%</span></td>
+        <td class="num">17억</td>
+        <td class="num">38%</td>
+        <td> I</td>
+        <td class="num"><span class="pos">+3.60%</span></td>
+        <td class="num">3.9×</td>
+        <td>미돌파</td>
+        <td class="num"><span class="pos">+0.66%</span></td>
+        <td class="num"><span class="neg">-6.62%</span></td>
+        <td class="num"><span class="neg">-6.46%</span></td>
+      </tr>
+      <tr>
+        <td>2026-03-18</td>
+        <td>474610</td>
+        <td>RF시스템즈</td>
+        <td class="num">1996억</td>
+        <td class="num"><span class="pos">+0.19%</span></td>
+        <td class="num"><span class="neg">-1.57%</span></td>
+        <td class="num">30억</td>
+        <td class="num">20%</td>
+        <td></td>
+        <td class="num"><span class="pos">+3.29%</span></td>
+        <td class="num">3.4×</td>
+        <td>미돌파</td>
+        <td class="num"><span class="pos">+0.94%</span></td>
+        <td class="num"><span class="neg">-6.47%</span></td>
+        <td class="num"><span class="neg">-6.09%</span></td>
+      </tr>
+      <tr>
+        <td>2026-04-03</td>
+        <td>425420</td>
+        <td>티에프이</td>
+        <td class="num">8273억</td>
+        <td class="num"><span class="pos">+0.32%</span></td>
+        <td class="num"><span class="neg">-0.47%</span></td>
+        <td class="num">7억</td>
+        <td class="num">99%</td>
+        <td></td>
+        <td class="num"><span class="pos">+3.28%</span></td>
+        <td class="num">3.2×</td>
+        <td>미돌파</td>
+        <td class="num"><span class="pos">+0.64%</span></td>
+        <td class="num"><span class="neg">-9.38%</span></td>
+        <td class="num"><span class="neg">-5.88%</span></td>
+      </tr>
+      <tr>
+        <td>2026-03-03</td>
+        <td>222800</td>
+        <td>심텍</td>
+        <td class="num">3.25조</td>
+        <td class="num"><span class="pos">+3.32%</span></td>
+        <td class="num"><span class="neg">-0.36%</span></td>
+        <td class="num">99억</td>
+        <td class="num">30%</td>
+        <td> I</td>
+        <td class="num"><span class="pos">+3.83%</span></td>
+        <td class="num">3.9×</td>
+        <td>10:02</td>
+        <td class="num"><span class="pos">+4.43%</span></td>
+        <td class="num"><span class="neg">-5.54%</span></td>
+        <td class="num"><span class="neg">-5.35%</span></td>
+      </tr>
+      <tr>
+        <td>2026-04-02</td>
+        <td>103140</td>
+        <td>풍산</td>
+        <td class="num">2.78조</td>
+        <td class="num"><span class="pos">+0.10%</span></td>
+        <td class="num"><span class="neg">-0.82%</span></td>
+        <td class="num">34억</td>
+        <td class="num">115%</td>
+        <td> I</td>
+        <td class="num"><span class="pos">+2.10%</span></td>
+        <td class="num">3.1×</td>
+        <td>10:10</td>
+        <td class="num"><span class="pos">+1.13%</span></td>
+        <td class="num"><span class="neg">-6.28%</span></td>
+        <td class="num"><span class="neg">-4.63%</span></td>
+      </tr>
+      <tr>
+        <td>2026-05-12</td>
+        <td>078600</td>
+        <td>대주전자재료</td>
+        <td class="num">2.46조</td>
+        <td class="num"><span class="pos">+0.84%</span></td>
+        <td class="num"><span class="neg">-0.64%</span></td>
+        <td class="num">119억</td>
+        <td class="num">92%</td>
+        <td></td>
+        <td class="num"><span class="pos">+1.45%</span></td>
+        <td class="num">5.7×</td>
+        <td>미돌파</td>
+        <td class="num"><span class="pos">+1.10%</span></td>
+        <td class="num"><span class="neg">-6.75%</span></td>
+        <td class="num"><span class="neg">-4.35%</span></td>
+      </tr>
+      <tr>
+        <td>2026-02-13</td>
+        <td>018880</td>
+        <td>한온시스템</td>
+        <td class="num">4.34조</td>
+        <td class="num"><span class="pos">+2.25%</span></td>
+        <td class="num"><span class="neg">-1.14%</span></td>
+        <td class="num">921억</td>
+        <td class="num">31%</td>
+        <td> I</td>
+        <td class="num"><span class="pos">+7.13%</span></td>
+        <td class="num">7.1×</td>
+        <td>미돌파</td>
+        <td class="num"><span class="pos">+3.43%</span></td>
+        <td class="num"><span class="neg">-4.40%</span></td>
+        <td class="num"><span class="neg">-4.29%</span></td>
+      </tr>
+      <tr>
+        <td>2026-03-30</td>
+        <td>278280</td>
+        <td>천보</td>
+        <td class="num">7590억</td>
+        <td class="num"><span class="pos">+0.19%</span></td>
+        <td class="num"><span class="neg">-0.19%</span></td>
+        <td class="num">8억</td>
+        <td class="num">55%</td>
+        <td></td>
+        <td class="num"><span class="pos">+3.50%</span></td>
+        <td class="num">3.2×</td>
+        <td>10:01</td>
+        <td class="num"><span class="pos">+0.56%</span></td>
+        <td class="num"><span class="neg">-4.13%</span></td>
+        <td class="num"><span class="neg">-4.13%</span></td>
+      </tr>
+      <tr>
+        <td>2026-03-17</td>
+        <td>226950</td>
+        <td>올릭스</td>
+        <td class="num">3.50조</td>
+        <td class="num"><span class="pos">+0.67%</span></td>
+        <td class="num"><span class="neg">-1.71%</span></td>
+        <td class="num">119억</td>
+        <td class="num">28%</td>
+        <td></td>
+        <td class="num"><span class="pos">+1.04%</span></td>
+        <td class="num">3.4×</td>
+        <td>미돌파</td>
+        <td class="num"><span class="pos">+2.31%</span></td>
+        <td class="num"><span class="neg">-4.37%</span></td>
+        <td class="num"><span class="neg">-4.06%</span></td>
+      </tr>
+      <tr>
+        <td>2026-02-20</td>
+        <td>105840</td>
+        <td>우진</td>
+        <td class="num">5665억</td>
+        <td class="num"><span class="pos">+2.81%</span></td>
+        <td class="num"><span class="neg">-0.85%</span></td>
+        <td class="num">438억</td>
+        <td class="num">19%</td>
+        <td>EXP I</td>
+        <td class="num"><span class="pos">+7.56%</span></td>
+        <td class="num">20.4×</td>
+        <td>10:01</td>
+        <td class="num"><span class="pos">+5.80%</span></td>
+        <td class="num"><span class="neg">-4.39%</span></td>
+        <td class="num"><span class="neg">-4.04%</span></td>
+      </tr>
+      <tr>
+        <td>2026-03-03</td>
+        <td>357780</td>
+        <td>솔브레인</td>
+        <td class="num">3.56조</td>
+        <td class="num"><span class="pos">+4.58%</span></td>
+        <td class="num"><span class="neg">-0.10%</span></td>
+        <td class="num">62억</td>
+        <td class="num">44%</td>
+        <td></td>
+        <td class="num"><span class="pos">+4.68%</span></td>
+        <td class="num">3.9×</td>
+        <td>10:01</td>
+        <td class="num"><span class="pos">+7.31%</span></td>
+        <td class="num"><span class="neg">-4.69%</span></td>
+        <td class="num"><span class="neg">-3.93%</span></td>
+      </tr>
+      <tr>
+        <td>2026-03-26</td>
+        <td>475830</td>
+        <td>오름테라퓨틱</td>
+        <td class="num">1.90조</td>
+        <td class="num"><span class="pos">+1.65%</span></td>
+        <td class="num"><span class="neg">-1.52%</span></td>
+        <td class="num">70억</td>
+        <td class="num">39%</td>
+        <td> I</td>
+        <td class="num"><span class="pos">+1.26%</span></td>
+        <td class="num">9.8×</td>
+        <td>미돌파</td>
+        <td class="num"><span class="pos">+1.82%</span></td>
+        <td class="num"><span class="neg">-4.88%</span></td>
+        <td class="num"><span class="neg">-3.89%</span></td>
+      </tr>
+      <tr>
+        <td>2026-04-03</td>
+        <td>217590</td>
+        <td>티엠씨</td>
+        <td class="num">6975억</td>
+        <td class="num"><span class="pos">+0.24%</span></td>
+        <td class="num"><span class="neg">-0.70%</span></td>
+        <td class="num">12억</td>
+        <td class="num">70%</td>
+        <td></td>
+        <td class="num"><span class="pos">+3.16%</span></td>
+        <td class="num">4.8×</td>
+        <td>미돌파</td>
+        <td class="num"><span class="pos">+0.71%</span></td>
+        <td class="num"><span class="neg">-5.18%</span></td>
+        <td class="num"><span class="neg">-3.76%</span></td>
+      </tr>
+      <tr>
+        <td>2026-04-20</td>
+        <td>432720</td>
+        <td>퀄리타스반도체</td>
+        <td class="num">3546억</td>
+        <td class="num"><span class="pos">+1.36%</span></td>
+        <td class="num"><span class="neg">-0.82%</span></td>
+        <td class="num">40억</td>
+        <td class="num">18%</td>
+        <td> I</td>
+        <td class="num"><span class="pos">+2.19%</span></td>
+        <td class="num">3.1×</td>
+        <td>미돌파</td>
+        <td class="num"><span class="pos">+1.78%</span></td>
+        <td class="num"><span class="neg">-4.19%</span></td>
+        <td class="num"><span class="neg">-3.72%</span></td>
+      </tr>
+      <tr>
+        <td>2026-02-23</td>
+        <td>064820</td>
+        <td>케이프</td>
+        <td class="num">4894억</td>
+        <td class="num"><span class="pos">+0.29%</span></td>
+        <td class="num"><span class="neg">-0.78%</span></td>
+        <td class="num">17억</td>
+        <td class="num">14%</td>
+        <td></td>
+        <td class="num"><span class="pos">+1.38%</span></td>
+        <td class="num">3.2×</td>
+        <td>10:03</td>
+        <td class="num"><span class="pos">+1.29%</span></td>
+        <td class="num"><span class="neg">-4.22%</span></td>
+        <td class="num"><span class="neg">-3.65%</span></td>
+      </tr>
+      <tr>
+        <td>2026-03-13</td>
+        <td>115180</td>
+        <td>큐리언트</td>
+        <td class="num">1.39조</td>
+        <td class="num"><span class="pos">+0.19%</span></td>
+        <td class="num"><span class="neg">-1.89%</span></td>
+        <td class="num">54억</td>
+        <td class="num">69%</td>
+        <td>EXP I</td>
+        <td class="num"><span class="pos">+4.76%</span></td>
+        <td class="num">3.4×</td>
+        <td>미돌파</td>
+        <td class="num"><span class="pos">+1.16%</span></td>
+        <td class="num"><span class="neg">-6.67%</span></td>
+        <td class="num"><span class="neg">-3.48%</span></td>
+      </tr></tbody></table>
+
+<h3>실패 사례 공통점 (중앙값)</h3>
+<ul>
+  <li>alive 율 (10:00 vs 09:30) 중앙: <strong><span class="pos">+1.12%</span></strong></li>
+  <li>10:00 close vs 09:31~10:00 high 드롭 중앙: <strong><span class="neg">-0.83%</span></strong></li>
+  <li>09:31~10:00 거래대금 중앙: <strong>54억</strong></li>
+  <li>10:30~11:00 거래대금 / 09:31~10:00 거래대금 비율 중앙: <strong>35%</strong> (감소 여부)</li>
+  <li>explosiveTop 동시: 15% · I 조건 동시: 65%</li>
+  <li>시가 대비 상승률 중앙: <strong><span class="pos">+3.75%</span></strong> · v/avg 중앙: <strong>4.4×</strong> · 시총 중앙: <strong>1.45조</strong></li>
+</ul>
+
+<h2>8. 최종 운영 제안</h2>
+<ul><li><strong>1. 10시 생존 후보 중 82.8%가 09:31~10:00 high 돌파.</strong> 절반이 안 되거나(아니오) 절반 이상.</li><li><strong>2. 성공-실패 종가 평균 차이 +4.03%p</strong> (성공 <span class="pos">+3.18%</span>, 실패 <span class="neg">-0.85%</span>). 돌파 여부가 강한 신호.</li><li><strong>3. 컷오프 누적 돌파 수</strong>: 10:15까지 228건 (55.9%) · 10:30까지 264건 (64.7%) · 11:00까지 288건 (70.6%). 11시까지 돌파 안 되면 제외 고려.</li><li><strong>4. 09:30 close 진입 종가 평균 <span class="pos">+2.49%</span></strong>(전 후보 보유) <strong>vs 돌파 후 진입 종가 평균 <span class="pos">+0.28%</span></strong>(돌파한 후보만). 돌파 대기로 큰 이점 없음 — 10:00 생존 즉시 진입 OK.</li><li><strong>5. 추가 필터</strong>: explosiveTop 동시 (n=65) 종가 평균 <span class="pos">+3.55%</span> · I 조건 동시 (n=310) <span class="pos">+2.87%</span> · 10:00 close 고점 -1% 이내 (n=299) <span class="pos">+2.61%</span>. 강한 필터 시 표본 줄지만 평균 상승.</li><li><strong>6. "돌파 대기 / 돌파 성공 / 돌파 실패" 상태 분리</strong>: 권장 — 돌파 성공만 핵심 메인으로, 대기 중은 보조, 실패는 제외.</li></ul>
+
+<div style="margin-top:30px;border-top:1px dashed #ccc;padding-top:10px;color:#888;font-size:11px;">
+  돌파 기준: 09:31~10:00 high 기준 (핵심). 진입 시뮬은 미래 누수 없음 — 돌파 시점 이후 분봉만 사용.<br>
+  10:00 close = 진입 후보 가격 / 09:30 close = 베이스라인. 두 기준 모두 보고함.
+</div>
+</body>
+</html>
