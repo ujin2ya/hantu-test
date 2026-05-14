@@ -659,12 +659,15 @@ function main() {
   const files = fs.readdirSync(CHART_DIR).filter(f => f.endsWith('.json'));
   console.log(`  차트 캐시 파일: ${files.length}건`);
 
-  // 1DS 보드 baseDate 정책: KST 오늘 부분 일봉(장중 미마감)을 baseDate로 잡지 않는다.
-  // 운영 서버가 장중 KST ~10시 차트 갱신을 하면 오늘 일봉이 부분값으로 latest에 들어옴.
-  // 그 상태로 baseDate=오늘이 잡히면 nextDayDir=내일이라 09:30 분봉(=오늘) 매칭이 실패함.
-  // → 오늘 일봉이 latest면 한 행 앞(어제 영업일)을 baseRow로 본다.
+  // 1DS 보드 baseDate 정책: KST 장 진행 중(09:00~16:30)에만 오늘 일봉이 부분값이라
+  // fallback이 필요. 장 마감 후(16:30~다음날 09:00)엔 종가 확정이라 fallback X.
+  //   KST 09:00 ~ 16:30 → 부분 일봉 → 한 행 앞(어제)으로 fallback
+  //   KST 16:30 이후    → 종가 확정 → 오늘 baseDate 그대로 (내일 장초 후보 산출용)
   const todayParts = new Date().toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).split('. ');
   const KST_TODAY_NUM = todayParts[0] + (todayParts[1] || '').padStart(2, '0') + ((todayParts[2] || '').replace('.', '')).padStart(2, '0');
+  const kstNow = new Date(Date.now() + 9 * 3600 * 1000);
+  const KST_MIN = kstNow.getUTCHours() * 60 + kstNow.getUTCMinutes();
+  const PARTIAL_BAR_FALLBACK_ENABLED = KST_MIN >= (9 * 60) && KST_MIN < (16 * 60 + 30);
   let partialBarFallbackCount = 0;
 
   // 1차 통과 — passesHardFilter + analyze + 기본 메트릭 계산
@@ -689,7 +692,10 @@ function main() {
     if (baseIdx < 0) { skippedNoMetrics++; continue; }
     // 오늘 부분 일봉이 latest로 잡히면 한 행 앞(어제 영업일)으로 fallback —
     // baseDate=오늘이면 nextDayDir=내일이라 09:30 분봉 매칭 실패하기 때문.
-    if (rows[baseIdx] && rows[baseIdx].date === KST_TODAY_NUM && baseIdx >= 21) {
+    // 단 장 마감 후(KST 16:30+)엔 오늘 일봉이 종가 확정이라 fallback 안 함 —
+    // 그래야 "내일 장초 들여다볼 후보(=오늘 종가 강세 mainPool)"가 정상 산출됨.
+    if (PARTIAL_BAR_FALLBACK_ENABLED
+        && rows[baseIdx] && rows[baseIdx].date === KST_TODAY_NUM && baseIdx >= 21) {
       baseIdx = baseIdx - 1;
       partialBarFallbackCount++;
     }
@@ -875,7 +881,12 @@ function main() {
   const HOLDING_STATUSES = new Set(['WAIT_PULLBACK', 'ENTRY_INVALIDATED', 'REBREAK_FADED']);
   const readyPool    = mainPool.filter((it) => it.tradePlan && it.tradePlan.status === 'READY');
   const holdingPool  = mainPool.filter((it) => it.tradePlan && HOLDING_STATUSES.has(it.tradePlan.status));
-  const pendingPool  = mainPool.filter((it) => it.tradePlan && it.tradePlan.status === 'NEED_INTRADAY_CONFIRM');
+  // pendingPool = NEED_INTRADAY_CONFIRM 또는 NOT_SELECTED (AUTO_PLAN_LIMIT 초과로 trade plan 미계산)
+  // 분봉 매칭이 안 됐거나 트레이드 플랜이 안 잡힌 mainPool 후보 모두 포함 — premarket 섹션에서 표시.
+  const pendingPool  = mainPool.filter((it) => {
+    const st = it.tradePlan && it.tradePlan.status;
+    return st === 'NEED_INTRADAY_CONFIRM' || st === 'NOT_SELECTED';
+  });
   const topPriority   = readyPool.slice(0, TOP_PRIORITY_LIMIT);
   const extraPriority = readyPool.slice(TOP_PRIORITY_LIMIT, TOP_PRIORITY_LIMIT + EXTRA_PRIORITY_LIMIT);
   const overflowPool  = readyPool.slice(TOP_PRIORITY_LIMIT + EXTRA_PRIORITY_LIMIT);
@@ -1081,7 +1092,12 @@ function main() {
   fs.writeFileSync(OUT_HTML, HTML_TEMPLATE.replace('__JSON_DATA__', JSON.stringify(out)), 'utf-8');
 
   console.log(`\n  분석 기준일: ${analysisDate ? fmtDate(analysisDate) : '-'} (가장 흔한 baseDate, 빈도 ${maxFreq})`);
-  if (partialBarFallbackCount > 0) console.log(`  ⓘ KST 오늘(${KST_TODAY_NUM}) 부분 일봉이 latest로 잡힌 종목 ${partialBarFallbackCount}개 → 한 행 앞 영업일로 fallback`);
+  const fbHrMm = String(Math.floor(KST_MIN / 60)).padStart(2, '0') + ':' + String(KST_MIN % 60).padStart(2, '0');
+  if (PARTIAL_BAR_FALLBACK_ENABLED) {
+    console.log(`  ⓘ KST ${fbHrMm} (장 진행 중) — 부분 일봉 fallback 활성 (${partialBarFallbackCount}개 종목 → 어제 영업일로)`);
+  } else {
+    console.log(`  ⓘ KST ${fbHrMm} (장 마감 후) — 종가 확정 일봉 그대로 baseDate=오늘 사용 (내일 장초 후보 산출 모드)`);
+  }
   console.log(`  필터 제외: ETF=${filterCounts.etf} 특수=${filterCounts.special} 키워드=${filterCounts.excluded_name} 시총미확인=${filterCounts.no_marketcap} <500억=${filterCounts.mc_under_500} ≥5조=${filterCounts.mc_over_5t}`);
   console.log(`  후보 풀: ${candidates.length}건 / 노출: ${all.length}건 / 미분류: ${unclassified}건`);
   for (const g of GT_GROUP_ORDER) console.log(`    ${g.padEnd(13)} ${grouped[g].length}건`);
