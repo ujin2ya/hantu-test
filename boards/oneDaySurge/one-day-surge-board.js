@@ -1817,132 +1817,100 @@ function fmtRemaining(ms) {
   return m + '분';
 }
 
-// 시간대 + 분봉 매칭 여부 → 8단계 status
+// 신 모델 (2026-05-14 개편): 09:30 = 예선 / 10:00 = 본선 / 10:00 이후 = 대응
+// status: 시각 + scanner0930 survivor1000Ready 플래그 결합
 function computeBoardStatus() {
-  const e = DATA.entryShelf || {};
-  const hasIntraday = e.analysisDateConfirmReady === true && (e.withMinute || 0) > 0;
+  const sc = DATA.priorityRanked && DATA.priorityRanked.scanner0930;
+  const survivorReady = !!(sc && sc.survivor1000Ready);
   const hhmm = getSeoulHHMM();
-  if (hhmm < 900)  return 'pre-market';
-  if (hhmm < 930)  return 'pre-open-waiting';
-  if (hhmm < 1000) return hasIntraday ? 'prime-confirmed' : 'prime-needs-refresh';
-  if (hhmm < 1030) return hasIntraday ? 'late-confirmed' : 'late-needs-refresh';
-  if (hhmm < 1530) return 'past-prime';
-  return 'after-market';
+  if (hhmm < 900)  return 'pre-market';            // 09:00 이전 — 개장 대기
+  if (hhmm < 930)  return 'preliminary-running';   // 09:00~09:30 — 예선 진행 중
+  if (hhmm < 1000) return 'preliminary-done';      // 09:30~10:00 — 예선 완료, 본선(10:00) 대기
+  if (hhmm < 1030) return survivorReady ? 'main-confirmed' : 'main-waiting';  // 10:00~10:30 — 본선 확인
+  if (hhmm < 1300) return survivorReady ? 'response-window' : 'main-needs-refresh';  // 10:30~13:00 — 대응 구간
+  if (hhmm < 1530) return 'response-late';         // 13:00~15:30 — 대응 후반
+  return 'after-market';                            // 장 마감 후
 }
 function renderStatusBanner() {
   const host = document.getElementById('status-banner-host');
   if (!host) return;
   const status = computeBoardStatus();
-  const e = DATA.entryShelf || {};
-  const ms = DATA.marketState || {};
+  const sc = DATA.priorityRanked && DATA.priorityRanked.scanner0930;
+  const survivorCount = (sc && Array.isArray(sc.survivor1000)) ? sc.survivor1000.length : 0;
+  const readyCount    = (sc && sc.summary && sc.summary.readyCount != null) ? sc.summary.readyCount : ((sc && Array.isArray(sc.ready)) ? sc.ready.length : 0);
   const nowStr = formatSeoulNow();
   const remStr = fmtRemaining(getRemainingToNext930());
   const cfgMap = {
     'pre-market': {
-      label: '현재 위치', cls: 'previous-close',
-      title: '장 시작 전 지켜볼 후보',
-      desc: '<strong>아직 장초 움직임은 반영되지 않았습니다.</strong> 다음 장초 확인까지 약 <strong>' + remStr + '</strong> 남았습니다. 09:30 이후 다시 확인해야 합니다.',
-      action: '내일 09:30 이후 다시 확인하세요.',
-      btn: '보드 새로고침',
+      cls: 'previous-close',
+      title: '⏳ 시장 개장 대기',
+      desc: '<strong>09:00 시장 개장 전입니다.</strong> 09:30까지 분봉으로 예선 후보가 산출됩니다. 다음 09:30까지 약 <strong>' + remStr + '</strong> 남았습니다.',
+      action: '09:30 이후 새로고침 — 예선 후보 확인',
     },
-    'pre-open-waiting': {
-      label: '현재 위치', cls: 'waiting',
-      title: '장초 확인 대기 중',
-      desc: '<strong>장초 움직임을 확인 중입니다.</strong> 아직 첫 고점 재돌파 판단이 끝나지 않았습니다. 약 <strong>' + remStr + '</strong> 후 다시 확인하세요.',
-      action: '09:30 이후 다시 확인하세요.',
-      btn: '보드 새로고침',
+    'preliminary-running': {
+      cls: 'waiting',
+      title: '⏰ 예선 진행 중 (09:00~09:30)',
+      desc: '<strong>예선 분봉 수집 중입니다.</strong> 09:30 직후 readyRest / explosiveStable / attackRebreak가 채워집니다. 본격 대응은 10:00 본선 확인 후.',
+      action: '09:30 이후 새로고침',
     },
-    'prime-confirmed': {
-      label: '현재 위치', cls: 'confirmed',
-      title: '오늘 장초 재상승 확인 후보 (지금이 최적 시간)',
-      desc: '<strong>장초 움직임 반영 완료.</strong> 09:30~10:00 사이 — 장초 단타 확인 최적 구간입니다. 첫 고점 재돌파가 확인된 후보 중 위험 신호가 큰 종목은 제외하고 표시 중.',
-      action: '아래 최우선 후보를 확인하세요.',
-      btn: '보드 새로고침',
+    'preliminary-done': {
+      cls: 'needs-refresh',
+      title: '🟡 예선 완료 — 본선 진출(10:00) 대기 중',
+      desc: '<strong>09:30 예선 후보 ' + readyCount + '개가 산출됐습니다.</strong> 메인 후보(10시 생존 확인 후보)는 10:00 cron 이후 채워집니다. 이 시간은 후보 관찰만, 진입은 보류.',
+      action: '10:01 cron 이후 새로고침',
     },
-    'prime-needs-refresh': {
-      label: '현재 위치', cls: 'needs-refresh',
-      title: '장초 확인 필요 (지금이 최적 시간)',
-      desc: '<strong>09:30이 지났습니다. 이 화면은 아직 장초 확인 전 리스트입니다.</strong> 지금이 장초 단타 확인 최적 시간 — 장초 분봉 결과를 반영하려면 보드를 새로고침하세요.',
-      action: '보드 새로고침 또는 장초 분봉 수집 후 다시 확인.',
-      btn: '🔄 보드 새로고침',
+    'main-waiting': {
+      cls: 'needs-refresh',
+      title: '⚠ 10:00 본선 확인 대기 — 새로고침 필요',
+      desc: '<strong>10:00이 지났지만 아직 본선 확인 결과가 반영 안 됐습니다.</strong> 10:01 cron 또는 admin trigger 후 보드를 새로고침해야 메인 후보가 채워집니다.',
+      action: '🔄 보드 새로고침',
     },
-    'late-confirmed': {
-      label: '현재 위치', cls: 'late',
-      title: '장초 재상승 확인 후보 (신선도 약함)',
-      desc: '장초 움직임은 반영됐지만 <strong>장초 확인 최적 시간(09:30~10:00)은 지났습니다.</strong> 후보로서의 신선도가 조금 떨어졌으니 신중하게 판단하세요.',
-      action: '참고는 가능하지만 신중하게.',
-      btn: '보드 새로고침',
+    'main-confirmed': {
+      cls: 'confirmed',
+      title: '✅ 10:00 본선 확인 완료 — 메인 후보 ' + survivorCount + '개',
+      desc: '<strong>10시 생존 확인 후보가 채워졌습니다.</strong> 위 첫 섹션의 <strong>✅ 10시 생존 확인 후보</strong>를 우선 검토하세요. +5%/+10% 익절, -3% 손절 기준.',
+      action: '메인 후보 진입 검토 (지금이 최적 시간)',
     },
-    'late-needs-refresh': {
-      label: '현재 위치', cls: 'late',
-      title: '장초 확인 결과 미반영 (이미 늦음)',
-      desc: '<strong>장초 확인 결과가 아직 반영되지 않았습니다. 지금 확인하면 이미 늦을 수 있습니다.</strong> 새로고침은 가능하지만 신선도가 낮습니다.',
-      action: '신선도 낮음 — 신중하게 판단.',
-      btn: '보드 새로고침',
+    'response-window': {
+      cls: 'confirmed',
+      title: '🎯 대응 구간 (10:30~13:00) — 메인 후보 ' + survivorCount + '개',
+      desc: '<strong>10시 생존 확인 후보를 중심으로 실제 대응하는 시간대입니다.</strong> 11시까지 미돌파 후보는 강등 검토. 늦은 진입은 신중하게.',
+      action: '진입/관망 결정',
     },
-    'past-prime': {
-      label: '현재 위치', cls: 'past',
-      title: '장초 확인 시간 지남',
-      desc: '<strong>장초 단타 확인 시간(09:30~10:30)은 지났습니다.</strong> 이 보드는 장 시작 전 후보와 09:30 전후 장초 재상승 확인을 위한 보드입니다. 지금은 새 진입 후보보다 <strong>참고용</strong>으로 보세요.',
-      action: '이미 장초 확인 시간이 지났습니다. 새 진입 후보로 보기는 늦을 수 있습니다.',
-      btn: '참고용 새로고침',
+    'main-needs-refresh': {
+      cls: 'late',
+      title: '⚠ 본선 결과 미반영 (이미 늦음 신호)',
+      desc: '<strong>10:30이 지났습니다.</strong> 본선 결과가 아직 반영되지 않았으면 보드를 새로고침하세요. 다만 진입 신선도는 낮아졌습니다.',
+      action: '신선도 낮음 — 신중하게',
+    },
+    'response-late': {
+      cls: 'past',
+      title: '📉 대응 후반 (13:00~15:30)',
+      desc: '<strong>이미 들어간 포지션 관리 시간대입니다.</strong> 본선 후보의 종가 추세를 확인하고 익절/손절 기준대로 정리. 새 진입은 부적합.',
+      action: '포지션 관리 위주',
     },
     'after-market': {
-      label: '현재 위치', cls: 'after-market',
-      title: '장마감 후 (다음 거래일 09:30 대기)',
-      desc: '<strong>오늘 장초 확인 시간은 종료되었습니다.</strong> 현재 화면은 오늘 결과 복기 또는 다음 거래일 후보 준비용으로 보세요. 다음 확인은 다음 거래일 09:30 이후 (약 <strong>' + remStr + '</strong> 후) 입니다.',
-      action: '다음 거래일 09:30 이후 다시 확인하세요.',
-      btn: '보드 새로고침',
+      cls: 'after-market',
+      title: '🌙 장 마감 — 다음 거래일 09:30 대기',
+      desc: '<strong>오늘 대응 시간은 종료되었습니다.</strong> 결과 복기 또는 다음 거래일 준비용. 다음 09:30까지 약 <strong>' + remStr + '</strong> 후.',
+      action: '다음 거래일 09:30 이후 새로고침',
     },
   };
-  const cfg = cfgMap[status] || cfgMap['pre-market'];
+  const cfg = cfgMap[status] || cfgMap['after-market'];
   host.innerHTML = '<div class="status-banner ' + cfg.cls + '">' +
     '<div class="status-body">' +
-      '<div class="status-label">' + cfg.label + '</div>' +
+      '<div class="status-label">현재 위치</div>' +
       '<div class="status-title">' + cfg.title + '</div>' +
       '<div class="status-desc">' + cfg.desc + '</div>' +
       '<div class="status-action">→ ' + cfg.action + '</div>' +
     '</div>' +
     '<div class="status-action-area">' +
       '<div class="status-clock"><span class="lbl">현재 시간</span><span id="status-clock-text">' + nowStr + '</span></div>' +
-      '<button class="reload-btn" onclick="window.location.reload()">' + cfg.btn + '</button>' +
+      '<button class="reload-btn" onclick="window.location.reload()">🔄 보드 새로고침</button>' +
     '</div>' +
   '</div>';
-  // H1 제목도 상태에 맞춰 동적 변경
-  const h1 = document.getElementById('board-h1');
-  if (h1) {
-    if (status === 'prime-confirmed' || status === 'late-confirmed') h1.textContent = '🎯 오늘 장초 재상승 확인 후보';
-    else if (status === 'past-prime' || status === 'after-market') h1.textContent = '🎯 장초 확인 시간 지남 — 참고용 보드';
-    else h1.textContent = '🎯 장 시작 전 지켜볼 후보 (5종목)';
-  }
-  // top-priority 섹션 설명도 상태에 따라 갱신
-  const topDesc = document.getElementById('top-priority-desc');
-  if (topDesc) {
-    if (status === 'prime-confirmed' || status === 'late-confirmed') {
-      topDesc.innerHTML = '<strong>장초 움직임 반영 완료.</strong> 첫 고점 재돌파가 확인된 후보만 표시 중. 위험 신호가 큰 종목은 자동 제외됨.';
-    } else if (status === 'prime-needs-refresh' || status === 'late-needs-refresh') {
-      topDesc.innerHTML = '<strong>⚠ 09:30이 지났습니다. 이 화면은 아직 장초 확인 전 리스트입니다.</strong> 보드를 새로고침하면 장초 분봉 확인 결과가 반영됩니다.';
-    } else if (status === 'past-prime' || status === 'after-market') {
-      topDesc.innerHTML = '<strong>장초 단타 확인 시간이 지났습니다.</strong> 새 진입 후보로 보기는 늦을 수 있으며, 현재 화면은 참고용 또는 다음 거래일 준비용입니다.';
-    } else {
-      topDesc.innerHTML = '아래 5종목은 <strong>내일 장 시작 전에 먼저 지켜볼 후보</strong>입니다. 09:30 이후 장초 움직임이 반영되면 실제 재상승 확인 후보로 다시 좁혀집니다.';
-    }
-  }
-  // 카드별 작은 안내 문구도 일괄 업데이트
-  document.querySelectorAll('.card-watch-note').forEach((el) => {
-    if (status === 'prime-confirmed' || status === 'late-confirmed') {
-      el.style.display = 'none';
-    } else if (status === 'past-prime' || status === 'after-market') {
-      el.style.display = '';
-      el.textContent = '장초 확인 시간이 지났습니다 · 새 진입보다는 참고용';
-    } else if (status === 'prime-needs-refresh' || status === 'late-needs-refresh') {
-      el.style.display = '';
-      el.textContent = '⚠ 장초 확인 전 · 09:30 경과, 새로고침 필요';
-    } else {
-      el.style.display = '';
-      el.textContent = '장 시작 전 지켜볼 후보 · 09:30 이후 다시 확인';
-    }
-  });
+  // H1 제목은 HTML에 적힌 그대로 두고 더 이상 JS에서 덮어쓰지 않는다.
+  // 옛 top-priority-desc / .card-watch-note 요소는 모두 제거됐으므로 업데이트 X.
 }
 renderStatusBanner();
 // 시계 1초마다 갱신 + 매 분 status 재평가
