@@ -48,6 +48,10 @@ const INVALID_DROP_RATE = -0.03;
 // REBREAK_FADED: rebreakMorningHigh_10_30 ✓ 인데 마지막 close가
 // 09:10~09:30 high 대비 -2.5%↓ 밀려있으면 "장초 고점 돌파 후 다시 밀림" 상태로 본다.
 const REBREAK_FADE_RATE = -0.025;
+// INSUFFICIENT_BARS: 09:00~09:30 분봉 총 개수가 이 값 미만이면 "분봉 부족"으로 표시.
+// 정상 수집 시 ~31개. KIS API가 거래량 없는 분봉을 빼고 응답하는 종목은 1~3개만 들어오는데
+// 이 경우 ratio/돌파 판정이 사실상 의미 없으므로 매수가를 비우고 사용자에게 명시한다.
+const MIN_BARS_FOR_JUDGMENT = 5;
 
 // 그룹/조건이 가장 specific한 전략을 우선해서 그 전략의 params를 적용한다.
 // BALANCED-GT 전용 → BALANCED, LIGHT-GT 전용 → LIGHT, BAL/LIGHT 공통 + !prev_high → SAFE, 그 외 rebreakMorningHigh → CLEAN
@@ -172,6 +176,28 @@ function calcTradePlan(it) {
       ? 'entryPrice0910'                     // 09:10 close fallback
       : 'baseClose';                         // 분봉 없음 — 전일 종가
 
+  // 분봉 부족 — 분봉은 들어왔지만 봉 개수가 너무 적어 판정에 의미가 없는 케이스.
+  // KIS API가 거래량 없는 분봉을 응답에서 빼는 일부 종목(저거래/저유동성)에서 발생.
+  // 매수가는 비우고 사용자에게 "분봉 부족" 명시.
+  if (im && currentSource === 'lastBar'
+      && Number.isFinite(im.bars_total) && im.bars_total < MIN_BARS_FOR_JUDGMENT) {
+    return {
+      mode: 'AUTO',
+      status: 'INSUFFICIENT_BARS',
+      strategy, strategySource,
+      baseEntryPrice: roundToKoreanTick(base.price, 'nearest'),
+      baseEntrySource: base.source,
+      currentPrice: roundToKoreanTick(current, 'nearest'),
+      currentSource,
+      ratioPct: Number((ratio * 100).toFixed(2)),
+      barsTotal: im.bars_total,
+      buyPrice: null, sellPrice1: null, sellPrice2: null, stopPrice: null,
+      reason: '09:00~09:30 분봉이 ' + im.bars_total + '개뿐 — 판정 자료 부족',
+      riskNote: `정상 수집 시 ~31개. 이 종목은 거래량 없는 분봉이 응답에서 빠진 것으로 보임 — 진입 판단에 사용하기 어려움`,
+      rewardRisk1: null, rewardRisk2: null,
+    };
+  }
+
   // 기준가 이탈 — 현재가가 기준가보다 너무 밀림. hard stop이라 가장 먼저 판정.
   if (ratio <= INVALID_DROP_RATE) {
     return {
@@ -290,7 +316,7 @@ function calcTradePlan(it) {
 function buildTradePlans(mainPool) {
   const plansByCode = new Map();
   let count = 0;
-  let readyCount = 0, waitPullbackCount = 0, invalidatedCount = 0, fadedCount = 0, missingPriceCount = 0;
+  let readyCount = 0, waitPullbackCount = 0, invalidatedCount = 0, fadedCount = 0, insufficientCount = 0, missingPriceCount = 0;
   let intradayConfirmedCount = 0, groupFallbackCount = 0;
   for (const it of mainPool) {
     if (count >= AUTO_PLAN_LIMIT) break;
@@ -303,6 +329,7 @@ function buildTradePlans(mainPool) {
       case 'WAIT_PULLBACK':      waitPullbackCount++; break;
       case 'ENTRY_INVALIDATED':  invalidatedCount++; break;
       case 'REBREAK_FADED':      fadedCount++; break;
+      case 'INSUFFICIENT_BARS':  insufficientCount++; break;
       case 'MISSING_PRICE_DATA': missingPriceCount++; break;
     }
     if (plan.strategySource === 'intraday') intradayConfirmedCount++;
@@ -312,7 +339,7 @@ function buildTradePlans(mainPool) {
     plansByCode,
     summary: {
       autoCount: count,
-      readyCount, waitPullbackCount, invalidatedCount, fadedCount, missingPriceCount,
+      readyCount, waitPullbackCount, invalidatedCount, fadedCount, insufficientCount, missingPriceCount,
       intradayConfirmedCount, groupFallbackCount,
     },
   };
@@ -324,13 +351,14 @@ const STATUS_LABEL = {
   WAIT_PULLBACK:     '이미 기준가보다 많이 올라 추격 부담',
   ENTRY_INVALIDATED: '장초 기준가를 이탈해 흐름 약화',
   REBREAK_FADED:     '장초 고점 돌파 후 다시 밀림',
+  INSUFFICIENT_BARS: '분봉 부족 — 판정 자료 없음',
   MISSING_PRICE_DATA:'가격 데이터 부족',
 };
 
 module.exports = {
   AUTO_PLAN_LIMIT,
   ENTRY_DISCOUNT, TARGET_RATE, STOP_RATE,
-  CHASE_LIMIT_RATE, INVALID_DROP_RATE, REBREAK_FADE_RATE,
+  CHASE_LIMIT_RATE, INVALID_DROP_RATE, REBREAK_FADE_RATE, MIN_BARS_FOR_JUDGMENT,
   AUTO_STRATEGIES, STRATEGY_PRIORITY,
   STATUS_LABEL,
   koreanTickSize, roundToKoreanTick,

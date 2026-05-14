@@ -842,6 +842,7 @@ function main() {
     waitPullbackCount: tradePlanCalcSummary.waitPullbackCount,
     invalidatedCount: tradePlanCalcSummary.invalidatedCount,
     fadedCount: tradePlanCalcSummary.fadedCount,
+    insufficientCount: tradePlanCalcSummary.insufficientCount,
     excludedRiskCount: tradePlanExcludedRiskCount,
     missingPriceCount: tradePlanCalcSummary.missingPriceCount,
     intradayConfirmedCount: tradePlanCalcSummary.intradayConfirmedCount,
@@ -1014,6 +1015,7 @@ function main() {
   console.log(`     WAIT_PULLBACK      ${tradePlanSummary.waitPullbackCount}개 — 이미 기준가보다 많이 올라 추격 부담`);
   console.log(`     ENTRY_INVALIDATED  ${tradePlanSummary.invalidatedCount}개 — 장초 기준가를 이탈해 흐름 약화`);
   console.log(`     REBREAK_FADED      ${tradePlanSummary.fadedCount}개 — 장초 고점 돌파 후 다시 밀림`);
+  console.log(`     INSUFFICIENT_BARS  ${tradePlanSummary.insufficientCount}개 — 분봉 부족 (KIS 응답 누락)`);
   if (tradePlanSummary.missingPriceCount > 0) {
     console.log(`     MISSING_PRICE_DATA ${tradePlanSummary.missingPriceCount}개 — 가격 데이터 부족`);
   }
@@ -1347,6 +1349,7 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .trade-plan-box.wait    { background: linear-gradient(135deg, #422006 0%, #1e293b 100%); border-color: #f59e0b; }
 .trade-plan-box.invalid { background: linear-gradient(135deg, #4c0519 0%, #1e293b 100%); border-color: #f43f5e; }
 .trade-plan-box.faded   { background: linear-gradient(135deg, #3b0764 0%, #1e293b 100%); border-color: #a855f7; }
+.trade-plan-box.insufficient { background: #1e293b; border-style: dashed; border-color: #64748b; }
 .trade-plan-box.missing { background: #1e293b; border-style: dashed; border-color: #475569; }
 .trade-plan-box .tp-header {
   font-size: 13px; font-weight: 700; color: #5eead4;
@@ -1355,6 +1358,7 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .trade-plan-box.wait    .tp-header { color: #fcd34d; border-bottom-color: #78350f; }
 .trade-plan-box.invalid .tp-header { color: #fda4af; border-bottom-color: #881337; }
 .trade-plan-box.faded   .tp-header { color: #d8b4fe; border-bottom-color: #6b21a8; }
+.trade-plan-box.insufficient .tp-header { color: #cbd5e1; border-bottom-color: #475569; }
 .trade-plan-box .tp-badge {
   display: inline-block; font-size: 10.5px; font-weight: 700;
   padding: 2px 7px; border-radius: 999px; margin-right: 6px;
@@ -1363,6 +1367,7 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .trade-plan-box.wait    .tp-badge { background: rgba(245,158,11,0.18); color: #fcd34d; border-color: #f59e0b; }
 .trade-plan-box.invalid .tp-badge { background: rgba(244,63,94,0.18); color: #fda4af; border-color: #f43f5e; }
 .trade-plan-box.faded   .tp-badge { background: rgba(168,85,247,0.18); color: #d8b4fe; border-color: #a855f7; }
+.trade-plan-box.insufficient .tp-badge { background: rgba(100,116,139,0.18); color: #cbd5e1; border-color: #64748b; }
 .trade-plan-box .tp-ratio { font-size: 10.5px; color: #94a3b8; font-weight: 400; }
 .trade-plan-box .tp-strategy { font-size: 10.5px; color: #94a3b8; font-weight: 400; margin-left: 4px; }
 .trade-plan-box .tp-row {
@@ -1409,6 +1414,7 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .tp-summary-strip .tps-pill.wait     { color: #fcd34d; }
 .tp-summary-strip .tps-pill.invalid  { color: #fda4af; }
 .tp-summary-strip .tps-pill.faded    { color: #d8b4fe; }
+.tp-summary-strip .tps-pill.insufficient { color: #cbd5e1; }
 .tp-summary-strip .tps-pill.risk     { color: #fb923c; }
 .tp-summary-strip .tps-pill.missing  { color: #94a3b8; }
 .tp-summary-strip .tps-disclaimer { display: block; margin-top: 6px; font-size: 10.5px; color: #94a3b8; font-style: italic; }
@@ -1539,6 +1545,7 @@ renderSummary();
     '<span class="tps-pill wait">추격 부담 <span class="num">' + (tp.waitPullbackCount || 0) + '</span></span>',
     '<span class="tps-pill invalid">기준가 이탈 <span class="num">' + (tp.invalidatedCount || 0) + '</span></span>',
     '<span class="tps-pill faded">돌파 후 밀림 <span class="num">' + (tp.fadedCount || 0) + '</span></span>',
+    '<span class="tps-pill insufficient">분봉 부족 <span class="num">' + (tp.insufficientCount || 0) + '</span></span>',
     '<span class="tps-pill missing">가격 데이터 부족 <span class="num">' + (tp.missingPriceCount || 0) + '</span></span>',
     '<span class="tps-pill risk">위험 태그 제외 <span class="num">' + (tp.excludedRiskCount || 0) + '</span></span>',
   ].join('');
@@ -1873,9 +1880,10 @@ function renderTradePlanBox(it) {
     '</div>';
   };
 
-  if (tp.status === 'WAIT_PULLBACK')     return renderHoldCard('wait',    '추격 부담 — 보류',         '추격 부담 / 눌림 대기');
-  if (tp.status === 'ENTRY_INVALIDATED') return renderHoldCard('invalid', '기준가 이탈 — 진입 보류',  '자동 진입 보류');
-  if (tp.status === 'REBREAK_FADED')     return renderHoldCard('faded',   '돌파 후 밀림 — 주의',      '돌파 후 밀림 / 보류');
+  if (tp.status === 'WAIT_PULLBACK')     return renderHoldCard('wait',         '추격 부담 — 보류',         '추격 부담 / 눌림 대기');
+  if (tp.status === 'ENTRY_INVALIDATED') return renderHoldCard('invalid',      '기준가 이탈 — 진입 보류',  '자동 진입 보류');
+  if (tp.status === 'REBREAK_FADED')     return renderHoldCard('faded',        '돌파 후 밀림 — 주의',      '돌파 후 밀림 / 보류');
+  if (tp.status === 'INSUFFICIENT_BARS') return renderHoldCard('insufficient', '분봉 부족 — 판정 불가',    '분봉 부족 / 보류');
   if (tp.status === 'MISSING_PRICE_DATA') {
     return '<div class="trade-plan-box missing">' +
       '<div class="tp-header"><span class="tp-badge">자동 계산</span>가격 데이터 부족<span class="tp-strategy">' + stratLabel + '</span>' + sourceTag + '</div>' +

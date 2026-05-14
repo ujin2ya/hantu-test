@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "1-Day Surge Board v5 · GOOD_TRADE 중심 단타 후보 보드",
-    "generatedAt": "2026-05-14T00:42:42.878Z",
+    "generatedAt": "2026-05-14T00:59:44.603Z",
     "analysisDate": "20260513",
     "analysisDateFmt": "2026-05-13",
     "stockUniverse": 4270,
@@ -760,7 +760,7 @@
         "performancePendingNote": "장초 재상승 확인 후 과거 성과가 표시됩니다.",
         "tradePlan": {
           "mode": "AUTO",
-          "status": "READY",
+          "status": "INSUFFICIENT_BARS",
           "strategy": "LIGHT_REBREAK",
           "strategySource": "group_fallback",
           "baseEntryPrice": 7760,
@@ -768,14 +768,15 @@
           "currentPrice": 7760,
           "currentSource": "lastBar",
           "ratioPct": 0,
-          "buyPrice": 7680,
-          "sellPrice1": 7880,
-          "sellPrice2": 8070,
-          "stopPrice": 7440,
-          "reason": "분봉 미확인 — 그룹 기본 전략으로 기준가 근처 눌림 지정가",
-          "riskNote": "이미 손절 영역 경험 (당일 저가가 손절 기준 이하) / 09:10 저가 시초가 대비 0.00%",
-          "rewardRisk1": 0.83,
-          "rewardRisk2": 1.63
+          "barsTotal": 1,
+          "buyPrice": null,
+          "sellPrice1": null,
+          "sellPrice2": null,
+          "stopPrice": null,
+          "reason": "09:00~09:30 분봉이 1개뿐 — 판정 자료 부족",
+          "riskNote": "정상 수집 시 ~31개. 이 종목은 거래량 없는 분봉이 응답에서 빠진 것으로 보임 — 진입 판단에 사용하기 어려움",
+          "rewardRisk1": null,
+          "rewardRisk2": null
         }
       },
       {
@@ -13671,10 +13672,11 @@
   "summary": {
     "tradePlan": {
       "autoCount": 3,
-      "readyCount": 1,
+      "readyCount": 0,
       "waitPullbackCount": 1,
       "invalidatedCount": 1,
       "fadedCount": 0,
+      "insufficientCount": 1,
       "excludedRiskCount": 170,
       "missingPriceCount": 0,
       "intradayConfirmedCount": 1,
