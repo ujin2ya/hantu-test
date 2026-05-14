@@ -129,6 +129,11 @@ function postRefresh1dsIntraday(req, res) {
   res.json({ success: r.ok, message: r.message, startedAt: r.startedAt });
 }
 
+function postRegen1dsScannerBoard(req, res) {
+  const r = triggers.regen1dsScannerBoard();
+  res.json({ success: r.ok, message: r.message, startedAt: r.startedAt });
+}
+
 function postRunDailyUpdate(req, res) {
   const r = triggers.runDailyUpdate();
   res.json({ success: r.ok, message: r.message, startedAt: r.startedAt });
@@ -139,5 +144,5 @@ module.exports = {
   getDashboard, postUnsubscribe,
   postSend1dsMailAll, postSend1dsMailOne,
   postPatternSeed, postPatternAnalyze, postQvaBacktest,
-  postRefreshPatternCache, postRefreshWatchlistBoard, postRefreshAllBoards, postRefresh1dsIntraday, postRunDailyUpdate,
+  postRefreshPatternCache, postRefreshWatchlistBoard, postRefreshAllBoards, postRefresh1dsIntraday, postRegen1dsScannerBoard, postRunDailyUpdate,
 };

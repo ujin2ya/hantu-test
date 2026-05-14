@@ -20,6 +20,11 @@ const patternState = {
   refreshing1dsIntraday: false, oneDsIntradayStartedAt: null, oneDsIntradayFinishedAt: null,
   oneDsIntradayError: null, oneDsIntradayPhase: null,
   oneDsIntradayCollected: 0, oneDsIntradayFailed: 0,
+  oneDsIntradayQuickFinishedAt: null,
+  oneDsIntradayCandidatesCollected: 0, oneDsIntradayCandidatesFailed: 0,
+  // 1DS 스캐너 + 보드만 재생성 (분봉 수집 X, ~10초) — /admin/regen-1ds-scanner-board
+  regen1dsScannerBoard: false, regen1dsScannerBoardStartedAt: null, regen1dsScannerBoardFinishedAt: null,
+  regen1dsScannerBoardError: null,
 };
 
 // 16:35 cron + admin 트리거가 같은 순서로 갱신하는 보드 스크립트 목록.
@@ -386,6 +391,65 @@ function refresh1dsIntraday() {
   };
 }
 
+// 1DS 스캐너 + 1DS 보드만 재생성 (KIS 분봉 수집 X). 이미 수집된 분봉으로 빠르게 결과만 새로 보고 싶을 때.
+// `node boards/oneDaySurge/one-day-surge-0930-scanner.js --mode full --candidates-target 300`
+// `node boards/oneDaySurge/one-day-surge-board.js` 와 동일.
+function regen1dsScannerBoard() {
+  if (patternState.regen1dsScannerBoard) {
+    return { ok: false, message: "이미 스캐너+보드 재생성 중입니다", startedAt: patternState.regen1dsScannerBoardStartedAt };
+  }
+  patternState.regen1dsScannerBoard = true;
+  patternState.regen1dsScannerBoardStartedAt = new Date().toISOString();
+  patternState.regen1dsScannerBoardFinishedAt = null;
+  patternState.regen1dsScannerBoardError = null;
+
+  const scannerLimit = Number(process.env.ONEDS_SCANNER_LIMIT) || 300;
+  const SCANNER_SCRIPT = path.join(ROOT, "boards", "oneDaySurge", "one-day-surge-0930-scanner.js");
+  const BOARD_SCRIPT   = path.join(ROOT, "boards", "oneDaySurge", "one-day-surge-board.js");
+
+  function runStep(label, prefix, script, args) {
+    return new Promise((resolve) => {
+      const proc = spawn("node", [script, ...(args || [])], { cwd: ROOT });
+      let stdout = "", stderr = "";
+      proc.stdout.on("data", (d) => { const s = d.toString(); stdout += s; process.stdout.write(prefix + s); });
+      proc.stderr.on("data", (d) => { const s = d.toString(); stderr += s; process.stderr.write(prefix + " ERR " + s); });
+      proc.on("close", (code) => resolve({ ok: code === 0, code, stdout, stderr, label }));
+      proc.on("error", (err) => resolve({ ok: false, code: -1, stdout, stderr: err.message, label }));
+    });
+  }
+  function accumulate(prefix, res) {
+    if (!res.ok) {
+      const prev = patternState.regen1dsScannerBoardError ? patternState.regen1dsScannerBoardError + " / " : "";
+      patternState.regen1dsScannerBoardError = prev + `${prefix} 실패 (exit ${res.code}): ${(res.stderr || "").slice(0, 300)}`;
+    }
+  }
+
+  (async () => {
+    try {
+      console.log("[1DS Regen] Phase 1: scanner full");
+      const sc = await runStep("scanner_full", "[1DS-SC-F] ", SCANNER_SCRIPT, ["--mode", "full", "--candidates-target", String(scannerLimit)]);
+      accumulate("scanner_full", sc);
+
+      console.log("[1DS Regen] Phase 2: board regen");
+      const bd = await runStep("regen_full", "[1DS-BD-F] ", BOARD_SCRIPT, []);
+      accumulate("regen_full", bd);
+
+      console.log("[1DS Regen] ✅ 완료");
+    } catch (e) {
+      patternState.regen1dsScannerBoardError = e.message;
+    } finally {
+      patternState.regen1dsScannerBoard = false;
+      patternState.regen1dsScannerBoardFinishedAt = new Date().toISOString();
+    }
+  })();
+
+  return {
+    ok: true,
+    message: `1DS 스캐너+보드 재생성 시작 (백그라운드, ~10초). 분봉 수집은 안 함 — 이미 받아둔 분봉으로 결과만 새로 만듦.`,
+    startedAt: patternState.regen1dsScannerBoardStartedAt,
+  };
+}
+
 module.exports = {
   patternState,
   BOARD_SCRIPTS,
@@ -395,6 +459,7 @@ module.exports = {
   refreshPatternCache,
   refreshWatchlistBoard,
   refresh1dsIntraday,
+  regen1dsScannerBoard,
   refreshAllBoards,
   runDailyUpdate,
   PATTERN_RESULT_PATH,
