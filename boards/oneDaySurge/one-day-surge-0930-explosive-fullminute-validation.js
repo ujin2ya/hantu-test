@@ -17,10 +17,31 @@ const ROOT = path.join(__dirname, '..', '..');
 const CHART_DIR = path.join(ROOT, 'cache', 'stock-charts-long');
 const INTRADAY_BASE = path.join(ROOT, 'data', 'intraday', '1ds');
 const REPORTS_DIR = path.join(ROOT, 'reports');
-const OUT_JSON = path.join(REPORTS_DIR, 'one-day-surge-0930-explosive-fullminute-validation-result.json');
-const OUT_HTML = path.join(REPORTS_DIR, 'one-day-surge-0930-explosive-fullminute-validation-result.html');
+let OUT_JSON = path.join(REPORTS_DIR, 'one-day-surge-0930-explosive-fullminute-validation-result.json');
+let OUT_HTML = path.join(REPORTS_DIR, 'one-day-surge-0930-explosive-fullminute-validation-result.html');
 const scanner = require('./one-day-surge-0930-scanner');
 const TODAY_FOCUS = '2026-05-14';
+
+// CLI 옵션 — --from-date / --to-date / --days N
+function parseArgs(argv) {
+  const a = { from: null, to: null, days: null };
+  for (let i = 2; i < argv.length; i++) {
+    const k = argv[i];
+    if (k === '--from' || k === '--from-date') a.from = argv[++i];
+    else if (k === '--to' || k === '--to-date') a.to = argv[++i];
+    else if (k === '--days') a.days = parseInt(argv[++i], 10) || null;
+    else if (k === '--help' || k === '-h') {
+      console.log('Usage: node one-day-surge-0930-explosive-fullminute-validation.js [--from-date YYYY-MM-DD] [--to-date YYYY-MM-DD] [--days N]');
+      process.exit(0);
+    }
+  }
+  return a;
+}
+function applyDaysSuffix(days) {
+  if (!days || days < 30) return;
+  OUT_JSON = path.join(REPORTS_DIR, `one-day-surge-0930-explosive-fullminute-validation-${days}d-result.json`);
+  OUT_HTML = path.join(REPORTS_DIR, `one-day-surge-0930-explosive-fullminute-validation-${days}d-result.html`);
+}
 
 function classifyStatus(m) {
   if (!m || m.bars_total < 20) return 'INSUFFICIENT';
@@ -345,13 +366,18 @@ function summarize(entries) {
 
 function main() {
   if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR, { recursive: true });
+  const args = parseArgs(process.argv);
+  applyDaysSuffix(args.days);
   const t0 = Date.now();
   console.log('\n⏰ explosiveTop full-minute 재검증');
-  const dates = fs.readdirSync(INTRADAY_BASE)
+  let dates = fs.readdirSync(INTRADAY_BASE)
     .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d))
     .filter((d) => fs.readdirSync(path.join(INTRADAY_BASE, d)).length >= 100)
     .sort();
-  console.log(`  대상: ${dates.length}일 (${dates[0]} ~ ${dates[dates.length-1]})`);
+  if (args.from) dates = dates.filter((d) => d >= args.from);
+  if (args.to)   dates = dates.filter((d) => d <= args.to);
+  if (args.days && dates.length > args.days) dates = dates.slice(-args.days);
+  console.log(`  대상: ${dates.length}일 (${dates[0]} ~ ${dates[dates.length-1]})${args.days ? ` --days ${args.days}` : ''}`);
   const metaMap = scanner.loadStockMetaMap();
 
   const dayResults = [];

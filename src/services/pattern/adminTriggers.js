@@ -32,11 +32,12 @@ const patternState = {
 //   - QVA 보드(qva-watchlist-board.json 생성) → D+5 재돌파(QVA 결과 read) → 1DS(독립)
 //   - QVA2 watchlist → QVA2 D+5 재돌파(watchlist json read) → QVA2 고점 재돌파(watchlist + VVI2 json read)
 // 차트/수급/펀더멘탈 캐시는 16:20 일일 업데이트에서 이미 갱신됨. 보드는 캐시 read만 한다.
+// 1DS 보드는 16:35 일괄 cron에서 제외 (2026-05-14): 1DS 운영 철학이 09:30 = 예선 / 10:00 = 본선 모델로
+// 변경되면서 장 마감 후 1DS 보드를 다시 만들 이유가 없음. 1DS 보드는 09:30 cron + 10:01 survivor1000 cron으로만 갱신.
 const BOARD_SCRIPTS = [
   { name: "QVA Watchlist Board",          file: "boards/qva/qva-watchlist-board.js" },
   { name: "QVA 고점 재돌파 보드",            file: "boards/qva/qva-vvi-redefined-board.js" },
   { name: "D+5 재돌파 운용 보드",            file: "boards/rebreak/hgroup-rebreak-operation-board.js" },
-  { name: "1-Day Surge Board",            file: "boards/oneDaySurge/one-day-surge-board.js" },
   { name: "QVA2 H그룹/VPR 보드",            file: "boards/qva2/qva2-watchlist-board.js" },
   { name: "QVA2 D+5 재돌파 운용보드",        file: "boards/qva2/qva2-d5-rebreak-board.js" },
   { name: "QVA2 고점 재돌파 보드",           file: "boards/qva2/qva2-vvi-board.js" },
@@ -248,7 +249,7 @@ function refreshAllBoards() {
 
   return {
     ok: true,
-    message: `전체 보드 갱신 시작 (${BOARD_SCRIPTS.length}개 — QVA + QVA 고점 재돌파 + D+5 재돌파 + 1DS + QVA2 × 3, 백그라운드 30~90초 예상)`,
+    message: `전체 보드 갱신 시작 (${BOARD_SCRIPTS.length}개 — QVA + QVA 고점 재돌파 + D+5 재돌파 + QVA2 × 3, 백그라운드 30~90초 예상. 1DS는 09:30/10:01 cron 전용)`,
     startedAt: patternState.allBoardsRefreshStartedAt,
   };
 }
@@ -391,6 +392,89 @@ function refresh1dsIntraday() {
   };
 }
 
+// 1DS 10시 생존 확인 cron — 60거래일 검증 1위 모델 (READY + 10시 생존)
+// 흐름:
+//   Phase 1: collect_for_survivor — 09:30 READY 후보 + explosiveTop + attackRebreak 후보의 09:00~10:00 분봉 수집
+//   Phase 2: scanner_full         — 스캐너 재실행 (10:00 분봉 반영 → survivor1000 채워짐)
+//   Phase 3: regen                — 보드 재생성 (메인 섹션이 비어있던 → 생존 후보로 채워짐)
+//
+// KIS API 부담 줄이기 — 전체 300개 재수집 X. mainPool + scanner candidates 그대로 사용
+// (이미 09:30 cron에서 받은 분봉 + 10:00까지의 추가 분봉만 fetch).
+function refresh1dsSurvivor1000() {
+  if (patternState.refreshing1dsSurvivor1000) {
+    return { ok: false, message: "이미 1DS 10시 생존 확인 중입니다", startedAt: patternState.oneDsSurvivor1000StartedAt };
+  }
+  patternState.refreshing1dsSurvivor1000 = true;
+  patternState.oneDsSurvivor1000StartedAt = new Date().toISOString();
+  patternState.oneDsSurvivor1000FinishedAt = null;
+  patternState.oneDsSurvivor1000Error = null;
+  patternState.oneDsSurvivor1000Phase = "collect_for_survivor";
+
+  const scannerLimit = Number(process.env.ONEDS_SCANNER_LIMIT) || 300;
+  const COLLECT_SCRIPT  = path.join(ROOT, "pipeline", "collect-1ds-intraday.js");
+  const SCANNER_SCRIPT  = path.join(ROOT, "boards", "oneDaySurge", "one-day-surge-0930-scanner.js");
+  const BOARD_SCRIPT    = path.join(ROOT, "boards", "oneDaySurge", "one-day-surge-board.js");
+
+  function runStep(label, prefix, script, args) {
+    return new Promise((resolve) => {
+      const proc = spawn("node", [script, ...(args || [])], { cwd: ROOT });
+      let stdout = "", stderr = "";
+      proc.stdout.on("data", (d) => { const s = d.toString(); stdout += s; process.stdout.write(prefix + s); });
+      proc.stderr.on("data", (d) => { const s = d.toString(); stderr += s; process.stderr.write(prefix + " ERR " + s); });
+      proc.on("close", (code) => resolve({ ok: code === 0, code, stdout, stderr, label }));
+      proc.on("error", (err) => resolve({ ok: false, code: -1, stdout, stderr: err.message, label }));
+    });
+  }
+  function accumulate(prefix, res) {
+    if (!res.ok) {
+      const prev = patternState.oneDsSurvivor1000Error ? patternState.oneDsSurvivor1000Error + " / " : "";
+      patternState.oneDsSurvivor1000Error = prev + `${prefix} 실패 (exit ${res.code}): ${(res.stderr || "").slice(0, 300)}`;
+    }
+  }
+
+  (async () => {
+    try {
+      // Phase 1: 09:00~10:00 분봉 수집 (--from-scanner-candidates, endHour=100000=10:00).
+      //          이미 09:30 cron에서 받은 파일은 멱등 skip되므로 추가분만 fetch.
+      patternState.oneDsSurvivor1000Phase = "collect_for_survivor";
+      console.log("[1DS Survivor] Phase 1: 분봉 수집 (09:00~10:00, scanner candidates)");
+      const col = await runStep(
+        "collect_for_survivor",
+        "[1DS-SV-COL] ",
+        COLLECT_SCRIPT,
+        ["--from-scanner-candidates", "--scanner-limit", String(scannerLimit), "--end-hour", "100000"]
+      );
+      accumulate("collect_for_survivor", col);
+
+      // Phase 2: scanner 재실행 (10:00 분봉 반영 — survivor1000 검사)
+      patternState.oneDsSurvivor1000Phase = "scanner";
+      console.log("[1DS Survivor] Phase 2: scanner 재실행");
+      const sc = await runStep("scanner", "[1DS-SV-SC] ", SCANNER_SCRIPT, ["--mode", "full", "--candidates-target", String(scannerLimit)]);
+      accumulate("scanner", sc);
+
+      // Phase 3: 보드 재생성 (10시 생존 섹션 채워짐)
+      patternState.oneDsSurvivor1000Phase = "regen";
+      console.log("[1DS Survivor] Phase 3: 보드 재생성");
+      const bd = await runStep("regen", "[1DS-SV-BD] ", BOARD_SCRIPT, []);
+      accumulate("regen", bd);
+
+      console.log("[1DS Survivor] ✅ 10시 생존 확인 완료");
+    } catch (e) {
+      patternState.oneDsSurvivor1000Error = e.message;
+    } finally {
+      patternState.refreshing1dsSurvivor1000 = false;
+      patternState.oneDsSurvivor1000Phase = null;
+      patternState.oneDsSurvivor1000FinishedAt = new Date().toISOString();
+    }
+  })();
+
+  return {
+    ok: true,
+    message: `1DS 10시 생존 확인 시작 (백그라운드, scanner candidates 분봉 09:00~10:00 보강 + scanner + board regen)`,
+    startedAt: patternState.oneDsSurvivor1000StartedAt,
+  };
+}
+
 // 1DS 스캐너 + 1DS 보드만 재생성 (KIS 분봉 수집 X). 이미 수집된 분봉으로 빠르게 결과만 새로 보고 싶을 때.
 // `node boards/oneDaySurge/one-day-surge-0930-scanner.js --mode full --candidates-target 300`
 // `node boards/oneDaySurge/one-day-surge-board.js` 와 동일.
@@ -459,6 +543,7 @@ module.exports = {
   refreshPatternCache,
   refreshWatchlistBoard,
   refresh1dsIntraday,
+  refresh1dsSurvivor1000,
   regen1dsScannerBoard,
   refreshAllBoards,
   runDailyUpdate,

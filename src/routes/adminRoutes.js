@@ -21,6 +21,7 @@ router.post("/admin/refresh-pattern-cache", requireAdmin, c.postRefreshPatternCa
 router.post("/admin/refresh-watchlist-board", requireAdmin, c.postRefreshWatchlistBoard);
 router.post("/admin/refresh-all-boards", requireAdmin, c.postRefreshAllBoards);
 router.post("/admin/refresh-1ds-intraday", requireAdmin, c.postRefresh1dsIntraday);
+router.post("/admin/refresh-1ds-survivor1000", requireAdmin, c.postRefresh1dsSurvivor1000);
 router.post("/admin/regen-1ds-scanner-board", requireAdmin, c.postRegen1dsScannerBoard);
 router.post("/admin/run-daily-update", requireAdmin, c.postRunDailyUpdate);
 

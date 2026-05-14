@@ -1065,9 +1065,19 @@ function main() {
           faded:     sc.scanner0930Faded     || [],   // FADED 단독 (카드 노출 X, 통계만)
           holding:   sc.scanner0930Holding   || [],   // 호환성 (기존 코드 잔존)
           rejected:  sc.scanner0930Rejected  || [],   // WEAK (카드 노출 X, 통계만)
-          explosiveTop:   sc.scanner0930ExplosiveTop   || [],   // 🚀 폭발형 후보 (장중 익절 전용)
-          explosiveWatch: sc.scanner0930ExplosiveWatch || [],   // 🚀 폭발형 관찰 후보 (눌림 후 재돌파)
+          explosiveTop:   sc.scanner0930ExplosiveTop   || [],   // 🚀 폭발형 후보 (호환성 유지)
+          explosiveWatch: sc.scanner0930ExplosiveWatch || [],   // 🚀 폭발형 관찰 후보 (호환성 유지)
           explosiveCounts: sc.explosiveCounts || null,
+          // ── 60거래일 백테스트 결과 기반 신규 5섹션 구조 (2026-05-14) ──
+          // 우선순위: survivor1000 > explosiveStable > attackRebreak > readyRestFinal > watchOnly
+          survivor1000:    sc.scanner0930Survivor1000    || [],  // ✅ [1] 10시 생존 확인 후보 (메인, 60일 검증 1위)
+          explosiveStable: sc.scanner0930ExplosiveStable || [],  // 🚀 [2] 09:30 조기 포착 후보 (explosiveTop, survivor 제외)
+          attackRebreak:   sc.scanner0930AttackRebreak   || [],  // 🔥 [3] 공격형 재돌파 감시 후보 (survivor + explosiveStable 제외)
+          readyRestFinal:  sc.scanner0930ReadyRestFinal  || [],  // 📡 [4] 09:30 READY 1차 후보
+          watchOnly:       sc.scanner0930WatchOnly       || [],  // 👀 [5] 관찰/제외 후보
+          survivor1000Ready: !!sc.survivor1000Ready,             // 10:00 분봉 도달 여부 (false면 "확인 대기")
+          summary:         sc.summary || null,                   // { readyCount, survivor1000Count, ..., mainSectionLabel }
+          suggestedStrategies: sc.suggestedStrategies || null,
         };
       })(),
     },
@@ -1608,12 +1618,12 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 <!-- 운영자 상단 sticky 상태 배너 (스크롤 내려도 항상 보임) -->
 <div class="status-banner-host-wrap"><div id="status-banner-host"></div></div>
 
-<h1 id="board-h1">🎯 내일 장초 우선 확인 후보</h1>
+<h1 id="board-h1">🎯 1DS — 09:30 예선 → 10:00 본선 단타 후보</h1>
 <div class="subtitle" id="subtitle"></div>
 
 <div class="purpose-box">
-  이 보드는 <strong>과거 검증에서 장초 반응이 좋았던 유형만</strong> 추려 보여줍니다.
-  먼저 확인할 5종목 + 추가 확인 10개(접힘)만 노출하고, 위험 신호가 큰 후보는 화면에서 제외했습니다.
+  <strong>1DS는 09:30에 바로 들어가는 모델이 아닙니다.</strong> 60거래일 백테스트 결과, 09:30 후보 중 <strong>10:00까지 09:30 기준가 위에서 살아남은 종목</strong>이 평균 <strong>+2.49%</strong>, 승률 <strong>69.9%</strong>로 가장 좋았습니다.
+  <br>화면 첫 섹션 <strong>✅ 10시 생존 확인 후보</strong>를 우선 보세요. 그 외는 보조 감시/관찰 후보입니다.
   <br><br>
   <span style="font-size:11.5px;color:#94a3b8;line-height:1.7;">
     카드의 과거 성과 수치는 <strong>과거 40거래일 운영형 백테스트 결과</strong>입니다.
@@ -1629,25 +1639,12 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 <div id="trade-plan-summary"></div>
 <div id="qva-summary-line"></div>
 
-<!-- ⓪‑a 장 마감 후~다음날 09:00 시간대 한정: 내일 장초 들여다볼 후보 강조 -->
-<div id="premarket-host"></div>
-
-<!-- ⓪ 오늘 09:30 실제 포착 후보 (전일 mainPool과 무관) -->
+<!-- ⓪ 오늘 09:30 실제 포착 후보 (전일 mainPool과 무관) — 신규 5섹션 구조: survivor1000 / explosiveStable / attackRebreak / readyRest / watchOnly -->
+<!-- premarket-host(내일 장초 들여다볼 후보)는 2026-05-14 제거. 1DS는 09:30/10:00 모델로 통일됨. -->
 <div id="scanner-0930-host"></div>
 
-<!-- ① 전일 후보의 09:30 확인 결과 (tradePlan READY) -->
-<div id="top-priority-host"></div>
-
-<!-- ② 전일 후보 추가 확인 (접힘, 최대 10개) — READY 6~15위 -->
-<div id="extra-priority-host"></div>
-
-<!-- ③ 전일 후보 보류/재관찰 — WAIT_PULLBACK / ENTRY_INVALIDATED / REBREAK_FADED -->
-<div id="holding-host"></div>
-
-<!-- ④ 전일 후보 재관찰 — 위험 필터 제외됐지만 일봉 강세 + v/mc 강 -->
-<div id="reobserve-host"></div>
-
-<!-- 위험 후보는 내부 필터로 제외 -->
+<!-- 장전 보조 영역(전일 후보 09:30 상태표, 보류/재관찰)은 2026-05-14 제거.
+     1DS 운영 철학이 09:30 = 예선 / 10:00 = 본선으로 바뀌면서 "어제 mainPool" 관점 후보군은 더 이상 필요 없음. -->
 <div id="risk-excluded-note"></div>
 
 <footer class="foot" id="foot"></footer>
@@ -2385,28 +2382,10 @@ function isPremarketMode() {
 }
 const PREMARKET_MODE = isPremarketMode();
 
-// ── ⓪‑a premarket: 내일 장초 들여다볼 후보 ──
-// 보드 mainPool 후보(=오늘 종가 강세 종목) 중 분봉 매칭이 미래라 NEED인 카드를
-// "분봉 미확인" 부정적 라벨 대신 "🔮 내일 장초 들여다볼 후보"로 첫 자리에 명시.
-(function renderPremarketCandidates() {
-  const host = document.getElementById('premarket-host');
-  if (!host) return;
-  if (!PREMARKET_MODE) return;  // 09:00~16:30 시간대는 안 보임
-  const codes = DATA.priorityRanked && DATA.priorityRanked.pendingCandidates;
-  if (!codes || codes.length === 0) return;
-  const items = itemsByCodes(codes);
-  if (items.length === 0) return;
-  const baseDateLabel = DATA.meta && DATA.meta.analysisDateFmt
-    ? DATA.meta.analysisDateFmt + ' 종가 기준'
-    : '오늘 종가 기준';
-  host.innerHTML = '<section class="entry-shelf-section top" style="border:2px solid #fbbf24;background:linear-gradient(135deg,#422006 0%,#1e293b 100%);">' +
-    '<h2 style="color:#fde68a;">🔮 내일 장초 들여다볼 후보 — ' + items.length + '종목 <span style="font-size:13px;color:#fbbf24;font-weight:400;">(' + baseDateLabel + ')</span></h2>' +
-    '<div class="shelf-desc" style="color:#fcd34d;line-height:1.7;">' +
-      '오늘 장 마감 종가 기준으로 뽑은 1DS mainPool 후보입니다. <strong>분봉은 내일 09:30 cron 후 확정</strong>되므로 지금은 매수가/평가가 비어있고, 종목 정보만 미리 확인하는 보조 화면입니다.' +
-    '</div>' +
-    items.map(buildCardHtml).join('') +
-  '</section>';
-})();
+// ── premarket "내일 장초 들여다볼 후보" 섹션 제거 (2026-05-14) ──
+// 1DS 운영 철학 변경: 09:30 = 예선, 10:00 = 본선. 장전에 "내일 들여다볼 후보"를 미리 보는 의미가 줄어듦.
+// 09:30 cron 후 scanner-0930 섹션이 메인이므로 premarket 섹션은 더 이상 렌더링하지 않는다.
+// (관련 host div도 1645번 줄에서 제거됨. PREMARKET_MODE 상수는 다른 곳에서 참조하므로 유지.)
 
 // ── ⓪ 오늘 09:30 실제 포착 후보 (전일 mainPool과 무관) ──
 // 09:00~09:30 분봉 기준 실시간 포착. 분봉이 없으면 후보가 아니다.
@@ -2430,16 +2409,60 @@ const PREMARKET_MODE = isPremarketMode();
   };
   // 사용자 요구 6번: 스캐너 카드에서 전일 mainPool과 겹치면 "🔥 어제도 강함" 배지
   const prevDayCodesSet = new Set((DATA.priorityRanked && DATA.priorityRanked.mainPoolCodes) || []);
+  // 신규 overlapBadges 렌더링
+  const BADGE_STYLE = {
+    '10시 생존 확인': 'background:#a7f3d0;color:#064e3b;',
+    '조기 포착':      'background:#fde68a;color:#92400e;',
+    '안정형':         'background:#fde68a;color:#92400e;',
+    '공격형 재돌파':   'background:#fecaca;color:#7f1d1d;',
+    '공격형 재돌파 동시': 'background:#fecaca;color:#7f1d1d;',
+    '공격형 재돌파도 통과': 'background:#fecaca;color:#7f1d1d;',
+    'FADED 회복 동시': 'background:#bfdbfe;color:#1e3a8a;',
+    '10시 확인 필요':  'background:#e5e7eb;color:#374151;',
+    '추격 주의':      'background:#fed7aa;color:#7c2d12;',
+    '추격 부담':      'background:#fed7aa;color:#7c2d12;',
+    '폭발형 관찰':    'background:#fed7aa;color:#7c2d12;',
+    'FADED 단독 위험': 'background:#fecaca;color:#7f1d1d;',
+    '시총 대비 거래대금만 큰 유형': 'background:#fecaca;color:#7f1d1d;',
+  };
+  const renderOverlapBadges = (badges) => {
+    if (!Array.isArray(badges) || badges.length === 0) return '';
+    return badges.map((b) => '<span class="overlap-badge" style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700;margin-left:4px;' + (BADGE_STYLE[b] || 'background:#e5e7eb;color:#374151;') + '">' + b + '</span>').join('');
+  };
   const renderCard = (e, statusCls) => {
     const m = e.metrics || {};
     const sign = (m.openToLastRate >= 0 ? '+' : '');
+    const strategy = e.suggestedStrategy;
+    let strategyChip = '';
+    if (strategy) {
+      if (strategy.type === 'READY_ALIVE_1000') {
+        strategyChip = '<div class="summary-line" style="color:#064e3b;background:#a7f3d0;padding:5px 9px;border-radius:4px;margin-top:4px;font-size:11px;">✅ 10시 생존형: 진입 시점 <strong>10:00 확인 후</strong>, TP <strong>' + strategy.takeProfit + '</strong> / SL <strong>' + strategy.stopLoss + '</strong> — ' + strategy.note + '</div>';
+      } else if (strategy.type === 'STABLE_SCALP') {
+        strategyChip = '<div class="summary-line" style="color:#92400e;background:#fde68a;padding:5px 9px;border-radius:4px;margin-top:4px;font-size:11px;">💰 안정형 (조기 포착): TP <strong>' + strategy.takeProfit + '</strong> / SL <strong>' + strategy.stopLoss + '</strong> — ' + strategy.note + '</div>';
+      } else if (strategy.type === 'ATTACK_REBREAK') {
+        strategyChip = '<div class="summary-line" style="color:#7f1d1d;background:#fecaca;padding:5px 9px;border-radius:4px;margin-top:4px;font-size:11px;">🔥 공격형 감시: TP <strong>' + strategy.takeProfit + '</strong> / SL <strong>' + strategy.stopLoss + '</strong> (보수형 ' + strategy.conservativeTakeProfit + '/' + strategy.conservativeStopLoss + ') — ' + strategy.note + '</div>';
+      }
+    }
+    const survivorChip = e.isSurvivor1000 && e.survivor1000
+      ? '<div class="summary-line" style="color:#064e3b;font-size:11px;margin-top:3px;">✅ 10:00 close ' + fmtN(e.survivor1000.close1000) + '원 — 09:30 기준 <strong>+' + e.survivor1000.aliveRate1000 + '%</strong> 유지 (high 대비 ' + e.survivor1000.closeToHighDrop_1000 + '%, 저점 ' + e.survivor1000.minLowDrop_0931_1000 + '%)</div>'
+      : '';
+    const tenRebreakChip = e.hasTenRebreak && e.tenRebreakTrigger
+      ? '<div class="summary-line" style="color:#7f1d1d;font-size:11px;margin-top:3px;">↗ TEN_REBREAK 재돌파 @' + e.tenRebreakTrigger.triggerTime + ' (' + fmtN(e.tenRebreakTrigger.triggerPrice) + '원)</div>'
+      : '';
+    const reasonChip = e.reason
+      ? '<div class="summary-line" style="color:#94a3b8;font-size:10.5px;margin-top:3px;font-style:italic;">└ ' + e.reason + '</div>'
+      : '';
     return '<div class="card s-' + e.status + '">' +
       '<h3>' + (e.name || e.code) + ' <span class="code">' + e.code + '</span> <span class="market">' + (e.market || '') + '</span>' +
       ' <span class="badge ' + statusCls + '">' + (e.statusLabel || e.status) + '</span>' +
       // finalScore 배지 (READY 상태만 의미 있음)
       (e.status === 'READY' && Number.isFinite(e.finalScore) ? ' <span class="badge aux" title="실전 우선 후보 선출용 종합 점수 (finalScore)">final ' + e.finalScore.toFixed(1) + '</span>' : '') +
-      // 사용자 요구 6번: 전일 mainPool 겹침 시 "어제도 강함" 배지
-      (prevDayCodesSet.has(e.code) ? ' <span class="prev-day-overlap-badge" title="전일 mainPool에도 들어왔던 종목 — 어제 일봉 강세 + 오늘 09:30 분봉 강세">🔥 어제도 강함</span>' : '') +
+      // attackScore 배지 (공격형 후보만)
+      (e.isAttackRebreak && Number.isFinite(e.attackScore) ? ' <span class="badge aux" style="background:#7f1d1d;color:#fecaca;" title="공격형 후보 정렬용 점수">attack ' + e.attackScore.toFixed(1) + '</span>' : '') +
+      // overlapBadges (안정형 / 공격형 재돌파 / FADED 회복 / 추격 주의)
+      renderOverlapBadges(e.overlapBadges) +
+      // 전일 mainPool 겹침 배지
+      (prevDayCodesSet.has(e.code) ? ' <span class="prev-day-overlap-badge" title="전일 mainPool에도 들어왔던 종목">🔥 어제도 강함</span>' : '') +
       '</h3>' +
       '<div class="metrics-grid">' +
         '<div class="metric"><div class="label">시가 → 09:30 close</div><div class="value">' + fmtN(m.open0900) + ' → ' + fmtN(m.last0930) + '원</div><div class="sub">' + sign + (m.openToLastRate || 0).toFixed(2) + '%</div></div>' +
@@ -2450,6 +2473,10 @@ const PREMARKET_MODE = isPremarketMode();
         '<div class="metric"><div class="label">시가총액</div><div class="value">' + fmtMoneyKR(e.marketCap) + '원</div><div class="sub">' + (e.market || '') + '</div></div>' +
       '</div>' +
       (m.rebreakMorningHigh ? '<div class="summary-line" style="color:#5eead4;">↗ 첫 10분 고점 재돌파 ✓</div>' : '') +
+      survivorChip +
+      tenRebreakChip +
+      strategyChip +
+      reasonChip +
     '</div>';
   };
   const c = sc.counts || {};
@@ -2472,91 +2499,132 @@ const PREMARKET_MODE = isPremarketMode();
     '<strong>오늘 09:00~09:30 분봉 기준으로 새로 잡힌 종목입니다.</strong> (전일 mainPool과 무관, 09:30 시점 강세 종목)<br>' +
     '유동성 통과 + 메트릭 계산 <strong>' + (sc.successCount || 0) + '개</strong> 중 위 상태로 분류.' +
     '</div>' +
-    '<div style="margin:8px 0 14px;">' + breakdown + '</div>' +
-    // 백테스트 요약 배너 (19 거래일 검증 결과 — finalScore TOP5가 최고 성과)
-    '<div style="margin:10px 0 14px;padding:10px 14px;background:rgba(20,184,166,0.08);border-left:3px solid #14b8a6;border-radius:4px;font-size:11.5px;color:#cbd5e1;line-height:1.6;">' +
-      '<strong style="color:#5eead4;">📊 백테스트 (19 거래일):</strong> finalScore 상위 5개가 09:30~10:00 구간에서 가장 효율이 좋았습니다 ' +
-      '(TOP5 avgMax <strong style="color:#6ee7b7;">2.97%</strong>, +2% 도달 <strong style="color:#6ee7b7;">55.8%</strong>, +2% 도달이 -1% 손절보다 먼저 <strong style="color:#6ee7b7;">32.6%</strong>). ' +
-      'READY 전체는 1차 통과 후보이며, 상단에는 TOP5만 표시합니다. ' +
-      '<a href="/one-day-surge-board/backtest" style="color:#5eead4;text-decoration:underline;" target="_blank">상세 리포트 보기 →</a>' +
-    '</div>';
-  // 백테스트 결과 반영 (19 거래일 검증):
-  // - explosiveTop 일평균 3.53/일, day+5% 36.7%, day+10% 11.7%, 전략 B/C EV +0.63~0.83% → 최상단 강조
-  // - READY 전체는 1차 후보로 분류 (접힘) — 평균 day+5% 30.1%로 OK 하지만 explosiveTop 대비 우위 X
-  // - explosiveWatch는 fail3 43.6% / 모든 전략 EV 음수 → 매수가 X, 관찰 전용
-  const explosiveTop   = sc.explosiveTop   || [];
-  const explosiveWatch = sc.explosiveWatch || [];
-  const readyTop  = sc.readyTop  || [];
-  const readyRest = sc.readyRest || [];
+    '<div style="margin:8px 0 14px;">' + breakdown + '</div>';
+  // ── 신규 5섹션 구조 (60거래일 백테스트 결과 반영, 2026-05-14) ──
+  // 운영 철학: 09:30 = 예선, 10:00 = 본선, 10:00 이후 = 실제 대응 후보
+  // [1] ✅ 10시 생존 확인 후보 (메인, 60일 검증 1위 — 평균 +2.49% / 승률 69.9%)
+  // [2] 🚀 09:30 조기 포착 후보 (= 기존 explosiveTop, 감시 후보로 강등)
+  // [3] 🔥 공격형 재돌파 감시 후보 (= 기존 I 조건, 감시 후보)
+  // [4] 📡 09:30 READY 1차 후보 (접힘)
+  // [5] 👀 관찰/제외 후보 (WAIT_PULLBACK / FADED+cp 단독 / v/mc 단독 등 위험 유형)
+  const survivor1000    = sc.survivor1000    || [];
+  const explosiveStable = sc.explosiveStable || sc.explosiveTop || [];
+  const attackRebreak   = sc.attackRebreak   || [];
+  const readyRestFinal  = sc.readyRestFinal  || [];
+  const watchOnly       = sc.watchOnly       || sc.explosiveWatch || [];
+  const survivor1000Ready = !!sc.survivor1000Ready;
+  const summary = sc.summary || {};
   const readyTotal = (sc.ready || []).length;
-  // explosiveTop에 포함된 코드는 READY 1차 접힘 카드에서 제외 (중복 방지)
-  const explosiveTopCodes = new Set(explosiveTop.map((e) => e.code));
-  const readyAllCombined = [...readyTop, ...readyRest].filter((e) => !explosiveTopCodes.has(e.code));
 
   let body = '';
 
-  // 백테스트 요약 배너 (최상단) — full-minute 재검증 결과 반영
-  body += '<div style="margin:14px 0 6px;padding:10px 14px;background:rgba(245,158,11,0.08);border-left:3px solid #f59e0b;border-radius:4px;font-size:11.5px;color:#fde68a;line-height:1.6;">' +
-    '<strong style="color:#fcd34d;">🚀 폭발형 백테스트 (19일 full-minute 재검증, n=64):</strong> ' +
-    '<strong>+5% 익절 / -2% 손절</strong> 전략이 평균 <strong>+0.97%/trade</strong>로 가장 우수. ' +
-    '10:00 생존 종목은 종가까지 평균 <strong>+3.45%, 플러스율 81.8%</strong>. 미생존은 <strong>즉시 정리</strong>. ' +
-    'explosiveWatch는 모든 전략 EV 0 또는 음수 → 즉시 진입 X. ' +
-    '<a href="/one-day-surge-board/explosive-backtest" style="color:#fcd34d;text-decoration:underline;" target="_blank">상세 →</a>' +
+  // 보드 상단 — 친절한 운영 철학 소개 + 오늘 상태 요약
+  body += '<div style="margin:14px 0 14px;padding:14px 18px;background:linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(20,184,166,0.06) 100%);border-left:4px solid #10b981;border-radius:8px;color:#d1fae5;line-height:1.8;">' +
+    '<div style="font-size:14px;color:#a7f3d0;font-weight:700;margin-bottom:8px;">📘 1DS는 이렇게 봅니다</div>' +
+    '<div style="font-size:12px;color:#d1fae5;">' +
+      '<div style="margin-bottom:6px;">' +
+        '<span style="display:inline-block;min-width:120px;color:#fcd34d;font-weight:700;">⏰ 09:30 — 예선</span>' +
+        '09:00~09:30 분봉으로 후보 풀을 만들고, 강한 종목을 1차로 추립니다. <strong>이 시점에는 아직 진입하지 않습니다.</strong>' +
+      '</div>' +
+      '<div style="margin-bottom:6px;">' +
+        '<span style="display:inline-block;min-width:120px;color:#a7f3d0;font-weight:700;">⏰ 10:00 — 본선 진출 확인</span>' +
+        '예선 통과 후보 중 10시까지 09:30 기준가 위에서 살아남았는지 확인합니다. <strong>여기서 살아남은 종목이 진짜 메인 후보입니다.</strong>' +
+      '</div>' +
+      '<div style="margin-bottom:8px;">' +
+        '<span style="display:inline-block;min-width:120px;color:#fff;font-weight:700;">🎯 10:00 이후 — 대응</span>' +
+        '10시 생존 후보를 중심으로 실제 진입을 검토합니다. 09:30 조기 포착 / 공격형 재돌파는 보조 감시 후보일 뿐입니다.' +
+      '</div>' +
+      '<div style="padding:8px 12px;background:rgba(255,255,255,0.05);border-radius:4px;font-size:11.5px;line-height:1.7;">' +
+        '<strong style="color:#a7f3d0;">📊 60거래일 백테스트 결과</strong>: ' +
+        '<strong>READY + 10시 생존</strong> 후보가 평균 <strong>+2.49%</strong>, 승률 <strong>69.9%</strong>, ' +
+        '+5% 도달 52.6%, +10% 도달 18.2%로 가장 좋은 결과를 보였습니다. 다른 신규/기존 모델을 전부 압도. ' +
+        '<span style="color:#fcd34d;">09:30에 바로 들어가는 모델이 아니라, 09:30 후보 중 10:00까지 살아남은 종목을 찾는 모델입니다.</span><br>' +
+        '<span style="color:#fda4af;">⚠ 단, 장중 급락 사례가 있으므로 손절 기준(-3%) 없이 보유하면 위험합니다.</span>' +
+      '</div>' +
+    '</div>' +
+    '<div style="margin-top:10px;padding:9px 12px;background:rgba(255,255,255,0.04);border-radius:4px;font-size:12px;">' +
+      '<strong style="color:#fff;">오늘 1DS 상태</strong> · ' +
+      '09:30 READY ' + (summary.readyCount != null ? summary.readyCount : readyTotal) + '개' +
+      ' &nbsp;/&nbsp; <span style="color:#a7f3d0;">✅ 10시 생존 ' + (survivor1000.length) + '개</span>' +
+      ' &nbsp;/&nbsp; 🚀 조기 포착 ' + explosiveStable.length + '개' +
+      ' &nbsp;/&nbsp; 🔥 공격형 감시 ' + attackRebreak.length + '개' +
+      ' &nbsp;/&nbsp; 📡 1차 ' + readyRestFinal.length + '개' +
+      ' &nbsp;/&nbsp; 👀 관찰/제외 ' + watchOnly.length + '개<br>' +
+      (survivor1000Ready
+        ? '<span style="color:#a7f3d0;font-weight:700;margin-top:4px;display:inline-block;">✅ 10:00 생존 확인 완료 — 메인 후보는 위 <strong>10시 생존 확인 후보</strong>입니다. 그 종목들을 우선 보세요.</span>'
+        : '<span style="color:#fcd34d;font-weight:700;margin-top:4px;display:inline-block;">⏳ 10:00 생존 확인 전 — 지금 보이는 후보는 모두 <strong>예선 단계</strong>입니다. 10:01 이후 새로고침하면 메인 후보가 채워집니다.</span>') +
+    '</div>' +
   '</div>';
 
-  // ⓪‑1 🚀 폭발형 단타 후보 (최상단 강조) — full-minute 백테스트 기반 운영 가이드
-  if (explosiveTop.length > 0) {
-    body += '<h3 style="margin:14px 0 6px;color:#fcd34d;font-size:18px;">🚀 폭발형 단타 후보 (explosiveTop ' + explosiveTop.length + '건)</h3>' +
-      '<div class="shelf-desc" style="color:#fde68a;line-height:1.8;">' +
-        '09:00~09:30 사이 거래대금이 강하게 붙고 고점 근처를 유지한 <strong>폭발형 단타 후보</strong>입니다. ' +
-        '백테스트 기준 <strong>+5% 도달 시 익절 / -2% 이탈 시 손절</strong> 전략이 가장 좋았습니다. ' +
-        '<strong>10시 전 무조건 종료가 아니라, 10:00까지 살아남는지 확인한 뒤 강한 종목만 연장 관찰</strong>합니다.<br><br>' +
-        '<strong>· 후보 조건</strong>: morningHigh 재돌파 ✓ + 종가위치 ≥85% + 누적 거래대금 ≥100억<br>' +
-        '<strong>· 운영 기준 (백테스트 검증)</strong><br>' +
-        '<span style="display:inline-block;margin-left:14px;color:#fef3c7;">' +
-          '① <strong>09:30 기준가 대비 +5% 도달 시 익절</strong><br>' +
-          '② <strong>-2% 이탈 시 손절</strong><br>' +
-          '③ 10:00까지 둘 다 나오지 않으면 <strong>생존 여부 확인</strong><br>' +
-          '④ <strong>10:00 가격이 09:30 기준가 이하이면 정리</strong> (미생존 종가 평균 −1.70%)<br>' +
-          '⑤ 10:00에도 <strong>고점권을 유지하면 종가까지 연장 관찰 가능</strong> (생존 종가 평균 +3.45%, 81.8% 플러스)' +
-        '</span><br><br>' +
-        '<span style="color:#fda4af;">⚠ <strong>경고</strong>: 폭발형 후보는 움직임이 빠른 대신 실패도 빠릅니다. <strong>손절 기준 없이 추격하면 손실이 커질 수 있습니다</strong>.</span>' +
+  // ── [1] ✅ 10시 생존 확인 후보 (메인) ──
+  if (survivor1000.length > 0) {
+    body += '<h3 style="margin:14px 0 6px;color:#a7f3d0;font-size:19px;">✅ 10시 생존 확인 후보 (' + survivor1000.length + '건) — 메인 후보</h3>' +
+      '<div class="shelf-desc" style="color:#d1fae5;line-height:1.8;">' +
+        '09:30 READY 후보 중 <strong>10:00까지 09:30 기준가 위에서 살아남은 종목</strong>입니다. ' +
+        '60거래일 백테스트에서 평균 <strong>+2.49%</strong>, 승률 <strong>69.9%</strong>, +5% 도달률 <strong>52.6%</strong>, +10% 도달률 <strong>18.2%</strong>로 가장 좋은 결과를 보였습니다.<br>' +
+        '<strong>기본 대응</strong>: 10:00 생존 확인 후 진입 검토. <strong>+5% 구간은 1차 수익 실현</strong>, <strong>+10%는 확장 목표</strong>, <strong>-3% 이탈은 실패</strong>로 봅니다.<br>' +
+        '<span style="color:#fda4af;font-weight:700;">⚠ 10시 생존 후보라도 손절 기준 없이 보유하면 위험합니다. 장중 급락 사례가 있으므로 기준가 이탈과 고점 이탈을 반드시 확인하세요.</span>' +
       '</div>' +
-      '<div style="margin-top:8px;">' + explosiveTop.map((e) => renderCard(e, 'value-strong')).join('') + '</div>';
+      '<div style="margin-top:8px;">' + survivor1000.map((e) => renderCard(e, 'value-strong')).join('') + '</div>';
+  } else if (!survivor1000Ready) {
+    body += '<h3 style="margin:14px 0 6px;color:#fcd34d;font-size:19px;">⏳ 10시 생존 확인 후보 — 10:00 확인 대기</h3>' +
+      '<div class="empty-list" style="padding:14px;color:#fde68a;line-height:1.7;background:rgba(252,211,77,0.06);border-left:3px solid #fcd34d;border-radius:4px;">' +
+        '<strong>10:00 생존 확인 전입니다.</strong> 현재는 09:30 예선 후보만 표시됩니다.<br>' +
+        '<span style="font-size:11px;color:#fed7aa;">10:00 cron 또는 admin trigger 실행 후 이 섹션이 채워집니다 (60거래일 검증 1위 모델).</span>' +
+      '</div>';
   } else {
-    body += '<h3 style="margin:14px 0 6px;color:#94a3b8;font-size:18px;">🚀 폭발형 단타 후보 (0건)</h3>' +
-      '<div class="empty-list" style="padding:14px;color:#94a3b8;">오늘 09:30 기준 폭발형 조건(rebreak ✓ + cp≥85% + 거래대금≥100억) 통과 후보가 없습니다. ' +
-      '아래 "09:30 READY 1차 후보"를 참고하세요.</div>';
+    body += '<h3 style="margin:14px 0 6px;color:#94a3b8;font-size:19px;">✅ 10시 생존 확인 후보 (0건)</h3>' +
+      '<div class="empty-list" style="padding:14px;color:#94a3b8;">10:00 분봉 확인 결과 살아남은 READY 후보가 없습니다. 아래 09:30 조기 포착 / 공격형 감시 후보를 참고하세요.</div>';
   }
 
-  // ⓪‑2 09:30 READY 1차 후보 (접힘) — 폭발형 미포함된 READY 전체
-  if (readyAllCombined.length > 0) {
-    body += '<details style="margin-top:14px;border:1px solid #475569;background:#0f172a;border-radius:8px;padding:0 10px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#5eead4;padding:10px 0;">📡 09:30 READY 1차 후보 (' + readyAllCombined.length + '건' + (explosiveTopCodes.size > 0 ? ', 폭발형 ' + explosiveTopCodes.size + '건은 위에 표시됨' : '') + ') — 펼쳐서 보기</summary>' +
-      '<div class="shelf-desc" style="color:#94a3b8;margin-top:6px;padding-bottom:8px;">READY 컷(거래대금 ≥10억, v/avg ≥3, 종가위치 ≥65%, 시가대비 1~8%)은 통과했지만 폭발형 강조 조건엔 못 든 후보입니다. 백테스트 day+5% 30.1%, day+10% 9.8%.</div>' +
-      '<div style="margin-top:8px;padding-bottom:10px;">' + readyAllCombined.map((e) => renderCard(e, 'value-mid')).join('') + '</div></details>';
-  }
-
-  // ⓪‑3 🚀 폭발형 관찰 후보 — 즉시 진입 X (full-minute 재검증: 모든 전략 EV 0 또는 음수)
-  if (explosiveWatch.length > 0) {
-    body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#fb923c;padding:6px 0;">🚀 폭발형 관찰 후보 (explosiveWatch ' + explosiveWatch.length + '건, 즉시 진입 X) — 펼쳐서 보기</summary>' +
-      '<div class="shelf-desc" style="color:#fed7aa;margin-top:6px;background:rgba(251,146,60,0.08);border-left:3px solid #fb923c;padding:8px 12px;border-radius:4px;">' +
-        '<strong>이미 많이 오른 관찰 후보</strong>입니다 (시가 대비 +8% 이상). <strong>즉시 진입 후보가 아니며, 눌림 후 재돌파 확인 전까지는 추격 금지</strong>입니다.<br>' +
-        '<span style="color:#fda4af;font-size:10.5px;">백테스트 (full-minute 재검증): 이 풀은 모든 전략에서 EV 0 또는 음수 — 그대로 추격하면 손실 가능성 높음.</span>' +
+  // ── [2] 🚀 09:30 조기 포착 후보 (= 기존 explosiveTop, 감시 후보) ──
+  if (explosiveStable.length > 0) {
+    body += '<h3 style="margin:18px 0 6px;color:#fcd34d;font-size:17px;">🚀 09:30 조기 포착 후보 (' + explosiveStable.length + '건)</h3>' +
+      '<div class="shelf-desc" style="color:#fde68a;line-height:1.7;">' +
+        '09:00~09:30 사이 거래대금과 가격 흐름이 강하게 잡힌 <strong>조기 포착 후보</strong>입니다. ' +
+        '단, 60거래일 검증 결과 최종 성과는 <strong>10:00까지 살아남은 READY 후보가 더 좋았습니다</strong>. ' +
+        '이 섹션은 <strong>10시 생존 여부를 확인하기 전 감시 후보</strong>로 봅니다.<br>' +
+        '09:30 조기 대응 시 <strong>+5%/-2% 또는 +10%/-3%</strong> 전략을 참고할 수 있지만, 우선순위는 10시 생존 확인 후보보다 낮습니다.' +
       '</div>' +
-      '<div style="margin-top:8px;">' + explosiveWatch.map((e) => renderCard(e, 'aux')).join('') + '</div></details>';
+      '<div style="margin-top:8px;">' + explosiveStable.map((e) => renderCard(e, 'value-strong')).join('') + '</div>';
   }
 
-  // WAIT_PULLBACK 전체 (explosiveWatch에 포함 안 된 것)
-  const explosiveWatchCodes = new Set(explosiveWatch.map((e) => e.code));
-  const waitList = (sc.wait || (sc.holding || []).filter((e) => e.status === 'WAIT_PULLBACK'))
-    .filter((e) => !explosiveWatchCodes.has(e.code));
-  if (waitList.length > 0) {
-    body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#fcd34d;padding:6px 0;">⚠ 추격 부담 — 눌림 대기 (WAIT_PULLBACK ' + waitList.length + '건) — 펼쳐서 보기</summary>' +
-      '<div class="shelf-desc" style="color:#fcd34d;margin-top:6px;">시가 대비 +8% 이상 올라 추격 부담이 큰 후보입니다. 백테스트 fail1 71.9%로 추격 진입은 피하고, 눌림 또는 재돌파 시점에만 검토하세요.</div>' +
-      '<div style="margin-top:8px;">' + waitList.map((e) => renderCard(e, 'aux')).join('') + '</div></details>';
+  // ── [3] 🔥 공격형 재돌파 감시 후보 (기본 접힘) ──
+  if (attackRebreak.length > 0) {
+    body += '<details style="margin-top:16px;border:1px solid #7f1d1d;background:rgba(127,29,29,0.06);border-radius:8px;padding:0 10px;"><summary style="cursor:pointer;font-size:15px;font-weight:700;color:#fca5a5;padding:10px 0;">🔥 공격형 재돌파 감시 후보 (' + attackRebreak.length + '건) — 펼쳐서 보기</summary>' +
+      '<div class="shelf-desc" style="color:#fecaca;line-height:1.7;padding-top:6px;">' +
+        '09:30 조건과 재돌파 흐름을 함께 만족한 <strong>공격형 감시 후보</strong>입니다. ' +
+        '60거래일 검증에서 <strong>+10%/-3% 기준 평균 +1.62%</strong>로 유효했지만, 하루 단위로는 실패가 크게 나올 수 있습니다. ' +
+        '10시 생존 여부를 함께 확인하세요.<br>' +
+        '<strong>공격형 기준</strong>: +10% 익절 / -3% 손절 · <strong>보수형 기준</strong>: +5% 익절 / -2% 손절.<br>' +
+        '<span style="color:#fda4af;font-weight:700;">⚠ 재돌파 분봉이 마지막 고점이 되는 실패 사례가 있습니다. 즉시 추격보다 10시 생존 확인과 손절 기준을 함께 봅니다.</span>' +
+      '</div>' +
+      '<div style="margin-top:8px;padding-bottom:10px;">' + attackRebreak.map((e) => renderCard(e, 'value-strong')).join('') + '</div></details>';
   }
-  // FADED / WEAK / INSUFFICIENT_BARS는 통계만, 카드 노출 X
-  const headerCount = '🚀 폭발형 ' + explosiveTop.length + ' / READY 총 ' + readyTotal;
+
+  // ── [4] 📡 09:30 READY 1차 후보 (기본 접힘) ──
+  if (readyRestFinal.length > 0) {
+    body += '<details style="margin-top:14px;border:1px solid #475569;background:#0f172a;border-radius:8px;padding:0 10px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#5eead4;padding:10px 0;">📡 09:30 READY 1차 후보 (' + readyRestFinal.length + '건) — 펼쳐서 보기</summary>' +
+      '<div class="shelf-desc" style="color:#94a3b8;margin-top:6px;padding-bottom:8px;">' +
+        '09:30 기준 기본 조건을 통과한 <strong>예선 후보</strong>입니다. ' +
+        '60거래일 검증상 이 후보 전체보다 10시까지 살아남은 후보의 성과가 훨씬 좋았습니다. ' +
+        '<strong>10시 확인 전까지는 최종 진입 후보로 보지 않습니다.</strong>' +
+      '</div>' +
+      '<div style="margin-top:8px;padding-bottom:10px;">' + readyRestFinal.map((e) => renderCard(e, 'value-mid')).join('') + '</div></details>';
+  }
+
+  // ── [5] 👀 관찰/제외 후보 (기본 접힘) ──
+  if (watchOnly.length > 0) {
+    body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#fb923c;padding:6px 0;">👀 관찰/제외 후보 (' + watchOnly.length + '건, 즉시 진입 X) — 펼쳐서 보기</summary>' +
+      '<div class="shelf-desc" style="color:#fed7aa;margin-top:6px;background:rgba(251,146,60,0.08);border-left:3px solid #fb923c;padding:8px 12px;border-radius:4px;line-height:1.7;">' +
+        '추격 부담, 과열, FADED 단독, WAIT_PULLBACK 등 <strong>즉시 진입에 부적합한 후보</strong>입니다. ' +
+        '조건이 좋아 보이더라도 60거래일 검증에서 위험하거나 성과가 약했던 유형은 진입 후보로 표시하지 않습니다.<br>' +
+        '<span style="font-size:11px;color:#fde68a;">제외 사유: WAIT_PULLBACK / open≥8% / v/mc≥5% 단독 / FADED+cp≥0.70 / FADED 단독 등 (60일 검증 fail3 60% 이상 유형)</span>' +
+      '</div>' +
+      '<div style="margin-top:8px;">' + watchOnly.map((e) => renderCard(e, 'aux')).join('') + '</div></details>';
+  }
+
+  const headerCount = '✅ 10시생존 ' + survivor1000.length + ' / 🚀 조기포착 ' + explosiveStable.length + ' / 🔥 공격형 ' + attackRebreak.length;
   const headerTitle = sc.candidatesTarget
     ? '📡 오늘 09:30 실제 포착 후보 — ' + headerCount + ' <span style="font-size:13px;color:#94a3b8;font-weight:400;">(확장 스캔 ' + sc.candidatesTarget + '개 중 분봉 ' + (sc.scannedCount || 0) + '개)</span>'
     : '📡 오늘 09:30 실제 포착 후보 — ' + headerCount + ' <span style="font-size:13px;color:#94a3b8;font-weight:400;">(분봉 ' + (sc.scannedCount || 0) + '개)</span>';
@@ -2566,127 +2634,10 @@ const PREMARKET_MODE = isPremarketMode();
   '</section>';
 })();
 
-// ── ① 전일 후보 09:30 상태표 — READY (mainPool 통과 + tradePlan READY) ──
-// 사용자 요구: 전일 후보를 "오늘 09:30 후보"처럼 보이게 하지 않는다. 살아남았는지 보는 상태표.
-(function renderTopPriority() {
-  const host = document.getElementById('top-priority-host');
-  if (!host) return;
-  const items = itemsByCodes(DATA.priorityRanked && DATA.priorityRanked.topPriority);
-  const sharedDesc = '<div class="shelf-desc" style="color:#cbd5e1;">' +
-    '<strong>어제 강했던 종목이 오늘 09:30까지 살아남았는지 확인하는 보조 영역입니다.</strong> ' +
-    'READY가 아니면 신규 진입 후보로 보지 않습니다. (신규 진입 후보는 위 "📡 오늘 09:30 실제 포착 후보"를 참고)' +
-    '</div>';
-  if (items.length === 0) {
-    host.innerHTML = '<section class="entry-shelf-section"><h2>🔁 전일 후보 09:30 상태표 — ✅ READY 0종목</h2>' +
-      sharedDesc +
-      '<div class="empty-list" style="padding:18px;">전일 mainPool 후보 중 09:30 분봉으로 READY 통과한 종목이 없습니다.<br>' +
-      '<span style="font-size:11px;color:#94a3b8;">아래 "보류" / "분봉 미확인" 서브섹션을 확인하세요.</span></div></section>';
-    return;
-  }
-  host.innerHTML = '<section class="entry-shelf-section">' +
-    '<h2 id="top-priority-h2">🔁 전일 후보 09:30 상태표 — ✅ READY ' + items.length + '종목</h2>' +
-    sharedDesc +
-    '<div class="shelf-desc" id="top-priority-desc" style="margin-top:8px;">아래 ' + items.length + '종목은 전일 mainPool 후보 중 <strong>09:30 분봉 반영 후 장초 흐름이 유지된</strong> 종목입니다.</div>' +
-    items.map(buildCardHtml).join('') +
-  '</section>';
-})();
-
-// ── ② 추가 확인 후보 (접힘, READY 6~15위) ──
-(function renderExtraPriority() {
-  const host = document.getElementById('extra-priority-host');
-  if (!host) return;
-  const items = itemsByCodes(DATA.priorityRanked && DATA.priorityRanked.extraPriority);
-  if (items.length === 0) return;
-  const overflow = (DATA.priorityRanked && DATA.priorityRanked.overflowHiddenCount) || 0;
-  host.innerHTML = '<section class="entry-shelf-section" style="border:1px solid #475569;background:#0f172a;">' +
-    '<details><summary style="cursor:pointer;font-size:15px;font-weight:700;color:#cbd5e1;padding:6px 0;">' +
-      '📋 전일 후보 추가 확인 (READY ' + items.length + '건' + (overflow > 0 ? ', overflow ' + overflow + '건 숨김' : '') + ') — 펼쳐서 보기</summary>' +
-    '<div style="margin-top:10px;">' +
-    '<div class="shelf-desc">전일 mainPool 후보 중 최우선 5종목에 들지 못한 READY 후보입니다.</div>' +
-      items.map(buildCardHtml).join('') +
-    '</div></details>' +
-  '</section>';
-})();
-
-// ── ③ 보류/재관찰 후보 (WAIT_PULLBACK / ENTRY_INVALIDATED / REBREAK_FADED) ──
-// mainPool에는 들어왔지만 09:30 분봉 반영 후 진입이 부담스러운 상태.
-(function renderHoldingCandidates() {
-  const host = document.getElementById('holding-host');
-  if (!host) return;
-  const items = itemsByCodes(DATA.priorityRanked && DATA.priorityRanked.holdingCandidates);
-  if (items.length === 0) return;
-  const STATUS_DESC = {
-    WAIT_PULLBACK:     '이미 기준가보다 많이 올라 추격 부담',
-    ENTRY_INVALIDATED: '장초 기준가 이탈로 흐름 약화',
-    REBREAK_FADED:     '장초 고점 돌파 후 다시 밀림',
-  };
-  const breakdown = items.reduce((acc, it) => {
-    const s = (it.tradePlan && it.tradePlan.status) || '?';
-    acc[s] = (acc[s] || 0) + 1; return acc;
-  }, {});
-  const breakdownHtml = Object.entries(breakdown)
-    .map(([s, n]) => '<span class="tps-pill ' + (s === 'WAIT_PULLBACK' ? 'wait' : s === 'ENTRY_INVALIDATED' ? 'invalid' : 'faded') + '">' + (STATUS_DESC[s] || s) + ' <span class="num">' + n + '</span></span>')
-    .join(' ');
-  host.innerHTML = '<section class="entry-shelf-section" style="border:1px solid #78350f;background:#1c1917;margin-top:14px;">' +
-    '<details open><summary style="cursor:pointer;font-size:15px;font-weight:700;color:#fcd34d;padding:6px 0;">' +
-      '⏸ 전일 후보 보류/재관찰 (' + items.length + '건) — 펼쳐서 보기</summary>' +
-    '<div style="margin-top:10px;">' +
-    '<div class="shelf-desc">전일 mainPool 후보 중 09:30 분봉 반영 후 진입이 부담스럽거나 흐름이 약화된 종목입니다. 매수가는 비워져 있고, 사용자 본인 판단으로 재진입을 검토하세요.</div>' +
-    '<div style="margin:8px 0 12px;">' + breakdownHtml + '</div>' +
-      items.map(buildCardHtml).join('') +
-    '</div></details>' +
-  '</section>';
-})();
-
-// ── ③-2 분봉 미확인 (NEED_INTRADAY_CONFIRM) — 09:30 분봉 자체가 없거나 전략 매치 실패 ──
-// 사용자 요구 3번: group_fallback은 절대 READY로 표시하지 않는다. 별도 섹션으로 분리.
-// 단, premarket 모드(KST 16:30~다음날 09:00)에서는 위 "🔮 내일 장초 들여다볼 후보" 섹션이
-// 같은 후보를 더 명시적으로 보여주므로 여기는 숨김 — 중복 노출 방지.
-(function renderPendingCandidates() {
-  if (PREMARKET_MODE) return;  // premarket-host 섹션이 같은 카드를 첫 자리에 노출 중
-  // pending-host div가 없으면 holding 다음에 만들거나, 새 호스트 div를 동적으로 만들어 추가
-  const codes = DATA.priorityRanked && DATA.priorityRanked.pendingCandidates;
-  if (!codes || codes.length === 0) return;
-  // holding-host 다음에 새 host 추가 (없으면 reobserve-host 앞에 insert)
-  let host = document.getElementById('pending-host');
-  if (!host) {
-    host = document.createElement('div');
-    host.id = 'pending-host';
-    const reobserveHost = document.getElementById('reobserve-host');
-    if (reobserveHost && reobserveHost.parentNode) {
-      reobserveHost.parentNode.insertBefore(host, reobserveHost);
-    } else {
-      document.body.appendChild(host);
-    }
-  }
-  const items = itemsByCodes(codes);
-  if (items.length === 0) return;
-  host.innerHTML = '<section class="entry-shelf-section" style="border:1px dashed #475569;background:#0f172a;margin-top:14px;">' +
-    '<details><summary style="cursor:pointer;font-size:15px;font-weight:700;color:#94a3b8;padding:6px 0;">' +
-      '❓ 전일 후보 09:30 분봉 미확인 (' + items.length + '건) — 펼쳐서 보기</summary>' +
-    '<div style="margin-top:10px;">' +
-    '<div class="shelf-desc" style="color:#94a3b8;">전일 mainPool 후보 중 09:30 분봉이 아직 수집되지 않았거나 전략 매치가 안 된 종목입니다. <strong>READY 아님 — 신규 진입 후보로 보지 않습니다.</strong> 분봉이 들어오면 자동으로 상태가 재분류됩니다.</div>' +
-      items.map(buildCardHtml).join('') +
-    '</div></details>' +
-  '</section>';
-})();
-
-// ── ④ 재관찰 후보 (peak_before_entry / trap_risk_high 제외됐지만 일봉 강세 + v/mc 강) ──
-// 전일 일봉 조건은 강했지만 장초 진입은 부적합. 다시 고점 회복 시에만 관찰.
-(function renderReobserveCandidates() {
-  const host = document.getElementById('reobserve-host');
-  if (!host) return;
-  const items = itemsByCodes(DATA.priorityRanked && DATA.priorityRanked.reobserveCandidates);
-  if (items.length === 0) return;
-  host.innerHTML = '<section class="entry-shelf-section" style="border:1px solid #475569;background:#0f172a;margin-top:14px;">' +
-    '<details><summary style="cursor:pointer;font-size:15px;font-weight:700;color:#cbd5e1;padding:6px 0;">' +
-      '👀 전일 후보 재관찰 (' + items.length + '건) — 펼쳐서 보기</summary>' +
-    '<div style="margin-top:10px;">' +
-    '<div class="shelf-desc" style="color:#fbbf24;">⚠ 전일 일봉 조건은 강했지만 장초 진입은 부적합합니다. 다시 고점 회복 시에만 관찰하세요. (이미 초반 고점 통과 / 윗꼬리·과열 trap 위험으로 메인 풀에서 제외된 후보 중 일봉 강세 + 시총 대비 거래대금 강한 케이스)</div>' +
-      items.map(buildCardHtml).join('') +
-    '</div></details>' +
-  '</section>';
-})();
+// ── 장전 보조 섹션 제거 (2026-05-14) ──
+// 기존 ① 전일 후보 09:30 상태표 / ② 추가 확인 / ③ 보류/재관찰 / ③-2 분봉 미확인 / ④ 재관찰 후보 섹션 모두 제거.
+// 이유: 1DS 운영 철학이 09:30 = 예선 / 10:00 = 본선 모델로 변경되면서 "어제 mainPool" 관점 후보군은
+// 더 이상 메인 의사결정에 사용되지 않음. 위 scanner0930 5섹션 구조가 모든 정보를 대체.
 
 // ── 위험 후보 제외 안내 (보드는 추천만 노출 — 위험 분석은 연구 보고서) ──
 (function renderRiskExcludedNote() {
@@ -2717,18 +2668,25 @@ const PREMARKET_MODE = isPremarketMode();
 })();
 
 document.getElementById('foot').innerHTML =
-  '<strong>이 보드의 후보 선정 기준</strong><br>' +
-  '• <strong>수급 균형 후보</strong> — 시총 3,000억~7,000억 + 시총 대비 거래대금 5% 이상 + 낮은 갭에서 장중 끌어올림 또는 거래대금 시장 상위 30위<br>' +
-  '• <strong>가볍게 움직일 후보</strong> — 시총 1,000억~3,000억 + 시총 대비 거래대금 5% 이상 + 최근 급등이 1회 이하<br>' +
-  '• <strong>중형 수급 후보</strong> — 시총 7,000억~1.5조 + 시총 대비 거래대금 5% 이상 + 낮은 갭 한정<br>' +
-  '<br><strong>운영 화면에서 자동 제외하는 후보</strong><br>' +
-  '• ETF / ETN / 리츠 / 스팩 / 우선주 / 관리종목 / 시가총액 500억 미만·5조 이상<br>' +
-  '• 위험형(상한가형) · 갭상승 후 종가 유지형 · 전일 고점 돌파 spike · 이미 초반 고점 통과 · 윗꼬리·과열 trap 위험<br>' +
-  '<br><strong>장초 분봉 확인이 반영되면</strong><br>' +
-  '• 첫 10분 고점을 다시 넘긴 후보가 우선 노출됩니다 (장초 재상승 ✓ / 균형 재상승 ✓ / 깨끗한 재상승 ✓ / 가벼운 재상승 ✓ 칩).<br>' +
-  '• 09:10 시점에 이미 고점이 지난 후보는 추격 위험으로 제외됩니다.<br>' +
-  '<br><strong>참고/주의</strong><br>' +
-  '• <strong>매수 확정 신호가 아닙니다.</strong> 내일 장초에 먼저 볼 후보를 좁혀주는 보드입니다.';
+  '<strong>🎯 1DS 운영 철학 — 09:30 = 예선, 10:00 = 본선, 10:00 이후 = 실제 대응</strong><br><br>' +
+  '<strong>왜 09:30에 바로 들어가지 않는가?</strong><br>' +
+  '• 60거래일 백테스트 결과, 09:30에 강해 보였던 종목 중 절반 이상이 10시 전에 무너졌습니다.<br>' +
+  '• 09:30 후보를 그대로 매수하면 평균 +0.37%, 승률 39% 수준입니다 (READY 전체 기준).<br>' +
+  '• 반면 09:30 READY 후보 중 <strong>10:00까지 09:30 기준가 위에서 살아남은 종목</strong>만 골라 보유했을 때 평균 <strong>+2.49%</strong>, 승률 <strong>69.9%</strong>로 가장 좋은 결과를 보였습니다.<br>' +
+  '• 즉, 09:30은 후보를 만드는 <strong>예선</strong>이고, 10:00까지의 흐름을 본 뒤에 진입하는 게 <strong>본선</strong>입니다.<br><br>' +
+  '<strong>📌 5섹션 구조</strong><br>' +
+  '• <strong>1️⃣ ✅ 10시 생존 확인 후보</strong> — 메인. 10:00 분봉 확인 후에만 채워짐. 진입 검토 1순위.<br>' +
+  '• <strong>2️⃣ 🚀 09:30 조기 포착 후보</strong> — 09:30에 강하게 잡힌 explosiveTop. 10시 생존 확인 전 감시 후보.<br>' +
+  '• <strong>3️⃣ 🔥 공격형 재돌파 감시 후보</strong> — 09:30 조건 + TEN_REBREAK 동시 충족. +10%/-3% 노리는 공격형, 감시만.<br>' +
+  '• <strong>4️⃣ 📡 09:30 READY 1차 후보</strong> — 예선 통과만 한 나머지. 메인 후보 아님.<br>' +
+  '• <strong>5️⃣ 👀 관찰/제외 후보</strong> — WAIT_PULLBACK / FADED+cp 단독 / v/mc 단독 등 60일 검증 위험 유형.<br><br>' +
+  '<strong>🛡 메인 후보가 자동 제외하는 종목</strong><br>' +
+  '• ETF / ETN / 리츠 / 스팩 / 우선주 / 관리종목 / 시총 500억 미만·5조 이상<br>' +
+  '• 60거래일 검증에서 fail3 60% 이상이었던 유형 (v/mc≥5% 단독, FADED+cp≥0.70 단독, open≥8%, WAIT_PULLBACK 등)<br><br>' +
+  '<strong>⚠ 운영 주의</strong><br>' +
+  '• <strong>10시 생존 후보라도 손절 기준 없이 보유하면 위험합니다.</strong> 장중 급락 사례가 있으므로 -3% 이탈은 실패로 보고 정리하세요.<br>' +
+  '• <strong>09:30에 즉시 매수 확정 신호가 아닙니다.</strong> 09:30~10:00은 후보 관찰만, 10:00 본선 확인 후 진입 검토.<br>' +
+  '• 본 보드는 일봉 캐시 + 09:30 분봉 + 10:00 분봉을 결합한 의사결정 도구이며, 매수 추천이 아니라 <strong>후보를 좁혀주는 운영 보드</strong>입니다.';
 </script>
 
 </body>

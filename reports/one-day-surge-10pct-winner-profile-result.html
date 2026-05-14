@@ -1,0 +1,2553 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>1DS — +10% Winner Profile</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px; max-width: 1600px; margin: 0 auto; color: #222; background: #fafafa; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 24px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #ddd; }
+  h3 { font-size: 14px; margin: 14px 0 6px; color: #444; }
+  .meta { color: #666; font-size: 12px; margin-bottom: 16px; }
+  .summary { background: #fff; padding: 12px 16px; border-radius: 6px; border: 1px solid #e0e0e0; margin-bottom: 18px; }
+  table { border-collapse: collapse; width: 100%; background: #fff; font-size: 11.5px; margin-bottom: 14px; }
+  th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; vertical-align: top; }
+  th { background: #f0f0f0; font-weight: 600; }
+  th.post, td.post { background: #fff8e1; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pos { color: #c62828; }
+  .neg { color: #1565c0; }
+  ul { padding-left: 20px; } li { margin: 3px 0; font-size: 13px; }
+  .tag { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 10px; margin-right: 2px; }
+  .tag-exp { background: #ffe082; color: #6d4c41; }
+  .tag-reb { background: #c8e6c9; color: #1b5e20; }
+  .tag-hyp { background: #e1bee7; color: #4a148c; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  small { color: #666; }
+  .ranges td:first-child { background: #f9f9f9; }
+  .proposed td:first-child { background: #fff3e0; font-weight: 600; }
+  .note { font-size: 11px; color: #888; }
+</style>
+</head>
+<body>
+<h1>1DS — +10% Winner Profile 보고서</h1>
+<div class="meta">
+  생성: 2026-05-14T13:14:49.941Z · 백테스트 대상: 19일 (2026-04-16 ~ 2026-05-14) · 소요 9.81s
+  <div class="note">사전 정보(09:30 시점까지 확정) vs 사후 정보(당일 종료 후 확정) — HTML 표에서 노란 배경 컬럼이 사후.</div>
+</div>
+
+<div class="summary">
+  <h2 style="margin-top:0;border:none;">1. 요약 결론</h2>
+  <ul><li>+10% from 09:30 close: 477건 / 19일 = 일평균 25.11개</li><li>explosiveTop coverage: 8/477 = 1.7% — ❌ 1/4 미만, explosiveTop으로는 부족 — 공격형 보조 필수</li><li>+10% 종목 공통: 09:30 value 중앙 58억, v/avg 2.6×, cp 0.46, open→last -0.18%, drop -2.69%, 시총 0.37조</li><li>MH재돌파 비율 39.4%, 10시 생존 비율 73.2%</li><li>놓친 469건 중 가장 잘 잡는 가설: TEN_REBREAK (202건)</li></ul>
+</div>
+
+<h2>2. +10% 이상 종목 — 기준별 개수</h2>
+<table class="dict"><thead><tr><th>+10% 기준</th><th>n</th><th>일평균</th><th>유니크 (date,code) 수</th></tr></thead><tbody>
+  <tr><td>A. 09:30 close 대비</td><td class="num">477</td><td class="num">25.11</td><td class="num">477</td></tr>
+  <tr><td>B. 당일 시가 대비</td><td class="num">776</td><td class="num">40.84</td><td class="num">776</td></tr>
+  <tr><td>C. 가설 entryPrice 대비 (any)</td><td class="num">213</td><td class="num">11.21</td><td class="num">213</td></tr>
+</tbody></table>
+
+<h3>A. 09:30 close 대비 +10% 종목 목록 (상위 80건, ret 내림차순)</h3>
+<table class="winners"><thead><tr>
+      <th>날짜</th><th>코드/명</th>
+      <th>상태</th><th>가설</th>
+      <th>값09:30</th><th>v/avg</th><th>cp</th><th>open→last</th><th>drop</th><th>시총</th>
+      <th class="post">최대(↑0930)</th><th class="post">+10%도달</th><th class="post">MH재돌파</th><th class="post">종가수익</th>
+    </tr></thead><tbody><tr>
+        <td>2026-04-17</td>
+        <td>046970 <small>우리로</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">909.9억</td>
+        <td class="num">0.0×</td>
+        <td class="num">0.22</td>
+        <td class="num"><span class="neg">-8.75%</span></td>
+        <td class="num"><span class="neg">-12.40%</span></td>
+        <td class="num">0.37조</td>
+        <td class="num post"><span class="pos">+47.95%</span></td>
+        <td class="num post">10:12</td>
+        <td class="num post">10:12</td>
+        <td class="num post"><span class="pos">+18.45%</span></td>
+      </tr><tr>
+        <td>2026-05-11</td>
+        <td>007610 <small>선도전기</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">108.2억</td>
+        <td class="num">2.1×</td>
+        <td class="num">0.15</td>
+        <td class="num"><span class="neg">-8.44%</span></td>
+        <td class="num"><span class="neg">-8.53%</span></td>
+        <td class="num">0.15조</td>
+        <td class="num post"><span class="pos">+44.61%</span></td>
+        <td class="num post">14:02</td>
+        <td class="num post">14:02</td>
+        <td class="num post"><span class="pos">+44.61%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>007460 <small>에이프로젠</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">6.1억</td>
+        <td class="num">3.8×</td>
+        <td class="num">0.17</td>
+        <td class="num"><span class="neg">-6.25%</span></td>
+        <td class="num"><span class="neg">-6.25%</span></td>
+        <td class="num">0.10조</td>
+        <td class="num post"><span class="pos">+38.67%</span></td>
+        <td class="num post">11:33</td>
+        <td class="num post">11:32</td>
+        <td class="num post"><span class="pos">+38.67%</span></td>
+      </tr><tr>
+        <td>2026-05-08</td>
+        <td>223250 <small>드림씨아이에스</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">141.8억</td>
+        <td class="num">19.0×</td>
+        <td class="num">0.07</td>
+        <td class="num"><span class="neg">-17.07%</span></td>
+        <td class="num"><span class="neg">-17.42%</span></td>
+        <td class="num">0.12조</td>
+        <td class="num post"><span class="pos">+38.42%</span></td>
+        <td class="num post">13:54</td>
+        <td class="num post">13:56</td>
+        <td class="num post"><span class="pos">+22.13%</span></td>
+      </tr><tr>
+        <td>2026-05-07</td>
+        <td>024840 <small>KBI메탈</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">806.6억</td>
+        <td class="num">7.6×</td>
+        <td class="num">0.01</td>
+        <td class="num"><span class="neg">-18.11%</span></td>
+        <td class="num"><span class="neg">-23.37%</span></td>
+        <td class="num">0.18조</td>
+        <td class="num post"><span class="pos">+36.47%</span></td>
+        <td class="num post">09:51</td>
+        <td class="num post">12:02</td>
+        <td class="num post"><span class="pos">+18.17%</span></td>
+      </tr><tr>
+        <td>2026-04-17</td>
+        <td>049080 <small>기가레인</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">127.5억</td>
+        <td class="num">2.8×</td>
+        <td class="num">0.40</td>
+        <td class="num"><span class="neg">-5.07%</span></td>
+        <td class="num"><span class="neg">-11.87%</span></td>
+        <td class="num">0.18조</td>
+        <td class="num post"><span class="pos">+36.27%</span></td>
+        <td class="num post">11:35</td>
+        <td class="num post">11:35</td>
+        <td class="num post"><span class="pos">+36.27%</span></td>
+      </tr><tr>
+        <td>2026-05-14</td>
+        <td>080220 <small>제주반도체</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">283.9억</td>
+        <td class="num">1.7×</td>
+        <td class="num">0.70</td>
+        <td class="num"><span class="pos">+0.89%</span></td>
+        <td class="num"><span class="neg">-1.05%</span></td>
+        <td class="num">1.80조</td>
+        <td class="num post"><span class="pos">+35.64%</span></td>
+        <td class="num post">14:28</td>
+        <td class="num post">09:37</td>
+        <td class="num post"><span class="pos">+34.04%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>356680 <small>엑스게이트</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">37.8억</td>
+        <td class="num">2.1×</td>
+        <td class="num">0.20</td>
+        <td class="num"><span class="neg">-2.40%</span></td>
+        <td class="num"><span class="neg">-3.58%</span></td>
+        <td class="num">0.40조</td>
+        <td class="num post"><span class="pos">+34.43%</span></td>
+        <td class="num post">12:27</td>
+        <td class="num post">12:00</td>
+        <td class="num post"><span class="pos">+29.52%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>100590 <small>머큐리</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">96.0억</td>
+        <td class="num">1.9×</td>
+        <td class="num">0.21</td>
+        <td class="num"><span class="neg">-7.56%</span></td>
+        <td class="num"><span class="neg">-8.62%</span></td>
+        <td class="num">0.11조</td>
+        <td class="num post"><span class="pos">+33.56%</span></td>
+        <td class="num post">13:07</td>
+        <td class="num post">13:07</td>
+        <td class="num post"><span class="pos">+23.16%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>203650 <small>드림시큐리티</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">47.5억</td>
+        <td class="num">1.6×</td>
+        <td class="num">0.22</td>
+        <td class="num"><span class="neg">-3.43%</span></td>
+        <td class="num"><span class="neg">-3.60%</span></td>
+        <td class="num">0.26조</td>
+        <td class="num post"><span class="pos">+33.39%</span></td>
+        <td class="num post">12:09</td>
+        <td class="num post">12:04</td>
+        <td class="num post"><span class="pos">+33.39%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>223250 <small>드림씨아이에스</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">19.9억</td>
+        <td class="num">1.9×</td>
+        <td class="num">0.05</td>
+        <td class="num"><span class="neg">-4.55%</span></td>
+        <td class="num"><span class="neg">-10.00%</span></td>
+        <td class="num">0.12조</td>
+        <td class="num post"><span class="pos">+33.17%</span></td>
+        <td class="num post">10:08</td>
+        <td class="num post">10:08</td>
+        <td class="num post"><span class="pos">+17.78%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>950130 <small>엑세스바이오</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">0.6억</td>
+        <td class="num">1.8×</td>
+        <td class="num">0.20</td>
+        <td class="num"><span class="neg">-2.42%</span></td>
+        <td class="num"><span class="neg">-2.58%</span></td>
+        <td class="num">0.13조</td>
+        <td class="num post"><span class="pos">+33.11%</span></td>
+        <td class="num post">10:18</td>
+        <td class="num post">10:00</td>
+        <td class="num post"><span class="pos">+33.11%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>025560 <small>미래산업</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">1.0억</td>
+        <td class="num">0.8×</td>
+        <td class="num">0.44</td>
+        <td class="num"><span class="neg">-2.32%</span></td>
+        <td class="num"><span class="neg">-2.32%</span></td>
+        <td class="num">0.08조</td>
+        <td class="num post"><span class="pos">+33.07%</span></td>
+        <td class="num post">11:22</td>
+        <td class="num post">09:48</td>
+        <td class="num post"><span class="pos">+33.07%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>142280 <small>녹십자엠에스</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">2.4억</td>
+        <td class="num">1.2×</td>
+        <td class="num">0.17</td>
+        <td class="num"><span class="neg">-1.87%</span></td>
+        <td class="num"><span class="neg">-1.87%</span></td>
+        <td class="num">0.08조</td>
+        <td class="num post"><span class="pos">+32.32%</span></td>
+        <td class="num post">14:04</td>
+        <td class="num post">09:56</td>
+        <td class="num post"><span class="pos">+20.53%</span></td>
+      </tr><tr>
+        <td>2026-05-14</td>
+        <td>412350 <small>레이저쎌</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">391.4억</td>
+        <td class="num">11.0×</td>
+        <td class="num">0.04</td>
+        <td class="num"><span class="neg">-4.79%</span></td>
+        <td class="num"><span class="neg">-16.52%</span></td>
+        <td class="num">0.11조</td>
+        <td class="num post"><span class="pos">+32.31%</span></td>
+        <td class="num post">10:42</td>
+        <td class="num post">11:02</td>
+        <td class="num post"><span class="pos">+18.87%</span></td>
+      </tr><tr>
+        <td>2026-04-28</td>
+        <td>900300 <small>오가닉티코스메틱</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">SECOND_VALUE_SURGE</span></td>
+        <td class="num">28.4억</td>
+        <td class="num">0.9×</td>
+        <td class="num">0.13</td>
+        <td class="num"><span class="neg">-3.62%</span></td>
+        <td class="num"><span class="neg">-8.97%</span></td>
+        <td class="num">0.05조</td>
+        <td class="num post"><span class="pos">+31.46%</span></td>
+        <td class="num post">09:45</td>
+        <td class="num post">09:45</td>
+        <td class="num post"><span class="pos">+7.51%</span></td>
+      </tr><tr>
+        <td>2026-05-14</td>
+        <td>254490 <small>미래반도체</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">45.2억</td>
+        <td class="num">1.0×</td>
+        <td class="num">0.66</td>
+        <td class="num"><span class="pos">+0.41%</span></td>
+        <td class="num"><span class="neg">-1.49%</span></td>
+        <td class="num">0.34조</td>
+        <td class="num post"><span class="pos">+31.46%</span></td>
+        <td class="num post">13:49</td>
+        <td class="num post">10:34</td>
+        <td class="num post"><span class="pos">+18.13%</span></td>
+      </tr><tr>
+        <td>2026-05-11</td>
+        <td>081150 <small>티플랙스</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">1.7억</td>
+        <td class="num">4.3×</td>
+        <td class="num">0.22</td>
+        <td class="num"><span class="neg">-0.99%</span></td>
+        <td class="num"><span class="neg">-2.51%</span></td>
+        <td class="num">0.09조</td>
+        <td class="num post"><span class="pos">+31.43%</span></td>
+        <td class="num post">10:02</td>
+        <td class="num post">09:46</td>
+        <td class="num post"><span class="pos">+31.43%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>092190 <small>서울바이오시스</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">FADED_RECOVERY</span> <span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">36.4억</td>
+        <td class="num">1.7×</td>
+        <td class="num">0.67</td>
+        <td class="num"><span class="pos">+7.43%</span></td>
+        <td class="num"><span class="neg">-4.33%</span></td>
+        <td class="num">0.40조</td>
+        <td class="num post"><span class="pos">+30.83%</span></td>
+        <td class="num post">10:08</td>
+        <td class="num post">09:52</td>
+        <td class="num post"><span class="pos">+30.83%</span></td>
+      </tr><tr>
+        <td>2026-05-07</td>
+        <td>264850 <small>이랜시스</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">9.2억</td>
+        <td class="num">4.7×</td>
+        <td class="num">0.07</td>
+        <td class="num"><span class="neg">-1.11%</span></td>
+        <td class="num"><span class="neg">-4.01%</span></td>
+        <td class="num">0.19조</td>
+        <td class="num post"><span class="pos">+30.55%</span></td>
+        <td class="num post">13:25</td>
+        <td class="num post">13:22</td>
+        <td class="num post"><span class="pos">+30.55%</span></td>
+      </tr><tr>
+        <td>2026-05-08</td>
+        <td>067170 <small>오텍</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">0.7억</td>
+        <td class="num">1.3×</td>
+        <td class="num">0.69</td>
+        <td class="num"><span class="neg">-0.18%</span></td>
+        <td class="num"><span class="neg">-0.92%</span></td>
+        <td class="num">0.06조</td>
+        <td class="num post"><span class="pos">+29.94%</span></td>
+        <td class="num post">10:51</td>
+        <td class="num post">09:37</td>
+        <td class="num post"><span class="pos">+29.94%</span></td>
+      </tr><tr>
+        <td>2026-04-21</td>
+        <td>078130 <small>국일제지</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">3.9억</td>
+        <td class="num">2.5×</td>
+        <td class="num">0.25</td>
+        <td class="num"><span class="neg">-0.28%</span></td>
+        <td class="num"><span class="neg">-3.98%</span></td>
+        <td class="num">0.49조</td>
+        <td class="num post"><span class="pos">+29.83%</span></td>
+        <td class="num post">10:28</td>
+        <td class="num post">10:19</td>
+        <td class="num post"><span class="pos">+29.83%</span></td>
+      </tr><tr>
+        <td>2026-04-30</td>
+        <td>432720 <small>퀄리타스반도체</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span></td>
+        <td class="num">64.6억</td>
+        <td class="num">2.2×</td>
+        <td class="num">0.29</td>
+        <td class="num"><span class="neg">-2.49%</span></td>
+        <td class="num"><span class="neg">-3.79%</span></td>
+        <td class="num">0.35조</td>
+        <td class="num post"><span class="pos">+29.70%</span></td>
+        <td class="num post">10:18</td>
+        <td class="num post">10:15</td>
+        <td class="num post"><span class="pos">+16.24%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>114450 <small>그린생명과학</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">5.4억</td>
+        <td class="num">0.8×</td>
+        <td class="num">0.17</td>
+        <td class="num"><span class="neg">-1.23%</span></td>
+        <td class="num"><span class="neg">-5.54%</span></td>
+        <td class="num">0.06조</td>
+        <td class="num post"><span class="pos">+29.48%</span></td>
+        <td class="num post">14:50</td>
+        <td class="num post">14:50</td>
+        <td class="num post"><span class="pos">+29.48%</span></td>
+      </tr><tr>
+        <td>2026-04-17</td>
+        <td>077970 <small>STX엔진</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">7.8억</td>
+        <td class="num">2.1×</td>
+        <td class="num">0.23</td>
+        <td class="num"><span class="neg">-0.58%</span></td>
+        <td class="num"><span class="neg">-1.88%</span></td>
+        <td class="num">2.47조</td>
+        <td class="num post"><span class="pos">+29.41%</span></td>
+        <td class="num post">13:27</td>
+        <td class="num post">11:10</td>
+        <td class="num post"><span class="pos">+29.41%</span></td>
+      </tr><tr>
+        <td>2026-04-27</td>
+        <td>425040 <small>티이엠씨</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">TEN_SURVIVOR</span> <span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">22.2억</td>
+        <td class="num">3.5×</td>
+        <td class="num">0.60</td>
+        <td class="num"><span class="neg">-1.09%</span></td>
+        <td class="num"><span class="neg">-1.17%</span></td>
+        <td class="num">0.37조</td>
+        <td class="num post"><span class="pos">+29.07%</span></td>
+        <td class="num post">10:01</td>
+        <td class="num post">09:41</td>
+        <td class="num post"><span class="pos">+29.07%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>144960 <small>뉴파워프라즈마</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">TEN_SURVIVOR</span> <span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">46.3억</td>
+        <td class="num">1.3×</td>
+        <td class="num">0.59</td>
+        <td class="num"><span class="neg">-2.04%</span></td>
+        <td class="num"><span class="neg">-2.15%</span></td>
+        <td class="num">0.30조</td>
+        <td class="num post"><span class="pos">+29.05%</span></td>
+        <td class="num post">10:15</td>
+        <td class="num post">09:35</td>
+        <td class="num post"><span class="pos">+29.05%</span></td>
+      </tr><tr>
+        <td>2026-04-17</td>
+        <td>017900 <small>광전자</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">1264.1억</td>
+        <td class="num">2.6×</td>
+        <td class="num">0.13</td>
+        <td class="num"><span class="neg">-12.56%</span></td>
+        <td class="num"><span class="neg">-17.69%</span></td>
+        <td class="num">0.59조</td>
+        <td class="num post"><span class="pos">+28.46%</span></td>
+        <td class="num post">10:06</td>
+        <td class="num post">10:32</td>
+        <td class="num post"><span class="pos">+17.33%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>005250 <small>녹십자홀딩스</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">2.4억</td>
+        <td class="num">1.8×</td>
+        <td class="num">0.50</td>
+        <td class="num"><span class="pos">+0.08%</span></td>
+        <td class="num"><span class="neg">-0.53%</span></td>
+        <td class="num">0.66조</td>
+        <td class="num post"><span class="pos">+28.44%</span></td>
+        <td class="num post">14:11</td>
+        <td class="num post">13:40</td>
+        <td class="num post"><span class="pos">+9.13%</span></td>
+      </tr><tr>
+        <td>2026-04-27</td>
+        <td>900300 <small>오가닉티코스메틱</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">100.7억</td>
+        <td class="num">13.1×</td>
+        <td class="num">0.12</td>
+        <td class="num"><span class="neg">-19.07%</span></td>
+        <td class="num"><span class="neg">-20.00%</span></td>
+        <td class="num">0.05조</td>
+        <td class="num post"><span class="pos">+28.37%</span></td>
+        <td class="num post">09:41</td>
+        <td class="num post">10:00</td>
+        <td class="num post"><span class="pos">+3.85%</span></td>
+      </tr><tr>
+        <td>2026-04-28</td>
+        <td>092790 <small>넥스틸</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">54.1억</td>
+        <td class="num">7.0×</td>
+        <td class="num">0.31</td>
+        <td class="num"><span class="neg">-0.12%</span></td>
+        <td class="num"><span class="neg">-1.69%</span></td>
+        <td class="num">0.53조</td>
+        <td class="num post"><span class="pos">+28.27%</span></td>
+        <td class="num post">14:07</td>
+        <td class="num post">09:36</td>
+        <td class="num post"><span class="pos">+28.27%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>336260 <small>두산퓨얼셀</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">TEN_SURVIVOR</span> <span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">159.8억</td>
+        <td class="num">2.9×</td>
+        <td class="num">0.82</td>
+        <td class="num"><span class="pos">+2.17%</span></td>
+        <td class="num"><span class="neg">-0.81%</span></td>
+        <td class="num">3.98조</td>
+        <td class="num post"><span class="pos">+28.06%</span></td>
+        <td class="num post">10:20</td>
+        <td class="num post">09:31</td>
+        <td class="num post"><span class="pos">+27.73%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>900300 <small>오가닉티코스메틱</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">8.0억</td>
+        <td class="num">3.0×</td>
+        <td class="num">0.22</td>
+        <td class="num"><span class="neg">-4.96%</span></td>
+        <td class="num"><span class="neg">-5.74%</span></td>
+        <td class="num">0.05조</td>
+        <td class="num post"><span class="pos">+27.83%</span></td>
+        <td class="num post">13:19</td>
+        <td class="num post">13:16</td>
+        <td class="num post"><span class="pos">+5.22%</span></td>
+      </tr><tr>
+        <td>2026-05-14</td>
+        <td>086960 <small>MDS테크</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">FADED_RECOVERY</span></td>
+        <td class="num">22.5억</td>
+        <td class="num">0.8×</td>
+        <td class="num">0.03</td>
+        <td class="num"><span class="neg">-1.84%</span></td>
+        <td class="num"><span class="neg">-4.34%</span></td>
+        <td class="num">0.11조</td>
+        <td class="num post"><span class="pos">+27.39%</span></td>
+        <td class="num post">10:48</td>
+        <td class="num post">10:10</td>
+        <td class="num post"><span class="pos">+7.51%</span></td>
+      </tr><tr>
+        <td>2026-04-24</td>
+        <td>078600 <small>대주전자재료</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">49.7억</td>
+        <td class="num">1.9×</td>
+        <td class="num">0.46</td>
+        <td class="num"><span class="pos">+0.42%</span></td>
+        <td class="num"><span class="neg">-2.11%</span></td>
+        <td class="num">2.46조</td>
+        <td class="num post"><span class="pos">+27.38%</span></td>
+        <td class="num post">14:15</td>
+        <td class="num post">14:12</td>
+        <td class="num post"><span class="pos">+27.03%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>253840 <small>수젠텍</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">FADED_RECOVERY</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span></td>
+        <td class="num">27.4억</td>
+        <td class="num">0.8×</td>
+        <td class="num">0.60</td>
+        <td class="num"><span class="pos">+0.67%</span></td>
+        <td class="num"><span class="neg">-2.58%</span></td>
+        <td class="num">0.09조</td>
+        <td class="num post"><span class="pos">+27.27%</span></td>
+        <td class="num post">13:33</td>
+        <td class="num post">09:35</td>
+        <td class="num post"><span class="pos">+13.22%</span></td>
+      </tr><tr>
+        <td>2026-04-20</td>
+        <td>054920 <small>한컴위드</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">FADED_RECOVERY</span></td>
+        <td class="num">69.2억</td>
+        <td class="num">4.5×</td>
+        <td class="num">0.40</td>
+        <td class="num"><span class="neg">-0.16%</span></td>
+        <td class="num"><span class="neg">-3.24%</span></td>
+        <td class="num">0.19조</td>
+        <td class="num post"><span class="pos">+27.07%</span></td>
+        <td class="num post">13:49</td>
+        <td class="num post">09:41</td>
+        <td class="num post"><span class="pos">+12.90%</span></td>
+      </tr><tr>
+        <td>2026-05-14</td>
+        <td>418420 <small>라온텍</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">FADED_RECOVERY</span></td>
+        <td class="num">24.8억</td>
+        <td class="num">2.1×</td>
+        <td class="num">0.60</td>
+        <td class="num"><span class="pos">+1.87%</span></td>
+        <td class="num"><span class="neg">-3.02%</span></td>
+        <td class="num">0.20조</td>
+        <td class="num post"><span class="pos">+26.78%</span></td>
+        <td class="num post">11:30</td>
+        <td class="num post">10:15</td>
+        <td class="num post"><span class="pos">+26.78%</span></td>
+      </tr><tr>
+        <td>2026-04-17</td>
+        <td>069540 <small>빛과전자</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">635.4억</td>
+        <td class="num">2.2×</td>
+        <td class="num">0.16</td>
+        <td class="num"><span class="neg">-4.15%</span></td>
+        <td class="num"><span class="neg">-11.40%</span></td>
+        <td class="num">0.50조</td>
+        <td class="num post"><span class="pos">+26.70%</span></td>
+        <td class="num post">10:25</td>
+        <td class="num post">10:26</td>
+        <td class="num post"><span class="pos">+26.70%</span></td>
+      </tr><tr>
+        <td>2026-05-07</td>
+        <td>058430 <small>포스코스틸리온</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">35.7억</td>
+        <td class="num">2.3×</td>
+        <td class="num">0.06</td>
+        <td class="num"><span class="neg">-2.34%</span></td>
+        <td class="num"><span class="neg">-3.84%</span></td>
+        <td class="num">0.50조</td>
+        <td class="num post"><span class="pos">+26.36%</span></td>
+        <td class="num post">12:22</td>
+        <td class="num post">12:06</td>
+        <td class="num post"><span class="pos">+7.99%</span></td>
+      </tr><tr>
+        <td>2026-04-29</td>
+        <td>027360 <small>아주IB투자</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">1450.0억</td>
+        <td class="num">7.8×</td>
+        <td class="num">0.28</td>
+        <td class="num"><span class="pos">+0.73%</span></td>
+        <td class="num"><span class="neg">-8.07%</span></td>
+        <td class="num">1.82조</td>
+        <td class="num post"><span class="pos">+26.27%</span></td>
+        <td class="num post">11:32</td>
+        <td class="num post">11:29</td>
+        <td class="num post"><span class="pos">+9.44%</span></td>
+      </tr><tr>
+        <td>2026-04-30</td>
+        <td>059120 <small>아진엑스텍</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">11.9억</td>
+        <td class="num">5.0×</td>
+        <td class="num">0.05</td>
+        <td class="num"><span class="neg">-0.90%</span></td>
+        <td class="num"><span class="neg">-2.40%</span></td>
+        <td class="num">0.16조</td>
+        <td class="num post"><span class="pos">+26.17%</span></td>
+        <td class="num post">11:56</td>
+        <td class="num post">10:59</td>
+        <td class="num post"><span class="pos">+15.41%</span></td>
+      </tr><tr>
+        <td>2026-05-11</td>
+        <td>142210 <small>유니트론텍</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">19.9억</td>
+        <td class="num">9.7×</td>
+        <td class="num">0.53</td>
+        <td class="num"><span class="pos">+2.22%</span></td>
+        <td class="num"><span class="neg">-2.28%</span></td>
+        <td class="num">0.12조</td>
+        <td class="num post"><span class="pos">+26.09%</span></td>
+        <td class="num post">13:23</td>
+        <td class="num post">11:18</td>
+        <td class="num post"><span class="pos">+18.01%</span></td>
+      </tr><tr>
+        <td>2026-04-28</td>
+        <td>005010 <small>휴스틸</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">35.4억</td>
+        <td class="num">3.9×</td>
+        <td class="num">0.52</td>
+        <td class="num"><span class="neg">-0.17%</span></td>
+        <td class="num"><span class="neg">-1.71%</span></td>
+        <td class="num">0.38조</td>
+        <td class="num post"><span class="pos">+26.04%</span></td>
+        <td class="num post">11:11</td>
+        <td class="num post">09:36</td>
+        <td class="num post"><span class="pos">+17.01%</span></td>
+      </tr><tr>
+        <td>2026-04-27</td>
+        <td>058430 <small>포스코스틸리온</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">30.8억</td>
+        <td class="num">2.8×</td>
+        <td class="num">0.48</td>
+        <td class="num"><span class="pos">+1.08%</span></td>
+        <td class="num"><span class="neg">-2.44%</span></td>
+        <td class="num">0.50조</td>
+        <td class="num post"><span class="pos">+25.76%</span></td>
+        <td class="num post">13:00</td>
+        <td class="num post">11:12</td>
+        <td class="num post"><span class="pos">+25.76%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>452260 <small>한화갤러리아</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">41.8억</td>
+        <td class="num">5.4×</td>
+        <td class="num">0.59</td>
+        <td class="num"><span class="pos">+2.84%</span></td>
+        <td class="num"><span class="neg">-2.03%</span></td>
+        <td class="num">0.60조</td>
+        <td class="num post"><span class="pos">+25.73%</span></td>
+        <td class="num post">12:32</td>
+        <td class="num post">11:30</td>
+        <td class="num post"><span class="pos">+25.73%</span></td>
+      </tr><tr>
+        <td>2026-05-08</td>
+        <td>147830 <small>제룡산업</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">FADED_RECOVERY</span></td>
+        <td class="num">114.1억</td>
+        <td class="num">10.3×</td>
+        <td class="num">0.29</td>
+        <td class="num"><span class="neg">-0.97%</span></td>
+        <td class="num"><span class="neg">-4.96%</span></td>
+        <td class="num">0.23조</td>
+        <td class="num post"><span class="pos">+25.59%</span></td>
+        <td class="num post">09:42</td>
+        <td class="num post">09:39</td>
+        <td class="num post"><span class="pos">+11.90%</span></td>
+      </tr><tr>
+        <td>2026-04-23</td>
+        <td>145170 <small>노브랜드</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">1.2억</td>
+        <td class="num">2.1×</td>
+        <td class="num">0.04</td>
+        <td class="num"><span class="neg">-0.54%</span></td>
+        <td class="num"><span class="neg">-2.45%</span></td>
+        <td class="num">0.08조</td>
+        <td class="num post"><span class="pos">+25.46%</span></td>
+        <td class="num post">12:54</td>
+        <td class="num post">10:44</td>
+        <td class="num post"><span class="pos">+9.29%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>187870 <small>디바이스</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">4.8억</td>
+        <td class="num">2.3×</td>
+        <td class="num">1.00</td>
+        <td class="num"><span class="pos">+6.70%</span></td>
+        <td class="num"><span class="">+0.00%</span></td>
+        <td class="num">0.14조</td>
+        <td class="num post"><span class="pos">+25.34%</span></td>
+        <td class="num post">10:02</td>
+        <td class="num post">09:31</td>
+        <td class="num post"><span class="pos">+25.34%</span></td>
+      </tr><tr>
+        <td>2026-05-11</td>
+        <td>254490 <small>미래반도체</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">FADED_RECOVERY</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">63.6억</td>
+        <td class="num">4.9×</td>
+        <td class="num">0.44</td>
+        <td class="num"><span class="neg">-2.74%</span></td>
+        <td class="num"><span class="neg">-2.74%</span></td>
+        <td class="num">0.34조</td>
+        <td class="num post"><span class="pos">+25.31%</span></td>
+        <td class="num post">10:14</td>
+        <td class="num post">09:34</td>
+        <td class="num post"><span class="pos">+25.31%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>084650 <small>랩지노믹스</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">3.9억</td>
+        <td class="num">0.9×</td>
+        <td class="num">0.61</td>
+        <td class="num"><span class="neg">-0.69%</span></td>
+        <td class="num"><span class="neg">-1.07%</span></td>
+        <td class="num">0.10조</td>
+        <td class="num post"><span class="pos">+25.31%</span></td>
+        <td class="num post">13:37</td>
+        <td class="num post">09:37</td>
+        <td class="num post"><span class="pos">+9.18%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>054920 <small>한컴위드</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">22.3억</td>
+        <td class="num">3.3×</td>
+        <td class="num">0.25</td>
+        <td class="num"><span class="neg">-3.44%</span></td>
+        <td class="num"><span class="neg">-3.78%</span></td>
+        <td class="num">0.19조</td>
+        <td class="num post"><span class="pos">+25.04%</span></td>
+        <td class="num post">12:36</td>
+        <td class="num post">12:10</td>
+        <td class="num post"><span class="pos">+14.26%</span></td>
+      </tr><tr>
+        <td>2026-04-24</td>
+        <td>027360 <small>아주IB투자</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">559.6억</td>
+        <td class="num">2.6×</td>
+        <td class="num">0.75</td>
+        <td class="num"><span class="pos">+4.04%</span></td>
+        <td class="num"><span class="neg">-1.81%</span></td>
+        <td class="num">1.82조</td>
+        <td class="num post"><span class="pos">+24.90%</span></td>
+        <td class="num post">09:46</td>
+        <td class="num post">09:36</td>
+        <td class="num post"><span class="pos">+23.32%</span></td>
+      </tr><tr>
+        <td>2026-04-17</td>
+        <td>321260 <small>프로이천</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">109.0억</td>
+        <td class="num">56.6×</td>
+        <td class="num">0.37</td>
+        <td class="num"><span class="pos">+3.33%</span></td>
+        <td class="num"><span class="neg">-9.24%</span></td>
+        <td class="num">0.07조</td>
+        <td class="num post"><span class="pos">+24.62%</span></td>
+        <td class="num post">09:52</td>
+        <td class="num post">09:52</td>
+        <td class="num post"><span class="pos">+2.89%</span></td>
+      </tr><tr>
+        <td>2026-05-11</td>
+        <td>215790 <small>이노인스트루먼트</small></td>
+        <td>READY <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span></td>
+        <td class="num">24.9억</td>
+        <td class="num">4.6×</td>
+        <td class="num">0.75</td>
+        <td class="num"><span class="pos">+3.97%</span></td>
+        <td class="num"><span class="neg">-2.39%</span></td>
+        <td class="num">0.06조</td>
+        <td class="num post"><span class="pos">+24.50%</span></td>
+        <td class="num post">09:41</td>
+        <td class="num post">09:32</td>
+        <td class="num post"><span class="pos">+24.50%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>145170 <small>노브랜드</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">1.9억</td>
+        <td class="num">0.7×</td>
+        <td class="num">0.09</td>
+        <td class="num"><span class="neg">-2.98%</span></td>
+        <td class="num"><span class="neg">-2.98%</span></td>
+        <td class="num">0.08조</td>
+        <td class="num post"><span class="pos">+24.18%</span></td>
+        <td class="num post">11:45</td>
+        <td class="num post">11:04</td>
+        <td class="num post"><span class="pos">+5.53%</span></td>
+      </tr><tr>
+        <td>2026-04-16</td>
+        <td>033160 <small>엠케이전자</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">FADED_RECOVERY</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">44.2억</td>
+        <td class="num">1.8×</td>
+        <td class="num">0.06</td>
+        <td class="num"><span class="neg">-3.08%</span></td>
+        <td class="num"><span class="neg">-3.30%</span></td>
+        <td class="num">0.67조</td>
+        <td class="num post"><span class="pos">+24.09%</span></td>
+        <td class="num post">10:19</td>
+        <td class="num post">09:43</td>
+        <td class="num post"><span class="pos">+9.09%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>003470 <small>유안타증권</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_SURVIVOR</span> <span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">347.2억</td>
+        <td class="num">3.3×</td>
+        <td class="num">0.26</td>
+        <td class="num"><span class="neg">-7.07%</span></td>
+        <td class="num"><span class="neg">-7.88%</span></td>
+        <td class="num">1.05조</td>
+        <td class="num post"><span class="pos">+24.09%</span></td>
+        <td class="num post">10:02</td>
+        <td class="num post">09:58</td>
+        <td class="num post"><span class="pos">+24.09%</span></td>
+      </tr><tr>
+        <td>2026-04-20</td>
+        <td>253840 <small>수젠텍</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">251.3억</td>
+        <td class="num">3.9×</td>
+        <td class="num">0.48</td>
+        <td class="num"><span class="pos">+4.76%</span></td>
+        <td class="num"><span class="neg">-6.25%</span></td>
+        <td class="num">0.09조</td>
+        <td class="num post"><span class="pos">+23.79%</span></td>
+        <td class="num post">10:56</td>
+        <td class="num post">10:53</td>
+        <td class="num post"><span class="pos">+5.30%</span></td>
+      </tr><tr>
+        <td>2026-05-11</td>
+        <td>223250 <small>드림씨아이에스</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">FADED_RECOVERY</span></td>
+        <td class="num">55.4억</td>
+        <td class="num">0.5×</td>
+        <td class="num">0.42</td>
+        <td class="num"><span class="neg">-0.14%</span></td>
+        <td class="num"><span class="neg">-3.05%</span></td>
+        <td class="num">0.12조</td>
+        <td class="num post"><span class="pos">+23.61%</span></td>
+        <td class="num post">09:50</td>
+        <td class="num post">09:47</td>
+        <td class="num post"><span class="pos">+2.00%</span></td>
+      </tr><tr>
+        <td>2026-04-24</td>
+        <td>221800 <small>지구홀딩스</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">31.5억</td>
+        <td class="num">0.8×</td>
+        <td class="num">0.34</td>
+        <td class="num"><span class="neg">-2.35%</span></td>
+        <td class="num"><span class="neg">-4.32%</span></td>
+        <td class="num">0.30조</td>
+        <td class="num post"><span class="pos">+23.50%</span></td>
+        <td class="num post">11:32</td>
+        <td class="num post">10:42</td>
+        <td class="num post"><span class="pos">+16.92%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>403550 <small>쏘카</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">4.7억</td>
+        <td class="num">5.4×</td>
+        <td class="num">0.63</td>
+        <td class="num"><span class="neg">-1.98%</span></td>
+        <td class="num"><span class="neg">-1.98%</span></td>
+        <td class="num">0.58조</td>
+        <td class="num post"><span class="pos">+23.49%</span></td>
+        <td class="num post">10:38</td>
+        <td class="num post">10:36</td>
+        <td class="num post"><span class="pos">+23.49%</span></td>
+      </tr><tr>
+        <td>2026-04-24</td>
+        <td>090710 <small>휴림로봇</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">98.5억</td>
+        <td class="num">1.8×</td>
+        <td class="num">0.28</td>
+        <td class="num"><span class="">+0.00%</span></td>
+        <td class="num"><span class="neg">-2.26%</span></td>
+        <td class="num">1.51조</td>
+        <td class="num post"><span class="pos">+23.45%</span></td>
+        <td class="num post">11:37</td>
+        <td class="num post">10:39</td>
+        <td class="num post"><span class="pos">+17.67%</span></td>
+      </tr><tr>
+        <td>2026-05-04</td>
+        <td>037030 <small>파워넷</small></td>
+        <td>READY <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">25.4억</td>
+        <td class="num">6.2×</td>
+        <td class="num">0.81</td>
+        <td class="num"><span class="pos">+3.25%</span></td>
+        <td class="num"><span class="neg">-0.82%</span></td>
+        <td class="num">0.15조</td>
+        <td class="num post"><span class="pos">+23.38%</span></td>
+        <td class="num post">11:50</td>
+        <td class="num post">09:34</td>
+        <td class="num post"><span class="pos">+23.38%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>024060 <small>흥구석유</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span></td>
+        <td class="num">36.8억</td>
+        <td class="num">3.4×</td>
+        <td class="num">0.03</td>
+        <td class="num"><span class="neg">-0.78%</span></td>
+        <td class="num"><span class="neg">-2.36%</span></td>
+        <td class="num">0.27조</td>
+        <td class="num post"><span class="pos">+23.29%</span></td>
+        <td class="num post">10:26</td>
+        <td class="num post">10:14</td>
+        <td class="num post"><span class="pos">+1.89%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>144960 <small>뉴파워프라즈마</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">7.2억</td>
+        <td class="num">2.4×</td>
+        <td class="num">0.52</td>
+        <td class="num"><span class="pos">+0.54%</span></td>
+        <td class="num"><span class="neg">-1.58%</span></td>
+        <td class="num">0.30조</td>
+        <td class="num post"><span class="pos">+23.29%</span></td>
+        <td class="num post">10:51</td>
+        <td class="num post">09:46</td>
+        <td class="num post"><span class="pos">+14.86%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>003280 <small>흥아해운</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">FADED_RECOVERY</span></td>
+        <td class="num">49.0억</td>
+        <td class="num">4.5×</td>
+        <td class="num">0.30</td>
+        <td class="num"><span class="pos">+0.56%</span></td>
+        <td class="num"><span class="neg">-2.54%</span></td>
+        <td class="num">0.69조</td>
+        <td class="num post"><span class="pos">+23.28%</span></td>
+        <td class="num post">10:22</td>
+        <td class="num post">10:11</td>
+        <td class="num post"><span class="pos">+3.54%</span></td>
+      </tr><tr>
+        <td>2026-04-21</td>
+        <td>053260 <small>금강철강</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">FADED_RECOVERY</span></td>
+        <td class="num">22.5억</td>
+        <td class="num">0.5×</td>
+        <td class="num">0.22</td>
+        <td class="num"><span class="neg">-1.43%</span></td>
+        <td class="num"><span class="neg">-4.33%</span></td>
+        <td class="num">0.12조</td>
+        <td class="num post"><span class="pos">+23.26%</span></td>
+        <td class="num post">10:20</td>
+        <td class="num post">10:19</td>
+        <td class="num post"><span class="pos">+3.39%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>483650 <small>달바글로벌</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span></td>
+        <td class="num">69.3억</td>
+        <td class="num">2.1×</td>
+        <td class="num">0.70</td>
+        <td class="num"><span class="pos">+0.45%</span></td>
+        <td class="num"><span class="neg">-1.55%</span></td>
+        <td class="num">2.81조</td>
+        <td class="num post"><span class="pos">+23.09%</span></td>
+        <td class="num post">10:07</td>
+        <td class="num post">10:01</td>
+        <td class="num post"><span class="pos">+10.76%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>010780 <small>아이에스동서</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">4.0억</td>
+        <td class="num">1.6×</td>
+        <td class="num">0.83</td>
+        <td class="num"><span class="pos">+3.49%</span></td>
+        <td class="num"><span class="neg">-0.98%</span></td>
+        <td class="num">0.81조</td>
+        <td class="num post"><span class="pos">+23.02%</span></td>
+        <td class="num post">14:25</td>
+        <td class="num post">11:01</td>
+        <td class="num post"><span class="pos">+8.53%</span></td>
+      </tr><tr>
+        <td>2026-04-22</td>
+        <td>452260 <small>한화갤러리아</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">7.5억</td>
+        <td class="num">2.8×</td>
+        <td class="num">0.40</td>
+        <td class="num"><span class="neg">-0.82%</span></td>
+        <td class="num"><span class="neg">-1.22%</span></td>
+        <td class="num">0.60조</td>
+        <td class="num post"><span class="pos">+22.89%</span></td>
+        <td class="num post">13:21</td>
+        <td class="num post">13:21</td>
+        <td class="num post"><span class="pos">+5.77%</span></td>
+      </tr><tr>
+        <td>2026-05-14</td>
+        <td>048770 <small>TPC로보틱스</small></td>
+        <td>INSUFFICIENT_BARS <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">48.1억</td>
+        <td class="num">1.1×</td>
+        <td class="num">1.00</td>
+        <td class="num"><span class="pos">+2.69%</span></td>
+        <td class="num"><span class="">+0.00%</span></td>
+        <td class="num">0.06조</td>
+        <td class="num post"><span class="pos">+22.80%</span></td>
+        <td class="num post">10:30</td>
+        <td class="num post">10:00</td>
+        <td class="num post"><span class="pos">+22.80%</span></td>
+      </tr><tr>
+        <td>2026-04-16</td>
+        <td>452190 <small>한빛레이저</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span></td>
+        <td class="num">91.3억</td>
+        <td class="num">1.4×</td>
+        <td class="num">0.78</td>
+        <td class="num"><span class="pos">+3.14%</span></td>
+        <td class="num"><span class="neg">-1.76%</span></td>
+        <td class="num">0.19조</td>
+        <td class="num post"><span class="pos">+22.72%</span></td>
+        <td class="num post">10:19</td>
+        <td class="num post">10:05</td>
+        <td class="num post"><span class="pos">+22.72%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>089010 <small>켐트로닉스</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">TEN_SURVIVOR</span> <span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">73.8억</td>
+        <td class="num">3.5×</td>
+        <td class="num">0.83</td>
+        <td class="num"><span class="neg">-0.38%</span></td>
+        <td class="num"><span class="neg">-0.50%</span></td>
+        <td class="num">0.63조</td>
+        <td class="num post"><span class="pos">+22.71%</span></td>
+        <td class="num post">09:59</td>
+        <td class="num post">09:31</td>
+        <td class="num post"><span class="pos">+14.68%</span></td>
+      </tr><tr>
+        <td>2026-04-28</td>
+        <td>138360 <small>앤로보틱스</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">371.4억</td>
+        <td class="num">5.4×</td>
+        <td class="num">0.16</td>
+        <td class="num"><span class="neg">-3.53%</span></td>
+        <td class="num"><span class="neg">-15.48%</span></td>
+        <td class="num">0.29조</td>
+        <td class="num post"><span class="pos">+22.54%</span></td>
+        <td class="num post">09:51</td>
+        <td class="num post">09:58</td>
+        <td class="num post"><span class="pos">+20.28%</span></td>
+      </tr><tr>
+        <td>2026-04-20</td>
+        <td>084650 <small>랩지노믹스</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">48.5억</td>
+        <td class="num">0.7×</td>
+        <td class="num">0.10</td>
+        <td class="num"><span class="neg">-0.98%</span></td>
+        <td class="num"><span class="neg">-4.37%</span></td>
+        <td class="num">0.10조</td>
+        <td class="num post"><span class="pos">+22.41%</span></td>
+        <td class="num post">11:08</td>
+        <td class="num post">11:00</td>
+        <td class="num post"><span class="pos">+2.28%</span></td>
+      </tr><tr>
+        <td>2026-04-20</td>
+        <td>036220 <small>오상헬스케어</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">19.0억</td>
+        <td class="num">1.7×</td>
+        <td class="num">0.64</td>
+        <td class="num"><span class="">+0.00%</span></td>
+        <td class="num"><span class="neg">-1.39%</span></td>
+        <td class="num">0.13조</td>
+        <td class="num post"><span class="pos">+22.22%</span></td>
+        <td class="num post">11:07</td>
+        <td class="num post">10:53</td>
+        <td class="num post"><span class="pos">+4.75%</span></td>
+      </tr><tr>
+        <td>2026-05-07</td>
+        <td>101170 <small>우림피티에스</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">9.0억</td>
+        <td class="num">3.9×</td>
+        <td class="num">0.00</td>
+        <td class="num"><span class="neg">-0.78%</span></td>
+        <td class="num"><span class="neg">-3.89%</span></td>
+        <td class="num">0.19조</td>
+        <td class="num post"><span class="pos">+22.16%</span></td>
+        <td class="num post">13:45</td>
+        <td class="num post">13:29</td>
+        <td class="num post"><span class="pos">+3.62%</span></td>
+      </tr><tr>
+        <td>2026-04-22</td>
+        <td>170920 <small>엘티씨</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">25.3억</td>
+        <td class="num">1.9×</td>
+        <td class="num">0.07</td>
+        <td class="num"><span class="neg">-0.14%</span></td>
+        <td class="num"><span class="neg">-5.53%</span></td>
+        <td class="num">0.48조</td>
+        <td class="num post"><span class="pos">+22.11%</span></td>
+        <td class="num post">14:50</td>
+        <td class="num post">14:32</td>
+        <td class="num post"><span class="pos">+18.40%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>161580 <small>필옵틱스</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">126.5억</td>
+        <td class="num">15.8×</td>
+        <td class="num">0.80</td>
+        <td class="num"><span class="pos">+0.58%</span></td>
+        <td class="num"><span class="neg">-0.77%</span></td>
+        <td class="num">1.12조</td>
+        <td class="num post"><span class="pos">+22.01%</span></td>
+        <td class="num post">09:49</td>
+        <td class="num post">09:33</td>
+        <td class="num post"><span class="pos">+21.62%</span></td>
+      </tr></tbody></table>
+
+<h2>3. 상태별 분포 (09:30 close 기준 +10% 종목)</h2>
+<div class="grid">
+  <div>
+    <h3>상태 (READY / FADED / WAIT_PULLBACK / WEAK / explosiveTop)</h3>
+    <table class="dict"><thead><tr><th>키</th><th>개수</th><th>비중</th></tr></thead><tbody>
+      <tr><td>FADED</td><td class="num">251</td><td class="num">52.6%</td></tr><tr><td>WEAK</td><td class="num">170</td><td class="num">35.6%</td></tr><tr><td>READY</td><td class="num">27</td><td class="num">5.7%</td></tr><tr><td>WAIT_PULLBACK</td><td class="num">19</td><td class="num">4.0%</td></tr><tr><td>explosiveTop</td><td class="num">8</td><td class="num">1.7%</td></tr><tr><td>INSUFFICIENT_BARS</td><td class="num">2</td><td class="num">0.4%</td></tr>
+    </tbody></table>
+  </div>
+  <div>
+    <h3>시총 구간</h3>
+    <table class="dict"><thead><tr><th>키</th><th>개수</th><th>비중</th></tr></thead><tbody>
+      <tr><td>1000~3000억</td><td class="num">142</td><td class="num">29.8%</td></tr><tr><td>1조~3조</td><td class="num">93</td><td class="num">19.5%</td></tr><tr><td>3000~5000억</td><td class="num">77</td><td class="num">16.1%</td></tr><tr><td>&lt;1000억</td><td class="num">77</td><td class="num">16.1%</td></tr><tr><td>5000억~1조</td><td class="num">65</td><td class="num">13.6%</td></tr><tr><td>3조+</td><td class="num">23</td><td class="num">4.8%</td></tr>
+    </tbody></table>
+  </div>
+</div>
+
+<h2>4. 가설별 분포 (09:30 close 기준 +10% 종목)</h2>
+<table class="dict"><thead><tr><th>키</th><th>개수</th><th>비중</th></tr></thead><tbody>
+      <tr><td>TEN_REBREAK</td><td class="num">210</td><td class="num">28.1%</td></tr><tr><td>none</td><td class="num">172</td><td class="num">23.0%</td></tr><tr><td>TEN_SURVIVOR</td><td class="num">128</td><td class="num">17.1%</td></tr><tr><td>SECOND_VALUE_SURGE</td><td class="num">83</td><td class="num">11.1%</td></tr><tr><td>FADED_RECOVERY</td><td class="num">80</td><td class="num">10.7%</td></tr><tr><td>MORNING_TREND</td><td class="num">74</td><td class="num">9.9%</td></tr>
+    </tbody></table>
+<p class="note">한 종목이 여러 가설에 잡히면 각각 카운트됨. "none" = 어떤 가설에도 트리거 안 됨.</p>
+
+<h2>5. +10% 종목의 공통 조건 범위 (09:30 close 기준)</h2>
+<table class="ranges"><thead><tr><th>지표</th><th>중앙값</th><th>평균</th></tr></thead><tbody>
+      <tr><td>09:30 거래대금</td><td class="num">57.9억</td><td class="num">158.2억</td></tr>
+      <tr><td>v/avg30 비율</td><td class="num">2.6×</td><td class="num">5.4×</td></tr>
+      <tr><td>closePosition0930</td><td class="num">0.46</td><td class="num">0.48</td></tr>
+      <tr><td>highToLastDrop</td><td class="num">-2.69%</td><td class="num">-3.82%</td></tr>
+      <tr><td>openToLastRate</td><td class="num">-0.18%</td><td class="num">0.20%</td></tr>
+      <tr><td>시총</td><td class="num">0.37조</td><td class="num">0.79조</td></tr>
+      <tr><td>09:30 거래대금 / 시총</td><td class="num">1.41%</td><td class="num">4.43%</td></tr>
+      <tr><td>09:30 high 재돌파 시간 (중앙)</td><td colspan="2" class="num">09:58</td></tr>
+      <tr><td>rebreakMorningHigh 비율</td><td colspan="2" class="num">39.4%</td></tr>
+      <tr><td>10:00 close > 09:30 close 비율</td><td colspan="2" class="num">73.2%</td></tr>
+    </tbody></table>
+
+<h2>6. explosiveTop이 놓친 +10% 종목 분석</h2>
+<p>전체 +10% 종목 477개 중 explosiveTop 통과 8개 / 놓침 469개 (coverage 1.7%)</p>
+<div class="grid">
+  <div>
+    <h3>놓친 종목 — 상태 분포</h3>
+    <table class="dict"><thead><tr><th>키</th><th>개수</th><th>비중</th></tr></thead><tbody>
+      <tr><td>FADED</td><td class="num">251</td><td class="num">53.5%</td></tr><tr><td>WEAK</td><td class="num">170</td><td class="num">36.2%</td></tr><tr><td>READY</td><td class="num">27</td><td class="num">5.8%</td></tr><tr><td>WAIT_PULLBACK</td><td class="num">19</td><td class="num">4.1%</td></tr><tr><td>INSUFFICIENT_BARS</td><td class="num">2</td><td class="num">0.4%</td></tr>
+    </tbody></table>
+  </div>
+  <div>
+    <h3>놓친 종목 — 가설 분포</h3>
+    <table class="dict"><thead><tr><th>키</th><th>개수</th><th>비중</th></tr></thead><tbody>
+      <tr><td>TEN_REBREAK</td><td class="num">202</td><td class="num">27.8%</td></tr><tr><td>none</td><td class="num">172</td><td class="num">23.7%</td></tr><tr><td>TEN_SURVIVOR</td><td class="num">125</td><td class="num">17.2%</td></tr><tr><td>FADED_RECOVERY</td><td class="num">80</td><td class="num">11.0%</td></tr><tr><td>SECOND_VALUE_SURGE</td><td class="num">79</td><td class="num">10.9%</td></tr><tr><td>MORNING_TREND</td><td class="num">69</td><td class="num">9.5%</td></tr>
+    </tbody></table>
+  </div>
+</div>
+<h3>놓친 종목 — 공통 조건 범위</h3>
+<table class="ranges"><thead><tr><th>지표</th><th>중앙값</th><th>평균</th></tr></thead><tbody>
+      <tr><td>09:30 거래대금</td><td class="num">54.1억</td><td class="num">155.5억</td></tr>
+      <tr><td>v/avg30 비율</td><td class="num">2.5×</td><td class="num">5.4×</td></tr>
+      <tr><td>closePosition0930</td><td class="num">0.46</td><td class="num">0.47</td></tr>
+      <tr><td>highToLastDrop</td><td class="num">-2.74%</td><td class="num">-3.87%</td></tr>
+      <tr><td>openToLastRate</td><td class="num">-0.24%</td><td class="num">0.11%</td></tr>
+      <tr><td>시총</td><td class="num">0.36조</td><td class="num">0.76조</td></tr>
+      <tr><td>09:30 거래대금 / 시총</td><td class="num">1.40%</td><td class="num">4.46%</td></tr>
+      <tr><td>09:30 high 재돌파 시간 (중앙)</td><td colspan="2" class="num">09:58</td></tr>
+      <tr><td>rebreakMorningHigh 비율</td><td colspan="2" class="num">38.4%</td></tr>
+      <tr><td>10:00 close > 09:30 close 비율</td><td colspan="2" class="num">72.9%</td></tr>
+    </tbody></table>
+<h3>놓친 종목 — 시총 구간</h3>
+<table class="dict"><thead><tr><th>키</th><th>개수</th><th>비중</th></tr></thead><tbody>
+      <tr><td>1000~3000억</td><td class="num">141</td><td class="num">30.1%</td></tr><tr><td>1조~3조</td><td class="num">91</td><td class="num">19.4%</td></tr><tr><td>&lt;1000억</td><td class="num">77</td><td class="num">16.4%</td></tr><tr><td>3000~5000억</td><td class="num">76</td><td class="num">16.2%</td></tr><tr><td>5000억~1조</td><td class="num">64</td><td class="num">13.6%</td></tr><tr><td>3조+</td><td class="num">20</td><td class="num">4.3%</td></tr>
+    </tbody></table>
+
+<h3>놓친 +10% 종목 목록 (상위 80건)</h3>
+<table class="winners"><thead><tr>
+      <th>날짜</th><th>코드/명</th>
+      <th>상태</th><th>가설</th>
+      <th>값09:30</th><th>v/avg</th><th>cp</th><th>open→last</th><th>drop</th><th>시총</th>
+      <th class="post">최대(↑0930)</th><th class="post">+10%도달</th><th class="post">MH재돌파</th><th class="post">종가수익</th>
+    </tr></thead><tbody><tr>
+        <td>2026-04-17</td>
+        <td>046970 <small>우리로</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">909.9억</td>
+        <td class="num">0.0×</td>
+        <td class="num">0.22</td>
+        <td class="num"><span class="neg">-8.75%</span></td>
+        <td class="num"><span class="neg">-12.40%</span></td>
+        <td class="num">0.37조</td>
+        <td class="num post"><span class="pos">+47.95%</span></td>
+        <td class="num post">10:12</td>
+        <td class="num post">10:12</td>
+        <td class="num post"><span class="pos">+18.45%</span></td>
+      </tr><tr>
+        <td>2026-05-11</td>
+        <td>007610 <small>선도전기</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">108.2억</td>
+        <td class="num">2.1×</td>
+        <td class="num">0.15</td>
+        <td class="num"><span class="neg">-8.44%</span></td>
+        <td class="num"><span class="neg">-8.53%</span></td>
+        <td class="num">0.15조</td>
+        <td class="num post"><span class="pos">+44.61%</span></td>
+        <td class="num post">14:02</td>
+        <td class="num post">14:02</td>
+        <td class="num post"><span class="pos">+44.61%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>007460 <small>에이프로젠</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">6.1억</td>
+        <td class="num">3.8×</td>
+        <td class="num">0.17</td>
+        <td class="num"><span class="neg">-6.25%</span></td>
+        <td class="num"><span class="neg">-6.25%</span></td>
+        <td class="num">0.10조</td>
+        <td class="num post"><span class="pos">+38.67%</span></td>
+        <td class="num post">11:33</td>
+        <td class="num post">11:32</td>
+        <td class="num post"><span class="pos">+38.67%</span></td>
+      </tr><tr>
+        <td>2026-05-08</td>
+        <td>223250 <small>드림씨아이에스</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">141.8억</td>
+        <td class="num">19.0×</td>
+        <td class="num">0.07</td>
+        <td class="num"><span class="neg">-17.07%</span></td>
+        <td class="num"><span class="neg">-17.42%</span></td>
+        <td class="num">0.12조</td>
+        <td class="num post"><span class="pos">+38.42%</span></td>
+        <td class="num post">13:54</td>
+        <td class="num post">13:56</td>
+        <td class="num post"><span class="pos">+22.13%</span></td>
+      </tr><tr>
+        <td>2026-05-07</td>
+        <td>024840 <small>KBI메탈</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">806.6억</td>
+        <td class="num">7.6×</td>
+        <td class="num">0.01</td>
+        <td class="num"><span class="neg">-18.11%</span></td>
+        <td class="num"><span class="neg">-23.37%</span></td>
+        <td class="num">0.18조</td>
+        <td class="num post"><span class="pos">+36.47%</span></td>
+        <td class="num post">09:51</td>
+        <td class="num post">12:02</td>
+        <td class="num post"><span class="pos">+18.17%</span></td>
+      </tr><tr>
+        <td>2026-04-17</td>
+        <td>049080 <small>기가레인</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">127.5억</td>
+        <td class="num">2.8×</td>
+        <td class="num">0.40</td>
+        <td class="num"><span class="neg">-5.07%</span></td>
+        <td class="num"><span class="neg">-11.87%</span></td>
+        <td class="num">0.18조</td>
+        <td class="num post"><span class="pos">+36.27%</span></td>
+        <td class="num post">11:35</td>
+        <td class="num post">11:35</td>
+        <td class="num post"><span class="pos">+36.27%</span></td>
+      </tr><tr>
+        <td>2026-05-14</td>
+        <td>080220 <small>제주반도체</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">283.9억</td>
+        <td class="num">1.7×</td>
+        <td class="num">0.70</td>
+        <td class="num"><span class="pos">+0.89%</span></td>
+        <td class="num"><span class="neg">-1.05%</span></td>
+        <td class="num">1.80조</td>
+        <td class="num post"><span class="pos">+35.64%</span></td>
+        <td class="num post">14:28</td>
+        <td class="num post">09:37</td>
+        <td class="num post"><span class="pos">+34.04%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>356680 <small>엑스게이트</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">37.8억</td>
+        <td class="num">2.1×</td>
+        <td class="num">0.20</td>
+        <td class="num"><span class="neg">-2.40%</span></td>
+        <td class="num"><span class="neg">-3.58%</span></td>
+        <td class="num">0.40조</td>
+        <td class="num post"><span class="pos">+34.43%</span></td>
+        <td class="num post">12:27</td>
+        <td class="num post">12:00</td>
+        <td class="num post"><span class="pos">+29.52%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>100590 <small>머큐리</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">96.0억</td>
+        <td class="num">1.9×</td>
+        <td class="num">0.21</td>
+        <td class="num"><span class="neg">-7.56%</span></td>
+        <td class="num"><span class="neg">-8.62%</span></td>
+        <td class="num">0.11조</td>
+        <td class="num post"><span class="pos">+33.56%</span></td>
+        <td class="num post">13:07</td>
+        <td class="num post">13:07</td>
+        <td class="num post"><span class="pos">+23.16%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>203650 <small>드림시큐리티</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">47.5억</td>
+        <td class="num">1.6×</td>
+        <td class="num">0.22</td>
+        <td class="num"><span class="neg">-3.43%</span></td>
+        <td class="num"><span class="neg">-3.60%</span></td>
+        <td class="num">0.26조</td>
+        <td class="num post"><span class="pos">+33.39%</span></td>
+        <td class="num post">12:09</td>
+        <td class="num post">12:04</td>
+        <td class="num post"><span class="pos">+33.39%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>223250 <small>드림씨아이에스</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">19.9억</td>
+        <td class="num">1.9×</td>
+        <td class="num">0.05</td>
+        <td class="num"><span class="neg">-4.55%</span></td>
+        <td class="num"><span class="neg">-10.00%</span></td>
+        <td class="num">0.12조</td>
+        <td class="num post"><span class="pos">+33.17%</span></td>
+        <td class="num post">10:08</td>
+        <td class="num post">10:08</td>
+        <td class="num post"><span class="pos">+17.78%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>950130 <small>엑세스바이오</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">0.6억</td>
+        <td class="num">1.8×</td>
+        <td class="num">0.20</td>
+        <td class="num"><span class="neg">-2.42%</span></td>
+        <td class="num"><span class="neg">-2.58%</span></td>
+        <td class="num">0.13조</td>
+        <td class="num post"><span class="pos">+33.11%</span></td>
+        <td class="num post">10:18</td>
+        <td class="num post">10:00</td>
+        <td class="num post"><span class="pos">+33.11%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>025560 <small>미래산업</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">1.0억</td>
+        <td class="num">0.8×</td>
+        <td class="num">0.44</td>
+        <td class="num"><span class="neg">-2.32%</span></td>
+        <td class="num"><span class="neg">-2.32%</span></td>
+        <td class="num">0.08조</td>
+        <td class="num post"><span class="pos">+33.07%</span></td>
+        <td class="num post">11:22</td>
+        <td class="num post">09:48</td>
+        <td class="num post"><span class="pos">+33.07%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>142280 <small>녹십자엠에스</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">2.4억</td>
+        <td class="num">1.2×</td>
+        <td class="num">0.17</td>
+        <td class="num"><span class="neg">-1.87%</span></td>
+        <td class="num"><span class="neg">-1.87%</span></td>
+        <td class="num">0.08조</td>
+        <td class="num post"><span class="pos">+32.32%</span></td>
+        <td class="num post">14:04</td>
+        <td class="num post">09:56</td>
+        <td class="num post"><span class="pos">+20.53%</span></td>
+      </tr><tr>
+        <td>2026-05-14</td>
+        <td>412350 <small>레이저쎌</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">391.4억</td>
+        <td class="num">11.0×</td>
+        <td class="num">0.04</td>
+        <td class="num"><span class="neg">-4.79%</span></td>
+        <td class="num"><span class="neg">-16.52%</span></td>
+        <td class="num">0.11조</td>
+        <td class="num post"><span class="pos">+32.31%</span></td>
+        <td class="num post">10:42</td>
+        <td class="num post">11:02</td>
+        <td class="num post"><span class="pos">+18.87%</span></td>
+      </tr><tr>
+        <td>2026-04-28</td>
+        <td>900300 <small>오가닉티코스메틱</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">SECOND_VALUE_SURGE</span></td>
+        <td class="num">28.4억</td>
+        <td class="num">0.9×</td>
+        <td class="num">0.13</td>
+        <td class="num"><span class="neg">-3.62%</span></td>
+        <td class="num"><span class="neg">-8.97%</span></td>
+        <td class="num">0.05조</td>
+        <td class="num post"><span class="pos">+31.46%</span></td>
+        <td class="num post">09:45</td>
+        <td class="num post">09:45</td>
+        <td class="num post"><span class="pos">+7.51%</span></td>
+      </tr><tr>
+        <td>2026-05-14</td>
+        <td>254490 <small>미래반도체</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">45.2억</td>
+        <td class="num">1.0×</td>
+        <td class="num">0.66</td>
+        <td class="num"><span class="pos">+0.41%</span></td>
+        <td class="num"><span class="neg">-1.49%</span></td>
+        <td class="num">0.34조</td>
+        <td class="num post"><span class="pos">+31.46%</span></td>
+        <td class="num post">13:49</td>
+        <td class="num post">10:34</td>
+        <td class="num post"><span class="pos">+18.13%</span></td>
+      </tr><tr>
+        <td>2026-05-11</td>
+        <td>081150 <small>티플랙스</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">1.7억</td>
+        <td class="num">4.3×</td>
+        <td class="num">0.22</td>
+        <td class="num"><span class="neg">-0.99%</span></td>
+        <td class="num"><span class="neg">-2.51%</span></td>
+        <td class="num">0.09조</td>
+        <td class="num post"><span class="pos">+31.43%</span></td>
+        <td class="num post">10:02</td>
+        <td class="num post">09:46</td>
+        <td class="num post"><span class="pos">+31.43%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>092190 <small>서울바이오시스</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">FADED_RECOVERY</span> <span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">36.4억</td>
+        <td class="num">1.7×</td>
+        <td class="num">0.67</td>
+        <td class="num"><span class="pos">+7.43%</span></td>
+        <td class="num"><span class="neg">-4.33%</span></td>
+        <td class="num">0.40조</td>
+        <td class="num post"><span class="pos">+30.83%</span></td>
+        <td class="num post">10:08</td>
+        <td class="num post">09:52</td>
+        <td class="num post"><span class="pos">+30.83%</span></td>
+      </tr><tr>
+        <td>2026-05-07</td>
+        <td>264850 <small>이랜시스</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">9.2억</td>
+        <td class="num">4.7×</td>
+        <td class="num">0.07</td>
+        <td class="num"><span class="neg">-1.11%</span></td>
+        <td class="num"><span class="neg">-4.01%</span></td>
+        <td class="num">0.19조</td>
+        <td class="num post"><span class="pos">+30.55%</span></td>
+        <td class="num post">13:25</td>
+        <td class="num post">13:22</td>
+        <td class="num post"><span class="pos">+30.55%</span></td>
+      </tr><tr>
+        <td>2026-05-08</td>
+        <td>067170 <small>오텍</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">0.7억</td>
+        <td class="num">1.3×</td>
+        <td class="num">0.69</td>
+        <td class="num"><span class="neg">-0.18%</span></td>
+        <td class="num"><span class="neg">-0.92%</span></td>
+        <td class="num">0.06조</td>
+        <td class="num post"><span class="pos">+29.94%</span></td>
+        <td class="num post">10:51</td>
+        <td class="num post">09:37</td>
+        <td class="num post"><span class="pos">+29.94%</span></td>
+      </tr><tr>
+        <td>2026-04-21</td>
+        <td>078130 <small>국일제지</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">3.9억</td>
+        <td class="num">2.5×</td>
+        <td class="num">0.25</td>
+        <td class="num"><span class="neg">-0.28%</span></td>
+        <td class="num"><span class="neg">-3.98%</span></td>
+        <td class="num">0.49조</td>
+        <td class="num post"><span class="pos">+29.83%</span></td>
+        <td class="num post">10:28</td>
+        <td class="num post">10:19</td>
+        <td class="num post"><span class="pos">+29.83%</span></td>
+      </tr><tr>
+        <td>2026-04-30</td>
+        <td>432720 <small>퀄리타스반도체</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span></td>
+        <td class="num">64.6억</td>
+        <td class="num">2.2×</td>
+        <td class="num">0.29</td>
+        <td class="num"><span class="neg">-2.49%</span></td>
+        <td class="num"><span class="neg">-3.79%</span></td>
+        <td class="num">0.35조</td>
+        <td class="num post"><span class="pos">+29.70%</span></td>
+        <td class="num post">10:18</td>
+        <td class="num post">10:15</td>
+        <td class="num post"><span class="pos">+16.24%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>114450 <small>그린생명과학</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">5.4억</td>
+        <td class="num">0.8×</td>
+        <td class="num">0.17</td>
+        <td class="num"><span class="neg">-1.23%</span></td>
+        <td class="num"><span class="neg">-5.54%</span></td>
+        <td class="num">0.06조</td>
+        <td class="num post"><span class="pos">+29.48%</span></td>
+        <td class="num post">14:50</td>
+        <td class="num post">14:50</td>
+        <td class="num post"><span class="pos">+29.48%</span></td>
+      </tr><tr>
+        <td>2026-04-17</td>
+        <td>077970 <small>STX엔진</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">7.8억</td>
+        <td class="num">2.1×</td>
+        <td class="num">0.23</td>
+        <td class="num"><span class="neg">-0.58%</span></td>
+        <td class="num"><span class="neg">-1.88%</span></td>
+        <td class="num">2.47조</td>
+        <td class="num post"><span class="pos">+29.41%</span></td>
+        <td class="num post">13:27</td>
+        <td class="num post">11:10</td>
+        <td class="num post"><span class="pos">+29.41%</span></td>
+      </tr><tr>
+        <td>2026-04-27</td>
+        <td>425040 <small>티이엠씨</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">TEN_SURVIVOR</span> <span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">22.2억</td>
+        <td class="num">3.5×</td>
+        <td class="num">0.60</td>
+        <td class="num"><span class="neg">-1.09%</span></td>
+        <td class="num"><span class="neg">-1.17%</span></td>
+        <td class="num">0.37조</td>
+        <td class="num post"><span class="pos">+29.07%</span></td>
+        <td class="num post">10:01</td>
+        <td class="num post">09:41</td>
+        <td class="num post"><span class="pos">+29.07%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>144960 <small>뉴파워프라즈마</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">TEN_SURVIVOR</span> <span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">46.3억</td>
+        <td class="num">1.3×</td>
+        <td class="num">0.59</td>
+        <td class="num"><span class="neg">-2.04%</span></td>
+        <td class="num"><span class="neg">-2.15%</span></td>
+        <td class="num">0.30조</td>
+        <td class="num post"><span class="pos">+29.05%</span></td>
+        <td class="num post">10:15</td>
+        <td class="num post">09:35</td>
+        <td class="num post"><span class="pos">+29.05%</span></td>
+      </tr><tr>
+        <td>2026-04-17</td>
+        <td>017900 <small>광전자</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">1264.1억</td>
+        <td class="num">2.6×</td>
+        <td class="num">0.13</td>
+        <td class="num"><span class="neg">-12.56%</span></td>
+        <td class="num"><span class="neg">-17.69%</span></td>
+        <td class="num">0.59조</td>
+        <td class="num post"><span class="pos">+28.46%</span></td>
+        <td class="num post">10:06</td>
+        <td class="num post">10:32</td>
+        <td class="num post"><span class="pos">+17.33%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>005250 <small>녹십자홀딩스</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">2.4억</td>
+        <td class="num">1.8×</td>
+        <td class="num">0.50</td>
+        <td class="num"><span class="pos">+0.08%</span></td>
+        <td class="num"><span class="neg">-0.53%</span></td>
+        <td class="num">0.66조</td>
+        <td class="num post"><span class="pos">+28.44%</span></td>
+        <td class="num post">14:11</td>
+        <td class="num post">13:40</td>
+        <td class="num post"><span class="pos">+9.13%</span></td>
+      </tr><tr>
+        <td>2026-04-27</td>
+        <td>900300 <small>오가닉티코스메틱</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">100.7억</td>
+        <td class="num">13.1×</td>
+        <td class="num">0.12</td>
+        <td class="num"><span class="neg">-19.07%</span></td>
+        <td class="num"><span class="neg">-20.00%</span></td>
+        <td class="num">0.05조</td>
+        <td class="num post"><span class="pos">+28.37%</span></td>
+        <td class="num post">09:41</td>
+        <td class="num post">10:00</td>
+        <td class="num post"><span class="pos">+3.85%</span></td>
+      </tr><tr>
+        <td>2026-04-28</td>
+        <td>092790 <small>넥스틸</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">54.1억</td>
+        <td class="num">7.0×</td>
+        <td class="num">0.31</td>
+        <td class="num"><span class="neg">-0.12%</span></td>
+        <td class="num"><span class="neg">-1.69%</span></td>
+        <td class="num">0.53조</td>
+        <td class="num post"><span class="pos">+28.27%</span></td>
+        <td class="num post">14:07</td>
+        <td class="num post">09:36</td>
+        <td class="num post"><span class="pos">+28.27%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>336260 <small>두산퓨얼셀</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">TEN_SURVIVOR</span> <span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">159.8억</td>
+        <td class="num">2.9×</td>
+        <td class="num">0.82</td>
+        <td class="num"><span class="pos">+2.17%</span></td>
+        <td class="num"><span class="neg">-0.81%</span></td>
+        <td class="num">3.98조</td>
+        <td class="num post"><span class="pos">+28.06%</span></td>
+        <td class="num post">10:20</td>
+        <td class="num post">09:31</td>
+        <td class="num post"><span class="pos">+27.73%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>900300 <small>오가닉티코스메틱</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">8.0억</td>
+        <td class="num">3.0×</td>
+        <td class="num">0.22</td>
+        <td class="num"><span class="neg">-4.96%</span></td>
+        <td class="num"><span class="neg">-5.74%</span></td>
+        <td class="num">0.05조</td>
+        <td class="num post"><span class="pos">+27.83%</span></td>
+        <td class="num post">13:19</td>
+        <td class="num post">13:16</td>
+        <td class="num post"><span class="pos">+5.22%</span></td>
+      </tr><tr>
+        <td>2026-05-14</td>
+        <td>086960 <small>MDS테크</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">FADED_RECOVERY</span></td>
+        <td class="num">22.5억</td>
+        <td class="num">0.8×</td>
+        <td class="num">0.03</td>
+        <td class="num"><span class="neg">-1.84%</span></td>
+        <td class="num"><span class="neg">-4.34%</span></td>
+        <td class="num">0.11조</td>
+        <td class="num post"><span class="pos">+27.39%</span></td>
+        <td class="num post">10:48</td>
+        <td class="num post">10:10</td>
+        <td class="num post"><span class="pos">+7.51%</span></td>
+      </tr><tr>
+        <td>2026-04-24</td>
+        <td>078600 <small>대주전자재료</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">49.7억</td>
+        <td class="num">1.9×</td>
+        <td class="num">0.46</td>
+        <td class="num"><span class="pos">+0.42%</span></td>
+        <td class="num"><span class="neg">-2.11%</span></td>
+        <td class="num">2.46조</td>
+        <td class="num post"><span class="pos">+27.38%</span></td>
+        <td class="num post">14:15</td>
+        <td class="num post">14:12</td>
+        <td class="num post"><span class="pos">+27.03%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>253840 <small>수젠텍</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">FADED_RECOVERY</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span></td>
+        <td class="num">27.4억</td>
+        <td class="num">0.8×</td>
+        <td class="num">0.60</td>
+        <td class="num"><span class="pos">+0.67%</span></td>
+        <td class="num"><span class="neg">-2.58%</span></td>
+        <td class="num">0.09조</td>
+        <td class="num post"><span class="pos">+27.27%</span></td>
+        <td class="num post">13:33</td>
+        <td class="num post">09:35</td>
+        <td class="num post"><span class="pos">+13.22%</span></td>
+      </tr><tr>
+        <td>2026-04-20</td>
+        <td>054920 <small>한컴위드</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">FADED_RECOVERY</span></td>
+        <td class="num">69.2억</td>
+        <td class="num">4.5×</td>
+        <td class="num">0.40</td>
+        <td class="num"><span class="neg">-0.16%</span></td>
+        <td class="num"><span class="neg">-3.24%</span></td>
+        <td class="num">0.19조</td>
+        <td class="num post"><span class="pos">+27.07%</span></td>
+        <td class="num post">13:49</td>
+        <td class="num post">09:41</td>
+        <td class="num post"><span class="pos">+12.90%</span></td>
+      </tr><tr>
+        <td>2026-05-14</td>
+        <td>418420 <small>라온텍</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">FADED_RECOVERY</span></td>
+        <td class="num">24.8억</td>
+        <td class="num">2.1×</td>
+        <td class="num">0.60</td>
+        <td class="num"><span class="pos">+1.87%</span></td>
+        <td class="num"><span class="neg">-3.02%</span></td>
+        <td class="num">0.20조</td>
+        <td class="num post"><span class="pos">+26.78%</span></td>
+        <td class="num post">11:30</td>
+        <td class="num post">10:15</td>
+        <td class="num post"><span class="pos">+26.78%</span></td>
+      </tr><tr>
+        <td>2026-04-17</td>
+        <td>069540 <small>빛과전자</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">635.4억</td>
+        <td class="num">2.2×</td>
+        <td class="num">0.16</td>
+        <td class="num"><span class="neg">-4.15%</span></td>
+        <td class="num"><span class="neg">-11.40%</span></td>
+        <td class="num">0.50조</td>
+        <td class="num post"><span class="pos">+26.70%</span></td>
+        <td class="num post">10:25</td>
+        <td class="num post">10:26</td>
+        <td class="num post"><span class="pos">+26.70%</span></td>
+      </tr><tr>
+        <td>2026-05-07</td>
+        <td>058430 <small>포스코스틸리온</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">35.7억</td>
+        <td class="num">2.3×</td>
+        <td class="num">0.06</td>
+        <td class="num"><span class="neg">-2.34%</span></td>
+        <td class="num"><span class="neg">-3.84%</span></td>
+        <td class="num">0.50조</td>
+        <td class="num post"><span class="pos">+26.36%</span></td>
+        <td class="num post">12:22</td>
+        <td class="num post">12:06</td>
+        <td class="num post"><span class="pos">+7.99%</span></td>
+      </tr><tr>
+        <td>2026-04-29</td>
+        <td>027360 <small>아주IB투자</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">1450.0억</td>
+        <td class="num">7.8×</td>
+        <td class="num">0.28</td>
+        <td class="num"><span class="pos">+0.73%</span></td>
+        <td class="num"><span class="neg">-8.07%</span></td>
+        <td class="num">1.82조</td>
+        <td class="num post"><span class="pos">+26.27%</span></td>
+        <td class="num post">11:32</td>
+        <td class="num post">11:29</td>
+        <td class="num post"><span class="pos">+9.44%</span></td>
+      </tr><tr>
+        <td>2026-04-30</td>
+        <td>059120 <small>아진엑스텍</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">11.9억</td>
+        <td class="num">5.0×</td>
+        <td class="num">0.05</td>
+        <td class="num"><span class="neg">-0.90%</span></td>
+        <td class="num"><span class="neg">-2.40%</span></td>
+        <td class="num">0.16조</td>
+        <td class="num post"><span class="pos">+26.17%</span></td>
+        <td class="num post">11:56</td>
+        <td class="num post">10:59</td>
+        <td class="num post"><span class="pos">+15.41%</span></td>
+      </tr><tr>
+        <td>2026-05-11</td>
+        <td>142210 <small>유니트론텍</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">19.9억</td>
+        <td class="num">9.7×</td>
+        <td class="num">0.53</td>
+        <td class="num"><span class="pos">+2.22%</span></td>
+        <td class="num"><span class="neg">-2.28%</span></td>
+        <td class="num">0.12조</td>
+        <td class="num post"><span class="pos">+26.09%</span></td>
+        <td class="num post">13:23</td>
+        <td class="num post">11:18</td>
+        <td class="num post"><span class="pos">+18.01%</span></td>
+      </tr><tr>
+        <td>2026-04-28</td>
+        <td>005010 <small>휴스틸</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">35.4억</td>
+        <td class="num">3.9×</td>
+        <td class="num">0.52</td>
+        <td class="num"><span class="neg">-0.17%</span></td>
+        <td class="num"><span class="neg">-1.71%</span></td>
+        <td class="num">0.38조</td>
+        <td class="num post"><span class="pos">+26.04%</span></td>
+        <td class="num post">11:11</td>
+        <td class="num post">09:36</td>
+        <td class="num post"><span class="pos">+17.01%</span></td>
+      </tr><tr>
+        <td>2026-04-27</td>
+        <td>058430 <small>포스코스틸리온</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">30.8억</td>
+        <td class="num">2.8×</td>
+        <td class="num">0.48</td>
+        <td class="num"><span class="pos">+1.08%</span></td>
+        <td class="num"><span class="neg">-2.44%</span></td>
+        <td class="num">0.50조</td>
+        <td class="num post"><span class="pos">+25.76%</span></td>
+        <td class="num post">13:00</td>
+        <td class="num post">11:12</td>
+        <td class="num post"><span class="pos">+25.76%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>452260 <small>한화갤러리아</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">41.8억</td>
+        <td class="num">5.4×</td>
+        <td class="num">0.59</td>
+        <td class="num"><span class="pos">+2.84%</span></td>
+        <td class="num"><span class="neg">-2.03%</span></td>
+        <td class="num">0.60조</td>
+        <td class="num post"><span class="pos">+25.73%</span></td>
+        <td class="num post">12:32</td>
+        <td class="num post">11:30</td>
+        <td class="num post"><span class="pos">+25.73%</span></td>
+      </tr><tr>
+        <td>2026-05-08</td>
+        <td>147830 <small>제룡산업</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">FADED_RECOVERY</span></td>
+        <td class="num">114.1억</td>
+        <td class="num">10.3×</td>
+        <td class="num">0.29</td>
+        <td class="num"><span class="neg">-0.97%</span></td>
+        <td class="num"><span class="neg">-4.96%</span></td>
+        <td class="num">0.23조</td>
+        <td class="num post"><span class="pos">+25.59%</span></td>
+        <td class="num post">09:42</td>
+        <td class="num post">09:39</td>
+        <td class="num post"><span class="pos">+11.90%</span></td>
+      </tr><tr>
+        <td>2026-04-23</td>
+        <td>145170 <small>노브랜드</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">1.2억</td>
+        <td class="num">2.1×</td>
+        <td class="num">0.04</td>
+        <td class="num"><span class="neg">-0.54%</span></td>
+        <td class="num"><span class="neg">-2.45%</span></td>
+        <td class="num">0.08조</td>
+        <td class="num post"><span class="pos">+25.46%</span></td>
+        <td class="num post">12:54</td>
+        <td class="num post">10:44</td>
+        <td class="num post"><span class="pos">+9.29%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>187870 <small>디바이스</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">4.8억</td>
+        <td class="num">2.3×</td>
+        <td class="num">1.00</td>
+        <td class="num"><span class="pos">+6.70%</span></td>
+        <td class="num"><span class="">+0.00%</span></td>
+        <td class="num">0.14조</td>
+        <td class="num post"><span class="pos">+25.34%</span></td>
+        <td class="num post">10:02</td>
+        <td class="num post">09:31</td>
+        <td class="num post"><span class="pos">+25.34%</span></td>
+      </tr><tr>
+        <td>2026-05-11</td>
+        <td>254490 <small>미래반도체</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">FADED_RECOVERY</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">63.6억</td>
+        <td class="num">4.9×</td>
+        <td class="num">0.44</td>
+        <td class="num"><span class="neg">-2.74%</span></td>
+        <td class="num"><span class="neg">-2.74%</span></td>
+        <td class="num">0.34조</td>
+        <td class="num post"><span class="pos">+25.31%</span></td>
+        <td class="num post">10:14</td>
+        <td class="num post">09:34</td>
+        <td class="num post"><span class="pos">+25.31%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>084650 <small>랩지노믹스</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">3.9억</td>
+        <td class="num">0.9×</td>
+        <td class="num">0.61</td>
+        <td class="num"><span class="neg">-0.69%</span></td>
+        <td class="num"><span class="neg">-1.07%</span></td>
+        <td class="num">0.10조</td>
+        <td class="num post"><span class="pos">+25.31%</span></td>
+        <td class="num post">13:37</td>
+        <td class="num post">09:37</td>
+        <td class="num post"><span class="pos">+9.18%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>054920 <small>한컴위드</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">22.3억</td>
+        <td class="num">3.3×</td>
+        <td class="num">0.25</td>
+        <td class="num"><span class="neg">-3.44%</span></td>
+        <td class="num"><span class="neg">-3.78%</span></td>
+        <td class="num">0.19조</td>
+        <td class="num post"><span class="pos">+25.04%</span></td>
+        <td class="num post">12:36</td>
+        <td class="num post">12:10</td>
+        <td class="num post"><span class="pos">+14.26%</span></td>
+      </tr><tr>
+        <td>2026-04-24</td>
+        <td>027360 <small>아주IB투자</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">559.6억</td>
+        <td class="num">2.6×</td>
+        <td class="num">0.75</td>
+        <td class="num"><span class="pos">+4.04%</span></td>
+        <td class="num"><span class="neg">-1.81%</span></td>
+        <td class="num">1.82조</td>
+        <td class="num post"><span class="pos">+24.90%</span></td>
+        <td class="num post">09:46</td>
+        <td class="num post">09:36</td>
+        <td class="num post"><span class="pos">+23.32%</span></td>
+      </tr><tr>
+        <td>2026-04-17</td>
+        <td>321260 <small>프로이천</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">109.0억</td>
+        <td class="num">56.6×</td>
+        <td class="num">0.37</td>
+        <td class="num"><span class="pos">+3.33%</span></td>
+        <td class="num"><span class="neg">-9.24%</span></td>
+        <td class="num">0.07조</td>
+        <td class="num post"><span class="pos">+24.62%</span></td>
+        <td class="num post">09:52</td>
+        <td class="num post">09:52</td>
+        <td class="num post"><span class="pos">+2.89%</span></td>
+      </tr><tr>
+        <td>2026-05-11</td>
+        <td>215790 <small>이노인스트루먼트</small></td>
+        <td>READY <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span></td>
+        <td class="num">24.9억</td>
+        <td class="num">4.6×</td>
+        <td class="num">0.75</td>
+        <td class="num"><span class="pos">+3.97%</span></td>
+        <td class="num"><span class="neg">-2.39%</span></td>
+        <td class="num">0.06조</td>
+        <td class="num post"><span class="pos">+24.50%</span></td>
+        <td class="num post">09:41</td>
+        <td class="num post">09:32</td>
+        <td class="num post"><span class="pos">+24.50%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>145170 <small>노브랜드</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">1.9억</td>
+        <td class="num">0.7×</td>
+        <td class="num">0.09</td>
+        <td class="num"><span class="neg">-2.98%</span></td>
+        <td class="num"><span class="neg">-2.98%</span></td>
+        <td class="num">0.08조</td>
+        <td class="num post"><span class="pos">+24.18%</span></td>
+        <td class="num post">11:45</td>
+        <td class="num post">11:04</td>
+        <td class="num post"><span class="pos">+5.53%</span></td>
+      </tr><tr>
+        <td>2026-04-16</td>
+        <td>033160 <small>엠케이전자</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">FADED_RECOVERY</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">44.2억</td>
+        <td class="num">1.8×</td>
+        <td class="num">0.06</td>
+        <td class="num"><span class="neg">-3.08%</span></td>
+        <td class="num"><span class="neg">-3.30%</span></td>
+        <td class="num">0.67조</td>
+        <td class="num post"><span class="pos">+24.09%</span></td>
+        <td class="num post">10:19</td>
+        <td class="num post">09:43</td>
+        <td class="num post"><span class="pos">+9.09%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>003470 <small>유안타증권</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_SURVIVOR</span> <span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">347.2억</td>
+        <td class="num">3.3×</td>
+        <td class="num">0.26</td>
+        <td class="num"><span class="neg">-7.07%</span></td>
+        <td class="num"><span class="neg">-7.88%</span></td>
+        <td class="num">1.05조</td>
+        <td class="num post"><span class="pos">+24.09%</span></td>
+        <td class="num post">10:02</td>
+        <td class="num post">09:58</td>
+        <td class="num post"><span class="pos">+24.09%</span></td>
+      </tr><tr>
+        <td>2026-04-20</td>
+        <td>253840 <small>수젠텍</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">251.3억</td>
+        <td class="num">3.9×</td>
+        <td class="num">0.48</td>
+        <td class="num"><span class="pos">+4.76%</span></td>
+        <td class="num"><span class="neg">-6.25%</span></td>
+        <td class="num">0.09조</td>
+        <td class="num post"><span class="pos">+23.79%</span></td>
+        <td class="num post">10:56</td>
+        <td class="num post">10:53</td>
+        <td class="num post"><span class="pos">+5.30%</span></td>
+      </tr><tr>
+        <td>2026-05-11</td>
+        <td>223250 <small>드림씨아이에스</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">FADED_RECOVERY</span></td>
+        <td class="num">55.4억</td>
+        <td class="num">0.5×</td>
+        <td class="num">0.42</td>
+        <td class="num"><span class="neg">-0.14%</span></td>
+        <td class="num"><span class="neg">-3.05%</span></td>
+        <td class="num">0.12조</td>
+        <td class="num post"><span class="pos">+23.61%</span></td>
+        <td class="num post">09:50</td>
+        <td class="num post">09:47</td>
+        <td class="num post"><span class="pos">+2.00%</span></td>
+      </tr><tr>
+        <td>2026-04-24</td>
+        <td>221800 <small>지구홀딩스</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">31.5억</td>
+        <td class="num">0.8×</td>
+        <td class="num">0.34</td>
+        <td class="num"><span class="neg">-2.35%</span></td>
+        <td class="num"><span class="neg">-4.32%</span></td>
+        <td class="num">0.30조</td>
+        <td class="num post"><span class="pos">+23.50%</span></td>
+        <td class="num post">11:32</td>
+        <td class="num post">10:42</td>
+        <td class="num post"><span class="pos">+16.92%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>403550 <small>쏘카</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">4.7억</td>
+        <td class="num">5.4×</td>
+        <td class="num">0.63</td>
+        <td class="num"><span class="neg">-1.98%</span></td>
+        <td class="num"><span class="neg">-1.98%</span></td>
+        <td class="num">0.58조</td>
+        <td class="num post"><span class="pos">+23.49%</span></td>
+        <td class="num post">10:38</td>
+        <td class="num post">10:36</td>
+        <td class="num post"><span class="pos">+23.49%</span></td>
+      </tr><tr>
+        <td>2026-04-24</td>
+        <td>090710 <small>휴림로봇</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">98.5억</td>
+        <td class="num">1.8×</td>
+        <td class="num">0.28</td>
+        <td class="num"><span class="">+0.00%</span></td>
+        <td class="num"><span class="neg">-2.26%</span></td>
+        <td class="num">1.51조</td>
+        <td class="num post"><span class="pos">+23.45%</span></td>
+        <td class="num post">11:37</td>
+        <td class="num post">10:39</td>
+        <td class="num post"><span class="pos">+17.67%</span></td>
+      </tr><tr>
+        <td>2026-05-04</td>
+        <td>037030 <small>파워넷</small></td>
+        <td>READY <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">25.4억</td>
+        <td class="num">6.2×</td>
+        <td class="num">0.81</td>
+        <td class="num"><span class="pos">+3.25%</span></td>
+        <td class="num"><span class="neg">-0.82%</span></td>
+        <td class="num">0.15조</td>
+        <td class="num post"><span class="pos">+23.38%</span></td>
+        <td class="num post">11:50</td>
+        <td class="num post">09:34</td>
+        <td class="num post"><span class="pos">+23.38%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>024060 <small>흥구석유</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span></td>
+        <td class="num">36.8억</td>
+        <td class="num">3.4×</td>
+        <td class="num">0.03</td>
+        <td class="num"><span class="neg">-0.78%</span></td>
+        <td class="num"><span class="neg">-2.36%</span></td>
+        <td class="num">0.27조</td>
+        <td class="num post"><span class="pos">+23.29%</span></td>
+        <td class="num post">10:26</td>
+        <td class="num post">10:14</td>
+        <td class="num post"><span class="pos">+1.89%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>144960 <small>뉴파워프라즈마</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">7.2억</td>
+        <td class="num">2.4×</td>
+        <td class="num">0.52</td>
+        <td class="num"><span class="pos">+0.54%</span></td>
+        <td class="num"><span class="neg">-1.58%</span></td>
+        <td class="num">0.30조</td>
+        <td class="num post"><span class="pos">+23.29%</span></td>
+        <td class="num post">10:51</td>
+        <td class="num post">09:46</td>
+        <td class="num post"><span class="pos">+14.86%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>003280 <small>흥아해운</small></td>
+        <td>FADED</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">FADED_RECOVERY</span></td>
+        <td class="num">49.0억</td>
+        <td class="num">4.5×</td>
+        <td class="num">0.30</td>
+        <td class="num"><span class="pos">+0.56%</span></td>
+        <td class="num"><span class="neg">-2.54%</span></td>
+        <td class="num">0.69조</td>
+        <td class="num post"><span class="pos">+23.28%</span></td>
+        <td class="num post">10:22</td>
+        <td class="num post">10:11</td>
+        <td class="num post"><span class="pos">+3.54%</span></td>
+      </tr><tr>
+        <td>2026-04-21</td>
+        <td>053260 <small>금강철강</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">FADED_RECOVERY</span></td>
+        <td class="num">22.5억</td>
+        <td class="num">0.5×</td>
+        <td class="num">0.22</td>
+        <td class="num"><span class="neg">-1.43%</span></td>
+        <td class="num"><span class="neg">-4.33%</span></td>
+        <td class="num">0.12조</td>
+        <td class="num post"><span class="pos">+23.26%</span></td>
+        <td class="num post">10:20</td>
+        <td class="num post">10:19</td>
+        <td class="num post"><span class="pos">+3.39%</span></td>
+      </tr><tr>
+        <td>2026-05-12</td>
+        <td>483650 <small>달바글로벌</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span></td>
+        <td class="num">69.3억</td>
+        <td class="num">2.1×</td>
+        <td class="num">0.70</td>
+        <td class="num"><span class="pos">+0.45%</span></td>
+        <td class="num"><span class="neg">-1.55%</span></td>
+        <td class="num">2.81조</td>
+        <td class="num post"><span class="pos">+23.09%</span></td>
+        <td class="num post">10:07</td>
+        <td class="num post">10:01</td>
+        <td class="num post"><span class="pos">+10.76%</span></td>
+      </tr><tr>
+        <td>2026-05-13</td>
+        <td>010780 <small>아이에스동서</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">4.0억</td>
+        <td class="num">1.6×</td>
+        <td class="num">0.83</td>
+        <td class="num"><span class="pos">+3.49%</span></td>
+        <td class="num"><span class="neg">-0.98%</span></td>
+        <td class="num">0.81조</td>
+        <td class="num post"><span class="pos">+23.02%</span></td>
+        <td class="num post">14:25</td>
+        <td class="num post">11:01</td>
+        <td class="num post"><span class="pos">+8.53%</span></td>
+      </tr><tr>
+        <td>2026-04-22</td>
+        <td>452260 <small>한화갤러리아</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">7.5억</td>
+        <td class="num">2.8×</td>
+        <td class="num">0.40</td>
+        <td class="num"><span class="neg">-0.82%</span></td>
+        <td class="num"><span class="neg">-1.22%</span></td>
+        <td class="num">0.60조</td>
+        <td class="num post"><span class="pos">+22.89%</span></td>
+        <td class="num post">13:21</td>
+        <td class="num post">13:21</td>
+        <td class="num post"><span class="pos">+5.77%</span></td>
+      </tr><tr>
+        <td>2026-05-14</td>
+        <td>048770 <small>TPC로보틱스</small></td>
+        <td>INSUFFICIENT_BARS <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">48.1억</td>
+        <td class="num">1.1×</td>
+        <td class="num">1.00</td>
+        <td class="num"><span class="pos">+2.69%</span></td>
+        <td class="num"><span class="">+0.00%</span></td>
+        <td class="num">0.06조</td>
+        <td class="num post"><span class="pos">+22.80%</span></td>
+        <td class="num post">10:30</td>
+        <td class="num post">10:00</td>
+        <td class="num post"><span class="pos">+22.80%</span></td>
+      </tr><tr>
+        <td>2026-04-16</td>
+        <td>452190 <small>한빛레이저</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span></td>
+        <td class="num">91.3억</td>
+        <td class="num">1.4×</td>
+        <td class="num">0.78</td>
+        <td class="num"><span class="pos">+3.14%</span></td>
+        <td class="num"><span class="neg">-1.76%</span></td>
+        <td class="num">0.19조</td>
+        <td class="num post"><span class="pos">+22.72%</span></td>
+        <td class="num post">10:19</td>
+        <td class="num post">10:05</td>
+        <td class="num post"><span class="pos">+22.72%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>089010 <small>켐트로닉스</small></td>
+        <td>WEAK</td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">TEN_SURVIVOR</span> <span class="tag tag-hyp">MORNING_TREND</span></td>
+        <td class="num">73.8억</td>
+        <td class="num">3.5×</td>
+        <td class="num">0.83</td>
+        <td class="num"><span class="neg">-0.38%</span></td>
+        <td class="num"><span class="neg">-0.50%</span></td>
+        <td class="num">0.63조</td>
+        <td class="num post"><span class="pos">+22.71%</span></td>
+        <td class="num post">09:59</td>
+        <td class="num post">09:31</td>
+        <td class="num post"><span class="pos">+14.68%</span></td>
+      </tr><tr>
+        <td>2026-04-28</td>
+        <td>138360 <small>앤로보틱스</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">371.4억</td>
+        <td class="num">5.4×</td>
+        <td class="num">0.16</td>
+        <td class="num"><span class="neg">-3.53%</span></td>
+        <td class="num"><span class="neg">-15.48%</span></td>
+        <td class="num">0.29조</td>
+        <td class="num post"><span class="pos">+22.54%</span></td>
+        <td class="num post">09:51</td>
+        <td class="num post">09:58</td>
+        <td class="num post"><span class="pos">+20.28%</span></td>
+      </tr><tr>
+        <td>2026-04-20</td>
+        <td>084650 <small>랩지노믹스</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">48.5억</td>
+        <td class="num">0.7×</td>
+        <td class="num">0.10</td>
+        <td class="num"><span class="neg">-0.98%</span></td>
+        <td class="num"><span class="neg">-4.37%</span></td>
+        <td class="num">0.10조</td>
+        <td class="num post"><span class="pos">+22.41%</span></td>
+        <td class="num post">11:08</td>
+        <td class="num post">11:00</td>
+        <td class="num post"><span class="pos">+2.28%</span></td>
+      </tr><tr>
+        <td>2026-04-20</td>
+        <td>036220 <small>오상헬스케어</small></td>
+        <td>WEAK</td>
+        <td></td>
+        <td class="num">19.0억</td>
+        <td class="num">1.7×</td>
+        <td class="num">0.64</td>
+        <td class="num"><span class="">+0.00%</span></td>
+        <td class="num"><span class="neg">-1.39%</span></td>
+        <td class="num">0.13조</td>
+        <td class="num post"><span class="pos">+22.22%</span></td>
+        <td class="num post">11:07</td>
+        <td class="num post">10:53</td>
+        <td class="num post"><span class="pos">+4.75%</span></td>
+      </tr><tr>
+        <td>2026-05-07</td>
+        <td>101170 <small>우림피티에스</small></td>
+        <td>FADED</td>
+        <td></td>
+        <td class="num">9.0억</td>
+        <td class="num">3.9×</td>
+        <td class="num">0.00</td>
+        <td class="num"><span class="neg">-0.78%</span></td>
+        <td class="num"><span class="neg">-3.89%</span></td>
+        <td class="num">0.19조</td>
+        <td class="num post"><span class="pos">+22.16%</span></td>
+        <td class="num post">13:45</td>
+        <td class="num post">13:29</td>
+        <td class="num post"><span class="pos">+3.62%</span></td>
+      </tr><tr>
+        <td>2026-04-22</td>
+        <td>170920 <small>엘티씨</small></td>
+        <td>FADED <span class="tag tag-reb">MH재돌파</span></td>
+        <td></td>
+        <td class="num">25.3억</td>
+        <td class="num">1.9×</td>
+        <td class="num">0.07</td>
+        <td class="num"><span class="neg">-0.14%</span></td>
+        <td class="num"><span class="neg">-5.53%</span></td>
+        <td class="num">0.48조</td>
+        <td class="num post"><span class="pos">+22.11%</span></td>
+        <td class="num post">14:50</td>
+        <td class="num post">14:32</td>
+        <td class="num post"><span class="pos">+18.40%</span></td>
+      </tr><tr>
+        <td>2026-05-06</td>
+        <td>161580 <small>필옵틱스</small></td>
+        <td>WEAK <span class="tag tag-reb">MH재돌파</span></td>
+        <td><span class="tag tag-hyp">TEN_REBREAK</span> <span class="tag tag-hyp">SECOND_VALUE_SURGE</span> <span class="tag tag-hyp">TEN_SURVIVOR</span></td>
+        <td class="num">126.5억</td>
+        <td class="num">15.8×</td>
+        <td class="num">0.80</td>
+        <td class="num"><span class="pos">+0.58%</span></td>
+        <td class="num"><span class="neg">-0.77%</span></td>
+        <td class="num">1.12조</td>
+        <td class="num post"><span class="pos">+22.01%</span></td>
+        <td class="num post">09:49</td>
+        <td class="num post">09:33</td>
+        <td class="num post"><span class="pos">+21.62%</span></td>
+      </tr></tbody></table>
+
+<h2>7. 공격형 보조 후보 조건 제안</h2>
+
+    <table class="proposed"><tbody>
+      <tr><td>MIN_VALUE_0930</td><td>21.0억</td></tr>
+      <tr><td>MIN_CLOSE_POSITION</td><td>0.50</td></tr>
+      <tr><td>MAX_HIGH_TO_LAST_DROP</td><td>-2.70%</td></tr>
+      <tr><td>MIN_OPEN_TO_LAST_RATE</td><td>0.50%</td></tr>
+      <tr><td>MIN_VALUE_AVG_RATIO</td><td>3</td></tr>
+      <tr><td>추가 조건</td><td><ul style="margin:0;padding-left:18px;"><li>rebreakMorningHigh = true (놓친 종목 중 비율 검토)</li><li>status = READY OR FADED (drop 완화)</li><li>marketCap &lt;= 5조 (1DS 동일)</li></ul></td></tr>
+    </tbody></table>
+<p class="note">놓친 +10% 종목들의 p25~중앙값 기준으로 도출. explosiveTop보다 완화된 조건.</p>
+
+<div class="note" style="margin-top:30px;border-top:1px dashed #ccc;padding-top:10px;">
+  검증 일자: 2026-04-16, 2026-04-17, 2026-04-20, 2026-04-21, 2026-04-22, 2026-04-23, 2026-04-24, 2026-04-27, 2026-04-28, 2026-04-29, 2026-04-30, 2026-05-04, 2026-05-06, 2026-05-07, 2026-05-08, 2026-05-11, 2026-05-12, 2026-05-13, 2026-05-14
+</div>
+</body>
+</html>

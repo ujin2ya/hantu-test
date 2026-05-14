@@ -1,0 +1,318 @@
+{
+  "startedAt": "2026-05-14T13:36:23.382Z",
+  "finishedAt": "2026-05-14T13:40:45.353Z",
+  "elapsedSec": 261.97,
+  "mode": "dry-run",
+  "targetDays": 60,
+  "scannerLimit": 300,
+  "totalTargetCount": 18000,
+  "alreadyExistsCount": 4248,
+  "fetchedCount": 0,
+  "failedCount": 0,
+  "emptyCount": 0,
+  "insufficientBarsCount": 0,
+  "skippedCount": 0,
+  "perDate": [
+    {
+      "date": "2026-02-12",
+      "baseDate": "2026-02-11",
+      "candidates": 300
+    },
+    {
+      "date": "2026-02-13",
+      "baseDate": "2026-02-12",
+      "candidates": 300
+    },
+    {
+      "date": "2026-02-19",
+      "baseDate": "2026-02-13",
+      "candidates": 300
+    },
+    {
+      "date": "2026-02-20",
+      "baseDate": "2026-02-19",
+      "candidates": 300
+    },
+    {
+      "date": "2026-02-23",
+      "baseDate": "2026-02-20",
+      "candidates": 300
+    },
+    {
+      "date": "2026-02-24",
+      "baseDate": "2026-02-23",
+      "candidates": 300
+    },
+    {
+      "date": "2026-02-25",
+      "baseDate": "2026-02-24",
+      "candidates": 300
+    },
+    {
+      "date": "2026-02-26",
+      "baseDate": "2026-02-25",
+      "candidates": 300
+    },
+    {
+      "date": "2026-02-27",
+      "baseDate": "2026-02-26",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-03",
+      "baseDate": "2026-02-27",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-04",
+      "baseDate": "2026-03-03",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-05",
+      "baseDate": "2026-03-04",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-06",
+      "baseDate": "2026-03-05",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-09",
+      "baseDate": "2026-03-06",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-10",
+      "baseDate": "2026-03-09",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-11",
+      "baseDate": "2026-03-10",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-12",
+      "baseDate": "2026-03-11",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-13",
+      "baseDate": "2026-03-12",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-16",
+      "baseDate": "2026-03-13",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-17",
+      "baseDate": "2026-03-16",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-18",
+      "baseDate": "2026-03-17",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-19",
+      "baseDate": "2026-03-18",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-20",
+      "baseDate": "2026-03-19",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-23",
+      "baseDate": "2026-03-20",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-24",
+      "baseDate": "2026-03-23",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-25",
+      "baseDate": "2026-03-24",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-26",
+      "baseDate": "2026-03-25",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-27",
+      "baseDate": "2026-03-26",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-30",
+      "baseDate": "2026-03-27",
+      "candidates": 300
+    },
+    {
+      "date": "2026-03-31",
+      "baseDate": "2026-03-30",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-01",
+      "baseDate": "2026-03-31",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-02",
+      "baseDate": "2026-04-01",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-03",
+      "baseDate": "2026-04-02",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-06",
+      "baseDate": "2026-04-03",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-07",
+      "baseDate": "2026-04-06",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-08",
+      "baseDate": "2026-04-07",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-09",
+      "baseDate": "2026-04-08",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-10",
+      "baseDate": "2026-04-09",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-13",
+      "baseDate": "2026-04-10",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-14",
+      "baseDate": "2026-04-13",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-15",
+      "baseDate": "2026-04-14",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-16",
+      "baseDate": "2026-04-15",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-17",
+      "baseDate": "2026-04-16",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-20",
+      "baseDate": "2026-04-17",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-21",
+      "baseDate": "2026-04-20",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-22",
+      "baseDate": "2026-04-21",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-23",
+      "baseDate": "2026-04-22",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-24",
+      "baseDate": "2026-04-23",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-27",
+      "baseDate": "2026-04-24",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-28",
+      "baseDate": "2026-04-27",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-29",
+      "baseDate": "2026-04-28",
+      "candidates": 300
+    },
+    {
+      "date": "2026-04-30",
+      "baseDate": "2026-04-29",
+      "candidates": 300
+    },
+    {
+      "date": "2026-05-04",
+      "baseDate": "2026-04-30",
+      "candidates": 300
+    },
+    {
+      "date": "2026-05-06",
+      "baseDate": "2026-05-04",
+      "candidates": 300
+    },
+    {
+      "date": "2026-05-07",
+      "baseDate": "2026-05-06",
+      "candidates": 300
+    },
+    {
+      "date": "2026-05-08",
+      "baseDate": "2026-05-07",
+      "candidates": 300
+    },
+    {
+      "date": "2026-05-11",
+      "baseDate": "2026-05-08",
+      "candidates": 300
+    },
+    {
+      "date": "2026-05-12",
+      "baseDate": "2026-05-11",
+      "candidates": 300
+    },
+    {
+      "date": "2026-05-13",
+      "baseDate": "2026-05-12",
+      "candidates": 300
+    },
+    {
+      "date": "2026-05-14",
+      "baseDate": "2026-05-13",
+      "candidates": 300
+    }
+  ],
+  "failedItems": []
+}

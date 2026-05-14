@@ -1,0 +1,1030 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>1DS — 최고의 단타 가설 자동 탐색</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px; max-width: 1800px; margin: 0 auto; color: #222; background: #fafafa; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 24px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #ddd; }
+  h3 { font-size: 14px; margin: 16px 0 6px; color: #444; }
+  .meta { color: #666; font-size: 12px; margin-bottom: 16px; }
+  table { border-collapse: collapse; width: 100%; background: #fff; font-size: 11.5px; margin-bottom: 10px; }
+  th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; white-space: nowrap; }
+  th { background: #f0f0f0; font-weight: 600; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pos { color: #c62828; }
+  .neg { color: #1565c0; }
+  .summary { background: #fff; padding: 12px 16px; border-radius: 6px; border: 1px solid #e0e0e0; margin-bottom: 18px; }
+  .summary strong { color: #d84315; }
+  ul { padding-left: 22px; } li { margin: 3px 0; font-size: 13px; }
+  table tr:nth-child(odd) td { background: #fafafa; }
+  .note { color: #888; font-size: 11px; }
+</style>
+</head>
+<body>
+<h1>1DS — 최고의 단타 가설 자동 탐색 (60거래일)</h1>
+<div class="meta">
+  생성 2026-05-14T14:33:34.593Z · 60거래일 · entries 17870건 · 평가 가설 101건 · 소요 19.46s
+  <div class="note">60일 분봉 데이터로 ~101 가설 평가. 사전 feature는 09:30까지의 분봉만 사용. trigger feature는 trigger 시점 이전 분봉만 사용. 성과는 진입 시점 이후 분봉으로 측정 (TP·SL 동시 hit 시 SL 보수적 우선). 7 strategy (S1~S4 / T1~T3) 각자 다른 진입/청산.</div>
+  <div class="note">랭킹 score = score = avgReturn*2 + winRate*0.03 + hit10Rate*0.08 + hit5Rate*0.03 - fail3Rate*0.05 - abs(perDayAvg-7)*0.08 - max(0,zeroDayRate-30)*0.05</div>
+  <div class="note">basicGate = n≥80, 2≤perDayAvg≤20, avgReturn&gt;0.7, medianReturn≥-1.5, hit10Rate≥READY base, fail3Rate≤60, zeroDayRate≤50</div>
+</div>
+<div class="summary">
+    <h2 style="margin-top:0;border:none;">1. 요약 결론</h2>
+    <ul>
+      <li>분석 대상: 60거래일 (2026-02-12 ~ 2026-05-14) · 총 entries 17870건 · 평가 가설 101건</li>
+      <li>+10% (vs 09:30 close) winner: <strong>1338건</strong> · explosiveTop: 175건 · I 조건: 652건</li>
+      <li>READY 전체 +10% 도달률 = <strong>11.2%</strong> (basicGate 기준선)</li>
+      <li>basicGate 통과 가설 (기존 모델 제외) <strong>1건 → 상위 20개 노출</strong></li>
+      <li>최고 score 가설: <strong style="color:#d84315;">READY + 10시 생존 × S4 (score 9.04, avg 2.49%, win 69.9%, +10% 18.2%, n=521, 일평균 8.68)</strong></li>
+    </ul>
+  </div>
+
+<h2>2. 상위 20개 가설 랭킹 (basicGate 통과, 기존 모델 제외)</h2>
+<table><thead><tr>
+    <th>가설</th><th>전략</th><th>n</th><th>일평균</th>
+    <th>평균</th><th>중앙</th><th>승률</th>
+    <th>+5%</th><th>+10%</th><th>-3%</th>
+    <th>worst</th>
+    <th>winner recall</th><th>winner prec</th>
+    <th>score</th>
+  </tr></thead><tbody><tr>
+      <td>READY + 10시 생존</td>
+      <td>S4</td>
+      <td class="num">521</td>
+      <td class="num">8.68</td>
+      <td class="num"><span class="pos">+2.49%</span></td>
+      <td class="num"><span class="pos">+1.77%</span></td>
+      <td class="num">69.9%</td>
+      <td class="num">52.6%</td>
+      <td class="num">18.2%</td>
+      <td class="num">18.8%</td>
+      <td class="num"><span class="neg">-10.62%</span></td>
+      <td class="num">7.1%</td>
+      <td class="num">18.2%</td>
+      <td class="num"><strong>9.04</strong></td>
+    </tr></tbody></table>
+
+<h2>3. 기존 explosiveTop / I 조건과 비교</h2>
+<table><thead><tr>
+    <th>가설</th><th>전략</th><th>n</th><th>일평균</th>
+    <th>평균</th><th>중앙</th><th>승률</th>
+    <th>+5%</th><th>+10%</th><th>-3%</th>
+    <th>worst</th>
+    <th>winner recall</th><th>winner prec</th>
+    <th>score</th>
+  </tr></thead><tbody><tr>
+      <td>[기존] explosiveTop</td>
+      <td>S1</td>
+      <td class="num">175</td>
+      <td class="num">2.92</td>
+      <td class="num"><span class="pos">+0.83%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">44.6%</td>
+      <td class="num">44.0%</td>
+      <td class="num">14.3%</td>
+      <td class="num">40.0%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">1.9%</td>
+      <td class="num">14.3%</td>
+      <td class="num"><strong>3.14</strong></td>
+    </tr><tr>
+      <td>[기존] explosiveTop × S2</td>
+      <td>S2</td>
+      <td class="num">175</td>
+      <td class="num">2.92</td>
+      <td class="num"><span class="pos">+1.30%</span></td>
+      <td class="num"><span class="pos">+0.27%</span></td>
+      <td class="num">50.3%</td>
+      <td class="num">44.0%</td>
+      <td class="num">14.3%</td>
+      <td class="num">40.0%</td>
+      <td class="num"><span class="neg">-3.00%</span></td>
+      <td class="num">1.9%</td>
+      <td class="num">14.3%</td>
+      <td class="num"><strong>4.25</strong></td>
+    </tr><tr>
+      <td>[기존] READY 전체</td>
+      <td>S1</td>
+      <td class="num">1055</td>
+      <td class="num">17.63</td>
+      <td class="num"><span class="pos">+0.37%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">39.1%</td>
+      <td class="num">32.8%</td>
+      <td class="num">11.2%</td>
+      <td class="num">40.2%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">8.8%</td>
+      <td class="num">11.2%</td>
+      <td class="num"><strong>0.93</strong></td>
+    </tr><tr>
+      <td>[기존] TEN_REBREAK 단독</td>
+      <td>T1</td>
+      <td class="num">4866</td>
+      <td class="num">81.13</td>
+      <td class="num"><span class="pos">+0.30%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">40.4%</td>
+      <td class="num">41.1%</td>
+      <td class="num">13.6%</td>
+      <td class="num">23.9%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">49.4%</td>
+      <td class="num">13.6%</td>
+      <td class="num"><strong>-2.99</strong></td>
+    </tr><tr>
+      <td>FADED + close 회복 + 재돌파</td>
+      <td>T1</td>
+      <td class="num">1019</td>
+      <td class="num">16.98</td>
+      <td class="num"><span class="pos">+0.14%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">33.6%</td>
+      <td class="num">81.5%</td>
+      <td class="num">35.6%</td>
+      <td class="num">22.3%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">27.1%</td>
+      <td class="num">35.6%</td>
+      <td class="num"><strong>4.67</strong></td>
+    </tr><tr>
+      <td>[기존] I 조건 (TEN_REBREAK 동시충족)</td>
+      <td>S1</td>
+      <td class="num">652</td>
+      <td class="num">10.87</td>
+      <td class="num"><span class="pos">+1.22%</span></td>
+      <td class="num"><span class="pos">+0.65%</span></td>
+      <td class="num">52.6%</td>
+      <td class="num">44.3%</td>
+      <td class="num">14.7%</td>
+      <td class="num">29.6%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">7.2%</td>
+      <td class="num">14.7%</td>
+      <td class="num"><strong>4.73</strong></td>
+    </tr><tr>
+      <td>[기존] I 조건 × S2 (+10/-3)</td>
+      <td>S2</td>
+      <td class="num">652</td>
+      <td class="num">10.87</td>
+      <td class="num"><span class="pos">+1.62%</span></td>
+      <td class="num"><span class="pos">+0.78%</span></td>
+      <td class="num">56.4%</td>
+      <td class="num">44.3%</td>
+      <td class="num">14.7%</td>
+      <td class="num">29.6%</td>
+      <td class="num"><span class="neg">-3.00%</span></td>
+      <td class="num">7.2%</td>
+      <td class="num">14.7%</td>
+      <td class="num"><strong>5.65</strong></td>
+    </tr><tr>
+      <td>READY + 10시 생존</td>
+      <td>S4</td>
+      <td class="num">521</td>
+      <td class="num">8.68</td>
+      <td class="num"><span class="pos">+2.49%</span></td>
+      <td class="num"><span class="pos">+1.77%</span></td>
+      <td class="num">69.9%</td>
+      <td class="num">52.6%</td>
+      <td class="num">18.2%</td>
+      <td class="num">18.8%</td>
+      <td class="num"><span class="neg">-10.62%</span></td>
+      <td class="num">7.1%</td>
+      <td class="num">18.2%</td>
+      <td class="num"><strong>9.04</strong></td>
+    </tr></tbody></table>
+
+<h2>4. +10% winner를 가장 잘 잡는 조건 (winner precision 상위, n≥30)</h2>
+<table><thead><tr>
+    <th>가설</th><th>전략</th><th>n</th><th>일평균</th>
+    <th>평균</th><th>중앙</th><th>승률</th>
+    <th>+5%</th><th>+10%</th><th>-3%</th>
+    <th>worst</th>
+    <th>winner recall</th><th>winner prec</th>
+    <th>score</th>
+  </tr></thead><tbody><tr>
+      <td>FADED + close 회복 + 재돌파</td>
+      <td>T1</td>
+      <td class="num">1019</td>
+      <td class="num">16.98</td>
+      <td class="num"><span class="pos">+0.14%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">33.6%</td>
+      <td class="num">81.5%</td>
+      <td class="num">35.6%</td>
+      <td class="num">22.3%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">27.1%</td>
+      <td class="num">35.6%</td>
+      <td class="num"><strong>4.67</strong></td>
+    </tr><tr>
+      <td>재돌파 + 10분 후 trigger 위 유지</td>
+      <td>T1</td>
+      <td class="num">2741</td>
+      <td class="num">45.72</td>
+      <td class="num"><span class="pos">+1.49%</span></td>
+      <td class="num"><span class="pos">+1.16%</span></td>
+      <td class="num">59.9%</td>
+      <td class="num">56.0%</td>
+      <td class="num">21.6%</td>
+      <td class="num">14.4%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">44.2%</td>
+      <td class="num">21.6%</td>
+      <td class="num"><strong>4.37</strong></td>
+    </tr><tr>
+      <td>READY + 9:20~9:30 거래대금 ≥2× 9:00~9:10</td>
+      <td>S1</td>
+      <td class="num">102</td>
+      <td class="num">1.7</td>
+      <td class="num"><span class="pos">+0.40%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">39.2%</td>
+      <td class="num">41.2%</td>
+      <td class="num">20.6%</td>
+      <td class="num">41.2%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">1.6%</td>
+      <td class="num">20.6%</td>
+      <td class="num"><strong>2.21</strong></td>
+    </tr><tr>
+      <td>READY + MH재돌파 + v/mc≥2%</td>
+      <td>S1</td>
+      <td class="num">208</td>
+      <td class="num">3.5</td>
+      <td class="num"><span class="pos">+0.14%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">31.7%</td>
+      <td class="num">40.4%</td>
+      <td class="num">20.7%</td>
+      <td class="num">56.7%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">3.2%</td>
+      <td class="num">20.5%</td>
+      <td class="num"><strong>0.98</strong></td>
+    </tr><tr>
+      <td>READY + v/mc ≥2%</td>
+      <td>S1</td>
+      <td class="num">242</td>
+      <td class="num">4.07</td>
+      <td class="num"><span class="pos">+0.12%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">30.6%</td>
+      <td class="num">38.8%</td>
+      <td class="num">20.2%</td>
+      <td class="num">56.2%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">3.7%</td>
+      <td class="num">20.1%</td>
+      <td class="num"><strong>0.89</strong></td>
+    </tr><tr>
+      <td>FADED + cp≥0.70</td>
+      <td>S1</td>
+      <td class="num">250</td>
+      <td class="num">4.25</td>
+      <td class="num"><span class="neg">-0.12%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">27.6%</td>
+      <td class="num">44.0%</td>
+      <td class="num">20.0%</td>
+      <td class="num">75.2%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">3.7%</td>
+      <td class="num">19.6%</td>
+      <td class="num"><strong>-0.47</strong></td>
+    </tr><tr>
+      <td>v/mc ≥5%</td>
+      <td>S1</td>
+      <td class="num">1506</td>
+      <td class="num">25.55</td>
+      <td class="num"><span class="neg">-0.18%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">26.8%</td>
+      <td class="num">41.4%</td>
+      <td class="num">19.9%</td>
+      <td class="num">66.5%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">22.3%</td>
+      <td class="num">19.5%</td>
+      <td class="num"><strong>-1.53</strong></td>
+    </tr><tr>
+      <td>FADED + 9:20~9:30 거래대금 ≥2× 9:00~9:10</td>
+      <td>S1</td>
+      <td class="num">100</td>
+      <td class="num">1.68</td>
+      <td class="num"><span class="pos">+0.14%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">35.0%</td>
+      <td class="num">39.0%</td>
+      <td class="num">19.0%</td>
+      <td class="num">58.0%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">1.4%</td>
+      <td class="num">18.8%</td>
+      <td class="num"><strong>0.69</strong></td>
+    </tr><tr>
+      <td>재돌파 + 후속 5분 거래대금 증가</td>
+      <td>T1</td>
+      <td class="num">3383</td>
+      <td class="num">56.38</td>
+      <td class="num"><span class="pos">+0.63%</span></td>
+      <td class="num"><span class="neg">-0.94%</span></td>
+      <td class="num">44.6%</td>
+      <td class="num">48.7%</td>
+      <td class="num">18.8%</td>
+      <td class="num">24.4%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">47.5%</td>
+      <td class="num">18.8%</td>
+      <td class="num"><strong>0.39</strong></td>
+    </tr><tr>
+      <td>재돌파 + 후속 5분 고점 추가 갱신</td>
+      <td>T1</td>
+      <td class="num">3692</td>
+      <td class="num">61.53</td>
+      <td class="num"><span class="pos">+0.73%</span></td>
+      <td class="num"><span class="neg">-0.44%</span></td>
+      <td class="num">46.5%</td>
+      <td class="num">50.0%</td>
+      <td class="num">18.7%</td>
+      <td class="num">21.0%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">51.7%</td>
+      <td class="num">18.7%</td>
+      <td class="num"><strong>0.44</strong></td>
+    </tr></tbody></table>
+
+<h2>5. 평균 수익이 가장 좋은 조건 (n≥50)</h2>
+<table><thead><tr>
+    <th>가설</th><th>전략</th><th>n</th><th>일평균</th>
+    <th>평균</th><th>중앙</th><th>승률</th>
+    <th>+5%</th><th>+10%</th><th>-3%</th>
+    <th>worst</th>
+    <th>winner recall</th><th>winner prec</th>
+    <th>score</th>
+  </tr></thead><tbody><tr>
+      <td>READY + 10시 생존</td>
+      <td>S4</td>
+      <td class="num">521</td>
+      <td class="num">8.68</td>
+      <td class="num"><span class="pos">+2.49%</span></td>
+      <td class="num"><span class="pos">+1.77%</span></td>
+      <td class="num">69.9%</td>
+      <td class="num">52.6%</td>
+      <td class="num">18.2%</td>
+      <td class="num">18.8%</td>
+      <td class="num"><span class="neg">-10.62%</span></td>
+      <td class="num">7.1%</td>
+      <td class="num">18.2%</td>
+      <td class="num"><strong>9.04</strong></td>
+    </tr><tr>
+      <td>[기존] I 조건 × S2 (+10/-3)</td>
+      <td>S2</td>
+      <td class="num">652</td>
+      <td class="num">10.87</td>
+      <td class="num"><span class="pos">+1.62%</span></td>
+      <td class="num"><span class="pos">+0.78%</span></td>
+      <td class="num">56.4%</td>
+      <td class="num">44.3%</td>
+      <td class="num">14.7%</td>
+      <td class="num">29.6%</td>
+      <td class="num"><span class="neg">-3.00%</span></td>
+      <td class="num">7.2%</td>
+      <td class="num">14.7%</td>
+      <td class="num"><strong>5.65</strong></td>
+    </tr><tr>
+      <td>재돌파 + 10분 후 trigger 위 유지</td>
+      <td>T1</td>
+      <td class="num">2741</td>
+      <td class="num">45.72</td>
+      <td class="num"><span class="pos">+1.49%</span></td>
+      <td class="num"><span class="pos">+1.16%</span></td>
+      <td class="num">59.9%</td>
+      <td class="num">56.0%</td>
+      <td class="num">21.6%</td>
+      <td class="num">14.4%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">44.2%</td>
+      <td class="num">21.6%</td>
+      <td class="num"><strong>4.37</strong></td>
+    </tr><tr>
+      <td>[기존] explosiveTop × S2</td>
+      <td>S2</td>
+      <td class="num">175</td>
+      <td class="num">2.92</td>
+      <td class="num"><span class="pos">+1.30%</span></td>
+      <td class="num"><span class="pos">+0.27%</span></td>
+      <td class="num">50.3%</td>
+      <td class="num">44.0%</td>
+      <td class="num">14.3%</td>
+      <td class="num">40.0%</td>
+      <td class="num"><span class="neg">-3.00%</span></td>
+      <td class="num">1.9%</td>
+      <td class="num">14.3%</td>
+      <td class="num"><strong>4.25</strong></td>
+    </tr><tr>
+      <td>[기존] I 조건 (TEN_REBREAK 동시충족)</td>
+      <td>S1</td>
+      <td class="num">652</td>
+      <td class="num">10.87</td>
+      <td class="num"><span class="pos">+1.22%</span></td>
+      <td class="num"><span class="pos">+0.65%</span></td>
+      <td class="num">52.6%</td>
+      <td class="num">44.3%</td>
+      <td class="num">14.7%</td>
+      <td class="num">29.6%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">7.2%</td>
+      <td class="num">14.7%</td>
+      <td class="num"><strong>4.73</strong></td>
+    </tr><tr>
+      <td>FADED + 10시 생존</td>
+      <td>S4</td>
+      <td class="num">3508</td>
+      <td class="num">58.47</td>
+      <td class="num"><span class="pos">+1.21%</span></td>
+      <td class="num"><span class="pos">+0.68%</span></td>
+      <td class="num">58.5%</td>
+      <td class="num">38.8%</td>
+      <td class="num">14.5%</td>
+      <td class="num">26.5%</td>
+      <td class="num"><span class="neg">-31.96%</span></td>
+      <td class="num">38%</td>
+      <td class="num">14.5%</td>
+      <td class="num"><strong>1.06</strong></td>
+    </tr><tr>
+      <td>FADED + 09:30 close 회복 + 10시 생존</td>
+      <td>S4</td>
+      <td class="num">3508</td>
+      <td class="num">58.47</td>
+      <td class="num"><span class="pos">+1.21%</span></td>
+      <td class="num"><span class="pos">+0.68%</span></td>
+      <td class="num">58.5%</td>
+      <td class="num">38.8%</td>
+      <td class="num">14.5%</td>
+      <td class="num">26.5%</td>
+      <td class="num"><span class="neg">-31.96%</span></td>
+      <td class="num">38%</td>
+      <td class="num">14.5%</td>
+      <td class="num"><strong>1.06</strong></td>
+    </tr><tr>
+      <td>WEAK + 10시 생존</td>
+      <td>S4</td>
+      <td class="num">3826</td>
+      <td class="num">63.77</td>
+      <td class="num"><span class="pos">+1.18%</span></td>
+      <td class="num"><span class="pos">+0.74%</span></td>
+      <td class="num">62.9%</td>
+      <td class="num">27.3%</td>
+      <td class="num">8.1%</td>
+      <td class="num">14.9%</td>
+      <td class="num"><span class="neg">-14.07%</span></td>
+      <td class="num">23.2%</td>
+      <td class="num">8.1%</td>
+      <td class="num"><strong>0.43</strong></td>
+    </tr><tr>
+      <td>[기존] explosiveTop</td>
+      <td>S1</td>
+      <td class="num">175</td>
+      <td class="num">2.92</td>
+      <td class="num"><span class="pos">+0.83%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">44.6%</td>
+      <td class="num">44.0%</td>
+      <td class="num">14.3%</td>
+      <td class="num">40.0%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">1.9%</td>
+      <td class="num">14.3%</td>
+      <td class="num"><strong>3.14</strong></td>
+    </tr><tr>
+      <td>재돌파 + 후속 5분 고점 추가 갱신</td>
+      <td>T1</td>
+      <td class="num">3692</td>
+      <td class="num">61.53</td>
+      <td class="num"><span class="pos">+0.73%</span></td>
+      <td class="num"><span class="neg">-0.44%</span></td>
+      <td class="num">46.5%</td>
+      <td class="num">50.0%</td>
+      <td class="num">18.7%</td>
+      <td class="num">21.0%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">51.7%</td>
+      <td class="num">18.7%</td>
+      <td class="num"><strong>0.44</strong></td>
+    </tr></tbody></table>
+
+<h2>6. 후보 수가 실전적으로 적당한 조건 (n≥50 · 일평균 3~10 · 평균 >0.5%)</h2>
+<table><thead><tr>
+    <th>가설</th><th>전략</th><th>n</th><th>일평균</th>
+    <th>평균</th><th>중앙</th><th>승률</th>
+    <th>+5%</th><th>+10%</th><th>-3%</th>
+    <th>worst</th>
+    <th>winner recall</th><th>winner prec</th>
+    <th>score</th>
+  </tr></thead><tbody><tr>
+      <td>READY + 10시 생존</td>
+      <td>S4</td>
+      <td class="num">521</td>
+      <td class="num">8.68</td>
+      <td class="num"><span class="pos">+2.49%</span></td>
+      <td class="num"><span class="pos">+1.77%</span></td>
+      <td class="num">69.9%</td>
+      <td class="num">52.6%</td>
+      <td class="num">18.2%</td>
+      <td class="num">18.8%</td>
+      <td class="num"><span class="neg">-10.62%</span></td>
+      <td class="num">7.1%</td>
+      <td class="num">18.2%</td>
+      <td class="num"><strong>9.04</strong></td>
+    </tr><tr>
+      <td>READY + v/avg ≥5</td>
+      <td>S1</td>
+      <td class="num">463</td>
+      <td class="num">7.72</td>
+      <td class="num"><span class="pos">+0.71%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">42.3%</td>
+      <td class="num">37.4%</td>
+      <td class="num">15.3%</td>
+      <td class="num">37.6%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">5.3%</td>
+      <td class="num">15.3%</td>
+      <td class="num"><strong>3.1</strong></td>
+    </tr><tr>
+      <td>READY + drop ≥-1% + v/avg≥5</td>
+      <td>S1</td>
+      <td class="num">250</td>
+      <td class="num">4.17</td>
+      <td class="num"><span class="pos">+0.62%</span></td>
+      <td class="num"><span class="neg">-0.82%</span></td>
+      <td class="num">42.0%</td>
+      <td class="num">34.0%</td>
+      <td class="num">13.6%</td>
+      <td class="num">32.0%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">2.5%</td>
+      <td class="num">13.6%</td>
+      <td class="num"><strong>2.78</strong></td>
+    </tr><tr>
+      <td>READY + MH재돌파 + 거래대금≥100억</td>
+      <td>S1</td>
+      <td class="num">359</td>
+      <td class="num">5.98</td>
+      <td class="num"><span class="pos">+0.64%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">42.6%</td>
+      <td class="num">40.4%</td>
+      <td class="num">14.5%</td>
+      <td class="num">41.8%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">3.9%</td>
+      <td class="num">14.5%</td>
+      <td class="num"><strong>2.76</strong></td>
+    </tr><tr>
+      <td>READY + cp≥0.85 + v/avg≥5</td>
+      <td>S1</td>
+      <td class="num">223</td>
+      <td class="num">3.72</td>
+      <td class="num"><span class="pos">+0.59%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">40.4%</td>
+      <td class="num">35.9%</td>
+      <td class="num">13.9%</td>
+      <td class="num">36.8%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">2.3%</td>
+      <td class="num">13.9%</td>
+      <td class="num"><strong>2.48</strong></td>
+    </tr></tbody></table>
+
+<h2>7. 위험한 조건 (worst &lt; -10% 또는 fail3 &gt; 60%, n≥50)</h2>
+<table><thead><tr>
+    <th>가설</th><th>전략</th><th>n</th><th>일평균</th>
+    <th>평균</th><th>중앙</th><th>승률</th>
+    <th>+5%</th><th>+10%</th><th>-3%</th>
+    <th>worst</th>
+    <th>winner recall</th><th>winner prec</th>
+    <th>score</th>
+  </tr></thead><tbody><tr>
+      <td>FADED + 9:20~9:30 신고점 갱신</td>
+      <td>S1</td>
+      <td class="num">405</td>
+      <td class="num">6.88</td>
+      <td class="num"><span class="neg">-0.32%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">25.7%</td>
+      <td class="num">35.6%</td>
+      <td class="num">17.0%</td>
+      <td class="num">68.9%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">5.2%</td>
+      <td class="num">16.7%</td>
+      <td class="num"><strong>-0.9</strong></td>
+    </tr><tr>
+      <td>v/mc ≥5%</td>
+      <td>S1</td>
+      <td class="num">1506</td>
+      <td class="num">25.55</td>
+      <td class="num"><span class="neg">-0.18%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">26.8%</td>
+      <td class="num">41.4%</td>
+      <td class="num">19.9%</td>
+      <td class="num">66.5%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">22.3%</td>
+      <td class="num">19.5%</td>
+      <td class="num"><strong>-1.53</strong></td>
+    </tr><tr>
+      <td>FADED + cp≥0.70</td>
+      <td>S1</td>
+      <td class="num">250</td>
+      <td class="num">4.25</td>
+      <td class="num"><span class="neg">-0.12%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">27.6%</td>
+      <td class="num">44.0%</td>
+      <td class="num">20.0%</td>
+      <td class="num">75.2%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">3.7%</td>
+      <td class="num">19.6%</td>
+      <td class="num"><strong>-0.47</strong></td>
+    </tr><tr>
+      <td>open ≥8%</td>
+      <td>S1</td>
+      <td class="num">654</td>
+      <td class="num">11.03</td>
+      <td class="num"><span class="neg">-0.09%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">26.9%</td>
+      <td class="num">40.4%</td>
+      <td class="num">16.2%</td>
+      <td class="num">65.0%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">7.9%</td>
+      <td class="num">16%</td>
+      <td class="num"><strong>-0.44</strong></td>
+    </tr><tr>
+      <td>WEAK + 2차 거래대금 + 기준가 회복</td>
+      <td>S4</td>
+      <td class="num">204</td>
+      <td class="num">3.4</td>
+      <td class="num"><span class="pos">+0.28%</span></td>
+      <td class="num"><span class="neg">-0.22%</span></td>
+      <td class="num">35.3%</td>
+      <td class="num">23.5%</td>
+      <td class="num">5.9%</td>
+      <td class="num">27.9%</td>
+      <td class="num"><span class="neg">-11.49%</span></td>
+      <td class="num">0.9%</td>
+      <td class="num">5.9%</td>
+      <td class="num"><strong>1.11</strong></td>
+    </tr><tr>
+      <td>WEAK + 10시 생존</td>
+      <td>S4</td>
+      <td class="num">3826</td>
+      <td class="num">63.77</td>
+      <td class="num"><span class="pos">+1.18%</span></td>
+      <td class="num"><span class="pos">+0.74%</span></td>
+      <td class="num">62.9%</td>
+      <td class="num">27.3%</td>
+      <td class="num">8.1%</td>
+      <td class="num">14.9%</td>
+      <td class="num"><span class="neg">-14.07%</span></td>
+      <td class="num">23.2%</td>
+      <td class="num">8.1%</td>
+      <td class="num"><strong>0.43</strong></td>
+    </tr><tr>
+      <td>FADED + 10시 생존</td>
+      <td>S4</td>
+      <td class="num">3508</td>
+      <td class="num">58.47</td>
+      <td class="num"><span class="pos">+1.21%</span></td>
+      <td class="num"><span class="pos">+0.68%</span></td>
+      <td class="num">58.5%</td>
+      <td class="num">38.8%</td>
+      <td class="num">14.5%</td>
+      <td class="num">26.5%</td>
+      <td class="num"><span class="neg">-31.96%</span></td>
+      <td class="num">38%</td>
+      <td class="num">14.5%</td>
+      <td class="num"><strong>1.06</strong></td>
+    </tr><tr>
+      <td>FADED + 09:30 close 회복 + 10시 생존</td>
+      <td>S4</td>
+      <td class="num">3508</td>
+      <td class="num">58.47</td>
+      <td class="num"><span class="pos">+1.21%</span></td>
+      <td class="num"><span class="pos">+0.68%</span></td>
+      <td class="num">58.5%</td>
+      <td class="num">38.8%</td>
+      <td class="num">14.5%</td>
+      <td class="num">26.5%</td>
+      <td class="num"><span class="neg">-31.96%</span></td>
+      <td class="num">38%</td>
+      <td class="num">14.5%</td>
+      <td class="num"><strong>1.06</strong></td>
+    </tr><tr>
+      <td>READY + 10시 생존</td>
+      <td>S4</td>
+      <td class="num">521</td>
+      <td class="num">8.68</td>
+      <td class="num"><span class="pos">+2.49%</span></td>
+      <td class="num"><span class="pos">+1.77%</span></td>
+      <td class="num">69.9%</td>
+      <td class="num">52.6%</td>
+      <td class="num">18.2%</td>
+      <td class="num">18.8%</td>
+      <td class="num"><span class="neg">-10.62%</span></td>
+      <td class="num">7.1%</td>
+      <td class="num">18.2%</td>
+      <td class="num"><strong>9.04</strong></td>
+    </tr></tbody></table>
+
+<h2>8. 버려야 할 조건 (basicGate 미통과 · avgReturn &lt; 0 · n≥50)</h2>
+<table><thead><tr>
+    <th>가설</th><th>전략</th><th>n</th><th>일평균</th>
+    <th>평균</th><th>중앙</th><th>승률</th>
+    <th>+5%</th><th>+10%</th><th>-3%</th>
+    <th>worst</th>
+    <th>winner recall</th><th>winner prec</th>
+    <th>score</th>
+  </tr></thead><tbody><tr>
+      <td>시총 &lt;1000억</td>
+      <td>S1</td>
+      <td class="num">1060</td>
+      <td class="num">17.67</td>
+      <td class="num"><span class="neg">-0.02%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">31.1%</td>
+      <td class="num">34.8%</td>
+      <td class="num">16.6%</td>
+      <td class="num">48.8%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">13.2%</td>
+      <td class="num">16.6%</td>
+      <td class="num"><strong>-0.03</strong></td>
+    </tr><tr>
+      <td>WAIT_PULLBACK 전체</td>
+      <td>S1</td>
+      <td class="num">407</td>
+      <td class="num">6.88</td>
+      <td class="num"><span class="neg">-0.07%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">26.5%</td>
+      <td class="num">36.4%</td>
+      <td class="num">14.5%</td>
+      <td class="num">58.7%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">4.4%</td>
+      <td class="num">14.3%</td>
+      <td class="num"><strong>-0.04</strong></td>
+    </tr><tr>
+      <td>READY + 직전 5분 저점 상승</td>
+      <td>S1</td>
+      <td class="num">101</td>
+      <td class="num">1.7</td>
+      <td class="num"><span class="neg">-0.14%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">31.7%</td>
+      <td class="num">29.7%</td>
+      <td class="num">13.9%</td>
+      <td class="num">50.5%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">1%</td>
+      <td class="num">13.7%</td>
+      <td class="num"><strong>-0.28</strong></td>
+    </tr><tr>
+      <td>open ≥8%</td>
+      <td>S1</td>
+      <td class="num">654</td>
+      <td class="num">11.03</td>
+      <td class="num"><span class="neg">-0.09%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">26.9%</td>
+      <td class="num">40.4%</td>
+      <td class="num">16.2%</td>
+      <td class="num">65.0%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">7.9%</td>
+      <td class="num">16%</td>
+      <td class="num"><strong>-0.44</strong></td>
+    </tr><tr>
+      <td>v/avg ≥10</td>
+      <td>S1</td>
+      <td class="num">921</td>
+      <td class="num">15.45</td>
+      <td class="num"><span class="neg">-0.07%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">28.4%</td>
+      <td class="num">36.7%</td>
+      <td class="num">15.1%</td>
+      <td class="num">56.1%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">10.4%</td>
+      <td class="num">15%</td>
+      <td class="num"><strong>-0.46</strong></td>
+    </tr><tr>
+      <td>FADED + cp≥0.70</td>
+      <td>S1</td>
+      <td class="num">250</td>
+      <td class="num">4.25</td>
+      <td class="num"><span class="neg">-0.12%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">27.6%</td>
+      <td class="num">44.0%</td>
+      <td class="num">20.0%</td>
+      <td class="num">75.2%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">3.7%</td>
+      <td class="num">19.6%</td>
+      <td class="num"><strong>-0.47</strong></td>
+    </tr><tr>
+      <td>WEAK + cp≥0.85</td>
+      <td>S1</td>
+      <td class="num">1155</td>
+      <td class="num">19.37</td>
+      <td class="num"><span class="neg">-0.05%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">35.2%</td>
+      <td class="num">23.0%</td>
+      <td class="num">5.9%</td>
+      <td class="num">35.0%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">5.1%</td>
+      <td class="num">5.9%</td>
+      <td class="num"><strong>-0.62</strong></td>
+    </tr><tr>
+      <td>FADED + 9:20~9:30 신고점 갱신</td>
+      <td>S1</td>
+      <td class="num">405</td>
+      <td class="num">6.88</td>
+      <td class="num"><span class="neg">-0.32%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">25.7%</td>
+      <td class="num">35.6%</td>
+      <td class="num">17.0%</td>
+      <td class="num">68.9%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">5.2%</td>
+      <td class="num">16.7%</td>
+      <td class="num"><strong>-0.9</strong></td>
+    </tr><tr>
+      <td>FADED + MH재돌파 ✓</td>
+      <td>S1</td>
+      <td class="num">1476</td>
+      <td class="num">24.9</td>
+      <td class="num"><span class="neg">-0.08%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">30.4%</td>
+      <td class="num">33.9%</td>
+      <td class="num">14.1%</td>
+      <td class="num">56.5%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">15.5%</td>
+      <td class="num">13.9%</td>
+      <td class="num"><strong>-1.36</strong></td>
+    </tr><tr>
+      <td>v/mc ≥5%</td>
+      <td>S1</td>
+      <td class="num">1506</td>
+      <td class="num">25.55</td>
+      <td class="num"><span class="neg">-0.18%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">26.8%</td>
+      <td class="num">41.4%</td>
+      <td class="num">19.9%</td>
+      <td class="num">66.5%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">22.3%</td>
+      <td class="num">19.5%</td>
+      <td class="num"><strong>-1.53</strong></td>
+    </tr></tbody></table>
+
+<h2>9. 최종 추천 후보</h2>
+<h3 style="margin-top:14px;">🚀 안정형 (S1/S3 · avg ≥0.7% · fail3 ≤35%)</h3><p class="note">+5% 또는 +7% 익절 / 작은 손절. 안정적 분포.</p><table><thead><tr>
+    <th>가설</th><th>전략</th><th>n</th><th>일평균</th>
+    <th>평균</th><th>중앙</th><th>승률</th>
+    <th>+5%</th><th>+10%</th><th>-3%</th>
+    <th>worst</th>
+    <th>winner recall</th><th>winner prec</th>
+    <th>score</th>
+  </tr></thead><tbody><tr><td colspan="14" style="color:#888;text-align:center;">조건 만족 가설 없음</td></tr></tbody></table>
+<h3 style="margin-top:14px;">🔥 공격형 (S2/T2 · avg ≥1.0%)</h3><p class="note">+10% 익절 / -3% 손절. 큰 상승 노림.</p><table><thead><tr>
+    <th>가설</th><th>전략</th><th>n</th><th>일평균</th>
+    <th>평균</th><th>중앙</th><th>승률</th>
+    <th>+5%</th><th>+10%</th><th>-3%</th>
+    <th>worst</th>
+    <th>winner recall</th><th>winner prec</th>
+    <th>score</th>
+  </tr></thead><tbody><tr><td colspan="14" style="color:#888;text-align:center;">조건 만족 가설 없음</td></tr></tbody></table>
+<h3 style="margin-top:14px;">♻ 회복형 (FADED/WEAK + 회복 신호)</h3><p class="note">약세 상태에서 회복 흔적 + 재돌파 패턴.</p><table><thead><tr>
+    <th>가설</th><th>전략</th><th>n</th><th>일평균</th>
+    <th>평균</th><th>중앙</th><th>승률</th>
+    <th>+5%</th><th>+10%</th><th>-3%</th>
+    <th>worst</th>
+    <th>winner recall</th><th>winner prec</th>
+    <th>score</th>
+  </tr></thead><tbody><tr><td colspan="14" style="color:#888;text-align:center;">조건 만족 가설 없음</td></tr></tbody></table>
+<h3 style="margin-top:14px;">👀 관찰만 (avgReturn &lt;0 또는 fail3 &gt;50%)</h3><p class="note">진입 X, 관찰만 권장.</p><table><thead><tr>
+    <th>가설</th><th>전략</th><th>n</th><th>일평균</th>
+    <th>평균</th><th>중앙</th><th>승률</th>
+    <th>+5%</th><th>+10%</th><th>-3%</th>
+    <th>worst</th>
+    <th>winner recall</th><th>winner prec</th>
+    <th>score</th>
+  </tr></thead><tbody><tr>
+      <td>READY + MH재돌파 + v/mc≥2%</td>
+      <td>S1</td>
+      <td class="num">208</td>
+      <td class="num">3.5</td>
+      <td class="num"><span class="pos">+0.14%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">31.7%</td>
+      <td class="num">40.4%</td>
+      <td class="num">20.7%</td>
+      <td class="num">56.7%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">3.2%</td>
+      <td class="num">20.5%</td>
+      <td class="num"><strong>0.98</strong></td>
+    </tr><tr>
+      <td>FADED + 직전 5분 저점 상승</td>
+      <td>S1</td>
+      <td class="num">185</td>
+      <td class="num">3.2</td>
+      <td class="num"><span class="pos">+0.25%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">35.1%</td>
+      <td class="num">36.8%</td>
+      <td class="num">15.7%</td>
+      <td class="num">53.5%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">2.2%</td>
+      <td class="num">15.1%</td>
+      <td class="num"><strong>0.93</strong></td>
+    </tr><tr>
+      <td>READY + v/mc ≥2%</td>
+      <td>S1</td>
+      <td class="num">242</td>
+      <td class="num">4.07</td>
+      <td class="num"><span class="pos">+0.12%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">30.6%</td>
+      <td class="num">38.8%</td>
+      <td class="num">20.2%</td>
+      <td class="num">56.2%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">3.7%</td>
+      <td class="num">20.1%</td>
+      <td class="num"><strong>0.89</strong></td>
+    </tr><tr>
+      <td>FADED + 9:20~9:30 거래대금 ≥2× 9:00~9:10</td>
+      <td>S1</td>
+      <td class="num">100</td>
+      <td class="num">1.68</td>
+      <td class="num"><span class="pos">+0.14%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">35.0%</td>
+      <td class="num">39.0%</td>
+      <td class="num">19.0%</td>
+      <td class="num">58.0%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">1.4%</td>
+      <td class="num">18.8%</td>
+      <td class="num"><strong>0.69</strong></td>
+    </tr><tr>
+      <td>open 5~8%</td>
+      <td>S1</td>
+      <td class="num">696</td>
+      <td class="num">11.68</td>
+      <td class="num"><span class="pos">+0.03%</span></td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">30.9%</td>
+      <td class="num">39.4%</td>
+      <td class="num">16.1%</td>
+      <td class="num">55.5%</td>
+      <td class="num"><span class="neg">-2.00%</span></td>
+      <td class="num">8.4%</td>
+      <td class="num">16%</td>
+      <td class="num"><strong>0.31</strong></td>
+    </tr></tbody></table>
+
+<h2>10. 다음 보드 반영 제안</h2>
+<div class="summary">
+  <ul>
+    <li>안정형 추천 가설 없음</li>
+    <li>공격형 추천 가설 없음</li>
+    <li>회복형 추천 가설 없음</li>
+    <li><strong>관찰 섹션</strong> — explosiveWatch 등 진입 X 종목은 별도 영역으로 유지.</li>
+  </ul>
+</div>
+
+<div class="note" style="margin-top:30px;border-top:1px dashed #ccc;padding-top:10px;">검증 일자: 2026-02-12, 2026-02-13, 2026-02-19, 2026-02-20, 2026-02-23, 2026-02-24, 2026-02-25, 2026-02-26, 2026-02-27, 2026-03-03, 2026-03-04, 2026-03-05, 2026-03-06, 2026-03-09, 2026-03-10, 2026-03-11, 2026-03-12, 2026-03-13, 2026-03-16, 2026-03-17, 2026-03-18, 2026-03-19, 2026-03-20, 2026-03-23, 2026-03-24, 2026-03-25, 2026-03-26, 2026-03-27, 2026-03-30, 2026-03-31, 2026-04-01, 2026-04-02, 2026-04-03, 2026-04-06, 2026-04-07, 2026-04-08, 2026-04-09, 2026-04-10, 2026-04-13, 2026-04-14, 2026-04-15, 2026-04-16, 2026-04-17, 2026-04-20, 2026-04-21, 2026-04-22, 2026-04-23, 2026-04-24, 2026-04-27, 2026-04-28, 2026-04-29, 2026-04-30, 2026-05-04, 2026-05-06, 2026-05-07, 2026-05-08, 2026-05-11, 2026-05-12, 2026-05-13, 2026-05-14</div>
+</body>
+</html>

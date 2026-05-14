@@ -64,7 +64,17 @@ function parseArgs(argv) {
     fromScannerCandidates: false, // 유동성 통과 종목 전체 대상 (09:30 실시간 스캐너용 넓은 후보군)
     scannerLimit: 300,       // 스캐너 후보 상한 (priorityScore 상위 N개)
     fullDay: false,          // 09:00~15:30 전체 분봉 수집 (4 calls/stock-day) — pullback 백테스트용
+    fromScannerCandidatesHistory: false,  // 과거 N 거래일 백필 모드 (각 거래일별로 scanner candidates 산출 → 그 일자 분봉 수집)
+    historyDays: 60,         // 과거 모드 기본 60거래일
+    fromDate: null, toDate: null,  // 과거 모드 일자 범위 (--from-date / --to-date, --from/--to 와 별개)
+    maxFetch: 0,             // 한 번 실행에서 최대 KIS 호출 수 (0 = 무제한)
+    resume: false,           // 이전 실행에서 받지 못한 항목부터 이어받기 (실제로는 skip 로직이 동일하지만 명시적 플래그)
+    retryFailed: false,      // missing log의 실패 항목만 재시도
+    statusOutPath: null,     // 상태 파일 경로 (default reports/one-day-surge-intraday-collection-status.json)
   };
+  // 환경변수 (history 모드에서 sleep / max-fetch 오버라이드)
+  if (process.env.ONEDS_HISTORY_SLEEP_MS) a.sleepMs = parseInt(process.env.ONEDS_HISTORY_SLEEP_MS, 10) || a.sleepMs;
+  if (process.env.ONEDS_HISTORY_LIMIT_PER_RUN) a.maxFetch = parseInt(process.env.ONEDS_HISTORY_LIMIT_PER_RUN, 10) || 0;
   for (let i = 2; i < argv.length; i++) {
     const k = argv[i];
     if (k === '--target-date') a.targetDate = argv[++i];
@@ -81,8 +91,18 @@ function parseArgs(argv) {
     else if (k === '--from-scanner-candidates') a.fromScannerCandidates = true;
     else if (k === '--scanner-limit') a.scannerLimit = parseInt(argv[++i], 10) || 300;
     else if (k === '--full-day') a.fullDay = true;
+    else if (k === '--from-scanner-candidates-history') a.fromScannerCandidatesHistory = true;
+    else if (k === '--days') a.historyDays = parseInt(argv[++i], 10) || 60;
+    else if (k === '--from-date') a.fromDate = argv[++i];
+    else if (k === '--to-date') a.toDate = argv[++i];
+    else if (k === '--max-fetch') a.maxFetch = parseInt(argv[++i], 10) || 0;
+    else if (k === '--resume') a.resume = true;
+    else if (k === '--retry-failed') a.retryFailed = true;
+    else if (k === '--status-out') a.statusOutPath = argv[++i];
     else if (k === '--help' || k === '-h') { printHelp(); process.exit(0); }
   }
+  // history 모드는 자동으로 full-day 분봉 수집 강제
+  if (a.fromScannerCandidatesHistory) a.fullDay = true;
   return a;
 }
 function printHelp() {
@@ -100,7 +120,16 @@ function printHelp() {
   --from-board                 reports/one-day-surge-board-result.json의 mainPoolCodes만 수집 (라이브 운영용 — target-date는 보드 analysisDate로 자동 설정)
   --from-scanner-candidates    유동성 통과 종목 전체 대상 (09:30 실시간 스캐너용 넓은 후보군). priorityScore 상위 N개 수집
   --scanner-limit 300          스캐너 후보 상한 (default 300)
-  --full-day                   09:00~15:30 전체 분봉 수집 (default 09:00~10:00). 종목당 4 KIS 호출. pullback 백테스트용`);
+  --full-day                   09:00~15:30 전체 분봉 수집 (default 09:00~10:00). 종목당 4 KIS 호출. pullback 백테스트용
+  --from-scanner-candidates-history  과거 N 거래일 분봉 백필 (각 일자별 scanner top N 후보 09:00~15:30). full-day 자동 켜짐
+  --days 60                    history 모드에서 과거 N 거래일 (default 60). --from-date/--to-date 미지정 시 적용
+  --from-date YYYY-MM-DD       history 모드 시작일 (D-1 baseDate 기준 → 분봉은 D=다음 거래일에 저장)
+  --to-date   YYYY-MM-DD       history 모드 종료일
+  --max-fetch N                한 번 실행에서 최대 KIS 호출 수 (0=무제한). KIS rate limit 안전망. 환경변수 ONEDS_HISTORY_LIMIT_PER_RUN
+  --resume                     이전 실행에서 못 받은 항목부터 이어받기 (skip-if-exists는 항상 적용, 이 플래그는 명시용)
+  --retry-failed               missing log의 실패 항목만 재시도 (모든 history task 대신)
+  --status-out PATH            상태 파일 출력 경로 (default reports/one-day-surge-intraday-collection-status.json)
+  환경변수: ONEDS_HISTORY_SLEEP_MS=350 / ONEDS_HISTORY_LIMIT_PER_RUN=1000`);
 }
 
 // ── 유틸 ──
@@ -249,6 +278,94 @@ function buildScannerCandidates({ metaMap, files, limit, chartDir, debug = false
   return { candidates: top, rejectCounts, totalCandidates: candidates.length };
 }
 
+// ── 과거 baseDate(특정 D-1일) 기준 스캐너 후보군 빌더 ──
+// buildScannerCandidates는 "지금 차트의 latest row" 기준이지만,
+// 과거 60일 분봉 수집은 각 거래일별로 "그 거래일 전일 일봉"까지만 사용해 후보를 산출해야 한다 (미래 누수 금지).
+// targetBaseDateNum = 후보 산출 기준일 (YYYYMMDD, 후보 종목들의 "전일 일봉" 일자).
+// 결과 후보들의 분봉은 targetBaseDateNum의 다음 거래일 = targetIntradayDateNum에서 수집한다.
+function buildScannerCandidatesForDate({ metaMap, files, limit, chartDir, targetBaseDateNum, debug = false }) {
+  const candidates = [];
+  const rejectCounts = { no_meta: 0, etf: 0, special: 0, excluded_name: 0, no_marketcap: 0, mc_outside: 0, no_chart: 0, short_history: 0, no_target_date: 0, low_liquidity: 0 };
+  for (const f of files) {
+    const code = f.replace(/\.json$/, '');
+    const meta = metaMap.get(code);
+    if (!meta) { rejectCounts.no_meta++; continue; }
+    if (meta.isEtf) { rejectCounts.etf++; continue; }
+    if (meta.isSpecial) { rejectCounts.special++; continue; }
+    if (core.isExcludedByName(meta.name)) { rejectCounts.excluded_name++; continue; }
+    const mc = Number(meta.marketCap) || 0;
+    if (mc <= 0) { rejectCounts.no_marketcap++; continue; }
+    if (mc < 5e10 || mc >= 5e12) { rejectCounts.mc_outside++; continue; }
+    let chart;
+    try { chart = JSON.parse(fs.readFileSync(path.join(chartDir, f), 'utf-8')); }
+    catch (_) { rejectCounts.no_chart++; continue; }
+    const rows = chart && chart.rows;
+    if (!Array.isArray(rows) || rows.length < 25) { rejectCounts.short_history++; continue; }
+    // targetBaseDateNum 행을 찾아 baseIdx로 사용
+    const baseIdx = rows.findIndex((r) => r && r.date === targetBaseDateNum);
+    if (baseIdx < 0) { rejectCounts.no_target_date++; continue; }
+    if (baseIdx < 20) { rejectCounts.short_history++; continue; }
+    let sum = 0, n = 0;
+    for (let i = baseIdx - 20; i < baseIdx; i++) {
+      const r = rows[i];
+      if (r && r.volume > 0) { sum += (r.valueApprox || 0); n++; }
+    }
+    const avg20 = n > 0 ? sum / n : 0;
+    const baseRow = rows[baseIdx];
+    const baseValue = baseRow.valueApprox || 0;
+    if (avg20 < 1e9 && baseValue < 2e9) { rejectCounts.low_liquidity++; continue; }
+    const prevRow = rows[baseIdx - 1];
+    const changeRate = prevRow && prevRow.close > 0 ? (baseRow.close / prevRow.close - 1) * 100 : 0;
+    const vmc = mc > 0 ? (baseValue / mc) * 100 : 0;
+    const priorityScore =
+      baseValue / 1e8
+      + (avg20 / 1e8) * 0.3
+      + Math.max(0, changeRate) * 10
+      + vmc;
+    const nextRow = rows[baseIdx + 1] || null;
+    candidates.push({
+      code, name: chart.name || meta.name || code,
+      market: chart.market || meta.market || '',
+      marketCap: mc, baseDate: baseRow.date,
+      nextDayRow: nextRow,  // 분봉 수집 일자 = nextRow.date (없으면 호출 측에서 처리)
+      avg20Value: avg20, baseValue, changeRate, vmc, priorityScore,
+    });
+  }
+  candidates.sort((a, b) => b.priorityScore - a.priorityScore);
+  const top = candidates.slice(0, limit);
+  if (debug) {
+    console.log(`    baseDate=${targetBaseDateNum}: 후보 ${candidates.length}건 → top ${top.length}건`);
+  }
+  return { candidates: top, rejectCounts, totalCandidates: candidates.length };
+}
+
+// ── 과거 N 거래일 산출 ──
+// 모든 차트의 row.date 중 빈도 상위 거래일을 안정적으로 sort해서 최근 N개를 반환.
+// 운영 서버/로컬 모두 chart 파일이 같은 일자 인덱스를 공유하므로 표본은 충분히 크다.
+function listRecentTradingDays(files, chartDir, n, options = {}) {
+  const { excludeAfterDateNum = null } = options;
+  const counts = new Map();
+  const sample = files.slice(0, Math.min(files.length, 300));  // 빈도 산출용 샘플 — 300개면 충분
+  for (const f of sample) {
+    try {
+      const chart = JSON.parse(fs.readFileSync(path.join(chartDir, f), 'utf-8'));
+      const rows = chart && chart.rows;
+      if (!Array.isArray(rows)) continue;
+      const tail = rows.slice(-Math.max(n + 10, 80));  // 최근 ~70영업일만 보면 충분
+      for (const r of tail) {
+        if (!r || !r.date || !(r.volume > 0)) continue;
+        if (excludeAfterDateNum && r.date > excludeAfterDateNum) continue;
+        counts.set(r.date, (counts.get(r.date) || 0) + 1);
+      }
+    } catch (_) { /* skip */ }
+  }
+  // 빈도 ≥ sample.length × 0.5 → 시장 영업일로 인정 (개별 종목 거래정지 일자 제외)
+  const threshold = Math.max(3, Math.floor(sample.length * 0.5));
+  const valid = [...counts.entries()].filter(([_, c]) => c >= threshold).map(([d]) => d);
+  valid.sort();
+  return valid.slice(-n);
+}
+
 // ── main ──
 async function main() {
   const args = parseArgs(process.argv);
@@ -262,6 +379,16 @@ async function main() {
   if (args.fromBoard && args.fromScannerCandidates) {
     console.error('  [ERROR] --from-board 와 --from-scanner-candidates 는 동시 사용 불가.');
     process.exit(1);
+  }
+  if (args.fromScannerCandidatesHistory && (args.fromBoard || args.fromScannerCandidates)) {
+    console.error('  [ERROR] --from-scanner-candidates-history 는 단독 모드. --from-board / --from-scanner-candidates와 동시 사용 불가.');
+    process.exit(1);
+  }
+
+  // ── HISTORY 모드: 과거 N 거래일별 scanner candidates 분봉 백필 (단독 경로, 기존 흐름 우회) ──
+  if (args.fromScannerCandidatesHistory) {
+    await runHistoryMode(args, t0);
+    return;
   }
 
   // --from-board: 보드 JSON에서 mainPool 코드 + analysisDate를 읽어 target-date 자동 세팅
@@ -532,8 +659,251 @@ async function main() {
   }
 }
 
+// ── HISTORY 모드 main 흐름 ──
+// 1) 메타/차트 로드
+// 2) 대상 거래일 결정 (--from-date/--to-date 우선, 아니면 최근 N거래일)
+//    target 거래일 = "분봉 수집 일자" (D). 후보 산출 baseDate = D 직전 거래일 (D-1).
+// 3) 각 D별로 buildScannerCandidatesForDate(targetBaseDateNum = D-1 date) 호출
+//    → 분봉 수집 task는 각 후보의 nextDayRow.date(= D)로 빌드
+// 4) skip-if-exists 적용 후 KIS fetch 루프 (--max-fetch 도달 시 중단)
+// 5) status 파일 + missing log 저장
+async function runHistoryMode(args, t0) {
+  const metaMap = report.loadStockMetaMap();
+  const files = fs.readdirSync(CHART_DIR).filter((f) => f.endsWith('.json'));
+  console.log(`  메타: ${metaMap.size}건 / 차트 파일: ${files.length}건`);
+
+  // 거래일 산출. 분봉 수집 일자(D) = baseDate(D-1)의 다음 거래일.
+  // 사용자가 --from-date/--to-date를 D 기준(분봉 수집 일자)으로 지정한다고 가정.
+  // 내부적으로는 baseDate 리스트(D-1)를 만든 뒤, 각 baseDate의 nextRow.date를 D로 사용.
+  const todayParts = new Date().toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).split('. ');
+  const todayNum = todayParts[0] + (todayParts[1] || '').padStart(2, '0') + ((todayParts[2] || '').replace('.', '')).padStart(2, '0');
+
+  // 최근 영업일 리스트 (오늘 포함 X — 오늘은 장중일 수 있고 일봉이 확정 안 됨)
+  // 분봉 수집 가능한 마지막 D = 어제까지의 영업일.
+  // baseDate 리스트는 이 D-1 영업일들의 한 영업일 전 = D-2 즉 두 단계 이전. 단순화 위해:
+  //   targetIntradayDates(D list) = 최근 N+1 영업일 (오늘 제외) → 각 D의 baseDate는 그 차트 row의 직전 row
+  // 사용자 옵션 분기:
+  //   --from-date / --to-date : 그 범위의 영업일을 D로 사용
+  //   --days N (기본 60)      : 최근 N 영업일을 D로 사용
+  // 단, 운영 서버에서 오늘 일봉이 아직 cron으로 추가 안 됐을 수 있으니, latest row가 오늘이면 그 직전부터.
+  let targetDDates;
+  if (args.fromDate || args.toDate) {
+    const fromNum = args.fromDate ? args.fromDate.replace(/-/g, '') : '00000000';
+    const toNum   = args.toDate   ? args.toDate.replace(/-/g, '')   : '99999999';
+    // listRecentTradingDays — 최근 ~100 영업일에서 범위 필터
+    const recent100 = listRecentTradingDays(files, CHART_DIR, 100, { excludeAfterDateNum: todayNum });
+    targetDDates = recent100.filter((d) => d >= fromNum && d <= toNum);
+  } else {
+    // 최근 N 거래일 (오늘 제외)
+    targetDDates = listRecentTradingDays(files, CHART_DIR, args.historyDays, { excludeAfterDateNum: todayNum });
+  }
+  if (targetDDates.length === 0) {
+    console.error('  [ERROR] HISTORY 모드: 대상 거래일 0건. 차트 데이터 확인 필요.');
+    process.exit(1);
+  }
+  console.log(`  📅 HISTORY 모드 — 대상 거래일 ${targetDDates.length}일 (${targetDDates[0]} ~ ${targetDDates[targetDDates.length - 1]})`);
+
+  // 각 D별로 candidates 빌드
+  // candidatesByD[D] = top scannerLimit candidates (baseDate = 차트의 D 직전 row)
+  // 분봉 수집 일자 = D
+  const perDateSummary = [];
+  const allTasks = [];  // { D_str, D_num, baseDate, code, name, market, marketCap, ev }
+  for (const D of targetDDates) {
+    // baseDate = D 직전 영업일을 찾아야 함 → buildScannerCandidatesForDate가 baseRow를 찾아주므로
+    //  그 baseRow의 nextRow.date === D 인지 확인. baseRow를 D-1로 잡으려면:
+    //  먼저 D 자체로 buildScannerCandidatesForDate를 한 번 호출해서 baseRow=rows[D] 의 직전(D-1) row를 찾는 방식 X
+    //  대신 D 자체를 nextDate로 보고, baseRow=rows[D]의 prevRow를 찾기 위해 D의 한 단계 전(이전 영업일 D_prev)으로 빌드.
+    // 단순화: 각 후보 차트에서 D row의 직전 row.date를 baseDate로 사용. 종목마다 다를 수 있지만 시장 영업일이 동일하므로 거의 같음.
+    // 구현 — buildScannerCandidatesForDate(targetBaseDateNum=D_prev). D_prev 결정 방식:
+    //   listRecentTradingDays(101)에서 D 직전 row를 찾는다.
+    const cal = listRecentTradingDays(files, CHART_DIR, 200, { excludeAfterDateNum: D });
+    const idx = cal.lastIndexOf(D);
+    if (idx <= 0) {
+      perDateSummary.push({ date: dateNumToStr(D), baseDate: null, candidates: 0, reason: 'no_prev_date' });
+      continue;
+    }
+    const baseDateNum = cal[idx - 1];
+    const { candidates } = buildScannerCandidatesForDate({
+      metaMap, files, limit: args.scannerLimit, chartDir: CHART_DIR,
+      targetBaseDateNum: baseDateNum, debug: false,
+    });
+    // candidates의 nextDayRow.date가 D와 일치하는 것만 task로 추가 (안전).
+    // 또한 nextRow가 차트에 없는 종목은 D가 차트에 안 들어온 상태(아직 데이터 미반영) → skip.
+    let pickedForD = 0;
+    for (const c of candidates) {
+      if (!c.nextDayRow || c.nextDayRow.date !== D) continue;
+      allTasks.push({
+        baseDate: baseDateNum, nextDateNum: D, nextDateStr: dateNumToStr(D),
+        code: c.code, name: c.name, gtGroup: 'SCANNER_CANDIDATE_HISTORY',
+        marketCap: c.marketCap, valueToMarketCapRatio: c.vmc / 100,
+        dailyValueRank: 9999, candleType: null,
+        dayChangeRate: c.changeRate, recent5Up15Count: 0, market: c.market,
+      });
+      pickedForD++;
+    }
+    perDateSummary.push({ date: dateNumToStr(D), baseDate: dateNumToStr(baseDateNum), candidates: pickedForD });
+  }
+  const totalTarget = allTasks.length;
+  console.log(`  📦 전체 수집 후보 종목-일: ${totalTarget}건`);
+
+  // --retry-failed: missing log의 실패 항목만 작업으로 제한
+  if (args.retryFailed) {
+    const missing = loadMissingLog();
+    const failedKeys = new Set((missing.entries || []).filter((e) => /^(?!empty_bars)/.test(e.reason || '')).map((e) => `${e.date}|${e.code}`));
+    const before = allTasks.length;
+    const filtered = allTasks.filter((t) => failedKeys.has(`${t.nextDateStr}|${t.code}`));
+    console.log(`  🔁 --retry-failed: missing log ${failedKeys.size}건 / 매칭 ${filtered.length}건 (전체 ${before} → ${filtered.length})`);
+    allTasks.length = 0;
+    for (const t of filtered) allTasks.push(t);
+  }
+
+  // skip-if-exists 분류
+  const fetchQueue = [];  // 실제 KIS 호출 대상
+  let alreadyExists = 0;
+  for (const t of allTasks) {
+    const dirPath = path.join(INTRADAY_BASE, t.nextDateStr);
+    const outPath = path.join(dirPath, `${t.code}.json`);
+    if (fs.existsSync(outPath)) {
+      // full-day 모드 → 마지막 bar가 15:00 이후면 완료, 아니면 재수집
+      try {
+        const existing = JSON.parse(fs.readFileSync(outPath, 'utf-8'));
+        const lastBar = (existing.bars || []).slice(-1)[0];
+        if (lastBar && lastBar.time >= '15:00') { alreadyExists++; continue; }
+      } catch (_) { /* 깨진 파일 → 재수집 */ }
+    }
+    fetchQueue.push(t);
+  }
+  console.log(`  📂 이미 존재 (완료): ${alreadyExists}건 / 새로 받아야 할 종목-일: ${fetchQueue.length}건`);
+
+  // --max-fetch 적용
+  let willFetch = fetchQueue;
+  if (args.maxFetch > 0 && fetchQueue.length > args.maxFetch) {
+    willFetch = fetchQueue.slice(0, args.maxFetch);
+    console.log(`  🚦 --max-fetch ${args.maxFetch} 적용 → 이번 실행 ${willFetch.length}건만 수집 (나머지 ${fetchQueue.length - args.maxFetch}건은 다음 --resume 실행으로 이월)`);
+  }
+
+  // 예상 소요 시간 (sleep + 4 calls × full-day)
+  const callsPerStock = 4;  // full-day = 4 KIS 호출
+  const sleepPerCall = args.sleepMs;
+  const estimateSec = willFetch.length * callsPerStock * sleepPerCall / 1000;
+  console.log(`  ⏰ 예상 소요: ${(estimateSec / 60).toFixed(1)}분 (${willFetch.length} × ${callsPerStock} calls × ${sleepPerCall}ms)`);
+
+  if (args.dryRun) {
+    console.log(`\n  ── 일자별 분포 (앞 20일) ──`);
+    for (const s of perDateSummary.slice(0, 20)) {
+      console.log(`    ${s.date} (base=${s.baseDate}): ${s.candidates}건`);
+    }
+    console.log(`\n[1DS HISTORY DRY-RUN] days=${targetDDates.length} scannerLimit=${args.scannerLimit}`);
+    console.log(`[1DS HISTORY DRY-RUN] target=${totalTarget} existing=${alreadyExists} willFetch=${willFetch.length}`);
+    saveHistoryStatus(args, {
+      startedAt: new Date(t0).toISOString(),
+      finishedAt: new Date().toISOString(),
+      elapsedSec: Number(((Date.now() - t0) / 1000).toFixed(2)),
+      mode: 'dry-run',
+      targetDays: targetDDates.length, scannerLimit: args.scannerLimit,
+      totalTargetCount: totalTarget, alreadyExistsCount: alreadyExists,
+      fetchedCount: 0, failedCount: 0, emptyCount: 0, insufficientBarsCount: 0, skippedCount: 0,
+      perDate: perDateSummary, failedItems: [],
+    });
+    return;
+  }
+
+  // 실제 수집
+  let token;
+  try { token = await getAccessToken(); console.log('  KIS 토큰 OK'); }
+  catch (e) { console.error(`  [ERROR] KIS 토큰 실패: ${e.message}`); process.exit(1); }
+  const missingLog = loadMissingLog();
+  let fetched = 0, failedCount = 0, emptyCount = 0, insufficientBarsCount = 0;
+  const failedItems = [];
+  console.log(`\n  ── 수집 시작 (sleep ${args.sleepMs}ms × 4 calls / retry ${args.retry}) ──`);
+
+  for (let i = 0; i < willFetch.length; i++) {
+    const t = willFetch[i];
+    const dirPath = path.join(INTRADAY_BASE, t.nextDateStr);
+    if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
+    const outPath = path.join(dirPath, `${t.code}.json`);
+    try {
+      const { meta, raw } = await fetchFullDayWithRetry(token, t.code, t.nextDateNum, args.retry, args.sleepMs);
+      const bars = normalizeBars(raw);
+      const windowBars = bars.filter((b) => b.time <= '15:30');
+      const out = {
+        code: t.code, name: t.name, market: t.market || null,
+        date: t.nextDateStr, interval: '1m',
+        source: 'kis', tr: 'FHKST03010230',
+        fetchedAt: new Date().toISOString(),
+        windowFrom: '09:00', windowTo: '15:30',
+        boardSnapshot: {
+          baseDate: t.baseDate, gtGroup: t.gtGroup,
+          marketCap: t.marketCap, valueToMarketCapRatio: t.valueToMarketCapRatio,
+          dailyValueRank: t.dailyValueRank, candleType: t.candleType,
+          dayChangeRate: t.dayChangeRate, recent5Up15Count: t.recent5Up15Count,
+        },
+        kisMeta: meta, bars: windowBars,
+      };
+      fs.writeFileSync(outPath, JSON.stringify(out));
+      fetched++;
+      if (windowBars.length === 0) {
+        emptyCount++;
+        appendMissing(missingLog, { date: t.nextDateStr, code: t.code, name: t.name, reason: 'empty_bars' });
+      } else if (windowBars.length < 100) {
+        insufficientBarsCount++;
+      }
+    } catch (e) {
+      failedCount++;
+      const reason = (e.message || String(e)).slice(0, 200);
+      failedItems.push({ date: t.nextDateStr, code: t.code, name: t.name, reason });
+      appendMissing(missingLog, { date: t.nextDateStr, code: t.code, name: t.name, reason });
+    }
+    if ((i + 1) % 25 === 0 || i === willFetch.length - 1) {
+      console.log(`  [${i + 1}/${willFetch.length}] 진행률 ${((i + 1) / willFetch.length * 100).toFixed(1)}% / fetched ${fetched} / failed ${failedCount} / empty ${emptyCount}`);
+    }
+    if (i < willFetch.length - 1) await sleep(args.sleepMs);
+  }
+  saveMissingLog(missingLog);
+
+  const elapsedSec = Number(((Date.now() - t0) / 1000).toFixed(2));
+  const skippedDueToLimit = fetchQueue.length - willFetch.length;
+  saveHistoryStatus(args, {
+    startedAt: new Date(t0).toISOString(),
+    finishedAt: new Date().toISOString(),
+    elapsedSec, mode: args.dryRun ? 'dry-run' : 'live',
+    targetDays: targetDDates.length, scannerLimit: args.scannerLimit,
+    totalTargetCount: totalTarget,
+    alreadyExistsCount: alreadyExists,
+    fetchedCount: fetched, failedCount, emptyCount, insufficientBarsCount,
+    skippedCount: skippedDueToLimit,
+    perDate: perDateSummary,
+    failedItems,
+  });
+
+  // 콘솔 최종 요약
+  console.log(`\n✅ HISTORY 백필 완료 (${elapsedSec}s)`);
+  console.log(`[1DS HISTORY] days=${targetDDates.length} scannerLimit=${args.scannerLimit}`);
+  console.log(`[1DS HISTORY] target=${totalTarget} existing=${alreadyExists} fetched=${fetched} failed=${failedCount} empty=${emptyCount} skipped=${skippedDueToLimit}`);
+  console.log(`[1DS HISTORY] status saved: ${getHistoryStatusPath(args)}`);
+  if (skippedDueToLimit > 0) {
+    console.log(`\n  📌 --max-fetch 한도로 ${skippedDueToLimit}건 이월. 다음 명령:`);
+    console.log(`     node pipeline/collect-1ds-intraday.js --from-scanner-candidates-history --days ${args.historyDays} --scanner-limit ${args.scannerLimit} --max-fetch ${args.maxFetch} --resume`);
+  } else {
+    console.log(`\n  📌 다음 단계 — 60일 보고서 재실행:`);
+    console.log(`     node boards/oneDaySurge/one-day-surge-attack-candidate-validation-report.js --days ${args.historyDays}`);
+    console.log(`     node boards/oneDaySurge/one-day-surge-10pct-winner-profile-report.js --days ${args.historyDays}`);
+    console.log(`     node boards/oneDaySurge/one-day-surge-extra-intraday-hypothesis-report.js --days ${args.historyDays}`);
+    console.log(`     node boards/oneDaySurge/one-day-surge-0930-explosive-fullminute-validation.js --days ${args.historyDays}`);
+  }
+}
+
+function getHistoryStatusPath(args) {
+  return args.statusOutPath || path.join(REPORTS_DIR, 'one-day-surge-intraday-collection-status.json');
+}
+function saveHistoryStatus(args, statusObj) {
+  const p = getHistoryStatusPath(args);
+  if (!fs.existsSync(path.dirname(p))) fs.mkdirSync(path.dirname(p), { recursive: true });
+  fs.writeFileSync(p, JSON.stringify(statusObj, null, 2), 'utf-8');
+}
+
 if (require.main === module) {
   main().catch((e) => { console.error('[FATAL]', e); process.exit(1); });
 }
 
-module.exports = { buildScannerCandidates };
+module.exports = { buildScannerCandidates, buildScannerCandidatesForDate, listRecentTradingDays };

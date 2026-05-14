@@ -241,6 +241,132 @@ function fmtDate(d) {
   return s.includes('-') ? s : s.slice(0, 4) + '-' + s.slice(4, 6) + '-' + s.slice(6, 8);
 }
 
+// ── 공격형 재돌파 후보 (I 조건) — 19일 백테스트 결과 반영 ──
+// 조건 (사용자 명세):
+//   - value_0930 >= 21억 / cp ≥ 0.50 / drop ≥ -2.70 / open ≥ 0.50 / ratio ≥ 3
+//   - rebreakMorningHigh = true
+//   - status ∈ {READY, FADED}
+//   - marketCap ≤ 5조
+//   - triggeredHypos에 TEN_REBREAK 포함 (= hasTenRebreak)
+// 가설 trigger는 trigger 시점 이전 분봉만 사용 (미래 누수 없음).
+function barsInRangeExc(bars, fromExc, toInc) {
+  return bars.filter((b) => b && b.time && b.close > 0 && b.time > fromExc && b.time <= toInc);
+}
+function sumBarValue(arr) { return arr.reduce((s, b) => s + (b.value || 0), 0); }
+
+// TEN_REBREAK 가설: 09:00~09:30 거래대금 ≥10억 + drop ≥ -4 + 09:31~10:30 사이 09:30 high 재돌파
+// (재돌파 분봉 value > 직전 5분 평균 × 2). 분봉이 09:30 까지밖에 없으면 trigger 안 됨 (false 반환).
+function detectTenRebreak(bars, m) {
+  if (!m) return false;
+  if ((m.value_0930 || 0) < 1e9) return false;
+  if (m.highToLastDrop != null && m.highToLastDrop < -4) return false;
+  const win = barsInRangeExc(bars, '09:30', '10:30');
+  if (win.length < 5) return false;
+  for (let i = 0; i < win.length; i++) {
+    const b = win[i];
+    if (!(b.high > m.high0930)) continue;
+    const prev5 = win.slice(Math.max(0, i - 5), i);
+    if (prev5.length === 0) continue;
+    const avg5 = sumBarValue(prev5) / prev5.length;
+    if (avg5 <= 0) continue;
+    if ((b.value || 0) < avg5 * 2) continue;
+    return { triggerTime: b.time, triggerPrice: m.high0930 };
+  }
+  return false;
+}
+
+// ── 10시 생존 확인 (60거래일 hypothesis miner 1위 — 평균 +2.49%, 승률 69.9%) ──
+// 조건 (사용자 명세):
+//   - 09:30 close 위에서 10:00 마감 (close1000 > last0930)
+//   - close1000 >= high(09:31~10:00) × 0.98 — 고점 대비 크게 밀리지 않음
+//   - 09:31~10:00 중 -3% 이하 심한 무너짐 없음
+// 분봉이 10:00 까지 없으면 null 반환 (= "10:00 확인 대기" 상태).
+function detectSurvivor1000(bars, m) {
+  if (!m || !(m.last0930 > 0)) return null;
+  // 10:00 분봉 존재 여부 — 09:55 이상의 분봉이 하나라도 있어야 함
+  const win = barsInRangeExc(bars, '09:30', '10:00');
+  if (win.length === 0) return null;
+  // 10:00 시점의 bar (10:00 또는 그 직전 마지막)
+  let bar1000 = null;
+  for (const b of win) {
+    if (b.time === '10:00') { bar1000 = b; break; }
+    if (b.time <= '10:00') bar1000 = b;
+  }
+  if (!bar1000 || bar1000.time < '09:55') return null;  // 10시 분봉 미수신 — 확인 대기
+
+  const close1000 = bar1000.close;
+  if (!(close1000 > m.last0930)) return null;  // 09:30 close 아래 마감 — 생존 실패
+
+  // 09:31~10:00 high
+  const high0931_1000 = Math.max(...win.map((b) => b.high || 0));
+  if (high0931_1000 <= 0) return null;
+  // close1000 >= high0931_1000 × 0.98 (고점 대비 -2% 이내)
+  if (close1000 < high0931_1000 * 0.98) return null;
+
+  // 09:31~10:00 중 -3% 이하 무너짐 체크 (low 기준)
+  const min_low_0931_1000 = Math.min(...win.map((b) => b.low || Infinity));
+  if (min_low_0931_1000 < m.last0930 * 0.97) return null;  // -3% 초과 무너짐
+
+  return {
+    close1000,
+    high0931_1000,
+    aliveRate1000: Number(((close1000 / m.last0930 - 1) * 100).toFixed(2)),
+    closeToHighDrop_1000: Number(((close1000 / high0931_1000 - 1) * 100).toFixed(2)),
+    minLow0931_1000: min_low_0931_1000,
+    minLowDrop_0931_1000: Number(((min_low_0931_1000 / m.last0930 - 1) * 100).toFixed(2)),
+  };
+}
+
+// FADED_RECOVERY 가설 (보조 배지용): FADED 상태에서 09:31~10:00 close 회복 + 09:31~10:30 high 재돌파
+function detectFadedRecovery(bars, m, status) {
+  if (!m || status !== 'FADED') return false;
+  if ((m.value_0930 || 0) < 2e9) return false;
+  if (m.highToLastDrop == null) return false;
+  if (m.highToLastDrop > -2.5 || m.highToLastDrop < -6) return false;
+  const w1 = barsInRangeExc(bars, '09:30', '10:00');
+  if (!w1.some((b) => b.close >= m.last0930)) return false;
+  const w2 = barsInRangeExc(bars, '09:30', '10:30');
+  const rb = w2.find((b) => b.high > m.high0930);
+  return rb ? { triggerTime: rb.time } : false;
+}
+
+// I 조건 사전 통과 — TEN_REBREAK 외 모든 사전 조건
+function passesAttackPrefilter(m, status, marketCap) {
+  if (!m) return false;
+  if ((m.value_0930 || 0) < 2.1e9) return false;
+  if ((m.closePosition0930 || 0) < 0.50) return false;
+  if (m.highToLastDrop == null || m.highToLastDrop < -2.70) return false;
+  if (m.openToLastRate == null || m.openToLastRate < 0.50) return false;
+  if ((m.valueToAvgRatio_0930 || 0) < 3) return false;
+  if (!m.rebreakMorningHigh) return false;
+  if (status !== 'READY' && status !== 'FADED') return false;
+  if (!(marketCap > 0) || marketCap > 5e12) return false;
+  return true;
+}
+
+// I 조건 전체 충족 — prefilter + TEN_REBREAK 발화
+function passesAttackRebreak(m, status, marketCap, hasTenRebreak) {
+  return passesAttackPrefilter(m, status, marketCap) && !!hasTenRebreak;
+}
+
+// attackScore — attackRebreak 후보 정렬용. finalScore 기반 + TEN_REBREAK / FADED 보정.
+function attackScore(m, baseFinal, status, hasFadedRecovery) {
+  let s = baseFinal || 0;
+  // 거래대금 강세 가중
+  s += Math.min(20, (m.value_0930 || 0) / 1e9);   // 1억당 +1, 최대 +20
+  // valueToAvgRatio 가중
+  s += Math.max(0, (m.valueToAvgRatio_0930 || 0) - 3) * 2;
+  // closePosition 가중 (0.5 이상 부분)
+  s += Math.max(0, (m.closePosition0930 || 0) - 0.5) * 10;
+  // drop 작을수록 가산
+  if ((m.highToLastDrop || -10) >= -1) s += 3;
+  // FADED 상태는 약간 감점 (회복 흔적이 있어도 READY 보다 안정성 낮음)
+  if (status === 'FADED') s -= 2;
+  // FADED_RECOVERY 동시 발생 시 약간 가산 (회복 신호 확인됨)
+  if (hasFadedRecovery) s += 2;
+  return Number(s.toFixed(2));
+}
+
 function main() {
   const args = parseArgs(process.argv);
   const startedAt = new Date();
@@ -268,6 +394,8 @@ function main() {
 
   const liquidityRejectCounts = { no_meta: 0, etf: 0, special: 0, excluded_name: 0, no_marketcap: 0, mc_under_500: 0, mc_over_5t: 0, low_liquidity: 0, no_chart: 0, short_history: 0 };
   const statusBuckets = { READY: [], WAIT_PULLBACK: [], FADED: [], WEAK: [], INSUFFICIENT_BARS: [] };
+  // 10:00 분봉 도달 여부 카운트 — survivor1000Ready 판정용
+  let bars1000AvailableCount = 0;
 
   for (const fname of intradayFiles) {
     const code = fname.replace(/\.json$/, '');
@@ -307,6 +435,17 @@ function main() {
 
     const m = computeMetrics0930(bars, baseRow);
     const status = classifyStatus(m);
+    // 10:00 분봉이 들어왔는지 (생존 여부와 무관하게 데이터 가용성 추적)
+    if (bars.some((b) => b && b.time >= '09:55' && b.time <= '10:05')) bars1000AvailableCount++;
+    // 공격형 가설 — 분봉이 09:31 이후까지 있으면 trigger 검사. 09:30 cron 직후에는 거의 다 false.
+    const tenRebreak = m ? detectTenRebreak(bars, m) : false;
+    const fadedRecovery = m ? detectFadedRecovery(bars, m, status) : false;
+    // 10시 생존 — 분봉이 10:00 까지 있으면 검사. 09:30 cron 직후에는 null (확인 대기).
+    const survivor1000Info = m ? detectSurvivor1000(bars, m) : null;
+    const triggeredHypos = [];
+    if (tenRebreak) triggeredHypos.push('TEN_REBREAK');
+    if (fadedRecovery) triggeredHypos.push('FADED_RECOVERY');
+    if (survivor1000Info) triggeredHypos.push('SURVIVOR_1000');
     const entry = {
       code,
       name: (meta && meta.name) || (chart && chart.name) || code,
@@ -320,6 +459,12 @@ function main() {
       statusLabel: STATUS_LABEL[status],
       score:      m ? Number(readyScore(m).toFixed(2)) : 0,
       finalScore: m ? computeFinalScore(m) : 0,
+      hasTenRebreak: !!tenRebreak,
+      tenRebreakTrigger: tenRebreak || null,
+      hasFadedRecovery: !!fadedRecovery,
+      hasSurvivor1000: !!survivor1000Info,
+      survivor1000: survivor1000Info,  // { close1000, high0931_1000, aliveRate1000, closeToHighDrop_1000, ... } or null
+      triggeredHypos,
     };
     if (!statusBuckets[status]) statusBuckets[status] = [];
     statusBuckets[status].push(entry);
@@ -372,6 +517,165 @@ function main() {
     .sort((a, b) => b.explosiveScore - a.explosiveScore);
   const explosiveWatch = explosiveWatchAll.slice(0, EXPLOSIVE_TOP_LIMIT);
 
+  // ── 공격형 재돌파 후보 (I 조건) — READY + FADED 풀에서 추출 ──
+  // 19일 백테스트 기준 n=190, 일평균 10개, close×S1 +1.21% / S2 +1.52%.
+  const SUGGESTED_STRATEGY_STABLE = {
+    type: 'STABLE_SCALP',
+    label: '안정형 단타',
+    takeProfit: '+5%',
+    stopLoss: '-2%',
+    note: '19거래일 검증 기준 +5%/-2% 전략이 안정적 (n=64, 평균 +0.97%, 승률 46.9%, +10% 12.5%)',
+  };
+  const SUGGESTED_STRATEGY_ATTACK = {
+    type: 'ATTACK_REBREAK',
+    label: '공격형 재돌파',
+    takeProfit: '+10%',
+    stopLoss: '-3%',
+    conservativeTakeProfit: '+5%',
+    conservativeStopLoss: '-2%',
+    note: '19거래일 검증 기준 +10%/-3% 전략이 가장 좋았으나 손실 폭도 더 큼 (n=190, S2 평균 +1.52%, 승률 55.8%, +10% 14.7%, 최악 -3%)',
+  };
+
+  const attackPoolAll = [...statusBuckets.READY, ...statusBuckets.FADED]
+    .filter((e) => passesAttackRebreak(e.metrics, e.status, e.marketCap, e.hasTenRebreak))
+    .map((e) => ({ ...e, attackScore: attackScore(e.metrics, e.finalScore, e.status, e.hasFadedRecovery) }))
+    .sort((a, b) => b.attackScore - a.attackScore);
+
+  // ── 10시 생존 확인 후보 (60거래일 검증 1위, score 9.04) ──
+  // 조건: status=READY ∩ survivor1000 검증 통과
+  // 09:30 cron 직후에는 거의 다 비어 있고, 10:00 cron 이후에 채워진다.
+  const SUGGESTED_STRATEGY_SURVIVOR = {
+    type: 'READY_ALIVE_1000',
+    label: '10시 생존 확인형',
+    entryBasis: '10:00 생존 확인 후',
+    takeProfit: '+5% 또는 +10%',
+    stopLoss: '-3%',
+    note: '60거래일 검증 기준 평균 +2.49%, 승률 69.9%, +5% 도달 52.6%, +10% 도달 18.2%. 단, 장중 급락 사례가 있어 손절 기준 필요.',
+  };
+  const survivor1000PoolAll = statusBuckets.READY
+    .filter((e) => e.hasSurvivor1000)
+    .map((e) => ({ ...e }))
+    .sort((a, b) => (b.survivor1000.aliveRate1000 || 0) - (a.survivor1000.aliveRate1000 || 0));
+
+  // 중복 제거 set
+  const explosiveTopCodeSet = new Set(explosiveTop.map((e) => e.code));
+  const attackCodeSet = new Set(attackPoolAll.map((e) => e.code));
+  const survivor1000CodeSet = new Set(survivor1000PoolAll.map((e) => e.code));
+
+  // ── [1] survivor1000 — 메인 후보, 최우선 노출 ──
+  // 한 종목이 survivor1000에 들어가면 다른 섹션에서 제외 (중복 노출 금지).
+  const survivor1000 = survivor1000PoolAll.map((e) => {
+    const overlapBadges = ['10시 생존 확인'];
+    if (explosiveTopCodeSet.has(e.code)) overlapBadges.push('조기 포착');
+    if (attackCodeSet.has(e.code))       overlapBadges.push('공격형 재돌파 동시');
+    if (e.hasFadedRecovery)              overlapBadges.push('FADED 회복 동시');
+    return {
+      ...e,
+      isSurvivor1000: true,
+      isExplosiveTop: explosiveTopCodeSet.has(e.code),
+      isAttackRebreak: attackCodeSet.has(e.code),
+      overlapBadges,
+      suggestedStrategy: SUGGESTED_STRATEGY_SURVIVOR,
+      reason: '10시까지 09:30 close 위에서 생존',
+    };
+  });
+
+  // ── [2] 09:30 조기 포착 후보 (= 기존 explosiveTop, survivor1000에 없는 것만) ──
+  const explosiveStable = explosiveTop
+    .filter((e) => !survivor1000CodeSet.has(e.code))
+    .map((e) => {
+      const overlapBadges = ['조기 포착'];
+      if (attackCodeSet.has(e.code)) overlapBadges.push('공격형 재돌파 동시');
+      if (e.hasFadedRecovery)        overlapBadges.push('FADED 회복 동시');
+      overlapBadges.push('10시 확인 필요');
+      return {
+        ...e,
+        isSurvivor1000: false,
+        isExplosiveTop: true,
+        isAttackRebreak: attackCodeSet.has(e.code),
+        overlapBadges,
+        suggestedStrategy: SUGGESTED_STRATEGY_STABLE,
+        reason: '09:30 조기 포착 — 10시 생존 확인 전 감시 후보',
+      };
+    });
+
+  // ── [3] 공격형 재돌파 감시 후보 (= 기존 I 조건, survivor1000 + explosiveStable 제외) ──
+  const attackRebreak = attackPoolAll
+    .filter((e) => !survivor1000CodeSet.has(e.code) && !explosiveTopCodeSet.has(e.code))
+    .map((e) => {
+      const overlapBadges = ['공격형 재돌파', '10시 확인 필요'];
+      if (e.hasFadedRecovery) overlapBadges.push('FADED 회복 동시');
+      return {
+        ...e,
+        isSurvivor1000: false,
+        isExplosiveTop: false,
+        isAttackRebreak: true,
+        overlapBadges,
+        suggestedStrategy: SUGGESTED_STRATEGY_ATTACK,
+        reason: '09:30 + TEN_REBREAK — 10시 생존 확인 전 감시 후보',
+      };
+    });
+
+  // ── [4] READY 1차 후보 — 위 3개 섹션 제외 ──
+  const attackOnlyCodes = new Set(attackRebreak.map((e) => e.code));
+  const readyRestCombined = statusBuckets.READY
+    .filter((e) => !survivor1000CodeSet.has(e.code) && !explosiveTopCodeSet.has(e.code) && !attackOnlyCodes.has(e.code))
+    .map((e) => ({
+      ...e,
+      isSurvivor1000: false,
+      isExplosiveTop: false,
+      isAttackRebreak: false,
+      overlapBadges: e.hasFadedRecovery ? ['FADED 회복 동시', '10시 확인 필요'] : ['10시 확인 필요'],
+      suggestedStrategy: null,
+      reason: '예선 통과 — 10시 생존 확인 전까지 보조 관찰',
+    }));
+
+  // ── [5] 관찰/제외 후보 (watchOnly) ──
+  // 60일 검증 위험 조건: WAIT_PULLBACK 전체 / FADED + cp≥0.70 / open≥8% (이미 WAIT_PULLBACK 컷) / v/mc≥5% 단독 / FADED 단독 / WEAK 단독
+  // 화면 노출은 일부만 (메인 후보 아님을 명시).
+  const watchEntries = [];
+  // 5-1. explosiveWatch (=WAIT_PULLBACK ∩ 폭발형) — 추격 주의
+  for (const e of explosiveWatch) {
+    watchEntries.push({ ...e, isSurvivor1000: false, isExplosiveTop: false, isAttackRebreak: false,
+      overlapBadges: ['추격 주의', '폭발형 관찰'], suggestedStrategy: null,
+      reason: '시가 대비 +8% 이상 — 추격 부담' });
+  }
+  // 5-2. WAIT_PULLBACK 단독 (explosiveWatch 외)
+  const explosiveWatchCodeSet = new Set(explosiveWatch.map((e) => e.code));
+  for (const e of statusBuckets.WAIT_PULLBACK.slice(0, 10)) {
+    if (explosiveWatchCodeSet.has(e.code)) continue;
+    watchEntries.push({ ...e, isSurvivor1000: false, isExplosiveTop: false, isAttackRebreak: false,
+      overlapBadges: ['추격 부담'], suggestedStrategy: null,
+      reason: '과열 출발 — 즉시 진입 부적합' });
+  }
+  // 5-3. FADED + cp≥0.70 (60일 검증 fail3 75% 위험 유형)
+  for (const e of statusBuckets.FADED.slice(0, 10)) {
+    if ((e.metrics && e.metrics.closePosition0930 || 0) >= 0.70) {
+      watchEntries.push({ ...e, isSurvivor1000: false, isExplosiveTop: false, isAttackRebreak: false,
+        overlapBadges: ['FADED 단독 위험'], suggestedStrategy: null,
+        reason: 'FADED + cp 높음 — 60일 검증 fail3 75%' });
+    }
+  }
+  // 5-4. v/mc ≥5% 단독 (READY/FADED 외 status에서) — 60일 검증 fail3 66.5% 위험
+  for (const status of ['WEAK', 'FADED']) {
+    const list = statusBuckets[status] || [];
+    for (const e of list) {
+      const vmc = e.marketCap > 0 ? (e.metrics.value_0930 || 0) / e.marketCap : 0;
+      if (vmc >= 0.05 && watchEntries.length < 30) {
+        watchEntries.push({ ...e, isSurvivor1000: false, isExplosiveTop: false, isAttackRebreak: false,
+          overlapBadges: ['시총 대비 거래대금만 큰 유형'], suggestedStrategy: null,
+          reason: 'v/mc ≥5% 단독 — 60일 검증 fail3 66.5%' });
+        if (watchEntries.length >= 30) break;
+      }
+    }
+  }
+  // dedupe by code
+  const watchSeen = new Set();
+  const watchOnly = watchEntries.filter((e) => {
+    if (watchSeen.has(e.code)) return false;
+    watchSeen.add(e.code); return true;
+  });
+
   const finishedAt = new Date();
   const elapsedSec = Number(((Date.now() - t0) / 1000).toFixed(2));
   const totalAnalyzed = statusBuckets.READY.length + statusBuckets.WAIT_PULLBACK.length + statusBuckets.FADED.length + statusBuckets.WEAK.length + statusBuckets.INSUFFICIENT_BARS.length;
@@ -407,12 +711,41 @@ function main() {
     scanner0930ReadyRest: readyRest,             // 6번째 이후 READY — 1차 통과 후보 (접힘)
     scanner0930Wait:     wait,                   // WAIT_PULLBACK — 추격 부담 (백테스트 fail1 71.9%)
     scanner0930Faded:    faded,                  // FADED — 카드 노출 X (통계만, 백테스트 결과 평균 이하)
-    scanner0930ExplosiveTop:   explosiveTop,     // 🚀 폭발형 후보 (READY ∩ rebreak + cp≥0.85 + value≥100억)
-    scanner0930ExplosiveWatch: explosiveWatch,   // 🚀 폭발형 관찰 후보 (WAIT_PULLBACK ∩ 같은 조건, 눌림 후 재돌파 필요)
+    scanner0930ExplosiveTop:   explosiveTop,     // 🚀 폭발형 후보 (READY ∩ rebreak + cp≥0.85 + value≥100억) — 호환성 유지
+    scanner0930ExplosiveWatch: explosiveWatch,   // 🚀 폭발형 관찰 후보 (WAIT_PULLBACK ∩ 같은 조건, 눌림 후 재돌파 필요) — 호환성 유지
+    // ── 60거래일 백테스트 결과 반영 신규 5섹션 구조 (2026-05-14) ──
+    // 우선순위: survivor1000 > explosiveStable > attackRebreak > readyRestFinal > watchOnly
+    scanner0930Survivor1000:    survivor1000,     // ✅ [1] 10시 생존 확인 후보 (메인, 60일 검증 1위)
+    scanner0930ExplosiveStable: explosiveStable,  // 🚀 [2] 09:30 조기 포착 후보 (= explosiveTop, survivor1000 제외)
+    scanner0930AttackRebreak:   attackRebreak,    // 🔥 [3] 공격형 재돌파 감시 후보 (survivor1000 + explosiveStable 제외)
+    scanner0930ReadyRestFinal:  readyRestCombined,// 📡 [4] 09:30 READY 1차 후보 (위 3개 제외)
+    scanner0930WatchOnly:       watchOnly,        // 👀 [5] 관찰/제외 후보 (WAIT_PULLBACK / FADED+cp / v/mc 단독 등)
+    // 10시 cron 후 채워졌는지 표시 — bars1000AvailableCount > 0 면 10시 분봉 데이터가 들어왔다는 의미
+    survivor1000Ready: bars1000AvailableCount > 0,
+    bars1000AvailableCount,
+    survivor1000CheckedAt: finishedAt.toISOString(),
+    summary: {
+      readyCount: statusBuckets.READY.length,
+      survivor1000Count: survivor1000.length,
+      explosiveTopCount: explosiveStable.length,
+      attackRebreakCount: attackRebreak.length,
+      readyRestCount: readyRestCombined.length,
+      watchOnlyCount: watchOnly.length,
+      isSurvivor1000Ready: survivor1000.length > 0,
+      survivor1000CheckedAt: finishedAt.toISOString(),
+      // 사용자에게 안내용 문구 (10시 전/후)
+      mainSectionLabel: survivor1000.length > 0
+        ? '10:00 생존 확인 완료. 메인 후보는 10시 생존 확인 후보입니다.'
+        : '10:00 생존 확인 전입니다. 현재 후보는 예선 단계입니다.',
+    },
     explosiveCounts: {
       explosiveTopTotal:   explosiveReadyAll.length,
       explosiveWatchTotal: explosiveWatchAll.length,
+      attackRebreakTotal:  attackPoolAll.length,
+      attackRebreakNewOnly: attackRebreak.length,  // explosiveTop 중복 제외 후
+      survivor1000Total:   survivor1000PoolAll.length,
     },
+    suggestedStrategies: { stable: SUGGESTED_STRATEGY_STABLE, attack: SUGGESTED_STRATEGY_ATTACK, survivor: SUGGESTED_STRATEGY_SURVIVOR },
     readyTopLimit: READY_TOP_LIMIT,
     scanner0930Holding:  [...wait, ...faded],   // WAIT_PULLBACK + FADED 합쳐서 "보류/재관찰"
     scanner0930Rejected: weak,                  // WEAK
@@ -463,6 +796,27 @@ function main() {
     console.log(`\n  ⚠ 폭발형 관찰 후보 (explosiveWatch ${explosiveWatch.length}건 — 추격 부담, 눌림 후 재돌파 필요):`);
     for (const e of explosiveWatch) {
       console.log(`     exp ${e.explosiveScore.toFixed(1).padStart(6)} | ${e.code} ${(e.name || '').padEnd(15)} | +${(e.metrics.openToLastRate || 0).toFixed(2)}%`);
+    }
+  }
+  if (attackRebreak.length > 0 || attackPoolAll.length > 0) {
+    console.log(`\n  🔥 공격형 재돌파 후보 (attackRebreak ${attackRebreak.length}건 / 전체 통과 ${attackPoolAll.length}건, 안정형 중복 ${attackPoolAll.length - attackRebreak.length}건 제외):`);
+    for (const e of attackRebreak.slice(0, 10)) {
+      const m = e.metrics;
+      console.log(`     attack ${e.attackScore.toFixed(1).padStart(6)} | ${e.code} ${(e.name || '').padEnd(15)} | ${e.status} | TEN_REBREAK@${e.tenRebreakTrigger ? e.tenRebreakTrigger.triggerTime : '?'} | v ${(m.value_0930/1e8).toFixed(0)}억 | cp ${(m.closePosition0930*100).toFixed(0)}% | drop ${(m.highToLastDrop||0).toFixed(2)}%`);
+    }
+  }
+
+  // 10시 생존 — 메인 후보 콘솔 로그
+  console.log(`\n  ✅ 10시 생존 확인 후보 (survivor1000):`);
+  if (bars1000AvailableCount === 0) {
+    console.log(`     (10:00 분봉 미수신 — 09:30 cron 직후로 보임. 10:00 cron 이후 재실행 시 채워짐)`);
+  } else if (survivor1000.length === 0) {
+    console.log(`     (10:00 분봉 ${bars1000AvailableCount}개 수신 완료 / 생존 후보 0건)`);
+  } else {
+    console.log(`     ${survivor1000.length}건 (10:00 분봉 ${bars1000AvailableCount}개 수신, 60일 검증 1위 — 평균 +2.49% 승률 69.9%):`);
+    for (const e of survivor1000.slice(0, 10)) {
+      const s = e.survivor1000;
+      console.log(`     alive +${s.aliveRate1000}% | ${e.code} ${(e.name || '').padEnd(15)} | 10:00 close ${s.close1000}원 (high 대비 ${s.closeToHighDrop_1000}%, 저점 ${s.minLowDrop_0931_1000}%)${e.isExplosiveTop ? ' [조기포착]' : ''}${e.isAttackRebreak ? ' [공격형]' : ''}`);
     }
   }
   console.log(`\n  ⏱ 소요 ${elapsedSec}s`);
