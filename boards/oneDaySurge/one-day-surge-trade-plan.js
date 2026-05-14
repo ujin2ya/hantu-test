@@ -45,6 +45,9 @@ const STOP_RATE = {
 
 const CHASE_LIMIT_RATE = 0.04;
 const INVALID_DROP_RATE = -0.03;
+// REBREAK_FADED: rebreakMorningHigh_10_30 ✓ 인데 마지막 close가
+// 09:10~09:30 high 대비 -2.5%↓ 밀려있으면 "장초 고점 돌파 후 다시 밀림" 상태로 본다.
+const REBREAK_FADE_RATE = -0.025;
 
 // 그룹/조건이 가장 specific한 전략을 우선해서 그 전략의 params를 적용한다.
 // BALANCED-GT 전용 → BALANCED, LIGHT-GT 전용 → LIGHT, BAL/LIGHT 공통 + !prev_high → SAFE, 그 외 rebreakMorningHigh → CLEAN
@@ -131,8 +134,11 @@ function pickBaseEntryPrice(it) {
 }
 
 // 현재가 proxy — live가 없으므로 가장 최근 알려진 가격을 사용.
+// 09:30 분봉이 들어와 있으면 마지막 분봉 close(09:10~09:30 끝점)를 우선해
+// 09:10~09:30 사이의 추가 급등/급락이 WAIT_PULLBACK/ENTRY_INVALIDATED 판정에 반영되게 한다.
 function pickCurrentPrice(it) {
   const im = it.intraday;
+  if (im && Number.isFinite(im.lastClose) && im.lastClose > 0) return im.lastClose;
   if (im && Number.isFinite(im.entryPrice) && im.entryPrice > 0) return im.entryPrice;
   if (Number.isFinite(it.close) && it.close > 0) return it.close;
   return null;
@@ -158,6 +164,59 @@ function calcTradePlan(it) {
   }
 
   const ratio = current / base.price - 1;
+  const im = it.intraday;
+  // currentSource: 어디서 온 가격인지 명시 (UI에서 09:10/09:30 close 구분)
+  const currentSource = (im && Number.isFinite(im.lastClose) && im.lastClose > 0)
+    ? 'lastBar'                              // 09:10~09:30 마지막 분봉 close (이상적)
+    : (im && Number.isFinite(im.entryPrice) && im.entryPrice > 0)
+      ? 'entryPrice0910'                     // 09:10 close fallback
+      : 'baseClose';                         // 분봉 없음 — 전일 종가
+
+  // 기준가 이탈 — 현재가가 기준가보다 너무 밀림. hard stop이라 가장 먼저 판정.
+  if (ratio <= INVALID_DROP_RATE) {
+    return {
+      mode: 'AUTO',
+      status: 'ENTRY_INVALIDATED',
+      strategy, strategySource,
+      baseEntryPrice: roundToKoreanTick(base.price, 'nearest'),
+      baseEntrySource: base.source,
+      currentPrice: roundToKoreanTick(current, 'nearest'),
+      currentSource,
+      ratioPct: Number((ratio * 100).toFixed(2)),
+      buyPrice: null, sellPrice1: null, sellPrice2: null, stopPrice: null,
+      reason: '장초 기준가를 이탈해 흐름 약화',
+      riskNote: `현재가 ${fmtKR(current)}원이 기준가 ${fmtKR(base.price)}원 대비 ${(ratio * 100).toFixed(2)}% — 흐름 약화`,
+      rewardRisk1: null, rewardRisk2: null,
+    };
+  }
+
+  // 장초 고점 돌파 후 밀림 — rebreakMorningHigh ✓ 인데 마지막 close가
+  // 09:10~09:30 high 대비 -2.5%↓ 빠진 케이스. WAIT_PULLBACK보다 먼저 판정한다
+  // (추격 부담보다 "돌파 무효화"가 더 구체적인 위험 신호).
+  if (im
+      && im.rebreakMorningHigh_10_30 === true
+      && Number.isFinite(im.high_10_30) && im.high_10_30 > 0
+      && Number.isFinite(im.lastClose)  && im.lastClose > 0) {
+    const fadeRatio = im.lastClose / im.high_10_30 - 1;
+    if (fadeRatio <= REBREAK_FADE_RATE) {
+      return {
+        mode: 'AUTO',
+        status: 'REBREAK_FADED',
+        strategy, strategySource,
+        baseEntryPrice: roundToKoreanTick(base.price, 'nearest'),
+        baseEntrySource: base.source,
+        currentPrice: roundToKoreanTick(im.lastClose, 'nearest'),
+        currentSource,
+        ratioPct: Number((ratio * 100).toFixed(2)),
+        high_10_30: roundToKoreanTick(im.high_10_30, 'nearest'),
+        fadeFromHighPct: Number((fadeRatio * 100).toFixed(2)),
+        buyPrice: null, sellPrice1: null, sellPrice2: null, stopPrice: null,
+        reason: '장초 고점 돌파 후 다시 밀림',
+        riskNote: `09:10~09:30 고점 ${fmtKR(im.high_10_30)}원 대비 마지막 ${fmtKR(im.lastClose)}원 ${(fadeRatio * 100).toFixed(2)}% — 돌파 후 되밀림`,
+        rewardRisk1: null, rewardRisk2: null,
+      };
+    }
+  }
 
   // 추격 부담 — 현재가가 기준가보다 너무 올라 있음
   if (ratio >= CHASE_LIMIT_RATE) {
@@ -167,24 +226,12 @@ function calcTradePlan(it) {
       strategy, strategySource,
       baseEntryPrice: roundToKoreanTick(base.price, 'nearest'),
       baseEntrySource: base.source,
+      currentPrice: roundToKoreanTick(current, 'nearest'),
+      currentSource,
+      ratioPct: Number((ratio * 100).toFixed(2)),
       buyPrice: null, sellPrice1: null, sellPrice2: null, stopPrice: null,
-      reason: '현재가가 기준가보다 많이 올라 눌림 대기',
+      reason: '이미 기준가보다 많이 올라 추격 부담',
       riskNote: `현재가 ${fmtKR(current)}원이 기준가 ${fmtKR(base.price)}원 대비 +${(ratio * 100).toFixed(2)}% — 추격 부담`,
-      rewardRisk1: null, rewardRisk2: null,
-    };
-  }
-
-  // 기준가 이탈 — 현재가가 기준가보다 너무 밀림
-  if (ratio <= INVALID_DROP_RATE) {
-    return {
-      mode: 'AUTO',
-      status: 'ENTRY_INVALIDATED',
-      strategy, strategySource,
-      baseEntryPrice: roundToKoreanTick(base.price, 'nearest'),
-      baseEntrySource: base.source,
-      buyPrice: null, sellPrice1: null, sellPrice2: null, stopPrice: null,
-      reason: '기준가를 이탈해 자동 진입 보류',
-      riskNote: `현재가 ${fmtKR(current)}원이 기준가 ${fmtKR(base.price)}원 대비 ${(ratio * 100).toFixed(2)}% — 흐름 약화`,
       rewardRisk1: null, rewardRisk2: null,
     };
   }
@@ -218,8 +265,8 @@ function calcTradePlan(it) {
   }
   // 분봉 미확인 fallback일 때 명시
   const reason = (strategySource === 'group_fallback')
-    ? '기준일 종가 기준 눌림 지정가 (분봉 미확인 — 그룹 기본 전략 적용)'
-    : '기준가 근처 눌림 지정가';
+    ? '분봉 미확인 — 그룹 기본 전략으로 기준가 근처 눌림 지정가'
+    : '장초 흐름 유지 중 — 기준가 근처 눌림 지정가';
 
   return {
     mode: 'AUTO',
@@ -227,6 +274,9 @@ function calcTradePlan(it) {
     strategy, strategySource,
     baseEntryPrice: roundToKoreanTick(base.price, 'nearest'),
     baseEntrySource: base.source,
+    currentPrice: roundToKoreanTick(current, 'nearest'),
+    currentSource,
+    ratioPct: Number((ratio * 100).toFixed(2)),
     buyPrice, sellPrice1, sellPrice2, stopPrice,
     reason,
     riskNote: notes.join(' / ') || null,
@@ -240,7 +290,7 @@ function calcTradePlan(it) {
 function buildTradePlans(mainPool) {
   const plansByCode = new Map();
   let count = 0;
-  let readyCount = 0, waitPullbackCount = 0, invalidatedCount = 0, missingPriceCount = 0;
+  let readyCount = 0, waitPullbackCount = 0, invalidatedCount = 0, fadedCount = 0, missingPriceCount = 0;
   let intradayConfirmedCount = 0, groupFallbackCount = 0;
   for (const it of mainPool) {
     if (count >= AUTO_PLAN_LIMIT) break;
@@ -252,6 +302,7 @@ function buildTradePlans(mainPool) {
       case 'READY':              readyCount++; break;
       case 'WAIT_PULLBACK':      waitPullbackCount++; break;
       case 'ENTRY_INVALIDATED':  invalidatedCount++; break;
+      case 'REBREAK_FADED':      fadedCount++; break;
       case 'MISSING_PRICE_DATA': missingPriceCount++; break;
     }
     if (plan.strategySource === 'intraday') intradayConfirmedCount++;
@@ -261,17 +312,27 @@ function buildTradePlans(mainPool) {
     plansByCode,
     summary: {
       autoCount: count,
-      readyCount, waitPullbackCount, invalidatedCount, missingPriceCount,
+      readyCount, waitPullbackCount, invalidatedCount, fadedCount, missingPriceCount,
       intradayConfirmedCount, groupFallbackCount,
     },
   };
 }
 
+// 상태별 한국어 라벨 — board.js 카드와 콘솔 로그가 공유한다.
+const STATUS_LABEL = {
+  READY:             '장초 흐름 유지 중',
+  WAIT_PULLBACK:     '이미 기준가보다 많이 올라 추격 부담',
+  ENTRY_INVALIDATED: '장초 기준가를 이탈해 흐름 약화',
+  REBREAK_FADED:     '장초 고점 돌파 후 다시 밀림',
+  MISSING_PRICE_DATA:'가격 데이터 부족',
+};
+
 module.exports = {
   AUTO_PLAN_LIMIT,
   ENTRY_DISCOUNT, TARGET_RATE, STOP_RATE,
-  CHASE_LIMIT_RATE, INVALID_DROP_RATE,
+  CHASE_LIMIT_RATE, INVALID_DROP_RATE, REBREAK_FADE_RATE,
   AUTO_STRATEGIES, STRATEGY_PRIORITY,
+  STATUS_LABEL,
   koreanTickSize, roundToKoreanTick,
   pickPrimaryStrategy, pickBaseEntryPrice, pickCurrentPrice,
   calcTradePlan, buildTradePlans,

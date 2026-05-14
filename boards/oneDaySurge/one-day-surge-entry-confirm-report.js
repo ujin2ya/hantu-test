@@ -148,6 +148,10 @@ function computeIntradayMetrics(eventBase, minuteData) {
   const max10_30 = bars10_30.length ? Math.max(...bars10_30.map((b) => b.high || 0)) : null;
   const min10_30 = bars10_30.length ? Math.min(...bars10_30.map((b) => b.low || Infinity)) : null;
   const close0930 = bars10_30.length ? bars10_30[bars10_30.length - 1].close : close0910;
+  // 09:30에 가장 가까운 마지막 분봉 (≤09:30 범위) — trade plan의 current proxy로 사용
+  const lastBar0_30 = bars0_30.length ? bars0_30[bars0_30.length - 1] : null;
+  const lastClose = lastBar0_30 && Number.isFinite(lastBar0_30.close) ? lastBar0_30.close : close0910;
+  const lastBarTime = lastBar0_30 ? lastBar0_30.time : null;
   const highFrom0910_10_30 = max10_30 != null && close0910 > 0 ? (max10_30 / close0910 - 1) * 100 : null;
   const lowFrom0910_10_30  = min10_30 != null && close0910 > 0 ? (min10_30 / close0910 - 1) * 100 : null;
   const rebreakMorningHigh_10_30 = max10_30 != null && max10_30 > max0_10;
@@ -184,6 +188,11 @@ function computeIntradayMetrics(eventBase, minuteData) {
     maxGainBefore1000: highFromOpen_0_60, maxDropBefore1000: lowFromOpen_0_60,
     entryPrice: close0910,
     preEntryMaxHigh: max0_10, // 09:00~09:10 max — used to detect peak-before-entry bias
+    // 09:30에 가장 가까운 마지막 분봉 — trade plan의 current proxy + REBREAK_FADED 판정용
+    lastClose,
+    lastBarTime,
+    high_10_30: max10_30,
+    close_0930: close0930,
   };
 }
 
