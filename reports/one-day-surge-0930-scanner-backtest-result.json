@@ -1,0 +1,1474 @@
+{
+  "meta": {
+    "title": "1DS 09:30 스캐너 백테스트",
+    "generatedAt": "2026-05-14T10:20:56.197Z",
+    "datesAnalyzed": [
+      "2026-04-16",
+      "2026-04-17",
+      "2026-04-20",
+      "2026-04-21",
+      "2026-04-22",
+      "2026-04-23",
+      "2026-04-24",
+      "2026-04-27",
+      "2026-04-28",
+      "2026-04-29",
+      "2026-04-30",
+      "2026-05-04",
+      "2026-05-06",
+      "2026-05-07",
+      "2026-05-08",
+      "2026-05-11",
+      "2026-05-12",
+      "2026-05-13",
+      "2026-05-14"
+    ],
+    "minDirSize": 100,
+    "readyTopLimit": 5,
+    "elapsedSec": 4.75
+  },
+  "rules": {
+    "A": {
+      "label": "현재 기준",
+      "MIN_VALUE": 1000000000,
+      "MIN_RATIO": 3,
+      "MIN_CP": 0.65,
+      "MAX_DROP": -2.5,
+      "MIN_UP": 1,
+      "MAX_UP": 8
+    },
+    "B": {
+      "label": "강한 기준",
+      "MIN_VALUE": 2000000000,
+      "MIN_RATIO": 5,
+      "MIN_CP": 0.75,
+      "MAX_DROP": -1.5,
+      "MIN_UP": 2,
+      "MAX_UP": 6.5
+    },
+    "C": {
+      "label": "완화 기준",
+      "MIN_VALUE": 700000000,
+      "MIN_RATIO": 2.5,
+      "MIN_CP": 0.6,
+      "MAX_DROP": -3,
+      "MIN_UP": 0.8,
+      "MAX_UP": 8
+    }
+  },
+  "resultsByRule": {
+    "A": {
+      "rule": {
+        "label": "현재 기준",
+        "MIN_VALUE": 1000000000,
+        "MIN_RATIO": 3,
+        "MIN_CP": 0.65,
+        "MAX_DROP": -2.5,
+        "MIN_UP": 1,
+        "MAX_UP": 8
+      },
+      "perDay": [
+        {
+          "date": "2026-04-16",
+          "totalFiles": 324,
+          "analyzedCount": 282,
+          "statusCounts": {
+            "READY": 17,
+            "WAIT_PULLBACK": 10,
+            "FADED": 118,
+            "WEAK": 136,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-17",
+          "totalFiles": 331,
+          "analyzedCount": 294,
+          "statusCounts": {
+            "READY": 18,
+            "WAIT_PULLBACK": 7,
+            "FADED": 129,
+            "WEAK": 140,
+            "INSUFFICIENT_BARS": 0
+          }
+        },
+        {
+          "date": "2026-04-20",
+          "totalFiles": 323,
+          "analyzedCount": 287,
+          "statusCounts": {
+            "READY": 26,
+            "WAIT_PULLBACK": 3,
+            "FADED": 104,
+            "WEAK": 153,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-21",
+          "totalFiles": 333,
+          "analyzedCount": 296,
+          "statusCounts": {
+            "READY": 13,
+            "WAIT_PULLBACK": 4,
+            "FADED": 152,
+            "WEAK": 124,
+            "INSUFFICIENT_BARS": 3
+          }
+        },
+        {
+          "date": "2026-04-22",
+          "totalFiles": 343,
+          "analyzedCount": 304,
+          "statusCounts": {
+            "READY": 25,
+            "WAIT_PULLBACK": 7,
+            "FADED": 86,
+            "WEAK": 182,
+            "INSUFFICIENT_BARS": 4
+          }
+        },
+        {
+          "date": "2026-04-23",
+          "totalFiles": 341,
+          "analyzedCount": 305,
+          "statusCounts": {
+            "READY": 7,
+            "WAIT_PULLBACK": 4,
+            "FADED": 169,
+            "WEAK": 120,
+            "INSUFFICIENT_BARS": 5
+          }
+        },
+        {
+          "date": "2026-04-24",
+          "totalFiles": 330,
+          "analyzedCount": 295,
+          "statusCounts": {
+            "READY": 27,
+            "WAIT_PULLBACK": 11,
+            "FADED": 70,
+            "WEAK": 186,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-27",
+          "totalFiles": 324,
+          "analyzedCount": 294,
+          "statusCounts": {
+            "READY": 45,
+            "WAIT_PULLBACK": 11,
+            "FADED": 107,
+            "WEAK": 130,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-28",
+          "totalFiles": 322,
+          "analyzedCount": 291,
+          "statusCounts": {
+            "READY": 8,
+            "WAIT_PULLBACK": 2,
+            "FADED": 168,
+            "WEAK": 112,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-29",
+          "totalFiles": 336,
+          "analyzedCount": 304,
+          "statusCounts": {
+            "READY": 16,
+            "WAIT_PULLBACK": 6,
+            "FADED": 108,
+            "WEAK": 173,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-30",
+          "totalFiles": 316,
+          "analyzedCount": 285,
+          "statusCounts": {
+            "READY": 15,
+            "WAIT_PULLBACK": 2,
+            "FADED": 125,
+            "WEAK": 143,
+            "INSUFFICIENT_BARS": 0
+          }
+        },
+        {
+          "date": "2026-05-04",
+          "totalFiles": 317,
+          "analyzedCount": 290,
+          "statusCounts": {
+            "READY": 46,
+            "WAIT_PULLBACK": 17,
+            "FADED": 105,
+            "WEAK": 119,
+            "INSUFFICIENT_BARS": 3
+          }
+        },
+        {
+          "date": "2026-05-06",
+          "totalFiles": 329,
+          "analyzedCount": 302,
+          "statusCounts": {
+            "READY": 11,
+            "WAIT_PULLBACK": 6,
+            "FADED": 210,
+            "WEAK": 71,
+            "INSUFFICIENT_BARS": 4
+          }
+        },
+        {
+          "date": "2026-05-07",
+          "totalFiles": 327,
+          "analyzedCount": 299,
+          "statusCounts": {
+            "READY": 15,
+            "WAIT_PULLBACK": 7,
+            "FADED": 216,
+            "WEAK": 58,
+            "INSUFFICIENT_BARS": 3
+          }
+        },
+        {
+          "date": "2026-05-08",
+          "totalFiles": 329,
+          "analyzedCount": 307,
+          "statusCounts": {
+            "READY": 18,
+            "WAIT_PULLBACK": 10,
+            "FADED": 110,
+            "WEAK": 167,
+            "INSUFFICIENT_BARS": 2
+          }
+        },
+        {
+          "date": "2026-05-11",
+          "totalFiles": 319,
+          "analyzedCount": 300,
+          "statusCounts": {
+            "READY": 17,
+            "WAIT_PULLBACK": 7,
+            "FADED": 194,
+            "WEAK": 81,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-05-12",
+          "totalFiles": 326,
+          "analyzedCount": 309,
+          "statusCounts": {
+            "READY": 26,
+            "WAIT_PULLBACK": 7,
+            "FADED": 181,
+            "WEAK": 94,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-05-13",
+          "totalFiles": 310,
+          "analyzedCount": 293,
+          "statusCounts": {
+            "READY": 11,
+            "WAIT_PULLBACK": 10,
+            "FADED": 174,
+            "WEAK": 98,
+            "INSUFFICIENT_BARS": 0
+          }
+        },
+        {
+          "date": "2026-05-14",
+          "totalFiles": 305,
+          "analyzedCount": 295,
+          "statusCounts": {
+            "READY": 7,
+            "WAIT_PULLBACK": 9,
+            "FADED": 199,
+            "WEAK": 77,
+            "INSUFFICIENT_BARS": 3
+          }
+        }
+      ],
+      "dailyReadyDistribution": {
+        "days": 19,
+        "avg": 19.4,
+        "median": 17,
+        "min": 7,
+        "max": 46,
+        "p25": 11,
+        "p75": 26,
+        "perDay": [
+          17,
+          18,
+          26,
+          13,
+          25,
+          7,
+          27,
+          45,
+          8,
+          16,
+          15,
+          46,
+          11,
+          15,
+          18,
+          17,
+          26,
+          11,
+          7
+        ]
+      },
+      "summaries": {
+        "ALL_SCAN": {
+          "n": 5632,
+          "nWithPerf": 5572,
+          "avgMaxReturnTo1000": 1.65,
+          "medianMaxReturnTo1000": 1,
+          "avgReturnAt1000": 0.13,
+          "avgDrawdown": -1.31,
+          "hit1Rate": 50,
+          "hit2Rate": 26,
+          "hit3Rate": 14.6,
+          "fail1Rate": 48,
+          "fail2Rate": 20,
+          "firstHit2BeforeFail1Rate": 20.3,
+          "firstHit3BeforeFail1Rate": 10.9
+        },
+        "READY_ALL": {
+          "n": 368,
+          "nWithPerf": 366,
+          "avgMaxReturnTo1000": 2.3,
+          "medianMaxReturnTo1000": 1.47,
+          "avgReturnAt1000": 0.16,
+          "avgDrawdown": -1.68,
+          "hit1Rate": 61.7,
+          "hit2Rate": 40.2,
+          "hit3Rate": 24.3,
+          "fail1Rate": 60.9,
+          "fail2Rate": 32.8,
+          "firstHit2BeforeFail1Rate": 28.4,
+          "firstHit3BeforeFail1Rate": 16.1
+        },
+        "READY_TOP5": {
+          "n": 95,
+          "nWithPerf": 95,
+          "avgMaxReturnTo1000": 2.97,
+          "medianMaxReturnTo1000": 2.38,
+          "avgReturnAt1000": 0.34,
+          "avgDrawdown": -2.05,
+          "hit1Rate": 69.5,
+          "hit2Rate": 55.8,
+          "hit3Rate": 40,
+          "fail1Rate": 68.4,
+          "fail2Rate": 44.2,
+          "firstHit2BeforeFail1Rate": 32.6,
+          "firstHit3BeforeFail1Rate": 24.2
+        },
+        "READY_TOP10": {
+          "n": 182,
+          "nWithPerf": 182,
+          "avgMaxReturnTo1000": 2.58,
+          "medianMaxReturnTo1000": 1.7,
+          "avgReturnAt1000": 0.15,
+          "avgDrawdown": -1.9,
+          "hit1Rate": 68.1,
+          "hit2Rate": 47.8,
+          "hit3Rate": 30.2,
+          "fail1Rate": 65.4,
+          "fail2Rate": 38.5,
+          "firstHit2BeforeFail1Rate": 30.2,
+          "firstHit3BeforeFail1Rate": 18.1
+        },
+        "READY_REST": {
+          "n": 273,
+          "nWithPerf": 271,
+          "avgMaxReturnTo1000": 2.06,
+          "medianMaxReturnTo1000": 1.33,
+          "avgReturnAt1000": 0.1,
+          "avgDrawdown": -1.55,
+          "hit1Rate": 59,
+          "hit2Rate": 34.7,
+          "hit3Rate": 18.8,
+          "fail1Rate": 58.3,
+          "fail2Rate": 28.8,
+          "firstHit2BeforeFail1Rate": 26.9,
+          "firstHit3BeforeFail1Rate": 13.3
+        },
+        "WAIT_PULLBACK": {
+          "n": 140,
+          "nWithPerf": 139,
+          "avgMaxReturnTo1000": 3.1,
+          "medianMaxReturnTo1000": 2.46,
+          "avgReturnAt1000": 0.18,
+          "avgDrawdown": -2.91,
+          "hit1Rate": 69.1,
+          "hit2Rate": 56.1,
+          "hit3Rate": 42.4,
+          "fail1Rate": 71.9,
+          "fail2Rate": 54,
+          "firstHit2BeforeFail1Rate": 29.5,
+          "firstHit3BeforeFail1Rate": 21.6
+        },
+        "FADED": {
+          "n": 2725,
+          "nWithPerf": 2682,
+          "avgMaxReturnTo1000": 1.82,
+          "medianMaxReturnTo1000": 1.14,
+          "avgReturnAt1000": 0.13,
+          "avgDrawdown": -1.44,
+          "hit1Rate": 54.8,
+          "hit2Rate": 28.7,
+          "hit3Rate": 16,
+          "fail1Rate": 51.8,
+          "fail2Rate": 23.3,
+          "firstHit2BeforeFail1Rate": 22.2,
+          "firstHit3BeforeFail1Rate": 11.9
+        },
+        "WEAK": {
+          "n": 2364,
+          "nWithPerf": 2350,
+          "avgMaxReturnTo1000": 1.29,
+          "medianMaxReturnTo1000": 0.81,
+          "avgReturnAt1000": 0.13,
+          "avgDrawdown": -1.03,
+          "hit1Rate": 42,
+          "hit2Rate": 19.1,
+          "hit3Rate": 10,
+          "fail1Rate": 40.6,
+          "fail2Rate": 12.2,
+          "firstHit2BeforeFail1Rate": 16.4,
+          "firstHit3BeforeFail1Rate": 8.5
+        },
+        "INSUFFICIENT_BARS": {
+          "n": 35,
+          "nWithPerf": 35,
+          "avgMaxReturnTo1000": -0.21,
+          "medianMaxReturnTo1000": 0,
+          "avgReturnAt1000": -0.21,
+          "avgDrawdown": -0.21,
+          "hit1Rate": 20,
+          "hit2Rate": 17.1,
+          "hit3Rate": 5.7,
+          "fail1Rate": 28.6,
+          "fail2Rate": 14.3,
+          "firstHit2BeforeFail1Rate": 17.1,
+          "firstHit3BeforeFail1Rate": 5.7
+        }
+      },
+      "rankBuckets": {
+        "rank1_5": {
+          "n": 95,
+          "nWithPerf": 95,
+          "avgMaxReturnTo1000": 2.97,
+          "medianMaxReturnTo1000": 2.38,
+          "avgReturnAt1000": 0.34,
+          "avgDrawdown": -2.05,
+          "hit1Rate": 69.5,
+          "hit2Rate": 55.8,
+          "hit3Rate": 40,
+          "fail1Rate": 68.4,
+          "fail2Rate": 44.2,
+          "firstHit2BeforeFail1Rate": 32.6,
+          "firstHit3BeforeFail1Rate": 24.2
+        },
+        "rank6_10": {
+          "n": 87,
+          "nWithPerf": 87,
+          "avgMaxReturnTo1000": 2.15,
+          "medianMaxReturnTo1000": 1.38,
+          "avgReturnAt1000": -0.06,
+          "avgDrawdown": -1.74,
+          "hit1Rate": 66.7,
+          "hit2Rate": 39.1,
+          "hit3Rate": 19.5,
+          "fail1Rate": 62.1,
+          "fail2Rate": 32.2,
+          "firstHit2BeforeFail1Rate": 27.6,
+          "firstHit3BeforeFail1Rate": 11.5
+        },
+        "rank11_20": {
+          "n": 111,
+          "nWithPerf": 110,
+          "avgMaxReturnTo1000": 2.22,
+          "medianMaxReturnTo1000": 1.33,
+          "avgReturnAt1000": 0.17,
+          "avgDrawdown": -1.56,
+          "hit1Rate": 59.1,
+          "hit2Rate": 33.6,
+          "hit3Rate": 22.7,
+          "fail1Rate": 62.7,
+          "fail2Rate": 30.9,
+          "firstHit2BeforeFail1Rate": 27.3,
+          "firstHit3BeforeFail1Rate": 17.3
+        },
+        "rank21_plus": {
+          "n": 75,
+          "nWithPerf": 74,
+          "avgMaxReturnTo1000": 1.72,
+          "medianMaxReturnTo1000": 0.99,
+          "avgReturnAt1000": 0.17,
+          "avgDrawdown": -1.31,
+          "hit1Rate": 50,
+          "hit2Rate": 31.1,
+          "hit3Rate": 12.2,
+          "fail1Rate": 47.3,
+          "fail2Rate": 21.6,
+          "firstHit2BeforeFail1Rate": 25.7,
+          "firstHit3BeforeFail1Rate": 9.5
+        }
+      }
+    },
+    "B": {
+      "rule": {
+        "label": "강한 기준",
+        "MIN_VALUE": 2000000000,
+        "MIN_RATIO": 5,
+        "MIN_CP": 0.75,
+        "MAX_DROP": -1.5,
+        "MIN_UP": 2,
+        "MAX_UP": 6.5
+      },
+      "perDay": [
+        {
+          "date": "2026-04-16",
+          "totalFiles": 324,
+          "analyzedCount": 282,
+          "statusCounts": {
+            "READY": 5,
+            "WAIT_PULLBACK": 12,
+            "FADED": 181,
+            "WEAK": 83,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-17",
+          "totalFiles": 331,
+          "analyzedCount": 294,
+          "statusCounts": {
+            "READY": 5,
+            "WAIT_PULLBACK": 9,
+            "FADED": 199,
+            "WEAK": 81,
+            "INSUFFICIENT_BARS": 0
+          }
+        },
+        {
+          "date": "2026-04-20",
+          "totalFiles": 323,
+          "analyzedCount": 287,
+          "statusCounts": {
+            "READY": 6,
+            "WAIT_PULLBACK": 3,
+            "FADED": 155,
+            "WEAK": 122,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-21",
+          "totalFiles": 333,
+          "analyzedCount": 296,
+          "statusCounts": {
+            "READY": 2,
+            "WAIT_PULLBACK": 4,
+            "FADED": 222,
+            "WEAK": 65,
+            "INSUFFICIENT_BARS": 3
+          }
+        },
+        {
+          "date": "2026-04-22",
+          "totalFiles": 343,
+          "analyzedCount": 304,
+          "statusCounts": {
+            "READY": 4,
+            "WAIT_PULLBACK": 9,
+            "FADED": 158,
+            "WEAK": 129,
+            "INSUFFICIENT_BARS": 4
+          }
+        },
+        {
+          "date": "2026-04-23",
+          "totalFiles": 341,
+          "analyzedCount": 305,
+          "statusCounts": {
+            "READY": 0,
+            "WAIT_PULLBACK": 4,
+            "FADED": 244,
+            "WEAK": 52,
+            "INSUFFICIENT_BARS": 5
+          }
+        },
+        {
+          "date": "2026-04-24",
+          "totalFiles": 330,
+          "analyzedCount": 295,
+          "statusCounts": {
+            "READY": 8,
+            "WAIT_PULLBACK": 8,
+            "FADED": 133,
+            "WEAK": 145,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-27",
+          "totalFiles": 324,
+          "analyzedCount": 294,
+          "statusCounts": {
+            "READY": 12,
+            "WAIT_PULLBACK": 10,
+            "FADED": 173,
+            "WEAK": 98,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-28",
+          "totalFiles": 322,
+          "analyzedCount": 291,
+          "statusCounts": {
+            "READY": 1,
+            "WAIT_PULLBACK": 3,
+            "FADED": 233,
+            "WEAK": 53,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-29",
+          "totalFiles": 336,
+          "analyzedCount": 304,
+          "statusCounts": {
+            "READY": 2,
+            "WAIT_PULLBACK": 8,
+            "FADED": 192,
+            "WEAK": 101,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-30",
+          "totalFiles": 316,
+          "analyzedCount": 285,
+          "statusCounts": {
+            "READY": 5,
+            "WAIT_PULLBACK": 5,
+            "FADED": 204,
+            "WEAK": 71,
+            "INSUFFICIENT_BARS": 0
+          }
+        },
+        {
+          "date": "2026-05-04",
+          "totalFiles": 317,
+          "analyzedCount": 290,
+          "statusCounts": {
+            "READY": 11,
+            "WAIT_PULLBACK": 18,
+            "FADED": 165,
+            "WEAK": 93,
+            "INSUFFICIENT_BARS": 3
+          }
+        },
+        {
+          "date": "2026-05-06",
+          "totalFiles": 329,
+          "analyzedCount": 302,
+          "statusCounts": {
+            "READY": 2,
+            "WAIT_PULLBACK": 6,
+            "FADED": 262,
+            "WEAK": 28,
+            "INSUFFICIENT_BARS": 4
+          }
+        },
+        {
+          "date": "2026-05-07",
+          "totalFiles": 327,
+          "analyzedCount": 299,
+          "statusCounts": {
+            "READY": 3,
+            "WAIT_PULLBACK": 9,
+            "FADED": 246,
+            "WEAK": 38,
+            "INSUFFICIENT_BARS": 3
+          }
+        },
+        {
+          "date": "2026-05-08",
+          "totalFiles": 329,
+          "analyzedCount": 307,
+          "statusCounts": {
+            "READY": 3,
+            "WAIT_PULLBACK": 12,
+            "FADED": 190,
+            "WEAK": 100,
+            "INSUFFICIENT_BARS": 2
+          }
+        },
+        {
+          "date": "2026-05-11",
+          "totalFiles": 319,
+          "analyzedCount": 300,
+          "statusCounts": {
+            "READY": 4,
+            "WAIT_PULLBACK": 7,
+            "FADED": 238,
+            "WEAK": 50,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-05-12",
+          "totalFiles": 326,
+          "analyzedCount": 309,
+          "statusCounts": {
+            "READY": 4,
+            "WAIT_PULLBACK": 5,
+            "FADED": 236,
+            "WEAK": 63,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-05-13",
+          "totalFiles": 310,
+          "analyzedCount": 293,
+          "statusCounts": {
+            "READY": 2,
+            "WAIT_PULLBACK": 14,
+            "FADED": 232,
+            "WEAK": 45,
+            "INSUFFICIENT_BARS": 0
+          }
+        },
+        {
+          "date": "2026-05-14",
+          "totalFiles": 305,
+          "analyzedCount": 295,
+          "statusCounts": {
+            "READY": 1,
+            "WAIT_PULLBACK": 11,
+            "FADED": 241,
+            "WEAK": 39,
+            "INSUFFICIENT_BARS": 3
+          }
+        }
+      ],
+      "dailyReadyDistribution": {
+        "days": 19,
+        "avg": 4.2,
+        "median": 4,
+        "min": 0,
+        "max": 12,
+        "p25": 2,
+        "p75": 5,
+        "perDay": [
+          5,
+          5,
+          6,
+          2,
+          4,
+          0,
+          8,
+          12,
+          1,
+          2,
+          5,
+          11,
+          2,
+          3,
+          3,
+          4,
+          4,
+          2,
+          1
+        ]
+      },
+      "summaries": {
+        "ALL_SCAN": {
+          "n": 5632,
+          "nWithPerf": 5572,
+          "avgMaxReturnTo1000": 1.65,
+          "medianMaxReturnTo1000": 1,
+          "avgReturnAt1000": 0.13,
+          "avgDrawdown": -1.31,
+          "hit1Rate": 50,
+          "hit2Rate": 26,
+          "hit3Rate": 14.6,
+          "fail1Rate": 48,
+          "fail2Rate": 20,
+          "firstHit2BeforeFail1Rate": 20.3,
+          "firstHit3BeforeFail1Rate": 10.9
+        },
+        "READY_ALL": {
+          "n": 80,
+          "nWithPerf": 80,
+          "avgMaxReturnTo1000": 2.36,
+          "medianMaxReturnTo1000": 1.63,
+          "avgReturnAt1000": 0.25,
+          "avgDrawdown": -1.75,
+          "hit1Rate": 66.3,
+          "hit2Rate": 45,
+          "hit3Rate": 26.3,
+          "fail1Rate": 68.8,
+          "fail2Rate": 32.5,
+          "firstHit2BeforeFail1Rate": 27.5,
+          "firstHit3BeforeFail1Rate": 12.5
+        },
+        "READY_TOP5": {
+          "n": 63,
+          "nWithPerf": 63,
+          "avgMaxReturnTo1000": 2.56,
+          "medianMaxReturnTo1000": 1.94,
+          "avgReturnAt1000": 0.27,
+          "avgDrawdown": -1.84,
+          "hit1Rate": 66.7,
+          "hit2Rate": 47.6,
+          "hit3Rate": 30.2,
+          "fail1Rate": 68.3,
+          "fail2Rate": 34.9,
+          "firstHit2BeforeFail1Rate": 28.6,
+          "firstHit3BeforeFail1Rate": 14.3
+        },
+        "READY_TOP10": {
+          "n": 77,
+          "nWithPerf": 77,
+          "avgMaxReturnTo1000": 2.38,
+          "medianMaxReturnTo1000": 1.57,
+          "avgReturnAt1000": 0.22,
+          "avgDrawdown": -1.78,
+          "hit1Rate": 64.9,
+          "hit2Rate": 44.2,
+          "hit3Rate": 27.3,
+          "fail1Rate": 68.8,
+          "fail2Rate": 33.8,
+          "firstHit2BeforeFail1Rate": 27.3,
+          "firstHit3BeforeFail1Rate": 13
+        },
+        "READY_REST": {
+          "n": 17,
+          "nWithPerf": 17,
+          "avgMaxReturnTo1000": 1.62,
+          "medianMaxReturnTo1000": 1.52,
+          "avgReturnAt1000": 0.19,
+          "avgDrawdown": -1.4,
+          "hit1Rate": 64.7,
+          "hit2Rate": 35.3,
+          "hit3Rate": 11.8,
+          "fail1Rate": 70.6,
+          "fail2Rate": 23.5,
+          "firstHit2BeforeFail1Rate": 23.5,
+          "firstHit3BeforeFail1Rate": 5.9
+        },
+        "WAIT_PULLBACK": {
+          "n": 157,
+          "nWithPerf": 155,
+          "avgMaxReturnTo1000": 2.84,
+          "medianMaxReturnTo1000": 2.01,
+          "avgReturnAt1000": 0.01,
+          "avgDrawdown": -2.72,
+          "hit1Rate": 69,
+          "hit2Rate": 50.3,
+          "hit3Rate": 36.8,
+          "fail1Rate": 70.3,
+          "fail2Rate": 51.6,
+          "firstHit2BeforeFail1Rate": 25.8,
+          "firstHit3BeforeFail1Rate": 18.7
+        },
+        "FADED": {
+          "n": 3904,
+          "nWithPerf": 3851,
+          "avgMaxReturnTo1000": 1.74,
+          "medianMaxReturnTo1000": 1.07,
+          "avgReturnAt1000": 0.17,
+          "avgDrawdown": -1.34,
+          "hit1Rate": 52.2,
+          "hit2Rate": 27.3,
+          "hit3Rate": 15.3,
+          "fail1Rate": 48.9,
+          "fail2Rate": 20.7,
+          "firstHit2BeforeFail1Rate": 21.5,
+          "firstHit3BeforeFail1Rate": 11.6
+        },
+        "WEAK": {
+          "n": 1456,
+          "nWithPerf": 1451,
+          "avgMaxReturnTo1000": 1.28,
+          "medianMaxReturnTo1000": 0.81,
+          "avgReturnAt1000": 0.04,
+          "avgDrawdown": -1.09,
+          "hit1Rate": 42.1,
+          "hit2Rate": 19.1,
+          "hit3Rate": 10.1,
+          "fail1Rate": 42.6,
+          "fail2Rate": 14.1,
+          "firstHit2BeforeFail1Rate": 16.3,
+          "firstHit3BeforeFail1Rate": 8.3
+        },
+        "INSUFFICIENT_BARS": {
+          "n": 35,
+          "nWithPerf": 35,
+          "avgMaxReturnTo1000": -0.21,
+          "medianMaxReturnTo1000": 0,
+          "avgReturnAt1000": -0.21,
+          "avgDrawdown": -0.21,
+          "hit1Rate": 20,
+          "hit2Rate": 17.1,
+          "hit3Rate": 5.7,
+          "fail1Rate": 28.6,
+          "fail2Rate": 14.3,
+          "firstHit2BeforeFail1Rate": 17.1,
+          "firstHit3BeforeFail1Rate": 5.7
+        }
+      },
+      "rankBuckets": {
+        "rank1_5": {
+          "n": 63,
+          "nWithPerf": 63,
+          "avgMaxReturnTo1000": 2.56,
+          "medianMaxReturnTo1000": 1.94,
+          "avgReturnAt1000": 0.27,
+          "avgDrawdown": -1.84,
+          "hit1Rate": 66.7,
+          "hit2Rate": 47.6,
+          "hit3Rate": 30.2,
+          "fail1Rate": 68.3,
+          "fail2Rate": 34.9,
+          "firstHit2BeforeFail1Rate": 28.6,
+          "firstHit3BeforeFail1Rate": 14.3
+        },
+        "rank6_10": {
+          "n": 14,
+          "nWithPerf": 14,
+          "avgMaxReturnTo1000": 1.57,
+          "medianMaxReturnTo1000": 1.38,
+          "avgReturnAt1000": -0.01,
+          "avgDrawdown": -1.47,
+          "hit1Rate": 57.1,
+          "hit2Rate": 28.6,
+          "hit3Rate": 14.3,
+          "fail1Rate": 71.4,
+          "fail2Rate": 28.6,
+          "firstHit2BeforeFail1Rate": 21.4,
+          "firstHit3BeforeFail1Rate": 7.1
+        },
+        "rank11_20": {
+          "n": 3,
+          "nWithPerf": 3,
+          "avgMaxReturnTo1000": 1.88,
+          "medianMaxReturnTo1000": 2.16,
+          "avgReturnAt1000": 1.09,
+          "avgDrawdown": -1.06,
+          "hit1Rate": 100,
+          "hit2Rate": 66.7,
+          "hit3Rate": 0,
+          "fail1Rate": 66.7,
+          "fail2Rate": 0,
+          "firstHit2BeforeFail1Rate": 33.3,
+          "firstHit3BeforeFail1Rate": 0
+        },
+        "rank21_plus": {
+          "n": 0
+        }
+      }
+    },
+    "C": {
+      "rule": {
+        "label": "완화 기준",
+        "MIN_VALUE": 700000000,
+        "MIN_RATIO": 2.5,
+        "MIN_CP": 0.6,
+        "MAX_DROP": -3,
+        "MIN_UP": 0.8,
+        "MAX_UP": 8
+      },
+      "perDay": [
+        {
+          "date": "2026-04-16",
+          "totalFiles": 324,
+          "analyzedCount": 282,
+          "statusCounts": {
+            "READY": 26,
+            "WAIT_PULLBACK": 10,
+            "FADED": 97,
+            "WEAK": 148,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-17",
+          "totalFiles": 331,
+          "analyzedCount": 294,
+          "statusCounts": {
+            "READY": 25,
+            "WAIT_PULLBACK": 9,
+            "FADED": 96,
+            "WEAK": 164,
+            "INSUFFICIENT_BARS": 0
+          }
+        },
+        {
+          "date": "2026-04-20",
+          "totalFiles": 323,
+          "analyzedCount": 287,
+          "statusCounts": {
+            "READY": 32,
+            "WAIT_PULLBACK": 3,
+            "FADED": 80,
+            "WEAK": 171,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-21",
+          "totalFiles": 333,
+          "analyzedCount": 296,
+          "statusCounts": {
+            "READY": 14,
+            "WAIT_PULLBACK": 4,
+            "FADED": 122,
+            "WEAK": 153,
+            "INSUFFICIENT_BARS": 3
+          }
+        },
+        {
+          "date": "2026-04-22",
+          "totalFiles": 343,
+          "analyzedCount": 304,
+          "statusCounts": {
+            "READY": 33,
+            "WAIT_PULLBACK": 8,
+            "FADED": 69,
+            "WEAK": 190,
+            "INSUFFICIENT_BARS": 4
+          }
+        },
+        {
+          "date": "2026-04-23",
+          "totalFiles": 341,
+          "analyzedCount": 305,
+          "statusCounts": {
+            "READY": 12,
+            "WAIT_PULLBACK": 4,
+            "FADED": 139,
+            "WEAK": 145,
+            "INSUFFICIENT_BARS": 5
+          }
+        },
+        {
+          "date": "2026-04-24",
+          "totalFiles": 330,
+          "analyzedCount": 295,
+          "statusCounts": {
+            "READY": 37,
+            "WAIT_PULLBACK": 11,
+            "FADED": 52,
+            "WEAK": 194,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-27",
+          "totalFiles": 324,
+          "analyzedCount": 294,
+          "statusCounts": {
+            "READY": 55,
+            "WAIT_PULLBACK": 11,
+            "FADED": 81,
+            "WEAK": 146,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-28",
+          "totalFiles": 322,
+          "analyzedCount": 291,
+          "statusCounts": {
+            "READY": 12,
+            "WAIT_PULLBACK": 2,
+            "FADED": 146,
+            "WEAK": 130,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-29",
+          "totalFiles": 336,
+          "analyzedCount": 304,
+          "statusCounts": {
+            "READY": 25,
+            "WAIT_PULLBACK": 7,
+            "FADED": 86,
+            "WEAK": 185,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-04-30",
+          "totalFiles": 316,
+          "analyzedCount": 285,
+          "statusCounts": {
+            "READY": 18,
+            "WAIT_PULLBACK": 2,
+            "FADED": 86,
+            "WEAK": 179,
+            "INSUFFICIENT_BARS": 0
+          }
+        },
+        {
+          "date": "2026-05-04",
+          "totalFiles": 317,
+          "analyzedCount": 290,
+          "statusCounts": {
+            "READY": 60,
+            "WAIT_PULLBACK": 19,
+            "FADED": 80,
+            "WEAK": 128,
+            "INSUFFICIENT_BARS": 3
+          }
+        },
+        {
+          "date": "2026-05-06",
+          "totalFiles": 329,
+          "analyzedCount": 302,
+          "statusCounts": {
+            "READY": 14,
+            "WAIT_PULLBACK": 6,
+            "FADED": 186,
+            "WEAK": 92,
+            "INSUFFICIENT_BARS": 4
+          }
+        },
+        {
+          "date": "2026-05-07",
+          "totalFiles": 327,
+          "analyzedCount": 299,
+          "statusCounts": {
+            "READY": 21,
+            "WAIT_PULLBACK": 7,
+            "FADED": 200,
+            "WEAK": 68,
+            "INSUFFICIENT_BARS": 3
+          }
+        },
+        {
+          "date": "2026-05-08",
+          "totalFiles": 329,
+          "analyzedCount": 307,
+          "statusCounts": {
+            "READY": 33,
+            "WAIT_PULLBACK": 11,
+            "FADED": 84,
+            "WEAK": 177,
+            "INSUFFICIENT_BARS": 2
+          }
+        },
+        {
+          "date": "2026-05-11",
+          "totalFiles": 319,
+          "analyzedCount": 300,
+          "statusCounts": {
+            "READY": 24,
+            "WAIT_PULLBACK": 8,
+            "FADED": 167,
+            "WEAK": 100,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-05-12",
+          "totalFiles": 326,
+          "analyzedCount": 309,
+          "statusCounts": {
+            "READY": 34,
+            "WAIT_PULLBACK": 8,
+            "FADED": 154,
+            "WEAK": 112,
+            "INSUFFICIENT_BARS": 1
+          }
+        },
+        {
+          "date": "2026-05-13",
+          "totalFiles": 310,
+          "analyzedCount": 293,
+          "statusCounts": {
+            "READY": 18,
+            "WAIT_PULLBACK": 12,
+            "FADED": 145,
+            "WEAK": 118,
+            "INSUFFICIENT_BARS": 0
+          }
+        },
+        {
+          "date": "2026-05-14",
+          "totalFiles": 305,
+          "analyzedCount": 295,
+          "statusCounts": {
+            "READY": 12,
+            "WAIT_PULLBACK": 10,
+            "FADED": 173,
+            "WEAK": 97,
+            "INSUFFICIENT_BARS": 3
+          }
+        }
+      ],
+      "dailyReadyDistribution": {
+        "days": 19,
+        "avg": 26.6,
+        "median": 25,
+        "min": 12,
+        "max": 60,
+        "p25": 14,
+        "p75": 33,
+        "perDay": [
+          26,
+          25,
+          32,
+          14,
+          33,
+          12,
+          37,
+          55,
+          12,
+          25,
+          18,
+          60,
+          14,
+          21,
+          33,
+          24,
+          34,
+          18,
+          12
+        ]
+      },
+      "summaries": {
+        "ALL_SCAN": {
+          "n": 5632,
+          "nWithPerf": 5572,
+          "avgMaxReturnTo1000": 1.65,
+          "medianMaxReturnTo1000": 1,
+          "avgReturnAt1000": 0.13,
+          "avgDrawdown": -1.31,
+          "hit1Rate": 50,
+          "hit2Rate": 26,
+          "hit3Rate": 14.6,
+          "fail1Rate": 48,
+          "fail2Rate": 20,
+          "firstHit2BeforeFail1Rate": 20.3,
+          "firstHit3BeforeFail1Rate": 10.9
+        },
+        "READY_ALL": {
+          "n": 505,
+          "nWithPerf": 501,
+          "avgMaxReturnTo1000": 2.17,
+          "medianMaxReturnTo1000": 1.38,
+          "avgReturnAt1000": 0.06,
+          "avgDrawdown": -1.66,
+          "hit1Rate": 59.1,
+          "hit2Rate": 36.3,
+          "hit3Rate": 21.8,
+          "fail1Rate": 60.5,
+          "fail2Rate": 31.1,
+          "firstHit2BeforeFail1Rate": 26.5,
+          "firstHit3BeforeFail1Rate": 14.8
+        },
+        "READY_TOP5": {
+          "n": 95,
+          "nWithPerf": 95,
+          "avgMaxReturnTo1000": 3.03,
+          "medianMaxReturnTo1000": 2.21,
+          "avgReturnAt1000": 0.26,
+          "avgDrawdown": -2.09,
+          "hit1Rate": 68.4,
+          "hit2Rate": 52.6,
+          "hit3Rate": 40,
+          "fail1Rate": 65.3,
+          "fail2Rate": 41.1,
+          "firstHit2BeforeFail1Rate": 32.6,
+          "firstHit3BeforeFail1Rate": 24.2
+        },
+        "READY_TOP10": {
+          "n": 190,
+          "nWithPerf": 190,
+          "avgMaxReturnTo1000": 2.69,
+          "medianMaxReturnTo1000": 1.86,
+          "avgReturnAt1000": 0.21,
+          "avgDrawdown": -1.93,
+          "hit1Rate": 66.8,
+          "hit2Rate": 47.9,
+          "hit3Rate": 31.6,
+          "fail1Rate": 62.1,
+          "fail2Rate": 38.4,
+          "firstHit2BeforeFail1Rate": 32.6,
+          "firstHit3BeforeFail1Rate": 21.6
+        },
+        "READY_REST": {
+          "n": 410,
+          "nWithPerf": 406,
+          "avgMaxReturnTo1000": 1.97,
+          "medianMaxReturnTo1000": 1.29,
+          "avgReturnAt1000": 0.01,
+          "avgDrawdown": -1.56,
+          "hit1Rate": 56.9,
+          "hit2Rate": 32.5,
+          "hit3Rate": 17.5,
+          "fail1Rate": 59.4,
+          "fail2Rate": 28.8,
+          "firstHit2BeforeFail1Rate": 25.1,
+          "firstHit3BeforeFail1Rate": 12.6
+        },
+        "WAIT_PULLBACK": {
+          "n": 152,
+          "nWithPerf": 150,
+          "avgMaxReturnTo1000": 3.15,
+          "medianMaxReturnTo1000": 2.48,
+          "avgReturnAt1000": 0.22,
+          "avgDrawdown": -2.88,
+          "hit1Rate": 70.7,
+          "hit2Rate": 58,
+          "hit3Rate": 44,
+          "fail1Rate": 71.3,
+          "fail2Rate": 53.3,
+          "firstHit2BeforeFail1Rate": 31.3,
+          "firstHit3BeforeFail1Rate": 23.3
+        },
+        "FADED": {
+          "n": 2243,
+          "nWithPerf": 2203,
+          "avgMaxReturnTo1000": 1.92,
+          "medianMaxReturnTo1000": 1.2,
+          "avgReturnAt1000": 0.15,
+          "avgDrawdown": -1.51,
+          "hit1Rate": 56.7,
+          "hit2Rate": 30.4,
+          "hit3Rate": 17,
+          "fail1Rate": 53.5,
+          "fail2Rate": 25.1,
+          "firstHit2BeforeFail1Rate": 23.3,
+          "firstHit3BeforeFail1Rate": 12.6
+        },
+        "WEAK": {
+          "n": 2697,
+          "nWithPerf": 2683,
+          "avgMaxReturnTo1000": 1.27,
+          "medianMaxReturnTo1000": 0.8,
+          "avgReturnAt1000": 0.13,
+          "avgDrawdown": -1.01,
+          "hit1Rate": 42.1,
+          "hit2Rate": 18.8,
+          "hit3Rate": 9.8,
+          "fail1Rate": 40.1,
+          "fail2Rate": 11.9,
+          "firstHit2BeforeFail1Rate": 16.1,
+          "firstHit3BeforeFail1Rate": 8.3
+        },
+        "INSUFFICIENT_BARS": {
+          "n": 35,
+          "nWithPerf": 35,
+          "avgMaxReturnTo1000": -0.21,
+          "medianMaxReturnTo1000": 0,
+          "avgReturnAt1000": -0.21,
+          "avgDrawdown": -0.21,
+          "hit1Rate": 20,
+          "hit2Rate": 17.1,
+          "hit3Rate": 5.7,
+          "fail1Rate": 28.6,
+          "fail2Rate": 14.3,
+          "firstHit2BeforeFail1Rate": 17.1,
+          "firstHit3BeforeFail1Rate": 5.7
+        }
+      },
+      "rankBuckets": {
+        "rank1_5": {
+          "n": 95,
+          "nWithPerf": 95,
+          "avgMaxReturnTo1000": 3.03,
+          "medianMaxReturnTo1000": 2.21,
+          "avgReturnAt1000": 0.26,
+          "avgDrawdown": -2.09,
+          "hit1Rate": 68.4,
+          "hit2Rate": 52.6,
+          "hit3Rate": 40,
+          "fail1Rate": 65.3,
+          "fail2Rate": 41.1,
+          "firstHit2BeforeFail1Rate": 32.6,
+          "firstHit3BeforeFail1Rate": 24.2
+        },
+        "rank6_10": {
+          "n": 95,
+          "nWithPerf": 95,
+          "avgMaxReturnTo1000": 2.35,
+          "medianMaxReturnTo1000": 1.48,
+          "avgReturnAt1000": 0.16,
+          "avgDrawdown": -1.77,
+          "hit1Rate": 65.3,
+          "hit2Rate": 43.2,
+          "hit3Rate": 23.2,
+          "fail1Rate": 58.9,
+          "fail2Rate": 35.8,
+          "firstHit2BeforeFail1Rate": 32.6,
+          "firstHit3BeforeFail1Rate": 18.9
+        },
+        "rank11_20": {
+          "n": 150,
+          "nWithPerf": 149,
+          "avgMaxReturnTo1000": 2.02,
+          "medianMaxReturnTo1000": 1.28,
+          "avgReturnAt1000": 0.02,
+          "avgDrawdown": -1.61,
+          "hit1Rate": 57,
+          "hit2Rate": 31.5,
+          "hit3Rate": 20.1,
+          "fail1Rate": 65.1,
+          "fail2Rate": 30.9,
+          "firstHit2BeforeFail1Rate": 24.2,
+          "firstHit3BeforeFail1Rate": 13.4
+        },
+        "rank21_plus": {
+          "n": 165,
+          "nWithPerf": 162,
+          "avgMaxReturnTo1000": 1.71,
+          "medianMaxReturnTo1000": 1.03,
+          "avgReturnAt1000": -0.09,
+          "avgDrawdown": -1.4,
+          "hit1Rate": 51.9,
+          "hit2Rate": 27.2,
+          "hit3Rate": 11.7,
+          "fail1Rate": 54.3,
+          "fail2Rate": 22.8,
+          "firstHit2BeforeFail1Rate": 21.6,
+          "firstHit3BeforeFail1Rate": 8
+        }
+      }
+    }
+  },
+  "recommendation": {
+    "recommendedTop": 5,
+    "reasoning": "TOP5의 firstHit2BeforeFail1Rate가 REST보다 5.7%p 높음 → 상위 5개에 압축 노출 권장",
+    "summaryLine": "Rule A 기준 일자별 READY 평균 19.4개. TOP5 firstHit2BeforeFail1=32.6%, REST=26.9%. 추천 노출: 상위 5개",
+    "metrics": {
+      "readyPerDay_avg": 19.4,
+      "readyPerDay_median": 17,
+      "top5_firstHit2BeforeFail1Rate": 32.6,
+      "top10_firstHit2BeforeFail1Rate": 30.2,
+      "rest_firstHit2BeforeFail1Rate": 26.9,
+      "top5_avgMaxReturn": 2.97,
+      "top10_avgMaxReturn": 2.58,
+      "rest_avgMaxReturn": 2.06
+    }
+  }
+}

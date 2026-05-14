@@ -375,6 +375,8 @@ function main() {
     scanner0930Ready:    ready,                 // 전체 READY (호환성 유지)
     scanner0930ReadyTop:  readyTop,              // 상위 5 — 실전 우선 후보
     scanner0930ReadyRest: readyRest,             // 6번째 이후 READY — 1차 통과 후보 (접힘)
+    scanner0930Wait:     wait,                   // WAIT_PULLBACK — 추격 부담 (백테스트 fail1 71.9%)
+    scanner0930Faded:    faded,                  // FADED — 카드 노출 X (통계만, 백테스트 결과 평균 이하)
     readyTopLimit: READY_TOP_LIMIT,
     scanner0930Holding:  [...wait, ...faded],   // WAIT_PULLBACK + FADED 합쳐서 "보류/재관찰"
     scanner0930Rejected: weak,                  // WEAK
@@ -427,6 +429,8 @@ module.exports = {
   STATUS_LABEL,
   computeMetrics0930,
   classifyStatus,
+  computeFinalScore,
   passesLiquidityFilter,
+  loadStockMetaMap,
   main,
 };

@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><title>1DS 09:30 스캐너 백테스트 결과</title>
+<style>
+  body { margin: 0 auto; max-width: 1400px; padding: 20px; font-family: -apple-system, "Segoe UI", "Noto Sans KR", sans-serif; background: #0f172a; color: #e2e8f0; font-size: 13px; }
+  h1 { color: #5eead4; }
+  h2 { color: #fde68a; border-bottom: 1px solid #334155; padding-bottom: 6px; margin-top: 28px; }
+  .reco-box { background: linear-gradient(135deg, #042f2e 0%, #1e293b 100%); border: 2px solid #14b8a6; padding: 16px; border-radius: 10px; margin: 14px 0; }
+  .reco-box strong { color: #6ee7b7; font-size: 16px; }
+  .reco-line { font-size: 14px; color: #a7f3d0; margin: 6px 0; }
+  .bt-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12px; }
+  .bt-table th, .bt-table td { border: 1px solid #334155; padding: 5px 7px; text-align: left; }
+  .bt-table th { background: #1e293b; color: #cbd5e1; font-weight: 700; }
+  .bt-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .bt-table tbody tr:nth-child(odd) { background: rgba(30, 41, 59, 0.4); }
+  .bt-table.small { font-size: 11px; }
+  .bt-stat { padding: 6px 10px; background: #1e293b; border-left: 3px solid #5eead4; margin: 8px 0; }
+  .rule-tabs { display: flex; gap: 6px; margin: 10px 0; }
+  .rule-tab { padding: 8px 14px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; cursor: pointer; color: #94a3b8; }
+  .rule-tab.active { background: #042f2e; border-color: #14b8a6; color: #6ee7b7; font-weight: 700; }
+  .rule-panel { display: none; }
+  .rule-panel.active { display: block; }
+  .intro { color: #cbd5e1; line-height: 1.7; padding: 12px; background: #1e293b; border-radius: 8px; margin: 12px 0; }
+  .intro code { background: #0f172a; padding: 2px 6px; border-radius: 3px; color: #fde68a; }
+  .meta { color: #94a3b8; font-size: 12px; }
+</style>
+</head><body>
+
+<h1>📊 1DS 09:30 스캐너 백테스트 결과</h1>
+<div class="meta">생성: 2026-05-14T10:20:56.197Z · 분석 일자 19일 (2026-04-16 ~ 2026-05-14) · 소요 4.75s</div>
+
+<h2>🎯 요약 결론</h2>
+<div class="reco-box">
+  <strong>Rule A 기준 일자별 READY 평균 19.4개. TOP5 firstHit2BeforeFail1=32.6%, REST=26.9%. 추천 노출: 상위 5개</strong>
+  <div class="reco-line">→ TOP5의 firstHit2BeforeFail1Rate가 REST보다 5.7%p 높음 → 상위 5개에 압축 노출 권장</div>
+  <div class="reco-line">→ <strong>추천: 화면 상단 readyTop을 5개로 노출</strong></div>
+</div>
+
+<div class="intro">
+<strong>📖 이 보고서가 검증하는 것</strong><br>
+1DS 09:30 스캐너가 화면에 보여주는 READY 후보 수가 실전적으로 적당한가?<br>
+"적당하다" = 상위 N개에 들어간 후보가 9:30~10:00 동안 평균 수익률·hit rate가 REST/WEAK/FADED보다 의미 있게 높다.<br>
+<br>
+<strong>📊 지표 의미 (초보자용)</strong><br>
+· <code>n</code>: 표본 수 (해당 그룹의 종목·일자 조합 수)<br>
+· <code>avg max</code>: 09:30 close 대비 09:30~10:00 분봉 high 최대 상승률의 평균<br>
+· <code>avg @10:00</code>: 09:30 close 대비 10:00 종가 수익률 평균 (실제로 30분 보유했을 때 수익)<br>
+· <code>avg DD</code>: 평균 최대 낙폭 (drawdown — 보유 중 떨어진 정도)<br>
+· <code>hit1/2/3</code>: 09:30 대비 +1%/+2%/+3% 도달률<br>
+· <code>fail1/2</code>: 09:30 대비 -1%/-2% 하락률<br>
+· <code>hit2前fail1</code>: <strong>+2%에 fail1(-1%)보다 먼저 도달한 비율 — 실전 손익비 핵심 지표</strong><br>
+· <code>hit3前fail1</code>: +3%에 -1%보다 먼저 도달한 비율
+</div>
+
+<h2>📋 룰 A (현재 기준) — 상태별 성과</h2>
+<table class="bt-table"><thead><tr>
+    <th>그룹</th><th>n</th>
+    <th>avg max</th><th>median max</th><th>avg @10:00</th><th>avg DD</th>
+    <th>hit1</th><th>hit2</th><th>hit3</th>
+    <th>fail1</th><th>fail2</th>
+    <th>hit2前fail1</th><th>hit3前fail1</th>
+  </tr></thead><tbody><tr>
+      <td><strong>전체 스캔 대상</strong></td>
+      <td>5632</td>
+      <td class="num">+1.65%</td>
+      <td class="num">+1.00%</td>
+      <td class="num">+0.13%</td>
+      <td class="num">-1.31%</td>
+      <td class="num">50.0%</td>
+      <td class="num">26.0%</td>
+      <td class="num">14.6%</td>
+      <td class="num">48.0%</td>
+      <td class="num">20.0%</td>
+      <td class="num"><strong>20.3%</strong></td>
+      <td class="num">10.9%</td>
+    </tr><tr>
+      <td><strong>READY ALL</strong></td>
+      <td>368</td>
+      <td class="num">+2.30%</td>
+      <td class="num">+1.47%</td>
+      <td class="num">+0.16%</td>
+      <td class="num">-1.68%</td>
+      <td class="num">61.7%</td>
+      <td class="num">40.2%</td>
+      <td class="num">24.3%</td>
+      <td class="num">60.9%</td>
+      <td class="num">32.8%</td>
+      <td class="num"><strong>28.4%</strong></td>
+      <td class="num">16.1%</td>
+    </tr><tr>
+      <td><strong>READY TOP5</strong></td>
+      <td>95</td>
+      <td class="num">+2.97%</td>
+      <td class="num">+2.38%</td>
+      <td class="num">+0.34%</td>
+      <td class="num">-2.05%</td>
+      <td class="num">69.5%</td>
+      <td class="num">55.8%</td>
+      <td class="num">40.0%</td>
+      <td class="num">68.4%</td>
+      <td class="num">44.2%</td>
+      <td class="num"><strong>32.6%</strong></td>
+      <td class="num">24.2%</td>
+    </tr><tr>
+      <td><strong>READY TOP10</strong></td>
+      <td>182</td>
+      <td class="num">+2.58%</td>
+      <td class="num">+1.70%</td>
+      <td class="num">+0.15%</td>
+      <td class="num">-1.90%</td>
+      <td class="num">68.1%</td>
+      <td class="num">47.8%</td>
+      <td class="num">30.2%</td>
+      <td class="num">65.4%</td>
+      <td class="num">38.5%</td>
+      <td class="num"><strong>30.2%</strong></td>
+      <td class="num">18.1%</td>
+    </tr><tr>
+      <td><strong>READY REST</strong></td>
+      <td>273</td>
+      <td class="num">+2.06%</td>
+      <td class="num">+1.33%</td>
+      <td class="num">+0.10%</td>
+      <td class="num">-1.55%</td>
+      <td class="num">59.0%</td>
+      <td class="num">34.7%</td>
+      <td class="num">18.8%</td>
+      <td class="num">58.3%</td>
+      <td class="num">28.8%</td>
+      <td class="num"><strong>26.9%</strong></td>
+      <td class="num">13.3%</td>
+    </tr><tr>
+      <td><strong>WAIT_PULLBACK</strong></td>
+      <td>140</td>
+      <td class="num">+3.10%</td>
+      <td class="num">+2.46%</td>
+      <td class="num">+0.18%</td>
+      <td class="num">-2.91%</td>
+      <td class="num">69.1%</td>
+      <td class="num">56.1%</td>
+      <td class="num">42.4%</td>
+      <td class="num">71.9%</td>
+      <td class="num">54.0%</td>
+      <td class="num"><strong>29.5%</strong></td>
+      <td class="num">21.6%</td>
+    </tr><tr>
+      <td><strong>FADED</strong></td>
+      <td>2725</td>
+      <td class="num">+1.82%</td>
+      <td class="num">+1.14%</td>
+      <td class="num">+0.13%</td>
+      <td class="num">-1.44%</td>
+      <td class="num">54.8%</td>
+      <td class="num">28.7%</td>
+      <td class="num">16.0%</td>
+      <td class="num">51.8%</td>
+      <td class="num">23.3%</td>
+      <td class="num"><strong>22.2%</strong></td>
+      <td class="num">11.9%</td>
+    </tr><tr>
+      <td><strong>WEAK</strong></td>
+      <td>2364</td>
+      <td class="num">+1.29%</td>
+      <td class="num">+0.81%</td>
+      <td class="num">+0.13%</td>
+      <td class="num">-1.03%</td>
+      <td class="num">42.0%</td>
+      <td class="num">19.1%</td>
+      <td class="num">10.0%</td>
+      <td class="num">40.6%</td>
+      <td class="num">12.2%</td>
+      <td class="num"><strong>16.4%</strong></td>
+      <td class="num">8.5%</td>
+    </tr><tr>
+      <td><strong>INSUFFICIENT_BARS</strong></td>
+      <td>35</td>
+      <td class="num">-0.21%</td>
+      <td class="num">+0.00%</td>
+      <td class="num">-0.21%</td>
+      <td class="num">-0.21%</td>
+      <td class="num">20.0%</td>
+      <td class="num">17.1%</td>
+      <td class="num">5.7%</td>
+      <td class="num">28.6%</td>
+      <td class="num">14.3%</td>
+      <td class="num"><strong>17.1%</strong></td>
+      <td class="num">5.7%</td>
+    </tr></tbody></table>
+
+<h2>🎯 룰 A — finalScore rank별 성과</h2>
+<table class="bt-table"><thead><tr>
+    <th>그룹</th><th>n</th>
+    <th>avg max</th><th>median max</th><th>avg @10:00</th><th>avg DD</th>
+    <th>hit1</th><th>hit2</th><th>hit3</th>
+    <th>fail1</th><th>fail2</th>
+    <th>hit2前fail1</th><th>hit3前fail1</th>
+  </tr></thead><tbody><tr>
+      <td><strong>rank 1~5</strong></td>
+      <td>95</td>
+      <td class="num">+2.97%</td>
+      <td class="num">+2.38%</td>
+      <td class="num">+0.34%</td>
+      <td class="num">-2.05%</td>
+      <td class="num">69.5%</td>
+      <td class="num">55.8%</td>
+      <td class="num">40.0%</td>
+      <td class="num">68.4%</td>
+      <td class="num">44.2%</td>
+      <td class="num"><strong>32.6%</strong></td>
+      <td class="num">24.2%</td>
+    </tr><tr>
+      <td><strong>rank 6~10</strong></td>
+      <td>87</td>
+      <td class="num">+2.15%</td>
+      <td class="num">+1.38%</td>
+      <td class="num">-0.06%</td>
+      <td class="num">-1.74%</td>
+      <td class="num">66.7%</td>
+      <td class="num">39.1%</td>
+      <td class="num">19.5%</td>
+      <td class="num">62.1%</td>
+      <td class="num">32.2%</td>
+      <td class="num"><strong>27.6%</strong></td>
+      <td class="num">11.5%</td>
+    </tr><tr>
+      <td><strong>rank 11~20</strong></td>
+      <td>111</td>
+      <td class="num">+2.22%</td>
+      <td class="num">+1.33%</td>
+      <td class="num">+0.17%</td>
+      <td class="num">-1.56%</td>
+      <td class="num">59.1%</td>
+      <td class="num">33.6%</td>
+      <td class="num">22.7%</td>
+      <td class="num">62.7%</td>
+      <td class="num">30.9%</td>
+      <td class="num"><strong>27.3%</strong></td>
+      <td class="num">17.3%</td>
+    </tr><tr>
+      <td><strong>rank 21+</strong></td>
+      <td>75</td>
+      <td class="num">+1.72%</td>
+      <td class="num">+0.99%</td>
+      <td class="num">+0.17%</td>
+      <td class="num">-1.31%</td>
+      <td class="num">50.0%</td>
+      <td class="num">31.1%</td>
+      <td class="num">12.2%</td>
+      <td class="num">47.3%</td>
+      <td class="num">21.6%</td>
+      <td class="num"><strong>25.7%</strong></td>
+      <td class="num">9.5%</td>
+    </tr></tbody></table>
+
+<h2>📅 룰 A — 일자별 READY 개수 분포</h2>
+<div class="bt-stat">일자별 READY 평균 <strong>19.4</strong> / median 17 / 범위 7~46 (19일)</div>
+      <table class="bt-table small"><thead><tr><th>날짜</th><th>files</th><th>분석</th><th>READY</th><th>WAIT</th><th>FADED</th><th>WEAK</th><th>INSUFF</th></tr></thead><tbody><tr><td>2026-04-16</td><td class="num">324</td><td class="num">282</td><td class="num">17</td><td class="num">10</td><td class="num">118</td><td class="num">136</td><td class="num">1</td></tr><tr><td>2026-04-17</td><td class="num">331</td><td class="num">294</td><td class="num">18</td><td class="num">7</td><td class="num">129</td><td class="num">140</td><td class="num">0</td></tr><tr><td>2026-04-20</td><td class="num">323</td><td class="num">287</td><td class="num">26</td><td class="num">3</td><td class="num">104</td><td class="num">153</td><td class="num">1</td></tr><tr><td>2026-04-21</td><td class="num">333</td><td class="num">296</td><td class="num">13</td><td class="num">4</td><td class="num">152</td><td class="num">124</td><td class="num">3</td></tr><tr><td>2026-04-22</td><td class="num">343</td><td class="num">304</td><td class="num">25</td><td class="num">7</td><td class="num">86</td><td class="num">182</td><td class="num">4</td></tr><tr><td>2026-04-23</td><td class="num">341</td><td class="num">305</td><td class="num">7</td><td class="num">4</td><td class="num">169</td><td class="num">120</td><td class="num">5</td></tr><tr><td>2026-04-24</td><td class="num">330</td><td class="num">295</td><td class="num">27</td><td class="num">11</td><td class="num">70</td><td class="num">186</td><td class="num">1</td></tr><tr><td>2026-04-27</td><td class="num">324</td><td class="num">294</td><td class="num">45</td><td class="num">11</td><td class="num">107</td><td class="num">130</td><td class="num">1</td></tr><tr><td>2026-04-28</td><td class="num">322</td><td class="num">291</td><td class="num">8</td><td class="num">2</td><td class="num">168</td><td class="num">112</td><td class="num">1</td></tr><tr><td>2026-04-29</td><td class="num">336</td><td class="num">304</td><td class="num">16</td><td class="num">6</td><td class="num">108</td><td class="num">173</td><td class="num">1</td></tr><tr><td>2026-04-30</td><td class="num">316</td><td class="num">285</td><td class="num">15</td><td class="num">2</td><td class="num">125</td><td class="num">143</td><td class="num">0</td></tr><tr><td>2026-05-04</td><td class="num">317</td><td class="num">290</td><td class="num">46</td><td class="num">17</td><td class="num">105</td><td class="num">119</td><td class="num">3</td></tr><tr><td>2026-05-06</td><td class="num">329</td><td class="num">302</td><td class="num">11</td><td class="num">6</td><td class="num">210</td><td class="num">71</td><td class="num">4</td></tr><tr><td>2026-05-07</td><td class="num">327</td><td class="num">299</td><td class="num">15</td><td class="num">7</td><td class="num">216</td><td class="num">58</td><td class="num">3</td></tr><tr><td>2026-05-08</td><td class="num">329</td><td class="num">307</td><td class="num">18</td><td class="num">10</td><td class="num">110</td><td class="num">167</td><td class="num">2</td></tr><tr><td>2026-05-11</td><td class="num">319</td><td class="num">300</td><td class="num">17</td><td class="num">7</td><td class="num">194</td><td class="num">81</td><td class="num">1</td></tr><tr><td>2026-05-12</td><td class="num">326</td><td class="num">309</td><td class="num">26</td><td class="num">7</td><td class="num">181</td><td class="num">94</td><td class="num">1</td></tr><tr><td>2026-05-13</td><td class="num">310</td><td class="num">293</td><td class="num">11</td><td class="num">10</td><td class="num">174</td><td class="num">98</td><td class="num">0</td></tr><tr><td>2026-05-14</td><td class="num">305</td><td class="num">295</td><td class="num">7</td><td class="num">9</td><td class="num">199</td><td class="num">77</td><td class="num">3</td></tr></tbody></table>
+
+<h2>🔬 조건 민감도 비교 — A 현재 / B 강한 / C 완화</h2>
+<div class="intro">
+  · <strong>A 현재</strong>: value≥10억 / v/avg≥3 / cp≥0.65 / drop>-2.5% / up 1~8%<br>
+  · <strong>B 강한</strong>: value≥20억 / v/avg≥5 / cp≥0.75 / drop>-1.5% / up 2~6.5%<br>
+  · <strong>C 완화</strong>: value≥7억 / v/avg≥2.5 / cp≥0.6 / drop>-3% / up 0.8~8%
+</div>
+
+<div class="rule-tabs">
+  <span class="rule-tab active" data-rule="A">A 현재</span>
+  <span class="rule-tab" data-rule="B">B 강한</span>
+  <span class="rule-tab" data-rule="C">C 완화</span>
+</div>
+<div class="rule-panel active" id="panel-A"><h3>A 현재</h3><table class="bt-table"><thead><tr>
+    <th>그룹</th><th>n</th>
+    <th>avg max</th><th>median max</th><th>avg @10:00</th><th>avg DD</th>
+    <th>hit1</th><th>hit2</th><th>hit3</th>
+    <th>fail1</th><th>fail2</th>
+    <th>hit2前fail1</th><th>hit3前fail1</th>
+  </tr></thead><tbody><tr>
+      <td><strong>전체 스캔 대상</strong></td>
+      <td>5632</td>
+      <td class="num">+1.65%</td>
+      <td class="num">+1.00%</td>
+      <td class="num">+0.13%</td>
+      <td class="num">-1.31%</td>
+      <td class="num">50.0%</td>
+      <td class="num">26.0%</td>
+      <td class="num">14.6%</td>
+      <td class="num">48.0%</td>
+      <td class="num">20.0%</td>
+      <td class="num"><strong>20.3%</strong></td>
+      <td class="num">10.9%</td>
+    </tr><tr>
+      <td><strong>READY ALL</strong></td>
+      <td>368</td>
+      <td class="num">+2.30%</td>
+      <td class="num">+1.47%</td>
+      <td class="num">+0.16%</td>
+      <td class="num">-1.68%</td>
+      <td class="num">61.7%</td>
+      <td class="num">40.2%</td>
+      <td class="num">24.3%</td>
+      <td class="num">60.9%</td>
+      <td class="num">32.8%</td>
+      <td class="num"><strong>28.4%</strong></td>
+      <td class="num">16.1%</td>
+    </tr><tr>
+      <td><strong>READY TOP5</strong></td>
+      <td>95</td>
+      <td class="num">+2.97%</td>
+      <td class="num">+2.38%</td>
+      <td class="num">+0.34%</td>
+      <td class="num">-2.05%</td>
+      <td class="num">69.5%</td>
+      <td class="num">55.8%</td>
+      <td class="num">40.0%</td>
+      <td class="num">68.4%</td>
+      <td class="num">44.2%</td>
+      <td class="num"><strong>32.6%</strong></td>
+      <td class="num">24.2%</td>
+    </tr><tr>
+      <td><strong>READY TOP10</strong></td>
+      <td>182</td>
+      <td class="num">+2.58%</td>
+      <td class="num">+1.70%</td>
+      <td class="num">+0.15%</td>
+      <td class="num">-1.90%</td>
+      <td class="num">68.1%</td>
+      <td class="num">47.8%</td>
+      <td class="num">30.2%</td>
+      <td class="num">65.4%</td>
+      <td class="num">38.5%</td>
+      <td class="num"><strong>30.2%</strong></td>
+      <td class="num">18.1%</td>
+    </tr><tr>
+      <td><strong>READY REST</strong></td>
+      <td>273</td>
+      <td class="num">+2.06%</td>
+      <td class="num">+1.33%</td>
+      <td class="num">+0.10%</td>
+      <td class="num">-1.55%</td>
+      <td class="num">59.0%</td>
+      <td class="num">34.7%</td>
+      <td class="num">18.8%</td>
+      <td class="num">58.3%</td>
+      <td class="num">28.8%</td>
+      <td class="num"><strong>26.9%</strong></td>
+      <td class="num">13.3%</td>
+    </tr><tr>
+      <td><strong>WAIT_PULLBACK</strong></td>
+      <td>140</td>
+      <td class="num">+3.10%</td>
+      <td class="num">+2.46%</td>
+      <td class="num">+0.18%</td>
+      <td class="num">-2.91%</td>
+      <td class="num">69.1%</td>
+      <td class="num">56.1%</td>
+      <td class="num">42.4%</td>
+      <td class="num">71.9%</td>
+      <td class="num">54.0%</td>
+      <td class="num"><strong>29.5%</strong></td>
+      <td class="num">21.6%</td>
+    </tr><tr>
+      <td><strong>FADED</strong></td>
+      <td>2725</td>
+      <td class="num">+1.82%</td>
+      <td class="num">+1.14%</td>
+      <td class="num">+0.13%</td>
+      <td class="num">-1.44%</td>
+      <td class="num">54.8%</td>
+      <td class="num">28.7%</td>
+      <td class="num">16.0%</td>
+      <td class="num">51.8%</td>
+      <td class="num">23.3%</td>
+      <td class="num"><strong>22.2%</strong></td>
+      <td class="num">11.9%</td>
+    </tr><tr>
+      <td><strong>WEAK</strong></td>
+      <td>2364</td>
+      <td class="num">+1.29%</td>
+      <td class="num">+0.81%</td>
+      <td class="num">+0.13%</td>
+      <td class="num">-1.03%</td>
+      <td class="num">42.0%</td>
+      <td class="num">19.1%</td>
+      <td class="num">10.0%</td>
+      <td class="num">40.6%</td>
+      <td class="num">12.2%</td>
+      <td class="num"><strong>16.4%</strong></td>
+      <td class="num">8.5%</td>
+    </tr><tr>
+      <td><strong>INSUFFICIENT_BARS</strong></td>
+      <td>35</td>
+      <td class="num">-0.21%</td>
+      <td class="num">+0.00%</td>
+      <td class="num">-0.21%</td>
+      <td class="num">-0.21%</td>
+      <td class="num">20.0%</td>
+      <td class="num">17.1%</td>
+      <td class="num">5.7%</td>
+      <td class="num">28.6%</td>
+      <td class="num">14.3%</td>
+      <td class="num"><strong>17.1%</strong></td>
+      <td class="num">5.7%</td>
+    </tr></tbody></table><h4>rank별</h4><table class="bt-table"><thead><tr>
+    <th>그룹</th><th>n</th>
+    <th>avg max</th><th>median max</th><th>avg @10:00</th><th>avg DD</th>
+    <th>hit1</th><th>hit2</th><th>hit3</th>
+    <th>fail1</th><th>fail2</th>
+    <th>hit2前fail1</th><th>hit3前fail1</th>
+  </tr></thead><tbody><tr>
+      <td><strong>rank 1~5</strong></td>
+      <td>95</td>
+      <td class="num">+2.97%</td>
+      <td class="num">+2.38%</td>
+      <td class="num">+0.34%</td>
+      <td class="num">-2.05%</td>
+      <td class="num">69.5%</td>
+      <td class="num">55.8%</td>
+      <td class="num">40.0%</td>
+      <td class="num">68.4%</td>
+      <td class="num">44.2%</td>
+      <td class="num"><strong>32.6%</strong></td>
+      <td class="num">24.2%</td>
+    </tr><tr>
+      <td><strong>rank 6~10</strong></td>
+      <td>87</td>
+      <td class="num">+2.15%</td>
+      <td class="num">+1.38%</td>
+      <td class="num">-0.06%</td>
+      <td class="num">-1.74%</td>
+      <td class="num">66.7%</td>
+      <td class="num">39.1%</td>
+      <td class="num">19.5%</td>
+      <td class="num">62.1%</td>
+      <td class="num">32.2%</td>
+      <td class="num"><strong>27.6%</strong></td>
+      <td class="num">11.5%</td>
+    </tr><tr>
+      <td><strong>rank 11~20</strong></td>
+      <td>111</td>
+      <td class="num">+2.22%</td>
+      <td class="num">+1.33%</td>
+      <td class="num">+0.17%</td>
+      <td class="num">-1.56%</td>
+      <td class="num">59.1%</td>
+      <td class="num">33.6%</td>
+      <td class="num">22.7%</td>
+      <td class="num">62.7%</td>
+      <td class="num">30.9%</td>
+      <td class="num"><strong>27.3%</strong></td>
+      <td class="num">17.3%</td>
+    </tr><tr>
+      <td><strong>rank 21+</strong></td>
+      <td>75</td>
+      <td class="num">+1.72%</td>
+      <td class="num">+0.99%</td>
+      <td class="num">+0.17%</td>
+      <td class="num">-1.31%</td>
+      <td class="num">50.0%</td>
+      <td class="num">31.1%</td>
+      <td class="num">12.2%</td>
+      <td class="num">47.3%</td>
+      <td class="num">21.6%</td>
+      <td class="num"><strong>25.7%</strong></td>
+      <td class="num">9.5%</td>
+    </tr></tbody></table><h4>일자별</h4><div class="bt-stat">일자별 READY 평균 <strong>19.4</strong> / median 17 / 범위 7~46 (19일)</div>
+      <table class="bt-table small"><thead><tr><th>날짜</th><th>files</th><th>분석</th><th>READY</th><th>WAIT</th><th>FADED</th><th>WEAK</th><th>INSUFF</th></tr></thead><tbody><tr><td>2026-04-16</td><td class="num">324</td><td class="num">282</td><td class="num">17</td><td class="num">10</td><td class="num">118</td><td class="num">136</td><td class="num">1</td></tr><tr><td>2026-04-17</td><td class="num">331</td><td class="num">294</td><td class="num">18</td><td class="num">7</td><td class="num">129</td><td class="num">140</td><td class="num">0</td></tr><tr><td>2026-04-20</td><td class="num">323</td><td class="num">287</td><td class="num">26</td><td class="num">3</td><td class="num">104</td><td class="num">153</td><td class="num">1</td></tr><tr><td>2026-04-21</td><td class="num">333</td><td class="num">296</td><td class="num">13</td><td class="num">4</td><td class="num">152</td><td class="num">124</td><td class="num">3</td></tr><tr><td>2026-04-22</td><td class="num">343</td><td class="num">304</td><td class="num">25</td><td class="num">7</td><td class="num">86</td><td class="num">182</td><td class="num">4</td></tr><tr><td>2026-04-23</td><td class="num">341</td><td class="num">305</td><td class="num">7</td><td class="num">4</td><td class="num">169</td><td class="num">120</td><td class="num">5</td></tr><tr><td>2026-04-24</td><td class="num">330</td><td class="num">295</td><td class="num">27</td><td class="num">11</td><td class="num">70</td><td class="num">186</td><td class="num">1</td></tr><tr><td>2026-04-27</td><td class="num">324</td><td class="num">294</td><td class="num">45</td><td class="num">11</td><td class="num">107</td><td class="num">130</td><td class="num">1</td></tr><tr><td>2026-04-28</td><td class="num">322</td><td class="num">291</td><td class="num">8</td><td class="num">2</td><td class="num">168</td><td class="num">112</td><td class="num">1</td></tr><tr><td>2026-04-29</td><td class="num">336</td><td class="num">304</td><td class="num">16</td><td class="num">6</td><td class="num">108</td><td class="num">173</td><td class="num">1</td></tr><tr><td>2026-04-30</td><td class="num">316</td><td class="num">285</td><td class="num">15</td><td class="num">2</td><td class="num">125</td><td class="num">143</td><td class="num">0</td></tr><tr><td>2026-05-04</td><td class="num">317</td><td class="num">290</td><td class="num">46</td><td class="num">17</td><td class="num">105</td><td class="num">119</td><td class="num">3</td></tr><tr><td>2026-05-06</td><td class="num">329</td><td class="num">302</td><td class="num">11</td><td class="num">6</td><td class="num">210</td><td class="num">71</td><td class="num">4</td></tr><tr><td>2026-05-07</td><td class="num">327</td><td class="num">299</td><td class="num">15</td><td class="num">7</td><td class="num">216</td><td class="num">58</td><td class="num">3</td></tr><tr><td>2026-05-08</td><td class="num">329</td><td class="num">307</td><td class="num">18</td><td class="num">10</td><td class="num">110</td><td class="num">167</td><td class="num">2</td></tr><tr><td>2026-05-11</td><td class="num">319</td><td class="num">300</td><td class="num">17</td><td class="num">7</td><td class="num">194</td><td class="num">81</td><td class="num">1</td></tr><tr><td>2026-05-12</td><td class="num">326</td><td class="num">309</td><td class="num">26</td><td class="num">7</td><td class="num">181</td><td class="num">94</td><td class="num">1</td></tr><tr><td>2026-05-13</td><td class="num">310</td><td class="num">293</td><td class="num">11</td><td class="num">10</td><td class="num">174</td><td class="num">98</td><td class="num">0</td></tr><tr><td>2026-05-14</td><td class="num">305</td><td class="num">295</td><td class="num">7</td><td class="num">9</td><td class="num">199</td><td class="num">77</td><td class="num">3</td></tr></tbody></table></div>
+<div class="rule-panel" id="panel-B"><h3>B 강한</h3><table class="bt-table"><thead><tr>
+    <th>그룹</th><th>n</th>
+    <th>avg max</th><th>median max</th><th>avg @10:00</th><th>avg DD</th>
+    <th>hit1</th><th>hit2</th><th>hit3</th>
+    <th>fail1</th><th>fail2</th>
+    <th>hit2前fail1</th><th>hit3前fail1</th>
+  </tr></thead><tbody><tr>
+      <td><strong>전체 스캔 대상</strong></td>
+      <td>5632</td>
+      <td class="num">+1.65%</td>
+      <td class="num">+1.00%</td>
+      <td class="num">+0.13%</td>
+      <td class="num">-1.31%</td>
+      <td class="num">50.0%</td>
+      <td class="num">26.0%</td>
+      <td class="num">14.6%</td>
+      <td class="num">48.0%</td>
+      <td class="num">20.0%</td>
+      <td class="num"><strong>20.3%</strong></td>
+      <td class="num">10.9%</td>
+    </tr><tr>
+      <td><strong>READY ALL</strong></td>
+      <td>80</td>
+      <td class="num">+2.36%</td>
+      <td class="num">+1.63%</td>
+      <td class="num">+0.25%</td>
+      <td class="num">-1.75%</td>
+      <td class="num">66.3%</td>
+      <td class="num">45.0%</td>
+      <td class="num">26.3%</td>
+      <td class="num">68.8%</td>
+      <td class="num">32.5%</td>
+      <td class="num"><strong>27.5%</strong></td>
+      <td class="num">12.5%</td>
+    </tr><tr>
+      <td><strong>READY TOP5</strong></td>
+      <td>63</td>
+      <td class="num">+2.56%</td>
+      <td class="num">+1.94%</td>
+      <td class="num">+0.27%</td>
+      <td class="num">-1.84%</td>
+      <td class="num">66.7%</td>
+      <td class="num">47.6%</td>
+      <td class="num">30.2%</td>
+      <td class="num">68.3%</td>
+      <td class="num">34.9%</td>
+      <td class="num"><strong>28.6%</strong></td>
+      <td class="num">14.3%</td>
+    </tr><tr>
+      <td><strong>READY TOP10</strong></td>
+      <td>77</td>
+      <td class="num">+2.38%</td>
+      <td class="num">+1.57%</td>
+      <td class="num">+0.22%</td>
+      <td class="num">-1.78%</td>
+      <td class="num">64.9%</td>
+      <td class="num">44.2%</td>
+      <td class="num">27.3%</td>
+      <td class="num">68.8%</td>
+      <td class="num">33.8%</td>
+      <td class="num"><strong>27.3%</strong></td>
+      <td class="num">13.0%</td>
+    </tr><tr>
+      <td><strong>READY REST</strong></td>
+      <td>17</td>
+      <td class="num">+1.62%</td>
+      <td class="num">+1.52%</td>
+      <td class="num">+0.19%</td>
+      <td class="num">-1.40%</td>
+      <td class="num">64.7%</td>
+      <td class="num">35.3%</td>
+      <td class="num">11.8%</td>
+      <td class="num">70.6%</td>
+      <td class="num">23.5%</td>
+      <td class="num"><strong>23.5%</strong></td>
+      <td class="num">5.9%</td>
+    </tr><tr>
+      <td><strong>WAIT_PULLBACK</strong></td>
+      <td>157</td>
+      <td class="num">+2.84%</td>
+      <td class="num">+2.01%</td>
+      <td class="num">+0.01%</td>
+      <td class="num">-2.72%</td>
+      <td class="num">69.0%</td>
+      <td class="num">50.3%</td>
+      <td class="num">36.8%</td>
+      <td class="num">70.3%</td>
+      <td class="num">51.6%</td>
+      <td class="num"><strong>25.8%</strong></td>
+      <td class="num">18.7%</td>
+    </tr><tr>
+      <td><strong>FADED</strong></td>
+      <td>3904</td>
+      <td class="num">+1.74%</td>
+      <td class="num">+1.07%</td>
+      <td class="num">+0.17%</td>
+      <td class="num">-1.34%</td>
+      <td class="num">52.2%</td>
+      <td class="num">27.3%</td>
+      <td class="num">15.3%</td>
+      <td class="num">48.9%</td>
+      <td class="num">20.7%</td>
+      <td class="num"><strong>21.5%</strong></td>
+      <td class="num">11.6%</td>
+    </tr><tr>
+      <td><strong>WEAK</strong></td>
+      <td>1456</td>
+      <td class="num">+1.28%</td>
+      <td class="num">+0.81%</td>
+      <td class="num">+0.04%</td>
+      <td class="num">-1.09%</td>
+      <td class="num">42.1%</td>
+      <td class="num">19.1%</td>
+      <td class="num">10.1%</td>
+      <td class="num">42.6%</td>
+      <td class="num">14.1%</td>
+      <td class="num"><strong>16.3%</strong></td>
+      <td class="num">8.3%</td>
+    </tr><tr>
+      <td><strong>INSUFFICIENT_BARS</strong></td>
+      <td>35</td>
+      <td class="num">-0.21%</td>
+      <td class="num">+0.00%</td>
+      <td class="num">-0.21%</td>
+      <td class="num">-0.21%</td>
+      <td class="num">20.0%</td>
+      <td class="num">17.1%</td>
+      <td class="num">5.7%</td>
+      <td class="num">28.6%</td>
+      <td class="num">14.3%</td>
+      <td class="num"><strong>17.1%</strong></td>
+      <td class="num">5.7%</td>
+    </tr></tbody></table><h4>rank별</h4><table class="bt-table"><thead><tr>
+    <th>그룹</th><th>n</th>
+    <th>avg max</th><th>median max</th><th>avg @10:00</th><th>avg DD</th>
+    <th>hit1</th><th>hit2</th><th>hit3</th>
+    <th>fail1</th><th>fail2</th>
+    <th>hit2前fail1</th><th>hit3前fail1</th>
+  </tr></thead><tbody><tr>
+      <td><strong>rank 1~5</strong></td>
+      <td>63</td>
+      <td class="num">+2.56%</td>
+      <td class="num">+1.94%</td>
+      <td class="num">+0.27%</td>
+      <td class="num">-1.84%</td>
+      <td class="num">66.7%</td>
+      <td class="num">47.6%</td>
+      <td class="num">30.2%</td>
+      <td class="num">68.3%</td>
+      <td class="num">34.9%</td>
+      <td class="num"><strong>28.6%</strong></td>
+      <td class="num">14.3%</td>
+    </tr><tr>
+      <td><strong>rank 6~10</strong></td>
+      <td>14</td>
+      <td class="num">+1.57%</td>
+      <td class="num">+1.38%</td>
+      <td class="num">-0.01%</td>
+      <td class="num">-1.47%</td>
+      <td class="num">57.1%</td>
+      <td class="num">28.6%</td>
+      <td class="num">14.3%</td>
+      <td class="num">71.4%</td>
+      <td class="num">28.6%</td>
+      <td class="num"><strong>21.4%</strong></td>
+      <td class="num">7.1%</td>
+    </tr><tr>
+      <td><strong>rank 11~20</strong></td>
+      <td>3</td>
+      <td class="num">+1.88%</td>
+      <td class="num">+2.16%</td>
+      <td class="num">+1.09%</td>
+      <td class="num">-1.06%</td>
+      <td class="num">100.0%</td>
+      <td class="num">66.7%</td>
+      <td class="num">0.0%</td>
+      <td class="num">66.7%</td>
+      <td class="num">0.0%</td>
+      <td class="num"><strong>33.3%</strong></td>
+      <td class="num">0.0%</td>
+    </tr><tr><td>rank 21+</td><td>0</td><td colspan="11" style="color:#888;text-align:left;">샘플 없음</td></tr></tbody></table><h4>일자별</h4><div class="bt-stat">일자별 READY 평균 <strong>4.2</strong> / median 4 / 범위 0~12 (19일)</div>
+      <table class="bt-table small"><thead><tr><th>날짜</th><th>files</th><th>분석</th><th>READY</th><th>WAIT</th><th>FADED</th><th>WEAK</th><th>INSUFF</th></tr></thead><tbody><tr><td>2026-04-16</td><td class="num">324</td><td class="num">282</td><td class="num">5</td><td class="num">12</td><td class="num">181</td><td class="num">83</td><td class="num">1</td></tr><tr><td>2026-04-17</td><td class="num">331</td><td class="num">294</td><td class="num">5</td><td class="num">9</td><td class="num">199</td><td class="num">81</td><td class="num">0</td></tr><tr><td>2026-04-20</td><td class="num">323</td><td class="num">287</td><td class="num">6</td><td class="num">3</td><td class="num">155</td><td class="num">122</td><td class="num">1</td></tr><tr><td>2026-04-21</td><td class="num">333</td><td class="num">296</td><td class="num">2</td><td class="num">4</td><td class="num">222</td><td class="num">65</td><td class="num">3</td></tr><tr><td>2026-04-22</td><td class="num">343</td><td class="num">304</td><td class="num">4</td><td class="num">9</td><td class="num">158</td><td class="num">129</td><td class="num">4</td></tr><tr><td>2026-04-23</td><td class="num">341</td><td class="num">305</td><td class="num">0</td><td class="num">4</td><td class="num">244</td><td class="num">52</td><td class="num">5</td></tr><tr><td>2026-04-24</td><td class="num">330</td><td class="num">295</td><td class="num">8</td><td class="num">8</td><td class="num">133</td><td class="num">145</td><td class="num">1</td></tr><tr><td>2026-04-27</td><td class="num">324</td><td class="num">294</td><td class="num">12</td><td class="num">10</td><td class="num">173</td><td class="num">98</td><td class="num">1</td></tr><tr><td>2026-04-28</td><td class="num">322</td><td class="num">291</td><td class="num">1</td><td class="num">3</td><td class="num">233</td><td class="num">53</td><td class="num">1</td></tr><tr><td>2026-04-29</td><td class="num">336</td><td class="num">304</td><td class="num">2</td><td class="num">8</td><td class="num">192</td><td class="num">101</td><td class="num">1</td></tr><tr><td>2026-04-30</td><td class="num">316</td><td class="num">285</td><td class="num">5</td><td class="num">5</td><td class="num">204</td><td class="num">71</td><td class="num">0</td></tr><tr><td>2026-05-04</td><td class="num">317</td><td class="num">290</td><td class="num">11</td><td class="num">18</td><td class="num">165</td><td class="num">93</td><td class="num">3</td></tr><tr><td>2026-05-06</td><td class="num">329</td><td class="num">302</td><td class="num">2</td><td class="num">6</td><td class="num">262</td><td class="num">28</td><td class="num">4</td></tr><tr><td>2026-05-07</td><td class="num">327</td><td class="num">299</td><td class="num">3</td><td class="num">9</td><td class="num">246</td><td class="num">38</td><td class="num">3</td></tr><tr><td>2026-05-08</td><td class="num">329</td><td class="num">307</td><td class="num">3</td><td class="num">12</td><td class="num">190</td><td class="num">100</td><td class="num">2</td></tr><tr><td>2026-05-11</td><td class="num">319</td><td class="num">300</td><td class="num">4</td><td class="num">7</td><td class="num">238</td><td class="num">50</td><td class="num">1</td></tr><tr><td>2026-05-12</td><td class="num">326</td><td class="num">309</td><td class="num">4</td><td class="num">5</td><td class="num">236</td><td class="num">63</td><td class="num">1</td></tr><tr><td>2026-05-13</td><td class="num">310</td><td class="num">293</td><td class="num">2</td><td class="num">14</td><td class="num">232</td><td class="num">45</td><td class="num">0</td></tr><tr><td>2026-05-14</td><td class="num">305</td><td class="num">295</td><td class="num">1</td><td class="num">11</td><td class="num">241</td><td class="num">39</td><td class="num">3</td></tr></tbody></table></div>
+<div class="rule-panel" id="panel-C"><h3>C 완화</h3><table class="bt-table"><thead><tr>
+    <th>그룹</th><th>n</th>
+    <th>avg max</th><th>median max</th><th>avg @10:00</th><th>avg DD</th>
+    <th>hit1</th><th>hit2</th><th>hit3</th>
+    <th>fail1</th><th>fail2</th>
+    <th>hit2前fail1</th><th>hit3前fail1</th>
+  </tr></thead><tbody><tr>
+      <td><strong>전체 스캔 대상</strong></td>
+      <td>5632</td>
+      <td class="num">+1.65%</td>
+      <td class="num">+1.00%</td>
+      <td class="num">+0.13%</td>
+      <td class="num">-1.31%</td>
+      <td class="num">50.0%</td>
+      <td class="num">26.0%</td>
+      <td class="num">14.6%</td>
+      <td class="num">48.0%</td>
+      <td class="num">20.0%</td>
+      <td class="num"><strong>20.3%</strong></td>
+      <td class="num">10.9%</td>
+    </tr><tr>
+      <td><strong>READY ALL</strong></td>
+      <td>505</td>
+      <td class="num">+2.17%</td>
+      <td class="num">+1.38%</td>
+      <td class="num">+0.06%</td>
+      <td class="num">-1.66%</td>
+      <td class="num">59.1%</td>
+      <td class="num">36.3%</td>
+      <td class="num">21.8%</td>
+      <td class="num">60.5%</td>
+      <td class="num">31.1%</td>
+      <td class="num"><strong>26.5%</strong></td>
+      <td class="num">14.8%</td>
+    </tr><tr>
+      <td><strong>READY TOP5</strong></td>
+      <td>95</td>
+      <td class="num">+3.03%</td>
+      <td class="num">+2.21%</td>
+      <td class="num">+0.26%</td>
+      <td class="num">-2.09%</td>
+      <td class="num">68.4%</td>
+      <td class="num">52.6%</td>
+      <td class="num">40.0%</td>
+      <td class="num">65.3%</td>
+      <td class="num">41.1%</td>
+      <td class="num"><strong>32.6%</strong></td>
+      <td class="num">24.2%</td>
+    </tr><tr>
+      <td><strong>READY TOP10</strong></td>
+      <td>190</td>
+      <td class="num">+2.69%</td>
+      <td class="num">+1.86%</td>
+      <td class="num">+0.21%</td>
+      <td class="num">-1.93%</td>
+      <td class="num">66.8%</td>
+      <td class="num">47.9%</td>
+      <td class="num">31.6%</td>
+      <td class="num">62.1%</td>
+      <td class="num">38.4%</td>
+      <td class="num"><strong>32.6%</strong></td>
+      <td class="num">21.6%</td>
+    </tr><tr>
+      <td><strong>READY REST</strong></td>
+      <td>410</td>
+      <td class="num">+1.97%</td>
+      <td class="num">+1.29%</td>
+      <td class="num">+0.01%</td>
+      <td class="num">-1.56%</td>
+      <td class="num">56.9%</td>
+      <td class="num">32.5%</td>
+      <td class="num">17.5%</td>
+      <td class="num">59.4%</td>
+      <td class="num">28.8%</td>
+      <td class="num"><strong>25.1%</strong></td>
+      <td class="num">12.6%</td>
+    </tr><tr>
+      <td><strong>WAIT_PULLBACK</strong></td>
+      <td>152</td>
+      <td class="num">+3.15%</td>
+      <td class="num">+2.48%</td>
+      <td class="num">+0.22%</td>
+      <td class="num">-2.88%</td>
+      <td class="num">70.7%</td>
+      <td class="num">58.0%</td>
+      <td class="num">44.0%</td>
+      <td class="num">71.3%</td>
+      <td class="num">53.3%</td>
+      <td class="num"><strong>31.3%</strong></td>
+      <td class="num">23.3%</td>
+    </tr><tr>
+      <td><strong>FADED</strong></td>
+      <td>2243</td>
+      <td class="num">+1.92%</td>
+      <td class="num">+1.20%</td>
+      <td class="num">+0.15%</td>
+      <td class="num">-1.51%</td>
+      <td class="num">56.7%</td>
+      <td class="num">30.4%</td>
+      <td class="num">17.0%</td>
+      <td class="num">53.5%</td>
+      <td class="num">25.1%</td>
+      <td class="num"><strong>23.3%</strong></td>
+      <td class="num">12.6%</td>
+    </tr><tr>
+      <td><strong>WEAK</strong></td>
+      <td>2697</td>
+      <td class="num">+1.27%</td>
+      <td class="num">+0.80%</td>
+      <td class="num">+0.13%</td>
+      <td class="num">-1.01%</td>
+      <td class="num">42.1%</td>
+      <td class="num">18.8%</td>
+      <td class="num">9.8%</td>
+      <td class="num">40.1%</td>
+      <td class="num">11.9%</td>
+      <td class="num"><strong>16.1%</strong></td>
+      <td class="num">8.3%</td>
+    </tr><tr>
+      <td><strong>INSUFFICIENT_BARS</strong></td>
+      <td>35</td>
+      <td class="num">-0.21%</td>
+      <td class="num">+0.00%</td>
+      <td class="num">-0.21%</td>
+      <td class="num">-0.21%</td>
+      <td class="num">20.0%</td>
+      <td class="num">17.1%</td>
+      <td class="num">5.7%</td>
+      <td class="num">28.6%</td>
+      <td class="num">14.3%</td>
+      <td class="num"><strong>17.1%</strong></td>
+      <td class="num">5.7%</td>
+    </tr></tbody></table><h4>rank별</h4><table class="bt-table"><thead><tr>
+    <th>그룹</th><th>n</th>
+    <th>avg max</th><th>median max</th><th>avg @10:00</th><th>avg DD</th>
+    <th>hit1</th><th>hit2</th><th>hit3</th>
+    <th>fail1</th><th>fail2</th>
+    <th>hit2前fail1</th><th>hit3前fail1</th>
+  </tr></thead><tbody><tr>
+      <td><strong>rank 1~5</strong></td>
+      <td>95</td>
+      <td class="num">+3.03%</td>
+      <td class="num">+2.21%</td>
+      <td class="num">+0.26%</td>
+      <td class="num">-2.09%</td>
+      <td class="num">68.4%</td>
+      <td class="num">52.6%</td>
+      <td class="num">40.0%</td>
+      <td class="num">65.3%</td>
+      <td class="num">41.1%</td>
+      <td class="num"><strong>32.6%</strong></td>
+      <td class="num">24.2%</td>
+    </tr><tr>
+      <td><strong>rank 6~10</strong></td>
+      <td>95</td>
+      <td class="num">+2.35%</td>
+      <td class="num">+1.48%</td>
+      <td class="num">+0.16%</td>
+      <td class="num">-1.77%</td>
+      <td class="num">65.3%</td>
+      <td class="num">43.2%</td>
+      <td class="num">23.2%</td>
+      <td class="num">58.9%</td>
+      <td class="num">35.8%</td>
+      <td class="num"><strong>32.6%</strong></td>
+      <td class="num">18.9%</td>
+    </tr><tr>
+      <td><strong>rank 11~20</strong></td>
+      <td>150</td>
+      <td class="num">+2.02%</td>
+      <td class="num">+1.28%</td>
+      <td class="num">+0.02%</td>
+      <td class="num">-1.61%</td>
+      <td class="num">57.0%</td>
+      <td class="num">31.5%</td>
+      <td class="num">20.1%</td>
+      <td class="num">65.1%</td>
+      <td class="num">30.9%</td>
+      <td class="num"><strong>24.2%</strong></td>
+      <td class="num">13.4%</td>
+    </tr><tr>
+      <td><strong>rank 21+</strong></td>
+      <td>165</td>
+      <td class="num">+1.71%</td>
+      <td class="num">+1.03%</td>
+      <td class="num">-0.09%</td>
+      <td class="num">-1.40%</td>
+      <td class="num">51.9%</td>
+      <td class="num">27.2%</td>
+      <td class="num">11.7%</td>
+      <td class="num">54.3%</td>
+      <td class="num">22.8%</td>
+      <td class="num"><strong>21.6%</strong></td>
+      <td class="num">8.0%</td>
+    </tr></tbody></table><h4>일자별</h4><div class="bt-stat">일자별 READY 평균 <strong>26.6</strong> / median 25 / 범위 12~60 (19일)</div>
+      <table class="bt-table small"><thead><tr><th>날짜</th><th>files</th><th>분석</th><th>READY</th><th>WAIT</th><th>FADED</th><th>WEAK</th><th>INSUFF</th></tr></thead><tbody><tr><td>2026-04-16</td><td class="num">324</td><td class="num">282</td><td class="num">26</td><td class="num">10</td><td class="num">97</td><td class="num">148</td><td class="num">1</td></tr><tr><td>2026-04-17</td><td class="num">331</td><td class="num">294</td><td class="num">25</td><td class="num">9</td><td class="num">96</td><td class="num">164</td><td class="num">0</td></tr><tr><td>2026-04-20</td><td class="num">323</td><td class="num">287</td><td class="num">32</td><td class="num">3</td><td class="num">80</td><td class="num">171</td><td class="num">1</td></tr><tr><td>2026-04-21</td><td class="num">333</td><td class="num">296</td><td class="num">14</td><td class="num">4</td><td class="num">122</td><td class="num">153</td><td class="num">3</td></tr><tr><td>2026-04-22</td><td class="num">343</td><td class="num">304</td><td class="num">33</td><td class="num">8</td><td class="num">69</td><td class="num">190</td><td class="num">4</td></tr><tr><td>2026-04-23</td><td class="num">341</td><td class="num">305</td><td class="num">12</td><td class="num">4</td><td class="num">139</td><td class="num">145</td><td class="num">5</td></tr><tr><td>2026-04-24</td><td class="num">330</td><td class="num">295</td><td class="num">37</td><td class="num">11</td><td class="num">52</td><td class="num">194</td><td class="num">1</td></tr><tr><td>2026-04-27</td><td class="num">324</td><td class="num">294</td><td class="num">55</td><td class="num">11</td><td class="num">81</td><td class="num">146</td><td class="num">1</td></tr><tr><td>2026-04-28</td><td class="num">322</td><td class="num">291</td><td class="num">12</td><td class="num">2</td><td class="num">146</td><td class="num">130</td><td class="num">1</td></tr><tr><td>2026-04-29</td><td class="num">336</td><td class="num">304</td><td class="num">25</td><td class="num">7</td><td class="num">86</td><td class="num">185</td><td class="num">1</td></tr><tr><td>2026-04-30</td><td class="num">316</td><td class="num">285</td><td class="num">18</td><td class="num">2</td><td class="num">86</td><td class="num">179</td><td class="num">0</td></tr><tr><td>2026-05-04</td><td class="num">317</td><td class="num">290</td><td class="num">60</td><td class="num">19</td><td class="num">80</td><td class="num">128</td><td class="num">3</td></tr><tr><td>2026-05-06</td><td class="num">329</td><td class="num">302</td><td class="num">14</td><td class="num">6</td><td class="num">186</td><td class="num">92</td><td class="num">4</td></tr><tr><td>2026-05-07</td><td class="num">327</td><td class="num">299</td><td class="num">21</td><td class="num">7</td><td class="num">200</td><td class="num">68</td><td class="num">3</td></tr><tr><td>2026-05-08</td><td class="num">329</td><td class="num">307</td><td class="num">33</td><td class="num">11</td><td class="num">84</td><td class="num">177</td><td class="num">2</td></tr><tr><td>2026-05-11</td><td class="num">319</td><td class="num">300</td><td class="num">24</td><td class="num">8</td><td class="num">167</td><td class="num">100</td><td class="num">1</td></tr><tr><td>2026-05-12</td><td class="num">326</td><td class="num">309</td><td class="num">34</td><td class="num">8</td><td class="num">154</td><td class="num">112</td><td class="num">1</td></tr><tr><td>2026-05-13</td><td class="num">310</td><td class="num">293</td><td class="num">18</td><td class="num">12</td><td class="num">145</td><td class="num">118</td><td class="num">0</td></tr><tr><td>2026-05-14</td><td class="num">305</td><td class="num">295</td><td class="num">12</td><td class="num">10</td><td class="num">173</td><td class="num">97</td><td class="num">3</td></tr></tbody></table></div>
+
+<script>
+  document.querySelectorAll('.rule-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const r = tab.dataset.rule;
+      document.querySelectorAll('.rule-tab').forEach((t) => t.classList.toggle('active', t.dataset.rule === r));
+      document.querySelectorAll('.rule-panel').forEach((p) => p.classList.toggle('active', p.id === 'panel-' + r));
+    });
+  });
+</script>
+
+</body></html>

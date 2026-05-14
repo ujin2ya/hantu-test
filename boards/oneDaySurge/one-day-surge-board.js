@@ -1061,8 +1061,10 @@ function main() {
           readyTop:  sc.scanner0930ReadyTop  || [],   // 상위 5 (실전 우선 후보)
           readyRest: sc.scanner0930ReadyRest || [],   // 6번째 이후 (1차 통과 후보)
           readyTopLimit: sc.readyTopLimit || 5,
-          holding:  sc.scanner0930Holding  || [],
-          rejected: sc.scanner0930Rejected || [],
+          wait:      sc.scanner0930Wait      || [],   // WAIT_PULLBACK 단독 — 추격 부담
+          faded:     sc.scanner0930Faded     || [],   // FADED 단독 (카드 노출 X, 통계만)
+          holding:   sc.scanner0930Holding   || [],   // 호환성 (기존 코드 잔존)
+          rejected:  sc.scanner0930Rejected  || [],   // WEAK (카드 노출 X, 통계만)
         };
       })(),
     },
@@ -2467,7 +2469,14 @@ const PREMARKET_MODE = isPremarketMode();
     '<strong>오늘 09:00~09:30 분봉 기준으로 새로 잡힌 종목입니다.</strong> (전일 mainPool과 무관, 09:30 시점 강세 종목)<br>' +
     '유동성 통과 + 메트릭 계산 <strong>' + (sc.successCount || 0) + '개</strong> 중 위 상태로 분류.' +
     '</div>' +
-    '<div style="margin:8px 0 14px;">' + breakdown + '</div>';
+    '<div style="margin:8px 0 14px;">' + breakdown + '</div>' +
+    // 백테스트 요약 배너 (19 거래일 검증 결과 — finalScore TOP5가 최고 성과)
+    '<div style="margin:10px 0 14px;padding:10px 14px;background:rgba(20,184,166,0.08);border-left:3px solid #14b8a6;border-radius:4px;font-size:11.5px;color:#cbd5e1;line-height:1.6;">' +
+      '<strong style="color:#5eead4;">📊 백테스트 (19 거래일):</strong> finalScore 상위 5개가 09:30~10:00 구간에서 가장 효율이 좋았습니다 ' +
+      '(TOP5 avgMax <strong style="color:#6ee7b7;">2.97%</strong>, +2% 도달 <strong style="color:#6ee7b7;">55.8%</strong>, +2% 도달이 -1% 손절보다 먼저 <strong style="color:#6ee7b7;">32.6%</strong>). ' +
+      'READY 전체는 1차 통과 후보이며, 상단에는 TOP5만 표시합니다. ' +
+      '<a href="/one-day-surge-board/backtest" style="color:#5eead4;text-decoration:underline;" target="_blank">상세 리포트 보기 →</a>' +
+    '</div>';
   // READY를 readyTop(실전 우선) + readyRest(1차 통과)로 분리해서 노출.
   // readyTop이 0개면 강조 영역에 안내 메시지만, 억지로 readyRest를 끌어올리지 않음.
   const readyTop = sc.readyTop || [];
@@ -2486,14 +2495,15 @@ const PREMARKET_MODE = isPremarketMode();
       '<div class="shelf-desc" style="color:#94a3b8;margin-top:6px;">READY 컷은 통과했지만 finalScore 상위 ' + (sc.readyTopLimit || 5) + '에는 못 든 후보입니다. 보조 관심 후보로 확인하세요.</div>' +
       '<div style="margin-top:8px;">' + readyRest.map((e) => renderCard(e, 'value-mid')).join('') + '</div></details>';
   }
-  if ((sc.holding || []).length > 0) {
-    body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#fcd34d;padding:6px 0;">⏸ 보류/재관찰 (WAIT_PULLBACK + FADED ' + sc.holding.length + '건) — 펼쳐서 보기</summary>' +
-      '<div style="margin-top:8px;">' + sc.holding.map((e) => renderCard(e, 'aux')).join('') + '</div></details>';
+  // WAIT_PULLBACK 단독 — 추격 부담 (백테스트: avgMax 3.10% / hit2 56.1%지만 fail1 71.9% — 추격 금지)
+  const waitList = sc.wait || (sc.holding || []).filter((e) => e.status === 'WAIT_PULLBACK');
+  if (waitList.length > 0) {
+    body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#fcd34d;padding:6px 0;">⚠ 추격 부담 — 눌림 대기 (WAIT_PULLBACK ' + waitList.length + '건) — 펼쳐서 보기</summary>' +
+      '<div class="shelf-desc" style="color:#fcd34d;margin-top:6px;">시가 대비 09:30 마지막 close가 이미 +8% 이상 올라 추격 부담이 큰 후보입니다. <strong>백테스트 결과 fail1 71.9% (대형 손절 위험)</strong>로 추격 진입은 피하고, 눌림 또는 재돌파 시점에만 검토하세요.</div>' +
+      '<div style="margin-top:8px;">' + waitList.map((e) => renderCard(e, 'aux')).join('') + '</div></details>';
   }
-  if ((sc.rejected || []).length > 0) {
-    body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:13px;color:#94a3b8;padding:6px 0;">😴 WEAK ' + sc.rejected.length + '건 — 펼쳐서 보기 (참고용)</summary>' +
-      '<div style="margin-top:8px;">' + sc.rejected.map((e) => renderCard(e, 'aux')).join('') + '</div></details>';
-  }
+  // FADED / WEAK / INSUFFICIENT_BARS 는 카드 노출 안 함 (백테스트: 평균 이하 또는 음수 성과).
+  // breakdown pill에 통계만 남아있음.
   const headerCount = '실전 우선 ' + readyTop.length + ' / READY 총 ' + readyTotal;
   const headerTitle = sc.candidatesTarget
     ? '📡 오늘 09:30 실전 우선 후보 — ' + headerCount + ' <span style="font-size:13px;color:#94a3b8;font-weight:400;">(확장 스캔 ' + sc.candidatesTarget + '개 중 분봉 ' + (sc.scannedCount || 0) + '개)</span>'
