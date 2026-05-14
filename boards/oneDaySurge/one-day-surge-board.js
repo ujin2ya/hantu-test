@@ -37,8 +37,16 @@ const QVA_BOARD_PATH = path.join(ROOT, 'qva-watchlist-board.json');
 const PATTERN_RESULT_PATH = path.join(ROOT, 'cache', 'pattern-result.json');
 const INTRADAY_BASE = path.join(ROOT, 'data', 'intraday', '1ds');
 const MANUAL_TARGETS_PATH = path.join(ROOT, 'data', 'manual-1ds-targets.json');
+const SCANNER_0930_PATH = path.join(REPORTS_DIR, 'one-day-surge-0930-scanner.json');
 const OUT_JSON = path.join(REPORTS_DIR, 'one-day-surge-board-result.json');
 const OUT_HTML = path.join(REPORTS_DIR, 'one-day-surge-board-result.html');
+
+// 09:30 실시간 스캐너 결과 로드 (없으면 null) — 전일 후보와 무관한 09:30 포착 결과.
+function loadScanner0930() {
+  if (!fs.existsSync(SCANNER_0930_PATH)) return null;
+  try { return JSON.parse(fs.readFileSync(SCANNER_0930_PATH, 'utf-8')); }
+  catch (_) { return null; }
+}
 
 // 사용자가 외부 분석으로 정한 매수·매도 가이드를 카드에 띄우기 위한 파일.
 // `data/manual-1ds-targets.json` (없거나 파싱 실패하면 무시).
@@ -1001,6 +1009,21 @@ function main() {
       extraPriorityLimit: EXTRA_PRIORITY_LIMIT,
       // 위험 필터 통과한 추천 풀 전체 코드 (READY + holding). collect-1ds-intraday.js --from-board 가 이 리스트로 분봉 수집.
       mainPoolCodes: mainPool.map((it) => it.code),
+      // ── 09:30 실시간 스캐너 결과 (전일 mainPool과 무관) ──
+      // scanner JSON이 있으면 그대로 통합. 없으면 null — 보드는 "스캔 미실행" 안내 표시.
+      scanner0930: (function () {
+        const sc = loadScanner0930();
+        if (!sc) return null;
+        return {
+          nextDate: sc.meta && sc.meta.nextDate,
+          generatedAt: sc.meta && sc.meta.generatedAt,
+          counts: sc.counts,
+          statusLabels: sc.statusLabels,
+          ready:    sc.scanner0930Ready    || [],
+          holding:  sc.scanner0930Holding  || [],
+          rejected: sc.scanner0930Rejected || [],
+        };
+      })(),
     },
     latestDayType,
     marketState,
@@ -1073,6 +1096,19 @@ function main() {
   console.log(`     INSUFFICIENT_BARS  ${tradePlanSummary.insufficientCount}개 — 분봉 부족 (KIS 응답 누락)`);
   if (tradePlanSummary.missingPriceCount > 0) {
     console.log(`     MISSING_PRICE_DATA ${tradePlanSummary.missingPriceCount}개 — 가격 데이터 부족`);
+  }
+  // 09:30 실시간 스캐너 결과 요약 (있으면)
+  const sc0930 = out.priorityRanked.scanner0930;
+  if (sc0930) {
+    const c = sc0930.counts || {};
+    console.log(`  📡 09:30 실시간 스캐너 (분봉 ${c.intradayFiles || 0}건 대상):`);
+    console.log(`     READY              ${c.READY || 0}개`);
+    console.log(`     WAIT_PULLBACK      ${c.WAIT_PULLBACK || 0}개`);
+    console.log(`     FADED              ${c.FADED || 0}개`);
+    console.log(`     WEAK               ${c.WEAK || 0}개`);
+    console.log(`     INSUFFICIENT_BARS  ${c.INSUFFICIENT_BARS || 0}개`);
+  } else {
+    console.log(`  📡 09:30 실시간 스캐너: 미실행 (reports/one-day-surge-0930-scanner.json 없음)`);
   }
   console.log(`\n✅ JSON: ${OUT_JSON}`);
   console.log(`✅ HTML: ${OUT_HTML}`);
@@ -1518,16 +1554,19 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 <div id="trade-plan-summary"></div>
 <div id="qva-summary-line"></div>
 
-<!-- ① 최우선 후보 — tradePlan READY만 -->
+<!-- ⓪ 오늘 09:30 실제 포착 후보 (전일 mainPool과 무관) -->
+<div id="scanner-0930-host"></div>
+
+<!-- ① 전일 후보의 09:30 확인 결과 (tradePlan READY) -->
 <div id="top-priority-host"></div>
 
-<!-- ② 추가 확인 후보 (접힘, 최대 10개) — READY 6~15위 -->
+<!-- ② 전일 후보 추가 확인 (접힘, 최대 10개) — READY 6~15위 -->
 <div id="extra-priority-host"></div>
 
-<!-- ③ 보류/재관찰 후보 — WAIT_PULLBACK / ENTRY_INVALIDATED / REBREAK_FADED -->
+<!-- ③ 전일 후보 보류/재관찰 — WAIT_PULLBACK / ENTRY_INVALIDATED / REBREAK_FADED -->
 <div id="holding-host"></div>
 
-<!-- ④ 재관찰 후보 — 위험 필터 제외됐지만 일봉 강세 + v/mc 강 -->
+<!-- ④ 전일 후보 재관찰 — 위험 필터 제외됐지만 일봉 강세 + v/mc 강 -->
 <div id="reobserve-host"></div>
 
 <!-- 위험 후보는 내부 필터로 제외 -->
@@ -2174,22 +2213,87 @@ function buildCardHtml(it) {
     '</div>';
 }
 
-// ── ① 최우선 후보 (장초 흐름 유지 = tradePlan READY) ──
-// 09:30 이후 분봉 반영 후 READY 상태인 후보만 표시.
-// READY가 없으면 빈 메시지. 다른 상태(보류/재관찰)는 별도 섹션.
+// ── ⓪ 오늘 09:30 실제 포착 후보 (전일 mainPool과 무관) ──
+// 09:00~09:30 분봉 기준 실시간 포착. 분봉이 없으면 후보가 아니다.
+(function renderScanner0930() {
+  const host = document.getElementById('scanner-0930-host');
+  if (!host) return;
+  const sc = DATA.priorityRanked && DATA.priorityRanked.scanner0930;
+  if (!sc) {
+    host.innerHTML = '<section class="entry-shelf-section" style="border:1px solid #475569;background:#0f172a;">' +
+      '<h2>📡 오늘 09:30 실제 포착 후보 — 스캐너 미실행</h2>' +
+      '<div class="shelf-desc" style="color:#94a3b8;">스캐너 결과 파일이 없습니다. 09:30 cron 또는 admin trigger 후 다시 보세요.</div></section>';
+    return;
+  }
+  const fmtN = (v) => (v != null && Number.isFinite(v)) ? Math.round(v).toLocaleString() : '-';
+  const fmtMoneyKR = (v) => {
+    if (v == null) return '-';
+    if (v >= 1e12) return (v / 1e12).toFixed(2) + '조';
+    if (v >= 1e8)  return (v / 1e8).toFixed(0) + '억';
+    if (v >= 1e4)  return (v / 1e4).toFixed(0) + '만';
+    return Math.round(v).toLocaleString();
+  };
+  const renderCard = (e, statusCls) => {
+    const m = e.metrics || {};
+    const sign = (m.openToLastRate >= 0 ? '+' : '');
+    return '<div class="card s-' + e.status + '">' +
+      '<h3>' + (e.name || e.code) + ' <span class="code">' + e.code + '</span> <span class="market">' + (e.market || '') + '</span>' +
+      ' <span class="badge ' + statusCls + '">' + (e.statusLabel || e.status) + '</span></h3>' +
+      '<div class="metrics-grid">' +
+        '<div class="metric"><div class="label">시가 → 09:30 close</div><div class="value">' + fmtN(m.open0900) + ' → ' + fmtN(m.last0930) + '원</div><div class="sub">' + sign + (m.openToLastRate || 0).toFixed(2) + '%</div></div>' +
+        '<div class="metric"><div class="label">09:30 누적 거래대금</div><div class="value">' + fmtMoneyKR(m.value_0930) + '원</div><div class="sub">평균 30분 대비 ×' + (m.valueToAvgRatio_0930 || 0).toFixed(2) + '</div></div>' +
+        '<div class="metric"><div class="label">종가 위치</div><div class="value">' + (m.closePosition0930 * 100).toFixed(0) + '%</div><div class="sub">고가-저가 중 마지막 close</div></div>' +
+        '<div class="metric"><div class="label">고가 대비 마지막</div><div class="value">' + (m.highToLastDrop != null ? m.highToLastDrop.toFixed(2) + '%' : '-') + '</div><div class="sub">-2.5%↓ FADED</div></div>' +
+        '<div class="metric"><div class="label">분봉 수</div><div class="value">' + (m.bars_total || 0) + '개</div><div class="sub">≥20 필요</div></div>' +
+        '<div class="metric"><div class="label">시가총액</div><div class="value">' + fmtMoneyKR(e.marketCap) + '원</div><div class="sub">' + (e.market || '') + '</div></div>' +
+      '</div>' +
+      (m.rebreakMorningHigh ? '<div class="summary-line" style="color:#5eead4;">↗ 첫 10분 고점 재돌파 ✓</div>' : '') +
+    '</div>';
+  };
+  const c = sc.counts || {};
+  const breakdown =
+    '<span class="tps-pill ready">READY <span class="num">' + (c.READY || 0) + '</span></span>' +
+    '<span class="tps-pill wait">WAIT_PULLBACK <span class="num">' + (c.WAIT_PULLBACK || 0) + '</span></span>' +
+    '<span class="tps-pill faded">FADED <span class="num">' + (c.FADED || 0) + '</span></span>' +
+    '<span class="tps-pill missing">WEAK <span class="num">' + (c.WEAK || 0) + '</span></span>' +
+    '<span class="tps-pill insufficient">분봉 부족 <span class="num">' + (c.INSUFFICIENT_BARS || 0) + '</span></span>';
+  const headerInfo = '<div class="shelf-desc">이 구역은 전일 후보가 아니라 오늘 ' + (sc.nextDate || '') + ' 09:00~09:30 분봉 기준으로 새로 잡힌 종목입니다. <strong>유동성 통과 분봉 수집 대상 ' + (c.intradayFiles || 0) + '개</strong> 중 위 상태로 분류.</div>' +
+    '<div style="margin:8px 0 14px;">' + breakdown + '</div>';
+  let body = '';
+  if ((sc.ready || []).length > 0) {
+    body += '<h3 style="margin:14px 0 6px;color:#6ee7b7;">🎯 READY (' + sc.ready.length + ')</h3>' +
+      sc.ready.map((e) => renderCard(e, 'value-strong')).join('');
+  } else {
+    body += '<h3 style="margin:14px 0 6px;color:#94a3b8;">🎯 READY (0)</h3><div class="empty-list" style="padding:14px;">09:30 기준 READY 후보 없음</div>';
+  }
+  if ((sc.holding || []).length > 0) {
+    body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#fcd34d;padding:6px 0;">⏸ 보류/재관찰 (WAIT_PULLBACK + FADED ' + sc.holding.length + '건) — 펼쳐서 보기</summary>' +
+      '<div style="margin-top:8px;">' + sc.holding.map((e) => renderCard(e, 'aux')).join('') + '</div></details>';
+  }
+  if ((sc.rejected || []).length > 0) {
+    body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:13px;color:#94a3b8;padding:6px 0;">😴 WEAK ' + sc.rejected.length + '건 — 펼쳐서 보기 (참고용)</summary>' +
+      '<div style="margin-top:8px;">' + sc.rejected.map((e) => renderCard(e, 'aux')).join('') + '</div></details>';
+  }
+  host.innerHTML = '<section class="entry-shelf-section top" style="border:2px solid #5eead4;background:linear-gradient(135deg,#042f2e 0%,#1e293b 100%);">' +
+    '<h2>📡 오늘 09:30 실제 포착 후보 — ' + (sc.ready ? sc.ready.length : 0) + '개 READY</h2>' +
+    headerInfo + body +
+  '</section>';
+})();
+
+// ── ① 전일 후보의 09:30 확인 결과 (mainPool 통과 + tradePlan READY) ──
 (function renderTopPriority() {
   const host = document.getElementById('top-priority-host');
   if (!host) return;
   const items = itemsByCodes(DATA.priorityRanked && DATA.priorityRanked.topPriority);
   if (items.length === 0) {
-    host.innerHTML = '<section class="entry-shelf-section top"><h2>🎯 진입 가능 후보 (READY) — 0종목</h2>' +
-      '<div class="empty-list" style="padding:18px;">오늘 09:30 기준 장초 흐름 유지 후보가 없습니다.<br>' +
-      '<span style="font-size:11px;color:#94a3b8;">아래 "보류/재관찰 후보"와 "재관찰 후보" 섹션을 확인하세요.</span></div></section>';
+    host.innerHTML = '<section class="entry-shelf-section"><h2>📋 전일 후보의 09:30 확인 결과 — 0종목</h2>' +
+      '<div class="empty-list" style="padding:18px;">전일 mainPool 후보 중 09:30 분봉으로 READY 통과한 종목이 없습니다.<br>' +
+      '<span style="font-size:11px;color:#94a3b8;">아래 "보류/재관찰" 섹션을 확인하세요.</span></div></section>';
     return;
   }
-  host.innerHTML = '<section class="entry-shelf-section top">' +
-    '<h2 id="top-priority-h2">🎯 진입 가능 후보 (READY) — ' + items.length + '종목</h2>' +
-    '<div class="shelf-desc" id="top-priority-desc">아래 ' + items.length + '종목은 <strong>09:30 분봉 반영 후 장초 흐름이 유지되어 진입 가능</strong>한 후보입니다.</div>' +
+  host.innerHTML = '<section class="entry-shelf-section">' +
+    '<h2 id="top-priority-h2">📋 전일 후보의 09:30 확인 결과 — ' + items.length + '종목</h2>' +
+    '<div class="shelf-desc" id="top-priority-desc">전일 16:35 mainPool에 들어왔던 후보 중 <strong>09:30 분봉 반영 후 장초 흐름이 유지되어 진입 가능</strong>한 후보입니다.</div>' +
     items.map(buildCardHtml).join('') +
   '</section>';
 })();
@@ -2203,9 +2307,9 @@ function buildCardHtml(it) {
   const overflow = (DATA.priorityRanked && DATA.priorityRanked.overflowHiddenCount) || 0;
   host.innerHTML = '<section class="entry-shelf-section" style="border:1px solid #475569;background:#0f172a;">' +
     '<details><summary style="cursor:pointer;font-size:15px;font-weight:700;color:#cbd5e1;padding:6px 0;">' +
-      '📋 추가 진입 가능 후보 (READY ' + items.length + '건' + (overflow > 0 ? ', overflow ' + overflow + '건 숨김' : '') + ') — 펼쳐서 보기</summary>' +
+      '📋 전일 후보 추가 확인 (READY ' + items.length + '건' + (overflow > 0 ? ', overflow ' + overflow + '건 숨김' : '') + ') — 펼쳐서 보기</summary>' +
     '<div style="margin-top:10px;">' +
-    '<div class="shelf-desc">조건은 맞지만 최우선 5종목에는 들지 못한 READY 후보입니다.</div>' +
+    '<div class="shelf-desc">전일 mainPool 후보 중 최우선 5종목에 들지 못한 READY 후보입니다.</div>' +
       items.map(buildCardHtml).join('') +
     '</div></details>' +
   '</section>';
@@ -2232,9 +2336,9 @@ function buildCardHtml(it) {
     .join(' ');
   host.innerHTML = '<section class="entry-shelf-section" style="border:1px solid #78350f;background:#1c1917;margin-top:14px;">' +
     '<details open><summary style="cursor:pointer;font-size:15px;font-weight:700;color:#fcd34d;padding:6px 0;">' +
-      '⏸ 보류/재관찰 후보 (' + items.length + '건) — 펼쳐서 보기</summary>' +
+      '⏸ 전일 후보 보류/재관찰 (' + items.length + '건) — 펼쳐서 보기</summary>' +
     '<div style="margin-top:10px;">' +
-    '<div class="shelf-desc">09:30 분봉 반영 후 진입이 부담스럽거나 흐름이 약화된 후보입니다. 매수가는 비워져 있고, 사용자 본인 판단으로 재진입을 검토하세요.</div>' +
+    '<div class="shelf-desc">전일 mainPool 후보 중 09:30 분봉 반영 후 진입이 부담스럽거나 흐름이 약화된 종목입니다. 매수가는 비워져 있고, 사용자 본인 판단으로 재진입을 검토하세요.</div>' +
     '<div style="margin:8px 0 12px;">' + breakdownHtml + '</div>' +
       items.map(buildCardHtml).join('') +
     '</div></details>' +
@@ -2250,9 +2354,9 @@ function buildCardHtml(it) {
   if (items.length === 0) return;
   host.innerHTML = '<section class="entry-shelf-section" style="border:1px solid #475569;background:#0f172a;margin-top:14px;">' +
     '<details><summary style="cursor:pointer;font-size:15px;font-weight:700;color:#cbd5e1;padding:6px 0;">' +
-      '👀 재관찰 후보 (' + items.length + '건) — 펼쳐서 보기</summary>' +
+      '👀 전일 후보 재관찰 (' + items.length + '건) — 펼쳐서 보기</summary>' +
     '<div style="margin-top:10px;">' +
-    '<div class="shelf-desc" style="color:#fbbf24;">⚠ 전일 조건은 강했지만 장초 진입은 부적합합니다. 다시 고점 회복 시에만 관찰하세요. (이미 초반 고점 통과 / 윗꼬리·과열 trap 위험으로 메인 풀에서 제외된 후보 중 일봉 강세 + 시총 대비 거래대금 강한 케이스)</div>' +
+    '<div class="shelf-desc" style="color:#fbbf24;">⚠ 전일 일봉 조건은 강했지만 장초 진입은 부적합합니다. 다시 고점 회복 시에만 관찰하세요. (이미 초반 고점 통과 / 윗꼬리·과열 trap 위험으로 메인 풀에서 제외된 후보 중 일봉 강세 + 시총 대비 거래대금 강한 케이스)</div>' +
       items.map(buildCardHtml).join('') +
     '</div></details>' +
   '</section>';

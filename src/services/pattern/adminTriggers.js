@@ -248,9 +248,10 @@ function refreshAllBoards() {
   };
 }
 
-// 1DS 분봉 수집 + 1DS 보드 재생성 — cron 평일 09:31 + /admin/refresh-1ds-intraday 가 호출.
+// 1DS 분봉 수집 + 09:30 스캐너 + 1DS 보드 재생성 — cron 평일 09:31 + /admin/refresh-1ds-intraday 가 호출.
 // (1) collect-1ds-intraday.js --from-board 으로 보드 mainPool 코드만 KIS에서 분봉 수집
-// (2) one-day-surge-board.js 로 보드 재생성 (수집된 분봉이 trade plan에 반영됨)
+// (2) one-day-surge-0930-scanner.js 로 09:30 실시간 포착 스캐너 실행 (이미 수집된 분봉만 분석)
+// (3) one-day-surge-board.js 로 보드 재생성 (전일 mainPool + 스캐너 결과 모두 반영)
 function refresh1dsIntraday() {
   if (patternState.refreshing1dsIntraday) {
     return { ok: false, message: "이미 1DS 분봉 수집 중입니다", startedAt: patternState.oneDsIntradayStartedAt };
@@ -287,7 +288,25 @@ function refresh1dsIntraday() {
         // collect 실패해도 보드는 재생성 시도 (이전 분봉 데이터는 살아있음)
       }
 
-      // Phase 2: 보드 재생성
+      // Phase 2: 09:30 실시간 스캐너 (이미 수집된 분봉만 분석 — 추가 KIS 호출 없음)
+      patternState.oneDsIntradayPhase = "scanner";
+      console.log("[1DS Intraday] 09:30 스캐너 시작");
+      const scannerScript = path.join(ROOT, "boards", "oneDaySurge", "one-day-surge-0930-scanner.js");
+      const scannerRes = await new Promise((resolve) => {
+        const proc = spawn("node", [scannerScript], { cwd: ROOT });
+        let stderr = "";
+        proc.stdout.on("data", (d) => process.stdout.write("[1DS-SC] " + d.toString()));
+        proc.stderr.on("data", (d) => { stderr += d.toString(); process.stderr.write("[1DS-SC ERR] " + d.toString()); });
+        proc.on("close", (code) => resolve({ ok: code === 0, code, stderr }));
+        proc.on("error", (err) => resolve({ ok: false, code: -1, stderr: err.message }));
+      });
+      if (!scannerRes.ok) {
+        const prev = patternState.oneDsIntradayError ? patternState.oneDsIntradayError + " / " : "";
+        patternState.oneDsIntradayError = prev + `scanner 실패 (exit ${scannerRes.code}): ${scannerRes.stderr.slice(0, 300)}`;
+        // scanner 실패해도 보드 재생성은 진행 — 보드는 스캐너 JSON 없으면 미실행 안내만 표시.
+      }
+
+      // Phase 3: 보드 재생성
       patternState.oneDsIntradayPhase = "regen";
       console.log("[1DS Intraday] 보드 재생성 시작");
       const regenScript = path.join(ROOT, "boards", "oneDaySurge", "one-day-surge-board.js");
@@ -315,7 +334,7 @@ function refresh1dsIntraday() {
 
   return {
     ok: true,
-    message: "1DS 분봉 수집 + 보드 재생성 시작 (백그라운드, 약 30초~1분)",
+    message: "1DS 분봉 수집 + 09:30 스캐너 + 보드 재생성 시작 (백그라운드, 약 30초~1분)",
     startedAt: patternState.oneDsIntradayStartedAt,
   };
 }
