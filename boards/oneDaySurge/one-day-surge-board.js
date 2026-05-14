@@ -2495,22 +2495,32 @@ const PREMARKET_MODE = isPremarketMode();
 
   let body = '';
 
-  // 백테스트 요약 배너 (최상단)
+  // 백테스트 요약 배너 (최상단) — full-minute 재검증 결과 반영
   body += '<div style="margin:14px 0 6px;padding:10px 14px;background:rgba(245,158,11,0.08);border-left:3px solid #f59e0b;border-radius:4px;font-size:11.5px;color:#fde68a;line-height:1.6;">' +
-    '<strong style="color:#fcd34d;">🚀 폭발형 백테스트 (19 거래일 검증):</strong> ' +
-    'explosiveTop 일평균 <strong>3.53건</strong>, <strong>day+5% 36.7%</strong>, <strong>day+10% 11.7%</strong>, 전략 +5%/-2% 평균 EV <strong>+0.63%</strong>. ' +
-    'explosiveWatch는 fail3 43.6%, 모든 전략 EV 음수 → 즉시 진입 X. ' +
+    '<strong style="color:#fcd34d;">🚀 폭발형 백테스트 (19일 full-minute 재검증, n=64):</strong> ' +
+    '<strong>+5% 익절 / -2% 손절</strong> 전략이 평균 <strong>+0.97%/trade</strong>로 가장 우수. ' +
+    '10:00 생존 종목은 종가까지 평균 <strong>+3.45%, 플러스율 81.8%</strong>. 미생존은 <strong>즉시 정리</strong>. ' +
+    'explosiveWatch는 모든 전략 EV 0 또는 음수 → 즉시 진입 X. ' +
     '<a href="/one-day-surge-board/explosive-backtest" style="color:#fcd34d;text-decoration:underline;" target="_blank">상세 →</a>' +
   '</div>';
 
-  // ⓪‑1 🚀 폭발형 단타 후보 (최상단 강조)
+  // ⓪‑1 🚀 폭발형 단타 후보 (최상단 강조) — full-minute 백테스트 기반 운영 가이드
   if (explosiveTop.length > 0) {
     body += '<h3 style="margin:14px 0 6px;color:#fcd34d;font-size:18px;">🚀 폭발형 단타 후보 (explosiveTop ' + explosiveTop.length + '건)</h3>' +
       '<div class="shelf-desc" style="color:#fde68a;line-height:1.8;">' +
-        '09:00~09:30 사이 거래대금이 강하게 붙고 고점 근처를 유지한 <strong>초단타 후보</strong>입니다. ' +
-        '10시 전 짧은 대응용이며, 실패 시 손실이 빠르게 커질 수 있습니다.<br>' +
-        '· <strong>조건</strong>: morningHigh 재돌파 ✓ + 종가위치 ≥85% + 누적 거래대금 ≥100억<br>' +
-        '· <strong>초단타 원칙</strong>: +2~3% 수익 구간은 욕심내지 말고 빠르게 줄이는 구간입니다. +5% 이상은 강한 날에만 노리는 확장 목표이며, <strong>10시 전 마무리</strong>를 기본으로 봅니다. <strong>-2% 부근 이탈 시에는 흐름 실패</strong>로 봅니다.' +
+        '09:00~09:30 사이 거래대금이 강하게 붙고 고점 근처를 유지한 <strong>폭발형 단타 후보</strong>입니다. ' +
+        '백테스트 기준 <strong>+5% 도달 시 익절 / -2% 이탈 시 손절</strong> 전략이 가장 좋았습니다. ' +
+        '<strong>10시 전 무조건 종료가 아니라, 10:00까지 살아남는지 확인한 뒤 강한 종목만 연장 관찰</strong>합니다.<br><br>' +
+        '<strong>· 후보 조건</strong>: morningHigh 재돌파 ✓ + 종가위치 ≥85% + 누적 거래대금 ≥100억<br>' +
+        '<strong>· 운영 기준 (백테스트 검증)</strong><br>' +
+        '<span style="display:inline-block;margin-left:14px;color:#fef3c7;">' +
+          '① <strong>09:30 기준가 대비 +5% 도달 시 익절</strong><br>' +
+          '② <strong>-2% 이탈 시 손절</strong><br>' +
+          '③ 10:00까지 둘 다 나오지 않으면 <strong>생존 여부 확인</strong><br>' +
+          '④ <strong>10:00 가격이 09:30 기준가 이하이면 정리</strong> (미생존 종가 평균 −1.70%)<br>' +
+          '⑤ 10:00에도 <strong>고점권을 유지하면 종가까지 연장 관찰 가능</strong> (생존 종가 평균 +3.45%, 81.8% 플러스)' +
+        '</span><br><br>' +
+        '<span style="color:#fda4af;">⚠ <strong>경고</strong>: 폭발형 후보는 움직임이 빠른 대신 실패도 빠릅니다. <strong>손절 기준 없이 추격하면 손실이 커질 수 있습니다</strong>.</span>' +
       '</div>' +
       '<div style="margin-top:8px;">' + explosiveTop.map((e) => renderCard(e, 'value-strong')).join('') + '</div>';
   } else {
@@ -2526,12 +2536,12 @@ const PREMARKET_MODE = isPremarketMode();
       '<div style="margin-top:8px;padding-bottom:10px;">' + readyAllCombined.map((e) => renderCard(e, 'value-mid')).join('') + '</div></details>';
   }
 
-  // ⓪‑3 🚀 폭발형 관찰 후보 — 즉시 진입 X
+  // ⓪‑3 🚀 폭발형 관찰 후보 — 즉시 진입 X (full-minute 재검증: 모든 전략 EV 0 또는 음수)
   if (explosiveWatch.length > 0) {
     body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#fb923c;padding:6px 0;">🚀 폭발형 관찰 후보 (explosiveWatch ' + explosiveWatch.length + '건, 즉시 진입 X) — 펼쳐서 보기</summary>' +
       '<div class="shelf-desc" style="color:#fed7aa;margin-top:6px;background:rgba(251,146,60,0.08);border-left:3px solid #fb923c;padding:8px 12px;border-radius:4px;">' +
-        '이미 많이 오른 상태(시가 대비 +8% 이상)라 <strong>즉시 진입 후보가 아닙니다</strong>. <strong>눌림 후 재돌파가 확인될 때만 관찰</strong>하세요.<br>' +
-        '<span style="color:#fda4af;font-size:10.5px;">백테스트: 이 풀은 fail3 43.6% / 모든 전략 음수 EV — 그대로 따라가면 손실 가능성 높음.</span>' +
+        '<strong>이미 많이 오른 관찰 후보</strong>입니다 (시가 대비 +8% 이상). <strong>즉시 진입 후보가 아니며, 눌림 후 재돌파 확인 전까지는 추격 금지</strong>입니다.<br>' +
+        '<span style="color:#fda4af;font-size:10.5px;">백테스트 (full-minute 재검증): 이 풀은 모든 전략에서 EV 0 또는 음수 — 그대로 추격하면 손실 가능성 높음.</span>' +
       '</div>' +
       '<div style="margin-top:8px;">' + explosiveWatch.map((e) => renderCard(e, 'aux')).join('') + '</div></details>';
   }
