@@ -1046,7 +1046,10 @@ function main() {
           generatedAt: m.generatedAt,
           counts: sc.counts,
           statusLabels: sc.statusLabels,
-          ready:    sc.scanner0930Ready    || [],
+          ready:     sc.scanner0930Ready     || [],   // 호환성 — readyTop + readyRest 합본
+          readyTop:  sc.scanner0930ReadyTop  || [],   // 상위 5 (실전 우선 후보)
+          readyRest: sc.scanner0930ReadyRest || [],   // 6번째 이후 (1차 통과 후보)
+          readyTopLimit: sc.readyTopLimit || 5,
           holding:  sc.scanner0930Holding  || [],
           rejected: sc.scanner0930Rejected || [],
         };
@@ -1604,6 +1607,9 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 <div class="summary-grid" id="summary-grid"></div>
 <div id="trade-plan-summary"></div>
 <div id="qva-summary-line"></div>
+
+<!-- ⓪‑a 장 마감 후~다음날 09:00 시간대 한정: 내일 장초 들여다볼 후보 강조 -->
+<div id="premarket-host"></div>
 
 <!-- ⓪ 오늘 09:30 실제 포착 후보 (전일 mainPool과 무관) -->
 <div id="scanner-0930-host"></div>
@@ -2341,6 +2347,46 @@ function buildCardHtml(it) {
     '</div>';
 }
 
+// ── KST 시간대 감지 — premarket(장 마감 후~다음날 09:00) vs intraday(09:00~16:30) ──
+// premarket 모드일 때 첫 자리에 "🔮 내일 장초 들여다볼 후보" 섹션을 노출하고,
+// 기존 pending-host의 NEED 섹션은 숨겨 중복을 피한다.
+function getKstMinutesOfDay() {
+  const now = new Date();
+  // KST = UTC+9
+  const kstMs = now.getTime() + 9 * 3600 * 1000;
+  const k = new Date(kstMs);
+  return k.getUTCHours() * 60 + k.getUTCMinutes();
+}
+function isPremarketMode() {
+  const m = getKstMinutesOfDay();
+  // 16:30 ~ 09:00 (다음날) → premarket
+  return m >= (16 * 60 + 30) || m < (9 * 60);
+}
+const PREMARKET_MODE = isPremarketMode();
+
+// ── ⓪‑a premarket: 내일 장초 들여다볼 후보 ──
+// 보드 mainPool 후보(=오늘 종가 강세 종목) 중 분봉 매칭이 미래라 NEED인 카드를
+// "분봉 미확인" 부정적 라벨 대신 "🔮 내일 장초 들여다볼 후보"로 첫 자리에 명시.
+(function renderPremarketCandidates() {
+  const host = document.getElementById('premarket-host');
+  if (!host) return;
+  if (!PREMARKET_MODE) return;  // 09:00~16:30 시간대는 안 보임
+  const codes = DATA.priorityRanked && DATA.priorityRanked.pendingCandidates;
+  if (!codes || codes.length === 0) return;
+  const items = itemsByCodes(codes);
+  if (items.length === 0) return;
+  const baseDateLabel = DATA.meta && DATA.meta.analysisDateFmt
+    ? DATA.meta.analysisDateFmt + ' 종가 기준'
+    : '오늘 종가 기준';
+  host.innerHTML = '<section class="entry-shelf-section top" style="border:2px solid #fbbf24;background:linear-gradient(135deg,#422006 0%,#1e293b 100%);">' +
+    '<h2 style="color:#fde68a;">🔮 내일 장초 들여다볼 후보 — ' + items.length + '종목 <span style="font-size:13px;color:#fbbf24;font-weight:400;">(' + baseDateLabel + ')</span></h2>' +
+    '<div class="shelf-desc" style="color:#fcd34d;line-height:1.7;">' +
+      '오늘 장 마감 종가 기준으로 뽑은 1DS mainPool 후보입니다. <strong>분봉은 내일 09:30 cron 후 확정</strong>되므로 지금은 매수가/평가가 비어있고, 종목 정보만 미리 확인하는 보조 화면입니다.' +
+    '</div>' +
+    items.map(buildCardHtml).join('') +
+  '</section>';
+})();
+
 // ── ⓪ 오늘 09:30 실제 포착 후보 (전일 mainPool과 무관) ──
 // 09:00~09:30 분봉 기준 실시간 포착. 분봉이 없으면 후보가 아니다.
 (function renderScanner0930() {
@@ -2369,6 +2415,8 @@ function buildCardHtml(it) {
     return '<div class="card s-' + e.status + '">' +
       '<h3>' + (e.name || e.code) + ' <span class="code">' + e.code + '</span> <span class="market">' + (e.market || '') + '</span>' +
       ' <span class="badge ' + statusCls + '">' + (e.statusLabel || e.status) + '</span>' +
+      // finalScore 배지 (READY 상태만 의미 있음)
+      (e.status === 'READY' && Number.isFinite(e.finalScore) ? ' <span class="badge aux" title="실전 우선 후보 선출용 종합 점수 (finalScore)">final ' + e.finalScore.toFixed(1) + '</span>' : '') +
       // 사용자 요구 6번: 전일 mainPool 겹침 시 "어제도 강함" 배지
       (prevDayCodesSet.has(e.code) ? ' <span class="prev-day-overlap-badge" title="전일 mainPool에도 들어왔던 종목 — 어제 일봉 강세 + 오늘 09:30 분봉 강세">🔥 어제도 강함</span>' : '') +
       '</h3>' +
@@ -2404,12 +2452,23 @@ function buildCardHtml(it) {
     '유동성 통과 + 메트릭 계산 <strong>' + (sc.successCount || 0) + '개</strong> 중 위 상태로 분류.' +
     '</div>' +
     '<div style="margin:8px 0 14px;">' + breakdown + '</div>';
+  // READY를 readyTop(실전 우선) + readyRest(1차 통과)로 분리해서 노출.
+  // readyTop이 0개면 강조 영역에 안내 메시지만, 억지로 readyRest를 끌어올리지 않음.
+  const readyTop = sc.readyTop || [];
+  const readyRest = sc.readyRest || [];
+  const readyTotal = (sc.ready || []).length;
   let body = '';
-  if ((sc.ready || []).length > 0) {
-    body += '<h3 style="margin:14px 0 6px;color:#6ee7b7;">🎯 READY (' + sc.ready.length + ')</h3>' +
-      sc.ready.map((e) => renderCard(e, 'value-strong')).join('');
+  if (readyTop.length > 0) {
+    body += '<h3 style="margin:14px 0 6px;color:#6ee7b7;">🎯 실전 우선 후보 (readyTop ' + readyTop.length + ' / 총 READY ' + readyTotal + ')</h3>' +
+      '<div class="shelf-desc" style="color:#a7f3d0;">finalScore 상위 ' + (sc.readyTopLimit || 5) + '개. 실전 진입 1순위로 압축한 후보입니다.</div>' +
+      readyTop.map((e) => renderCard(e, 'value-strong')).join('');
   } else {
-    body += '<h3 style="margin:14px 0 6px;color:#94a3b8;">🎯 READY (0)</h3><div class="empty-list" style="padding:14px;">09:30 기준 READY 후보 없음</div>';
+    body += '<h3 style="margin:14px 0 6px;color:#94a3b8;">🎯 실전 우선 후보 (0)</h3><div class="empty-list" style="padding:14px;">09:30 기준 finalScore 통과 후보가 없습니다.</div>';
+  }
+  if (readyRest.length > 0) {
+    body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#5eead4;padding:6px 0;">📋 1차 통과 후보 (readyRest ' + readyRest.length + '건) — 펼쳐서 보기</summary>' +
+      '<div class="shelf-desc" style="color:#94a3b8;margin-top:6px;">READY 컷은 통과했지만 finalScore 상위 ' + (sc.readyTopLimit || 5) + '에는 못 든 후보입니다. 보조 관심 후보로 확인하세요.</div>' +
+      '<div style="margin-top:8px;">' + readyRest.map((e) => renderCard(e, 'value-mid')).join('') + '</div></details>';
   }
   if ((sc.holding || []).length > 0) {
     body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#fcd34d;padding:6px 0;">⏸ 보류/재관찰 (WAIT_PULLBACK + FADED ' + sc.holding.length + '건) — 펼쳐서 보기</summary>' +
@@ -2419,9 +2478,10 @@ function buildCardHtml(it) {
     body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:13px;color:#94a3b8;padding:6px 0;">😴 WEAK ' + sc.rejected.length + '건 — 펼쳐서 보기 (참고용)</summary>' +
       '<div style="margin-top:8px;">' + sc.rejected.map((e) => renderCard(e, 'aux')).join('') + '</div></details>';
   }
+  const headerCount = '실전 우선 ' + readyTop.length + ' / READY 총 ' + readyTotal;
   const headerTitle = sc.candidatesTarget
-    ? '📡 오늘 09:30 실제 포착 후보 — ' + (sc.ready ? sc.ready.length : 0) + '개 READY <span style="font-size:13px;color:#94a3b8;font-weight:400;">(확장 스캔 ' + sc.candidatesTarget + '개 중 분봉 ' + (sc.scannedCount || 0) + '개)</span>'
-    : '📡 오늘 09:30 실제 포착 후보 — ' + (sc.ready ? sc.ready.length : 0) + '개 READY <span style="font-size:13px;color:#94a3b8;font-weight:400;">(분봉 ' + (sc.scannedCount || 0) + '개)</span>';
+    ? '📡 오늘 09:30 실전 우선 후보 — ' + headerCount + ' <span style="font-size:13px;color:#94a3b8;font-weight:400;">(확장 스캔 ' + sc.candidatesTarget + '개 중 분봉 ' + (sc.scannedCount || 0) + '개)</span>'
+    : '📡 오늘 09:30 실전 우선 후보 — ' + headerCount + ' <span style="font-size:13px;color:#94a3b8;font-weight:400;">(분봉 ' + (sc.scannedCount || 0) + '개)</span>';
   host.innerHTML = '<section class="entry-shelf-section top" style="border:2px solid #5eead4;background:linear-gradient(135deg,#042f2e 0%,#1e293b 100%);">' +
     '<h2>' + headerTitle + '</h2>' +
     headerInfo + body +
@@ -2502,7 +2562,10 @@ function buildCardHtml(it) {
 
 // ── ③-2 분봉 미확인 (NEED_INTRADAY_CONFIRM) — 09:30 분봉 자체가 없거나 전략 매치 실패 ──
 // 사용자 요구 3번: group_fallback은 절대 READY로 표시하지 않는다. 별도 섹션으로 분리.
+// 단, premarket 모드(KST 16:30~다음날 09:00)에서는 위 "🔮 내일 장초 들여다볼 후보" 섹션이
+// 같은 후보를 더 명시적으로 보여주므로 여기는 숨김 — 중복 노출 방지.
 (function renderPendingCandidates() {
+  if (PREMARKET_MODE) return;  // premarket-host 섹션이 같은 카드를 첫 자리에 노출 중
   // pending-host div가 없으면 holding 다음에 만들거나, 새 호스트 div를 동적으로 만들어 추가
   const codes = DATA.priorityRanked && DATA.priorityRanked.pendingCandidates;
   if (!codes || codes.length === 0) return;

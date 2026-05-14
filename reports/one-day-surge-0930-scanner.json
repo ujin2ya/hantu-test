@@ -5,10 +5,10 @@
     "candidatesTarget": 300,
     "scannedCount": 305,
     "successCount": 304,
-    "startedAt": "2026-05-14T06:50:19.161Z",
-    "finishedAt": "2026-05-14T06:50:19.581Z",
-    "elapsedSec": 0.42,
-    "generatedAt": "2026-05-14T06:50:19.581Z",
+    "startedAt": "2026-05-14T07:20:54.027Z",
+    "finishedAt": "2026-05-14T07:20:54.765Z",
+    "elapsedSec": 0.74,
+    "generatedAt": "2026-05-14T07:20:54.765Z",
     "nextDate": "2026-05-14",
     "intradayDir": "C:\\Users\\eugen\\Documents\\hantu-test\\data\\intraday\\1ds\\2026-05-14",
     "config": {
@@ -41,10 +41,10 @@
       "no_chart": 0,
       "short_history": 0
     },
-    "READY": 25,
+    "READY": 17,
     "WAIT_PULLBACK": 9,
     "FADED": 198,
-    "WEAK": 59,
+    "WEAK": 67,
     "INSUFFICIENT_BARS": 13
   },
   "statusLabels": {
@@ -55,162 +55,6 @@
     "INSUFFICIENT_BARS": "분봉 부족 (≥20개 필요)"
   },
   "scanner0930Ready": [
-    {
-      "code": "004170",
-      "name": "신세계",
-      "market": "KOSPI",
-      "marketCap": 3844200000000,
-      "baseDate": "20260514",
-      "avg20Value": 30100402100,
-      "baseValue": 19808338000,
-      "metrics": {
-        "bars_total": 30,
-        "open0900": 473000,
-        "last0930": 507000,
-        "high0930": 508000,
-        "low0930": 471500,
-        "value_0930": 10607316000,
-        "volume_0930": 21488,
-        "closePosition0930": 0.973,
-        "openToLastRate": 7.19,
-        "highToLastDrop": -0.2,
-        "valueToAvgRatio_0930": 6.96,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 18.97
-    },
-    {
-      "code": "001450",
-      "name": "현대해상",
-      "market": "KOSPI",
-      "marketCap": 2591500000000,
-      "baseDate": "20260514",
-      "avg20Value": 12346016553,
-      "baseValue": 19489688750,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 29950,
-        "last0930": 32000,
-        "high0930": 32200,
-        "low0930": 29950,
-        "value_0930": 11205158725,
-        "volume_0930": 356853,
-        "closePosition0930": 0.911,
-        "openToLastRate": 6.84,
-        "highToLastDrop": -0.62,
-        "valueToAvgRatio_0930": 7.47,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 18.69
-    },
-    {
-      "code": "142280",
-      "name": "녹십자엠에스",
-      "market": "KOSDAQ",
-      "marketCap": 84000000000,
-      "baseDate": "20260514",
-      "avg20Value": 8398542325,
-      "baseValue": 7783477065,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 4620,
-        "last0930": 4870,
-        "high0930": 4935,
-        "low0930": 4550,
-        "value_0930": 4434348685,
-        "volume_0930": 938287,
-        "closePosition0930": 0.831,
-        "openToLastRate": 5.41,
-        "highToLastDrop": -1.32,
-        "valueToAvgRatio_0930": 7.41,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 14.73
-    },
-    {
-      "code": "033240",
-      "name": "자화전자",
-      "market": "KOSPI",
-      "marketCap": 1051100000000,
-      "baseDate": "20260514",
-      "avg20Value": 13041340808,
-      "baseValue": 5266372100,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 47150,
-        "last0930": 49350,
-        "high0930": 49500,
-        "low0930": 45700,
-        "value_0930": 3420105350,
-        "volume_0930": 71570,
-        "closePosition0930": 0.961,
-        "openToLastRate": 4.67,
-        "highToLastDrop": -0.3,
-        "valueToAvgRatio_0930": 8.44,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 13.57
-    },
-    {
-      "code": "008770",
-      "name": "호텔신라",
-      "market": "KOSPI",
-      "marketCap": 2570800000000,
-      "baseDate": "20260514",
-      "avg20Value": 41036215653,
-      "baseValue": 9036290700,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 61200,
-        "last0930": 63800,
-        "high0930": 64700,
-        "low0930": 61200,
-        "value_0930": 7024357600,
-        "volume_0930": 110226,
-        "closePosition0930": 0.743,
-        "openToLastRate": 4.25,
-        "highToLastDrop": -1.39,
-        "valueToAvgRatio_0930": 10.11,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 13.51
-    },
-    {
-      "code": "253840",
-      "name": "수젠텍",
-      "market": "KOSDAQ",
-      "marketCap": 93400000000,
-      "baseDate": "20260514",
-      "avg20Value": 37010218185,
-      "baseValue": 18676095250,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 6900,
-        "last0930": 7270,
-        "high0930": 7380,
-        "low0930": 6900,
-        "value_0930": 7239802660,
-        "volume_0930": 1009220,
-        "closePosition0930": 0.771,
-        "openToLastRate": 5.36,
-        "highToLastDrop": -1.49,
-        "valueToAvgRatio_0930": 5.04,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 12.03
-    },
     {
       "code": "131970",
       "name": "두산테스나",
@@ -235,267 +79,8 @@
       },
       "status": "READY",
       "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 12.02
-    },
-    {
-      "code": "069960",
-      "name": "현대백화점",
-      "market": "KOSPI",
-      "marketCap": 2464300000000,
-      "baseDate": "20260514",
-      "avg20Value": 13824060755,
-      "baseValue": 4468281300,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 112700,
-        "last0930": 117600,
-        "high0930": 118200,
-        "low0930": 111700,
-        "value_0930": 2399598200,
-        "volume_0930": 20534,
-        "closePosition0930": 0.908,
-        "openToLastRate": 4.35,
-        "highToLastDrop": -0.51,
-        "valueToAvgRatio_0930": 6.98,
-        "rebreakMorningHigh": false
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 11.49
-    },
-    {
-      "code": "097950",
-      "name": "CJ제일제당",
-      "market": "KOSPI",
-      "marketCap": 3710900000000,
-      "baseDate": "20260514",
-      "avg20Value": 15249234725,
-      "baseValue": 6054048000,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 209000,
-        "last0930": 217500,
-        "high0930": 219000,
-        "low0930": 209000,
-        "value_0930": 3673418250,
-        "volume_0930": 17019,
-        "closePosition0930": 0.85,
-        "openToLastRate": 4.07,
-        "highToLastDrop": -0.68,
-        "valueToAvgRatio_0930": 7.89,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 11.43
-    },
-    {
-      "code": "018470",
-      "name": "조일알미늄",
-      "market": "KOSPI",
-      "marketCap": 221500000000,
-      "baseDate": "20260514",
-      "avg20Value": 36323476686,
-      "baseValue": 8105918120,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 1559,
-        "last0930": 1643,
-        "high0930": 1659,
-        "low0930": 1550,
-        "value_0930": 2689554657,
-        "volume_0930": 1671027,
-        "closePosition0930": 0.853,
-        "openToLastRate": 5.39,
-        "highToLastDrop": -0.96,
-        "valueToAvgRatio_0930": 4.31,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 11.19
-    },
-    {
-      "code": "005010",
-      "name": "휴스틸",
-      "market": "KOSPI",
-      "marketCap": 383200000000,
-      "baseDate": "20260514",
-      "avg20Value": 27668648965,
-      "baseValue": 2482769330,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 5810,
-        "last0930": 6020,
-        "high0930": 6050,
-        "low0930": 5800,
-        "value_0930": 1568127840,
-        "volume_0930": 263535,
-        "closePosition0930": 0.88,
-        "openToLastRate": 3.61,
-        "highToLastDrop": -0.5,
-        "valueToAvgRatio_0930": 8.21,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 10.34
-    },
-    {
-      "code": "458870",
-      "name": "씨어스",
-      "market": "KOSDAQ",
-      "marketCap": 1813500000000,
-      "baseDate": "20260514",
-      "avg20Value": 18808721423,
-      "baseValue": 3236280250,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 38900,
-        "last0930": 40150,
-        "high0930": 40250,
-        "low0930": 38800,
-        "value_0930": 2100268550,
-        "volume_0930": 52992,
-        "closePosition0930": 0.931,
-        "openToLastRate": 3.21,
-        "highToLastDrop": -0.25,
-        "valueToAvgRatio_0930": 8.44,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 9.33
-    },
-    {
-      "code": "475150",
-      "name": "SK이터닉스",
-      "market": "KOSPI",
-      "marketCap": 1975900000000,
-      "baseDate": "20260514",
-      "avg20Value": 60699091455,
-      "baseValue": 25670674200,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 49200,
-        "last0930": 51000,
-        "high0930": 51800,
-        "low0930": 49200,
-        "value_0930": 12768749950,
-        "volume_0930": 250269,
-        "closePosition0930": 0.692,
-        "openToLastRate": 3.66,
-        "highToLastDrop": -1.54,
-        "valueToAvgRatio_0930": 6.47,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 9.31
-    },
-    {
-      "code": "483650",
-      "name": "달바글로벌",
-      "market": "KOSPI",
-      "marketCap": 2807300000000,
-      "baseDate": "20260514",
-      "avg20Value": 56117815120,
-      "baseValue": 19971749000,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 253000,
-        "last0930": 260500,
-        "high0930": 265000,
-        "low0930": 250000,
-        "value_0930": 14241791000,
-        "volume_0930": 55078,
-        "closePosition0930": 0.7,
-        "openToLastRate": 2.96,
-        "highToLastDrop": -1.7,
-        "valueToAvgRatio_0930": 9.27,
-        "rebreakMorningHigh": false
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 9.01
-    },
-    {
-      "code": "112610",
-      "name": "씨에스윈드",
-      "market": "KOSPI",
-      "marketCap": 3019500000000,
-      "baseDate": "20260514",
-      "avg20Value": 37569805280,
-      "baseValue": 7329584400,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 54800,
-        "last0930": 56600,
-        "high0930": 56900,
-        "low0930": 54800,
-        "value_0930": 3821334450,
-        "volume_0930": 67975,
-        "closePosition0930": 0.857,
-        "openToLastRate": 3.28,
-        "highToLastDrop": -0.53,
-        "valueToAvgRatio_0930": 6.78,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 8.54
-    },
-    {
-      "code": "010780",
-      "name": "아이에스동서",
-      "market": "KOSPI",
-      "marketCap": 806000000000,
-      "baseDate": "20260514",
-      "avg20Value": 3493873703,
-      "baseValue": 1591444800,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 27200,
-        "last0930": 27750,
-        "high0930": 27800,
-        "low0930": 26700,
-        "value_0930": 1144030675,
-        "volume_0930": 41787,
-        "closePosition0930": 0.955,
-        "openToLastRate": 2.02,
-        "highToLastDrop": -0.18,
-        "valueToAvgRatio_0930": 9.35,
-        "rebreakMorningHigh": false
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 6.18
-    },
-    {
-      "code": "006280",
-      "name": "녹십자",
-      "market": "KOSPI",
-      "marketCap": 1602200000000,
-      "baseDate": "20260514",
-      "avg20Value": 7875095785,
-      "baseValue": 5031585700,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 139400,
-        "last0930": 142300,
-        "high0930": 142300,
-        "low0930": 139100,
-        "value_0930": 3296893400,
-        "volume_0930": 23447,
-        "closePosition0930": 1,
-        "openToLastRate": 2.08,
-        "highToLastDrop": 0,
-        "valueToAvgRatio_0930": 8.52,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 6.07
+      "score": 12.02,
+      "finalScore": 115.38
     },
     {
       "code": "090360",
@@ -521,85 +106,8 @@
       },
       "status": "READY",
       "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 5.53
-    },
-    {
-      "code": "023530",
-      "name": "롯데쇼핑",
-      "market": "KOSPI",
-      "marketCap": 3827500000000,
-      "baseDate": "20260514",
-      "avg20Value": 23459844510,
-      "baseValue": 4496094000,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 160000,
-        "last0930": 163300,
-        "high0930": 164500,
-        "low0930": 157400,
-        "value_0930": 2326219600,
-        "volume_0930": 14345,
-        "closePosition0930": 0.831,
-        "openToLastRate": 2.06,
-        "highToLastDrop": -0.73,
-        "valueToAvgRatio_0930": 6.73,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 5.34
-    },
-    {
-      "code": "209640",
-      "name": "와이제이링크",
-      "market": "KOSDAQ",
-      "marketCap": 231500000000,
-      "baseDate": "20260514",
-      "avg20Value": 68086355966,
-      "baseValue": 4337966350,
-      "metrics": {
-        "bars_total": 29,
-        "open0900": 8630,
-        "last0930": 8780,
-        "high0930": 8980,
-        "low0930": 8210,
-        "value_0930": 2932052775,
-        "volume_0930": 333865,
-        "closePosition0930": 0.74,
-        "openToLastRate": 1.74,
-        "highToLastDrop": -2.23,
-        "valueToAvgRatio_0930": 8.79,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 5.16
-    },
-    {
-      "code": "403550",
-      "name": "쏘카",
-      "market": "KOSPI",
-      "marketCap": 584900000000,
-      "baseDate": "20260514",
-      "avg20Value": 2497969166,
-      "baseValue": 10820872400,
-      "metrics": {
-        "bars_total": 29,
-        "open0900": 20100,
-        "last0930": 20450,
-        "high0930": 20500,
-        "low0930": 18960,
-        "value_0930": 6550759840,
-        "volume_0930": 332618,
-        "closePosition0930": 0.968,
-        "openToLastRate": 1.74,
-        "highToLastDrop": -0.24,
-        "valueToAvgRatio_0930": 7.87,
-        "rebreakMorningHigh": true
-      },
-      "status": "READY",
-      "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 4.88
+      "score": 5.53,
+      "finalScore": 98.17
     },
     {
       "code": "183300",
@@ -625,7 +133,62 @@
       },
       "status": "READY",
       "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 3.69
+      "score": 3.69,
+      "finalScore": 93.2
+    },
+    {
+      "code": "403550",
+      "name": "쏘카",
+      "market": "KOSPI",
+      "marketCap": 584900000000,
+      "baseDate": "20260514",
+      "avg20Value": 2497969166,
+      "baseValue": 10820872400,
+      "metrics": {
+        "bars_total": 29,
+        "open0900": 20100,
+        "last0930": 20450,
+        "high0930": 20500,
+        "low0930": 18960,
+        "value_0930": 6550759840,
+        "volume_0930": 332618,
+        "closePosition0930": 0.968,
+        "openToLastRate": 1.74,
+        "highToLastDrop": -0.24,
+        "valueToAvgRatio_0930": 7.87,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 4.88,
+      "finalScore": 78.39
+    },
+    {
+      "code": "475150",
+      "name": "SK이터닉스",
+      "market": "KOSPI",
+      "marketCap": 1975900000000,
+      "baseDate": "20260514",
+      "avg20Value": 60699091455,
+      "baseValue": 48260231000,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 49200,
+        "last0930": 51000,
+        "high0930": 51800,
+        "low0930": 49200,
+        "value_0930": 12768749950,
+        "volume_0930": 250269,
+        "closePosition0930": 0.692,
+        "openToLastRate": 3.66,
+        "highToLastDrop": -1.54,
+        "valueToAvgRatio_0930": 3.44,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 6.79,
+      "finalScore": 75.5
     },
     {
       "code": "140410",
@@ -651,7 +214,251 @@
       },
       "status": "READY",
       "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 3.43
+      "score": 3.43,
+      "finalScore": 71.36
+    },
+    {
+      "code": "483650",
+      "name": "달바글로벌",
+      "market": "KOSPI",
+      "marketCap": 2807300000000,
+      "baseDate": "20260514",
+      "avg20Value": 56117815120,
+      "baseValue": 56162340000,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 253000,
+        "last0930": 260500,
+        "high0930": 265000,
+        "low0930": 250000,
+        "value_0930": 14241791000,
+        "volume_0930": 55078,
+        "closePosition0930": 0.7,
+        "openToLastRate": 2.96,
+        "highToLastDrop": -1.7,
+        "valueToAvgRatio_0930": 3.3,
+        "rebreakMorningHigh": false
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 5.38,
+      "finalScore": 70.57
+    },
+    {
+      "code": "253840",
+      "name": "수젠텍",
+      "market": "KOSDAQ",
+      "marketCap": 93400000000,
+      "baseDate": "20260514",
+      "avg20Value": 37010218185,
+      "baseValue": 18676095250,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 6900,
+        "last0930": 7270,
+        "high0930": 7380,
+        "low0930": 6900,
+        "value_0930": 7239802660,
+        "volume_0930": 1009220,
+        "closePosition0930": 0.771,
+        "openToLastRate": 5.36,
+        "highToLastDrop": -1.49,
+        "valueToAvgRatio_0930": 5.04,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 12.03,
+      "finalScore": 69.44
+    },
+    {
+      "code": "142280",
+      "name": "녹십자엠에스",
+      "market": "KOSDAQ",
+      "marketCap": 84000000000,
+      "baseDate": "20260514",
+      "avg20Value": 8398542325,
+      "baseValue": 7783477065,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 4620,
+        "last0930": 4870,
+        "high0930": 4935,
+        "low0930": 4550,
+        "value_0930": 4434348685,
+        "volume_0930": 938287,
+        "closePosition0930": 0.831,
+        "openToLastRate": 5.41,
+        "highToLastDrop": -1.32,
+        "valueToAvgRatio_0930": 7.41,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 14.73,
+      "finalScore": 69.11
+    },
+    {
+      "code": "458870",
+      "name": "씨어스",
+      "market": "KOSDAQ",
+      "marketCap": 1813500000000,
+      "baseDate": "20260514",
+      "avg20Value": 18808721423,
+      "baseValue": 3236280250,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 38900,
+        "last0930": 40150,
+        "high0930": 40250,
+        "low0930": 38800,
+        "value_0930": 2100268550,
+        "volume_0930": 52992,
+        "closePosition0930": 0.931,
+        "openToLastRate": 3.21,
+        "highToLastDrop": -0.25,
+        "valueToAvgRatio_0930": 8.44,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 9.33,
+      "finalScore": 68.4
+    },
+    {
+      "code": "005010",
+      "name": "휴스틸",
+      "market": "KOSPI",
+      "marketCap": 383200000000,
+      "baseDate": "20260514",
+      "avg20Value": 27668648965,
+      "baseValue": 2482769330,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 5810,
+        "last0930": 6020,
+        "high0930": 6050,
+        "low0930": 5800,
+        "value_0930": 1568127840,
+        "volume_0930": 263535,
+        "closePosition0930": 0.88,
+        "openToLastRate": 3.61,
+        "highToLastDrop": -0.5,
+        "valueToAvgRatio_0930": 8.21,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 10.34,
+      "finalScore": 65.95
+    },
+    {
+      "code": "033240",
+      "name": "자화전자",
+      "market": "KOSPI",
+      "marketCap": 1051100000000,
+      "baseDate": "20260514",
+      "avg20Value": 13041340808,
+      "baseValue": 12872444400,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 47150,
+        "last0930": 49350,
+        "high0930": 49500,
+        "low0930": 45700,
+        "value_0930": 3420105350,
+        "volume_0930": 71570,
+        "closePosition0930": 0.961,
+        "openToLastRate": 4.67,
+        "highToLastDrop": -0.3,
+        "valueToAvgRatio_0930": 3.45,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 8.67,
+      "finalScore": 60.03
+    },
+    {
+      "code": "010780",
+      "name": "아이에스동서",
+      "market": "KOSPI",
+      "marketCap": 806000000000,
+      "baseDate": "20260514",
+      "avg20Value": 3493873703,
+      "baseValue": 1591444800,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 27200,
+        "last0930": 27750,
+        "high0930": 27800,
+        "low0930": 26700,
+        "value_0930": 1144030675,
+        "volume_0930": 41787,
+        "closePosition0930": 0.955,
+        "openToLastRate": 2.02,
+        "highToLastDrop": -0.18,
+        "valueToAvgRatio_0930": 9.35,
+        "rebreakMorningHigh": false
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 6.18,
+      "finalScore": 58.84
+    },
+    {
+      "code": "209640",
+      "name": "와이제이링크",
+      "market": "KOSDAQ",
+      "marketCap": 231500000000,
+      "baseDate": "20260514",
+      "avg20Value": 68086355966,
+      "baseValue": 4337966350,
+      "metrics": {
+        "bars_total": 29,
+        "open0900": 8630,
+        "last0930": 8780,
+        "high0930": 8980,
+        "low0930": 8210,
+        "value_0930": 2932052775,
+        "volume_0930": 333865,
+        "closePosition0930": 0.74,
+        "openToLastRate": 1.74,
+        "highToLastDrop": -2.23,
+        "valueToAvgRatio_0930": 8.79,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 5.16,
+      "finalScore": 57.88
+    },
+    {
+      "code": "018470",
+      "name": "조일알미늄",
+      "market": "KOSPI",
+      "marketCap": 221500000000,
+      "baseDate": "20260514",
+      "avg20Value": 36323476686,
+      "baseValue": 8105918120,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 1559,
+        "last0930": 1643,
+        "high0930": 1659,
+        "low0930": 1550,
+        "value_0930": 2689554657,
+        "volume_0930": 1671027,
+        "closePosition0930": 0.853,
+        "openToLastRate": 5.39,
+        "highToLastDrop": -0.96,
+        "valueToAvgRatio_0930": 4.31,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 11.19,
+      "finalScore": 56.88
     },
     {
       "code": "319660",
@@ -677,7 +484,8 @@
       },
       "status": "READY",
       "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 3.23
+      "score": 3.23,
+      "finalScore": 50.2
     },
     {
       "code": "077360",
@@ -703,9 +511,474 @@
       },
       "status": "READY",
       "statusLabel": "09:30 기준 강한 상태 유지",
-      "score": 3.09
+      "score": 3.09,
+      "finalScore": 49.06
     }
   ],
+  "scanner0930ReadyTop": [
+    {
+      "code": "131970",
+      "name": "두산테스나",
+      "market": "KOSDAQ",
+      "marketCap": 2526100000000,
+      "baseDate": "20260514",
+      "avg20Value": 59860697625,
+      "baseValue": 32283791100,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 175800,
+        "last0930": 183000,
+        "high0930": 187500,
+        "low0930": 172500,
+        "value_0930": 21320332700,
+        "volume_0930": 117276,
+        "closePosition0930": 0.7,
+        "openToLastRate": 4.1,
+        "highToLastDrop": -2.4,
+        "valueToAvgRatio_0930": 8.59,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 12.02,
+      "finalScore": 115.38
+    },
+    {
+      "code": "090360",
+      "name": "로보스타",
+      "market": "KOSDAQ",
+      "marketCap": 710800000000,
+      "baseDate": "20260514",
+      "avg20Value": 8863547880,
+      "baseValue": 39710295900,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 79500,
+        "last0930": 81200,
+        "high0930": 82500,
+        "low0930": 77800,
+        "value_0930": 20369296550,
+        "volume_0930": 252141,
+        "closePosition0930": 0.723,
+        "openToLastRate": 2.14,
+        "highToLastDrop": -1.58,
+        "valueToAvgRatio_0930": 6.67,
+        "rebreakMorningHigh": false
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 5.53,
+      "finalScore": 98.17
+    },
+    {
+      "code": "183300",
+      "name": "코미코",
+      "market": "KOSDAQ",
+      "marketCap": 1481200000000,
+      "baseDate": "20260514",
+      "avg20Value": 24114255860,
+      "baseValue": 15865794000,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 186400,
+        "last0930": 188700,
+        "high0930": 189600,
+        "low0930": 181400,
+        "value_0930": 10993129750,
+        "volume_0930": 58965,
+        "closePosition0930": 0.89,
+        "openToLastRate": 1.23,
+        "highToLastDrop": -0.47,
+        "valueToAvgRatio_0930": 9.01,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 3.69,
+      "finalScore": 93.2
+    },
+    {
+      "code": "403550",
+      "name": "쏘카",
+      "market": "KOSPI",
+      "marketCap": 584900000000,
+      "baseDate": "20260514",
+      "avg20Value": 2497969166,
+      "baseValue": 10820872400,
+      "metrics": {
+        "bars_total": 29,
+        "open0900": 20100,
+        "last0930": 20450,
+        "high0930": 20500,
+        "low0930": 18960,
+        "value_0930": 6550759840,
+        "volume_0930": 332618,
+        "closePosition0930": 0.968,
+        "openToLastRate": 1.74,
+        "highToLastDrop": -0.24,
+        "valueToAvgRatio_0930": 7.87,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 4.88,
+      "finalScore": 78.39
+    },
+    {
+      "code": "475150",
+      "name": "SK이터닉스",
+      "market": "KOSPI",
+      "marketCap": 1975900000000,
+      "baseDate": "20260514",
+      "avg20Value": 60699091455,
+      "baseValue": 48260231000,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 49200,
+        "last0930": 51000,
+        "high0930": 51800,
+        "low0930": 49200,
+        "value_0930": 12768749950,
+        "volume_0930": 250269,
+        "closePosition0930": 0.692,
+        "openToLastRate": 3.66,
+        "highToLastDrop": -1.54,
+        "valueToAvgRatio_0930": 3.44,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 6.79,
+      "finalScore": 75.5
+    }
+  ],
+  "scanner0930ReadyRest": [
+    {
+      "code": "140410",
+      "name": "메지온",
+      "market": "KOSDAQ",
+      "marketCap": 2665400000000,
+      "baseDate": "20260514",
+      "avg20Value": 17474324990,
+      "baseValue": 5419719000,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 77200,
+        "last0930": 78100,
+        "high0930": 78100,
+        "low0930": 75400,
+        "value_0930": 3590658900,
+        "volume_0930": 46680,
+        "closePosition0930": 1,
+        "openToLastRate": 1.17,
+        "highToLastDrop": 0,
+        "valueToAvgRatio_0930": 8.61,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 3.43,
+      "finalScore": 71.36
+    },
+    {
+      "code": "483650",
+      "name": "달바글로벌",
+      "market": "KOSPI",
+      "marketCap": 2807300000000,
+      "baseDate": "20260514",
+      "avg20Value": 56117815120,
+      "baseValue": 56162340000,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 253000,
+        "last0930": 260500,
+        "high0930": 265000,
+        "low0930": 250000,
+        "value_0930": 14241791000,
+        "volume_0930": 55078,
+        "closePosition0930": 0.7,
+        "openToLastRate": 2.96,
+        "highToLastDrop": -1.7,
+        "valueToAvgRatio_0930": 3.3,
+        "rebreakMorningHigh": false
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 5.38,
+      "finalScore": 70.57
+    },
+    {
+      "code": "253840",
+      "name": "수젠텍",
+      "market": "KOSDAQ",
+      "marketCap": 93400000000,
+      "baseDate": "20260514",
+      "avg20Value": 37010218185,
+      "baseValue": 18676095250,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 6900,
+        "last0930": 7270,
+        "high0930": 7380,
+        "low0930": 6900,
+        "value_0930": 7239802660,
+        "volume_0930": 1009220,
+        "closePosition0930": 0.771,
+        "openToLastRate": 5.36,
+        "highToLastDrop": -1.49,
+        "valueToAvgRatio_0930": 5.04,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 12.03,
+      "finalScore": 69.44
+    },
+    {
+      "code": "142280",
+      "name": "녹십자엠에스",
+      "market": "KOSDAQ",
+      "marketCap": 84000000000,
+      "baseDate": "20260514",
+      "avg20Value": 8398542325,
+      "baseValue": 7783477065,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 4620,
+        "last0930": 4870,
+        "high0930": 4935,
+        "low0930": 4550,
+        "value_0930": 4434348685,
+        "volume_0930": 938287,
+        "closePosition0930": 0.831,
+        "openToLastRate": 5.41,
+        "highToLastDrop": -1.32,
+        "valueToAvgRatio_0930": 7.41,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 14.73,
+      "finalScore": 69.11
+    },
+    {
+      "code": "458870",
+      "name": "씨어스",
+      "market": "KOSDAQ",
+      "marketCap": 1813500000000,
+      "baseDate": "20260514",
+      "avg20Value": 18808721423,
+      "baseValue": 3236280250,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 38900,
+        "last0930": 40150,
+        "high0930": 40250,
+        "low0930": 38800,
+        "value_0930": 2100268550,
+        "volume_0930": 52992,
+        "closePosition0930": 0.931,
+        "openToLastRate": 3.21,
+        "highToLastDrop": -0.25,
+        "valueToAvgRatio_0930": 8.44,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 9.33,
+      "finalScore": 68.4
+    },
+    {
+      "code": "005010",
+      "name": "휴스틸",
+      "market": "KOSPI",
+      "marketCap": 383200000000,
+      "baseDate": "20260514",
+      "avg20Value": 27668648965,
+      "baseValue": 2482769330,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 5810,
+        "last0930": 6020,
+        "high0930": 6050,
+        "low0930": 5800,
+        "value_0930": 1568127840,
+        "volume_0930": 263535,
+        "closePosition0930": 0.88,
+        "openToLastRate": 3.61,
+        "highToLastDrop": -0.5,
+        "valueToAvgRatio_0930": 8.21,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 10.34,
+      "finalScore": 65.95
+    },
+    {
+      "code": "033240",
+      "name": "자화전자",
+      "market": "KOSPI",
+      "marketCap": 1051100000000,
+      "baseDate": "20260514",
+      "avg20Value": 13041340808,
+      "baseValue": 12872444400,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 47150,
+        "last0930": 49350,
+        "high0930": 49500,
+        "low0930": 45700,
+        "value_0930": 3420105350,
+        "volume_0930": 71570,
+        "closePosition0930": 0.961,
+        "openToLastRate": 4.67,
+        "highToLastDrop": -0.3,
+        "valueToAvgRatio_0930": 3.45,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 8.67,
+      "finalScore": 60.03
+    },
+    {
+      "code": "010780",
+      "name": "아이에스동서",
+      "market": "KOSPI",
+      "marketCap": 806000000000,
+      "baseDate": "20260514",
+      "avg20Value": 3493873703,
+      "baseValue": 1591444800,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 27200,
+        "last0930": 27750,
+        "high0930": 27800,
+        "low0930": 26700,
+        "value_0930": 1144030675,
+        "volume_0930": 41787,
+        "closePosition0930": 0.955,
+        "openToLastRate": 2.02,
+        "highToLastDrop": -0.18,
+        "valueToAvgRatio_0930": 9.35,
+        "rebreakMorningHigh": false
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 6.18,
+      "finalScore": 58.84
+    },
+    {
+      "code": "209640",
+      "name": "와이제이링크",
+      "market": "KOSDAQ",
+      "marketCap": 231500000000,
+      "baseDate": "20260514",
+      "avg20Value": 68086355966,
+      "baseValue": 4337966350,
+      "metrics": {
+        "bars_total": 29,
+        "open0900": 8630,
+        "last0930": 8780,
+        "high0930": 8980,
+        "low0930": 8210,
+        "value_0930": 2932052775,
+        "volume_0930": 333865,
+        "closePosition0930": 0.74,
+        "openToLastRate": 1.74,
+        "highToLastDrop": -2.23,
+        "valueToAvgRatio_0930": 8.79,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 5.16,
+      "finalScore": 57.88
+    },
+    {
+      "code": "018470",
+      "name": "조일알미늄",
+      "market": "KOSPI",
+      "marketCap": 221500000000,
+      "baseDate": "20260514",
+      "avg20Value": 36323476686,
+      "baseValue": 8105918120,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 1559,
+        "last0930": 1643,
+        "high0930": 1659,
+        "low0930": 1550,
+        "value_0930": 2689554657,
+        "volume_0930": 1671027,
+        "closePosition0930": 0.853,
+        "openToLastRate": 5.39,
+        "highToLastDrop": -0.96,
+        "valueToAvgRatio_0930": 4.31,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 11.19,
+      "finalScore": 56.88
+    },
+    {
+      "code": "319660",
+      "name": "피에스케이",
+      "market": "KOSDAQ",
+      "marketCap": 2569300000000,
+      "baseDate": "20260514",
+      "avg20Value": 35081767860,
+      "baseValue": 4498036800,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 109500,
+        "last0930": 110800,
+        "high0930": 111500,
+        "low0930": 108400,
+        "value_0930": 2554523250,
+        "volume_0930": 23182,
+        "closePosition0930": 0.774,
+        "openToLastRate": 1.19,
+        "highToLastDrop": -0.63,
+        "valueToAvgRatio_0930": 7.38,
+        "rebreakMorningHigh": false
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 3.23,
+      "finalScore": 50.2
+    },
+    {
+      "code": "077360",
+      "name": "덕산하이메탈",
+      "market": "KOSDAQ",
+      "marketCap": 834200000000,
+      "baseDate": "20260514",
+      "avg20Value": 46746843762,
+      "baseValue": 11584665600,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 18150,
+        "last0930": 18430,
+        "high0930": 18670,
+        "low0930": 17780,
+        "value_0930": 3580290670,
+        "volume_0930": 195448,
+        "closePosition0930": 0.73,
+        "openToLastRate": 1.54,
+        "highToLastDrop": -1.29,
+        "valueToAvgRatio_0930": 4.02,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 3.09,
+      "finalScore": 49.06
+    }
+  ],
+  "readyTopLimit": 5,
   "scanner0930Holding": [
     {
       "code": "006110",
@@ -714,7 +987,7 @@
       "marketCap": 1040500000000,
       "baseDate": "20260514",
       "avg20Value": 37287565595,
-      "baseValue": 46414531800,
+      "baseValue": 89260855200,
       "metrics": {
         "bars_total": 28,
         "open0900": 80400,
@@ -726,12 +999,13 @@
         "closePosition0930": 0.995,
         "openToLastRate": 24.13,
         "highToLastDrop": -0.1,
-        "valueToAvgRatio_0930": 6.56,
+        "valueToAvgRatio_0930": 3.41,
         "rebreakMorningHigh": true
       },
       "status": "WAIT_PULLBACK",
       "statusLabel": "이미 +8% 이상 올라 추격 부담",
-      "score": 61.8
+      "score": 44.56,
+      "finalScore": 149.63
     },
     {
       "code": "090460",
@@ -740,7 +1014,7 @@
       "marketCap": 1163000000000,
       "baseDate": "20260514",
       "avg20Value": 32207157638,
-      "baseValue": 38762835850,
+      "baseValue": 99556725000,
       "metrics": {
         "bars_total": 30,
         "open0900": 31000,
@@ -752,12 +1026,13 @@
         "closePosition0930": 0.961,
         "openToLastRate": 15.16,
         "highToLastDrop": -0.56,
-        "valueToAvgRatio_0930": 8.3,
+        "valueToAvgRatio_0930": 3.23,
         "rebreakMorningHigh": true
       },
       "status": "WAIT_PULLBACK",
       "statusLabel": "이미 +8% 이상 올라 추격 부담",
-      "score": 43.68
+      "score": 27.25,
+      "finalScore": 136.11
     },
     {
       "code": "088350",
@@ -766,7 +1041,7 @@
       "marketCap": 4242800000000,
       "baseDate": "20260514",
       "avg20Value": 30143746057,
-      "baseValue": 125423732240,
+      "baseValue": 243066099150,
       "metrics": {
         "bars_total": 30,
         "open0900": 4965,
@@ -778,12 +1053,13 @@
         "closePosition0930": 0.913,
         "openToLastRate": 14.8,
         "highToLastDrop": -1.21,
-        "valueToAvgRatio_0930": 8.18,
+        "valueToAvgRatio_0930": 4.22,
         "rebreakMorningHigh": true
       },
       "status": "WAIT_PULLBACK",
       "statusLabel": "이미 +8% 이상 올라 추격 부담",
-      "score": 42.33
+      "score": 30.4,
+      "finalScore": 298.37
     },
     {
       "code": "229640",
@@ -792,7 +1068,7 @@
       "marketCap": 2667400000000,
       "baseDate": "20260514",
       "avg20Value": 42744350350,
-      "baseValue": 34226280000,
+      "baseValue": 70638549000,
       "metrics": {
         "bars_total": 29,
         "open0900": 97800,
@@ -804,12 +1080,13 @@
         "closePosition0930": 0.92,
         "openToLastRate": 11.15,
         "highToLastDrop": -1,
-        "valueToAvgRatio_0930": 9.59,
+        "valueToAvgRatio_0930": 4.65,
         "rebreakMorningHigh": true
       },
       "status": "WAIT_PULLBACK",
       "statusLabel": "이미 +8% 이상 올라 추격 부담",
-      "score": 34.53
+      "score": 24.04,
+      "finalScore": 135.2
     },
     {
       "code": "033160",
@@ -835,7 +1112,8 @@
       },
       "status": "WAIT_PULLBACK",
       "statusLabel": "이미 +8% 이상 올라 추격 부담",
-      "score": 25.09
+      "score": 25.09,
+      "finalScore": 95.04
     },
     {
       "code": "452280",
@@ -861,7 +1139,8 @@
       },
       "status": "WAIT_PULLBACK",
       "statusLabel": "이미 +8% 이상 올라 추격 부담",
-      "score": 30.54
+      "score": 30.54,
+      "finalScore": 153.3
     },
     {
       "code": "003380",
@@ -887,7 +1166,8 @@
       },
       "status": "WAIT_PULLBACK",
       "statusLabel": "이미 +8% 이상 올라 추격 부담",
-      "score": 31.12
+      "score": 31.12,
+      "finalScore": 117.93
     },
     {
       "code": "096530",
@@ -913,7 +1193,8 @@
       },
       "status": "WAIT_PULLBACK",
       "statusLabel": "이미 +8% 이상 올라 추격 부담",
-      "score": 21.92
+      "score": 21.92,
+      "finalScore": 97.18
     },
     {
       "code": "008350",
@@ -939,7 +1220,8 @@
       },
       "status": "WAIT_PULLBACK",
       "statusLabel": "이미 +8% 이상 올라 추격 부담",
-      "score": 17.76
+      "score": 17.76,
+      "finalScore": 84.68
     },
     {
       "code": "012200",
@@ -965,7 +1247,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -40.66
+      "score": -40.66,
+      "finalScore": 171.84
     },
     {
       "code": "452260",
@@ -991,7 +1274,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -46.26
+      "score": -46.26,
+      "finalScore": 320.47
     },
     {
       "code": "412350",
@@ -1017,7 +1301,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -17.05
+      "score": -17.05,
+      "finalScore": 155.95
     },
     {
       "code": "147760",
@@ -1043,7 +1328,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -47.23
+      "score": -47.23,
+      "finalScore": 35.55
     },
     {
       "code": "389500",
@@ -1069,7 +1355,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -42.5
+      "score": -42.5,
+      "finalScore": 82.82
     },
     {
       "code": "094940",
@@ -1095,7 +1382,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -31.98
+      "score": -31.98,
+      "finalScore": 57.44
     },
     {
       "code": "033790",
@@ -1121,7 +1409,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -18.93
+      "score": -18.93,
+      "finalScore": 83.68
     },
     {
       "code": "320000",
@@ -1147,7 +1436,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -18.22
+      "score": -18.22,
+      "finalScore": 43.06
     },
     {
       "code": "065440",
@@ -1173,7 +1463,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -26.36
+      "score": -26.36,
+      "finalScore": 51.91
     },
     {
       "code": "092200",
@@ -1199,7 +1490,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -33.8
+      "score": -33.8,
+      "finalScore": 50.02
     },
     {
       "code": "147830",
@@ -1225,7 +1517,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -18.28
+      "score": -18.28,
+      "finalScore": 61.35
     },
     {
       "code": "129920",
@@ -1251,7 +1544,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -16.15
+      "score": -16.15,
+      "finalScore": 32.43
     },
     {
       "code": "007460",
@@ -1277,7 +1571,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -1.39
+      "score": -1.39,
+      "finalScore": 110.67
     },
     {
       "code": "012860",
@@ -1303,7 +1598,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -26.75
+      "score": -26.75,
+      "finalScore": 81.27
     },
     {
       "code": "072950",
@@ -1329,7 +1625,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": 29.65
+      "score": 29.65,
+      "finalScore": 159.21
     },
     {
       "code": "138080",
@@ -1355,7 +1652,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -13.41
+      "score": -13.41,
+      "finalScore": 69.17
     },
     {
       "code": "212560",
@@ -1381,7 +1679,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -9.69
+      "score": -9.69,
+      "finalScore": 43.18
     },
     {
       "code": "062970",
@@ -1407,7 +1706,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": 14.62
+      "score": 14.62,
+      "finalScore": 80.75
     },
     {
       "code": "115440",
@@ -1433,7 +1733,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -9.28
+      "score": -9.28,
+      "finalScore": 31.84
     },
     {
       "code": "017960",
@@ -1442,7 +1743,7 @@
       "marketCap": 2590400000000,
       "baseDate": "20260514",
       "avg20Value": 29923715498,
-      "baseValue": 9807569000,
+      "baseValue": 29414221200,
       "metrics": {
         "bars_total": 31,
         "open0900": 44000,
@@ -1454,12 +1755,13 @@
         "closePosition0930": 0.026,
         "openToLastRate": -6.59,
         "highToLastDrop": -8.46,
-        "valueToAvgRatio_0930": 8.95,
+        "valueToAvgRatio_0930": 2.98,
         "rebreakMorningHigh": false
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -19.72
+      "score": -11.38,
+      "finalScore": 29.58
     },
     {
       "code": "078160",
@@ -1485,7 +1787,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -22.16
+      "score": -22.16,
+      "finalScore": 38.23
     },
     {
       "code": "327260",
@@ -1511,7 +1814,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -11.18
+      "score": -11.18,
+      "finalScore": 42.24
     },
     {
       "code": "059120",
@@ -1537,7 +1841,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -20.62
+      "score": -20.62,
+      "finalScore": 40.51
     },
     {
       "code": "100790",
@@ -1563,7 +1868,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": 40.66
+      "score": 40.66,
+      "finalScore": 1005.32
     },
     {
       "code": "189330",
@@ -1589,7 +1895,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -22.77
+      "score": -22.77,
+      "finalScore": 38.83
     },
     {
       "code": "025560",
@@ -1615,7 +1922,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -6.22
+      "score": -6.22,
+      "finalScore": 87.77
     },
     {
       "code": "049080",
@@ -1641,7 +1949,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -25.04
+      "score": -25.04,
+      "finalScore": 41.05
     },
     {
       "code": "332570",
@@ -1667,7 +1976,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -20.17
+      "score": -20.17,
+      "finalScore": 110.91
     },
     {
       "code": "126340",
@@ -1693,7 +2003,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -6.45
+      "score": -6.45,
+      "finalScore": 44.11
     },
     {
       "code": "076610",
@@ -1719,7 +2030,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -9.26
+      "score": -9.26,
+      "finalScore": 41.04
     },
     {
       "code": "307180",
@@ -1745,7 +2057,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -20.51
+      "score": -20.51,
+      "finalScore": 31.7
     },
     {
       "code": "078890",
@@ -1771,7 +2084,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -20.44
+      "score": -20.44,
+      "finalScore": 32.99
     },
     {
       "code": "056360",
@@ -1797,7 +2111,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -6.43
+      "score": -6.43,
+      "finalScore": 31.14
     },
     {
       "code": "417840",
@@ -1823,7 +2138,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -5.12
+      "score": -5.12,
+      "finalScore": 141.05
     },
     {
       "code": "033100",
@@ -1849,7 +2165,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -24.11
+      "score": -24.11,
+      "finalScore": 100.12
     },
     {
       "code": "460940",
@@ -1875,7 +2192,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -23.57
+      "score": -23.57,
+      "finalScore": 39.75
     },
     {
       "code": "037030",
@@ -1901,7 +2219,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -16.31
+      "score": -16.31,
+      "finalScore": 54.9
     },
     {
       "code": "393890",
@@ -1927,7 +2246,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -19.61
+      "score": -19.61,
+      "finalScore": 37.63
     },
     {
       "code": "010100",
@@ -1953,7 +2273,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -22.79
+      "score": -22.79,
+      "finalScore": 39.55
     },
     {
       "code": "050890",
@@ -1979,7 +2300,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -5.94
+      "score": -5.94,
+      "finalScore": 110.28
     },
     {
       "code": "417970",
@@ -2005,7 +2327,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -18.99
+      "score": -18.99,
+      "finalScore": 33.35
     },
     {
       "code": "052900",
@@ -2031,7 +2354,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -11.81
+      "score": -11.81,
+      "finalScore": 38.13
     },
     {
       "code": "010690",
@@ -2057,7 +2381,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -20.88
+      "score": -20.88,
+      "finalScore": 44.3
     },
     {
       "code": "020150",
@@ -2066,7 +2391,7 @@
       "marketCap": 3492800000000,
       "baseDate": "20260514",
       "avg20Value": 36669652183,
-      "baseValue": 5771634400,
+      "baseValue": 23775256500,
       "metrics": {
         "bars_total": 31,
         "open0900": 69300,
@@ -2078,12 +2403,13 @@
         "closePosition0930": 0.153,
         "openToLastRate": -4.47,
         "highToLastDrop": -7.02,
-        "valueToAvgRatio_0930": 9.46,
+        "valueToAvgRatio_0930": 2.3,
         "rebreakMorningHigh": false
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -13.75
+      "score": -6.78,
+      "finalScore": 21.8
     },
     {
       "code": "024840",
@@ -2109,7 +2435,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": 15
+      "score": 15,
+      "finalScore": 122.29
     },
     {
       "code": "230240",
@@ -2135,7 +2462,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -4.62
+      "score": -4.62,
+      "finalScore": 46.34
     },
     {
       "code": "144960",
@@ -2161,7 +2489,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": 3.9
+      "score": 3.9,
+      "finalScore": 121.09
     },
     {
       "code": "006140",
@@ -2187,7 +2516,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -16.34
+      "score": -16.34,
+      "finalScore": 36.82
     },
     {
       "code": "101330",
@@ -2213,7 +2543,8 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -19.1
+      "score": -19.1,
+      "finalScore": 36.56
     },
     {
       "code": "025820",
@@ -2239,10 +2570,65 @@
       },
       "status": "FADED",
       "statusLabel": "장초 고점 대비 다시 밀림",
-      "score": -11.53
+      "score": -11.53,
+      "finalScore": 37.44
     }
   ],
   "scanner0930Rejected": [
+    {
+      "code": "004170",
+      "name": "신세계",
+      "market": "KOSPI",
+      "marketCap": 3844200000000,
+      "baseDate": "20260514",
+      "avg20Value": 30100402100,
+      "baseValue": 77395240000,
+      "metrics": {
+        "bars_total": 30,
+        "open0900": 473000,
+        "last0930": 507000,
+        "high0930": 508000,
+        "low0930": 471500,
+        "value_0930": 10607316000,
+        "volume_0930": 21488,
+        "closePosition0930": 0.973,
+        "openToLastRate": 7.19,
+        "highToLastDrop": -0.2,
+        "valueToAvgRatio_0930": 1.78,
+        "rebreakMorningHigh": true
+      },
+      "status": "WEAK",
+      "statusLabel": "시가 대비 약하거나 거래대금 부족",
+      "score": 9.59,
+      "finalScore": 80.54
+    },
+    {
+      "code": "001450",
+      "name": "현대해상",
+      "market": "KOSPI",
+      "marketCap": 2591500000000,
+      "baseDate": "20260514",
+      "avg20Value": 12346016553,
+      "baseValue": 49857519250,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 29950,
+        "last0930": 32000,
+        "high0930": 32200,
+        "low0930": 29950,
+        "value_0930": 11205158725,
+        "volume_0930": 356853,
+        "closePosition0930": 0.911,
+        "openToLastRate": 6.84,
+        "highToLastDrop": -0.62,
+        "valueToAvgRatio_0930": 2.92,
+        "rebreakMorningHigh": true
+      },
+      "status": "WEAK",
+      "statusLabel": "시가 대비 약하거나 거래대금 부족",
+      "score": 11.69,
+      "finalScore": 81.3
+    },
     {
       "code": "222040",
       "name": "코스맥스엔비티",
@@ -2267,7 +2653,116 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 11.74
+      "score": 11.74,
+      "finalScore": 48.15
+    },
+    {
+      "code": "069960",
+      "name": "현대백화점",
+      "market": "KOSPI",
+      "marketCap": 2464300000000,
+      "baseDate": "20260514",
+      "avg20Value": 13824060755,
+      "baseValue": 26686125000,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 112700,
+        "last0930": 117600,
+        "high0930": 118200,
+        "low0930": 111700,
+        "value_0930": 2399598200,
+        "volume_0930": 20534,
+        "closePosition0930": 0.908,
+        "openToLastRate": 4.35,
+        "highToLastDrop": -0.51,
+        "valueToAvgRatio_0930": 1.17,
+        "rebreakMorningHigh": false
+      },
+      "status": "WEAK",
+      "statusLabel": "시가 대비 약하거나 거래대금 부족",
+      "score": 4.71,
+      "finalScore": 37.85
+    },
+    {
+      "code": "008770",
+      "name": "호텔신라",
+      "market": "KOSPI",
+      "marketCap": 2570800000000,
+      "baseDate": "20260514",
+      "avg20Value": 41036215653,
+      "baseValue": 46874850000,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 61200,
+        "last0930": 63800,
+        "high0930": 64700,
+        "low0930": 61200,
+        "value_0930": 7024357600,
+        "volume_0930": 110226,
+        "closePosition0930": 0.743,
+        "openToLastRate": 4.25,
+        "highToLastDrop": -1.39,
+        "valueToAvgRatio_0930": 1.95,
+        "rebreakMorningHigh": true
+      },
+      "status": "WEAK",
+      "statusLabel": "시가 대비 약하거나 거래대금 부족",
+      "score": 5.93,
+      "finalScore": 57.44
+    },
+    {
+      "code": "097950",
+      "name": "CJ제일제당",
+      "market": "KOSPI",
+      "marketCap": 3710900000000,
+      "baseDate": "20260514",
+      "avg20Value": 15249234725,
+      "baseValue": 31954676000,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 209000,
+        "last0930": 217500,
+        "high0930": 219000,
+        "low0930": 209000,
+        "value_0930": 3673418250,
+        "volume_0930": 17019,
+        "closePosition0930": 0.85,
+        "openToLastRate": 4.07,
+        "highToLastDrop": -0.68,
+        "valueToAvgRatio_0930": 1.49,
+        "rebreakMorningHigh": true
+      },
+      "status": "WEAK",
+      "statusLabel": "시가 대비 약하거나 거래대금 부족",
+      "score": 4.97,
+      "finalScore": 49.35
+    },
+    {
+      "code": "112610",
+      "name": "씨에스윈드",
+      "market": "KOSPI",
+      "marketCap": 3019500000000,
+      "baseDate": "20260514",
+      "avg20Value": 37569805280,
+      "baseValue": 23329687500,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 54800,
+        "last0930": 56600,
+        "high0930": 56900,
+        "low0930": 54800,
+        "value_0930": 3821334450,
+        "volume_0930": 67975,
+        "closePosition0930": 0.857,
+        "openToLastRate": 3.28,
+        "highToLastDrop": -0.53,
+        "valueToAvgRatio_0930": 2.13,
+        "rebreakMorningHigh": true
+      },
+      "status": "WEAK",
+      "statusLabel": "시가 대비 약하거나 거래대금 부족",
+      "score": 4.79,
+      "finalScore": 50.63
     },
     {
       "code": "357780",
@@ -2293,7 +2788,62 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 7.66
+      "score": 7.66,
+      "finalScore": 61.39
+    },
+    {
+      "code": "006280",
+      "name": "녹십자",
+      "market": "KOSPI",
+      "marketCap": 1602200000000,
+      "baseDate": "20260514",
+      "avg20Value": 7875095785,
+      "baseValue": 15855600000,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 139400,
+        "last0930": 142300,
+        "high0930": 142300,
+        "low0930": 139100,
+        "value_0930": 3296893400,
+        "volume_0930": 23447,
+        "closePosition0930": 1,
+        "openToLastRate": 2.08,
+        "highToLastDrop": 0,
+        "valueToAvgRatio_0930": 2.7,
+        "rebreakMorningHigh": true
+      },
+      "status": "WEAK",
+      "statusLabel": "시가 대비 약하거나 거래대금 부족",
+      "score": 3.42,
+      "finalScore": 54.11
+    },
+    {
+      "code": "023530",
+      "name": "롯데쇼핑",
+      "market": "KOSPI",
+      "marketCap": 3827500000000,
+      "baseDate": "20260514",
+      "avg20Value": 23459844510,
+      "baseValue": 31937516100,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 160000,
+        "last0930": 163300,
+        "high0930": 164500,
+        "low0930": 157400,
+        "value_0930": 2326219600,
+        "volume_0930": 14345,
+        "closePosition0930": 0.831,
+        "openToLastRate": 2.06,
+        "highToLastDrop": -0.73,
+        "valueToAvgRatio_0930": 0.95,
+        "rebreakMorningHigh": true
+      },
+      "status": "WEAK",
+      "statusLabel": "시가 대비 약하거나 거래대금 부족",
+      "score": 2.01,
+      "finalScore": 40.38
     },
     {
       "code": "089890",
@@ -2319,7 +2869,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 4.31
+      "score": 4.31,
+      "finalScore": 38.91
     },
     {
       "code": "051900",
@@ -2328,7 +2879,7 @@
       "marketCap": 3886800000000,
       "baseDate": "20260514",
       "avg20Value": 18630811650,
-      "baseValue": 3963274000,
+      "baseValue": 43386447000,
       "metrics": {
         "bars_total": 31,
         "open0900": 256500,
@@ -2340,12 +2891,13 @@
         "closePosition0930": 0.4,
         "openToLastRate": 1.17,
         "highToLastDrop": -1.7,
-        "valueToAvgRatio_0930": 9.73,
+        "valueToAvgRatio_0930": 0.89,
         "rebreakMorningHigh": true
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 3.65
+      "score": 1.1,
+      "finalScore": 30.33
     },
     {
       "code": "161890",
@@ -2354,7 +2906,7 @@
       "marketCap": 2093800000000,
       "baseDate": "20260514",
       "avg20Value": 25669503840,
-      "baseValue": 6614972700,
+      "baseValue": 32683593600,
       "metrics": {
         "bars_total": 31,
         "open0900": 96600,
@@ -2366,12 +2918,13 @@
         "closePosition0930": 0.4,
         "openToLastRate": 1.14,
         "highToLastDrop": -1.81,
-        "valueToAvgRatio_0930": 7.23,
+        "valueToAvgRatio_0930": 1.46,
         "rebreakMorningHigh": false
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 3.07
+      "score": 1.38,
+      "finalScore": 26.13
     },
     {
       "code": "475830",
@@ -2397,7 +2950,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 2.6
+      "score": 2.6,
+      "finalScore": 31.29
     },
     {
       "code": "005250",
@@ -2423,7 +2977,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 2.41
+      "score": 2.41,
+      "finalScore": 49.4
     },
     {
       "code": "092790",
@@ -2449,7 +3004,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 1.78
+      "score": 1.78,
+      "finalScore": 31.95
     },
     {
       "code": "000650",
@@ -2475,7 +3031,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 3.01
+      "score": 3.01,
+      "finalScore": 100.05
     },
     {
       "code": "417200",
@@ -2501,7 +3058,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 2.49
+      "score": 2.49,
+      "finalScore": 78.09
     },
     {
       "code": "330860",
@@ -2527,7 +3085,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 2.72
+      "score": 2.72,
+      "finalScore": 61.62
     },
     {
       "code": "158430",
@@ -2553,7 +3112,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 2.27
+      "score": 2.27,
+      "finalScore": 31.87
     },
     {
       "code": "382800",
@@ -2579,7 +3139,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 2.15
+      "score": 2.15,
+      "finalScore": 51.99
     },
     {
       "code": "253590",
@@ -2605,7 +3166,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 2.1
+      "score": 2.1,
+      "finalScore": 42.73
     },
     {
       "code": "048410",
@@ -2631,7 +3193,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 1.74
+      "score": 1.74,
+      "finalScore": 47.65
     },
     {
       "code": "084650",
@@ -2657,7 +3220,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 0.92
+      "score": 0.92,
+      "finalScore": 37.51
     },
     {
       "code": "290550",
@@ -2683,7 +3247,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 0.91
+      "score": 0.91,
+      "finalScore": 63.52
     },
     {
       "code": "064260",
@@ -2709,7 +3274,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 0.88
+      "score": 0.88,
+      "finalScore": 42.03
     },
     {
       "code": "002380",
@@ -2718,7 +3284,7 @@
       "marketCap": 4932000000000,
       "baseDate": "20260514",
       "avg20Value": 23623776150,
-      "baseValue": 5280768000,
+      "baseValue": 19335847000,
       "metrics": {
         "bars_total": 31,
         "open0900": 573000,
@@ -2730,12 +3296,13 @@
         "closePosition0930": 1,
         "openToLastRate": 0.17,
         "highToLastDrop": 0,
-        "valueToAvgRatio_0930": 8.1,
+        "valueToAvgRatio_0930": 2.21,
         "rebreakMorningHigh": true
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 0.48
+      "score": 0.25,
+      "finalScore": 49.75
     },
     {
       "code": "083450",
@@ -2761,7 +3328,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 0.44
+      "score": 0.44,
+      "finalScore": 69.49
     },
     {
       "code": "003530",
@@ -2770,7 +3338,7 @@
       "marketCap": 1611300000000,
       "baseDate": "20260514",
       "avg20Value": 56040140627,
-      "baseValue": 8222751720,
+      "baseValue": 21017510140,
       "metrics": {
         "bars_total": 31,
         "open0900": 7310,
@@ -2782,12 +3350,13 @@
         "closePosition0930": 0.227,
         "openToLastRate": 0.14,
         "highToLastDrop": -2.27,
-        "valueToAvgRatio_0930": 9.31,
+        "valueToAvgRatio_0930": 3.64,
         "rebreakMorningHigh": true
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 0.43
+      "score": 0.27,
+      "finalScore": 41.2
     },
     {
       "code": "058430",
@@ -2813,7 +3382,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 0.39
+      "score": 0.39,
+      "finalScore": 47.5
     },
     {
       "code": "120110",
@@ -2822,7 +3392,7 @@
       "marketCap": 2817900000000,
       "baseDate": "20260514",
       "avg20Value": 40618831435,
-      "baseValue": 4522665800,
+      "baseValue": 28637316000,
       "metrics": {
         "bars_total": 31,
         "open0900": 87000,
@@ -2834,12 +3404,13 @@
         "closePosition0930": 0.594,
         "openToLastRate": 0.11,
         "highToLastDrop": -1.47,
-        "valueToAvgRatio_0930": 7.94,
+        "valueToAvgRatio_0930": 1.25,
         "rebreakMorningHigh": false
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 0.31
+      "score": 0.12,
+      "finalScore": 26.12
     },
     {
       "code": "064760",
@@ -2865,7 +3436,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 0
+      "score": 0,
+      "finalScore": 48.51
     },
     {
       "code": "084670",
@@ -2891,7 +3463,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": 0
+      "score": 0,
+      "finalScore": 88.59
     },
     {
       "code": "448900",
@@ -2917,7 +3490,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -0.24
+      "score": -0.24,
+      "finalScore": 62.46
     },
     {
       "code": "108320",
@@ -2926,7 +3500,7 @@
       "marketCap": 1018100000000,
       "baseDate": "20260514",
       "avg20Value": 11304806540,
-      "baseValue": 3211281800,
+      "baseValue": 8610013800,
       "metrics": {
         "bars_total": 31,
         "open0900": 62400,
@@ -2938,12 +3512,13 @@
         "closePosition0930": 0.286,
         "openToLastRate": -0.16,
         "highToLastDrop": -2.35,
-        "valueToAvgRatio_0930": 6.8,
+        "valueToAvgRatio_0930": 2.54,
         "rebreakMorningHigh": true
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -0.42
+      "score": -0.25,
+      "finalScore": 25.95
     },
     {
       "code": "488280",
@@ -2969,7 +3544,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -0.51
+      "score": -0.51,
+      "finalScore": 62.69
     },
     {
       "code": "011170",
@@ -2978,7 +3554,7 @@
       "marketCap": 4872100000000,
       "baseDate": "20260514",
       "avg20Value": 38204177800,
-      "baseValue": 4535448200,
+      "baseValue": 29458560000,
       "metrics": {
         "bars_total": 31,
         "open0900": 87300,
@@ -2990,12 +3566,13 @@
         "closePosition0930": 0.524,
         "openToLastRate": -0.34,
         "highToLastDrop": -1.14,
-        "valueToAvgRatio_0930": 8.19,
+        "valueToAvgRatio_0930": 1.26,
         "rebreakMorningHigh": false
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -0.97
+      "score": -0.38,
+      "finalScore": 25.21
     },
     {
       "code": "060370",
@@ -3021,7 +3598,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -1.13
+      "score": -1.13,
+      "finalScore": 43.94
     },
     {
       "code": "122640",
@@ -3047,7 +3625,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -1.36
+      "score": -1.36,
+      "finalScore": 44.74
     },
     {
       "code": "425040",
@@ -3073,7 +3652,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -1.94
+      "score": -1.94,
+      "finalScore": 55.08
     },
     {
       "code": "440110",
@@ -3099,7 +3679,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -1.75
+      "score": -1.75,
+      "finalScore": 82.08
     },
     {
       "code": "031980",
@@ -3125,7 +3706,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -2.14
+      "score": -2.14,
+      "finalScore": 42.65
     },
     {
       "code": "017800",
@@ -3134,7 +3716,7 @@
       "marketCap": 3858400000000,
       "baseDate": "20260514",
       "avg20Value": 21959965150,
-      "baseValue": 2568647200,
+      "baseValue": 20492985800,
       "metrics": {
         "bars_total": 31,
         "open0900": 92000,
@@ -3146,12 +3728,13 @@
         "closePosition0930": 0.462,
         "openToLastRate": -0.76,
         "highToLastDrop": -0.76,
-        "valueToAvgRatio_0930": 8.08,
+        "valueToAvgRatio_0930": 1.01,
         "rebreakMorningHigh": false
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -2.16
+      "score": -0.76,
+      "finalScore": 21.75
     },
     {
       "code": "084370",
@@ -3177,7 +3760,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -2.31
+      "score": -2.31,
+      "finalScore": 59.24
     },
     {
       "code": "089970",
@@ -3203,7 +3787,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -2.4
+      "score": -2.4,
+      "finalScore": 40.14
     },
     {
       "code": "005290",
@@ -3229,7 +3814,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -2.32
+      "score": -2.32,
+      "finalScore": 47.02
     },
     {
       "code": "011790",
@@ -3238,7 +3824,7 @@
       "marketCap": 4468500000000,
       "baseDate": "20260514",
       "avg20Value": 141670295175,
-      "baseValue": 35167325000,
+      "baseValue": 127828215600,
       "metrics": {
         "bars_total": 31,
         "open0900": 148300,
@@ -3250,12 +3836,13 @@
         "closePosition0930": 0.689,
         "openToLastRate": -0.88,
         "highToLastDrop": -1.28,
-        "valueToAvgRatio_0930": 9.6,
+        "valueToAvgRatio_0930": 2.64,
         "rebreakMorningHigh": false
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -2.73
+      "score": -1.43,
+      "finalScore": 101.14
     },
     {
       "code": "080220",
@@ -3281,7 +3868,8 @@
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -3.15
+      "score": -3.15,
+      "finalScore": 127.17
     },
     {
       "code": "097230",
@@ -3290,7 +3878,7 @@
       "marketCap": 2618600000000,
       "baseDate": "20260514",
       "avg20Value": 81083277093,
-      "baseValue": 7690023900,
+      "baseValue": 20944809600,
       "metrics": {
         "bars_total": 31,
         "open0900": 25000,
@@ -3302,12 +3890,13 @@
         "closePosition0930": 0.214,
         "openToLastRate": -1.2,
         "highToLastDrop": -2.18,
-        "valueToAvgRatio_0930": 8.06,
+        "valueToAvgRatio_0930": 2.96,
         "rebreakMorningHigh": false
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -3.41
+      "score": -2.06,
+      "finalScore": 27.39
     },
     {
       "code": "014680",
@@ -3316,7 +3905,7 @@
       "marketCap": 3240500000000,
       "baseDate": "20260514",
       "avg20Value": 27606301125,
-      "baseValue": 9278826000,
+      "baseValue": 34821024000,
       "metrics": {
         "bars_total": 31,
         "open0900": 330000,
@@ -3328,220 +3917,13 @@
         "closePosition0930": 0.273,
         "openToLastRate": -1.21,
         "highToLastDrop": -2.4,
-        "valueToAvgRatio_0930": 8.61,
+        "valueToAvgRatio_0930": 2.29,
         "rebreakMorningHigh": false
       },
       "status": "WEAK",
       "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -3.55
-    },
-    {
-      "code": "140860",
-      "name": "파크시스템스",
-      "market": "KOSDAQ",
-      "marketCap": 2022300000000,
-      "baseDate": "20260514",
-      "avg20Value": 14084534100,
-      "baseValue": 1928048500,
-      "metrics": {
-        "bars_total": 30,
-        "open0900": 290000,
-        "last0930": 286000,
-        "high0930": 293000,
-        "low0930": 285000,
-        "value_0930": 922262000,
-        "volume_0930": 3196,
-        "closePosition0930": 0.125,
-        "openToLastRate": -1.38,
-        "highToLastDrop": -2.39,
-        "valueToAvgRatio_0930": 6.22,
-        "rebreakMorningHigh": false
-      },
-      "status": "WEAK",
-      "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -3.44
-    },
-    {
-      "code": "356680",
-      "name": "엑스게이트",
-      "market": "KOSDAQ",
-      "marketCap": 402200000000,
-      "baseDate": "20260514",
-      "avg20Value": 93753909871,
-      "baseValue": 15858259560,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 19120,
-        "last0930": 18830,
-        "high0930": 19240,
-        "low0930": 18550,
-        "value_0930": 12209789950,
-        "volume_0930": 647769,
-        "closePosition0930": 0.406,
-        "openToLastRate": -1.52,
-        "highToLastDrop": -2.13,
-        "valueToAvgRatio_0930": 10.01,
-        "rebreakMorningHigh": false
-      },
-      "status": "WEAK",
-      "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -4.81
-    },
-    {
-      "code": "025860",
-      "name": "남해화학",
-      "market": "KOSPI",
-      "marketCap": 583200000000,
-      "baseDate": "20260514",
-      "avg20Value": 68607878650,
-      "baseValue": 3763373900,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 9150,
-        "last0930": 9010,
-        "high0930": 9150,
-        "low0930": 8950,
-        "value_0930": 2476901170,
-        "volume_0930": 274132,
-        "closePosition0930": 0.3,
-        "openToLastRate": -1.53,
-        "highToLastDrop": -1.53,
-        "valueToAvgRatio_0930": 8.56,
-        "rebreakMorningHigh": false
-      },
-      "status": "WEAK",
-      "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -4.48
-    },
-    {
-      "code": "298020",
-      "name": "효성티앤씨",
-      "market": "KOSPI",
-      "marketCap": 2241700000000,
-      "baseDate": "20260514",
-      "avg20Value": 22138125900,
-      "baseValue": 1927328000,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 455500,
-        "last0930": 448500,
-        "high0930": 457000,
-        "low0930": 445000,
-        "value_0930": 1033816250,
-        "volume_0930": 2291,
-        "closePosition0930": 0.292,
-        "openToLastRate": -1.54,
-        "highToLastDrop": -1.86,
-        "valueToAvgRatio_0930": 6.97,
-        "rebreakMorningHigh": false
-      },
-      "status": "WEAK",
-      "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -4.07
-    },
-    {
-      "code": "131290",
-      "name": "티에스이",
-      "market": "KOSDAQ",
-      "marketCap": 1867200000000,
-      "baseDate": "20260514",
-      "avg20Value": 18347004845,
-      "baseValue": 2604628200,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 188900,
-        "last0930": 185900,
-        "high0930": 188900,
-        "low0930": 183500,
-        "value_0930": 1604242700,
-        "volume_0930": 8664,
-        "closePosition0930": 0.444,
-        "openToLastRate": -1.59,
-        "highToLastDrop": -1.59,
-        "valueToAvgRatio_0930": 8.01,
-        "rebreakMorningHigh": false
-      },
-      "status": "WEAK",
-      "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -4.5
-    },
-    {
-      "code": "399720",
-      "name": "가온칩스",
-      "market": "KOSDAQ",
-      "marketCap": 816700000000,
-      "baseDate": "20260514",
-      "avg20Value": 15363884320,
-      "baseValue": 1675323000,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 68000,
-        "last0930": 66900,
-        "high0930": 68500,
-        "low0930": 66400,
-        "value_0930": 1110821650,
-        "volume_0930": 16577,
-        "closePosition0930": 0.238,
-        "openToLastRate": -1.62,
-        "highToLastDrop": -2.34,
-        "valueToAvgRatio_0930": 8.62,
-        "rebreakMorningHigh": false
-      },
-      "status": "WEAK",
-      "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -4.76
-    },
-    {
-      "code": "232140",
-      "name": "와이씨",
-      "market": "KOSDAQ",
-      "marketCap": 1792700000000,
-      "baseDate": "20260514",
-      "avg20Value": 25886217895,
-      "baseValue": 4312683810,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 19800,
-        "last0930": 19470,
-        "high0930": 19810,
-        "low0930": 19330,
-        "value_0930": 2971687100,
-        "volume_0930": 151650,
-        "closePosition0930": 0.292,
-        "openToLastRate": -1.67,
-        "highToLastDrop": -1.72,
-        "valueToAvgRatio_0930": 8.96,
-        "rebreakMorningHigh": false
-      },
-      "status": "WEAK",
-      "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -5
-    },
-    {
-      "code": "388210",
-      "name": "씨엠티엑스",
-      "market": "KOSDAQ",
-      "marketCap": 1345800000000,
-      "baseDate": "20260514",
-      "avg20Value": 19870140365,
-      "baseValue": 4255722900,
-      "metrics": {
-        "bars_total": 31,
-        "open0900": 130600,
-        "last0930": 128400,
-        "high0930": 130700,
-        "low0930": 126700,
-        "value_0930": 2589538600,
-        "volume_0930": 20235,
-        "closePosition0930": 0.425,
-        "openToLastRate": -1.68,
-        "highToLastDrop": -1.76,
-        "valueToAvgRatio_0930": 7.91,
-        "rebreakMorningHigh": false
-      },
-      "status": "WEAK",
-      "statusLabel": "시가 대비 약하거나 거래대금 부족",
-      "score": -4.72
+      "score": -1.83,
+      "finalScore": 30.39
     }
   ],
   "insufficientBarsCount": 13

@@ -213,6 +213,28 @@ function readyScore(m) {
   return a * Math.sqrt(b);
 }
 
+// finalScore — READY 후보 중 "실전 우선 후보" 선출용 종합 점수.
+// 거래대금 / v/avg 비율 / 종가 위치 / 첫 10분 고점 재돌파 / 고점 대비 유지력 / 시가 대비 상승률을
+// 가중 합산. 사용자 요구: "실전 우선 후보"는 상위 5개만 추출하므로 정렬 기준 강화 필요.
+function computeFinalScore(m) {
+  if (!m) return 0;
+  const valScore     = (m.value_0930 || 0) / 1e8 * 0.3;            // 09:30 누적 거래대금 (1억 단위, 0.3 가중)
+  const ratioScore   = (m.valueToAvgRatio_0930 || 0) * 3;          // 평균 30분 대비 비율 (3배 가중)
+  const cpScore      = (m.closePosition0930 || 0) * 15;            // 종가 위치 0~1 → 0~15점
+  const upScore      = Math.max(0, m.openToLastRate || 0) * 1.5;   // 시가 대비 양봉 (1~8% 영역)
+  // 고점 대비 유지력 (마지막 10분 유지력 대용) — drop이 0%에 가까울수록 가산, -2.5% 이하면 0
+  const drop = m.highToLastDrop;
+  const holdScore = drop == null ? 0
+    : drop >= -0.5 ? 10       // 거의 고점 근처
+    : drop >= -1.0 ? 7
+    : drop >= -1.5 ? 5
+    : drop >= -2.0 ? 3
+    : drop >= -2.5 ? 1
+    : 0;
+  const rebreakBonus = m.rebreakMorningHigh ? 8 : 0;               // 첫 10분 고점 재돌파 ✓
+  return Number((valScore + ratioScore + cpScore + upScore + holdScore + rebreakBonus).toFixed(2));
+}
+
 function fmtDate(d) {
   if (!d) return '-';
   const s = String(d);
@@ -296,21 +318,25 @@ function main() {
       metrics: m,
       status,
       statusLabel: STATUS_LABEL[status],
-      score: m ? Number(readyScore(m).toFixed(2)) : 0,
+      score:      m ? Number(readyScore(m).toFixed(2)) : 0,
+      finalScore: m ? computeFinalScore(m) : 0,
     };
     if (!statusBuckets[status]) statusBuckets[status] = [];
     statusBuckets[status].push(entry);
   }
 
-  // 각 풀 정렬
-  statusBuckets.READY.sort((a, b) => b.score - a.score);
+  // 각 풀 정렬 — READY는 finalScore(실전 우선 후보 선출용 종합 점수) 내림차순
+  statusBuckets.READY.sort((a, b) => b.finalScore - a.finalScore);
   statusBuckets.WAIT_PULLBACK.sort((a, b) => (b.metrics.openToLastRate || 0) - (a.metrics.openToLastRate || 0));
   statusBuckets.FADED.sort((a, b) => (a.metrics.highToLastDrop || 0) - (b.metrics.highToLastDrop || 0));
   statusBuckets.WEAK.sort((a, b) => (b.metrics.openToLastRate || 0) - (a.metrics.openToLastRate || 0));
 
   // top N으로 자르기 (WEAK/INSUFFICIENT는 다 보관할 필요 없음 — top * 2 정도까지)
   const TOP = Math.max(1, args.top);
+  const READY_TOP_LIMIT = 5;  // "실전 우선 후보" — 화면 상단 압축 노출
   const ready    = statusBuckets.READY.slice(0, TOP);
+  const readyTop  = statusBuckets.READY.slice(0, READY_TOP_LIMIT);
+  const readyRest = statusBuckets.READY.slice(READY_TOP_LIMIT, TOP);
   const wait     = statusBuckets.WAIT_PULLBACK.slice(0, TOP);
   const faded    = statusBuckets.FADED.slice(0, TOP);
   const weak     = statusBuckets.WEAK.slice(0, Math.min(TOP, 50));
@@ -346,7 +372,10 @@ function main() {
       INSUFFICIENT_BARS: statusBuckets.INSUFFICIENT_BARS.length,
     },
     statusLabels: STATUS_LABEL,
-    scanner0930Ready:    ready,
+    scanner0930Ready:    ready,                 // 전체 READY (호환성 유지)
+    scanner0930ReadyTop:  readyTop,              // 상위 5 — 실전 우선 후보
+    scanner0930ReadyRest: readyRest,             // 6번째 이후 READY — 1차 통과 후보 (접힘)
+    readyTopLimit: READY_TOP_LIMIT,
     scanner0930Holding:  [...wait, ...faded],   // WAIT_PULLBACK + FADED 합쳐서 "보류/재관찰"
     scanner0930Rejected: weak,                  // WEAK
     insufficientBarsCount: insuff.length,
@@ -371,12 +400,19 @@ function main() {
   console.log(`     FADED              ${statusBuckets.FADED.length}개 — ${STATUS_LABEL.FADED}`);
   console.log(`     WEAK               ${statusBuckets.WEAK.length}개 — ${STATUS_LABEL.WEAK}`);
   console.log(`     INSUFFICIENT_BARS  ${statusBuckets.INSUFFICIENT_BARS.length}개 — ${STATUS_LABEL.INSUFFICIENT_BARS}`);
-  if (ready.length > 0) {
-    console.log(`\n  🎯 READY 상위 ${ready.length}건:`);
-    for (const e of ready.slice(0, 15)) {
+  if (readyTop.length > 0) {
+    console.log(`\n  🎯 실전 우선 후보 (readyTop ${readyTop.length}건, finalScore 내림차순):`);
+    for (const e of readyTop) {
       const m = e.metrics;
-      console.log(`     score ${e.score.toFixed(1).padStart(6)} | ${e.code} ${(e.name || '').padEnd(15)} | +${(m.openToLastRate || 0).toFixed(2)}% | v ${(m.value_0930 / 1e8).toFixed(0)}억 (x${(m.valueToAvgRatio_0930 || 0).toFixed(1)}) | cp ${(m.closePosition0930 * 100).toFixed(0)}% | drop ${(m.highToLastDrop || 0).toFixed(2)}%`);
+      console.log(`     final ${e.finalScore.toFixed(1).padStart(6)} | ${e.code} ${(e.name || '').padEnd(15)} | +${(m.openToLastRate || 0).toFixed(2)}% | v ${(m.value_0930 / 1e8).toFixed(0)}억 (x${(m.valueToAvgRatio_0930 || 0).toFixed(1)}) | cp ${(m.closePosition0930 * 100).toFixed(0)}% | drop ${(m.highToLastDrop || 0).toFixed(2)}%${m.rebreakMorningHigh ? ' | ↗MH재돌파' : ''}`);
     }
+  }
+  if (readyRest.length > 0) {
+    console.log(`\n  📋 1차 통과 후보 (readyRest ${readyRest.length}건, 화면 접힘):`);
+    for (const e of readyRest.slice(0, 15)) {
+      console.log(`     final ${e.finalScore.toFixed(1).padStart(6)} | ${e.code} ${(e.name || '').padEnd(15)}`);
+    }
+    if (readyRest.length > 15) console.log(`     ... 외 ${readyRest.length - 15}건`);
   }
   console.log(`\n  ⏱ 소요 ${elapsedSec}s`);
   console.log(`✅ JSON: ${OUT_JSON}`);
