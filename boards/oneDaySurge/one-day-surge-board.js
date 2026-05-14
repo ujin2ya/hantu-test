@@ -165,7 +165,18 @@ function passesRiskFilter(it) {
   const tags = it.entryStrategies || [];
   if (tags.includes('RISK_REBREAK')) return { ok: false, reason: 'risk_rebreak' };
 
-  // 5) prev_high_spike / peak_before_entry — morningHigh 재돌파 ✓이면 면제
+  // 5) 분봉 부족 — 분봉이 들어왔지만 봉 개수가 MIN_BARS_FOR_JUDGMENT 미만이면 mainPool 제외.
+  //    KIS API가 거래량 없는 분봉을 응답에서 빼는 저유동성 종목 (예: 142210 유니트론텍).
+  //    하루 거래대금 폭증으로 LIGHT-GT 자격을 따도 평소 유동성이 부족해 단타 진입 자체가
+  //    불가능하므로 보드에서 빼는 게 맞다. 분봉 미수신(NO_MINUTE_DATA)은 컷 안 함 — 그건
+  //    "아직 안 들어옴"이지 "받았는데 부족"이 아니므로 다음 cron 때 받을 수 있음.
+  if (it.intraday
+      && Number.isFinite(it.intraday.bars_total)
+      && it.intraday.bars_total < tradePlanModule.MIN_BARS_FOR_JUDGMENT) {
+    return { ok: false, reason: 'insufficient_bars' };
+  }
+
+  // 6) prev_high_spike / peak_before_entry — morningHigh 재돌파 ✓이면 면제
   const morningRebreak = it.intraday && it.intraday.rebreakMorningHigh_10_30 === true;
   if (tags.includes('PREV_HIGH_SPIKE')) {
     if (!morningRebreak) return { ok: false, reason: 'prev_high_spike' };
@@ -805,7 +816,7 @@ function main() {
 
   // ── 화면 노출 우선순위 풀 구성 (추천 후보만) ──
   // 위험 후보는 passesRiskFilter()로 hard 제외 — 보드는 추천만 노출, 위험 분석은 연구 보고서에서.
-  const riskExcludeCounts = { group_off_pool: 0, gap_hold_candle: 0, prev_high_spike: 0, risk_rebreak: 0, peak_before_entry: 0, trap_risk_high: 0 };
+  const riskExcludeCounts = { group_off_pool: 0, gap_hold_candle: 0, prev_high_spike: 0, risk_rebreak: 0, peak_before_entry: 0, trap_risk_high: 0, insufficient_bars: 0 };
   const mainPool = [];
   for (const it of all) {
     const filt = passesRiskFilter(it);
@@ -817,13 +828,10 @@ function main() {
     mainPool.push(it);
   }
   mainPool.sort((a, b) => (b.displayPriorityScore || 0) - (a.displayPriorityScore || 0));
-  const topPriority   = mainPool.slice(0, TOP_PRIORITY_LIMIT);
-  const extraPriority = mainPool.slice(TOP_PRIORITY_LIMIT, TOP_PRIORITY_LIMIT + EXTRA_PRIORITY_LIMIT);
-  const overflowPool  = mainPool.slice(TOP_PRIORITY_LIMIT + EXTRA_PRIORITY_LIMIT); // 메인 풀 안에 있어도 화면에선 숨김
 
   // ── 자동 참고 매수가/매도가 계산 ──
-  // mainPool(위험 필터 통과 + displayPriorityScore 내림차순) 상위에서 자동 계산 가능한 후보 10개에 tradePlan 부착.
-  // 후보 선정/정렬은 그대로. 매수 추천이 아닌 참고 가격이며 시장가 매수 전제로 계산하지 않는다.
+  // mainPool(위험 필터 통과 + displayPriorityScore 내림차순) 모든 후보에 tradePlan 부착.
+  // 매수 추천이 아닌 참고 가격이며 시장가 매수 전제로 계산하지 않는다.
   const { plansByCode: tradePlansByCode, summary: tradePlanCalcSummary } = tradePlanModule.buildTradePlans(mainPool);
   let tradePlanExcludedRiskCount = 0;
   for (const it of all) {
@@ -836,6 +844,32 @@ function main() {
       it.tradePlan = { mode: 'NONE', status: 'NOT_SELECTED' };
     }
   }
+
+  // ── status별 풀 분리 (09:30 분봉 반영 후 진입 가능/보류 후보 명확 분리) ──
+  // readyPool   = tradePlan.status === 'READY' → 최우선 후보 영역
+  // holdingPool = WAIT_PULLBACK / ENTRY_INVALIDATED / REBREAK_FADED → "보류/재관찰 후보" 섹션
+  // READY 후보가 5개 미만이어도 holding으로 자리를 채우지 않는다 — 부족하면 부족한 그대로.
+  const HOLDING_STATUSES = new Set(['WAIT_PULLBACK', 'ENTRY_INVALIDATED', 'REBREAK_FADED']);
+  const readyPool   = mainPool.filter((it) => it.tradePlan && it.tradePlan.status === 'READY');
+  const holdingPool = mainPool.filter((it) => it.tradePlan && HOLDING_STATUSES.has(it.tradePlan.status));
+  const topPriority   = readyPool.slice(0, TOP_PRIORITY_LIMIT);
+  const extraPriority = readyPool.slice(TOP_PRIORITY_LIMIT, TOP_PRIORITY_LIMIT + EXTRA_PRIORITY_LIMIT);
+  const overflowPool  = readyPool.slice(TOP_PRIORITY_LIMIT + EXTRA_PRIORITY_LIMIT);
+
+  // ── 재관찰 후보 풀 (peak_before_entry / trap_risk_high로 위험 필터에서 빠진 후보 중 일부) ──
+  // 전일 일봉 조건은 강했지만 장초 진입은 부적합 — 다시 고점 회복 시에만 관찰.
+  // 조건: BAL/LIGHT-GT + dps≥20 + v/mc≥10 + insufficient_bars 아님 (이미 다른 reason으로 제외된 케이스만).
+  const REOBSERVE_REASONS = new Set(['peak_before_entry', 'trap_risk_high']);
+  const reobservePool = all.filter((it) => {
+    if (!REOBSERVE_REASONS.has(it.riskExcluded)) return false;
+    if (!(it.gtGroup === 'BALANCED-GT' || it.gtGroup === 'LIGHT-GT')) return false;
+    if (!(Number.isFinite(it.displayPriorityScore) && it.displayPriorityScore >= 20)) return false;
+    if (!(Number.isFinite(it.valueToMarketCapRatio) && it.valueToMarketCapRatio >= 10)) return false;
+    // 분봉 부족 종목은 명시적 제외 (riskExcluded는 위험 필터 우선순위 상 앞 reason이 잡힐 수 있음)
+    if (it.intraday && Number.isFinite(it.intraday.bars_total)
+        && it.intraday.bars_total < tradePlanModule.MIN_BARS_FOR_JUDGMENT) return false;
+    return true;
+  }).sort((a, b) => (b.displayPriorityScore || 0) - (a.displayPriorityScore || 0));
   const tradePlanSummary = {
     autoCount: tradePlanCalcSummary.autoCount,
     readyCount: tradePlanCalcSummary.readyCount,
@@ -887,9 +921,13 @@ function main() {
     totalPool: candidates.length,        // 분류 가능한 모든 후보 (UNCLASSIFIED 포함 안 됨)
     unclassified,                        // 화면 표시 X
     mainPoolSize: mainPool.length,       // 위험 필터 통과 후 추천 풀 크기
+    readyPoolSize: readyPool.length,     // mainPool 중 tradePlan READY (진입 가능)
+    holdingPoolSize: holdingPool.length, // WAIT_PULLBACK + ENTRY_INVALIDATED + REBREAK_FADED
+    reobservePoolSize: reobservePool.length, // 위험 필터 제외됐지만 dps/vmc 조건 만족 (재관찰)
+    insufficientBarsExcluded: riskExcludeCounts.insufficient_bars || 0, // 분봉 부족 제외 (화면 미노출)
     topPriorityShown: topPriority.length,
     extraPriorityShown: extraPriority.length,
-    overflowHidden: overflowPool.length, // 메인 풀 16+ 위 — 화면 숨김
+    overflowHidden: overflowPool.length, // READY 풀 16+ 위 — 화면 숨김
     riskExcluded: totalRiskExcluded,     // 위험 필터로 제외된 수
     riskExcludeBreakdown: riskExcludeCounts,
     riskExemptedCount,                   // morningHigh 재돌파로 위험 면제된 mainPool 후보 수
@@ -950,12 +988,18 @@ function main() {
     groupDescriptions: core.GT_GROUP_DESC,
     visibilityCounts,
     priorityRanked: {
+      // 09:30 분봉 반영 후 status별 분리:
+      // topPriority/extraPriority = READY 후보만 (진입 가능)
+      // holdingCandidates       = WAIT_PULLBACK / ENTRY_INVALIDATED / REBREAK_FADED (보류/재관찰)
+      // reobserveCandidates     = peak_before_entry / trap_risk_high로 빠진 후보 중 dps/vmc 조건 통과 (재관찰)
       topPriority:    topPriority.map((it) => it.code),
       extraPriority:  extraPriority.map((it) => it.code),
+      holdingCandidates:   holdingPool.map((it) => it.code),
+      reobserveCandidates: reobservePool.map((it) => it.code),
       overflowHiddenCount: overflowPool.length,
       topPriorityLimit:   TOP_PRIORITY_LIMIT,
       extraPriorityLimit: EXTRA_PRIORITY_LIMIT,
-      // 위험 필터 통과한 추천 풀 전체 코드 (top + extra + overflow). collect-1ds-intraday.js --from-board 가 이 리스트로 분봉 수집.
+      // 위험 필터 통과한 추천 풀 전체 코드 (READY + holding). collect-1ds-intraday.js --from-board 가 이 리스트로 분봉 수집.
       mainPoolCodes: mainPool.map((it) => it.code),
     },
     latestDayType,
@@ -988,22 +1032,33 @@ function main() {
   console.log(`  후보 풀: ${candidates.length}건 / 노출: ${all.length}건 / 미분류: ${unclassified}건`);
   for (const g of GT_GROUP_ORDER) console.log(`    ${g.padEnd(13)} ${grouped[g].length}건`);
   console.log(`  거래대금 ×3↑ ${valueSurgeCount} / LOW_GAP_INTRADAY ${lowGapCount} / v/mc≥10% ${highVmcCount}`);
-  console.log(`  🎯 화면 노출 정책 (추천 후보만):`);
-  console.log(`     ① 최우선 ${topPriority.length}건 (메인 노출)`);
-  console.log(`     ② 추가 후보 ${extraPriority.length}건 (접힘, 최대 ${EXTRA_PRIORITY_LIMIT}개)`);
-  console.log(`     ③ 메인 풀 overflow ${overflowPool.length}건 (화면 숨김)`);
-  console.log(`     ④ 위험 필터로 제외 ${totalRiskExcluded}건 (보드 미노출, 위험 분석은 연구 보고서 참조):`);
+  console.log(`  🎯 09:30 분봉 반영 후 화면 노출 정책:`);
+  console.log(`     READY 진입 가능 후보       ${tradePlanSummary.readyCount}개  (메인 ${topPriority.length} + 추가 ${extraPriority.length}, overflow ${overflowPool.length})`);
+  console.log(`     WAIT_PULLBACK 추격 부담     ${tradePlanSummary.waitPullbackCount}개`);
+  console.log(`     ENTRY_INVALIDATED 흐름 약화 ${tradePlanSummary.invalidatedCount}개`);
+  console.log(`     REBREAK_FADED 고점 후 밀림  ${tradePlanSummary.fadedCount}개`);
+  console.log(`     재관찰 후보                 ${reobservePool.length}개  (peak_before_entry/trap_risk_high 중 dps≥20+v/mc≥10)`);
+  console.log(`     분봉 부족 제외              ${riskExcludeCounts.insufficient_bars || 0}개  (화면 미노출)`);
+  console.log(`     위험 필터 제외              ${totalRiskExcluded}건:`);
   for (const [reason, n] of Object.entries(riskExcludeCounts)) {
     if (n > 0) console.log(`        - ${reason}: ${n}건`);
   }
-  console.log(`     ⑤ UNCLASSIFIED ${unclassified}건 (영구 숨김)`);
+  console.log(`     UNCLASSIFIED ${unclassified}건 (영구 숨김)`);
   if (latestDayType) console.log(`  🌊 최근 거래일 (${latestDayType.date} → ${latestDayType.nextDate}) 분류: ${latestDayType.dayType}`);
   console.log(`  📈 시장 상태: ${marketState.label}` + (marketState.kospi ? ` (KOSPI ${marketState.kospi.changeRate.toFixed(2)}% / KOSDAQ ${marketState.kosdaq?.changeRate?.toFixed(2) || '-'}%)` : ''));
   if (topPriority.length > 0) {
-    console.log(`  📋 최우선 ${topPriority.length}건 (displayPriorityScore):`);
+    console.log(`  📋 READY 최우선 ${topPriority.length}건 (displayPriorityScore):`);
     for (const it of topPriority) {
       const tagsStr = (it.entryStrategies || []).length > 0 ? ' [' + it.entryStrategies.join(',') + ']' : '';
       console.log(`     ${it.displayPriorityScore.toString().padStart(4)} | ${it.code} ${(it.name || '').padEnd(15)} | ${it.gtGroup}${tagsStr}`);
+    }
+  } else {
+    console.log(`  📋 READY 최우선 0건 — 오늘 09:30 기준 장초 흐름 유지 후보 없음`);
+  }
+  if (reobservePool.length > 0) {
+    console.log(`  👀 재관찰 후보 ${reobservePool.length}건:`);
+    for (const it of reobservePool.slice(0, 10)) {
+      console.log(`     dps=${(it.displayPriorityScore||0).toString().padStart(3)} v/mc=${(it.valueToMarketCapRatio||0).toFixed(1).padStart(5)}% | ${it.code} ${(it.name||'').padEnd(15)} | ${it.gtGroup} | 제외사유: ${it.riskExcluded}`);
     }
   }
   console.log(`  🚪 장초 ENTRY_CONFIRM 적용: ${withMinute}건 / 분봉 누락 ${missing}건 (확인 거래일 ${entryConfirmDate || '없음'})`);
@@ -1463,11 +1518,17 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 <div id="trade-plan-summary"></div>
 <div id="qva-summary-line"></div>
 
-<!-- ① 최우선 5종목 -->
+<!-- ① 최우선 후보 — tradePlan READY만 -->
 <div id="top-priority-host"></div>
 
-<!-- ② 추가 확인 후보 (접힘, 최대 10개) -->
+<!-- ② 추가 확인 후보 (접힘, 최대 10개) — READY 6~15위 -->
 <div id="extra-priority-host"></div>
+
+<!-- ③ 보류/재관찰 후보 — WAIT_PULLBACK / ENTRY_INVALIDATED / REBREAK_FADED -->
+<div id="holding-host"></div>
+
+<!-- ④ 재관찰 후보 — 위험 필터 제외됐지만 일봉 강세 + v/mc 강 -->
+<div id="reobserve-host"></div>
 
 <!-- 위험 후보는 내부 필터로 제외 -->
 <div id="risk-excluded-note"></div>
@@ -2113,25 +2174,27 @@ function buildCardHtml(it) {
     '</div>';
 }
 
-// ── ① 최우선 5종목 (메인 펼침) ──
-// 섹션 설명은 status banner 렌더 시점에 다시 update됨 (장초 확인 전/후 다른 문구).
+// ── ① 최우선 후보 (장초 흐름 유지 = tradePlan READY) ──
+// 09:30 이후 분봉 반영 후 READY 상태인 후보만 표시.
+// READY가 없으면 빈 메시지. 다른 상태(보류/재관찰)는 별도 섹션.
 (function renderTopPriority() {
   const host = document.getElementById('top-priority-host');
   if (!host) return;
   const items = itemsByCodes(DATA.priorityRanked && DATA.priorityRanked.topPriority);
   if (items.length === 0) {
-    host.innerHTML = '<section class="entry-shelf-section top"><h2>🎯 장 시작 전 지켜볼 후보 (5종목)</h2>' +
-      '<div class="empty-list">조건을 만족하는 후보가 없습니다.</div></section>';
+    host.innerHTML = '<section class="entry-shelf-section top"><h2>🎯 진입 가능 후보 (READY) — 0종목</h2>' +
+      '<div class="empty-list" style="padding:18px;">오늘 09:30 기준 장초 흐름 유지 후보가 없습니다.<br>' +
+      '<span style="font-size:11px;color:#94a3b8;">아래 "보류/재관찰 후보"와 "재관찰 후보" 섹션을 확인하세요.</span></div></section>';
     return;
   }
   host.innerHTML = '<section class="entry-shelf-section top">' +
-    '<h2 id="top-priority-h2">🎯 장 시작 전 지켜볼 후보 (' + items.length + '종목)</h2>' +
-    '<div class="shelf-desc" id="top-priority-desc">아래 ' + items.length + '종목은 <strong>장 시작 전에 먼저 지켜볼 후보</strong>입니다. 09:30 이후 장초 움직임이 반영되면 실제 재상승 확인 후보로 다시 좁혀집니다.</div>' +
+    '<h2 id="top-priority-h2">🎯 진입 가능 후보 (READY) — ' + items.length + '종목</h2>' +
+    '<div class="shelf-desc" id="top-priority-desc">아래 ' + items.length + '종목은 <strong>09:30 분봉 반영 후 장초 흐름이 유지되어 진입 가능</strong>한 후보입니다.</div>' +
     items.map(buildCardHtml).join('') +
   '</section>';
 })();
 
-// ── ② 추가 확인 후보 (접힘, 6~15위, 최대 10) ──
+// ── ② 추가 확인 후보 (접힘, READY 6~15위) ──
 (function renderExtraPriority() {
   const host = document.getElementById('extra-priority-host');
   if (!host) return;
@@ -2140,9 +2203,56 @@ function buildCardHtml(it) {
   const overflow = (DATA.priorityRanked && DATA.priorityRanked.overflowHiddenCount) || 0;
   host.innerHTML = '<section class="entry-shelf-section" style="border:1px solid #475569;background:#0f172a;">' +
     '<details><summary style="cursor:pointer;font-size:15px;font-weight:700;color:#cbd5e1;padding:6px 0;">' +
-      '📋 추가 확인 후보 (' + items.length + '건' + (overflow > 0 ? ', overflow ' + overflow + '건 숨김' : '') + ') — 펼쳐서 보기</summary>' +
+      '📋 추가 진입 가능 후보 (READY ' + items.length + '건' + (overflow > 0 ? ', overflow ' + overflow + '건 숨김' : '') + ') — 펼쳐서 보기</summary>' +
     '<div style="margin-top:10px;">' +
-    '<div class="shelf-desc">조건은 맞지만 최우선 5종목에는 들지 못한 후보입니다. displayPriorityScore 6~' + (5 + items.length) + '위.</div>' +
+    '<div class="shelf-desc">조건은 맞지만 최우선 5종목에는 들지 못한 READY 후보입니다.</div>' +
+      items.map(buildCardHtml).join('') +
+    '</div></details>' +
+  '</section>';
+})();
+
+// ── ③ 보류/재관찰 후보 (WAIT_PULLBACK / ENTRY_INVALIDATED / REBREAK_FADED) ──
+// mainPool에는 들어왔지만 09:30 분봉 반영 후 진입이 부담스러운 상태.
+(function renderHoldingCandidates() {
+  const host = document.getElementById('holding-host');
+  if (!host) return;
+  const items = itemsByCodes(DATA.priorityRanked && DATA.priorityRanked.holdingCandidates);
+  if (items.length === 0) return;
+  const STATUS_DESC = {
+    WAIT_PULLBACK:     '이미 기준가보다 많이 올라 추격 부담',
+    ENTRY_INVALIDATED: '장초 기준가 이탈로 흐름 약화',
+    REBREAK_FADED:     '장초 고점 돌파 후 다시 밀림',
+  };
+  const breakdown = items.reduce((acc, it) => {
+    const s = (it.tradePlan && it.tradePlan.status) || '?';
+    acc[s] = (acc[s] || 0) + 1; return acc;
+  }, {});
+  const breakdownHtml = Object.entries(breakdown)
+    .map(([s, n]) => '<span class="tps-pill ' + (s === 'WAIT_PULLBACK' ? 'wait' : s === 'ENTRY_INVALIDATED' ? 'invalid' : 'faded') + '">' + (STATUS_DESC[s] || s) + ' <span class="num">' + n + '</span></span>')
+    .join(' ');
+  host.innerHTML = '<section class="entry-shelf-section" style="border:1px solid #78350f;background:#1c1917;margin-top:14px;">' +
+    '<details open><summary style="cursor:pointer;font-size:15px;font-weight:700;color:#fcd34d;padding:6px 0;">' +
+      '⏸ 보류/재관찰 후보 (' + items.length + '건) — 펼쳐서 보기</summary>' +
+    '<div style="margin-top:10px;">' +
+    '<div class="shelf-desc">09:30 분봉 반영 후 진입이 부담스럽거나 흐름이 약화된 후보입니다. 매수가는 비워져 있고, 사용자 본인 판단으로 재진입을 검토하세요.</div>' +
+    '<div style="margin:8px 0 12px;">' + breakdownHtml + '</div>' +
+      items.map(buildCardHtml).join('') +
+    '</div></details>' +
+  '</section>';
+})();
+
+// ── ④ 재관찰 후보 (peak_before_entry / trap_risk_high 제외됐지만 일봉 강세 + v/mc 강) ──
+// 전일 일봉 조건은 강했지만 장초 진입은 부적합. 다시 고점 회복 시에만 관찰.
+(function renderReobserveCandidates() {
+  const host = document.getElementById('reobserve-host');
+  if (!host) return;
+  const items = itemsByCodes(DATA.priorityRanked && DATA.priorityRanked.reobserveCandidates);
+  if (items.length === 0) return;
+  host.innerHTML = '<section class="entry-shelf-section" style="border:1px solid #475569;background:#0f172a;margin-top:14px;">' +
+    '<details><summary style="cursor:pointer;font-size:15px;font-weight:700;color:#cbd5e1;padding:6px 0;">' +
+      '👀 재관찰 후보 (' + items.length + '건) — 펼쳐서 보기</summary>' +
+    '<div style="margin-top:10px;">' +
+    '<div class="shelf-desc" style="color:#fbbf24;">⚠ 전일 조건은 강했지만 장초 진입은 부적합합니다. 다시 고점 회복 시에만 관찰하세요. (이미 초반 고점 통과 / 윗꼬리·과열 trap 위험으로 메인 풀에서 제외된 후보 중 일봉 강세 + 시총 대비 거래대금 강한 케이스)</div>' +
       items.map(buildCardHtml).join('') +
     '</div></details>' +
   '</section>';
