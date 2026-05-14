@@ -159,6 +159,25 @@ function calcTradePlan(it) {
   }
   const { strategy, source: strategySource } = sp;
   const base = pickBaseEntryPrice(it);
+
+  // 분봉으로 검증 안 된 후보(strategySource === 'group_fallback')는 09:30 신규 진입 후보로 보지 않는다.
+  // baseClose 기반 fallback 계산은 09:30 분봉 시점에 신뢰도가 낮으므로 NEED_INTRADAY_CONFIRM 상태로 명시.
+  // 분봉 디렉토리에 파일이 없거나 entryStrategies 매치가 안 된 경우 모두 여기로 떨어진다.
+  if (strategySource === 'group_fallback') {
+    return {
+      mode: 'AUTO',
+      status: 'NEED_INTRADAY_CONFIRM',
+      strategy, strategySource,
+      baseEntryPrice: base ? roundToKoreanTick(base.price, 'nearest') : null,
+      baseEntrySource: base ? base.source : null,
+      currentPrice: null, currentSource: null, ratioPct: null,
+      buyPrice: null, sellPrice1: null, sellPrice2: null, stopPrice: null,
+      reason: '09:30 분봉 미확인 — 신규 진입 후보 아님',
+      riskNote: '분봉 수집/전략 매치 실패. 분봉 들어오면 자동 재분류됨.',
+      rewardRisk1: null, rewardRisk2: null,
+    };
+  }
+
   if (!base) {
     return { mode: 'AUTO', status: 'MISSING_PRICE_DATA', strategy, strategySource, reason: '가격 데이터 부족' };
   }
@@ -316,7 +335,7 @@ function calcTradePlan(it) {
 function buildTradePlans(mainPool) {
   const plansByCode = new Map();
   let count = 0;
-  let readyCount = 0, waitPullbackCount = 0, invalidatedCount = 0, fadedCount = 0, insufficientCount = 0, missingPriceCount = 0;
+  let readyCount = 0, waitPullbackCount = 0, invalidatedCount = 0, fadedCount = 0, insufficientCount = 0, needConfirmCount = 0, missingPriceCount = 0;
   let intradayConfirmedCount = 0, groupFallbackCount = 0;
   for (const it of mainPool) {
     if (count >= AUTO_PLAN_LIMIT) break;
@@ -330,6 +349,7 @@ function buildTradePlans(mainPool) {
       case 'ENTRY_INVALIDATED':  invalidatedCount++; break;
       case 'REBREAK_FADED':      fadedCount++; break;
       case 'INSUFFICIENT_BARS':  insufficientCount++; break;
+      case 'NEED_INTRADAY_CONFIRM': needConfirmCount++; break;
       case 'MISSING_PRICE_DATA': missingPriceCount++; break;
     }
     if (plan.strategySource === 'intraday') intradayConfirmedCount++;
@@ -339,7 +359,7 @@ function buildTradePlans(mainPool) {
     plansByCode,
     summary: {
       autoCount: count,
-      readyCount, waitPullbackCount, invalidatedCount, fadedCount, insufficientCount, missingPriceCount,
+      readyCount, waitPullbackCount, invalidatedCount, fadedCount, insufficientCount, needConfirmCount, missingPriceCount,
       intradayConfirmedCount, groupFallbackCount,
     },
   };
@@ -347,12 +367,13 @@ function buildTradePlans(mainPool) {
 
 // 상태별 한국어 라벨 — board.js 카드와 콘솔 로그가 공유한다.
 const STATUS_LABEL = {
-  READY:             '장초 흐름 유지 중',
-  WAIT_PULLBACK:     '이미 기준가보다 많이 올라 추격 부담',
-  ENTRY_INVALIDATED: '장초 기준가를 이탈해 흐름 약화',
-  REBREAK_FADED:     '장초 고점 돌파 후 다시 밀림',
-  INSUFFICIENT_BARS: '분봉 부족 — 판정 자료 없음',
-  MISSING_PRICE_DATA:'가격 데이터 부족',
+  READY:                '장초 흐름 유지 중',
+  WAIT_PULLBACK:        '이미 기준가보다 많이 올라 추격 부담',
+  ENTRY_INVALIDATED:    '장초 기준가를 이탈해 흐름 약화',
+  REBREAK_FADED:        '장초 고점 돌파 후 다시 밀림',
+  INSUFFICIENT_BARS:    '분봉 부족 — 판정 자료 없음',
+  NEED_INTRADAY_CONFIRM:'09:30 분봉 확인 없음 — 신규 진입 후보 아님',
+  MISSING_PRICE_DATA:   '가격 데이터 부족',
 };
 
 module.exports = {

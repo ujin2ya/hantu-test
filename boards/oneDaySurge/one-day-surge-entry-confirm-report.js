@@ -174,9 +174,20 @@ function computeIntradayMetrics(eventBase, minuteData) {
   const value_0_10_to_prevValue = prevValue > 0 ? value_0_10 / prevValue : null;
   const value_0_10_to_avg20Value = avg20Value > 0 ? value_0_10 / avg20Value : null;
 
+  // 09:00~09:30 전체 윈도우 메트릭 (board.js 카드 + 09:30 전일후보 상태표용)
+  const max0_30 = bars0_30.length ? Math.max(...bars0_30.map((b) => b.high || 0)) : null;
+  const min0_30 = bars0_30.length ? Math.min(...bars0_30.map((b) => b.low || Infinity)) : null;
+  const value_0_30  = bars0_30.reduce((s, b) => s + (b.value  || 0), 0);
+  const volume_0_30 = bars0_30.reduce((s, b) => s + (b.volume || 0), 0);
+  const range_0_30 = (max0_30 != null && min0_30 != null) ? max0_30 - min0_30 : 0;
+  const closePosition_0_30 = range_0_30 > 0 ? (close0930 - min0_30) / range_0_30 : 0.5;
+  const openToCloseRate_0_30 = nextOpen > 0 ? (close0930 / nextOpen - 1) * 100 : null;
+  const highToCloseDrop_0_30 = max0_30 && max0_30 > 0 ? (close0930 / max0_30 - 1) * 100 : null;
+
   return {
     nextOpen, gapRate,
     bars_0_10_count: bars0_10.length, bars_total: bars.length,
+    bars_0_30_count: bars0_30.length,
     highFromOpen_0_10, lowFromOpen_0_10, closeFromOpen_0910,
     value_0_10, volume_0_10, vwap_0_10,
     value_0_10_to_prevValue, value_0_10_to_avg20Value,
@@ -193,6 +204,14 @@ function computeIntradayMetrics(eventBase, minuteData) {
     lastBarTime,
     high_10_30: max10_30,
     close_0930: close0930,
+    // 09:00~09:30 전체 윈도우 (board.js 카드에 표시)
+    high_0_30: max0_30,
+    low_0_30: min0_30 === Infinity ? null : min0_30,
+    value_0_30,
+    volume_0_30,
+    closePosition_0_30: Number(closePosition_0_30.toFixed(3)),
+    openToCloseRate_0_30: openToCloseRate_0_30 != null ? Number(openToCloseRate_0_30.toFixed(2)) : null,
+    highToCloseDrop_0_30: highToCloseDrop_0_30 != null ? Number(highToCloseDrop_0_30.toFixed(2)) : null,
   };
 }
 

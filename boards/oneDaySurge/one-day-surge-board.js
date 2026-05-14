@@ -854,12 +854,14 @@ function main() {
   }
 
   // ── status별 풀 분리 (09:30 분봉 반영 후 진입 가능/보류 후보 명확 분리) ──
-  // readyPool   = tradePlan.status === 'READY' → 최우선 후보 영역
-  // holdingPool = WAIT_PULLBACK / ENTRY_INVALIDATED / REBREAK_FADED → "보류/재관찰 후보" 섹션
-  // READY 후보가 5개 미만이어도 holding으로 자리를 채우지 않는다 — 부족하면 부족한 그대로.
+  // readyPool   = tradePlan.status === 'READY' (분봉 검증 통과 + 진입 가능)
+  // holdingPool = 위험 신호 발생 (WAIT_PULLBACK / ENTRY_INVALIDATED / REBREAK_FADED)
+  // pendingPool = 09:30 분봉 미확인 (NEED_INTRADAY_CONFIRM) — "아직 검증 안 됨"
+  // READY 후보가 5개 미만이어도 holding/pending으로 자리를 채우지 않는다 — 부족하면 부족한 그대로.
   const HOLDING_STATUSES = new Set(['WAIT_PULLBACK', 'ENTRY_INVALIDATED', 'REBREAK_FADED']);
-  const readyPool   = mainPool.filter((it) => it.tradePlan && it.tradePlan.status === 'READY');
-  const holdingPool = mainPool.filter((it) => it.tradePlan && HOLDING_STATUSES.has(it.tradePlan.status));
+  const readyPool    = mainPool.filter((it) => it.tradePlan && it.tradePlan.status === 'READY');
+  const holdingPool  = mainPool.filter((it) => it.tradePlan && HOLDING_STATUSES.has(it.tradePlan.status));
+  const pendingPool  = mainPool.filter((it) => it.tradePlan && it.tradePlan.status === 'NEED_INTRADAY_CONFIRM');
   const topPriority   = readyPool.slice(0, TOP_PRIORITY_LIMIT);
   const extraPriority = readyPool.slice(TOP_PRIORITY_LIMIT, TOP_PRIORITY_LIMIT + EXTRA_PRIORITY_LIMIT);
   const overflowPool  = readyPool.slice(TOP_PRIORITY_LIMIT + EXTRA_PRIORITY_LIMIT);
@@ -885,6 +887,7 @@ function main() {
     invalidatedCount: tradePlanCalcSummary.invalidatedCount,
     fadedCount: tradePlanCalcSummary.fadedCount,
     insufficientCount: tradePlanCalcSummary.insufficientCount,
+    needConfirmCount: tradePlanCalcSummary.needConfirmCount,
     excludedRiskCount: tradePlanExcludedRiskCount,
     missingPriceCount: tradePlanCalcSummary.missingPriceCount,
     intradayConfirmedCount: tradePlanCalcSummary.intradayConfirmedCount,
@@ -931,6 +934,7 @@ function main() {
     mainPoolSize: mainPool.length,       // 위험 필터 통과 후 추천 풀 크기
     readyPoolSize: readyPool.length,     // mainPool 중 tradePlan READY (진입 가능)
     holdingPoolSize: holdingPool.length, // WAIT_PULLBACK + ENTRY_INVALIDATED + REBREAK_FADED
+    pendingPoolSize: pendingPool.length, // NEED_INTRADAY_CONFIRM (09:30 분봉 미확인 — 신규 진입 후보 아님)
     reobservePoolSize: reobservePool.length, // 위험 필터 제외됐지만 dps/vmc 조건 만족 (재관찰)
     insufficientBarsExcluded: riskExcludeCounts.insufficient_bars || 0, // 분봉 부족 제외 (화면 미노출)
     topPriorityShown: topPriority.length,
@@ -1003,6 +1007,7 @@ function main() {
       topPriority:    topPriority.map((it) => it.code),
       extraPriority:  extraPriority.map((it) => it.code),
       holdingCandidates:   holdingPool.map((it) => it.code),
+      pendingCandidates:   pendingPool.map((it) => it.code),
       reobserveCandidates: reobservePool.map((it) => it.code),
       overflowHiddenCount: overflowPool.length,
       topPriorityLimit:   TOP_PRIORITY_LIMIT,
@@ -1068,6 +1073,7 @@ function main() {
   console.log(`     WAIT_PULLBACK 추격 부담     ${tradePlanSummary.waitPullbackCount}개`);
   console.log(`     ENTRY_INVALIDATED 흐름 약화 ${tradePlanSummary.invalidatedCount}개`);
   console.log(`     REBREAK_FADED 고점 후 밀림  ${tradePlanSummary.fadedCount}개`);
+  console.log(`     NEED_INTRADAY_CONFIRM       ${tradePlanSummary.needConfirmCount || 0}개  (09:30 분봉 미확인 — 신규 진입 X)`);
   console.log(`     재관찰 후보                 ${reobservePool.length}개  (peak_before_entry/trap_risk_high 중 dps≥20+v/mc≥10)`);
   console.log(`     분봉 부족 제외              ${riskExcludeCounts.insufficient_bars || 0}개  (화면 미노출)`);
   console.log(`     위험 필터 제외              ${totalRiskExcluded}건:`);
@@ -1101,6 +1107,7 @@ function main() {
   console.log(`     WAIT_PULLBACK      ${tradePlanSummary.waitPullbackCount}개 — 이미 기준가보다 많이 올라 추격 부담`);
   console.log(`     ENTRY_INVALIDATED  ${tradePlanSummary.invalidatedCount}개 — 장초 기준가를 이탈해 흐름 약화`);
   console.log(`     REBREAK_FADED      ${tradePlanSummary.fadedCount}개 — 장초 고점 돌파 후 다시 밀림`);
+  console.log(`     NEED_INTRADAY_CONFIRM ${tradePlanSummary.needConfirmCount || 0}개 — 09:30 분봉 확인 없음 (신규 진입 후보 아님)`);
   console.log(`     INSUFFICIENT_BARS  ${tradePlanSummary.insufficientCount}개 — 분봉 부족 (KIS 응답 누락)`);
   if (tradePlanSummary.missingPriceCount > 0) {
     console.log(`     MISSING_PRICE_DATA ${tradePlanSummary.missingPriceCount}개 — 가격 데이터 부족`);
@@ -1270,6 +1277,20 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .entry-status-pill { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 3px; background: #1e293b; color: #94a3b8; border: 1px solid #334155; margin-left: 6px; }
 .entry-status-pill.confirmed { background: #042f2e; color: #5eead4; border-color: #14b8a6; }
 .entry-status-pill.pending   { background: #1e293b; color: #94a3b8; border-color: #475569; }
+/* 09:30 status 배지 (전일 후보 카드 헤더에 노출 — 사용자 요구 2번) */
+.status-30-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+.status-30-badge.sb-ready          { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
+.status-30-badge.sb-wait           { background: #422006; color: #fcd34d; border: 1px solid #f59e0b; }
+.status-30-badge.sb-invalid        { background: #4c0519; color: #fda4af; border: 1px solid #f43f5e; }
+.status-30-badge.sb-faded          { background: #3b0764; color: #d8b4fe; border: 1px solid #a855f7; }
+.status-30-badge.sb-insufficient   { background: #1e293b; color: #cbd5e1; border: 1px solid #64748b; }
+.status-30-badge.sb-need-confirm   { background: #1e293b; color: #94a3b8; border: 1px dashed #475569; }
+.intraday-metrics-box { margin-top: 10px; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border-left: 3px solid #14b8a6; border-radius: 6px; }
+.intraday-metrics-box .im-label { font-size: 12px; font-weight: 700; color: #5eead4; }
+.intraday-metrics-box .metrics-grid { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+.intraday-metrics-box .metric { background: rgba(2, 6, 23, 0.5); padding: 6px 8px; }
+/* 스캐너 카드 "어제도 강함" 배지 (사용자 요구 6번) */
+.prev-day-overlap-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-left: 6px; background: #1e1b4b; color: #c4b5fd; border: 1px solid #8b5cf6; }
 
 .filter-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .filter-btn { padding: 6px 12px; border-radius: 999px; border: 1px solid #334155; background: #1e293b; color: #cbd5e1; font-size: 12px; cursor: pointer; }
@@ -1452,6 +1473,7 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .trade-plan-box.invalid { background: linear-gradient(135deg, #4c0519 0%, #1e293b 100%); border-color: #f43f5e; }
 .trade-plan-box.faded   { background: linear-gradient(135deg, #3b0764 0%, #1e293b 100%); border-color: #a855f7; }
 .trade-plan-box.insufficient { background: #1e293b; border-style: dashed; border-color: #64748b; }
+.trade-plan-box.pending { background: #0f172a; border-style: dashed; border-color: #64748b; opacity: 0.85; }
 .trade-plan-box.missing { background: #1e293b; border-style: dashed; border-color: #475569; }
 .trade-plan-box .tp-header {
   font-size: 13px; font-weight: 700; color: #5eead4;
@@ -1461,6 +1483,7 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .trade-plan-box.invalid .tp-header { color: #fda4af; border-bottom-color: #881337; }
 .trade-plan-box.faded   .tp-header { color: #d8b4fe; border-bottom-color: #6b21a8; }
 .trade-plan-box.insufficient .tp-header { color: #cbd5e1; border-bottom-color: #475569; }
+.trade-plan-box.pending .tp-header { color: #94a3b8; border-bottom-color: #334155; }
 .trade-plan-box .tp-badge {
   display: inline-block; font-size: 10.5px; font-weight: 700;
   padding: 2px 7px; border-radius: 999px; margin-right: 6px;
@@ -1470,6 +1493,7 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .trade-plan-box.invalid .tp-badge { background: rgba(244,63,94,0.18); color: #fda4af; border-color: #f43f5e; }
 .trade-plan-box.faded   .tp-badge { background: rgba(168,85,247,0.18); color: #d8b4fe; border-color: #a855f7; }
 .trade-plan-box.insufficient .tp-badge { background: rgba(100,116,139,0.18); color: #cbd5e1; border-color: #64748b; }
+.trade-plan-box.pending .tp-badge { background: rgba(148,163,184,0.15); color: #94a3b8; border-color: #64748b; }
 .trade-plan-box .tp-ratio { font-size: 10.5px; color: #94a3b8; font-weight: 400; }
 .trade-plan-box .tp-strategy { font-size: 10.5px; color: #94a3b8; font-weight: 400; margin-left: 4px; }
 .trade-plan-box .tp-row {
@@ -1517,6 +1541,7 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .tp-summary-strip .tps-pill.invalid  { color: #fda4af; }
 .tp-summary-strip .tps-pill.faded    { color: #d8b4fe; }
 .tp-summary-strip .tps-pill.insufficient { color: #cbd5e1; }
+.tp-summary-strip .tps-pill.pending  { color: #94a3b8; font-style: italic; }
 .tp-summary-strip .tps-pill.risk     { color: #fb923c; }
 .tp-summary-strip .tps-pill.missing  { color: #94a3b8; }
 .tp-summary-strip .tps-disclaimer { display: block; margin-top: 6px; font-size: 10.5px; color: #94a3b8; font-style: italic; }
@@ -1656,6 +1681,7 @@ renderSummary();
     '<span class="tps-pill wait">추격 부담 <span class="num">' + (tp.waitPullbackCount || 0) + '</span></span>',
     '<span class="tps-pill invalid">기준가 이탈 <span class="num">' + (tp.invalidatedCount || 0) + '</span></span>',
     '<span class="tps-pill faded">돌파 후 밀림 <span class="num">' + (tp.fadedCount || 0) + '</span></span>',
+    '<span class="tps-pill pending">분봉 미확인 <span class="num">' + (tp.needConfirmCount || 0) + '</span></span>',
     '<span class="tps-pill insufficient">분봉 부족 <span class="num">' + (tp.insufficientCount || 0) + '</span></span>',
     '<span class="tps-pill missing">가격 데이터 부족 <span class="num">' + (tp.missingPriceCount || 0) + '</span></span>',
     '<span class="tps-pill risk">위험 태그 제외 <span class="num">' + (tp.excludedRiskCount || 0) + '</span></span>',
@@ -1991,10 +2017,11 @@ function renderTradePlanBox(it) {
     '</div>';
   };
 
-  if (tp.status === 'WAIT_PULLBACK')     return renderHoldCard('wait',         '추격 부담 — 보류',         '추격 부담 / 눌림 대기');
-  if (tp.status === 'ENTRY_INVALIDATED') return renderHoldCard('invalid',      '기준가 이탈 — 진입 보류',  '자동 진입 보류');
-  if (tp.status === 'REBREAK_FADED')     return renderHoldCard('faded',        '돌파 후 밀림 — 주의',      '돌파 후 밀림 / 보류');
-  if (tp.status === 'INSUFFICIENT_BARS') return renderHoldCard('insufficient', '분봉 부족 — 판정 불가',    '분봉 부족 / 보류');
+  if (tp.status === 'WAIT_PULLBACK')         return renderHoldCard('wait',         '추격 부담 — 보류',         '추격 부담 / 눌림 대기');
+  if (tp.status === 'ENTRY_INVALIDATED')     return renderHoldCard('invalid',      '기준가 이탈 — 진입 보류',  '자동 진입 보류');
+  if (tp.status === 'REBREAK_FADED')         return renderHoldCard('faded',        '돌파 후 밀림 — 주의',      '돌파 후 밀림 / 보류');
+  if (tp.status === 'INSUFFICIENT_BARS')     return renderHoldCard('insufficient', '분봉 부족 — 판정 불가',    '분봉 부족 / 보류');
+  if (tp.status === 'NEED_INTRADAY_CONFIRM') return renderHoldCard('pending',      '09:30 분봉 확인 없음',     '분봉 미확인 / 보류');
   if (tp.status === 'MISSING_PRICE_DATA') {
     return '<div class="trade-plan-box missing">' +
       '<div class="tp-header"><span class="tp-badge">자동 계산</span>가격 데이터 부족<span class="tp-strategy">' + stratLabel + '</span>' + sourceTag + '</div>' +
@@ -2046,6 +2073,38 @@ function entryStatusPill(it) {
   if (it.entryStatus === 'OK') return '';
   // 분봉 확인 전인 경우만 명시 (개별 카드 너무 시끄러우면 제거 가능)
   return '<span class="entry-status-pill pending" title="장초 분봉 데이터 아직 없음 — 다음 거래일 09:35+ 분봉 수집 후 표시">장초 분봉 확인 전</span>';
+}
+
+// 전일 후보 카드의 09:30 tradePlan 상태 배지 — 카드 헤더에 강조 표시.
+// READY는 청록, 위험 신호는 색상별, 분봉 미확인은 회색 dashed.
+function tradePlanStatusBadge(it) {
+  const st = it.tradePlan && it.tradePlan.status;
+  if (!st || st === 'NOT_SELECTED' || st === 'AUTO_EXCLUDED_RISK') return '';
+  const map = {
+    READY:                 { cls: 'status-ready',   label: '✓ READY · 장초 흐름 유지' },
+    WAIT_PULLBACK:         { cls: 'status-wait',    label: '⚠ WAIT_PULLBACK · 추격 부담' },
+    ENTRY_INVALIDATED:     { cls: 'status-invalid', label: '✕ ENTRY_INVALIDATED · 기준가 이탈' },
+    REBREAK_FADED:         { cls: 'status-faded',   label: '↘ REBREAK_FADED · 돌파 후 밀림' },
+    INSUFFICIENT_BARS:     { cls: 'status-insuff',  label: '· INSUFFICIENT_BARS · 분봉 부족' },
+    NEED_INTRADAY_CONFIRM: { cls: 'status-pending', label: '· NEED_INTRADAY_CONFIRM · 09:30 분봉 미확인' },
+    MISSING_PRICE_DATA:    { cls: 'status-insuff',  label: '· MISSING_PRICE_DATA · 가격 부족' },
+  };
+  const m = map[st];
+  if (!m) return '';
+  return '<span class="prev-status-badge ' + m.cls + '" title="전일 mainPool 후보의 09:30 분봉 검증 상태">' + m.label + '</span>';
+}
+
+// 오늘 스캐너 결과와 전일 mainPool 후보가 겹치는지 — "어제도 강함" 배지용.
+function scannerOverlapBadge(it) {
+  const sc = DATA.priorityRanked && DATA.priorityRanked.scanner0930;
+  if (!sc) return '';
+  const inReady    = (sc.ready    || []).some((e) => e.code === it.code);
+  const inHolding  = (sc.holding  || []).some((e) => e.code === it.code);
+  const inRejected = (sc.rejected || []).some((e) => e.code === it.code);
+  if (inReady)    return '<span class="prev-day-overlap-badge" title="오늘 09:30 스캐너에서도 READY로 잡힘 — 어제·오늘 연속 확인">🔥 어제도 강함 · 연속 확인</span>';
+  if (inHolding)  return '<span class="prev-day-overlap-badge" style="background:#422006;color:#fcd34d;border-color:#f59e0b;" title="오늘 09:30 스캐너에서 보류/재관찰로 잡힘">🔁 전일 후보 겹침 (스캐너 보류)</span>';
+  if (inRejected) return '<span class="prev-day-overlap-badge" style="background:#1e293b;color:#94a3b8;border-color:#475569;" title="오늘 09:30 스캐너에서 WEAK로 분류">· 전일 후보 겹침 (스캐너 WEAK)</span>';
+  return '';
 }
 
 function buildCardHtml(it) {
@@ -2113,6 +2172,7 @@ function buildCardHtml(it) {
 
   // 장초 ENTRY_CONFIRM 분봉 메트릭 메시지 (있을 때만)
   let intradayLine = '';
+  let intradayMetricsBox = '';
   if (it.entryStatus === 'OK' && it.intraday) {
     const im = it.intraday;
     const mh = im.rebreakMorningHigh_10_30;
@@ -2121,7 +2181,48 @@ function buildCardHtml(it) {
     const phTxt = ph ? '<span class="cell-warn">⚠ 전일 고점 돌파(spike 위험)</span>' : '<span class="muted">· 전일 고점 미돌파</span>';
     const gapPctTxt = im.gapRate != null ? fmtPct(im.gapRate, 2) : '-';
     intradayLine = '<div class="gap-note" style="border-left-color:#14b8a6;color:#cbd5e1;">🚪 장초 분봉 확인 (' + (DATA.entryShelf && DATA.entryShelf.entryConfirmDate || '-') + '): 시초가 갭 ' + gapPctTxt + ' · ' + mhTxt + ' · ' + phTxt + '</div>';
+    // 사용자 요구 4번 — 09:00~09:30 분봉 메트릭 6개 카드 표시
+    const v0930 = im.value_0_30 != null ? im.value_0_30 : (im.value_0_10 || 0) * 3;
+    const oc = im.openToCloseRate_0_30;
+    const hd = im.highToCloseDrop_0_30;
+    const cp = im.closePosition_0_30;
+    const ocCls = oc == null ? '' : (oc > 0 ? 'cell-pos' : (oc < 0 ? 'cell-neg' : ''));
+    const hdCls = hd == null ? '' : (hd <= -2.5 ? 'cell-neg' : (hd <= -1.0 ? 'cell-warn' : 'cell-pos'));
+    const cpCls2 = cp == null ? '' : (cp >= 0.65 ? 'cell-pos' : (cp < 0.4 ? 'cell-neg' : ''));
+    intradayMetricsBox = '<div class="intraday-metrics-box">' +
+      '<div class="im-label">📊 09:00~09:30 분봉 메트릭</div>' +
+      '<div class="metrics-grid" style="margin-top:6px;">' +
+        '<div class="metric"><div class="label">누적 거래대금</div><div class="value">' + fmtMoney(v0930) + '원</div><div class="sub">09:00~09:30 합</div></div>' +
+        '<div class="metric"><div class="label">시가 대비 09:30</div><div class="value ' + ocCls + '">' + (oc != null ? (oc >= 0 ? '+' : '') + oc.toFixed(2) + '%' : '-') + '</div><div class="sub">+1~8% 양호</div></div>' +
+        '<div class="metric"><div class="label">고점 대비 09:30</div><div class="value ' + hdCls + '">' + (hd != null ? hd.toFixed(2) + '%' : '-') + '</div><div class="sub">-2.5%↓ FADED</div></div>' +
+        '<div class="metric"><div class="label">09:30 종가 위치</div><div class="value ' + cpCls2 + '">' + (cp != null ? (cp * 100).toFixed(0) + '%' : '-') + '</div><div class="sub">≥65% 양호</div></div>' +
+        '<div class="metric"><div class="label">첫 고점 재돌파</div><div class="value ' + (mh ? 'cell-pos' : '') + '">' + (mh ? '✓ 재돌파' : '· 미돌파') + '</div><div class="sub">09:10~30 사이</div></div>' +
+        '<div class="metric"><div class="label">분봉 수</div><div class="value">' + (im.bars_total || 0) + '개</div><div class="sub">≥20 정상</div></div>' +
+      '</div>' +
+    '</div>';
   }
+
+  // 09:30 현재 상태 배지 — 전일 후보 카드에 반드시 표시 (사용자 요구 2번)
+  const STATUS_BADGE_CLS = {
+    READY:                 'sb-ready',
+    WAIT_PULLBACK:         'sb-wait',
+    ENTRY_INVALIDATED:     'sb-invalid',
+    REBREAK_FADED:         'sb-faded',
+    INSUFFICIENT_BARS:     'sb-insufficient',
+    NEED_INTRADAY_CONFIRM: 'sb-need-confirm',
+  };
+  const STATUS_BADGE_LABEL = {
+    READY:                 '✅ READY 장초 흐름 유지',
+    WAIT_PULLBACK:         '⚠ 추격 부담',
+    ENTRY_INVALIDATED:     '⚠ 기준가 이탈',
+    REBREAK_FADED:         '⚠ 고점 후 밀림',
+    INSUFFICIENT_BARS:     '❓ 분봉 부족',
+    NEED_INTRADAY_CONFIRM: '❓ 09:30 분봉 미확인',
+  };
+  const tpStatus = it.tradePlan && it.tradePlan.status;
+  const statusBadge = STATUS_BADGE_LABEL[tpStatus]
+    ? '<span class="status-30-badge ' + (STATUS_BADGE_CLS[tpStatus] || '') + '">' + STATUS_BADGE_LABEL[tpStatus] + '</span>'
+    : '';
 
   // QVA 보조 태그 strip — H3 바로 아래 눈에 띄는 독립 줄로 표시
   const qvaStrip = it.hasRecentQva
@@ -2193,7 +2294,7 @@ function buildCardHtml(it) {
   }
 
   return '<div class="card g-' + it.gtGroup + '" data-group="' + it.gtGroup + '" data-candle="' + (it.candleType || '') + '" data-qva="' + (it.qvaHistoryLabel ? '1' : '0') + '" data-has-qva="' + (it.hasRecentQva ? '1' : '0') + '" data-vvi="' + (it.vviHistory ? '1' : '0') + '" data-strategies="' + ((it.entryStrategies || []).join(',')) + '" data-manual-targets="' + (it.manualTargets ? '1' : '0') + '" data-trade-plan="' + (it.tradePlan && it.tradePlan.status || 'NONE') + '">' +
-    '<h3>' + (it.name || '-') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' + entryStatusPill(it) + '</h3>' +
+    '<h3>' + (it.name || '-') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' + statusBadge + ' ' + scannerOverlapBadge(it) + ' ' + entryStatusPill(it) + '</h3>' +
     qvaStrip +
     '<div class="meta">' + strategyChips(it) + badges.join('') + '</div>' +
     perfBox +
@@ -2213,6 +2314,7 @@ function buildCardHtml(it) {
     '</div>' +
     '<div class="summary-line">💡 ' + (it.summaryLine || '') + '</div>' +
     intradayLine +
+    intradayMetricsBox +
     (intradayLine ? '' : '<div class="gap-note">🚪 다음 거래일 시초가가 나오면 갭 7% 이상은 "갭 과열 주의", 12% 이상은 "강한 추격 주의", 20% 이상은 "초고위험 갭"으로 표시됩니다. 7% 미만이면 "장초 확인 가능 구간".</div>') +
     // ── 카드 하단 가격 박스 묶음 (위: 사용자 수동 분석가 → 아래: 프로그램 자동 참고 예상가) ──
     manualTargetsBox +
@@ -2244,12 +2346,17 @@ function buildCardHtml(it) {
     if (v >= 1e4)  return (v / 1e4).toFixed(0) + '만';
     return Math.round(v).toLocaleString();
   };
+  // 사용자 요구 6번: 스캐너 카드에서 전일 mainPool과 겹치면 "🔥 어제도 강함" 배지
+  const prevDayCodesSet = new Set((DATA.priorityRanked && DATA.priorityRanked.mainPoolCodes) || []);
   const renderCard = (e, statusCls) => {
     const m = e.metrics || {};
     const sign = (m.openToLastRate >= 0 ? '+' : '');
     return '<div class="card s-' + e.status + '">' +
       '<h3>' + (e.name || e.code) + ' <span class="code">' + e.code + '</span> <span class="market">' + (e.market || '') + '</span>' +
-      ' <span class="badge ' + statusCls + '">' + (e.statusLabel || e.status) + '</span></h3>' +
+      ' <span class="badge ' + statusCls + '">' + (e.statusLabel || e.status) + '</span>' +
+      // 사용자 요구 6번: 전일 mainPool 겹침 시 "어제도 강함" 배지
+      (prevDayCodesSet.has(e.code) ? ' <span class="prev-day-overlap-badge" title="전일 mainPool에도 들어왔던 종목 — 어제 일봉 강세 + 오늘 09:30 분봉 강세">🔥 어제도 강함</span>' : '') +
+      '</h3>' +
       '<div class="metrics-grid">' +
         '<div class="metric"><div class="label">시가 → 09:30 close</div><div class="value">' + fmtN(m.open0900) + ' → ' + fmtN(m.last0930) + '원</div><div class="sub">' + sign + (m.openToLastRate || 0).toFixed(2) + '%</div></div>' +
         '<div class="metric"><div class="label">09:30 누적 거래대금</div><div class="value">' + fmtMoneyKR(m.value_0930) + '원</div><div class="sub">평균 30분 대비 ×' + (m.valueToAvgRatio_0930 || 0).toFixed(2) + '</div></div>' +
@@ -2278,8 +2385,8 @@ function buildCardHtml(it) {
     '<div style="font-size:12px;margin-bottom:6px;">' +
       '<span style="color:#5eead4;font-weight:700;">' + modeLabel + '</span> · ' + scanRange + elapsedTxt +
     '</div>' +
-    '이 구역은 전일 후보가 아니라 오늘 ' + (sc.nextDate || '') + ' 09:00~09:30 분봉 기준으로 새로 잡힌 종목입니다. ' +
-    '<strong>유동성 통과 + 메트릭 계산 ' + (sc.successCount || 0) + '개</strong> 중 위 상태로 분류.' +
+    '<strong>오늘 09:00~09:30 분봉 기준으로 새로 잡힌 종목입니다.</strong> (전일 mainPool과 무관, 09:30 시점 강세 종목)<br>' +
+    '유동성 통과 + 메트릭 계산 <strong>' + (sc.successCount || 0) + '개</strong> 중 위 상태로 분류.' +
     '</div>' +
     '<div style="margin:8px 0 14px;">' + breakdown + '</div>';
   let body = '';
@@ -2306,20 +2413,27 @@ function buildCardHtml(it) {
   '</section>';
 })();
 
-// ── ① 전일 후보의 09:30 확인 결과 (mainPool 통과 + tradePlan READY) ──
+// ── ① 전일 후보 09:30 상태표 — READY (mainPool 통과 + tradePlan READY) ──
+// 사용자 요구: 전일 후보를 "오늘 09:30 후보"처럼 보이게 하지 않는다. 살아남았는지 보는 상태표.
 (function renderTopPriority() {
   const host = document.getElementById('top-priority-host');
   if (!host) return;
   const items = itemsByCodes(DATA.priorityRanked && DATA.priorityRanked.topPriority);
+  const sharedDesc = '<div class="shelf-desc" style="color:#cbd5e1;">' +
+    '<strong>어제 강했던 종목이 오늘 09:30까지 살아남았는지 확인하는 보조 영역입니다.</strong> ' +
+    'READY가 아니면 신규 진입 후보로 보지 않습니다. (신규 진입 후보는 위 "📡 오늘 09:30 실제 포착 후보"를 참고)' +
+    '</div>';
   if (items.length === 0) {
-    host.innerHTML = '<section class="entry-shelf-section"><h2>📋 전일 후보의 09:30 확인 결과 — 0종목</h2>' +
+    host.innerHTML = '<section class="entry-shelf-section"><h2>🔁 전일 후보 09:30 상태표 — ✅ READY 0종목</h2>' +
+      sharedDesc +
       '<div class="empty-list" style="padding:18px;">전일 mainPool 후보 중 09:30 분봉으로 READY 통과한 종목이 없습니다.<br>' +
-      '<span style="font-size:11px;color:#94a3b8;">아래 "보류/재관찰" 섹션을 확인하세요.</span></div></section>';
+      '<span style="font-size:11px;color:#94a3b8;">아래 "보류" / "분봉 미확인" 서브섹션을 확인하세요.</span></div></section>';
     return;
   }
   host.innerHTML = '<section class="entry-shelf-section">' +
-    '<h2 id="top-priority-h2">📋 전일 후보의 09:30 확인 결과 — ' + items.length + '종목</h2>' +
-    '<div class="shelf-desc" id="top-priority-desc">전일 16:35 mainPool에 들어왔던 후보 중 <strong>09:30 분봉 반영 후 장초 흐름이 유지되어 진입 가능</strong>한 후보입니다.</div>' +
+    '<h2 id="top-priority-h2">🔁 전일 후보 09:30 상태표 — ✅ READY ' + items.length + '종목</h2>' +
+    sharedDesc +
+    '<div class="shelf-desc" id="top-priority-desc" style="margin-top:8px;">아래 ' + items.length + '종목은 전일 mainPool 후보 중 <strong>09:30 분봉 반영 후 장초 흐름이 유지된</strong> 종목입니다.</div>' +
     items.map(buildCardHtml).join('') +
   '</section>';
 })();
@@ -2366,6 +2480,36 @@ function buildCardHtml(it) {
     '<div style="margin-top:10px;">' +
     '<div class="shelf-desc">전일 mainPool 후보 중 09:30 분봉 반영 후 진입이 부담스럽거나 흐름이 약화된 종목입니다. 매수가는 비워져 있고, 사용자 본인 판단으로 재진입을 검토하세요.</div>' +
     '<div style="margin:8px 0 12px;">' + breakdownHtml + '</div>' +
+      items.map(buildCardHtml).join('') +
+    '</div></details>' +
+  '</section>';
+})();
+
+// ── ③-2 분봉 미확인 (NEED_INTRADAY_CONFIRM) — 09:30 분봉 자체가 없거나 전략 매치 실패 ──
+// 사용자 요구 3번: group_fallback은 절대 READY로 표시하지 않는다. 별도 섹션으로 분리.
+(function renderPendingCandidates() {
+  // pending-host div가 없으면 holding 다음에 만들거나, 새 호스트 div를 동적으로 만들어 추가
+  const codes = DATA.priorityRanked && DATA.priorityRanked.pendingCandidates;
+  if (!codes || codes.length === 0) return;
+  // holding-host 다음에 새 host 추가 (없으면 reobserve-host 앞에 insert)
+  let host = document.getElementById('pending-host');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'pending-host';
+    const reobserveHost = document.getElementById('reobserve-host');
+    if (reobserveHost && reobserveHost.parentNode) {
+      reobserveHost.parentNode.insertBefore(host, reobserveHost);
+    } else {
+      document.body.appendChild(host);
+    }
+  }
+  const items = itemsByCodes(codes);
+  if (items.length === 0) return;
+  host.innerHTML = '<section class="entry-shelf-section" style="border:1px dashed #475569;background:#0f172a;margin-top:14px;">' +
+    '<details><summary style="cursor:pointer;font-size:15px;font-weight:700;color:#94a3b8;padding:6px 0;">' +
+      '❓ 전일 후보 09:30 분봉 미확인 (' + items.length + '건) — 펼쳐서 보기</summary>' +
+    '<div style="margin-top:10px;">' +
+    '<div class="shelf-desc" style="color:#94a3b8;">전일 mainPool 후보 중 09:30 분봉이 아직 수집되지 않았거나 전략 매치가 안 된 종목입니다. <strong>READY 아님 — 신규 진입 후보로 보지 않습니다.</strong> 분봉이 들어오면 자동으로 상태가 재분류됩니다.</div>' +
       items.map(buildCardHtml).join('') +
     '</div></details>' +
   '</section>';
