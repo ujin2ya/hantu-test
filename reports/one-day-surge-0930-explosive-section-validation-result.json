@@ -1,0 +1,893 @@
+{
+  "meta": {
+    "title": "폭발형 섹션 조건 검증",
+    "generatedAt": "2026-05-14T11:22:48.530Z",
+    "elapsedSec": "15.68",
+    "eligibleDates": [
+      "2026-04-16",
+      "2026-04-17",
+      "2026-04-20",
+      "2026-04-21",
+      "2026-04-22",
+      "2026-04-23",
+      "2026-04-24",
+      "2026-04-27",
+      "2026-04-28",
+      "2026-04-29",
+      "2026-04-30",
+      "2026-05-04",
+      "2026-05-06",
+      "2026-05-07",
+      "2026-05-08",
+      "2026-05-11",
+      "2026-05-12",
+      "2026-05-13",
+      "2026-05-14"
+    ],
+    "eligibleDayCount": 19,
+    "todayFocus": "2026-05-14",
+    "conditions": {
+      "passesExplosive": "rebreakMorningHigh ∧ closePosition≥0.85 ∧ value_0930≥100억",
+      "explosiveScore": "finalScore + (open∈[3,8] +5) + (drop≥-1 +3) − (open>8 -5)"
+    },
+    "strategies": {
+      "B": "+5%/-2%, 10:00 미달성 시 일봉 close",
+      "C": "+7%/-3%, 10:00 미달성 시 일봉 close",
+      "D": "+10%/-3%",
+      "E": "+2% 절반 익절 후 +7% 목표 / -2% 손절",
+      "F": "+2% 절반 익절 후 +10% 목표 / -3% 손절"
+    }
+  },
+  "summaries": {
+    "READY_ALL": {
+      "n": 366,
+      "avgDayMax": 4.31,
+      "medianDayMax": 2.75,
+      "avgDayClose": 0.14,
+      "avgMaxReturn1000": 2.3,
+      "avgReturnAt1000": 0.16,
+      "dayHit3Rate": 47,
+      "dayHit5Rate": 30.1,
+      "dayHit7Rate": 19.7,
+      "dayHit10Rate": 9.8,
+      "dayHit15Rate": 2.5,
+      "fail1Rate": 60.9,
+      "fail2Rate": 32.8,
+      "fail3Rate": 14.8,
+      "firstHit5BeforeFail2": 10.4,
+      "firstHit7BeforeFail3": 5.2,
+      "firstHit10BeforeFail3": 2.2,
+      "closePositiveRate": 44.8,
+      "stratB_ev": 0.23,
+      "stratC_ev": 0.28,
+      "stratD_ev": 0.32,
+      "stratE_ev": 0.2,
+      "stratF_ev": 0.27
+    },
+    "READY_TOP5_finalSc": {
+      "n": 95,
+      "avgDayMax": 4.78,
+      "medianDayMax": 3.16,
+      "avgDayClose": -0.53,
+      "avgMaxReturn1000": 2.97,
+      "avgReturnAt1000": 0.34,
+      "dayHit3Rate": 52.6,
+      "dayHit5Rate": 34.7,
+      "dayHit7Rate": 25.3,
+      "dayHit10Rate": 12.6,
+      "dayHit15Rate": 1.1,
+      "fail1Rate": 68.4,
+      "fail2Rate": 44.2,
+      "fail3Rate": 20,
+      "firstHit5BeforeFail2": 18.9,
+      "firstHit7BeforeFail3": 8.4,
+      "firstHit10BeforeFail3": 3.2,
+      "closePositiveRate": 42.1,
+      "stratB_ev": 0.19,
+      "stratC_ev": 0.25,
+      "stratD_ev": 0.29,
+      "stratE_ev": 0.28,
+      "stratF_ev": 0.25
+    },
+    "explosiveTop": {
+      "n": 60,
+      "avgDayMax": 4.71,
+      "medianDayMax": 4.07,
+      "avgDayClose": -0.08,
+      "avgMaxReturn1000": 2.67,
+      "avgReturnAt1000": -0.05,
+      "dayHit3Rate": 55,
+      "dayHit5Rate": 36.7,
+      "dayHit7Rate": 25,
+      "dayHit10Rate": 11.7,
+      "dayHit15Rate": 1.7,
+      "fail1Rate": 61.7,
+      "fail2Rate": 45,
+      "fail3Rate": 25,
+      "firstHit5BeforeFail2": 15,
+      "firstHit7BeforeFail3": 5,
+      "firstHit10BeforeFail3": 0,
+      "closePositiveRate": 48.3,
+      "stratB_ev": 0.63,
+      "stratC_ev": 0.83,
+      "stratD_ev": 0.67,
+      "stratE_ev": 0.56,
+      "stratF_ev": 0.53
+    },
+    "explosiveWatch": {
+      "n": 78,
+      "avgDayMax": 4.63,
+      "medianDayMax": 3.86,
+      "avgDayClose": -1.47,
+      "avgMaxReturn1000": 3.27,
+      "avgReturnAt1000": 0.07,
+      "dayHit3Rate": 60.3,
+      "dayHit5Rate": 37.2,
+      "dayHit7Rate": 19.2,
+      "dayHit10Rate": 12.8,
+      "dayHit15Rate": 3.8,
+      "fail1Rate": 78.2,
+      "fail2Rate": 61.5,
+      "fail3Rate": 43.6,
+      "firstHit5BeforeFail2": 17.9,
+      "firstHit7BeforeFail3": 9,
+      "firstHit10BeforeFail3": 3.8,
+      "closePositiveRate": 35.9,
+      "stratB_ev": -0.78,
+      "stratC_ev": -0.87,
+      "stratD_ev": -0.71,
+      "stratE_ev": -0.61,
+      "stratF_ev": -0.48
+    },
+    "explosiveTop_plus_Watch": {
+      "n": 138,
+      "avgDayMax": 4.67,
+      "medianDayMax": 3.98,
+      "avgDayClose": -0.86,
+      "avgMaxReturn1000": 3.01,
+      "avgReturnAt1000": 0.01,
+      "dayHit3Rate": 58,
+      "dayHit5Rate": 37,
+      "dayHit7Rate": 21.7,
+      "dayHit10Rate": 12.3,
+      "dayHit15Rate": 2.9,
+      "fail1Rate": 71,
+      "fail2Rate": 54.3,
+      "fail3Rate": 35.5,
+      "firstHit5BeforeFail2": 16.7,
+      "firstHit7BeforeFail3": 7.2,
+      "firstHit10BeforeFail3": 2.2,
+      "closePositiveRate": 41.3,
+      "stratB_ev": -0.17,
+      "stratC_ev": -0.13,
+      "stratD_ev": -0.11,
+      "stratE_ev": -0.1,
+      "stratF_ev": -0.04
+    },
+    "valueOver100억": {
+      "n": 155,
+      "avgDayMax": 4.77,
+      "medianDayMax": 3.5,
+      "avgDayClose": 0.13,
+      "avgMaxReturn1000": 2.74,
+      "avgReturnAt1000": 0.35,
+      "dayHit3Rate": 54.8,
+      "dayHit5Rate": 35.5,
+      "dayHit7Rate": 25.8,
+      "dayHit10Rate": 10.3,
+      "dayHit15Rate": 1.3,
+      "fail1Rate": 61.9,
+      "fail2Rate": 35.5,
+      "fail3Rate": 17.4,
+      "firstHit5BeforeFail2": 16.1,
+      "firstHit7BeforeFail3": 7.1,
+      "firstHit10BeforeFail3": 2.6,
+      "closePositiveRate": 47.7,
+      "stratB_ev": 0.51,
+      "stratC_ev": 0.61,
+      "stratD_ev": 0.62,
+      "stratE_ev": 0.47,
+      "stratF_ev": 0.53
+    },
+    "rebreakOnly": {
+      "n": 314,
+      "avgDayMax": 4.36,
+      "medianDayMax": 2.74,
+      "avgDayClose": 0.07,
+      "avgMaxReturn1000": 2.31,
+      "avgReturnAt1000": 0.15,
+      "dayHit3Rate": 47.1,
+      "dayHit5Rate": 30.6,
+      "dayHit7Rate": 19.7,
+      "dayHit10Rate": 9.9,
+      "dayHit15Rate": 2.9,
+      "fail1Rate": 62.1,
+      "fail2Rate": 35,
+      "fail3Rate": 15.9,
+      "firstHit5BeforeFail2": 10.8,
+      "firstHit7BeforeFail3": 5.1,
+      "firstHit10BeforeFail3": 2.2,
+      "closePositiveRate": 45.2,
+      "stratB_ev": 0.2,
+      "stratC_ev": 0.23,
+      "stratD_ev": 0.27,
+      "stratE_ev": 0.14,
+      "stratF_ev": 0.23
+    },
+    "cpOver85Only": {
+      "n": 185,
+      "avgDayMax": 4.18,
+      "medianDayMax": 2.5,
+      "avgDayClose": -0.17,
+      "avgMaxReturn1000": 2.37,
+      "avgReturnAt1000": 0.04,
+      "dayHit3Rate": 46.5,
+      "dayHit5Rate": 28.6,
+      "dayHit7Rate": 20,
+      "dayHit10Rate": 11.9,
+      "dayHit15Rate": 2.7,
+      "fail1Rate": 63.8,
+      "fail2Rate": 36.2,
+      "fail3Rate": 17.3,
+      "firstHit5BeforeFail2": 10.3,
+      "firstHit7BeforeFail3": 4.9,
+      "firstHit10BeforeFail3": 2.7,
+      "closePositiveRate": 41.6,
+      "stratB_ev": 0.08,
+      "stratC_ev": 0.15,
+      "stratD_ev": 0.21,
+      "stratE_ev": 0.09,
+      "stratF_ev": 0.19
+    }
+  },
+  "dailyExplosiveTopCount": [
+    {
+      "date": "2026-04-16",
+      "n": 5,
+      "total": 5
+    },
+    {
+      "date": "2026-04-17",
+      "n": 4,
+      "total": 4
+    },
+    {
+      "date": "2026-04-20",
+      "n": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-04-21",
+      "n": 4,
+      "total": 4
+    },
+    {
+      "date": "2026-04-22",
+      "n": 5,
+      "total": 5
+    },
+    {
+      "date": "2026-04-23",
+      "n": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-04-24",
+      "n": 5,
+      "total": 5
+    },
+    {
+      "date": "2026-04-27",
+      "n": 5,
+      "total": 9
+    },
+    {
+      "date": "2026-04-28",
+      "n": 2,
+      "total": 2
+    },
+    {
+      "date": "2026-04-29",
+      "n": 2,
+      "total": 2
+    },
+    {
+      "date": "2026-04-30",
+      "n": 3,
+      "total": 3
+    },
+    {
+      "date": "2026-05-04",
+      "n": 5,
+      "total": 8
+    },
+    {
+      "date": "2026-05-06",
+      "n": 2,
+      "total": 2
+    },
+    {
+      "date": "2026-05-07",
+      "n": 2,
+      "total": 2
+    },
+    {
+      "date": "2026-05-08",
+      "n": 3,
+      "total": 3
+    },
+    {
+      "date": "2026-05-11",
+      "n": 3,
+      "total": 3
+    },
+    {
+      "date": "2026-05-12",
+      "n": 4,
+      "total": 4
+    },
+    {
+      "date": "2026-05-13",
+      "n": 5,
+      "total": 5
+    },
+    {
+      "date": "2026-05-14",
+      "n": 1,
+      "total": 1
+    }
+  ],
+  "dailyExplosiveWatchCount": [
+    {
+      "date": "2026-04-16",
+      "n": 5,
+      "total": 5
+    },
+    {
+      "date": "2026-04-17",
+      "n": 4,
+      "total": 4
+    },
+    {
+      "date": "2026-04-20",
+      "n": 1,
+      "total": 1
+    },
+    {
+      "date": "2026-04-21",
+      "n": 2,
+      "total": 2
+    },
+    {
+      "date": "2026-04-22",
+      "n": 5,
+      "total": 6
+    },
+    {
+      "date": "2026-04-23",
+      "n": 3,
+      "total": 3
+    },
+    {
+      "date": "2026-04-24",
+      "n": 5,
+      "total": 7
+    },
+    {
+      "date": "2026-04-27",
+      "n": 5,
+      "total": 11
+    },
+    {
+      "date": "2026-04-28",
+      "n": 1,
+      "total": 1
+    },
+    {
+      "date": "2026-04-29",
+      "n": 5,
+      "total": 5
+    },
+    {
+      "date": "2026-04-30",
+      "n": 2,
+      "total": 2
+    },
+    {
+      "date": "2026-05-04",
+      "n": 5,
+      "total": 12
+    },
+    {
+      "date": "2026-05-06",
+      "n": 5,
+      "total": 6
+    },
+    {
+      "date": "2026-05-07",
+      "n": 5,
+      "total": 6
+    },
+    {
+      "date": "2026-05-08",
+      "n": 5,
+      "total": 7
+    },
+    {
+      "date": "2026-05-11",
+      "n": 5,
+      "total": 5
+    },
+    {
+      "date": "2026-05-12",
+      "n": 5,
+      "total": 5
+    },
+    {
+      "date": "2026-05-13",
+      "n": 5,
+      "total": 5
+    },
+    {
+      "date": "2026-05-14",
+      "n": 5,
+      "total": 8
+    }
+  ],
+  "expTopDailyAvg": 3.53,
+  "expTopZeroDays": 2,
+  "expWatchDailyAvg": 5.32,
+  "expWatchZeroDays": 0,
+  "todayDetail": {
+    "readyTop5": [
+      {
+        "code": "090360",
+        "name": "로보스타",
+        "finalScore": 101.14,
+        "expScore": 101.14,
+        "passes": false,
+        "m": {
+          "closePosition0930": 0.723,
+          "highToLastDrop": -1.58,
+          "openToLastRate": 2.14,
+          "value_0930": 20369296550,
+          "valueToAvgRatio_0930": 7.66,
+          "rebreakMorningHigh": false,
+          "last0930": 81200
+        },
+        "perf": {
+          "maxReturn1000": 4.56,
+          "minReturn1000": -1.85,
+          "returnAt1000": -0.49,
+          "dayMax": 4.56,
+          "dayMin": -4.19,
+          "dayClose": -0.49,
+          "hit3": true,
+          "hit5": false,
+          "hit7": false,
+          "hit10": false,
+          "hit15": false,
+          "fail1": true,
+          "fail2": false,
+          "fail3": false,
+          "firstHit5BeforeFail2": false,
+          "firstHit7BeforeFail3": false,
+          "firstHit10BeforeFail3": false,
+          "dayHit3": true,
+          "dayHit5": false,
+          "dayHit7": false,
+          "dayHit10": false,
+          "dayHit15": false,
+          "closePositive": false
+        }
+      },
+      {
+        "code": "001450",
+        "name": "현대해상",
+        "finalScore": 98.94,
+        "expScore": 106.94,
+        "passes": true,
+        "m": {
+          "closePosition0930": 0.911,
+          "highToLastDrop": -0.62,
+          "openToLastRate": 6.84,
+          "value_0930": 11205158725,
+          "valueToAvgRatio_0930": 8.8,
+          "rebreakMorningHigh": true,
+          "last0930": 32000
+        },
+        "perf": {
+          "maxReturn1000": 2.19,
+          "minReturn1000": -0.62,
+          "returnAt1000": 2.19,
+          "dayMax": 4.06,
+          "dayMin": -6.41,
+          "dayClose": 2.34,
+          "hit3": false,
+          "hit5": false,
+          "hit7": false,
+          "hit10": false,
+          "hit15": false,
+          "fail1": false,
+          "fail2": false,
+          "fail3": false,
+          "firstHit5BeforeFail2": false,
+          "firstHit7BeforeFail3": false,
+          "firstHit10BeforeFail3": false,
+          "dayHit3": true,
+          "dayHit5": false,
+          "dayHit7": false,
+          "dayHit10": false,
+          "dayHit15": false,
+          "closePositive": true
+        }
+      },
+      {
+        "code": "475150",
+        "name": "SK이터닉스",
+        "finalScore": 82.73,
+        "expScore": 87.73,
+        "passes": false,
+        "m": {
+          "closePosition0930": 0.692,
+          "highToLastDrop": -1.54,
+          "openToLastRate": 3.66,
+          "value_0930": 12768749950,
+          "valueToAvgRatio_0930": 5.85,
+          "rebreakMorningHigh": true,
+          "last0930": 51000
+        },
+        "perf": {
+          "maxReturn1000": 3.53,
+          "minReturn1000": -0.39,
+          "returnAt1000": 1.76,
+          "dayMax": 4.31,
+          "dayMin": -3.53,
+          "dayClose": 0.78,
+          "hit3": true,
+          "hit5": false,
+          "hit7": false,
+          "hit10": false,
+          "hit15": false,
+          "fail1": false,
+          "fail2": false,
+          "fail3": false,
+          "firstHit5BeforeFail2": false,
+          "firstHit7BeforeFail3": false,
+          "firstHit10BeforeFail3": false,
+          "dayHit3": true,
+          "dayHit5": false,
+          "dayHit7": false,
+          "dayHit10": false,
+          "dayHit15": false,
+          "closePositive": true
+        }
+      },
+      {
+        "code": "403550",
+        "name": "쏘카",
+        "finalScore": 73.98,
+        "expScore": 76.98,
+        "passes": false,
+        "m": {
+          "closePosition0930": 0.968,
+          "highToLastDrop": -0.24,
+          "openToLastRate": 1.74,
+          "value_0930": 6550759840,
+          "valueToAvgRatio_0930": 6.4,
+          "rebreakMorningHigh": true,
+          "last0930": 20450
+        },
+        "perf": {
+          "maxReturn1000": 2.69,
+          "minReturn1000": -2.2,
+          "returnAt1000": -0.98,
+          "dayMax": 2.69,
+          "dayMin": -15.65,
+          "dayClose": -11.98,
+          "hit3": false,
+          "hit5": false,
+          "hit7": false,
+          "hit10": false,
+          "hit15": false,
+          "fail1": true,
+          "fail2": true,
+          "fail3": false,
+          "firstHit5BeforeFail2": false,
+          "firstHit7BeforeFail3": false,
+          "firstHit10BeforeFail3": false,
+          "dayHit3": false,
+          "dayHit5": false,
+          "dayHit7": false,
+          "dayHit10": false,
+          "dayHit15": false,
+          "closePositive": false
+        }
+      },
+      {
+        "code": "018470",
+        "name": "조일알미늄",
+        "finalScore": 61.05,
+        "expScore": 69.05,
+        "passes": false,
+        "m": {
+          "closePosition0930": 0.853,
+          "highToLastDrop": -0.96,
+          "openToLastRate": 5.39,
+          "value_0930": 2689554657,
+          "valueToAvgRatio_0930": 5.7,
+          "rebreakMorningHigh": true,
+          "last0930": 1643
+        },
+        "perf": {
+          "maxReturn1000": 2.13,
+          "minReturn1000": -2.01,
+          "returnAt1000": 0.49,
+          "dayMax": 4.26,
+          "dayMin": -5.78,
+          "dayClose": -5.78,
+          "hit3": false,
+          "hit5": false,
+          "hit7": false,
+          "hit10": false,
+          "hit15": false,
+          "fail1": true,
+          "fail2": true,
+          "fail3": false,
+          "firstHit5BeforeFail2": false,
+          "firstHit7BeforeFail3": false,
+          "firstHit10BeforeFail3": false,
+          "dayHit3": true,
+          "dayHit5": false,
+          "dayHit7": false,
+          "dayHit10": false,
+          "dayHit15": false,
+          "closePositive": false
+        }
+      }
+    ],
+    "explosiveTopCandidates": [
+      {
+        "code": "001450",
+        "name": "현대해상",
+        "expScore": 106.94,
+        "m": {
+          "closePosition0930": 0.911,
+          "highToLastDrop": -0.62,
+          "openToLastRate": 6.84,
+          "value_0930": 11205158725,
+          "valueToAvgRatio_0930": 8.8,
+          "rebreakMorningHigh": true,
+          "last0930": 32000
+        },
+        "perf": {
+          "maxReturn1000": 2.19,
+          "minReturn1000": -0.62,
+          "returnAt1000": 2.19,
+          "dayMax": 4.06,
+          "dayMin": -6.41,
+          "dayClose": 2.34,
+          "hit3": false,
+          "hit5": false,
+          "hit7": false,
+          "hit10": false,
+          "hit15": false,
+          "fail1": false,
+          "fail2": false,
+          "fail3": false,
+          "firstHit5BeforeFail2": false,
+          "firstHit7BeforeFail3": false,
+          "firstHit10BeforeFail3": false,
+          "dayHit3": true,
+          "dayHit5": false,
+          "dayHit7": false,
+          "dayHit10": false,
+          "dayHit15": false,
+          "closePositive": true
+        }
+      }
+    ],
+    "explosiveWatchCandidates": [
+      {
+        "code": "088350",
+        "name": "한화생명",
+        "expScore": 352.32,
+        "m": {
+          "closePosition0930": 0.913,
+          "highToLastDrop": -1.21,
+          "openToLastRate": 14.8,
+          "value_0930": 78939473555,
+          "valueToAvgRatio_0930": 23.87,
+          "rebreakMorningHigh": true,
+          "last0930": 5700
+        },
+        "perf": {
+          "maxReturn1000": 1.4,
+          "minReturn1000": -2.63,
+          "returnAt1000": -0.7,
+          "dayMax": 3.51,
+          "dayMin": -12.89,
+          "dayClose": -3.68,
+          "hit3": false,
+          "hit5": false,
+          "hit7": false,
+          "hit10": false,
+          "hit15": false,
+          "fail1": true,
+          "fail2": true,
+          "fail3": false,
+          "firstHit5BeforeFail2": false,
+          "firstHit7BeforeFail3": false,
+          "firstHit10BeforeFail3": false,
+          "dayHit3": true,
+          "dayHit5": false,
+          "dayHit7": false,
+          "dayHit10": false,
+          "dayHit15": false,
+          "closePositive": false
+        }
+      },
+      {
+        "code": "090460",
+        "name": "비에이치",
+        "expScore": 206.77,
+        "m": {
+          "closePosition0930": 0.961,
+          "highToLastDrop": -0.56,
+          "openToLastRate": 15.16,
+          "value_0930": 24756413975,
+          "valueToAvgRatio_0930": 27.45,
+          "rebreakMorningHigh": true,
+          "last0930": 35700
+        },
+        "perf": {
+          "maxReturn1000": 2.24,
+          "minReturn1000": -2.94,
+          "returnAt1000": 1.82,
+          "dayMax": 7.84,
+          "dayMin": -13.87,
+          "dayClose": 5.04,
+          "hit3": false,
+          "hit5": false,
+          "hit7": false,
+          "hit10": false,
+          "hit15": false,
+          "fail1": true,
+          "fail2": true,
+          "fail3": false,
+          "firstHit5BeforeFail2": false,
+          "firstHit7BeforeFail3": false,
+          "firstHit10BeforeFail3": false,
+          "dayHit3": true,
+          "dayHit5": true,
+          "dayHit7": true,
+          "dayHit10": false,
+          "dayHit15": false,
+          "closePositive": true
+        }
+      },
+      {
+        "code": "006110",
+        "name": "삼아알미늄",
+        "expScore": 158.94,
+        "m": {
+          "closePosition0930": 0.995,
+          "highToLastDrop": -0.1,
+          "openToLastRate": 24.13,
+          "value_0930": 23425240100,
+          "valueToAvgRatio_0930": 7.18,
+          "rebreakMorningHigh": true,
+          "last0930": 99800
+        },
+        "perf": {
+          "maxReturn1000": 4.11,
+          "minReturn1000": -2.4,
+          "returnAt1000": 1.5,
+          "dayMax": 4.81,
+          "dayMin": -19.44,
+          "dayClose": -3.51,
+          "hit3": true,
+          "hit5": false,
+          "hit7": false,
+          "hit10": false,
+          "hit15": false,
+          "fail1": true,
+          "fail2": true,
+          "fail3": false,
+          "firstHit5BeforeFail2": false,
+          "firstHit7BeforeFail3": false,
+          "firstHit10BeforeFail3": false,
+          "dayHit3": true,
+          "dayHit5": false,
+          "dayHit7": false,
+          "dayHit10": false,
+          "dayHit15": false,
+          "closePositive": false
+        }
+      },
+      {
+        "code": "452280",
+        "name": "한선엔지니어링",
+        "expScore": 149.2,
+        "m": {
+          "closePosition0930": 0.919,
+          "highToLastDrop": -1.15,
+          "openToLastRate": 10.21,
+          "value_0930": 28116156150,
+          "valueToAvgRatio_0930": 9.25,
+          "rebreakMorningHigh": true,
+          "last0930": 25900
+        },
+        "perf": {
+          "maxReturn1000": 2.51,
+          "minReturn1000": -5.41,
+          "returnAt1000": -2.51,
+          "dayMax": 2.51,
+          "dayMin": -13.13,
+          "dayClose": -6.37,
+          "hit3": false,
+          "hit5": false,
+          "hit7": false,
+          "hit10": false,
+          "hit15": false,
+          "fail1": true,
+          "fail2": true,
+          "fail3": true,
+          "firstHit5BeforeFail2": false,
+          "firstHit7BeforeFail3": false,
+          "firstHit10BeforeFail3": false,
+          "dayHit3": false,
+          "dayHit5": false,
+          "dayHit7": false,
+          "dayHit10": false,
+          "dayHit15": false,
+          "closePositive": false
+        }
+      },
+      {
+        "code": "229640",
+        "name": "LS에코에너지",
+        "expScore": 144.12,
+        "m": {
+          "closePosition0930": 0.92,
+          "highToLastDrop": -1,
+          "openToLastRate": 11.15,
+          "value_0930": 25242774000,
+          "valueToAvgRatio_0930": 8.29,
+          "rebreakMorningHigh": true,
+          "last0930": 108700
+        },
+        "perf": {
+          "maxReturn1000": 0.28,
+          "minReturn1000": -5.06,
+          "returnAt1000": 0.05,
+          "dayMax": 1.01,
+          "dayMin": -19.96,
+          "dayClose": -15.82,
+          "hit3": false,
+          "hit5": false,
+          "hit7": false,
+          "hit10": false,
+          "hit15": false,
+          "fail1": true,
+          "fail2": true,
+          "fail3": true,
+          "firstHit5BeforeFail2": false,
+          "firstHit7BeforeFail3": false,
+          "firstHit10BeforeFail3": false,
+          "dayHit3": false,
+          "dayHit5": false,
+          "dayHit7": false,
+          "dayHit10": false,
+          "dayHit15": false,
+          "closePositive": false
+        }
+      }
+    ],
+    "explosiveFilterResult": {
+      "readyN": 7,
+      "passesExpInReady": 1,
+      "passesExpInWait": 8
+    }
+  }
+}

@@ -1,0 +1,682 @@
+{
+  "meta": {
+    "title": "explosiveTop full-minute 재검증",
+    "generatedAt": "2026-05-14T12:34:17.186Z",
+    "elapsedSec": "20.49",
+    "eligibleDates": [
+      "2026-04-16",
+      "2026-04-17",
+      "2026-04-20",
+      "2026-04-21",
+      "2026-04-22",
+      "2026-04-23",
+      "2026-04-24",
+      "2026-04-27",
+      "2026-04-28",
+      "2026-04-29",
+      "2026-04-30",
+      "2026-05-04",
+      "2026-05-06",
+      "2026-05-07",
+      "2026-05-08",
+      "2026-05-11",
+      "2026-05-12",
+      "2026-05-13",
+      "2026-05-14"
+    ],
+    "eligibleDayCount": 19,
+    "methodology": "09:00~15:30 전체 분봉 사용. 후보 선정=09:30 분봉, 성과=09:31~15:30 분봉.",
+    "strategies": {
+      "A": "10:00 강제 청산",
+      "B": "+5%/-2% 분봉 시뮬 (전 구간)",
+      "C": "+5% 절반 익절 + -2% 손절, 나머지 10:00 청산",
+      "D": "+5% 절반 익절 + -2% 손절, 10:00 생존 시 나머지 10:30 청산",
+      "E": "+5% 절반 + -2% 손절, 10:00 생존 시 11:00 청산",
+      "F": "+5% 절반 + -2% 손절, 10:00 생존 시 13:00 청산",
+      "G": "+5% 절반 + -2% 손절, 10:00 생존 시 종가(15:30) 청산",
+      "H": "10:00 이후 고점 대비 -2% trailing (전 구간 -2% 손절 우선)",
+      "I": "손절 민감도 -1.5/-2/-2.5/-3% (익절 없이 종가까지 보유)"
+    }
+  },
+  "summaries": {
+    "explosiveTop": {
+      "n": 64,
+      "avgMax10": 2.91,
+      "avgClose10": 0.13,
+      "avgMaxAll": 4.86,
+      "avgMinAll": -3.78,
+      "survivedCount": 22,
+      "survivalRate": 34.4,
+      "survived_avg1030": 2.67,
+      "survived_avg1100": 3.26,
+      "survived_avg1300": 2.95,
+      "survived_avg1530": 3.45,
+      "survived_positive1530Rate": 81.8,
+      "notSurvived_avg1030": -0.98,
+      "notSurvived_avg1530": -1.7,
+      "hit2Rate": 70.3,
+      "hit3Rate": 57.8,
+      "hit5Rate": 37.5,
+      "hit7Rate": 29.7,
+      "hit10Rate": 12.5,
+      "fail2Rate": 54.7,
+      "fail3Rate": 43.8,
+      "A": {
+        "avg": 0.13,
+        "median": 0.28,
+        "winRate": 51.6,
+        "lossRate": 43.8,
+        "worstLoss": -13.18,
+        "bestGain": 7.43
+      },
+      "B": {
+        "avg": 0.97,
+        "median": -1.34,
+        "winRate": 46.9,
+        "lossRate": 53.1,
+        "worstLoss": -2,
+        "bestGain": 5
+      },
+      "C": {
+        "avg": 0.43,
+        "median": -1.2,
+        "winRate": 42.2,
+        "lossRate": 54.7,
+        "worstLoss": -2,
+        "bestGain": 6.22
+      },
+      "D": {
+        "avg": 0.31,
+        "median": -0.37,
+        "winRate": 42.2,
+        "lossRate": 54.7,
+        "worstLoss": -2,
+        "bestGain": 7.78
+      },
+      "E": {
+        "avg": 0.35,
+        "median": -0.37,
+        "winRate": 42.2,
+        "lossRate": 54.7,
+        "worstLoss": -2,
+        "bestGain": 8.66
+      },
+      "F": {
+        "avg": 0.33,
+        "median": -0.37,
+        "winRate": 42.2,
+        "lossRate": 54.7,
+        "worstLoss": -2,
+        "bestGain": 9.34
+      },
+      "G": {
+        "avg": 0.34,
+        "median": -0.37,
+        "winRate": 42.2,
+        "lossRate": 54.7,
+        "worstLoss": -2,
+        "bestGain": 8.98
+      },
+      "H": {
+        "avg": 0.38,
+        "median": -0.77,
+        "winRate": 37.5,
+        "lossRate": 59.4,
+        "worstLoss": -2,
+        "bestGain": 10.38
+      },
+      "I_1_5": {
+        "avg": 0.62,
+        "worst": -1.5
+      },
+      "I_2_0": {
+        "avg": 0.77,
+        "worst": -2
+      },
+      "I_2_5": {
+        "avg": 0.84,
+        "worst": -2.5
+      },
+      "I_3_0": {
+        "avg": 0.66,
+        "worst": -3
+      }
+    },
+    "READY_TOP5": {
+      "n": 95,
+      "avgMax10": 2.99,
+      "avgClose10": 0.24,
+      "avgMaxAll": 4.76,
+      "avgMinAll": -4.18,
+      "survivedCount": 29,
+      "survivalRate": 30.5,
+      "survived_avg1030": 3.1,
+      "survived_avg1100": 3.55,
+      "survived_avg1300": 2.8,
+      "survived_avg1530": 2.93,
+      "survived_positive1530Rate": 75.9,
+      "notSurvived_avg1030": -1.26,
+      "notSurvived_avg1530": -2.09,
+      "hit2Rate": 68.4,
+      "hit3Rate": 52.6,
+      "hit5Rate": 36.8,
+      "hit7Rate": 27.4,
+      "hit10Rate": 13.7,
+      "fail2Rate": 65.3,
+      "fail3Rate": 53.7,
+      "A": {
+        "avg": 0.24,
+        "median": 0,
+        "winRate": 47.4,
+        "lossRate": 48.4,
+        "worstLoss": -13.18,
+        "bestGain": 11.25
+      },
+      "B": {
+        "avg": 0.31,
+        "median": -2,
+        "winRate": 36.8,
+        "lossRate": 62.1,
+        "worstLoss": -2,
+        "bestGain": 5
+      },
+      "C": {
+        "avg": 0.18,
+        "median": -2,
+        "winRate": 35.8,
+        "lossRate": 62.1,
+        "worstLoss": -2,
+        "bestGain": 8.12
+      },
+      "D": {
+        "avg": 0.33,
+        "median": -1.02,
+        "winRate": 43.2,
+        "lossRate": 53.7,
+        "worstLoss": -2,
+        "bestGain": 7.78
+      },
+      "E": {
+        "avg": 0.36,
+        "median": -1.02,
+        "winRate": 43.2,
+        "lossRate": 53.7,
+        "worstLoss": -2,
+        "bestGain": 8.66
+      },
+      "F": {
+        "avg": 0.32,
+        "median": -1.02,
+        "winRate": 43.2,
+        "lossRate": 53.7,
+        "worstLoss": -2,
+        "bestGain": 9.34
+      },
+      "G": {
+        "avg": 0.33,
+        "median": -1.02,
+        "winRate": 43.2,
+        "lossRate": 53.7,
+        "worstLoss": -2,
+        "bestGain": 9.32
+      },
+      "H": {
+        "avg": 0.31,
+        "median": -1.4,
+        "winRate": 34.7,
+        "lossRate": 62.1,
+        "worstLoss": -2,
+        "bestGain": 11.92
+      },
+      "I_1_5": {
+        "avg": 0.3,
+        "worst": -1.5
+      },
+      "I_2_0": {
+        "avg": 0.22,
+        "worst": -2
+      },
+      "I_2_5": {
+        "avg": 0.12,
+        "worst": -2.5
+      },
+      "I_3_0": {
+        "avg": 0.13,
+        "worst": -3
+      }
+    },
+    "READY_ALL": {
+      "n": 345,
+      "avgMax10": 2.38,
+      "avgClose10": 0.18,
+      "avgMaxAll": 4.21,
+      "avgMinAll": -3.29,
+      "survivedCount": 107,
+      "survivalRate": 31,
+      "survived_avg1030": 2.09,
+      "survived_avg1100": 2.37,
+      "survived_avg1300": 2.09,
+      "survived_avg1530": 2.41,
+      "survived_positive1530Rate": 67.3,
+      "notSurvived_avg1030": -0.74,
+      "notSurvived_avg1530": -0.81,
+      "hit2Rate": 61.7,
+      "hit3Rate": 46.7,
+      "hit5Rate": 29.9,
+      "hit7Rate": 20.6,
+      "hit10Rate": 10.1,
+      "fail2Rate": 60.3,
+      "fail3Rate": 42.6,
+      "A": {
+        "avg": 0.18,
+        "median": -0.17,
+        "winRate": 43.8,
+        "lossRate": 52.5,
+        "worstLoss": -13.18,
+        "bestGain": 11.64
+      },
+      "B": {
+        "avg": 0.17,
+        "median": -2,
+        "winRate": 35.1,
+        "lossRate": 64.3,
+        "worstLoss": -2,
+        "bestGain": 5
+      },
+      "C": {
+        "avg": -0.09,
+        "median": -2,
+        "winRate": 35.1,
+        "lossRate": 63.5,
+        "worstLoss": -2,
+        "bestGain": 8.32
+      },
+      "D": {
+        "avg": 0.09,
+        "median": -0.41,
+        "winRate": 40,
+        "lossRate": 56.8,
+        "worstLoss": -2,
+        "bestGain": 7.78
+      },
+      "E": {
+        "avg": 0.09,
+        "median": -0.41,
+        "winRate": 40,
+        "lossRate": 56.8,
+        "worstLoss": -2,
+        "bestGain": 8.66
+      },
+      "F": {
+        "avg": 0.07,
+        "median": -0.41,
+        "winRate": 40,
+        "lossRate": 56.8,
+        "worstLoss": -2,
+        "bestGain": 9.34
+      },
+      "G": {
+        "avg": 0.07,
+        "median": -0.41,
+        "winRate": 40,
+        "lossRate": 56.8,
+        "worstLoss": -2,
+        "bestGain": 9.32
+      },
+      "H": {
+        "avg": 0.05,
+        "median": -0.76,
+        "winRate": 29.9,
+        "lossRate": 67,
+        "worstLoss": -2,
+        "bestGain": 11.92
+      },
+      "I_1_5": {
+        "avg": 0.13,
+        "worst": -1.5
+      },
+      "I_2_0": {
+        "avg": 0.15,
+        "worst": -2
+      },
+      "I_2_5": {
+        "avg": 0.16,
+        "worst": -2.5
+      },
+      "I_3_0": {
+        "avg": 0.19,
+        "worst": -3
+      }
+    },
+    "explosiveWatch": {
+      "n": 104,
+      "avgMax10": 3.21,
+      "avgClose10": 0.01,
+      "avgMaxAll": 4.72,
+      "avgMinAll": -5.39,
+      "survivedCount": 29,
+      "survivalRate": 27.9,
+      "survived_avg1030": 4.26,
+      "survived_avg1100": 4.56,
+      "survived_avg1300": 4.3,
+      "survived_avg1530": 3.53,
+      "survived_positive1530Rate": 75.9,
+      "notSurvived_avg1030": -1.76,
+      "notSurvived_avg1530": -1.91,
+      "hit2Rate": 68.3,
+      "hit3Rate": 59.6,
+      "hit5Rate": 40.4,
+      "hit7Rate": 20.2,
+      "hit10Rate": 13.5,
+      "fail2Rate": 74,
+      "fail3Rate": 66.3,
+      "A": {
+        "avg": 0.01,
+        "median": 0,
+        "winRate": 44.2,
+        "lossRate": 46.2,
+        "worstLoss": -12.08,
+        "bestGain": 10.61
+      },
+      "B": {
+        "avg": -0.06,
+        "median": -2,
+        "winRate": 26.9,
+        "lossRate": 69.2,
+        "worstLoss": -2,
+        "bestGain": 5
+      },
+      "C": {
+        "avg": -0.13,
+        "median": -2,
+        "winRate": 27.9,
+        "lossRate": 68.3,
+        "worstLoss": -2,
+        "bestGain": 7.81
+      },
+      "D": {
+        "avg": 0,
+        "median": -2,
+        "winRate": 32.7,
+        "lossRate": 61.5,
+        "worstLoss": -2,
+        "bestGain": 8.17
+      },
+      "E": {
+        "avg": 0,
+        "median": -2,
+        "winRate": 32.7,
+        "lossRate": 61.5,
+        "worstLoss": -2,
+        "bestGain": 7.97
+      },
+      "F": {
+        "avg": -0.08,
+        "median": -2,
+        "winRate": 32.7,
+        "lossRate": 61.5,
+        "worstLoss": -2,
+        "bestGain": 7.97
+      },
+      "G": {
+        "avg": -0.09,
+        "median": -2,
+        "winRate": 32.7,
+        "lossRate": 61.5,
+        "worstLoss": -2,
+        "bestGain": 7.97
+      },
+      "H": {
+        "avg": -0.08,
+        "median": -2,
+        "winRate": 26.9,
+        "lossRate": 67.3,
+        "worstLoss": -2,
+        "bestGain": 10.51
+      },
+      "I_1_5": {
+        "avg": -0.34,
+        "worst": -1.5
+      },
+      "I_2_0": {
+        "avg": -0.47,
+        "worst": -2
+      },
+      "I_2_5": {
+        "avg": -0.83,
+        "worst": -2.5
+      },
+      "I_3_0": {
+        "avg": -0.68,
+        "worst": -3
+      }
+    }
+  },
+  "todayDetail": [
+    {
+      "code": "001450",
+      "name": "현대해상",
+      "status": "READY",
+      "finalScore": 98.94,
+      "perf": {
+        "close10": 2.19,
+        "max10": 2.19,
+        "survived": true,
+        "ret1030": 2.03,
+        "ret1100": 0.23,
+        "ret1300": 2.66,
+        "ret1530": 2.34,
+        "maxAll": 4.06,
+        "minAll": -0.62,
+        "A": 2.19,
+        "B": 2.34,
+        "C": 2.19,
+        "D": 2.19,
+        "E": 2.19,
+        "F": 2.19,
+        "G": 2.19,
+        "H": 1.06
+      }
+    },
+    {
+      "code": "006110",
+      "name": "삼아알미늄",
+      "status": "WAIT_PULLBACK",
+      "finalScore": 160.94,
+      "perf": {
+        "close10": 1.5,
+        "max10": 4.11,
+        "survived": false,
+        "ret1030": 1.9,
+        "ret1100": 1,
+        "ret1300": -0.7,
+        "ret1530": -3.51,
+        "maxAll": 4.81,
+        "minAll": -4.81,
+        "A": 1.5,
+        "B": -2,
+        "C": -2,
+        "D": -2,
+        "E": -2,
+        "F": -2,
+        "G": -2,
+        "H": -2
+      }
+    },
+    {
+      "code": "008350",
+      "name": "남선알미늄",
+      "status": "WAIT_PULLBACK",
+      "finalScore": 85.1,
+      "perf": {
+        "close10": 0,
+        "max10": 2.38,
+        "survived": false,
+        "ret1030": 0.48,
+        "ret1100": 4.52,
+        "ret1300": -2.62,
+        "ret1530": -3.1,
+        "maxAll": 7.38,
+        "minAll": -4.05,
+        "A": 0,
+        "B": -2,
+        "C": -2,
+        "D": -2,
+        "E": -2,
+        "F": -2,
+        "G": -2,
+        "H": -2
+      }
+    },
+    {
+      "code": "033160",
+      "name": "엠케이전자",
+      "status": "WAIT_PULLBACK",
+      "finalScore": 96.9,
+      "perf": {
+        "close10": 3.1,
+        "max10": 5.86,
+        "survived": false,
+        "ret1030": 3.88,
+        "ret1100": 1.21,
+        "ret1300": 0,
+        "ret1530": 2.24,
+        "maxAll": 6.72,
+        "minAll": -1.03,
+        "A": 3.1,
+        "B": 5,
+        "C": 4.05,
+        "D": 4.05,
+        "E": 4.05,
+        "F": 4.05,
+        "G": 4.05,
+        "H": 4.59
+      }
+    },
+    {
+      "code": "088350",
+      "name": "한화생명",
+      "status": "WAIT_PULLBACK",
+      "finalScore": 357.32,
+      "perf": {
+        "close10": -0.7,
+        "max10": 1.4,
+        "survived": false,
+        "ret1030": -1.4,
+        "ret1100": -3.68,
+        "ret1300": -2.81,
+        "ret1530": -3.68,
+        "maxAll": 3.51,
+        "minAll": -4.39,
+        "A": -0.7,
+        "B": -2,
+        "C": -2,
+        "D": -2,
+        "E": -2,
+        "F": -2,
+        "G": -2,
+        "H": -2
+      }
+    },
+    {
+      "code": "090460",
+      "name": "비에이치",
+      "status": "WAIT_PULLBACK",
+      "finalScore": 208.77,
+      "perf": {
+        "close10": 1.82,
+        "max10": 2.24,
+        "survived": true,
+        "ret1030": 4.48,
+        "ret1100": 5.46,
+        "ret1300": 5.04,
+        "ret1530": 5.04,
+        "maxAll": 7.84,
+        "minAll": -2.94,
+        "A": 1.82,
+        "B": -2,
+        "C": -2,
+        "D": -2,
+        "E": -2,
+        "F": -2,
+        "G": -2,
+        "H": -2
+      }
+    },
+    {
+      "code": "096530",
+      "name": "씨젠",
+      "status": "WAIT_PULLBACK",
+      "finalScore": 107.95,
+      "perf": {
+        "close10": 3.48,
+        "max10": 5.14,
+        "survived": true,
+        "ret1030": 4.15,
+        "ret1100": 3.32,
+        "ret1300": 2.99,
+        "ret1530": 6.14,
+        "maxAll": 6.47,
+        "minAll": -0.5,
+        "A": 3.48,
+        "B": 5,
+        "C": 4.24,
+        "D": 4.57,
+        "E": 4.16,
+        "F": 3.99,
+        "G": 5.57,
+        "H": 1.58
+      }
+    },
+    {
+      "code": "229640",
+      "name": "LS에코에너지",
+      "status": "WAIT_PULLBACK",
+      "finalScore": 146.12,
+      "perf": {
+        "close10": 0.05,
+        "max10": 0.28,
+        "survived": true,
+        "ret1030": -4.23,
+        "ret1100": -8.92,
+        "ret1300": -12.42,
+        "ret1530": -15.82,
+        "maxAll": 0.28,
+        "minAll": -19.96,
+        "A": 0.05,
+        "B": -2,
+        "C": -2,
+        "D": -2,
+        "E": -2,
+        "F": -2,
+        "G": -2,
+        "H": -2
+      }
+    },
+    {
+      "code": "452280",
+      "name": "한선엔지니어링",
+      "status": "WAIT_PULLBACK",
+      "finalScore": 154.2,
+      "perf": {
+        "close10": -2.51,
+        "max10": 2.51,
+        "survived": false,
+        "ret1030": -3.67,
+        "ret1100": -6.37,
+        "ret1300": -6.76,
+        "ret1530": -6.37,
+        "maxAll": 2.51,
+        "minAll": -9.46,
+        "A": -2.51,
+        "B": -2,
+        "C": -2,
+        "D": -2,
+        "E": -2,
+        "F": -2,
+        "G": -2,
+        "H": -2
+      }
+    }
+  ]
+}
