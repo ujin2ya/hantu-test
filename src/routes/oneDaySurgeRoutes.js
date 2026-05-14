@@ -9,5 +9,6 @@ router.get("/one-day-surge", (req, res) => res.redirect("/one-day-surge-board"))
 router.get("/ods", (req, res) => res.redirect("/one-day-surge-board"));
 // 09:30 스캐너 백테스트 결과 리포트 (보드 상단 배너에서 링크)
 router.get("/one-day-surge-board/backtest", c.getBacktestReport);
+router.get("/one-day-surge-board/explosive-backtest", c.getExplosiveBacktestReport);
 
 module.exports = router;

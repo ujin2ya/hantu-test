@@ -6,6 +6,7 @@ const { REPORTS_DIR } = require("../utils/paths");
 
 const BOARD_HTML = path.join(REPORTS_DIR, "one-day-surge-board-result.html");
 const BACKTEST_HTML = path.join(REPORTS_DIR, "one-day-surge-0930-scanner-backtest-result.html");
+const EXPLOSIVE_HTML = path.join(REPORTS_DIR, "one-day-surge-0930-explosive-backtest-result.html");
 
 function getBoard(req, res) {
   if (!fs.existsSync(BOARD_HTML)) {
@@ -21,4 +22,11 @@ function getBacktestReport(req, res) {
   res.sendFile(BACKTEST_HTML);
 }
 
-module.exports = { getBoard, getBacktestReport };
+function getExplosiveBacktestReport(req, res) {
+  if (!fs.existsSync(EXPLOSIVE_HTML)) {
+    return res.status(404).send("폭발형 백테스트 리포트가 없습니다. `node boards/oneDaySurge/one-day-surge-0930-explosive-backtest.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(EXPLOSIVE_HTML);
+}
+
+module.exports = { getBoard, getBacktestReport, getExplosiveBacktestReport };

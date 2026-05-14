@@ -1065,6 +1065,9 @@ function main() {
           faded:     sc.scanner0930Faded     || [],   // FADED 단독 (카드 노출 X, 통계만)
           holding:   sc.scanner0930Holding   || [],   // 호환성 (기존 코드 잔존)
           rejected:  sc.scanner0930Rejected  || [],   // WEAK (카드 노출 X, 통계만)
+          explosiveTop:   sc.scanner0930ExplosiveTop   || [],   // 🚀 폭발형 후보 (장중 익절 전용)
+          explosiveWatch: sc.scanner0930ExplosiveWatch || [],   // 🚀 폭발형 관찰 후보 (눌림 후 재돌파)
+          explosiveCounts: sc.explosiveCounts || null,
         };
       })(),
     },
@@ -2477,37 +2480,76 @@ const PREMARKET_MODE = isPremarketMode();
       'READY 전체는 1차 통과 후보이며, 상단에는 TOP5만 표시합니다. ' +
       '<a href="/one-day-surge-board/backtest" style="color:#5eead4;text-decoration:underline;" target="_blank">상세 리포트 보기 →</a>' +
     '</div>';
-  // READY를 readyTop(실전 우선) + readyRest(1차 통과)로 분리해서 노출.
-  // readyTop이 0개면 강조 영역에 안내 메시지만, 억지로 readyRest를 끌어올리지 않음.
-  const readyTop = sc.readyTop || [];
+  // 백테스트 결과 반영 (19 거래일 검증):
+  // - explosiveTop 일평균 3.53/일, day+5% 36.7%, day+10% 11.7%, 전략 B/C EV +0.63~0.83% → 최상단 강조
+  // - READY 전체는 1차 후보로 분류 (접힘) — 평균 day+5% 30.1%로 OK 하지만 explosiveTop 대비 우위 X
+  // - explosiveWatch는 fail3 43.6% / 모든 전략 EV 음수 → 매수가 X, 관찰 전용
+  const explosiveTop   = sc.explosiveTop   || [];
+  const explosiveWatch = sc.explosiveWatch || [];
+  const readyTop  = sc.readyTop  || [];
   const readyRest = sc.readyRest || [];
   const readyTotal = (sc.ready || []).length;
+  // explosiveTop에 포함된 코드는 READY 1차 접힘 카드에서 제외 (중복 방지)
+  const explosiveTopCodes = new Set(explosiveTop.map((e) => e.code));
+  const readyAllCombined = [...readyTop, ...readyRest].filter((e) => !explosiveTopCodes.has(e.code));
+
   let body = '';
-  if (readyTop.length > 0) {
-    body += '<h3 style="margin:14px 0 6px;color:#6ee7b7;">🎯 실전 우선 후보 (readyTop ' + readyTop.length + ' / 총 READY ' + readyTotal + ')</h3>' +
-      '<div class="shelf-desc" style="color:#a7f3d0;">finalScore 상위 ' + (sc.readyTopLimit || 5) + '개. 실전 진입 1순위로 압축한 후보입니다.</div>' +
-      readyTop.map((e) => renderCard(e, 'value-strong')).join('');
+
+  // 백테스트 요약 배너 (최상단)
+  body += '<div style="margin:14px 0 6px;padding:10px 14px;background:rgba(245,158,11,0.08);border-left:3px solid #f59e0b;border-radius:4px;font-size:11.5px;color:#fde68a;line-height:1.6;">' +
+    '<strong style="color:#fcd34d;">🚀 폭발형 백테스트 (19 거래일 검증):</strong> ' +
+    'explosiveTop 일평균 <strong>3.53건</strong>, <strong>day+5% 36.7%</strong>, <strong>day+10% 11.7%</strong>, 전략 +5%/-2% 평균 EV <strong>+0.63%</strong>. ' +
+    'explosiveWatch는 fail3 43.6%, 모든 전략 EV 음수 → 즉시 진입 X. ' +
+    '<a href="/one-day-surge-board/explosive-backtest" style="color:#fcd34d;text-decoration:underline;" target="_blank">상세 →</a>' +
+  '</div>';
+
+  // ⓪‑1 🚀 폭발형 단타 후보 (최상단 강조)
+  if (explosiveTop.length > 0) {
+    body += '<h3 style="margin:14px 0 6px;color:#fcd34d;font-size:18px;">🚀 폭발형 단타 후보 (explosiveTop ' + explosiveTop.length + '건)</h3>' +
+      '<div class="shelf-desc" style="color:#fde68a;line-height:1.8;">' +
+        '09:00~09:30 사이 거래대금이 강하게 붙고 고점 근처를 유지한 <strong>초단타 후보</strong>입니다. ' +
+        '10시 전 짧은 대응용이며, 실패 시 손실이 빠르게 커질 수 있습니다.<br>' +
+        '· <strong>조건</strong>: morningHigh 재돌파 ✓ + 종가위치 ≥85% + 누적 거래대금 ≥100억<br>' +
+        '· <strong>초단타 원칙</strong>: +2~3% 수익 구간은 욕심내지 말고 빠르게 줄이는 구간입니다. +5% 이상은 강한 날에만 노리는 확장 목표이며, <strong>10시 전 마무리</strong>를 기본으로 봅니다. <strong>-2% 부근 이탈 시에는 흐름 실패</strong>로 봅니다.' +
+      '</div>' +
+      '<div style="margin-top:8px;">' + explosiveTop.map((e) => renderCard(e, 'value-strong')).join('') + '</div>';
   } else {
-    body += '<h3 style="margin:14px 0 6px;color:#94a3b8;">🎯 실전 우선 후보 (0)</h3><div class="empty-list" style="padding:14px;">09:30 기준 finalScore 통과 후보가 없습니다.</div>';
+    body += '<h3 style="margin:14px 0 6px;color:#94a3b8;font-size:18px;">🚀 폭발형 단타 후보 (0건)</h3>' +
+      '<div class="empty-list" style="padding:14px;color:#94a3b8;">오늘 09:30 기준 폭발형 조건(rebreak ✓ + cp≥85% + 거래대금≥100억) 통과 후보가 없습니다. ' +
+      '아래 "09:30 READY 1차 후보"를 참고하세요.</div>';
   }
-  if (readyRest.length > 0) {
-    body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#5eead4;padding:6px 0;">📋 1차 통과 후보 (readyRest ' + readyRest.length + '건) — 펼쳐서 보기</summary>' +
-      '<div class="shelf-desc" style="color:#94a3b8;margin-top:6px;">READY 컷은 통과했지만 finalScore 상위 ' + (sc.readyTopLimit || 5) + '에는 못 든 후보입니다. 보조 관심 후보로 확인하세요.</div>' +
-      '<div style="margin-top:8px;">' + readyRest.map((e) => renderCard(e, 'value-mid')).join('') + '</div></details>';
+
+  // ⓪‑2 09:30 READY 1차 후보 (접힘) — 폭발형 미포함된 READY 전체
+  if (readyAllCombined.length > 0) {
+    body += '<details style="margin-top:14px;border:1px solid #475569;background:#0f172a;border-radius:8px;padding:0 10px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#5eead4;padding:10px 0;">📡 09:30 READY 1차 후보 (' + readyAllCombined.length + '건' + (explosiveTopCodes.size > 0 ? ', 폭발형 ' + explosiveTopCodes.size + '건은 위에 표시됨' : '') + ') — 펼쳐서 보기</summary>' +
+      '<div class="shelf-desc" style="color:#94a3b8;margin-top:6px;padding-bottom:8px;">READY 컷(거래대금 ≥10억, v/avg ≥3, 종가위치 ≥65%, 시가대비 1~8%)은 통과했지만 폭발형 강조 조건엔 못 든 후보입니다. 백테스트 day+5% 30.1%, day+10% 9.8%.</div>' +
+      '<div style="margin-top:8px;padding-bottom:10px;">' + readyAllCombined.map((e) => renderCard(e, 'value-mid')).join('') + '</div></details>';
   }
-  // WAIT_PULLBACK 단독 — 추격 부담 (백테스트: avgMax 3.10% / hit2 56.1%지만 fail1 71.9% — 추격 금지)
-  const waitList = sc.wait || (sc.holding || []).filter((e) => e.status === 'WAIT_PULLBACK');
+
+  // ⓪‑3 🚀 폭발형 관찰 후보 — 즉시 진입 X
+  if (explosiveWatch.length > 0) {
+    body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#fb923c;padding:6px 0;">🚀 폭발형 관찰 후보 (explosiveWatch ' + explosiveWatch.length + '건, 즉시 진입 X) — 펼쳐서 보기</summary>' +
+      '<div class="shelf-desc" style="color:#fed7aa;margin-top:6px;background:rgba(251,146,60,0.08);border-left:3px solid #fb923c;padding:8px 12px;border-radius:4px;">' +
+        '이미 많이 오른 상태(시가 대비 +8% 이상)라 <strong>즉시 진입 후보가 아닙니다</strong>. <strong>눌림 후 재돌파가 확인될 때만 관찰</strong>하세요.<br>' +
+        '<span style="color:#fda4af;font-size:10.5px;">백테스트: 이 풀은 fail3 43.6% / 모든 전략 음수 EV — 그대로 따라가면 손실 가능성 높음.</span>' +
+      '</div>' +
+      '<div style="margin-top:8px;">' + explosiveWatch.map((e) => renderCard(e, 'aux')).join('') + '</div></details>';
+  }
+
+  // WAIT_PULLBACK 전체 (explosiveWatch에 포함 안 된 것)
+  const explosiveWatchCodes = new Set(explosiveWatch.map((e) => e.code));
+  const waitList = (sc.wait || (sc.holding || []).filter((e) => e.status === 'WAIT_PULLBACK'))
+    .filter((e) => !explosiveWatchCodes.has(e.code));
   if (waitList.length > 0) {
     body += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#fcd34d;padding:6px 0;">⚠ 추격 부담 — 눌림 대기 (WAIT_PULLBACK ' + waitList.length + '건) — 펼쳐서 보기</summary>' +
-      '<div class="shelf-desc" style="color:#fcd34d;margin-top:6px;">시가 대비 09:30 마지막 close가 이미 +8% 이상 올라 추격 부담이 큰 후보입니다. <strong>백테스트 결과 fail1 71.9% (대형 손절 위험)</strong>로 추격 진입은 피하고, 눌림 또는 재돌파 시점에만 검토하세요.</div>' +
+      '<div class="shelf-desc" style="color:#fcd34d;margin-top:6px;">시가 대비 +8% 이상 올라 추격 부담이 큰 후보입니다. 백테스트 fail1 71.9%로 추격 진입은 피하고, 눌림 또는 재돌파 시점에만 검토하세요.</div>' +
       '<div style="margin-top:8px;">' + waitList.map((e) => renderCard(e, 'aux')).join('') + '</div></details>';
   }
-  // FADED / WEAK / INSUFFICIENT_BARS 는 카드 노출 안 함 (백테스트: 평균 이하 또는 음수 성과).
-  // breakdown pill에 통계만 남아있음.
-  const headerCount = '실전 우선 ' + readyTop.length + ' / READY 총 ' + readyTotal;
+  // FADED / WEAK / INSUFFICIENT_BARS는 통계만, 카드 노출 X
+  const headerCount = '🚀 폭발형 ' + explosiveTop.length + ' / READY 총 ' + readyTotal;
   const headerTitle = sc.candidatesTarget
-    ? '📡 오늘 09:30 실전 우선 후보 — ' + headerCount + ' <span style="font-size:13px;color:#94a3b8;font-weight:400;">(확장 스캔 ' + sc.candidatesTarget + '개 중 분봉 ' + (sc.scannedCount || 0) + '개)</span>'
-    : '📡 오늘 09:30 실전 우선 후보 — ' + headerCount + ' <span style="font-size:13px;color:#94a3b8;font-weight:400;">(분봉 ' + (sc.scannedCount || 0) + '개)</span>';
+    ? '📡 오늘 09:30 실제 포착 후보 — ' + headerCount + ' <span style="font-size:13px;color:#94a3b8;font-weight:400;">(확장 스캔 ' + sc.candidatesTarget + '개 중 분봉 ' + (sc.scannedCount || 0) + '개)</span>'
+    : '📡 오늘 09:30 실제 포착 후보 — ' + headerCount + ' <span style="font-size:13px;color:#94a3b8;font-weight:400;">(분봉 ' + (sc.scannedCount || 0) + '개)</span>';
   host.innerHTML = '<section class="entry-shelf-section top" style="border:2px solid #5eead4;background:linear-gradient(135deg,#042f2e 0%,#1e293b 100%);">' +
     '<h2>' + headerTitle + '</h2>' +
     headerInfo + body +

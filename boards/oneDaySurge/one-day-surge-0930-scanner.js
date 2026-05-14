@@ -342,6 +342,36 @@ function main() {
   const weak     = statusBuckets.WEAK.slice(0, Math.min(TOP, 50));
   const insuff   = statusBuckets.INSUFFICIENT_BARS;
 
+  // ── 폭발형 후보 선별 (explosive-backtest 결과 반영) ──
+  // 조건: rebreakMorningHigh ✓ + closePosition≥0.85 + value_0930≥100억 + (open 3~8% 우선)
+  // 정렬: explosiveScore = finalScore + (open 3~8 가산 5) − (drop 큰 만큼 추가 감점)
+  const EXPLOSIVE_TOP_LIMIT = 5;
+  function passesExplosive(m) {
+    if (!m || !m.rebreakMorningHigh) return false;
+    if ((m.closePosition0930 || 0) < 0.85) return false;
+    if ((m.value_0930 || 0) < 1e10) return false;  // 100억
+    return true;
+  }
+  function explosiveScore(m, baseFinal) {
+    let s = baseFinal || 0;
+    const o = m.openToLastRate || 0;
+    if (o >= 3 && o <= 8) s += 5;     // sweet zone 가산
+    if (o > 8) s -= 5;                 // 너무 오른 거 감점
+    if ((m.highToLastDrop || 0) >= -1) s += 3;  // drop 작을수록 추가 가산
+    return Number(s.toFixed(2));
+  }
+  // READY 풀에서 폭발형 조건 통과 → explosiveScore 정렬 → TOP5
+  const explosiveReadyAll = statusBuckets.READY.filter((e) => passesExplosive(e.metrics))
+    .map((e) => ({ ...e, explosiveScore: explosiveScore(e.metrics, e.finalScore) }))
+    .sort((a, b) => b.explosiveScore - a.explosiveScore);
+  const explosiveTop = explosiveReadyAll.slice(0, EXPLOSIVE_TOP_LIMIT);
+
+  // WAIT_PULLBACK 풀에서 폭발형 조건 통과 → "관찰 후보" (눌림 후 재돌파 필요)
+  const explosiveWatchAll = statusBuckets.WAIT_PULLBACK.filter((e) => passesExplosive(e.metrics))
+    .map((e) => ({ ...e, explosiveScore: explosiveScore(e.metrics, e.finalScore) }))
+    .sort((a, b) => b.explosiveScore - a.explosiveScore);
+  const explosiveWatch = explosiveWatchAll.slice(0, EXPLOSIVE_TOP_LIMIT);
+
   const finishedAt = new Date();
   const elapsedSec = Number(((Date.now() - t0) / 1000).toFixed(2));
   const totalAnalyzed = statusBuckets.READY.length + statusBuckets.WAIT_PULLBACK.length + statusBuckets.FADED.length + statusBuckets.WEAK.length + statusBuckets.INSUFFICIENT_BARS.length;
@@ -377,6 +407,12 @@ function main() {
     scanner0930ReadyRest: readyRest,             // 6번째 이후 READY — 1차 통과 후보 (접힘)
     scanner0930Wait:     wait,                   // WAIT_PULLBACK — 추격 부담 (백테스트 fail1 71.9%)
     scanner0930Faded:    faded,                  // FADED — 카드 노출 X (통계만, 백테스트 결과 평균 이하)
+    scanner0930ExplosiveTop:   explosiveTop,     // 🚀 폭발형 후보 (READY ∩ rebreak + cp≥0.85 + value≥100억)
+    scanner0930ExplosiveWatch: explosiveWatch,   // 🚀 폭발형 관찰 후보 (WAIT_PULLBACK ∩ 같은 조건, 눌림 후 재돌파 필요)
+    explosiveCounts: {
+      explosiveTopTotal:   explosiveReadyAll.length,
+      explosiveWatchTotal: explosiveWatchAll.length,
+    },
     readyTopLimit: READY_TOP_LIMIT,
     scanner0930Holding:  [...wait, ...faded],   // WAIT_PULLBACK + FADED 합쳐서 "보류/재관찰"
     scanner0930Rejected: weak,                  // WEAK
@@ -415,6 +451,19 @@ function main() {
       console.log(`     final ${e.finalScore.toFixed(1).padStart(6)} | ${e.code} ${(e.name || '').padEnd(15)}`);
     }
     if (readyRest.length > 15) console.log(`     ... 외 ${readyRest.length - 15}건`);
+  }
+  if (explosiveTop.length > 0) {
+    console.log(`\n  🚀 폭발형 후보 (explosiveTop ${explosiveTop.length}건 / 통과 ${explosiveReadyAll.length}건, 백테스트 day+10% 11.6%):`);
+    for (const e of explosiveTop) {
+      const m = e.metrics;
+      console.log(`     exp ${e.explosiveScore.toFixed(1).padStart(6)} | ${e.code} ${(e.name || '').padEnd(15)} | +${(m.openToLastRate || 0).toFixed(2)}% | v ${(m.value_0930 / 1e8).toFixed(0)}억 (x${(m.valueToAvgRatio_0930 || 0).toFixed(1)}) | cp ${(m.closePosition0930 * 100).toFixed(0)}% | drop ${(m.highToLastDrop || 0).toFixed(2)}% ↗MH재돌파`);
+    }
+  }
+  if (explosiveWatch.length > 0) {
+    console.log(`\n  ⚠ 폭발형 관찰 후보 (explosiveWatch ${explosiveWatch.length}건 — 추격 부담, 눌림 후 재돌파 필요):`);
+    for (const e of explosiveWatch) {
+      console.log(`     exp ${e.explosiveScore.toFixed(1).padStart(6)} | ${e.code} ${(e.name || '').padEnd(15)} | +${(e.metrics.openToLastRate || 0).toFixed(2)}%`);
+    }
   }
   console.log(`\n  ⏱ 소요 ${elapsedSec}s`);
   console.log(`✅ JSON: ${OUT_JSON}`);
