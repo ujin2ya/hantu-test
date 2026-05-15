@@ -581,16 +581,16 @@ async function main() {
     const dirPath = path.join(INTRADAY_BASE, t.nextDateStr);
     if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
     const outPath = path.join(dirPath, `${t.code}.json`);
-    // skip 조건: 파일 존재 + (full-day 모드면 마지막 bar가 15:00 이후, default 모드면 그냥 존재)
+    // skip 조건: 파일 존재 + 마지막 bar가 윈도우 종료 근처에 도달
+    // full-day: 마지막 bar >= 15:00 / default(09:00~10:00): 마지막 bar >= 09:55
+    // 10:01 survivor cron이 재실행될 때 09:30 cron이 남긴 파일(last bar ~09:30)을 skip하지 않고 재취득해야 함.
     if (fs.existsSync(outPath)) {
-      let alreadyComplete = true;
-      if (args.fullDay) {
-        try {
-          const existing = JSON.parse(fs.readFileSync(outPath, 'utf-8'));
-          const lastBar = (existing.bars || []).slice(-1)[0];
-          alreadyComplete = lastBar && lastBar.time >= '15:00';
-        } catch (_) { alreadyComplete = false; }
-      }
+      let alreadyComplete = false;
+      try {
+        const existing = JSON.parse(fs.readFileSync(outPath, 'utf-8'));
+        const lastBar = (existing.bars || []).slice(-1)[0];
+        alreadyComplete = lastBar && lastBar.time >= (args.fullDay ? '15:00' : '09:55');
+      } catch (_) { alreadyComplete = false; }
       if (alreadyComplete) {
         skipped++;
         if ((i + 1) % 100 === 0) console.log(`  [${i + 1}/${tasks.length}] (진행률 ${((i + 1) / tasks.length * 100).toFixed(1)}% / 성공 ${success} / skip ${skipped} / 실패 ${failed})`);
