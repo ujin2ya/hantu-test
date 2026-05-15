@@ -224,6 +224,10 @@ function loadLatestDayType() {
 // 데이터 없으면 state='UNKNOWN' + label="시장 상태 데이터 미연결" — 함수 구조만 유지.
 const KOSPI_DAILY_PATH  = path.join(ROOT, 'cache', 'kospi-daily.json');
 const KOSDAQ_DAILY_PATH = path.join(ROOT, 'cache', 'kosdaq-daily.json');
+const MARKET_STATE_LIVE_PATH = path.join(ROOT, 'cache', 'market-state-live.json');
+// 라이브 파일 신선도 기준 — 35분 (cron 주기 30분 + 5분 마진).
+// 그보다 오래된 파일은 신뢰하지 않고 daily fallback.
+const MARKET_STATE_LIVE_MAX_AGE_MS = 35 * 60 * 1000;
 function loadIndexLatestChange(filePath) {
   if (!fs.existsSync(filePath)) return null;
   try {
@@ -254,11 +258,26 @@ const MARKET_STATE_DESCS = {
   MIXED_MARKET:    '지수 방향 혼재 — 종목별 편차 큼. 카드별 판단.',
   UNKNOWN:         'cache/kospi-daily.json / cache/kosdaq-daily.json 미존재 또는 read 실패. 함수 구조만 유지.',
 };
+// 라이브 파일 우선 — 35분 이내 갱신된 cache/market-state-live.json이 있으면 사용.
+// 그 외엔 daily 파일 (전일 종가 vs 그 전일 종가) fallback. 라이브가 'OPEN' 마켓 상태로
+// 갱신된 거라면 장중 흐름 반영, 그 외엔 daily 변화율로 폴백.
 function classifyMarketState() {
+  // 1) 라이브 파일 우선
+  if (fs.existsSync(MARKET_STATE_LIVE_PATH)) {
+    try {
+      const live = JSON.parse(fs.readFileSync(MARKET_STATE_LIVE_PATH, 'utf-8'));
+      const updatedAt = live.updatedAt ? new Date(live.updatedAt).getTime() : 0;
+      const ageMs = Date.now() - updatedAt;
+      if (Number.isFinite(ageMs) && ageMs >= 0 && ageMs <= MARKET_STATE_LIVE_MAX_AGE_MS && live.state) {
+        return { ...live, source: 'live', ageMinutes: Math.round(ageMs / 60000) };
+      }
+    } catch (_) { /* fallthrough to daily */ }
+  }
+  // 2) daily fallback
   const kospi = loadIndexLatestChange(KOSPI_DAILY_PATH);
   const kosdaq = loadIndexLatestChange(KOSDAQ_DAILY_PATH);
   if (!kospi && !kosdaq) {
-    return { state: 'UNKNOWN', label: MARKET_STATE_LABELS.UNKNOWN, desc: MARKET_STATE_DESCS.UNKNOWN, kospi: null, kosdaq: null };
+    return { state: 'UNKNOWN', label: MARKET_STATE_LABELS.UNKNOWN, desc: MARKET_STATE_DESCS.UNKNOWN, kospi: null, kosdaq: null, source: 'daily' };
   }
   const kr = kospi?.changeRate;
   const dr = kosdaq?.changeRate;
@@ -275,6 +294,7 @@ function classifyMarketState() {
     label: MARKET_STATE_LABELS[state],
     desc:  MARKET_STATE_DESCS[state],
     kospi, kosdaq,
+    source: 'daily',
   };
 }
 
@@ -1937,8 +1957,12 @@ setInterval(function() {
     ? name + ' <span class="idx-num ' + (idx.changeRate > 0 ? 'pos' : 'neg') + '">' + (idx.changeRate > 0 ? '+' : '') + idx.changeRate.toFixed(2) + '%</span>'
     : name + ' <span class="muted">-</span>';
   const indices = (ms.kospi || ms.kosdaq) ? '<br>' + idxFmt(ms.kospi, 'KOSPI') + ' · ' + idxFmt(ms.kosdaq, 'KOSDAQ') : '';
+  // 라이브 vs daily 표시
+  const liveBadge = ms.source === 'live' && ms.asOfTime
+    ? ' <span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:3px;background:rgba(16,185,129,0.18);color:#a7f3d0;font-size:10px;font-weight:700;" title="실시간 polling — ' + (ms.ageMinutes != null ? ms.ageMinutes + '분 전 갱신' : '최근 갱신') + '">⏱ ' + ms.asOfTime + ' 기준 (라이브)</span>'
+    : ms.source === 'daily' ? ' <span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:3px;background:rgba(148,163,184,0.18);color:#cbd5e1;font-size:10px;font-weight:600;" title="cache/kospi-daily.json — 전일 종가 기준">📅 daily</span>' : '';
   host.innerHTML = '<div class="market-banner ' + cls + '">' +
-    '<strong>📈 시장 상태:</strong> ' + (ms.label || '시장 상태 미확인') + indices +
+    '<strong>📈 시장 상태:</strong> ' + (ms.label || '시장 상태 미확인') + liveBadge + indices +
     (ms.desc ? '<br><span style="font-size:11px;opacity:0.85;">' + ms.desc + '</span>' : '') +
   '</div>';
 })();

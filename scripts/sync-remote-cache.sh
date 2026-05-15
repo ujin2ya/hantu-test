@@ -66,7 +66,7 @@ echo
 # 1) 원격에서 tar.gz 만들기
 echo "[1/4] 원격에서 cache + intraday tar.gz 만들기..."
 plink -P "$REMOTE_PORT" -pw "$PASSWORD" -batch "$REMOTE_TARGET" \
-  "cd '$REMOTE_PATH' && tar -czf '$REMOTE_TMP' cache/flow-history cache/stock-charts-long cache/pattern-result.json data/intraday/1ds && ls -la '$REMOTE_TMP'"
+  "cd '$REMOTE_PATH' && tar -czf '$REMOTE_TMP' cache/flow-history cache/stock-charts-long cache/pattern-result.json cache/market-state-live.json data/intraday/1ds 2>/dev/null; ls -la '$REMOTE_TMP'"
 
 # 2) 로컬로 다운로드
 echo "[2/4] tar.gz 다운로드..."

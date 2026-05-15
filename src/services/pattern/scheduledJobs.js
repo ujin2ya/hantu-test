@@ -1,4 +1,4 @@
-// 일일 cron 스케줄 — 16:10 분석 / 16:20 일일 갱신(평일) / 16:35 보드 갱신(평일, 1DS 제외) / 평일 09:30 1DS 분봉+보드 / 평일 10:01·10:03·10:05 1DS 10시 생존 확인 3중 retry / 평일 10:06 1DS 메일(MAIL_CRON_ENABLED).
+// 일일 cron 스케줄 — 16:10 분석 / 16:20 일일 갱신(평일) / 16:35 보드 갱신(평일, 1DS 제외) / 평일 09:00~15:30 매 30분 시장 상태 라이브 / 평일 09:30 1DS 분봉+보드 / 평일 10:01·10:03·10:05 1DS 10시 생존 확인 3중 retry / 평일 10:06 1DS 메일(MAIL_CRON_ENABLED).
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
@@ -7,6 +7,7 @@ const patternScreener = require("../../../screeners/pattern-screener");
 const { ROOT, CACHE_DIR, REPORTS_DIR } = require("../../utils/paths");
 const { patternState, PATTERN_RESULT_PATH, BOARD_SCRIPTS, refresh1dsIntraday, refresh1dsSurvivor1000 } = require("./adminTriggers");
 const { sendOneDaySurgeMail } = require("../mail/oneDaySurgeMail");
+const { updateLiveMarketState } = require("../marketState/marketStateLive");
 
 const ONE_DAY_SURGE_RESULT_PATH = path.join(REPORTS_DIR, "one-day-surge-board-result.json");
 
@@ -92,6 +93,17 @@ function registerSchedules() {
     if (!r.ok) console.warn("[1DS Intraday cron] 실행 거부:", r.message);
   }, { scheduled: true, timezone: "Asia/Seoul" });
   console.log("[스케줄] 평일 09:30 1DS 분봉 수집 + 보드 재생성 활성화 (한국 시간)");
+
+  // 평일 09:00 ~ 15:30 매 30분 — 시장 상태 라이브 (KOSPI/KOSDAQ 실시간 변화율)
+  // 기존 cache/kospi-daily.json은 전일 종가 vs 그 전일 종가만 봤기 때문에 장중 흐름 변화를 반영 못 함.
+  // (예: 09:00 +1.5% → 14:00 -0.8%로 바뀐 상황을 보드가 못 봄)
+  // Naver 실시간 polling API로 지수 현재가/변화율을 받아 cache/market-state-live.json에 저장.
+  // 보드는 이 파일을 우선 읽고 신선도가 35분 이내면 사용, 그 외엔 daily fallback.
+  cron.schedule("*/30 9-15 * * 1-5", async () => {
+    try { await updateLiveMarketState(); }
+    catch (e) { console.error("[marketStateLive cron] 에러:", e.message); }
+  }, { scheduled: true, timezone: "Asia/Seoul" });
+  console.log("[스케줄] 평일 09:00~15:30 매 30분 시장 상태 라이브 업데이트 활성화 (한국 시간)");
 
   // 평일 10:01 / 10:03 / 10:05 — 1DS 10시 생존 확인 (60거래일 검증 1위 모델, 3회 retry)
   // 한 번만 돌리면 KIS 분봉이 늦게 도착해 일부 종목 10:00 분봉을 못 받는 timing race 가능.
