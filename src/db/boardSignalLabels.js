@@ -17,8 +17,8 @@
 const BOARD_LABELS = Object.freeze({
   QVA_WATCHLIST:      'QVA',
   QVA2_WATCHLIST:     'QVA2',
-  QVA_VVI_REDEFINED:  'QVA-VVI',
-  QVA2_VVI:           'QVA2-VVI',
+  QVA_VVI_REDEFINED:  'QVA-VVI2',
+  QVA2_VVI:           'QVA2-VVI2',
   HGROUP_REBREAK:     '재돌파',
   QVA2_D5_REBREAK:    'QVA2 D+5 재돌파',
   ONE_DAY_SURGE:      '1DS',
@@ -32,10 +32,10 @@ const KIND_LABELS = Object.freeze({
   QVA2_NEW:                '신규 QVA2',
   QVA2_TRACKING:           '추적 중',
   LONG_QVA_ALL:            '장기 QVA',
-  // VVI / VVI2
-  VVI_FIRED:               'VVI 발화',
+  // VVI / VVI2 — 검출 로직은 VVI2 absorption으로 통일되어 있으므로 화면에서도 VVI2로 표기
+  VVI_FIRED:               'VVI2 발화',
   VVI2_FIRED:              'VVI2 발화',
-  TODAY_NEW_VVI:           '오늘 신규 VVI',
+  TODAY_NEW_VVI:           '오늘 신규 VVI2',
   TODAY_NEW_VVI2:          '오늘 신규 VVI2',
   // 돌파
   BREAKOUT_SUCCESS:        '돌파 성공',
@@ -154,7 +154,7 @@ function getBoardKindWeight(boardName, signalKind) {
 const FILTER_PRESETS = Object.freeze({
   STRONG_REACTION: {
     label: '강한 반응 후보',
-    description: 'VVI/VVI2 발화, 돌파 성공, 재돌파처럼 실제 움직임이 확인된 후보',
+    description: 'VVI2 발화, 돌파 성공, 재돌파처럼 실제 움직임이 확인된 후보',
     includeKind: ['VVI_FIRED', 'VVI2_FIRED', 'BREAKOUT_SUCCESS', 'CLOSE_REBREAK', 'CLOSE_REBREAK_NO_BREACH', 'TODAY_INITIAL_BREAKOUT'],
     excludeKind: ['FAILED', 'BROKEN', 'BREACH_NO_RECOVER', 'BREACH_RECOVER_ILLUSION', 'NO_REBREAK'],
     matchMode: 'any',
@@ -280,9 +280,9 @@ const KIND_DISPLAY = Object.freeze({
   QVA2_NEW:                'QVA2 발생',
   QVA2_TRACKING:           'QVA2 추적',
   LONG_QVA_ALL:            '장기 QVA',
-  VVI_FIRED:               'VVI 발화',
+  VVI_FIRED:               'VVI2 발화',
   VVI2_FIRED:              'VVI2 발화',
-  TODAY_NEW_VVI:           'VVI 신규',
+  TODAY_NEW_VVI:           'VVI2 신규',
   TODAY_NEW_VVI2:          'VVI2 신규',
   BREAKOUT_SUCCESS:        '돌파 성공',
   TODAY_INITIAL_BREAKOUT:  '당일 초동 돌파',
@@ -349,9 +349,9 @@ function explainTimelineSummary(timeline) {
   const hasRisk    = hasAny(['FAILED','BREACH_NO_RECOVER','BREACH_RECOVER_ILLUSION','NO_REBREAK','BROKEN']);
   const onlyEarly  = !hasAny(['VVI_FIRED','VVI2_FIRED','BREAKOUT_SUCCESS']);
 
-  if (qvaFlow)  { lines.push('QVA 발생 후 VVI와 돌파 성공까지 이어진 흐름입니다.'); badges.push('QVA 흐름'); }
+  if (qvaFlow)  { lines.push('QVA 발생 후 VVI2와 돌파 성공까지 이어진 흐름입니다.'); badges.push('QVA 흐름'); }
   if (qva2Flow) { lines.push('QVA2 발생 후 VVI2와 돌파 성공까지 이어진 흐름입니다.'); badges.push('QVA2 흐름'); }
-  if (bothVvi)  { lines.push('QVA 계열과 QVA2 계열에서 모두 수급 확인이 잡힌 종목입니다.'); badges.push('양쪽 VVI'); }
+  if (bothVvi)  { lines.push('QVA 계열과 QVA2 계열에서 모두 수급 확인이 잡힌 종목입니다.'); badges.push('양쪽 VVI2'); }
   if (hasRebreak && (qvaFlow || qva2Flow)) badges.push('재돌파 기록');
   if (hasRisk) { lines.push('중간에 실패/이탈 기록도 있어 추격 관찰은 주의가 필요합니다.'); badges.push('주의 기록 있음'); }
   if (onlyEarly) lines.push('초기 후보로 반복 등장했지만 아직 강한 후속 확인은 부족합니다.');

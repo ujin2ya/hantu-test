@@ -229,7 +229,7 @@
           <summary style="cursor:pointer; color:#64748b; font-size:.7rem;">점수 산식</summary>
           <div style="margin-top:4px; padding:6px 10px; background:#0b1220; border:1px solid #1e293b; border-radius:6px; color:#94a3b8; font-size:.7rem; max-width:680px; line-height:1.55;">
             A 반복(최대20) · B 보드 다양성(최대25) · C 좋은 단계 합 · D 주의 단계 감점 ·
-            E 흐름 완성 보너스(QVA→VVI→돌파, 양쪽 VVI 등) · F 최근성(D-1 +20…D-10 +5) · G 운영 저장 가산(+8).
+            E 흐름 완성 보너스(QVA→VVI2→돌파, 양쪽 VVI2 등) · F 최근성(D-1 +20…D-10 +5) · G 운영 저장 가산(+8).
             정렬은 effective_score(주의 단계가 많을수록 같은 점수대에서 아래로) 기준.
             80↑ 강한 관찰 · 60↑ 우선 관찰 · 40↑ 관찰 · 20↑ 약한 관찰.
           </div>
@@ -242,7 +242,7 @@
         <div class="empty">아직 조건에 맞는 누적 후보가 없습니다. 기간을 늘리거나 최소 점수를 낮춰 보세요.</div>
       <% } else {
            // 핵심 근거 우선순위 (앞쪽 4개만 표시, "주의 기록 있음"은 별도 risk-tag로 분리)
-           const REASON_ORDER = ['최근 신호 있음','여러 보드 중복','QVA→VVI→돌파 흐름','QVA2→VVI2→돌파 흐름','양쪽 VVI 확인','QVA→VVI 흐름','QVA2→VVI2 흐름','재돌파 기록'];
+           const REASON_ORDER = ['최근 신호 있음','여러 보드 중복','QVA→VVI2→돌파 흐름','QVA2→VVI2→돌파 흐름','양쪽 VVI2 확인','QVA→VVI2 흐름','QVA2→VVI2 흐름','재돌파 기록'];
            function sortReasons(reasons) {
              const set = new Set(reasons || []);
              const ordered = [];
@@ -408,8 +408,8 @@
       <div style="margin-top:18px; display:grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap:14px;">
         <!-- B. QVA -->
         <div>
-          <h3 style="font-size:.9rem; color:#cbd5e1; font-weight:700; margin-bottom:6px;">🟢 QVA 흐름 통과 종목 (QVA 발생 → VVI → 돌파)</h3>
-          <div class="hint" style="margin-bottom:8px;">QVA 발생 후 VVI와 돌파 성공까지 이어진 종목입니다.</div>
+          <h3 style="font-size:.9rem; color:#cbd5e1; font-weight:700; margin-bottom:6px;">🟢 QVA 흐름 통과 종목 (QVA 발생 → VVI2 → 돌파)</h3>
+          <div class="hint" style="margin-bottom:8px;">QVA 발생 후 VVI2와 돌파 성공까지 이어진 종목입니다.</div>
           <% if (errors.qvaFunnelStocks) { %><div class="err">오류: <%= errors.qvaFunnelStocks %></div>
           <% } else if (!sections.qvaFunnelStocks || sections.qvaFunnelStocks.length === 0) { %><div class="empty">아직 funnel 통과 종목이 없습니다.</div>
           <% } else { %>
@@ -713,7 +713,7 @@
     <!-- 5. link_type 요약 -->
     <div class="card-soft">
       <h2><i class="bi bi-link-45deg"></i>link_type 전환율 (최근 <%= days %>일)</h2>
-      <div class="hint">QVA → VVI → 돌파 같은 시퀀스 link 통계. avg_days는 from → to 평균 거래일 간격.</div>
+      <div class="hint">QVA → VVI2 → 돌파 같은 시퀀스 link 통계. avg_days는 from → to 평균 거래일 간격.</div>
       <% if (errors.linkSummary) { %><div class="err">오류: <%= errors.linkSummary %></div>
       <% } else if (!sections.linkSummary || sections.linkSummary.length === 0) { %><div class="empty">데이터 없음.</div>
       <% } else { %>

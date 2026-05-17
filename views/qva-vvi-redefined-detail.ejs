@@ -299,8 +299,8 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
     <span class="stage <%= vviMembership.group %>"><%= vviMembership.label %></span>
     <% var it = vviMembership.item; %>
     <% if (it.qvaSignalDate) { %>QVA 발생일 <%= fmtDate(it.qvaSignalDate) %><% } %>
-    <% if (it.vviDate) { %> · VVI 발생일 <%= fmtDate(it.vviDate) %><% } %>
-    <% if (it.daysFromQvaToVvi != null) { %> · QVA→VVI <%= it.daysFromQvaToVvi %>거래일<% } %>
+    <% if (it.vviDate) { %> · VVI2 발생일 <%= fmtDate(it.vviDate) %><% } %>
+    <% if (it.daysFromQvaToVvi != null) { %> · QVA→VVI2 <%= it.daysFromQvaToVvi %>거래일<% } %>
     <% if (it.vviValueRatio) { %> · 거래대금 ×<%= Number(it.vviValueRatio).toFixed(2) %><% } %>
     <% if (it.currentFromQvaCloseRate != null) { %> · QVA→현재 <%= fmtPct(it.currentFromQvaCloseRate, 1) %><% } %>
   </div>

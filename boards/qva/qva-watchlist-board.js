@@ -391,7 +391,7 @@ for (let fi = 0; fi < files.length; fi++) {
         const daysSinceBreakout = todayIdx - breakoutIdx;
         if (daysSinceBreakout <= RECENT_FAILED_DAYS) {
           mainStage = 'FAILED';
-          stageReason = `${formatDate(breakoutInfo.date)} 돌파 실패 (다음 종가 < VVI 고가)`;
+          stageReason = `${formatDate(breakoutInfo.date)} 돌파 실패 (다음 종가 < VVI2 고가)`;
         } else {
           continue;  // 너무 오래된 실패 — 보드에서 내림
         }
@@ -404,7 +404,7 @@ for (let fi = 0; fi < files.length; fi++) {
     // No VVI yet
     if (daysSinceQva >= TRACKING_DAYS) {
       mainStage = 'FAILED';
-      stageReason = `D+${TRACKING_DAYS} 만료, VVI 미발생`;
+      stageReason = `D+${TRACKING_DAYS} 만료, VVI2 미발생`;
     } else {
       mainStage = 'QVA_TRACKING';
     }
@@ -969,17 +969,17 @@ const stageLabels = {
 };
 const stageDescriptions = {
   BREAKOUT_SUCCESS:
-    '돌파 성공(H그룹) 종목은 VVI 돌파대기일 종가 × 1.01(=기준선)을 다음 거래일 고가가 돌파한 후보입니다. 각 종목의 VPR 태그는 그 돌파 이후 반응(고가권 유지/기준선 위 마감/기준 종가 위 유지/장중 돌파 후 밀림/과열 돌파)을 분류한 해석 라벨이며, 성공/실패 판정이나 매수 추천이 아닙니다.',
+    '돌파 성공(H그룹) 종목은 VVI2 돌파대기일 종가 × 1.01(=기준선)을 다음 거래일 고가가 돌파한 후보입니다. 각 종목의 VPR 태그는 그 돌파 이후 반응(고가권 유지/기준선 위 마감/기준 종가 위 유지/장중 돌파 후 밀림/과열 돌파)을 분류한 해석 라벨이며, 성공/실패 판정이나 매수 추천이 아닙니다.',
   VVI_FIRED:
-    'VVI는 QVA 후보 중 실제 거래대금 초동이 더 강하게 확인된 상태입니다. VVI 다음 거래일에 vviHigh × 1.01 돌파 여부를 기다리는 후보입니다.',
+    'VVI2는 QVA 후보 중 실제 거래대금 초동이 더 강하게 확인된 상태입니다. VVI2 다음 거래일에 vviHigh × 1.01 돌파 여부를 기다리는 후보입니다.',
   QVA_TRACKING:
-    'QVA 발생 후 20거래일 동안 VVI 발생 여부를 지켜보는 후보입니다. QVA 단독은 관심 후보로 보고, VVI/돌파 단계까지 진행되는지 추적합니다.',
+    'QVA 발생 후 20거래일 동안 VVI2 발생 여부를 지켜보는 후보입니다. QVA 단독은 관심 후보로 보고, VVI2/돌파 단계까지 진행되는지 추적합니다.',
   QVA_NEW:
-    'QVA 확인 신규는 처음 관심 후보로 잡는 단계입니다. 바로 매수하기보다는 20거래일 동안 VVI 발생 여부를 추적하는 후보로 보는 것이 적절합니다.',
+    'QVA 확인 신규는 처음 관심 후보로 잡는 단계입니다. 바로 매수하기보다는 20거래일 동안 VVI2 발생 여부를 추적하는 후보로 보는 것이 적절합니다.',
   QVA_TODAY:
-    '오늘 QVA 조건을 통과한 종목입니다. "오늘 신규" 태그는 오늘 처음 QVA로 감지된 종목, "오늘 재확인" 태그는 과거에 잡혔고 오늘도 조건을 다시 만족한 종목입니다 (같은 흐름의 연속 발화). QVA는 발생 후 20거래일 동안 VVI로 이어지는지 추적합니다.',
+    '오늘 QVA 조건을 통과한 종목입니다. "오늘 신규" 태그는 오늘 처음 QVA로 감지된 종목, "오늘 재확인" 태그는 과거에 잡혔고 오늘도 조건을 다시 만족한 종목입니다 (같은 흐름의 연속 발화). QVA는 발생 후 20거래일 동안 VVI2로 이어지는지 추적합니다.',
   EARLY_QVA:
-    '최근 20거래일 안에 QVA가 발생했고, 오늘은 통과 못했지만 아직 VVI 확인 전인 관심 후보입니다. QVA → VVI 전환률은 1년 검증에서 약 11%이므로 대부분의 추적 후보는 VVI까지 진행되지 않지만, 일부는 VVI/돌파 성공으로 진화합니다. 매수 신호가 아니라 관찰 후보입니다.',
+    '최근 20거래일 안에 QVA가 발생했고, 오늘은 통과 못했지만 아직 VVI2 확인 전인 관심 후보입니다. QVA → VVI2 전환률은 1년 검증에서 약 11%이므로 대부분의 추적 후보는 VVI2까지 진행되지 않지만, 일부는 VVI2/돌파 성공으로 진화합니다. 매수 신호가 아니라 관찰 후보입니다.',
   LONG_QVA_REACTIVE:
     '장기 QVA 재점화는 D+21~D+40 구간에서 아직 크게 오르지 않은 종목 중, 거래대금과 가격 흐름이 다시 살아나는 후보입니다. QVA 대비 현재 수익률(+12% 이내)과 최고 상승률(+20% 이내)이 모두 과하지 않은 종목만 표시합니다 (재점화 점수 80+).',
   LONG_QVA_INTEREST:
@@ -989,7 +989,7 @@ const stageDescriptions = {
   LONG_QVA_ALL:
     '장기 QVA 전체는 D+21~D+40 구간에 머물러 있는 모든 추적 후보입니다 (분류 무관). 위쪽 섹션에 노출되지 않은 종목까지 포함합니다. 기본 접힘.',
   FAILED:
-    'QVA 이후 가격이 크게 무너졌거나, 20거래일 안에 VVI가 발생하지 않았거나, 돌파에 실패한 종목입니다.',
+    'QVA 이후 가격이 크게 무너졌거나, 20거래일 안에 VVI2가 발생하지 않았거나, 돌파에 실패한 종목입니다.',
 };
 
 // 섹션 상단 안내 박스 (백테스트 요약) — 작은 톤
@@ -1406,7 +1406,7 @@ const summary = {
 
 const jsonOut = {
   meta: {
-    purpose: 'QVA → VVI → 돌파 성공의 funnel 전체를 한 화면에 보여주는 매일 운영용 보드',
+    purpose: 'QVA → VVI2 → 돌파 성공의 funnel 전체를 한 화면에 보여주는 매일 운영용 보드',
     notice: '본 보드는 매수 추천이 아니라 후보 추적/모니터링용입니다. 실제 매매는 차트, 뉴스, 시장 상황을 함께 보고 판단해야 합니다.',
     boardBasisNotice: '현재 보드는 최신 거래일 기준으로 생성됩니다. 오늘이 휴장일이면 마지막 거래일 데이터를 기준으로 표시됩니다.',
     today: TODAY,
@@ -1446,12 +1446,12 @@ const jsonOut = {
   recentVviHistory: {
     items: recentVviHistoryItems,
     summary: recentVviHistorySummary,
-    note: '이 섹션은 매수 추천이 아니라 VVI 발생 이력과 돌파 판정 흐름을 보여주는 참고 정보입니다.',
+    note: '이 섹션은 매수 추천이 아니라 VVI2 발생 이력과 돌파 판정 흐름을 보여주는 참고 정보입니다.',
   },
   qvaTracking: {
     summary: qvaTrackingSummary,
     topPreview: qvaTrackingTopPreview,
-    note: 'QVA 추적 중 후보는 아직 VVI 확인 전 단계입니다. 많은 후보 중 가격 유지, 저점 상승, 거래대금 재활성 태그가 함께 붙은 종목을 우선적으로 관찰합니다.',
+    note: 'QVA 추적 중 후보는 아직 VVI2 확인 전 단계입니다. 많은 후보 중 가격 유지, 저점 상승, 거래대금 재활성 태그가 함께 붙은 종목을 우선적으로 관찰합니다.',
   },
 };
 
@@ -1681,8 +1681,8 @@ const htmlTemplate = `<!DOCTYPE html>
       <strong style="color:#5eead4;">📊 VPR 반응 분류</strong>
     </p>
     <p style="margin-top:10px;"><strong style="color:#34d399;">QVA</strong>는 저점권에서 기존 거래량·거래대금을 확실히 뛰어넘는 수급 흔적이 나타난 관심 후보입니다 (저점권 거래대금 돌파).<br>
-    <strong style="color:#3b82f6;">VVI</strong>는 거래대금이 더 강하게 확인되고 종가가 고가권에서 양호하게 마감한 단계입니다.<br>
-    <strong style="color:#10b981;">돌파 성공(H그룹)</strong>은 VVI 다음 거래일 고가가 <span style="color:#fbbf24;font-family:monospace;">기준선(= VVI 돌파대기일 종가 × 1.01)</span>을 넘은 종목군입니다.</p>
+    <strong style="color:#3b82f6;">VVI2</strong>는 거래대금이 더 강하게 확인되고 종가가 고가권에서 양호하게 마감한 단계입니다.<br>
+    <strong style="color:#10b981;">돌파 성공(H그룹)</strong>은 VVI2 다음 거래일 고가가 <span style="color:#fbbf24;font-family:monospace;">기준선(= VVI2 돌파대기일 종가 × 1.01)</span>을 넘은 종목군입니다.</p>
 
     <div style="background:#0f172a;border:1px dashed #475569;border-radius:6px;padding:10px 14px;margin-top:10px;font-size:12px;line-height:1.75;color:#cbd5e1;">
       💡 <strong style="color:#fde68a;">H그룹과 VPR — 같은 기준, 다른 표현</strong><br>
@@ -1948,15 +1948,15 @@ const COLS_BY_STAGE = {
     { key: 'vprClosePosition', label: '종가 위치<span class="help" data-tip="다음날 종가가 당일 가격 범위에서 차지하는 위치 (100%=고가)">ⓘ</span>', render: c => c.vprClosePosition != null ? c.vprClosePosition + '%' : '-' },
     { key: 'currentReturnFromSignal', label: '신호가 대비%', render: c => fmtPct(c.currentReturnFromSignal, true) },
     { key: 'qvaSignalDate', label: 'QVA일', txt: true, render: c => fmtDate(c.qvaSignalDate) + ' <span class="muted">D+' + c.daysSinceQva + '</span>' },
-    { key: 'vviDate', label: 'VVI일', txt: true, render: c => fmtDate(c.vviDate) },
+    { key: 'vviDate', label: 'VVI2일', txt: true, render: c => fmtDate(c.vviDate) },
   ],
   VVI_FIRED: [
     { key: 'qvaSignalDate', label: 'QVA일', txt: true, render: c => fmtDate(c.qvaSignalDate) + ' <span class="muted">D+' + c.daysSinceQva + '</span>' },
-    { key: 'vviDate', label: 'VVI일', txt: true, render: c => fmtDate(c.vviDate) },
+    { key: 'vviDate', label: 'VVI2일', txt: true, render: c => fmtDate(c.vviDate) },
     { key: 'name', label: '종목', txt: true, render: c => '<a href="/stock/' + c.code + '?from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 종목 상세 페이지 열기"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + badges(c) },
     { key: 'qvaSignalPrice', label: 'QVA 신호가', render: c => fmtNum(c.qvaSignalPrice) + '원' },
-    { key: 'vviHigh', label: 'VVI 고가', render: c => fmtNum(c.vviHigh) + '원' },
-    { key: 'vviClose', label: 'VVI 종가', render: c => fmtNum(c.vviClose) + '원' },
+    { key: 'vviHigh', label: 'VVI2 고가', render: c => fmtNum(c.vviHigh) + '원' },
+    { key: 'vviClose', label: 'VVI2 종가', render: c => fmtNum(c.vviClose) + '원' },
     { key: 'breakoutEntryPrice1Pct', label: '내일 진입가 (×1.01)<span class="help" data-tip="vviHigh × 1.01">ⓘ</span>', render: c => fmtNum(c.vviHigh * 1.01) + '원' },
     { key: 'currentReturnFromSignal', label: '신호가 대비%', render: c => fmtPct(c.currentReturnFromSignal, true) },
   ],
@@ -2272,8 +2272,8 @@ function buildStageSection(stage) {
     const noteEl = document.createElement('div');
     noteEl.style.cssText = 'background:#0f172a;border-left:3px solid #34d399;padding:10px 14px;border-radius:6px;margin-bottom:12px;color:#cbd5e1;font-size:12px;line-height:1.7;';
     noteEl.innerHTML =
-      '<strong style="color:#34d399;">QVA 추적 중</strong>은 최근 20거래일 안에 QVA가 발생했고, 오늘은 통과 못했지만 아직 VVI 확인 전인 관심 후보입니다.<br>' +
-      'QVA → VVI 전환률은 1년 검증에서 약 11%이므로 대부분의 추적 후보는 VVI까지 진행되지 않지만, 일부는 VVI/돌파 성공으로 진화합니다.<br>' +
+      '<strong style="color:#34d399;">QVA 추적 중</strong>은 최근 20거래일 안에 QVA가 발생했고, 오늘은 통과 못했지만 아직 VVI2 확인 전인 관심 후보입니다.<br>' +
+      'QVA → VVI2 전환률은 1년 검증에서 약 11%이므로 대부분의 추적 후보는 VVI2까지 진행되지 않지만, 일부는 VVI2/돌파 성공으로 진화합니다.<br>' +
       '<strong style="color:#fbbf24;">매수 신호가 아니라 관찰 후보입니다. 후보가 많을 경우 기본 접힘 처리되며, 펼쳐서 확인하세요 (최대 50건).</strong>';
     sec.appendChild(noteEl);
   }
@@ -2334,8 +2334,8 @@ function buildStageSection(stage) {
   if (items.length === 0) {
     let emptyMsg = '해당 후보가 없습니다.';
     if (stage === 'VVI_FIRED') {
-      emptyMsg = '최신 거래일 기준 새 VVI 발생 종목이 없어 다음 거래일 돌파 판정 대기 후보가 없습니다. ' +
-        '최근 5거래일 내 VVI 발생 종목은 별도 카운터로 표시되며, 이미 판정이 끝난 종목은 돌파 성공 또는 실패/이탈로 분류됩니다.';
+      emptyMsg = '최신 거래일 기준 새 VVI2 발생 종목이 없어 다음 거래일 돌파 판정 대기 후보가 없습니다. ' +
+        '최근 5거래일 내 VVI2 발생 종목은 별도 카운터로 표시되며, 이미 판정이 끝난 종목은 돌파 성공 또는 실패/이탈로 분류됩니다.';
       if (DATA.meta.isMarketClosedToday) {
         const why = DATA.meta.beforeMarketOpen ? '장 시작 전' : '휴장/주말';
         emptyMsg += ' (오늘 ' + fmtDate(DATA.meta.todayCalendarDate) + '은 ' + why + '이라 ' + fmtDate(DATA.meta.latestTradingDate) + ' 데이터 기준입니다.)';
@@ -2528,9 +2528,9 @@ function buildRecentVviHistorySection() {
   const title = document.createElement('h2');
   title.className = 'h-section';
   title.innerHTML =
-    '<span>🎯 최근 VVI 발생 이력</span>' +
+    '<span>🎯 최근 VVI2 발생 이력</span>' +
     '<span class="pill">' + items.length + '건</span>' +
-    '<span class="desc">최근 5거래일 안에 VVI가 발생한 종목과 이후 돌파 판정 결과를 보여주는 참고 영역입니다.</span>' +
+    '<span class="desc">최근 5거래일 안에 VVI2가 발생한 종목과 이후 돌파 판정 결과를 보여주는 참고 영역입니다.</span>' +
     '<span class="toggle" data-stage="RECENT_VVI_HISTORY">▲ 접기</span>';
   sec.appendChild(title);
 
@@ -2538,7 +2538,7 @@ function buildRecentVviHistorySection() {
   const summary = document.createElement('div');
   summary.style.cssText = 'display:flex;gap:14px;margin-bottom:10px;font-size:13px;color:#cbd5e1;flex-wrap:wrap;padding:8px 12px;background:#0f172a;border-radius:6px;border:1px solid #334155;';
   summary.innerHTML =
-    '<span>최근 5거래일 VVI 발생 총 <strong style="color:#f1f5f9;">' + sm.total + '</strong>건</span>' +
+    '<span>최근 5거래일 VVI2 발생 총 <strong style="color:#f1f5f9;">' + sm.total + '</strong>건</span>' +
     '<span class="muted">·</span>' +
     '<span>돌파 성공 <strong style="color:#10b981;">' + sm.success + '</strong>건</span>' +
     '<span class="muted">·</span>' +
@@ -2562,7 +2562,7 @@ function buildRecentVviHistorySection() {
   const wrap = document.createElement('div');
   wrap.className = 'table-wrap';
   if (items.length === 0) {
-    wrap.innerHTML = '<div class="empty">최근 5거래일 내 VVI 발생 종목이 없습니다.</div>';
+    wrap.innerHTML = '<div class="empty">최근 5거래일 내 VVI2 발생 종목이 없습니다.</div>';
   } else {
     const outcomeRender = (o) => {
       if (o === 'SUCCESS') return '<span style="color:#10b981;font-weight:600;">돌파 성공</span>';
@@ -2570,9 +2570,9 @@ function buildRecentVviHistorySection() {
       return '<span style="color:#fbbf24;font-weight:600;">판정 대기</span>';
     };
     const cols = [
-      { label: 'VVI일', txt: true, render: c => fmtDate(c.vviDate) },
+      { label: 'VVI2일', txt: true, render: c => fmtDate(c.vviDate) },
       { label: '종목', txt: true, render: c => '<a href="/stock/' + c.code + '?from=qva-watchlist" target="_blank" rel="noopener" class="stock-link" title="새 창에서 종목 상세 페이지 열기"><span class="' + marketCls(c.market) + '">' + (c.name || '') + '</span> <span class="muted">' + c.code + '</span></a>' + (c.isPreferred ? '<span class="badge pref">우</span>' : '') },
-      { label: 'VVI 고가', render: c => fmtNum(c.vviHigh) + '원' },
+      { label: 'VVI2 고가', render: c => fmtNum(c.vviHigh) + '원' },
       { label: '+1% 기준가', render: c => fmtNum(c.breakoutEntryPrice1Pct) + '원' },
       { label: '다음 거래일 결과', txt: true, render: c => outcomeRender(c.vviOutcome) },
       { label: '현재 단계', txt: true, render: c => '<span class="muted">' + (DATA.meta.stageLabels[c.mainStage] || c.mainStage) + '</span>' },
@@ -2592,7 +2592,7 @@ function buildRecentVviHistorySection() {
   // 하단 주의 문구
   const footer = document.createElement('div');
   footer.className = 'section-footer';
-  footer.innerHTML = '⚠️ 이 섹션은 <strong>매수 추천이 아니라</strong> VVI 발생 이력과 돌파 판정 흐름을 보여주는 <strong>참고 정보</strong>입니다.';
+  footer.innerHTML = '⚠️ 이 섹션은 <strong>매수 추천이 아니라</strong> VVI2 발생 이력과 돌파 판정 흐름을 보여주는 <strong>참고 정보</strong>입니다.';
   sec.appendChild(footer);
 
   return sec;

@@ -442,7 +442,7 @@ ALTER TABLE board_signals ADD INDEX idx_signal_date_only (signal_date);
 
 라이브 QVA 구현은 `screeners/pattern-screener.js`의 `calculateQuietVolumeAnomaly()`. 5가설(FIRST/2DAY/ABSORB/HIGHER_LOW/HOLD) 검증은 별도 일회성 스크립트 가족에서 했었지만 현재는 정리됐고, 라이브 boardgenerator (`boards/qva/qva-watchlist-board.js`)가 funnel 단계 시각화로 대체.
 
-**VVI = VVI2 통일 (2026-05-17)**: 모든 VVI 검출은 `boards/qva2/qva2-screener.js`의 `findVvi2AfterQva2` (absorption type)로 통일됨. 원본 standalone VVI 검출 로직(volumeRatio20/valueRatio20/closeLocation 임계값)은 폐기되고, "QVA event를 anchor로 VVI2 absorption 발화 여부 검사"로 시맨틱이 바뀜.
+**VVI = VVI2 통일 (2026-05-17)**: 모든 VVI 검출은 `boards/qva2/qva2-screener.js`의 `findVvi2AfterQva2` (absorption type)로 통일됨. 원본 standalone VVI 검출 로직(volumeRatio20/valueRatio20/closeLocation 임계값)은 폐기되고, "QVA event를 anchor로 VVI2 absorption 발화 여부 검사"로 시맨틱이 바뀜. **표시 라벨도 VVI2로 통일** — 사용자 노출 한글 태그/섹션 제목/안내문은 모두 "VVI2"로 정리. DB의 signal_kind 코드(`VVI_FIRED`/`TODAY_NEW_VVI`)와 라우트(`/qva-vvi-redefined-board`), 필드명(`vviDate`/`vviHigh`/`vviClose`/`daysFromQvaToVvi`)은 호환을 위해 그대로 유지.
 - `screeners/pattern-screener.js`의 `calculateVolumeValueIgnition` 함수는 시그니처는 유지하되 내부적으로: (1) lastIdx-1 부터 40 거래일 거슬러 `calculateRedefinedQVA`로 직전 QVA anchor를 추론, (2) 첫 anchor에 대해 `findVvi2AfterQva2(rows, qvaIdx, ...)` 호출, (3) vvi2Idx === lastIdx면 passed. 호환 위해 `passed/category/signals.signalHigh/signals.signalClose` 등 기존 return shape는 유지.
 - `boards/qva/qva-watchlist-board.js`는 (이 보드는 이미 qvaIdx를 알고 있어 anchor 추론이 불필요하므로) `findVvi2AfterQva2`를 **직접** import해서 호출. 3개 사이트(주 funnel VVI 검출 + EARLY_QVA 윈도우 체크 + LONG_QVA 윈도우 체크) 모두 단일 호출로 단순화.
 - D+5 재돌파 보드(`boards/rebreak/`)는 `qva-watchlist-board.json`의 BREAKOUT_SUCCESS를 입력으로만 받으므로 자동으로 VVI2 결과를 상속.

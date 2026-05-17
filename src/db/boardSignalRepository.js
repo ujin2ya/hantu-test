@@ -749,11 +749,11 @@ function _buildReasons(agg, parts) {
   const r = [];
   if (parts.f >= 10) r.push('최근 신호 있음');
   if (agg.board_count >= 2) r.push('여러 보드 중복');
-  if (has('QVA_NEW')  && has('VVI_FIRED')  && has('BREAKOUT_SUCCESS')) r.push('QVA→VVI→돌파 흐름');
-  else if (has('QVA_NEW') && has('VVI_FIRED')) r.push('QVA→VVI 흐름');
+  if (has('QVA_NEW')  && has('VVI_FIRED')  && has('BREAKOUT_SUCCESS')) r.push('QVA→VVI2→돌파 흐름');
+  else if (has('QVA_NEW') && has('VVI_FIRED')) r.push('QVA→VVI2 흐름');
   if (has('QVA2_NEW') && has('VVI2_FIRED') && has('BREAKOUT_SUCCESS')) r.push('QVA2→VVI2→돌파 흐름');
   else if (has('QVA2_NEW') && has('VVI2_FIRED')) r.push('QVA2→VVI2 흐름');
-  if (has('VVI_FIRED') && has('VVI2_FIRED')) r.push('양쪽 VVI 확인');
+  if (has('VVI_FIRED') && has('VVI2_FIRED')) r.push('양쪽 VVI2 확인');
   if (has('CLOSE_REBREAK') || has('CLOSE_REBREAK_NO_BREACH')) r.push('재돌파 기록');
   const hasRisk = ['FAILED','BREACH_NO_RECOVER','BREACH_RECOVER_ILLUSION','INTRADAY_PUSHBACK','NO_REBREAK'].some(has);
   if (hasRisk) r.push('주의 기록 있음');

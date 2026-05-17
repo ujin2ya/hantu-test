@@ -58,7 +58,7 @@ const EXPLOSION_RULES = {
         signal_low:   _num(c.vviLow),
         signal_close: _num(c.vviClose),
         score: _num(c.watchScore),
-        status_label: 'VVI 발화',
+        status_label: 'VVI2 발화',
       });
     }
     if (c.breakoutDate) {
