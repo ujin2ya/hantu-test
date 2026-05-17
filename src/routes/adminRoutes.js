@@ -25,4 +25,7 @@ router.post("/admin/refresh-1ds-survivor1000", requireAdmin, c.postRefresh1dsSur
 router.post("/admin/regen-1ds-scanner-board", requireAdmin, c.postRegen1dsScannerBoard);
 router.post("/admin/run-daily-update", requireAdmin, c.postRunDailyUpdate);
 
+// DB 신호 히스토리 조회 (JSON 응답)
+router.get("/admin/db-signals", requireAdmin, c.getDbSignals);
+
 module.exports = router;

@@ -144,10 +144,62 @@ function postRunDailyUpdate(req, res) {
   res.json({ success: r.ok, message: r.message, startedAt: r.startedAt });
 }
 
+// GET /admin/db-signals — 보드 신호 히스토리 조회
+// 쿼리 파라미터 (1개 필수):
+//   ?stockCode=005930
+//   ?boardName=ONE_DAY_SURGE
+//   ?date=2026-05-15
+//   ?signalId=123
+// 옵션: &limit=200 (기본), boardName+date 조합 가능
+async function getDbSignals(req, res) {
+  try {
+    const repo = require('../db/boardSignalRepository');
+    const { stockCode, boardName, date, signalId, limit } = req.query || {};
+    const lim = Math.min(Number(limit || 200), 1000);
+
+    let result;
+    if (signalId) {
+      const { query } = require('../db/mysql');
+      const sig = await query('SELECT * FROM board_signals WHERE id = ?', [Number(signalId)]);
+      const outcomes = await query('SELECT * FROM board_signal_outcomes WHERE signal_id = ? ORDER BY horizon_days', [Number(signalId)]);
+      const links = await query(
+        `SELECT 'out' AS direction, link_type, to_signal_id AS other_id, days_between FROM signal_links WHERE from_signal_id = ?
+         UNION ALL
+         SELECT 'in' AS direction, link_type, from_signal_id AS other_id, days_between FROM signal_links WHERE to_signal_id = ?`,
+        [Number(signalId), Number(signalId)]
+      );
+      result = { signal: (sig && sig[0]) || null, outcomes, links };
+    } else if (stockCode) {
+      result = { mode: 'stock', stockCode, signals: await repo.findSignalsByStock(stockCode, { limit: lim }) };
+    } else if (boardName && date) {
+      result = { mode: 'board+date', boardName, date, signals: await repo.findSignalsByBoard(boardName, { date, limit: lim }) };
+    } else if (boardName) {
+      result = { mode: 'board', boardName, signals: await repo.findSignalsByBoard(boardName, { limit: lim }) };
+    } else if (date) {
+      result = { mode: 'date', date, signals: await repo.findSignalsByDate(date, { limit: lim }) };
+    } else {
+      return res.status(400).json({
+        error: 'one of stockCode / boardName / date / signalId is required',
+        examples: [
+          '/admin/db-signals?stockCode=005930',
+          '/admin/db-signals?boardName=ONE_DAY_SURGE',
+          '/admin/db-signals?date=2026-05-15',
+          '/admin/db-signals?signalId=123',
+          '/admin/db-signals?boardName=QVA2_WATCHLIST&date=2026-05-15',
+        ],
+      });
+    }
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+}
+
 module.exports = {
   getLogin, postLogin, getLogout,
   getDashboard, postUnsubscribe,
   postSend1dsMailAll, postSend1dsMailOne,
   postPatternSeed, postPatternAnalyze, postQvaBacktest,
   postRefreshPatternCache, postRefreshWatchlistBoard, postRefreshAllBoards, postRefresh1dsIntraday, postRefresh1dsSurvivor1000, postRegen1dsScannerBoard, postRunDailyUpdate,
+  getDbSignals,
 };

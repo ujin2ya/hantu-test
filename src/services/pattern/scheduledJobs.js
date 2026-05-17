@@ -83,6 +83,28 @@ function registerSchedules() {
   }, { scheduled: true, timezone: "Asia/Seoul" });
   console.log(`[스케줄] 매일 평일 16:35 전체 보드 갱신 활성화 (${BOARD_SCRIPTS.length}개 — QVA + QVA 고점 재돌파 + D+5 재돌파 운용 + QVA2 × 3, 1DS 제외)`);
 
+  // 16:40 평일 — DB 신호 후속 작업: outcomes 채우기 + signal_links 재정렬
+  // (보드 generators 16:35 완료 후 ~5분 마진. 같은 cron 안에서 순차 실행)
+  cron.schedule("40 16 * * 1-5", () => {
+    console.log("[DB] 16:40 시작 — populate-signal-outcomes + reconcile-signal-links");
+    try {
+      const t0 = Date.now();
+      execSync(`node ${path.join(ROOT, "pipeline/populate-signal-outcomes.js")}`, { stdio: "pipe" });
+      console.log(`[DB] ✅ populate-signal-outcomes (${Date.now() - t0}ms)`);
+    } catch (e) {
+      console.error(`[DB] ❌ populate-signal-outcomes: ${String(e.message || e).slice(0, 200)}`);
+    }
+    try {
+      const t0 = Date.now();
+      execSync(`node ${path.join(ROOT, "pipeline/reconcile-signal-links.js")}`, { stdio: "pipe" });
+      console.log(`[DB] ✅ reconcile-signal-links (${Date.now() - t0}ms)`);
+    } catch (e) {
+      console.error(`[DB] ❌ reconcile-signal-links: ${String(e.message || e).slice(0, 200)}`);
+    }
+    console.log("[DB] 16:40 완료");
+  }, { scheduled: true, timezone: "Asia/Seoul" });
+  console.log("[스케줄] 매일 평일 16:40 DB outcomes + signal_links 갱신 활성화 (한국 시간)");
+
   // 평일 09:30:00 — 1DS 분봉 수집 + 보드 재생성
   // 사용자가 09:30 정각에 보드 새로고침할 때 분봉 반영된 후보를 보도록 정각에 시작.
   // KIS API의 09:30 1분봉 반영이 약간 지연되더라도 collect retry로 흡수, 보통 09:30:15~30 사이 완료.

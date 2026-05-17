@@ -2810,3 +2810,19 @@ document.querySelectorAll('.tag-filter button').forEach(btn => {
 const html = htmlTemplate.replace('__JSON_DATA__', JSON.stringify(jsonOut));
 fs.writeFileSync(path.join(ROOT, 'qva-watchlist-board.html'), html, 'utf-8');
 console.log(`✅ HTML 저장: qva-watchlist-board.html  (Express /qva-watchlist 라우트로 접근)\n`);
+
+// DB 저장 (실패해도 HTML/JSON은 정상)
+(async () => {
+  try {
+    const { saveQvaWatchlistBoardToDB } = require('../../src/db/saveBoardSignals');
+    const r = await saveQvaWatchlistBoardToDB(jsonOut, {
+      jsonPath: path.join(ROOT, 'qva-watchlist-board.json'),
+      htmlPath: path.join(ROOT, 'qva-watchlist-board.html'),
+    });
+    if (r) console.log(`🗄  DB 저장: runId=${r.runId} rows=${r.totalRows} (inserted=${r.inserted} updated=${r.updated})`);
+  } catch (e) {
+    console.warn(`⚠ DB 저장 실패 (HTML/JSON은 정상 저장됨): ${e.message}`);
+  } finally {
+    try { await require('../../src/db/mysql').closePool(); } catch (_) {}
+  }
+})();

@@ -175,7 +175,7 @@ function analyzeRebreak(item, chart) {
   };
 }
 
-function main() {
+async function main() {
   if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR, { recursive: true });
   const t0 = Date.now();
   console.log(`\n📊 QVA2 D+5 재돌파 운용 보드 (D+1~D+${MAX_DAYS})`);
@@ -249,6 +249,17 @@ function main() {
 
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
   fs.writeFileSync(OUT_HTML, buildHtml(out), 'utf-8');
+
+  // DB 저장 (실패해도 HTML/JSON은 정상)
+  try {
+    const { saveQva2D5RebreakBoardToDB } = require('../../src/db/saveBoardSignals');
+    const r = await saveQva2D5RebreakBoardToDB(out, { jsonPath: OUT_JSON, htmlPath: OUT_HTML });
+    if (r) console.log(`  🗄  DB 저장: runId=${r.runId} rows=${r.totalRows} (inserted=${r.inserted} updated=${r.updated})`);
+  } catch (e) {
+    console.warn(`  ⚠ DB 저장 실패 (HTML/JSON은 정상 저장됨): ${e.message}`);
+  } finally {
+    try { await require('../../src/db/mysql').closePool(); } catch (_) {}
+  }
 
   console.log(`\n  요약:`);
   console.log(`    🟢 종가 재돌파:     ${counts.closeRebreak}건`);
@@ -518,7 +529,7 @@ function m(label, value, cls) {
 `;
 
 if (require.main === module) {
-  try { main(); } catch (e) { console.error('❌', e); process.exit(1); }
+  main().catch(e => { console.error('❌', e); process.exit(1); });
 }
 
 module.exports = { main };

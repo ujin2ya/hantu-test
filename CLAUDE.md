@@ -132,6 +132,160 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 - `REMOTE_SSH_PASSWORD` — 필수. plink/pscp가 운영 서버에 접속할 때 사용
 - `REMOTE_SSH_HOST` (기본 `hajiny.co.kr`), `REMOTE_SSH_PORT` (기본 `1027`), `REMOTE_SSH_USER` (기본 `eugene`), `REMOTE_SSH_PATH` (기본 `/home/eugene/workspace/hantu-test`) — 오버라이드 가능
 
+**MySQL DB (2026-05-17 도입, 보드 신호 히스토리 저장소)**
+- `DB_HOST` (기본 `ydata.co.kr`), `DB_PORT` (기본 `3306`)
+- `DB_USER` (기본 `ujin2ya`), `DB_PASSWORD`, `DB_NAME` (기본 `hantu`)
+- MySQL 8.4.8 Ubuntu @ ydata.co.kr:3306. `hantu` DB에 `ujin2ya@%` 사용자가 ALL PRIVILEGES + GRANT OPTION. [DB 작업 절차](#db-작업-절차-mysql-shell)에서 사용.
+
+## DB 작업 절차 (MySQL Shell)
+
+**테이블 생성·변경·ad-hoc 쿼리는 MySQL Shell(`mysqlsh.exe`)로 한다.** 프로그램 내부 SELECT/INSERT는 `mysql2` npm 패키지로 처리 (별도 섹션).
+
+⚠ **`mysql` ≠ `mysqlsh`**. 이 환경에는 클래식 `mysql.exe`가 설치돼 있지 않다. 명령은 항상 **`mysqlsh`** (인터랙티브 진입 시 `--sql` 플래그 필수, 안 붙이면 JavaScript 모드로 들어감). 종료는 `\q` 또는 `\exit`.
+
+**설치 위치 (Windows)**: `C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe` (버전 8.0.46). 사용자 PATH에 등록돼 있어 새 셸에서는 `mysqlsh` 그냥 호출 가능.
+
+**접속 패턴 — URI에 password 인라인** (가장 빠르고 자동화 친화적):
+```bash
+# password 안에 '@'가 있으면 URL encode 필요: '@' → '%40'
+mysqlsh --sql --uri "ujin2ya:Newtec4075%40@ydata.co.kr:3306" --database hantu -e "SHOW TABLES;"
+```
+
+**보안상 더 안전한 패턴** — password를 환경변수로:
+```bash
+# Bash (Git Bash / WSL)
+export DB_PW_ENCODED="${DB_PASSWORD//@/%40}"
+mysqlsh --sql --uri "${DB_USER}:${DB_PW_ENCODED}@${DB_HOST}:${DB_PORT}/${DB_NAME}" -e "..."
+
+# PowerShell
+$env:PATH += ';C:\Program Files\MySQL\MySQL Shell 8.0\bin'  # 새 셸 아닐 때만
+mysqlsh --sql --uri "ujin2ya:Newtec4075%40@ydata.co.kr:3306/hantu" -e "..."
+```
+
+**일반 작업 패턴**:
+| 목적 | 명령 |
+|------|------|
+| 테이블 목록 | `mysqlsh --sql --uri "..." -e "SHOW TABLES;"` |
+| 스키마 확인 | `mysqlsh --sql --uri "..." -e "DESCRIBE board_signals;"` |
+| 파일에서 SQL 실행 (DDL 마이그레이션) | `mysqlsh --sql --uri "..." --file migrations/001-board-signals.sql` |
+| 인터랙티브 모드 | `mysqlsh --sql --uri "..."` (Ctrl+D로 종료) |
+| 결과 JSON 출력 (스크립트 친화) | `mysqlsh --sql --uri "..." --result-format=json -e "SELECT ..."` |
+
+**주의사항**:
+- ⚠ `mysqlsh`의 `--password=PASS` / `-p PASS` 옵션은 일부 환경에서 password가 전달 안 되는 경우 확인됨 (Bash 인용 처리 이슈로 추정). **URI에 인라인** 또는 `--password` (값 없이, prompt) 사용 권장.
+- ⚠ `current_user` 같은 MySQL 예약어를 alias로 쓰면 `ER_PARSE_ERROR`. `AS who` 처럼 별칭 변경.
+- ⚠ 평문 password는 명령 히스토리에 남음. **`.env`의 변수로 참조**하거나, 자동화 스크립트에서 `--file`로 SQL만 전달하고 자격증명은 환경변수로.
+- DDL 변경은 마이그레이션 파일로 보관: `migrations/NNN-설명.sql`. 운영 서버 적용은 같은 mysqlsh 명령을 운영 서버에서 SSH로 실행하거나 deploy 훅에 포함.
+- `hantu` DB 외 다른 DB(`information_schema`, `performance_schema`)는 read-only 시스템 DB. 건드리지 말 것.
+
+**프로그램 내 사용 (`mysql2` npm)**:
+- DDL 실행/스키마 정의는 mysqlsh로 하고, Node.js 코드는 `mysql2/promise`로 INSERT/SELECT만 한다.
+- Pool 진입점: [src/db/mysql.js](src/db/mysql.js) — `getPool() / query() / withConnection() / withTransaction() / closePool() / isEnabled()`.
+- 자격증명은 모두 `process.env.DB_*`에서 read. 코드에 평문 금지.
+- 보드 generator는 일회성 process라 main 끝에 `closePool()` 호출 (안 하면 pool keepAlive로 process가 안 끝남).
+- ⚠ mysql2 prepared statement는 `LIMIT ?` bind 미지원 — LIMIT 값은 `_safeLimit()` clamp 후 SQL 문자열에 직접 interpolation. ([src/db/boardSignalRepository.js](src/db/boardSignalRepository.js#L113))
+- ⚠ utf8mb4 협상 — pool option `charset: 'utf8mb4_general_ci'` 만으론 일부 환경에서 `Conversion from collation utf8mb3 into utf8mb4_bin impossible` 발생. pool `'connection'` event에서 `SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci` 명시 실행 ([src/db/mysql.js](src/db/mysql.js#L42)).
+
+## DB 스키마: 보드 신호 히스토리 (2026-05-17 1차)
+
+**목적**: 매일 덮어써지는 보드 신호를 누적 저장해서 종목별/보드별/날짜별 히스토리와 성과 추적.
+
+**스키마 (4 테이블, [db/schema.sql](db/schema.sql))**:
+
+| 테이블 | 역할 |
+|---|---|
+| `board_runs` | 보드 generator 1회 실행 단위 (board_name + run_date + as_of_date + 산출물 경로 + meta JSON) |
+| `board_signals` | **핵심.** 후보 1개 = 1행. `board_name` + `signal_kind` 두 컬럼으로 funnel stage 구분 (예: QVA2_WATCHLIST + VVI2_FIRED). UNIQUE(board_name, signal_kind, signal_date, stock_code) → 멱등 upsert |
+| `board_signal_outcomes` | D+1/3/5/10/20 성과 (close_return / max_high_return / hit_5/10/15/20/30 / fail_3/5/10). UNIQUE(signal_id, horizon_days) |
+| `signal_links` | 시퀀스 연결 (QVA2_TO_VVI2, VVI2_TO_BREAKOUT_SUCCESS, ONE_DAY_SURGE_MAIN_TO_ATTACK_TOP 등). UNIQUE(from, to, link_type) |
+
+**중요 결정사항**:
+- `board_name` + `signal_kind` 두 컬럼 분리 — 같은 종목이 funnel을 따라 stage가 바뀌어도 별 row로 누적됨
+- `stocks` 마스터 테이블은 1차에서 제외 (`stocks.json`이 이미 있음). 종목명 변경 추적 필요해지면 그때 추가
+- `raw_json` 컬럼에 원본 candidate 객체 통째로 보존 — 스키마 진화 대비
+- DDL 변경은 [db/schema.sql](db/schema.sql) (CREATE IF NOT EXISTS) 수정 + 운영 DB에 mysqlsh로 수동 적용 (deploy 자동화 X)
+
+**저장 흐름** (`src/db/`):
+
+```
+보드 generator (예: boards/oneDaySurge/one-day-surge-board.js)
+  → HTML/JSON 출력 완료 후 try/catch 안에서
+  → saveBoardSignals.js의 adapter 호출 (보드별 normalize)
+  → boardSignalRepository.js의 createBoardRun + upsertBoardSignals
+  → DB 저장 실패해도 HTML/JSON은 정상 (실패는 console.warn만)
+  → finally: closePool() (process 정상 종료)
+```
+
+| 모듈 | 역할 |
+|---|---|
+| [src/db/mysql.js](src/db/mysql.js) | mysql2/promise pool. `getPool / query / withConnection / withTransaction / closePool` |
+| [src/db/boardSignalRepository.js](src/db/boardSignalRepository.js) | CRUD: `createBoardRun / upsertBoardSignals(배열) / upsertSignalOutcome / linkSignals` + `findSignalsByStock / findSignalsByBoard / findSignalsByDate` |
+| [src/db/saveBoardSignals.js](src/db/saveBoardSignals.js) | 보드별 normalize adapter. **새 보드 추가 시 여기에 `_normalizeXxxStage()` + `saveXxxBoardToDB()` 추가하고 보드 generator에서 호출** |
+
+**적용된 보드 (2026-05-17 2차까지 — 7개 전부)**:
+
+| board_name | signal_kind | 적용 generator |
+|---|---|---|
+| `ONE_DAY_SURGE` | MAIN, ATTACK_TOP | [one-day-surge-board.js](boards/oneDaySurge/one-day-surge-board.js) |
+| `QVA2_WATCHLIST` | QVA2_NEW / QVA2_TRACKING / VVI2_FIRED / BREAKOUT_SUCCESS / FAILED | [qva2-watchlist-board.js](boards/qva2/qva2-watchlist-board.js) |
+| `QVA_WATCHLIST` | QVA_NEW / QVA_TRACKING / VVI_FIRED / BREAKOUT_SUCCESS / FAILED / LONG_QVA_ALL | [qva-watchlist-board.js](boards/qva/qva-watchlist-board.js) |
+| `QVA_VVI_REDEFINED` | (candidate.status: VVI_FIRED / PRICE_ONLY / WAITING / OVERHEATED / TODAY_NEW_VVI) | [qva-vvi-redefined-board.js](boards/qva/qva-vvi-redefined-board.js) |
+| `HGROUP_REBREAK` | (rebreakStatus: CLOSE_REBREAK_NO_BREACH / INTRADAY_PUSHBACK / BREACH_RECOVER_ILLUSION / BREACH_NO_RECOVER / NO_REBREAK) | [hgroup-rebreak-operation-board.js](boards/rebreak/hgroup-rebreak-operation-board.js) |
+| `QVA2_VVI` | VVI2_FIRED / CLOSE_WEAK / VALUE_WEAK / NEAR_HIGH / WAITING / PRICE_ONLY / BROKEN / TODAY_NEW_VVI2 | [qva2-vvi-board.js](boards/qva2/qva2-vvi-board.js) |
+| `QVA2_D5_REBREAK` | CLOSE_REBREAK / TODAY_INITIAL_BREAKOUT / INTRADAY_PUSHBACK / BREACH_NO_RECOVER / NO_REBREAK | [qva2-d5-rebreak-board.js](boards/qva2/qva2-d5-rebreak-board.js) |
+
+새 보드를 추가하려면 [src/db/saveBoardSignals.js](src/db/saveBoardSignals.js)에 `_normalizeXxx()` + `saveXxxBoardToDB()` adapter를 추가하고, 해당 board generator의 HTML/JSON 저장 직후에 try/catch + closePool finally 블록 넣으면 됨. main 함수가 동기였다면 async로 바꾸고 `main().catch(...)` 패턴으로 시작점 변경. main 함수가 없는 top-level script(qva-watchlist 패턴)는 끝에 IIFE async 추가.
+
+**자동 outcomes/links 갱신 — 매일 16:40 cron**:
+- [pipeline/populate-signal-outcomes.js](pipeline/populate-signal-outcomes.js) — `board_signals` 중 signal_date가 최근 30일 이내 (lookback 옵션)인 신호에 대해 D+1/3/5/10/20 outcomes 채움. 멱등 (UPDATE on duplicate). 거래일 부족이면 SKIP (다음 cron에서 채움).
+- [pipeline/reconcile-signal-links.js](pipeline/reconcile-signal-links.js) — `LINK_RULES` 배열의 룰대로 prior signal 찾아 link 생성. 새 link_type 추가 시 룰 배열에 추가만 하면 됨. `direction` 종류:
+  - `forward` — `to.signal_date > from.signal_date` (같은 보드 funnel stage 전환에 적합)
+  - `forward_or_same` — `to.signal_date >= from.signal_date` 단 `f.id != t.id` (cross-board 같은 날 등장 케이스: QVA_WATCHLIST.BREAKOUT_SUCCESS ↔ HGROUP_REBREAK 등)
+  - `same_day` — `to.signal_date = from.signal_date` (ONE_DAY_SURGE MAIN ↔ ATTACK_TOP)
+  - `signal_kind`를 룰에서 생략하면 와일드카드 (board_name의 모든 stage).
+- 등록 위치: [src/services/pattern/scheduledJobs.js](src/services/pattern/scheduledJobs.js) `cron.schedule("40 16 * * 1-5", ...)` — outcomes → links 순차 실행.
+
+**현재 LINK_RULES (12종)**:
+| link_type | from → to | direction |
+|---|---|---|
+| QVA2_TO_VVI2 | QVA2_WATCHLIST.QVA2_NEW → QVA2_WATCHLIST.VVI2_FIRED | forward |
+| QVA2_NEW_TO_BREAKOUT_SUCCESS | QVA2_WATCHLIST.QVA2_NEW → QVA2_WATCHLIST.BREAKOUT_SUCCESS | forward |
+| VVI2_TO_BREAKOUT_SUCCESS | QVA2_WATCHLIST.VVI2_FIRED → QVA2_WATCHLIST.BREAKOUT_SUCCESS | forward |
+| QVA_TO_VVI | QVA_WATCHLIST.QVA_NEW → QVA_WATCHLIST.VVI_FIRED | forward |
+| QVA_NEW_TO_BREAKOUT_SUCCESS | QVA_WATCHLIST.QVA_NEW → QVA_WATCHLIST.BREAKOUT_SUCCESS | forward |
+| VVI_TO_BREAKOUT_SUCCESS | QVA_WATCHLIST.VVI_FIRED → QVA_WATCHLIST.BREAKOUT_SUCCESS | forward |
+| QVA_NEW_TO_FAILED | QVA_WATCHLIST.QVA_NEW → QVA_WATCHLIST.FAILED | forward |
+| QVA_BREAKOUT_TO_HGROUP_REBREAK | QVA_WATCHLIST.BREAKOUT_SUCCESS → HGROUP_REBREAK.* | forward_or_same |
+| QVA2_BREAKOUT_TO_D5 | QVA2_WATCHLIST.BREAKOUT_SUCCESS → QVA2_D5_REBREAK.* | forward_or_same |
+| QVA_TO_VVI_REDEFINED | QVA_WATCHLIST.QVA_NEW → QVA_VVI_REDEFINED.* | forward_or_same |
+| QVA2_TO_QVA2_VVI | QVA2_WATCHLIST.QVA2_NEW → QVA2_VVI.* | forward_or_same |
+| ONE_DAY_SURGE_MAIN_TO_ATTACK_TOP | ONE_DAY_SURGE.MAIN → ONE_DAY_SURGE.ATTACK_TOP | same_day |
+
+**조회 API (admin)**:
+
+| 라우트 | 사용 |
+|---|---|
+| `GET /admin/db-signals?stockCode=005930` | 종목 히스토리 (어느 보드/단계에 몇 번) |
+| `GET /admin/db-signals?boardName=ONE_DAY_SURGE` | 보드별 최근 신호 |
+| `GET /admin/db-signals?date=2026-05-15` | 특정 날짜 전체 보드 신호 |
+| `GET /admin/db-signals?signalId=123` | 신호 1건 + outcomes + links |
+| `GET /admin/db-signals?boardName=...&date=...` | 보드 + 날짜 조합 |
+
+옵션: `&limit=200` (기본). JSON 응답. 컨트롤러: [src/controllers/adminController.js](src/controllers/adminController.js) `getDbSignals`.
+
+**테스트 스크립트**:
+- `node scripts/test-db-connection.js` — pool 연결 + 4 테이블 존재 + row count 확인
+- `node scripts/test-save-board-signal.js [--board 1ds|qva2]` — 현재 reports/*.json을 DB로 멱등 저장 (재실행 시 모두 UPDATE)
+
+**운영 적용 절차 (운영 서버에 schema 처음 배포 시)**:
+1. 로컬에서 schema 변경/확인
+2. 운영 SSH로 접속해 mysqlsh로 schema.sql 실행:
+   ```bash
+   mysqlsh --sql --uri "ujin2ya:Newtec4075%40@ydata.co.kr:3306/hantu" --file db/schema.sql
+   ```
+3. 코드 변경 git push → deploy.yml이 hantu-test 재기동
+4. 16:40 cron이 자동으로 outcomes/links 갱신 시작
+
 ## 아키텍처
 
 단일 프로세스 Node/Express 앱이 KIS Open Trading API, 네이버 모바일 API, DART API, Gemini를 조합해서 한국 주식(KOSPI/KOSDAQ)을 점수화·스크리닝한다. 결과는 정적 HTML과 EJS 템플릿으로 렌더링한다.

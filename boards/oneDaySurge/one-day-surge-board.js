@@ -1173,7 +1173,7 @@ function buildAttackTopFromCandidates(candidates) {
   return { summary, candidates: cards };
 }
 
-function main() {
+async function main() {
   if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR, { recursive: true });
   if (!fs.existsSync(CHART_DIR)) {
     console.error('[ERROR] cache/stock-charts-long 디렉토리가 없습니다.');
@@ -1896,6 +1896,18 @@ function main() {
 
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
   fs.writeFileSync(OUT_HTML, HTML_TEMPLATE.replace('__JSON_DATA__', JSON.stringify(out)), 'utf-8');
+
+  // DB 저장 (실패해도 HTML/JSON은 이미 정상 저장됐으므로 보드 출력에 영향 없음)
+  try {
+    const { saveOneDaySurgeBoardToDB } = require('../../src/db/saveBoardSignals');
+    const r = await saveOneDaySurgeBoardToDB(out, { jsonPath: OUT_JSON, htmlPath: OUT_HTML });
+    if (r) console.log(`  🗄  DB 저장: runId=${r.runId} rows=${r.totalRows} (inserted=${r.inserted} updated=${r.updated})`);
+  } catch (e) {
+    console.warn(`  ⚠ DB 저장 실패 (HTML/JSON은 정상 저장됨): ${e.message}`);
+  } finally {
+    // 보드 generator는 일회성 spawn이므로 pool을 닫아서 process가 정상 종료되도록
+    try { await require('../../src/db/mysql').closePool(); } catch (_) {}
+  }
 
   console.log(`\n  분석 기준일: ${analysisDate ? fmtDate(analysisDate) : '-'} (가장 흔한 baseDate, 빈도 ${maxFreq})`);
   const fbHrMm = String(Math.floor(KST_MIN / 60)).padStart(2, '0') + ':' + String(KST_MIN % 60).padStart(2, '0');
@@ -3922,4 +3934,4 @@ document.getElementById('foot').innerHTML =
 </html>
 `;
 
-main();
+main().catch(e => { console.error('FATAL:', e); process.exit(1); });

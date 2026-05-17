@@ -246,7 +246,7 @@ function analyzeVvi(sig, chart, todayDateNum) {
 }
 
 // ── 메인 ──
-function main() {
+async function main() {
   if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR, { recursive: true });
   const t0 = Date.now();
   console.log(`\n📊 QVA 고점 재돌파 후보 보드 (새 VVI 정의, lookback ${VVI_LOOKBACK_DAYS} 거래일)`);
@@ -459,6 +459,17 @@ function main() {
 
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
   fs.writeFileSync(OUT_HTML, HTML_TEMPLATE.replace('__JSON_DATA__', JSON.stringify(out)), 'utf-8');
+
+  // DB 저장 (실패해도 HTML/JSON은 정상)
+  try {
+    const { saveQvaVviRedefinedBoardToDB } = require('../../src/db/saveBoardSignals');
+    const r = await saveQvaVviRedefinedBoardToDB(out, { jsonPath: OUT_JSON, htmlPath: OUT_HTML });
+    if (r) console.log(`  🗄  DB 저장: runId=${r.runId} rows=${r.totalRows} (inserted=${r.inserted} updated=${r.updated})`);
+  } catch (e) {
+    console.warn(`  ⚠ DB 저장 실패 (HTML/JSON은 정상 저장됨): ${e.message}`);
+  } finally {
+    try { await require('../../src/db/mysql').closePool(); } catch (_) {}
+  }
 
   console.log(`\n  최근 ${VVI_LOOKBACK_DAYS}거래일 안 QVA: ${counts.qvaSignalsInLookback}건 → 종목별 dedup ${counts.dedupedCandidates}건`);
   console.log(`    🟢 안정형 고점 재돌파:     ${counts.stableBreakoutCount}건 → 상위 ${stableTopList.length}건 표시 (메인 후보)`);
@@ -821,6 +832,6 @@ document.getElementById('foot').innerHTML =
 </html>
 `;
 
-if (require.main === module) main();
+if (require.main === module) main().catch(e => { console.error('FATAL:', e); process.exit(1); });
 
 module.exports = { analyzeVvi, loadQvaSignals };

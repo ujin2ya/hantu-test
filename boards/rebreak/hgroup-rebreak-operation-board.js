@@ -406,7 +406,7 @@ function buildInterpretationComment(it) {
   return null;
 }
 
-function main() {
+async function main() {
   if (!fs.existsSync(BOARD_PATH)) {
     console.error('[ERROR] qva-watchlist-board.json 없음. 먼저 `node qva-watchlist-board.js` 실행.');
     process.exit(1);
@@ -596,6 +596,17 @@ function main() {
   fs.writeFileSync(OUT_HTML, html, 'utf-8');
   console.log(`\n✅ JSON: ${OUT_JSON}`);
   console.log(`✅ HTML: ${OUT_HTML}`);
+
+  // DB 저장 (실패해도 HTML/JSON은 정상)
+  try {
+    const { saveHgroupRebreakBoardToDB } = require('../../src/db/saveBoardSignals');
+    const r = await saveHgroupRebreakBoardToDB(out, { jsonPath: OUT_JSON, htmlPath: OUT_HTML });
+    if (r) console.log(`🗄  DB 저장: runId=${r.runId} rows=${r.totalRows} (inserted=${r.inserted} updated=${r.updated})`);
+  } catch (e) {
+    console.warn(`⚠ DB 저장 실패 (HTML/JSON은 정상 저장됨): ${e.message}`);
+  } finally {
+    try { await require('../../src/db/mysql').closePool(); } catch (_) {}
+  }
 }
 
 const HTML_TEMPLATE = `<!DOCTYPE html>
@@ -1017,4 +1028,4 @@ document.getElementById('data-limit').innerHTML =
 </html>
 `;
 
-main();
+main().catch(e => { console.error('FATAL:', e); process.exit(1); });

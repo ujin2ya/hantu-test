@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "1-Day Surge Board v5 · GOOD_TRADE 중심 단타 후보 보드",
-    "generatedAt": "2026-05-17T05:45:16.793Z",
+    "generatedAt": "2026-05-17T07:18:12.240Z",
     "analysisDate": "20260515",
     "analysisDateFmt": "2026-05-15",
     "stockUniverse": 4270,
@@ -2488,7 +2488,11 @@
         "recent10Up15Count": 0,
         "baseGapRate": 1.81,
         "qvaHistoryLabel": "QVA 신규(D+0)",
-        "vviHistory": null,
+        "vviHistory": {
+          "signalDate": "20260512",
+          "daysAfterSignal": 3,
+          "vviStatus": "PULLBACK_AFTER_CONFIRM"
+        },
         "dailyValueRank": 332,
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×2.1배 늘었음, 시총 대비 거래대금 8.3% (회사 크기에 비해 충분한 수급), 윗꼬리 양봉 (윗꼬리 82%), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
@@ -2711,7 +2715,11 @@
         "recent10Up15Count": 0,
         "baseGapRate": 0,
         "qvaHistoryLabel": "QVA 추적",
-        "vviHistory": null,
+        "vviHistory": {
+          "signalDate": "20260513",
+          "daysAfterSignal": 2,
+          "vviStatus": "FAILED_CONFIRM"
+        },
         "dailyValueRank": 337,
         "gtGroup": "LIGHT-GT",
         "summaryLine": "시총 대비 거래대금 7.4% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
@@ -3084,11 +3092,7 @@
         "recent10Up15Count": 0,
         "baseGapRate": 1.1,
         "qvaHistoryLabel": "QVA 추적",
-        "vviHistory": {
-          "signalDate": "20260511",
-          "daysAfterSignal": 4,
-          "vviStatus": "PULLBACK_AFTER_CONFIRM"
-        },
+        "vviHistory": null,
         "dailyValueRank": 367,
         "gtGroup": "LIGHT-GT",
         "summaryLine": "거래대금이 평소보다 ×2.7배 늘었음, 시총 대비 거래대금 6.5% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형. 경량 단타 후보. 다음 거래일 장초 시초가 흐름 확인 후 진입 검토.",
@@ -4832,11 +4836,7 @@
         "recent10Up15Count": 0,
         "baseGapRate": 0.32,
         "qvaHistoryLabel": null,
-        "vviHistory": {
-          "signalDate": "20260513",
-          "daysAfterSignal": 2,
-          "vviStatus": "PULLBACK_AFTER_CONFIRM"
-        },
+        "vviHistory": null,
         "dailyValueRank": 18,
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "거래대금이 평소보다 ×4.0배 강하게 증가, 시총 대비 거래대금 5.0% (회사 크기에 비해 충분한 수급), 최근 5일 첫 급등형, 거래대금 시장 상위 18위. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
@@ -5971,11 +5971,7 @@
         "recent10Up15Count": 0,
         "baseGapRate": -1.49,
         "qvaHistoryLabel": "QVA 추적",
-        "vviHistory": {
-          "signalDate": "20260511",
-          "daysAfterSignal": 4,
-          "vviStatus": "PULLBACK_AFTER_CONFIRM"
-        },
+        "vviHistory": null,
         "dailyValueRank": 88,
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
@@ -6335,11 +6331,7 @@
         "recent10Up15Count": 0,
         "baseGapRate": -5.39,
         "qvaHistoryLabel": "QVA 신규(D+0)",
-        "vviHistory": {
-          "signalDate": "20260514",
-          "daysAfterSignal": 1,
-          "vviStatus": "FAILED_CONFIRM"
-        },
+        "vviHistory": null,
         "dailyValueRank": 61,
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "거래대금이 평소보다 ×2.3배 늘었음, 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
@@ -6689,11 +6681,7 @@
         "recent10Up15Count": 0,
         "baseGapRate": 1.09,
         "qvaHistoryLabel": "QVA 신규(D+0)",
-        "vviHistory": {
-          "signalDate": "20260511",
-          "daysAfterSignal": 4,
-          "vviStatus": "PULLBACK_AFTER_CONFIRM"
-        },
+        "vviHistory": null,
         "dailyValueRank": 134,
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "거래대금이 평소보다 ×2.0배 늘었음, 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
@@ -6763,11 +6751,7 @@
         "recent10Up15Count": 0,
         "baseGapRate": 0.15,
         "qvaHistoryLabel": "오늘 QVA",
-        "vviHistory": {
-          "signalDate": "20260514",
-          "daysAfterSignal": 1,
-          "vviStatus": "CONFIRMED"
-        },
+        "vviHistory": null,
         "dailyValueRank": 85,
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "거래대금이 평소보다 ×3.1배 강하게 증가, 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
@@ -7127,11 +7111,7 @@
         "recent10Up15Count": 0,
         "baseGapRate": 0,
         "qvaHistoryLabel": null,
-        "vviHistory": {
-          "signalDate": "20260514",
-          "daysAfterSignal": 1,
-          "vviStatus": "CONFIRMED"
-        },
+        "vviHistory": null,
         "dailyValueRank": 109,
         "gtGroup": "HEAVY-WATCH",
         "summaryLine": "거래대금이 평소보다 ×4.0배 강하게 증가, 최근 5일 첫 급등형. 준중대형(1.5조~3조). 단타 탄력이 약해 참고로만 봅니다.",
@@ -7623,7 +7603,11 @@
         "recent10Up15Count": 0,
         "baseGapRate": -4.31,
         "qvaHistoryLabel": null,
-        "vviHistory": null,
+        "vviHistory": {
+          "signalDate": "20260513",
+          "daysAfterSignal": 2,
+          "vviStatus": "PULLBACK_AFTER_CONFIRM"
+        },
         "dailyValueRank": 234,
         "gtGroup": "MICRO-RISK",
         "summaryLine": "거래대금이 평소보다 ×3.0배 늘었음, 시총 대비 거래대금 21.4% (회사 크기 대비 매우 강한 수급), 최근 5일 첫 급등형. 초경량(500억~1,000억). 가볍게 튈 수는 있지만 장중 흔들림 큼 — 실전 진입 비추천.",
@@ -11606,11 +11590,7 @@
         "recent10Up15Count": 0,
         "baseGapRate": -2.83,
         "qvaHistoryLabel": "H그룹 출신",
-        "vviHistory": {
-          "signalDate": "20260512",
-          "daysAfterSignal": 3,
-          "vviStatus": "CONFIRMED"
-        },
+        "vviHistory": null,
         "dailyValueRank": 71,
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
@@ -12110,11 +12090,7 @@
         "recent10Up15Count": 0,
         "baseGapRate": 0.54,
         "qvaHistoryLabel": null,
-        "vviHistory": {
-          "signalDate": "20260508",
-          "daysAfterSignal": 5,
-          "vviStatus": "CONFIRMED"
-        },
+        "vviHistory": null,
         "dailyValueRank": 130,
         "gtGroup": "HEAVY-RISK",
         "summaryLine": "최근 5일 첫 급등형. 대형(3조~5조). 단타 탄력이 더 약함 — 보드 하단 배치.",
@@ -22118,7 +22094,7 @@
     "status": "holiday_closed",
     "label": "휴장일",
     "isMarketClosed": true,
-    "generatedAtTime": "14:45",
+    "generatedAtTime": "16:18",
     "guide": "오늘은 휴장일입니다 (주말/공휴일/대체공휴일). 직전 거래일 (2026-05-15) 기준 결과를 표시합니다.",
     "forcedNote": null,
     "todayDate": "2026-05-17",
