@@ -205,7 +205,7 @@
         <% if (stockSearch) { %><input type="hidden" name="stockCode" value="<%= stockSearch %>"><% } %>
         <label>기간
           <select name="days" style="background:#0f172a; color:#f1f5f9; border:1px solid #334155; border-radius:6px; padding:3px 6px; margin-left:4px;">
-            <% for (const d of [20, 40, 60, 90]) { %>
+            <% for (const d of [20, 40, 60, 90, 180, 240]) { %>
               <option value="<%= d %>" <%= Number(days) === d ? 'selected' : '' %>><%= d %>일</option>
             <% } %>
           </select>
@@ -242,7 +242,7 @@
         <div class="empty">아직 조건에 맞는 누적 후보가 없습니다. 기간을 늘리거나 최소 점수를 낮춰 보세요.</div>
       <% } else {
            // 핵심 근거 우선순위 (앞쪽 4개만 표시, "주의 기록 있음"은 별도 risk-tag로 분리)
-           const REASON_ORDER = ['최근 신호 있음','여러 보드 중복','QVA→VVI2→돌파 흐름','QVA2→VVI2→돌파 흐름','양쪽 VVI2 확인','QVA→VVI2 흐름','QVA2→VVI2 흐름','재돌파 기록'];
+           const REASON_ORDER = ['최근 신호 있음','여러 보드 중복','QVA→VVI2→돌파 흐름','QVA2→VVI2→돌파 흐름','양쪽 VVI2 확인','QVA→VVI2 흐름','QVA2→VVI2 흐름','강한 재돌파','재돌파 기록'];
            function sortReasons(reasons) {
              const set = new Set(reasons || []);
              const ordered = [];

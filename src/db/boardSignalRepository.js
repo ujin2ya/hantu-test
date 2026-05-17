@@ -252,6 +252,7 @@ const NEGATIVE_KINDS = ['FAILED', 'BROKEN', 'BREACH_NO_RECOVER', 'BREACH_RECOVER
 const POSITIVE_KINDS = [
   'VVI_FIRED', 'VVI2_FIRED', 'BREAKOUT_SUCCESS',
   'CLOSE_REBREAK', 'CLOSE_REBREAK_NO_BREACH', 'TODAY_INITIAL_BREAKOUT',
+  'CLOSE_REBREAK_VOL_EXPLOSION', 'CLOSE_REBREAK_HOLD_NEXTDAY', 'CLOSE_REBREAK_BREACH_RECOVER',
   'TODAY_NEW_VVI', 'TODAY_NEW_VVI2', 'ATTACK_TOP',
 ];
 
@@ -700,6 +701,9 @@ const PRIORITY_KIND_SCORE = Object.freeze({
   VVI_FIRED: 12, VVI2_FIRED: 12,
   BREAKOUT_SUCCESS: 15,
   CLOSE_REBREAK: 14, CLOSE_REBREAK_NO_BREACH: 16,
+  CLOSE_REBREAK_VOL_EXPLOSION: 17, // n=91, 승률 87%
+  CLOSE_REBREAK_HOLD_NEXTDAY: 16,  // n=165, 승률 88%
+  CLOSE_REBREAK_BREACH_RECOVER: 10, // n=77, 승률 79% — 회복형
   TODAY_INITIAL_BREAKOUT: 12,
   LONG_QVA_ALL: 3,
 });
@@ -754,7 +758,8 @@ function _buildReasons(agg, parts) {
   if (has('QVA2_NEW') && has('VVI2_FIRED') && has('BREAKOUT_SUCCESS')) r.push('QVA2→VVI2→돌파 흐름');
   else if (has('QVA2_NEW') && has('VVI2_FIRED')) r.push('QVA2→VVI2 흐름');
   if (has('VVI_FIRED') && has('VVI2_FIRED')) r.push('양쪽 VVI2 확인');
-  if (has('CLOSE_REBREAK') || has('CLOSE_REBREAK_NO_BREACH')) r.push('재돌파 기록');
+  if (has('CLOSE_REBREAK_VOL_EXPLOSION') || has('CLOSE_REBREAK_HOLD_NEXTDAY')) r.push('강한 재돌파');
+  else if (has('CLOSE_REBREAK') || has('CLOSE_REBREAK_NO_BREACH') || has('CLOSE_REBREAK_BREACH_RECOVER')) r.push('재돌파 기록');
   const hasRisk = ['FAILED','BREACH_NO_RECOVER','BREACH_RECOVER_ILLUSION','INTRADAY_PUSHBACK','NO_REBREAK'].some(has);
   if (hasRisk) r.push('주의 기록 있음');
   return r;
