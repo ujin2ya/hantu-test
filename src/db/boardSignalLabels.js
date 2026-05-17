@@ -271,9 +271,102 @@ function mergePresetWithOverrides(presetKey, overrides) {
   };
 }
 
+// ─── 7차: 타임라인 표시용 helper (2026-05-17) ────────────────────────────
+
+// 더 간결한 display 라벨 (KIND_LABELS는 풀 표현, 이건 카드/타임라인용 짧은 라벨)
+const KIND_DISPLAY = Object.freeze({
+  QVA_NEW:                 'QVA 발생',
+  QVA_TRACKING:            'QVA 추적',
+  QVA2_NEW:                'QVA2 발생',
+  QVA2_TRACKING:           'QVA2 추적',
+  LONG_QVA_ALL:            '장기 QVA',
+  VVI_FIRED:               'VVI 발화',
+  VVI2_FIRED:              'VVI2 발화',
+  TODAY_NEW_VVI:           'VVI 신규',
+  TODAY_NEW_VVI2:          'VVI2 신규',
+  BREAKOUT_SUCCESS:        '돌파 성공',
+  TODAY_INITIAL_BREAKOUT:  '당일 초동 돌파',
+  CLOSE_REBREAK:           '종가 재돌파',
+  CLOSE_REBREAK_NO_BREACH: '이탈 없는 재돌파',
+  STABLE_BREAKOUT:         '안정 돌파',
+  STRONG_VALUE:            '강한 거래대금',
+  ATTACK_TOP:              '공격형 TOP',
+  MAIN:                    '메인 후보',
+  WAITING:                 '대기',
+  NEAR_HIGH:               '고가 근처',
+  CLOSE_WEAK:              '종가 약함',
+  VALUE_WEAK:              '거래대금 약함',
+  PRICE_ONLY:              '가격만 돌파',
+  OVERHEATED:              '과열',
+  INTRADAY_PUSHBACK:       '장중 밀림',
+  FAILED:                  '실패/탈락',
+  BROKEN:                  '이탈됨',
+  BREACH_NO_RECOVER:       '이탈 후 회복 실패',
+  BREACH_RECOVER_ILLUSION: '이탈 후 회복 시도',
+  NO_REBREAK:              '재돌파 없음',
+});
+
+const _POSITIVE_TONE = new Set([
+  'VVI_FIRED','VVI2_FIRED','BREAKOUT_SUCCESS','CLOSE_REBREAK','CLOSE_REBREAK_NO_BREACH',
+  'TODAY_INITIAL_BREAKOUT','TODAY_NEW_VVI','TODAY_NEW_VVI2','ATTACK_TOP','STABLE_BREAKOUT','STRONG_VALUE',
+]);
+const _NEGATIVE_TONE = new Set([
+  'FAILED','BROKEN','BREACH_NO_RECOVER','BREACH_RECOVER_ILLUSION','INTRADAY_PUSHBACK','NO_REBREAK','OVERHEATED',
+]);
+
+function getSignalKindDisplay(kind) {
+  return KIND_DISPLAY[kind] || KIND_LABELS[kind] || kind || '';
+}
+
+function getSignalKindTone(kind) {
+  if (_POSITIVE_TONE.has(kind)) return 'positive';
+  if (_NEGATIVE_TONE.has(kind)) return 'negative';
+  return 'neutral';
+}
+
+function getSourceTypeDisplay(s) {
+  if (s === 'DAILY_RUN') return '운영 저장';
+  if (s === 'CACHE_BACKFILL') return '백필 복원';
+  return s || '';
+}
+
+// timeline을 보고 쉬운 한 줄 해석 + badges 생성
+function explainTimelineSummary(timeline) {
+  if (!Array.isArray(timeline) || timeline.length === 0) {
+    return { summaryText: '데이터가 부족합니다.', badges: [] };
+  }
+  const kinds = new Set(timeline.map(t => t.signal_kind));
+  const has = (k) => kinds.has(k);
+  const hasAny = (arr) => arr.some(k => kinds.has(k));
+
+  const badges = [];
+  const lines = [];
+
+  const qvaFlow  = has('QVA_NEW')  && has('VVI_FIRED')  && has('BREAKOUT_SUCCESS');
+  const qva2Flow = has('QVA2_NEW') && has('VVI2_FIRED') && has('BREAKOUT_SUCCESS');
+  const bothVvi  = has('VVI_FIRED') && has('VVI2_FIRED');
+  const hasRebreak = hasAny(['CLOSE_REBREAK','CLOSE_REBREAK_NO_BREACH','TODAY_INITIAL_BREAKOUT']);
+  const hasRisk    = hasAny(['FAILED','BREACH_NO_RECOVER','BREACH_RECOVER_ILLUSION','NO_REBREAK','BROKEN']);
+  const onlyEarly  = !hasAny(['VVI_FIRED','VVI2_FIRED','BREAKOUT_SUCCESS']);
+
+  if (qvaFlow)  { lines.push('QVA 발생 후 VVI와 돌파 성공까지 이어진 흐름입니다.'); badges.push('QVA 흐름'); }
+  if (qva2Flow) { lines.push('QVA2 발생 후 VVI2와 돌파 성공까지 이어진 흐름입니다.'); badges.push('QVA2 흐름'); }
+  if (bothVvi)  { lines.push('QVA 계열과 QVA2 계열에서 모두 수급 확인이 잡힌 종목입니다.'); badges.push('양쪽 VVI'); }
+  if (hasRebreak && (qvaFlow || qva2Flow)) badges.push('재돌파 기록');
+  if (hasRisk) { lines.push('중간에 실패/이탈 기록도 있어 추격 관찰은 주의가 필요합니다.'); badges.push('주의 기록 있음'); }
+  if (onlyEarly) lines.push('초기 후보로 반복 등장했지만 아직 강한 후속 확인은 부족합니다.');
+
+  if (lines.length === 0) {
+    lines.push('여러 보드에 반복 등장한 종목으로, 관찰 가치가 있습니다.');
+  }
+
+  return { summaryText: lines.join(' '), badges };
+}
+
 module.exports = {
   BOARD_LABELS,
   KIND_LABELS,
+  KIND_DISPLAY,
   KIND_WEIGHTS,
   BOARD_WEIGHTS,
   BOARD_KIND_MATRIX,
@@ -284,4 +377,8 @@ module.exports = {
   getBoardKindWeight,
   mergePresetWithOverrides,
   diagnoseFilterMismatch,
+  getSignalKindDisplay,
+  getSignalKindTone,
+  getSourceTypeDisplay,
+  explainTimelineSummary,
 };

@@ -355,6 +355,20 @@ async function getDbBoardDashboard(req, res) {
     await safe('linkSummary', () => repo.findLinkSummary({ days }));
     await safe('dbSummary',   () => repo.findDbSummary());
 
+    // 7차 (2026-05-17) — 종목별 신호 타임라인 + 흐름 해석
+    await safe('stockTimelines',        () => repo.findStockTimelines({ days, limitStocks: 30, minSignalCount: 3 }));
+    await safe('qvaFunnelStocks',       () => repo.findFunnelPassedStocks({ days, funnelType: 'QVA',      limit: 30 }));
+    await safe('qva2FunnelStocks',      () => repo.findFunnelPassedStocks({ days, funnelType: 'QVA2',     limit: 30 }));
+    await safe('bothVviStocks',         () => repo.findFunnelPassedStocks({ days, funnelType: 'BOTH_VVI', limit: 30 }));
+    await safe('recentRepeatedStocks',  () => repo.findRecentRepeatedStocks({ days, minSignalCount: 3, limit: 50 }));
+
+    // 타임라인 카드에 요약+배지 미리 계산 (EJS에서 호출하는 것보다 안전)
+    if (sections.stockTimelines && Array.isArray(sections.stockTimelines)) {
+      for (const t of sections.stockTimelines) {
+        t.summary = labels.explainTimelineSummary(t.timeline || []);
+      }
+    }
+
     // ─── 사용자 조합 필터 (5차, 2026-05-17) ─────────────────────────────
     function arr(v) {
       if (v == null) return [];
@@ -434,6 +448,10 @@ async function getDbBoardDashboard(req, res) {
       BOARD_LABELS: labels.BOARD_LABELS,
       KIND_LABELS: labels.KIND_LABELS,
       BOARD_KIND_MATRIX: labels.BOARD_KIND_MATRIX,
+      // 7차 helper
+      getSignalKindDisplay: labels.getSignalKindDisplay,
+      getSignalKindTone: labels.getSignalKindTone,
+      getSourceTypeDisplay: labels.getSourceTypeDisplay,
       filterApplied,
       filterPreset: presetKey,
       filterResolved,

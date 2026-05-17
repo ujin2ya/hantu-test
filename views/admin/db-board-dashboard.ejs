@@ -145,6 +145,148 @@
     </div>
     <% } %>
 
+    <!-- 7차: DB 누적 신호 흐름 -->
+    <div class="card-soft" id="signal-flow-section">
+      <h2><i class="bi bi-diagram-3"></i>DB 누적 신호 흐름</h2>
+      <div class="hint">
+        매일 저장된 보드 신호와 백필로 복원한 과거 단계를 합쳐, 종목이 어떤 흐름으로 진행됐는지 보여줍니다.
+        <strong>매수 신호가 아니라 후보 흐름을 이해하기 위한 참고 화면</strong>입니다.
+        <span style="color:#94a3b8;">(<strong>운영 저장</strong> = 실제 daily run에서 저장된 신호 / <strong>백필 복원</strong> = 기존 report raw_json에서 복원한 과거 단계)</span>
+      </div>
+
+      <!-- A. 최근 반복 등장 종목 -->
+      <div style="margin-top:16px;">
+        <h3 style="font-size:.9rem; color:#cbd5e1; font-weight:700; margin-bottom:6px;">🔁 최근 반복 등장 종목 (최근 <%= days %>일, 3회 이상)</h3>
+        <div class="hint" style="margin-bottom:8px;">최근 기간 동안 여러 번 보드에 잡힌 종목입니다. 자주 등장할수록 계속 관찰되고 있다는 뜻입니다.</div>
+        <% if (errors.recentRepeatedStocks) { %><div class="err">오류: <%= errors.recentRepeatedStocks %></div>
+        <% } else if (!sections.recentRepeatedStocks || sections.recentRepeatedStocks.length === 0) { %><div class="empty">아직 충분한 누적 데이터가 없습니다.</div>
+        <% } else { %>
+          <div class="scroll-wrap"><table class="t">
+            <thead>
+              <tr><th>종목</th><th class="num">등장 횟수</th><th class="num">보드 수</th><th>첫 등장</th><th>마지막</th><th>보드</th><th>신호 종류</th><th>출처</th></tr>
+            </thead>
+            <tbody>
+              <% for (const r of sections.recentRepeatedStocks.slice(0, 20)) { %>
+                <tr>
+                  <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/db-board?date=<%= date %>&stockCode=<%= r.stock_code %>"><%= r.stock_name %></a></span></td>
+                  <td class="num"><strong><%= r.signal_count %></strong></td>
+                  <td class="num"><%= r.board_count %></td>
+                  <td style="font-size:.75rem; color:#94a3b8;"><%= r.first_signal_date %></td>
+                  <td style="font-size:.75rem; color:#94a3b8;"><%= r.last_signal_date %></td>
+                  <td><% for (const b of String(r.boards || '').split(', ')) { if (!b) continue; %><span class="pill pill-board" title="<%= b %>"><%= formatBoardName(b) %></span><% } %></td>
+                  <td><% for (const k of String(r.signal_kinds || '').split(', ')) { if (!k) continue; const tone = getSignalKindTone(k); %><span class="pill pill-<%= tone === 'positive' ? 'pos' : tone === 'negative' ? 'neg' : 'mut' %>" title="<%= k %>"><%= getSignalKindDisplay(k) %></span><% } %></td>
+                  <td style="font-size:.7rem; color:#94a3b8;"><% for (const s of String(r.source_types || '').split(', ')) { if (!s) continue; %><span class="pill pill-mut" title="<%= s %>"><%= getSourceTypeDisplay(s) %></span><% } %></td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table></div>
+        <% } %>
+      </div>
+
+      <!-- B. QVA 흐름 통과 / C. QVA2 흐름 통과 — 2열 grid -->
+      <div style="margin-top:18px; display:grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap:14px;">
+        <!-- B. QVA -->
+        <div>
+          <h3 style="font-size:.9rem; color:#cbd5e1; font-weight:700; margin-bottom:6px;">🟢 QVA 흐름 통과 종목 (QVA 발생 → VVI → 돌파)</h3>
+          <div class="hint" style="margin-bottom:8px;">QVA 발생 후 VVI와 돌파 성공까지 이어진 종목입니다.</div>
+          <% if (errors.qvaFunnelStocks) { %><div class="err">오류: <%= errors.qvaFunnelStocks %></div>
+          <% } else if (!sections.qvaFunnelStocks || sections.qvaFunnelStocks.length === 0) { %><div class="empty">아직 funnel 통과 종목이 없습니다.</div>
+          <% } else { %>
+            <div class="scroll-wrap"><table class="t">
+              <thead><tr><th>종목</th><th class="num">신호</th><th class="num">보드</th><th>기간</th><th>매칭 단계</th></tr></thead>
+              <tbody>
+                <% for (const r of sections.qvaFunnelStocks) { %>
+                  <tr>
+                    <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/db-board?date=<%= date %>&stockCode=<%= r.stock_code %>"><%= r.stock_name %></a></span></td>
+                    <td class="num"><strong><%= r.signal_count %></strong></td>
+                    <td class="num"><%= r.board_count %></td>
+                    <td style="font-size:.72rem; color:#94a3b8;"><%= r.first_signal_date %> → <%= r.last_signal_date %></td>
+                    <td><% for (const k of String(r.matched_kinds || '').split(', ')) { if (!k) continue; %><span class="pill pill-pos" title="<%= k %>"><%= getSignalKindDisplay(k) %></span><% } %></td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table></div>
+          <% } %>
+        </div>
+
+        <!-- C. QVA2 -->
+        <div>
+          <h3 style="font-size:.9rem; color:#cbd5e1; font-weight:700; margin-bottom:6px;">🟣 QVA2 흐름 통과 종목 (QVA2 발생 → VVI2 → 돌파)</h3>
+          <div class="hint" style="margin-bottom:8px;">약한 마감 또는 흡수형 후보가 이후 VVI2와 돌파 성공까지 이어진 종목입니다.</div>
+          <% if (errors.qva2FunnelStocks) { %><div class="err">오류: <%= errors.qva2FunnelStocks %></div>
+          <% } else if (!sections.qva2FunnelStocks || sections.qva2FunnelStocks.length === 0) { %><div class="empty">아직 funnel 통과 종목이 없습니다.</div>
+          <% } else { %>
+            <div class="scroll-wrap"><table class="t">
+              <thead><tr><th>종목</th><th class="num">신호</th><th class="num">보드</th><th>기간</th><th>매칭 단계</th></tr></thead>
+              <tbody>
+                <% for (const r of sections.qva2FunnelStocks) { %>
+                  <tr>
+                    <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/db-board?date=<%= date %>&stockCode=<%= r.stock_code %>"><%= r.stock_name %></a></span></td>
+                    <td class="num"><strong><%= r.signal_count %></strong></td>
+                    <td class="num"><%= r.board_count %></td>
+                    <td style="font-size:.72rem; color:#94a3b8;"><%= r.first_signal_date %> → <%= r.last_signal_date %></td>
+                    <td><% for (const k of String(r.matched_kinds || '').split(', ')) { if (!k) continue; %><span class="pill pill-pos" title="<%= k %>"><%= getSignalKindDisplay(k) %></span><% } %></td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table></div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- D. 종목별 타임라인 카드 -->
+      <div style="margin-top:18px;">
+        <h3 style="font-size:.9rem; color:#cbd5e1; font-weight:700; margin-bottom:6px;">📍 주요 종목 타임라인 (최근 <%= days %>일, 등장 횟수 상위)</h3>
+        <div class="hint" style="margin-bottom:10px;">최근 누적된 신호를 시간 순서로 정렬해 종목이 어떤 단계를 거쳤는지 보여줍니다. (운영 저장 + 백필 복원 통합)</div>
+        <% if (errors.stockTimelines) { %><div class="err">오류: <%= errors.stockTimelines %></div>
+        <% } else if (!sections.stockTimelines || sections.stockTimelines.length === 0) { %><div class="empty">아직 충분한 누적 데이터가 없습니다.</div>
+        <% } else { %>
+          <% sections.stockTimelines.forEach(function(t, idx) {
+               const open = idx < 10;
+          %>
+            <details <%= open ? 'open' : '' %> style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px 14px; margin-bottom:8px;">
+              <summary style="cursor:pointer; list-style:none; outline:none;">
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                  <span class="code"><%= t.stock_code %></span>
+                  <strong style="color:#f1f5f9; font-size:.95rem;"><%= t.stock_name %></strong>
+                  <span style="color:#94a3b8; font-size:.75rem;"><%= t.market || '' %></span>
+                  <span style="font-size:.72rem; color:#94a3b8;">| 등장 <%= t.signal_count %> · 보드 <%= t.board_count %> · <%= t.first_signal_date %> → <%= t.last_signal_date %></span>
+                  <% for (const b of (t.summary && t.summary.badges) || []) { %>
+                    <span class="pill <%= b === '주의 기록 있음' ? 'pill-warn' : 'pill-pos' %>"><%= b %></span>
+                  <% } %>
+                </div>
+                <div style="color:#cbd5e1; font-size:.78rem; margin-top:6px; line-height:1.55;">
+                  💬 <%= (t.summary && t.summary.summaryText) || '' %>
+                </div>
+              </summary>
+              <div style="margin-top:10px; border-top:1px solid #334155; padding-top:8px;">
+                <table class="t" style="width:100%;">
+                  <thead>
+                    <tr><th style="width:90px;">날짜</th><th>단계</th><th>보드</th><th>출처</th><th class="num">점수</th></tr>
+                  </thead>
+                  <tbody>
+                    <% const tl = t.timeline || []; const shown = tl.slice(0, 12); %>
+                    <% for (const ev of shown) { const tone = getSignalKindTone(ev.signal_kind); %>
+                      <tr>
+                        <td style="font-size:.75rem; color:#94a3b8;"><%= ev.signal_date %></td>
+                        <td><span class="pill pill-<%= tone === 'positive' ? 'pos' : tone === 'negative' ? 'neg' : 'mut' %>" title="<%= ev.signal_kind %>"><%= getSignalKindDisplay(ev.signal_kind) %></span></td>
+                        <td><span class="pill pill-board" title="<%= ev.board_name %>"><%= formatBoardName(ev.board_name) %></span></td>
+                        <td style="font-size:.72rem;"><span class="pill <%= ev.source_type === 'DAILY_RUN' ? 'pill-pos' : 'pill-mut' %>" title="<%= ev.source_type %>"><%= getSourceTypeDisplay(ev.source_type) %></span></td>
+                        <td class="num" style="font-size:.75rem; color:#94a3b8;"><%= ev.score != null ? Number(ev.score).toFixed(0) : '—' %></td>
+                      </tr>
+                    <% } %>
+                    <% if (tl.length > 12) { %>
+                      <tr><td colspan="5" style="text-align:center; color:#64748b; font-size:.72rem; padding:6px;">… 외 <%= tl.length - 12 %>개 더</td></tr>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          <% }); %>
+        <% } %>
+      </div>
+    </div>
+
     <div class="note-box">
       <strong>💡 priority_score / 단계점수</strong> — 둘 다 매수 점수가 아닙니다. <code>먼저 볼 순서</code>를 돕는 보조 점수.<br>
       • <strong>priority_score</strong> = <code>board×10 + positive×5 − failed×8 + repeat×3 + strong×10</code> (출현 빈도 중심)<br>

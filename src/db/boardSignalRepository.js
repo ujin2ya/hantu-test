@@ -548,6 +548,148 @@ async function findTodayFocus(dateYMD, opts = {}) {
 //   - matchMode     ('any'|'all') — default 'any'
 //   - minBoardCount (number)     — HAVING board_count >= ?
 //   - minRepeatCount(number)     — HAVING signal_count >= ?
+// ─── 종목별 신호 타임라인 + 흐름 해석 (7차, 2026-05-17) ─────────────────
+
+// A) 최근 N일 안에 minSignalCount 이상 누적된 종목의 단계 흐름
+async function findStockTimelines(opts = {}) {
+  const days = Math.max(1, Number(opts.days || 60) | 0);
+  const limitStocks = _safeLimit(opts.limitStocks, 30, 200);
+  const minSignalCount = Math.max(1, Number(opts.minSignalCount || 3) | 0);
+  const sources = Array.isArray(opts.includeSourceTypes) && opts.includeSourceTypes.length
+    ? opts.includeSourceTypes
+    : ['DAILY_RUN', 'CACHE_BACKFILL'];
+
+  // 1단계: 종목 선정 (signal_count DESC, board_count DESC, last DESC)
+  const top = await query(
+    `SELECT
+       stock_code,
+       MAX(stock_name) AS stock_name,
+       MAX(market)     AS market,
+       COUNT(*) AS signal_count,
+       COUNT(DISTINCT board_name) AS board_count,
+       MIN(signal_date) AS first_signal_date,
+       MAX(signal_date) AS last_signal_date,
+       GROUP_CONCAT(DISTINCT source_type ORDER BY source_type SEPARATOR ', ') AS source_types,
+       GROUP_CONCAT(DISTINCT board_name  ORDER BY board_name  SEPARATOR ', ') AS boards,
+       GROUP_CONCAT(DISTINCT signal_kind ORDER BY signal_kind SEPARATOR ', ') AS signal_kinds
+     FROM board_signals
+     WHERE signal_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+       AND source_type IN (${_placeholders(sources)})
+     GROUP BY stock_code
+     HAVING signal_count >= ?
+     ORDER BY signal_count DESC, board_count DESC, last_signal_date DESC, stock_code ASC
+     LIMIT ${limitStocks}`,
+    [days, ...sources, minSignalCount]
+  );
+  if (top.length === 0) return [];
+
+  // 2단계: 선정된 종목들의 timeline (raw_json 제외)
+  const codes = top.map(r => r.stock_code);
+  const timelineRows = await query(
+    `SELECT id, stock_code, signal_date, board_name, signal_kind, status_label, score, source_type
+     FROM board_signals
+     WHERE stock_code IN (${_placeholders(codes)})
+       AND signal_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+     ORDER BY signal_date ASC, board_name ASC, id ASC`,
+    [...codes, days]
+  );
+
+  // JS grouping
+  const byCode = new Map();
+  for (const r of timelineRows) {
+    if (!byCode.has(r.stock_code)) byCode.set(r.stock_code, []);
+    byCode.get(r.stock_code).push({
+      signal_date: r.signal_date,
+      board_name: r.board_name,
+      signal_kind: r.signal_kind,
+      status_label: r.status_label,
+      score: r.score,
+      source_type: r.source_type,
+    });
+  }
+
+  return top.map(r => ({
+    stock_code: r.stock_code,
+    stock_name: r.stock_name,
+    market: r.market,
+    signal_count: Number(r.signal_count),
+    board_count: Number(r.board_count),
+    first_signal_date: r.first_signal_date,
+    last_signal_date: r.last_signal_date,
+    source_types: r.source_types,
+    boards: r.boards,
+    signal_kinds: r.signal_kinds,
+    timeline: byCode.get(r.stock_code) || [],
+  }));
+}
+
+// B) 특정 funnel 조합을 모두 거친 종목
+const FUNNEL_REQUIRED_KINDS = Object.freeze({
+  QVA:      ['QVA_NEW', 'VVI_FIRED', 'BREAKOUT_SUCCESS'],
+  QVA2:     ['QVA2_NEW', 'VVI2_FIRED', 'BREAKOUT_SUCCESS'],
+  BOTH_VVI: ['VVI_FIRED', 'VVI2_FIRED'],
+});
+
+async function findFunnelPassedStocks(opts = {}) {
+  const days = Math.max(1, Number(opts.days || 60) | 0);
+  const limit = _safeLimit(opts.limit, 30, 200);
+  const funnelType = opts.funnelType || 'QVA';
+  const required = FUNNEL_REQUIRED_KINDS[funnelType];
+  if (!required) throw new Error('Unknown funnelType: ' + funnelType);
+
+  const sql = `
+    SELECT
+      stock_code,
+      MAX(stock_name) AS stock_name,
+      MAX(market)     AS market,
+      COUNT(*) AS signal_count,
+      COUNT(DISTINCT board_name) AS board_count,
+      MIN(signal_date) AS first_signal_date,
+      MAX(signal_date) AS last_signal_date,
+      GROUP_CONCAT(DISTINCT
+        CASE WHEN signal_kind IN (${_placeholders(required)}) THEN signal_kind END
+        ORDER BY signal_kind SEPARATOR ', ') AS matched_kinds,
+      GROUP_CONCAT(DISTINCT board_name  ORDER BY board_name  SEPARATOR ', ') AS boards,
+      GROUP_CONCAT(DISTINCT source_type ORDER BY source_type SEPARATOR ', ') AS source_types
+    FROM board_signals
+    WHERE signal_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+    GROUP BY stock_code
+    HAVING COUNT(DISTINCT CASE WHEN signal_kind IN (${_placeholders(required)}) THEN signal_kind END) = ?
+    ORDER BY signal_count DESC, board_count DESC, stock_code ASC
+    LIMIT ${limit}
+  `;
+  // params: GROUP_CONCAT의 IN, WHERE, HAVING의 IN, requiredLength
+  const params = [...required, days, ...required, required.length];
+  return await query(sql, params);
+}
+
+// C) 최근 반복 등장 종목 (단순 signal_count 기준)
+async function findRecentRepeatedStocks(opts = {}) {
+  const days = Math.max(1, Number(opts.days || 20) | 0);
+  const minSignalCount = Math.max(1, Number(opts.minSignalCount || 3) | 0);
+  const limit = _safeLimit(opts.limit, 50, 300);
+  return await query(
+    `SELECT
+       stock_code,
+       MAX(stock_name) AS stock_name,
+       MAX(market)     AS market,
+       COUNT(*) AS signal_count,
+       COUNT(DISTINCT board_name) AS board_count,
+       MIN(signal_date) AS first_signal_date,
+       MAX(signal_date) AS last_signal_date,
+       GROUP_CONCAT(DISTINCT board_name  ORDER BY board_name  SEPARATOR ', ') AS boards,
+       GROUP_CONCAT(DISTINCT signal_kind ORDER BY signal_kind SEPARATOR ', ') AS signal_kinds,
+       GROUP_CONCAT(DISTINCT source_type ORDER BY source_type SEPARATOR ', ') AS source_types
+     FROM board_signals
+     WHERE signal_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+     GROUP BY stock_code
+     HAVING signal_count >= ?
+     ORDER BY signal_count DESC, board_count DESC, last_signal_date DESC, stock_code ASC
+     LIMIT ${limit}`,
+    [days, minSignalCount]
+  );
+}
+
 // DB 신호 누적 상태 요약 — /db-board 상단 카드용
 async function findDbSummary() {
   const totals = await query(`
@@ -694,6 +836,10 @@ module.exports = {
   findTodayFocus,
   findFilteredSignals,
   findDbSummary,
+  findStockTimelines,
+  findFunnelPassedStocks,
+  findRecentRepeatedStocks,
+  FUNNEL_REQUIRED_KINDS,
   NEGATIVE_KINDS,
   POSITIVE_KINDS,
 };
