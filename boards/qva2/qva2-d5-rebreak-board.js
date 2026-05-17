@@ -60,10 +60,15 @@ function fmtDate(d) {
 function round2(v) { return v == null || !Number.isFinite(v) ? null : Math.round(v * 100) / 100; }
 function fmtNum(v) { return v != null ? Math.round(v).toLocaleString() : '-'; }
 
+const { filterRowsAsOf } = require('../../src/db/asOfChart');
 function loadChart(code) {
   const fp = path.join(CHART_DIR, code + '.json');
   if (!fs.existsSync(fp)) return null;
-  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch (_) { return null; }
+  try {
+    const j = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+    if (j && j.rows) j.rows = filterRowsAsOf(j.rows);
+    return j;
+  } catch (_) { return null; }
 }
 
 function loadBoard() {

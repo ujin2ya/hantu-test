@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS board_signals (
 
   board_name          VARCHAR(64)     NOT NULL COMMENT '보드 식별자 (예: ONE_DAY_SURGE, QVA2_WATCHLIST)',
   signal_kind         VARCHAR(64)     NOT NULL COMMENT 'funnel stage / 신호 종류 (예: QVA2_NEW, VVI2_FIRED, ATTACK_TOP, MAIN)',
+  source_type         VARCHAR(32)     NOT NULL DEFAULT 'DAILY_RUN' COMMENT '출처: DAILY_RUN(매일 cron) / CACHE_BACKFILL(과거 JSON 임포트)',
 
   signal_date         DATE            NOT NULL COMMENT '신호 발생 거래일',
   as_of_date          DATE            NULL     COMMENT '보드 생성 시 analysisDate',
@@ -75,6 +76,7 @@ CREATE TABLE IF NOT EXISTS board_signals (
   KEY idx_signal_stock_date   (stock_code, signal_date),
   KEY idx_signal_board_date   (board_name, signal_date),
   KEY idx_signal_kind_date    (signal_kind, signal_date),
+  KEY idx_signal_source       (source_type),
   KEY idx_signal_name         (stock_name),
   KEY idx_signal_run          (run_id),
 

@@ -133,6 +133,7 @@ function getMarketStatus(forced) {
 // ─────────────────────────────────────────────────────────────────
 // 결과 계산용 차트 캐시 (기존 board의 메모리 차트와 별도. read-only 메모이즈)
 // ─────────────────────────────────────────────────────────────────
+const { filterRowsAsOf } = require('../../src/db/asOfChart');
 const _resultChartCache = new Map();
 function loadResultChartRows(code) {
   if (_resultChartCache.has(code)) return _resultChartCache.get(code);
@@ -140,7 +141,7 @@ function loadResultChartRows(code) {
   if (!fs.existsSync(p)) { _resultChartCache.set(code, null); return null; }
   try {
     const j = JSON.parse(fs.readFileSync(p, 'utf-8'));
-    const rows = Array.isArray(j.rows) ? j.rows : null;
+    const rows = Array.isArray(j.rows) ? filterRowsAsOf(j.rows) : null;
     _resultChartCache.set(code, rows);
     return rows;
   } catch (_) { _resultChartCache.set(code, null); return null; }
@@ -1215,8 +1216,10 @@ async function main() {
       continue;
     }
     let chart;
-    try { chart = JSON.parse(fs.readFileSync(path.join(CHART_DIR, f), 'utf-8')); }
-    catch (_) { parseErrCount++; continue; }
+    try {
+      chart = JSON.parse(fs.readFileSync(path.join(CHART_DIR, f), 'utf-8'));
+      if (chart && chart.rows) chart.rows = filterRowsAsOf(chart.rows);
+    } catch (_) { parseErrCount++; continue; }
     const rows = chart && chart.rows;
     let baseIdx = core.pickLatestBaseIdx(rows);
     if (baseIdx < 0) { skippedNoMetrics++; continue; }

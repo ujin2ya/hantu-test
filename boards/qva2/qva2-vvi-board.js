@@ -56,10 +56,15 @@ function loadMetaMap() {
   } catch (_) { return new Map(); }
 }
 
+const { filterRowsAsOf } = require('../../src/db/asOfChart');
 function loadChart(code) {
   const fp = path.join(CHART_DIR, code + '.json');
   if (!fs.existsSync(fp)) return null;
-  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch (_) { return null; }
+  try {
+    const j = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+    if (j && j.rows) j.rows = filterRowsAsOf(j.rows);
+    return j;
+  } catch (_) { return null; }
 }
 
 function loadQva2Signals() {

@@ -25,6 +25,7 @@ const path = require('path');
 const ps = require('../../screeners/pattern-screener');
 const { findVvi2AfterQva2 } = require('../qva2/qva2-screener');
 const vprAnalyzer = require('./vpr-analyzer');
+const { filterRowsAsOf } = require('../../src/db/asOfChart');
 
 const ROOT = path.join(__dirname, '..', '..');
 const LONG_CACHE_DIR = path.join(ROOT, 'cache', 'stock-charts-long');
@@ -140,7 +141,7 @@ const cacheMaxDates = [];
 for (const f of files) {
   try {
     const d = JSON.parse(fs.readFileSync(path.join(LONG_CACHE_DIR, f), 'utf-8'));
-    const rows = d.rows || [];
+    const rows = filterRowsAsOf(d.rows || []);
     const last = rows[rows.length - 1]?.date;
     if (last) cacheMaxDates.push(last);
     for (const r of rows) if (r?.date) allTradingDateSet.add(r.date);
@@ -269,8 +270,10 @@ for (let fi = 0; fi < files.length; fi++) {
   if (isExcludedProduct(meta.name)) continue;
 
   let chart;
-  try { chart = JSON.parse(fs.readFileSync(path.join(LONG_CACHE_DIR, files[fi]), 'utf-8')); }
-  catch (_) { continue; }
+  try {
+    chart = JSON.parse(fs.readFileSync(path.join(LONG_CACHE_DIR, files[fi]), 'utf-8'));
+    if (chart && chart.rows) chart.rows = filterRowsAsOf(chart.rows);
+  } catch (_) { continue; }
   const rows = chart.rows || [];
   if (rows.length < 65) continue;
 
@@ -660,8 +663,10 @@ for (let fi = 0; fi < files.length; fi++) {
   if (!meta) continue;
   if (isExcludedProduct(meta.name)) continue;
   let chart;
-  try { chart = JSON.parse(fs.readFileSync(path.join(LONG_CACHE_DIR, files[fi]), 'utf-8')); }
-  catch (_) { continue; }
+  try {
+    chart = JSON.parse(fs.readFileSync(path.join(LONG_CACHE_DIR, files[fi]), 'utf-8'));
+    if (chart && chart.rows) chart.rows = filterRowsAsOf(chart.rows);
+  } catch (_) { continue; }
   const rows = chart.rows || [];
   if (rows.length < 65) continue;
 

@@ -99,10 +99,15 @@ function loadQvaSignals() {
   } catch (_) { return []; }
 }
 
+const { filterRowsAsOf } = require('../../src/db/asOfChart');
 function loadChart(code) {
   const fp = path.join(CHART_DIR, code + '.json');
   if (!fs.existsSync(fp)) return null;
-  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch (_) { return null; }
+  try {
+    const j = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+    if (j && j.rows) j.rows = filterRowsAsOf(j.rows);
+    return j;
+  } catch (_) { return null; }
 }
 
 // ── VVI 분석 (한 QVA 이벤트당) ──

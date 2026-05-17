@@ -152,7 +152,7 @@ async function saveOneDaySurgeBoardToDB(data, opts = {}) {
       marketStatus: data.marketStatus ? { status: data.marketStatus.status, label: data.marketStatus.label } : null,
     },
   });
-  const result = await repo.upsertBoardSignals(runId, rows);
+  const result = await repo.upsertBoardSignals(runId, rows, { sourceType: opts.sourceType });
   return { runId, ...result, totalRows: rows.length };
 }
 
@@ -242,7 +242,7 @@ async function saveQva2WatchlistBoardToDB(data, opts = {}) {
       trackingDays: data.meta && data.meta.trackingDays,
     },
   });
-  const result = await repo.upsertBoardSignals(runId, rows);
+  const result = await repo.upsertBoardSignals(runId, rows, { sourceType: opts.sourceType });
   return { runId, ...result, totalRows: rows.length };
 }
 
@@ -377,7 +377,7 @@ async function saveQvaWatchlistBoardToDB(data, opts = {}) {
       trackingDays: data.meta && data.meta.trackingDays,
     },
   });
-  const result = await repo.upsertBoardSignals(runId, rows);
+  const result = await repo.upsertBoardSignals(runId, rows, { sourceType: opts.sourceType });
   return { runId, ...result, totalRows: rows.length };
 }
 
@@ -459,7 +459,7 @@ async function saveQvaVviRedefinedBoardToDB(data, opts = {}) {
       lookbackDays: data.meta && data.meta.lookbackDays,
     },
   });
-  const result = await repo.upsertBoardSignals(runId, rows);
+  const result = await repo.upsertBoardSignals(runId, rows, { sourceType: opts.sourceType });
   return { runId, ...result, totalRows: rows.length };
 }
 
@@ -546,7 +546,7 @@ async function saveHgroupRebreakBoardToDB(data, opts = {}) {
     candidate_count: rows.length,
     meta_json: { statusCounts, sourceBoard: data.meta && data.meta.sourceBoard },
   });
-  const result = await repo.upsertBoardSignals(runId, rows);
+  const result = await repo.upsertBoardSignals(runId, rows, { sourceType: opts.sourceType });
   return { runId, ...result, totalRows: rows.length };
 }
 
@@ -627,7 +627,7 @@ async function saveQva2VviBoardToDB(data, opts = {}) {
     candidate_count: rows.length,
     meta_json: { statusCounts, lookbackDays: data.meta && data.meta.lookbackDays },
   });
-  const result = await repo.upsertBoardSignals(runId, rows);
+  const result = await repo.upsertBoardSignals(runId, rows, { sourceType: opts.sourceType });
   return { runId, ...result, totalRows: rows.length };
 }
 
@@ -711,7 +711,7 @@ async function saveQva2D5RebreakBoardToDB(data, opts = {}) {
     candidate_count: rows.length,
     meta_json: { statusCounts, maxDays: data.meta && data.meta.maxDays },
   });
-  const result = await repo.upsertBoardSignals(runId, rows);
+  const result = await repo.upsertBoardSignals(runId, rows, { sourceType: opts.sourceType });
   return { runId, ...result, totalRows: rows.length };
 }
 

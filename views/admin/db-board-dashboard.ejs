@@ -101,6 +101,50 @@
       </form>
     </div>
 
+    <!-- DB 누적 상태 요약 -->
+    <% if (sections.dbSummary && !errors.dbSummary) {
+         const sum = sections.dbSummary;
+         const t = sum.totals || {};
+    %>
+    <div class="card-soft" style="padding:14px 18px;">
+      <h2 style="margin-bottom:8px;"><i class="bi bi-bar-chart-line"></i>DB 누적 현황</h2>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:10px; font-size:.82rem;">
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px 12px;">
+          <div style="color:#94a3b8; font-size:.72rem; text-transform:uppercase; letter-spacing:.4px;">전체 신호</div>
+          <div style="color:#f1f5f9; font-size:1.3rem; font-weight:700;"><%= Number(t.total_signals || 0).toLocaleString() %></div>
+          <div style="color:#94a3b8; font-size:.7rem;"><%= t.boards || 0 %> 보드 · <%= t.stocks || 0 %> 종목</div>
+        </div>
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px 12px;">
+          <div style="color:#94a3b8; font-size:.72rem; text-transform:uppercase; letter-spacing:.4px;">신호일 범위</div>
+          <div style="color:#f1f5f9; font-size:.95rem; font-weight:600;"><%= t.min_date || '—' %></div>
+          <div style="color:#94a3b8; font-size:.7rem;">~ <%= t.max_date || '—' %></div>
+        </div>
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px 12px;">
+          <div style="color:#94a3b8; font-size:.72rem; text-transform:uppercase; letter-spacing:.4px;">outcomes / links / runs</div>
+          <div style="color:#f1f5f9; font-size:.95rem; font-weight:600;">
+            <%= Number(sum.counts.outcomes || 0).toLocaleString() %>
+            <span style="color:#475569"> · </span>
+            <%= Number(sum.counts.links || 0).toLocaleString() %>
+            <span style="color:#475569"> · </span>
+            <%= Number(sum.counts.runs || 0).toLocaleString() %>
+          </div>
+          <div style="color:#94a3b8; font-size:.7rem;">D+N 성과 / cross-board 시퀀스 / 보드 실행</div>
+        </div>
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px 12px;">
+          <div style="color:#94a3b8; font-size:.72rem; text-transform:uppercase; letter-spacing:.4px;">source_type 분포</div>
+          <% for (const s of (sum.bySource || [])) { %>
+            <div style="font-size:.78rem; margin-top:2px;"><span class="pill <%= s.source_type === 'DAILY_RUN' ? 'pill-pos' : 'pill-mut' %>" style="padding:1px 6px;"><%= s.source_type %></span> <span style="color:#cbd5e1;"><%= Number(s.n).toLocaleString() %></span></div>
+          <% } %>
+        </div>
+      </div>
+      <div style="margin-top:10px; font-size:.78rem; color:#94a3b8;">보드별 분포:
+        <% for (const b of (sum.byBoard || [])) { %>
+          <span class="pill pill-board" style="margin-left:4px;" title="<%= b.board_name %>"><%= formatBoardName(b.board_name) %>: <%= Number(b.n).toLocaleString() %> (<%= b.stocks %>종)</span>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
+
     <div class="note-box">
       <strong>💡 priority_score / 단계점수</strong> — 둘 다 매수 점수가 아닙니다. <code>먼저 볼 순서</code>를 돕는 보조 점수.<br>
       • <strong>priority_score</strong> = <code>board×10 + positive×5 − failed×8 + repeat×3 + strong×10</code> (출현 빈도 중심)<br>
@@ -419,7 +463,32 @@
       <% } else if (errors.filteredSignals) { %>
         <div class="err">필터 오류: <%= errors.filteredSignals %></div>
       <% } else if (!sections.filteredSignals || sections.filteredSignals.length === 0) { %>
-        <div class="empty">조건에 맞는 종목이 없습니다.</div>
+        <div class="empty">
+          조건에 맞는 종목이 없습니다.
+          <% if (sections.filterDiagnostics && sections.filterDiagnostics.length > 0) { %>
+            <div style="margin-top:10px; text-align:left; background:#3a2a08; border-left:3px solid #f59e0b; border-radius:6px; padding:10px 12px; color:#fde68a; font-size:.78rem; line-height:1.6;">
+              <strong style="color:#fef3c7;">🔍 진단</strong>
+              <% for (const issue of sections.filterDiagnostics) { %>
+                <div style="margin-top:6px;">• <%= issue.message %></div>
+              <% } %>
+            </div>
+          <% } %>
+          <% if (filterResolved && filterResolved.includeBoard && filterResolved.includeBoard.length > 0) { %>
+            <div style="margin-top:10px; text-align:left; background:#0f172a; border-radius:6px; padding:10px 12px; color:#94a3b8; font-size:.72rem; line-height:1.6;">
+              <strong style="color:#cbd5e1;">선택한 보드의 실제 가능 stage</strong>
+              <% for (const b of filterResolved.includeBoard) {
+                   const possible = (typeof BOARD_KIND_MATRIX !== 'undefined' && BOARD_KIND_MATRIX[b]) ? BOARD_KIND_MATRIX[b] : [];
+              %>
+                <div style="margin-top:4px;">
+                  <span class="pill pill-board"><%= BOARD_LABELS[b] || b %></span>
+                  <% for (const k of possible) { %>
+                    <span class="pill pill-mut" title="<%= k %>"><%= KIND_LABELS[k] || k %></span>
+                  <% } %>
+                </div>
+              <% } %>
+            </div>
+          <% } %>
+        </div>
       <% } else { %>
         <div class="meta-row" style="margin-bottom:10px;">
           매칭: <strong><%= sections.filteredSignals.length %></strong>건

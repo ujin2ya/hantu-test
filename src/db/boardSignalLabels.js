@@ -192,6 +192,72 @@ const FILTER_PRESETS = Object.freeze({
   },
 });
 
+// ─── 보드별 가능한 signal_kind 매트릭스 (필터 모순 감지용) ────────────────
+// 사용자가 보드와 stage를 같이 선택했을 때 "이 보드엔 그 stage 없음" 진단.
+const BOARD_KIND_MATRIX = Object.freeze({
+  QVA_WATCHLIST:     ['QVA_NEW', 'QVA_TRACKING', 'VVI_FIRED', 'BREAKOUT_SUCCESS', 'FAILED', 'LONG_QVA_ALL'],
+  QVA2_WATCHLIST:    ['QVA2_NEW', 'QVA2_TRACKING', 'VVI2_FIRED', 'BREAKOUT_SUCCESS', 'FAILED'],
+  QVA_VVI_REDEFINED: ['VVI_FIRED', 'PRICE_ONLY', 'WAITING', 'OVERHEATED', 'TODAY_NEW_VVI', 'STABLE_BREAKOUT', 'STRONG_VALUE'],
+  QVA2_VVI:          ['VVI2_FIRED', 'CLOSE_WEAK', 'VALUE_WEAK', 'NEAR_HIGH', 'WAITING', 'PRICE_ONLY', 'BROKEN', 'TODAY_NEW_VVI2'],
+  HGROUP_REBREAK:    ['CLOSE_REBREAK', 'CLOSE_REBREAK_NO_BREACH', 'INTRADAY_PUSHBACK', 'BREACH_RECOVER_ILLUSION', 'BREACH_NO_RECOVER', 'NO_REBREAK'],
+  QVA2_D5_REBREAK:   ['CLOSE_REBREAK', 'TODAY_INITIAL_BREAKOUT', 'INTRADAY_PUSHBACK', 'BREACH_NO_RECOVER', 'NO_REBREAK'],
+  ONE_DAY_SURGE:     ['MAIN', 'ATTACK_TOP'],
+});
+
+// 필터 조합이 모순인지 진단. 0건 결과 + 보드/단계 모두 선택했을 때 호출.
+//   - boards: 사용자가 선택한 includeBoard
+//   - kinds:  사용자가 선택한 includeKind
+//   - matchMode: 'any' | 'all'
+// 반환: [{ type, message }, ...]  — 진단 항목 0~N개. 빈 배열이면 모순 없음.
+function diagnoseFilterMismatch(boards, kinds, matchMode) {
+  const issues = [];
+  if (!Array.isArray(boards) || !Array.isArray(kinds) || boards.length === 0 || kinds.length === 0) {
+    return issues;
+  }
+
+  // 1) 각 board에서 가능한 kind가 includeKind와 교집합 있는지
+  const perBoardMatch = boards.map(b => {
+    const possible = BOARD_KIND_MATRIX[b] || [];
+    const matched  = kinds.filter(k => possible.includes(k));
+    return { board: b, possible, matched, allMatched: kinds.every(k => possible.includes(k)) };
+  });
+
+  for (const r of perBoardMatch) {
+    if (r.matched.length === 0) {
+      const possibleLabels = r.possible.map(k => KIND_LABELS[k] || k).join(', ');
+      const kindLabels     = kinds.map(k => KIND_LABELS[k] || k).join(', ');
+      issues.push({
+        type: 'board_kind_mismatch',
+        message: `보드 [${BOARD_LABELS[r.board] || r.board}]에는 선택한 단계(${kindLabels}) 중 하나도 없습니다. 가능한 단계: ${possibleLabels}`,
+      });
+    }
+  }
+
+  // 2) matchMode='all'인데 어떤 보드든 모든 kind를 가질 수 없음 (보드 1개만 선택했을 때)
+  if (matchMode === 'all' && boards.length === 1) {
+    const r = perBoardMatch[0];
+    if (!r.allMatched && r.matched.length > 0) {
+      const missing = kinds.filter(k => !r.possible.includes(k));
+      const missingLabels = missing.map(k => KIND_LABELS[k] || k).join(', ');
+      issues.push({
+        type: 'all_mode_impossible',
+        message: `matchMode=모두 포함인데 보드 [${BOARD_LABELS[r.board] || r.board}]에 단계 (${missingLabels})가 없어서 모두 매칭이 불가능합니다. matchMode를 "하나라도 포함"으로 바꾸거나 단계를 줄여 보세요.`,
+      });
+    }
+  }
+
+  // 3) matchMode='all' + 보드 미선택 + kind 2+ 인데 1일치 데이터라 같은 종목 매칭이 거의 없을 가능성
+  //    (단순 hint — 정확 판단은 SQL 실행 결과로)
+  if (matchMode === 'all' && boards.length === 0 && kinds.length >= 2) {
+    issues.push({
+      type: 'all_mode_strict_hint',
+      message: `matchMode=모두 포함은 한 종목이 선택한 모든 단계를 시점별로 거쳤어야 매칭됩니다. 데이터가 짧으면 0건일 수 있습니다 — matchMode=하나라도 포함으로 시도해 보세요.`,
+    });
+  }
+
+  return issues;
+}
+
 // 프리셋 + 사용자 override 머지. user query 값이 있으면 preset 위에 덮어쓴다.
 function mergePresetWithOverrides(presetKey, overrides) {
   const base = (presetKey && FILTER_PRESETS[presetKey]) ? { ...FILTER_PRESETS[presetKey] } : {};
@@ -210,10 +276,12 @@ module.exports = {
   KIND_LABELS,
   KIND_WEIGHTS,
   BOARD_WEIGHTS,
+  BOARD_KIND_MATRIX,
   FILTER_PRESETS,
   formatBoardName,
   formatSignalKind,
   formatBoardKind,
   getBoardKindWeight,
   mergePresetWithOverrides,
+  diagnoseFilterMismatch,
 };

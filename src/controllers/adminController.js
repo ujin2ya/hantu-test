@@ -353,6 +353,7 @@ async function getDbBoardDashboard(req, res) {
     });
 
     await safe('linkSummary', () => repo.findLinkSummary({ days }));
+    await safe('dbSummary',   () => repo.findDbSummary());
 
     // ─── 사용자 조합 필터 (5차, 2026-05-17) ─────────────────────────────
     function arr(v) {
@@ -399,6 +400,14 @@ async function getDbBoardDashboard(req, res) {
         rows.sort((a, b) => (b.stage_score - a.stage_score) || (b.signal_count - a.signal_count));
         return rows;
       });
+      // 0건일 때 모순 진단
+      if (sections.filteredSignals && sections.filteredSignals.length === 0) {
+        sections.filterDiagnostics = labels.diagnoseFilterMismatch(
+          filterMerged.includeBoard || [],
+          filterMerged.includeKind || [],
+          filterMerged.matchMode
+        );
+      }
     }
 
     // 종목 검색 — 입력 있으면 history 결과 직접 표시
@@ -424,6 +433,7 @@ async function getDbBoardDashboard(req, res) {
       FILTER_PRESETS: labels.FILTER_PRESETS,
       BOARD_LABELS: labels.BOARD_LABELS,
       KIND_LABELS: labels.KIND_LABELS,
+      BOARD_KIND_MATRIX: labels.BOARD_KIND_MATRIX,
       filterApplied,
       filterPreset: presetKey,
       filterResolved,

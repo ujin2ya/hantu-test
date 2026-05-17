@@ -93,10 +93,15 @@ function round(v, d = 2) { if (v == null || !Number.isFinite(v)) return null; re
 function fmtNum(v) { return v != null ? Math.round(v).toLocaleString() : '-'; }
 function fmtDate(d) { if (!d || d.length !== 8) return d || '-'; return d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8); }
 
+const { filterRowsAsOf } = require('../../src/db/asOfChart');
 function loadChart(code) {
   const p = path.join(CHART_DIR, `${code}.json`);
   if (!fs.existsSync(p)) return null;
-  try { return JSON.parse(fs.readFileSync(p, 'utf-8')); } catch (_) { return null; }
+  try {
+    const j = JSON.parse(fs.readFileSync(p, 'utf-8'));
+    if (j && j.rows) j.rows = filterRowsAsOf(j.rows);
+    return j;
+  } catch (_) { return null; }
 }
 
 // 재돌파일 외국인/기관 순매수 금액 (cache/flow-history). 키 일치 안 하면 null.

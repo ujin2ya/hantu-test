@@ -52,18 +52,19 @@ async function createBoardRun(meta) {
 //             signal_price, signal_open, signal_high, signal_low, signal_close,
 //             volume, trading_value, score, rank_no, grade, status_label,
 //             tags_json, metrics_json, raw_json }
-async function upsertBoardSignals(runId, rows) {
+async function upsertBoardSignals(runId, rows, opts = {}) {
   if (!rows || rows.length === 0) return { inserted: 0, updated: 0 };
+  const defaultSourceType = opts.sourceType || 'DAILY_RUN';
   return withTransaction(async (conn) => {
     const sql = `
       INSERT INTO board_signals (
-        run_id, board_name, signal_kind, signal_date, as_of_date,
+        run_id, board_name, signal_kind, source_type, signal_date, as_of_date,
         stock_code, stock_name, market,
         signal_price, signal_open, signal_high, signal_low, signal_close,
         volume, trading_value,
         score, rank_no, grade, status_label,
         tags_json, metrics_json, raw_json
-      ) VALUES (?,?,?,?,?, ?,?,?, ?,?,?,?,?, ?,?, ?,?,?,?, ?,?,?)
+      ) VALUES (?,?,?,?,?,?, ?,?,?, ?,?,?,?,?, ?,?, ?,?,?,?, ?,?,?)
       ON DUPLICATE KEY UPDATE
         run_id        = VALUES(run_id),
         as_of_date    = VALUES(as_of_date),
@@ -83,6 +84,12 @@ async function upsertBoardSignals(runId, rows) {
         tags_json     = VALUES(tags_json),
         metrics_json  = VALUES(metrics_json),
         raw_json      = VALUES(raw_json),
+        -- source_type은 DAILY_RUN으로 들어온 후 CACHE_BACKFILL이 덮어쓰지 않도록 보호.
+        --   기존 'DAILY_RUN' + 새 'CACHE_BACKFILL' → 'DAILY_RUN' 유지 (실데이터 우선)
+        source_type   = CASE
+          WHEN source_type = 'DAILY_RUN' THEN 'DAILY_RUN'
+          ELSE VALUES(source_type)
+        END,
         updated_at    = CURRENT_TIMESTAMP
     `;
     let inserted = 0, updated = 0;
@@ -91,6 +98,7 @@ async function upsertBoardSignals(runId, rows) {
         runId,
         r.board_name,
         r.signal_kind,
+        r.source_type || defaultSourceType,
         _dateOrNull(r.signal_date),
         _dateOrNull(r.as_of_date),
         r.stock_code, r.stock_name, r.market || null,
@@ -540,6 +548,46 @@ async function findTodayFocus(dateYMD, opts = {}) {
 //   - matchMode     ('any'|'all') — default 'any'
 //   - minBoardCount (number)     — HAVING board_count >= ?
 //   - minRepeatCount(number)     — HAVING signal_count >= ?
+// DB 신호 누적 상태 요약 — /db-board 상단 카드용
+async function findDbSummary() {
+  const totals = await query(`
+    SELECT
+      COUNT(*) AS total_signals,
+      COUNT(DISTINCT board_name) AS boards,
+      COUNT(DISTINCT stock_code) AS stocks,
+      MIN(signal_date) AS min_date,
+      MAX(signal_date) AS max_date,
+      MAX(created_at)  AS latest_inserted_at,
+      MAX(updated_at)  AS latest_updated_at
+    FROM board_signals
+  `);
+  const bySource = await query(
+    `SELECT source_type, COUNT(*) AS n FROM board_signals GROUP BY source_type ORDER BY n DESC`
+  );
+  const byBoard = await query(
+    `SELECT board_name, COUNT(*) AS n, COUNT(DISTINCT stock_code) AS stocks
+     FROM board_signals GROUP BY board_name ORDER BY n DESC`
+  );
+  const recentDates = await query(
+    `SELECT signal_date, COUNT(*) AS n FROM board_signals
+     WHERE signal_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+     GROUP BY signal_date ORDER BY signal_date DESC LIMIT 10`
+  );
+  const outcomesAndLinks = await query(
+    `SELECT
+       (SELECT COUNT(*) FROM board_signal_outcomes) AS outcomes,
+       (SELECT COUNT(*) FROM signal_links)          AS links,
+       (SELECT COUNT(*) FROM board_runs)            AS runs`
+  );
+  return {
+    totals: totals[0] || {},
+    bySource,
+    byBoard,
+    recentDates,
+    counts: outcomesAndLinks[0] || {},
+  };
+}
+
 async function findFilteredSignals(opts = {}) {
   const limit = _safeLimit(opts.limit, 100, 500);
   const date = _dateOrNull(opts.date);
@@ -645,6 +693,7 @@ module.exports = {
   findLinkSummary,
   findTodayFocus,
   findFilteredSignals,
+  findDbSummary,
   NEGATIVE_KINDS,
   POSITIVE_KINDS,
 };
