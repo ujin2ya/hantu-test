@@ -26,6 +26,13 @@ router.post("/admin/regen-1ds-scanner-board", requireAdmin, c.postRegen1dsScanne
 router.post("/admin/run-daily-update", requireAdmin, c.postRunDailyUpdate);
 
 // DB 신호 히스토리 조회 (JSON 응답)
-router.get("/admin/db-signals", requireAdmin, c.getDbSignals);
+router.get("/admin/db-signals",                       requireAdmin, c.getDbSignals);
+// 3차 확장 (2026-05-17) — 운영 조회 API 6종
+router.get("/admin/db-signals/overlap",               requireAdmin, c.getDbSignalsOverlap);
+router.get("/admin/db-signals/repeated",              requireAdmin, c.getDbSignalsRepeated);
+router.get("/admin/db-signals/stock/:stockCode/history", requireAdmin, c.getDbSignalsStockHistory);
+router.get("/admin/db-signals/performance",           requireAdmin, c.getDbSignalsPerformance);
+router.get("/admin/db-signals/link-summary",          requireAdmin, c.getDbSignalsLinkSummary);
+router.get("/admin/db-signals/today-focus",           requireAdmin, c.getDbSignalsTodayFocus);
 
 module.exports = router;

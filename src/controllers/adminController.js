@@ -195,6 +195,100 @@ async function getDbSignals(req, res) {
   }
 }
 
+// ─── 3차 조회 API (2026-05-17) ────────────────────────────────────────────
+// 모두 requireAdmin 게이트 뒤. JSON 응답.
+
+// GET /admin/db-signals/overlap?date=YYYY-MM-DD&minBoards=2&includeFailed=false&limit=100
+//   같은 날짜에 2+ board_name에 동시 등장한 종목
+async function getDbSignalsOverlap(req, res) {
+  try {
+    const repo = require('../db/boardSignalRepository');
+    const { date, minBoards, includeFailed, limit } = req.query || {};
+    if (!date) return res.status(400).json({ error: 'date is required', example: '/admin/db-signals/overlap?date=2026-05-15&minBoards=2' });
+    const rows = await repo.findOverlap(date, {
+      minBoards: Number(minBoards || 2),
+      includeFailed: includeFailed === 'true' || includeFailed === '1',
+      limit: Number(limit || 100),
+    });
+    res.json({ date, minBoards: Number(minBoards || 2), includeFailed: !!(includeFailed === 'true' || includeFailed === '1'), count: rows.length, rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+}
+
+// GET /admin/db-signals/repeated?days=20&minCount=2&limit=100
+async function getDbSignalsRepeated(req, res) {
+  try {
+    const repo = require('../db/boardSignalRepository');
+    const { days, minCount, limit } = req.query || {};
+    const rows = await repo.findRepeated({
+      days: Number(days || 20),
+      minCount: Number(minCount || 2),
+      limit: Number(limit || 100),
+    });
+    res.json({ days: Number(days || 20), minCount: Number(minCount || 2), count: rows.length, rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+}
+
+// GET /admin/db-signals/stock/:stockCode/history?days=180
+async function getDbSignalsStockHistory(req, res) {
+  try {
+    const repo = require('../db/boardSignalRepository');
+    const code = (req.params && req.params.stockCode) || '';
+    if (!/^\d{4,6}$/.test(code)) return res.status(400).json({ error: 'stockCode must be 4-6 digits', example: '/admin/db-signals/stock/005930/history?days=180' });
+    const days = Number((req.query && req.query.days) || 180);
+    const result = await repo.findStockHistory(code, { days });
+    res.json({ days, ...result });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+}
+
+// GET /admin/db-signals/performance?boardName=QVA_WATCHLIST&signalKind=QVA_NEW&horizon=5&days=60
+async function getDbSignalsPerformance(req, res) {
+  try {
+    const repo = require('../db/boardSignalRepository');
+    const { boardName, signalKind, horizon, days } = req.query || {};
+    if (!boardName) return res.status(400).json({
+      error: 'boardName is required',
+      example: '/admin/db-signals/performance?boardName=QVA_WATCHLIST&signalKind=QVA_NEW&horizon=5&days=60',
+    });
+    const result = await repo.findPerformance({
+      boardName,
+      signalKind: signalKind || null,
+      horizon: Number(horizon || 5),
+      days: Number(days || 60),
+    });
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+}
+
+// GET /admin/db-signals/link-summary?days=180
+async function getDbSignalsLinkSummary(req, res) {
+  try {
+    const repo = require('../db/boardSignalRepository');
+    const days = Number((req.query && req.query.days) || 180);
+    const rows = await repo.findLinkSummary({ days });
+    res.json({ days, count: rows.length, link_types: rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+}
+
+// GET /admin/db-signals/today-focus?date=YYYY-MM-DD&minBoards=1&limit=50
+async function getDbSignalsTodayFocus(req, res) {
+  try {
+    const repo = require('../db/boardSignalRepository');
+    const { date, minBoards, limit } = req.query || {};
+    if (!date) return res.status(400).json({ error: 'date is required', example: '/admin/db-signals/today-focus?date=2026-05-15' });
+    const rows = await repo.findTodayFocus(date, {
+      minBoards: Number(minBoards || 1),
+      limit: Number(limit || 50),
+    });
+    res.json({
+      date,
+      minBoards: Number(minBoards || 1),
+      note: '매수 추천 아님 — priority_score는 (board_count×10 + positive_kind×5 - failed_kind×8 + recent_repeat×3 + strong_kind×10) 단순 합산',
+      count: rows.length,
+      rows,
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+}
+
 module.exports = {
   getLogin, postLogin, getLogout,
   getDashboard, postUnsubscribe,
@@ -202,4 +296,10 @@ module.exports = {
   postPatternSeed, postPatternAnalyze, postQvaBacktest,
   postRefreshPatternCache, postRefreshWatchlistBoard, postRefreshAllBoards, postRefresh1dsIntraday, postRefresh1dsSurvivor1000, postRegen1dsScannerBoard, postRunDailyUpdate,
   getDbSignals,
+  getDbSignalsOverlap,
+  getDbSignalsRepeated,
+  getDbSignalsStockHistory,
+  getDbSignalsPerformance,
+  getDbSignalsLinkSummary,
+  getDbSignalsTodayFocus,
 };

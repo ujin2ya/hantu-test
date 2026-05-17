@@ -145,21 +145,20 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 
 **설치 위치 (Windows)**: `C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe` (버전 8.0.46). 사용자 PATH에 등록돼 있어 새 셸에서는 `mysqlsh` 그냥 호출 가능.
 
-**접속 패턴 — URI에 password 인라인** (가장 빠르고 자동화 친화적):
+**접속 패턴 — .env의 DB_* 자격증명 사용 (평문 password 커밋 금지)**:
 ```bash
-# password 안에 '@'가 있으면 URL encode 필요: '@' → '%40'
-mysqlsh --sql --uri "ujin2ya:Newtec4075%40@ydata.co.kr:3306" --database hantu -e "SHOW TABLES;"
-```
+# password 안에 '@'가 있으면 URL encode 필요: '@' → '%40' (이미 인코딩된 값이면 그대로)
+# .env: DB_HOST=ydata.co.kr DB_PORT=3306 DB_USER=ujin2ya DB_PASSWORD=<secret> DB_NAME=hantu
 
-**보안상 더 안전한 패턴** — password를 환경변수로:
-```bash
 # Bash (Git Bash / WSL)
-export DB_PW_ENCODED="${DB_PASSWORD//@/%40}"
-mysqlsh --sql --uri "${DB_USER}:${DB_PW_ENCODED}@${DB_HOST}:${DB_PORT}/${DB_NAME}" -e "..."
+set -a; source .env; set +a
+DB_PW_ENC="${DB_PASSWORD//@/%40}"
+mysqlsh --sql --uri "${DB_USER}:${DB_PW_ENC}@${DB_HOST}:${DB_PORT}/${DB_NAME}" -e "SHOW TABLES;"
 
 # PowerShell
 $env:PATH += ';C:\Program Files\MySQL\MySQL Shell 8.0\bin'  # 새 셸 아닐 때만
-mysqlsh --sql --uri "ujin2ya:Newtec4075%40@ydata.co.kr:3306/hantu" -e "..."
+# (.env 로드 후) — 평문은 절대 인라인 X
+mysqlsh --sql --uri "${env:DB_USER}:<URL_ENCODED_PASSWORD>@${env:DB_HOST}:${env:DB_PORT}/${env:DB_NAME}" -e "..."
 ```
 
 **일반 작업 패턴**:
@@ -271,7 +270,37 @@ mysqlsh --sql --uri "ujin2ya:Newtec4075%40@ydata.co.kr:3306/hantu" -e "..."
 | `GET /admin/db-signals?signalId=123` | 신호 1건 + outcomes + links |
 | `GET /admin/db-signals?boardName=...&date=...` | 보드 + 날짜 조합 |
 
-옵션: `&limit=200` (기본). JSON 응답. 컨트롤러: [src/controllers/adminController.js](src/controllers/adminController.js) `getDbSignals`.
+**3차 운영 조회 API (2026-05-17)** — 모두 `requireAdmin` 게이트, JSON 응답:
+
+| 라우트 | 목적 / 응답 |
+|---|---|
+| `GET /admin/db-signals/overlap?date=2026-05-15&minBoards=2&includeFailed=false` | 같은 날 2+ 보드에 동시 등장한 종목. `boards` (board_name/signal_kind 목록), `board_count`, `total_score`, `latest_signal_date`. FAILED 계열은 기본 제외 |
+| `GET /admin/db-signals/repeated?days=20&minCount=2` | 최근 N일 동안 minCount 이상 등장한 종목. `signal_count`, `board_count`, `failed_count`, `positive_kind_count`, `board_kind_summary` |
+| `GET /admin/db-signals/stock/:stockCode/history?days=180` | 종목별 타임라인. signals + 각 signal의 outcomes + outgoing/incoming links 결합 |
+| `GET /admin/db-signals/performance?boardName=QVA_WATCHLIST&signalKind=QVA_NEW&horizon=5&days=60` | (board, kind, horizon)의 평균 수익/히트율. **not_ready (close_return_pct IS NULL) 제외**. signal_kind 생략 시 보드 전체 집계 |
+| `GET /admin/db-signals/link-summary?days=180` | link_type별 link_count + avg_days_between + sample 5건 |
+| `GET /admin/db-signals/today-focus?date=2026-05-15&minBoards=1&limit=50` | 종합 우선순위 — `priority_score = board_count×10 + positive_kind×5 - failed_kind×8 + recent_repeat×3 + strong_kind×10`. 매수 추천 아님 |
+
+옵션: `&limit=N` (대부분 default 100~200, max 500~2000, `_safeLimit()` clamp). 컨트롤러: [src/controllers/adminController.js](src/controllers/adminController.js). Repository: [src/db/boardSignalRepository.js](src/db/boardSignalRepository.js)의 `findOverlap / findRepeated / findStockHistory / findPerformance / findLinkSummary / findTodayFocus`.
+
+**signal_kind 분류 상수** (`NEGATIVE_KINDS` / `POSITIVE_KINDS` — [src/db/boardSignalRepository.js](src/db/boardSignalRepository.js)):
+- `NEGATIVE_KINDS = ['FAILED','BROKEN','BREACH_NO_RECOVER','BREACH_RECOVER_ILLUSION','NO_REBREAK']` — overlap/today-focus에서 기본 제외/감점
+- `POSITIVE_KINDS = ['VVI_FIRED','VVI2_FIRED','BREAKOUT_SUCCESS','CLOSE_REBREAK','CLOSE_REBREAK_NO_BREACH','TODAY_INITIAL_BREAKOUT','TODAY_NEW_VVI','TODAY_NEW_VVI2','ATTACK_TOP']` — today-focus 가산
+
+**SQL 인덱스 현황** (EXPLAIN 분석 결과):
+| API | 사용 인덱스 | 비고 |
+|---|---|---|
+| overlap | `idx_signal_stock_date` (index scan) | 1일치(<1000 rows)는 빠름. **누적 시** `idx_signal_date_only(signal_date)` 추가 권장 |
+| repeated | 위와 동일 | 동일 |
+| stockHistory | `idx_signal_stock_date` (range, Using index) | ✅ 최적 |
+| performance | `uq_signal_unique` (board+kind prefix) + `uq_signal_horizon` (eq_ref) | ✅ 최적 |
+| link-summary | `idx_link_type` | ✅ 최적 |
+| today-focus | `uq_signal_unique` skip scan + subquery는 `idx_signal_stock_date` | 1일치는 빠름. 누적 시 동일 권장 |
+
+신규 인덱스는 사용자 결정. 권장 DDL (현재 미적용):
+```sql
+ALTER TABLE board_signals ADD INDEX idx_signal_date_only (signal_date);
+```
 
 **테스트 스크립트**:
 - `node scripts/test-db-connection.js` — pool 연결 + 4 테이블 존재 + row count 확인
@@ -279,9 +308,11 @@ mysqlsh --sql --uri "ujin2ya:Newtec4075%40@ydata.co.kr:3306/hantu" -e "..."
 
 **운영 적용 절차 (운영 서버에 schema 처음 배포 시)**:
 1. 로컬에서 schema 변경/확인
-2. 운영 SSH로 접속해 mysqlsh로 schema.sql 실행:
+2. 운영 SSH로 접속해 mysqlsh로 schema.sql 실행 (자격증명은 운영 `.env` 기준):
    ```bash
-   mysqlsh --sql --uri "ujin2ya:Newtec4075%40@ydata.co.kr:3306/hantu" --file db/schema.sql
+   set -a; source .env; set +a
+   DB_PW_ENC="${DB_PASSWORD//@/%40}"
+   mysqlsh --sql --uri "${DB_USER}:${DB_PW_ENC}@${DB_HOST}:${DB_PORT}/${DB_NAME}" --file db/schema.sql
    ```
 3. 코드 변경 git push → deploy.yml이 hantu-test 재기동
 4. 16:40 cron이 자동으로 outcomes/links 갱신 시작
