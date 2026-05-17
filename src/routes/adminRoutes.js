@@ -35,4 +35,7 @@ router.get("/admin/db-signals/performance",           requireAdmin, c.getDbSigna
 router.get("/admin/db-signals/link-summary",          requireAdmin, c.getDbSignalsLinkSummary);
 router.get("/admin/db-signals/today-focus",           requireAdmin, c.getDbSignalsTodayFocus);
 
+// 4차 (2026-05-17) — JSON API들을 HTML로 묶은 관리자 대시보드
+router.get("/admin/db-board-dashboard",               requireAdmin, c.getDbBoardDashboard);
+
 module.exports = router;

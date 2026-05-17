@@ -289,6 +289,77 @@ async function getDbSignalsTodayFocus(req, res) {
   } catch (e) { res.status(500).json({ error: e.message }); }
 }
 
+// GET /admin/db-board-dashboard?date=YYYY-MM-DD&days=60&limit=20
+// 4차 (2026-05-17): JSON API들을 HTML로 한 화면에 묶은 최소 관리자 대시보드.
+// 섹션별 try/catch — 한 섹션 실패해도 페이지 전체는 살아남음.
+async function getDbBoardDashboard(req, res) {
+  try {
+    const repo = require('../db/boardSignalRepository');
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayYMD = `${yyyy}-${mm}-${dd}`;
+
+    const date  = (req.query && req.query.date)  || todayYMD;
+    const days  = Math.max(1, Number((req.query && req.query.days)  || 60) | 0);
+    const limit = Math.max(5, Math.min(Number((req.query && req.query.limit) || 50) | 0, 100));
+    const stockSearch = (req.query && req.query.stockCode) ? String(req.query.stockCode).trim() : null;
+
+    // 섹션별로 격리 — 한 곳 실패해도 다른 섹션은 표시되어야 함
+    const sections = {};
+    const errors = {};
+
+    async function safe(name, fn) {
+      try { sections[name] = await fn(); }
+      catch (e) { errors[name] = e.message || String(e); sections[name] = null; }
+    }
+
+    await safe('todayFocus', () => repo.findTodayFocus(date, { minBoards: 1, limit }));
+    await safe('overlap',    () => repo.findOverlap(date, { minBoards: 2, includeFailed: false, limit }));
+    await safe('repeated',   () => repo.findRepeated({ days, minCount: 2, limit }));
+
+    // 보드별 성과 — 고정 6 조합
+    const PERFORMANCE_CASES = [
+      { board_name: 'QVA_WATCHLIST',  signal_kind: 'QVA_NEW',         horizon: 5 },
+      { board_name: 'QVA_WATCHLIST',  signal_kind: 'VVI_FIRED',       horizon: 5 },
+      { board_name: 'QVA2_WATCHLIST', signal_kind: 'QVA2_NEW',        horizon: 5 },
+      { board_name: 'QVA2_VVI',       signal_kind: 'VVI2_FIRED',      horizon: 5 },
+      { board_name: 'HGROUP_REBREAK', signal_kind: null,              horizon: 5 },
+      { board_name: 'ONE_DAY_SURGE',  signal_kind: 'ATTACK_TOP',      horizon: 1 },
+    ];
+    await safe('performance', async () => {
+      const out = [];
+      for (const c of PERFORMANCE_CASES) {
+        try {
+          out.push(await repo.findPerformance({ boardName: c.board_name, signalKind: c.signal_kind, horizon: c.horizon, days }));
+        } catch (e) { out.push({ board_name: c.board_name, signal_kind: c.signal_kind, horizon_days: c.horizon, error: e.message }); }
+      }
+      return out;
+    });
+
+    await safe('linkSummary', () => repo.findLinkSummary({ days }));
+
+    // 종목 검색 — 입력 있으면 history 결과 직접 표시
+    let stockHistory = null;
+    if (stockSearch && /^\d{4,6}$/.test(stockSearch)) {
+      try { stockHistory = await repo.findStockHistory(stockSearch, { days: 180 }); }
+      catch (e) { errors.stockHistory = e.message; }
+    }
+
+    res.render('admin/db-board-dashboard', {
+      date, days, limit,
+      todayYMD,
+      stockSearch, stockHistory,
+      sections, errors,
+      negativeKinds: repo.NEGATIVE_KINDS,
+      positiveKinds: repo.POSITIVE_KINDS,
+    });
+  } catch (e) {
+    res.status(500).send(`<h1>대시보드 로딩 실패</h1><pre>${(e && e.stack) || e}</pre>`);
+  }
+}
+
 module.exports = {
   getLogin, postLogin, getLogout,
   getDashboard, postUnsubscribe,
@@ -302,4 +373,5 @@ module.exports = {
   getDbSignalsPerformance,
   getDbSignalsLinkSummary,
   getDbSignalsTodayFocus,
+  getDbBoardDashboard,
 };
