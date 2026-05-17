@@ -34,6 +34,51 @@
     .pill-neg   { background:#450a0a; color:#fca5a5; border:1px solid #7f1d1d; }
     .pill-mut   { background:#0f172a; color:#94a3b8; border:1px solid #334155; }
     .pill-warn  { background:#3a1a04; color:#fde68a; border:1px solid #78350f; }
+    .pill-info  { background:#082f49; color:#7dd3fc; border:1px solid #0369a1; }
+    /* 9차: 오늘 볼 후보 TOP — compact table */
+    .priority-table { font-size:.82rem; }
+    .priority-table th { padding:6px 8px; }
+    .priority-table td { padding:8px 8px; vertical-align:top; }
+    .priority-table .rank { color:#64748b; font-weight:600; width:32px; text-align:right; }
+    .priority-table .stock-cell .code { display:block; color:#94a3b8; font-size:.72rem; }
+    .priority-table .stock-cell .name { display:block; color:#f1f5f9; font-weight:600; font-size:.92rem; }
+    .priority-table .stock-cell .market { display:block; color:#64748b; font-size:.66rem; }
+    .priority-table .score-cell .big { color:#f1f5f9; font-weight:700; font-size:1.15rem; line-height:1.1; }
+    .priority-table .score-cell .sub { color:#64748b; font-size:.66rem; margin-top:2px; }
+    .priority-table .last-cell { color:#cbd5e1; font-size:.78rem; }
+    .priority-table .last-cell .d { display:block; color:#64748b; font-size:.66rem; margin-top:2px; }
+    .priority-table .reason-pill { display:inline-block; padding:1px 6px; margin:1px 2px 1px 0; border-radius:999px;
+                                   font-size:.68rem; font-weight:500; background:#0f172a; color:#cbd5e1; border:1px solid #1e293b; white-space:nowrap; }
+    .priority-table .reason-pill.warn { background:#3a1a04; color:#fcd34d; border-color:#78350f; }
+    .priority-table .reason-pill.more { color:#64748b; border-style:dashed; }
+    .priority-table .toggle-btn { background:transparent; color:#7dd3fc; border:1px solid #0369a1; border-radius:6px;
+                                  padding:3px 9px; font-size:.72rem; cursor:pointer; }
+    .priority-table .toggle-btn:hover { background:#082f49; }
+    .priority-detail { display:none; }
+    .priority-detail td { background:#0a1424; border-top:1px solid #1e293b; padding:10px 14px 12px 14px; }
+    .priority-detail .detail-head { color:#94a3b8; font-size:.72rem; margin-bottom:6px; }
+    .priority-detail .detail-head strong { color:#cbd5e1; font-weight:600; }
+    .priority-detail .timeline-list { margin:6px 0 0 0; padding:0; list-style:none; }
+    .priority-detail .timeline-list li { padding:3px 0; color:#cbd5e1; font-size:.74rem; line-height:1.5;
+                                          border-bottom:1px dashed #1e293b; }
+    .priority-detail .timeline-list li:last-child { border-bottom:0; }
+    .priority-detail .timeline-list .date { color:#94a3b8; font-variant-numeric:tabular-nums; }
+    .priority-detail .timeline-list .sep  { color:#475569; margin:0 4px; }
+    .priority-detail .timeline-list .dot  { display:inline-block; width:6px; height:6px; border-radius:50%;
+                                            margin-right:6px; vertical-align:middle; }
+    .priority-detail .timeline-list .dot.good { background:#22c55e; }
+    .priority-detail .timeline-list .dot.bad  { background:#f97316; }
+    .priority-detail .timeline-list .dot.warn { background:#facc15; }
+    .priority-detail .timeline-list .dot.mid  { background:#64748b; }
+    .priority-detail .timeline-list .src  { color:#475569; font-size:.66rem; margin-left:4px; }
+    .priority-detail .more-row { color:#64748b; font-size:.7rem; margin-top:6px; font-style:italic; }
+    .grade-pill { padding:2px 9px; border-radius:999px; font-size:.72rem; font-weight:600; white-space:nowrap; }
+    .grade-pill.tone-purple { background:#1e1b4b; color:#c4b5fd; border:1px solid #4338ca; }
+    .grade-pill.tone-blue   { background:#082f49; color:#7dd3fc; border:1px solid #0369a1; }
+    .grade-pill.tone-green  { background:#052e16; color:#86efac; border:1px solid #166534; }
+    .grade-pill.tone-muted  { background:#0f172a; color:#94a3b8; border:1px solid #334155; }
+    .risk-tag { display:inline-block; margin-left:6px; padding:1px 6px; border-radius:999px; font-size:.62rem;
+                background:#3a1a04; color:#fcd34d; border:1px solid #78350f; }
     .toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
     .toolbar > span { color:#94a3b8; }
     .toolbar select, .toolbar input { font-size:.85rem; padding:6px 10px; border:1px solid #475569; border-radius:8px; background:#0f172a; color:#e2e8f0; }
@@ -145,16 +190,17 @@
     </div>
     <% } %>
 
-    <!-- 8차 (2026-05-17): DB 기반 오늘 볼 후보 TOP -->
+    <!-- 8차 (2026-05-17, 9차 UI 정리): DB 기반 오늘 볼 후보 TOP -->
     <div class="card-soft" id="priority-top-section">
-      <h2><i class="bi bi-stars"></i>오늘 볼 후보 TOP <span style="color:#94a3b8; font-weight:400; font-size:.85rem;">— DB 누적 기준 정렬 참고값</span></h2>
-      <div class="hint">
-        최근 DB에 누적된 신호를 기준으로 <strong>여러 보드에 반복 등장</strong>했거나, <strong>QVA→VVI→돌파</strong> 같은 흐름이 이어진 종목을 우선순위로 정리한 화면입니다.
-        점수는 <strong>매수 신호가 아니라 후보를 정렬하기 위한 참고값</strong>이며, 그대로 매매하라는 의미가 아닙니다.
+      <h2><i class="bi bi-stars"></i>오늘 볼 후보 TOP <span style="color:#94a3b8; font-weight:400; font-size:.85rem;">— 관찰 우선순위</span></h2>
+      <div class="hint" style="margin-bottom:8px;">
+        점수는 반복 등장, 여러 보드 중복, 좋은 단계 진행, 최근성, 운영 저장 여부를 합산한 정렬 참고값입니다.
+        <strong>수익률 예측이나 매수 신호가 아닙니다.</strong>
+        세부 흐름은 <em>자세히</em>를 눌러 펼쳐 보세요. 기본은 상위 <strong><%= priorityLimit %></strong>개만 표시됩니다.
       </div>
 
       <!-- 필터 -->
-      <form method="get" action="/db-board" style="margin:10px 0 14px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:.78rem; color:#cbd5e1;">
+      <form method="get" action="/db-board" style="margin:0 0 12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:.78rem; color:#cbd5e1;">
         <input type="hidden" name="date" value="<%= date %>">
         <% if (stockSearch) { %><input type="hidden" name="stockCode" value="<%= stockSearch %>"><% } %>
         <label>기간
@@ -173,15 +219,21 @@
         </label>
         <label>표시 수
           <select name="priorityLimit" style="background:#0f172a; color:#f1f5f9; border:1px solid #334155; border-radius:6px; padding:3px 6px; margin-left:4px;">
-            <% for (const l of [15, 30, 50, 100]) { %>
+            <% for (const l of [15, 30, 50]) { %>
               <option value="<%= l %>" <%= Number(priorityLimit) === l ? 'selected' : '' %>><%= l %>개</option>
             <% } %>
           </select>
         </label>
         <button type="submit" class="btn-soft" style="font-size:.75rem;">필터 적용</button>
-        <span style="color:#94a3b8; font-size:.72rem;">
-          (점수 = A 반복 + B 보드 다양성 + C 좋은 단계 + D 부정 신호 감점 + E 흐름 완성 보너스 + F 최근성 + G 운영 저장 가산 — 80+ 강한 관찰 / 60+ 관찰 권장 / 40+ 관찰 / 20+ 약한 관찰)
-        </span>
+        <details style="margin-left:6px;">
+          <summary style="cursor:pointer; color:#64748b; font-size:.7rem;">점수 산식</summary>
+          <div style="margin-top:4px; padding:6px 10px; background:#0b1220; border:1px solid #1e293b; border-radius:6px; color:#94a3b8; font-size:.7rem; max-width:680px; line-height:1.55;">
+            A 반복(최대20) · B 보드 다양성(최대25) · C 좋은 단계 합 · D 주의 단계 감점 ·
+            E 흐름 완성 보너스(QVA→VVI→돌파, 양쪽 VVI 등) · F 최근성(D-1 +20…D-10 +5) · G 운영 저장 가산(+8).
+            정렬은 effective_score(주의 단계가 많을수록 같은 점수대에서 아래로) 기준.
+            80↑ 강한 관찰 · 60↑ 우선 관찰 · 40↑ 관찰 · 20↑ 약한 관찰.
+          </div>
+        </details>
       </form>
 
       <% if (errors.todayPriorityCandidates) { %>
@@ -189,101 +241,129 @@
       <% } else if (!sections.todayPriorityCandidates || sections.todayPriorityCandidates.length === 0) { %>
         <div class="empty">아직 조건에 맞는 누적 후보가 없습니다. 기간을 늘리거나 최소 점수를 낮춰 보세요.</div>
       <% } else {
-           function priorityPillClass(tone) {
-             if (tone === 'danger')    return 'pill-neg';   // 강한 관찰
-             if (tone === 'warning')   return 'pill-warn';  // 관찰 권장
-             if (tone === 'primary')   return 'pill-board'; // 관찰
-             if (tone === 'secondary') return 'pill-mut';   // 약한 관찰
-             return 'pill-mut';                              // 참고
+           // 핵심 근거 우선순위 (앞쪽 4개만 표시, "주의 기록 있음"은 별도 risk-tag로 분리)
+           const REASON_ORDER = ['최근 신호 있음','여러 보드 중복','QVA→VVI→돌파 흐름','QVA2→VVI2→돌파 흐름','양쪽 VVI 확인','QVA→VVI 흐름','QVA2→VVI2 흐름','재돌파 기록'];
+           function sortReasons(reasons) {
+             const set = new Set(reasons || []);
+             const ordered = [];
+             for (const r of REASON_ORDER) if (set.has(r)) ordered.push(r);
+             for (const r of (reasons || [])) if (!REASON_ORDER.includes(r) && r !== '주의 기록 있음') ordered.push(r);
+             return ordered;
+           }
+           // signal_kind를 dot 색으로 분류
+           function timelineDotClass(kind) {
+             const tone = getSignalKindTone(kind);
+             if (tone === 'positive') return 'good';
+             if (tone === 'negative') return 'warn';
+             return 'mid';
            }
       %>
-        <div class="scroll-wrap"><table class="t">
+        <div class="scroll-wrap"><table class="t priority-table">
           <thead>
             <tr>
-              <th class="num" style="width:36px;">#</th>
+              <th class="num" style="width:34px;">#</th>
               <th>종목</th>
-              <th class="num" style="width:64px;">점수</th>
-              <th style="width:96px;">등급</th>
-              <th class="num" style="width:60px;">등장</th>
-              <th class="num" style="width:64px;">보드 수</th>
-              <th style="width:96px;">마지막</th>
-              <th>주요 이유</th>
-              <th>보드</th>
-              <th>신호 종류</th>
-              <th style="width:120px;">출처</th>
+              <th class="num" style="width:80px;">점수</th>
+              <th style="width:130px;">상태</th>
+              <th>핵심 근거</th>
+              <th style="width:110px;">마지막 신호</th>
+              <th style="width:80px;">상세</th>
             </tr>
           </thead>
           <tbody>
           <% sections.todayPriorityCandidates.forEach(function(c, idx) {
                const grade = getPriorityGrade(c.priority_score);
-               const pillCls = priorityPillClass(grade.tone);
                const parts = c.score_parts || {};
-               const tlOpen = idx < 5;
+               const allReasons = sortReasons(c.reasons || []);
+               const visibleReasons = allReasons.slice(0, 4);
+               const hiddenReasonCount = Math.max(0, allReasons.length - visibleReasons.length);
+               const hasRisk = (c.reasons || []).includes('주의 기록 있음');
+               const detailId = 'priority-detail-' + c.stock_code;
+               const tlAll = c.timeline || [];
+               const tlVisible = tlAll.slice(0, 8);
+               const tlHidden = Math.max(0, tlAll.length - tlVisible.length);
+               // 보드/신호 종류 요약 (상세에서만 사용)
+               const boardArr = String(c.boards || '').split(',').filter(Boolean);
+               const kindArr  = String(c.signal_kinds || '').split(',').filter(Boolean);
           %>
             <tr>
-              <td class="num" style="color:#94a3b8;"><%= idx + 1 %></td>
-              <td>
+              <td class="rank"><%= idx + 1 %></td>
+              <td class="stock-cell">
                 <span class="code"><%= c.stock_code %></span>
-                <span class="name"><a href="/db-board?date=<%= date %>&stockCode=<%= c.stock_code %>"><%= c.stock_name %></a></span>
-                <% if (c.market) { %><span style="color:#94a3b8; font-size:.7rem;"> · <%= c.market %></span><% } %>
+                <a class="name" href="/db-board?date=<%= date %>&stockCode=<%= c.stock_code %>" style="color:#f1f5f9; text-decoration:none;"><%= c.stock_name %></a>
+                <% if (c.market) { %><span class="market"><%= c.market %></span><% } %>
               </td>
-              <td class="num"><strong style="color:#f1f5f9; font-size:1rem;"><%= c.priority_score %></strong>
-                <div style="font-size:.65rem; color:#64748b;" title="A 반복 <%= parts.a %> · B 보드 <%= parts.b %> · C 좋은 <%= parts.c %> · D 부정 <%= parts.d %> · E 흐름 <%= parts.e %> · F 최근 <%= parts.f %> · G 출처 <%= parts.g %>">
-                  A<%= parts.a %>·B<%= parts.b %>·C<%= parts.c %><% if (parts.d) { %>·D<%= parts.d %><% } %>·E<%= parts.e %>·F<%= parts.f %><% if (parts.g) { %>·G<%= parts.g %><% } %>
-                </div>
+              <td class="score-cell num">
+                <div class="big" title="A<%= parts.a %>·B<%= parts.b %>·C<%= parts.c %><% if (parts.d) { %>·D<%= parts.d %><% } %>·E<%= parts.e %>·F<%= parts.f %><% if (parts.g) { %>·G<%= parts.g %><% } %>"><%= c.priority_score %></div>
+                <div class="sub">신호 <%= c.signal_count %> · 보드 <%= c.board_count %></div>
               </td>
-              <td><span class="pill <%= pillCls %>" title="점수 <%= c.priority_score %>"><%= grade.label %></span></td>
-              <td class="num"><strong><%= c.signal_count %></strong></td>
-              <td class="num"><%= c.board_count %></td>
-              <td style="font-size:.72rem; color:#94a3b8;">
+              <td>
+                <span class="grade-pill tone-<%= grade.tone %>"><%= grade.label %></span>
+                <% if (hasRisk) { %><span class="risk-tag" title="주의 단계가 같이 잡힘">주의 포함</span><% } %>
+              </td>
+              <td>
+                <% for (const r of visibleReasons) { %><span class="reason-pill"><%= r %></span><% } %>
+                <% if (hiddenReasonCount > 0) { %><span class="reason-pill more">외 <%= hiddenReasonCount %>개</span><% } %>
+                <% if (visibleReasons.length === 0 && hiddenReasonCount === 0) { %><span class="reason-pill more">근거 부족</span><% } %>
+              </td>
+              <td class="last-cell">
                 <%= c.last_signal_date %>
-                <% if (parts.days_since_last != null) { %><div style="font-size:.65rem;">D-<%= parts.days_since_last %></div><% } %>
-              </td>
-              <td style="font-size:.72rem;">
-                <% for (const r of (c.reasons || [])) { %>
-                  <span class="pill <%= r === '주의 기록 있음' ? 'pill-warn' : 'pill-pos' %>" style="font-size:.68rem;"><%= r %></span>
-                <% } %>
+                <% if (parts.days_since_last != null) { %><span class="d">D-<%= parts.days_since_last %></span><% } %>
               </td>
               <td>
-                <% for (const b of String(c.boards || '').split(',')) { if (!b) continue; %>
-                  <span class="pill pill-board" title="<%= b %>"><%= formatBoardName(b) %></span>
-                <% } %>
-              </td>
-              <td>
-                <% for (const k of String(c.signal_kinds || '').split(',')) { if (!k) continue; const tone = getSignalKindTone(k); %>
-                  <span class="pill pill-<%= tone === 'positive' ? 'pos' : tone === 'negative' ? 'neg' : 'mut' %>" title="<%= k %>"><%= getSignalKindDisplay(k) %></span>
-                <% } %>
-              </td>
-              <td style="font-size:.7rem;">
-                <% for (const s of String(c.source_types || '').split(',')) { if (!s) continue; %>
-                  <span class="pill <%= s === 'DAILY_RUN' ? 'pill-pos' : 'pill-mut' %>" title="<%= s %>"><%= getSourceTypeDisplay(s) %></span>
-                <% } %>
+                <button type="button" class="toggle-btn" data-target="<%= detailId %>" onclick="togglePriorityDetail('<%= c.stock_code %>', this)">자세히</button>
               </td>
             </tr>
-            <% if (c.timeline && c.timeline.length) { %>
-            <tr>
-              <td></td>
-              <td colspan="10" style="padding:0 0 6px 0;">
-                <details <%= tlOpen ? 'open' : '' %> style="background:#0b1220; border:1px solid #1f2937; border-radius:6px; padding:6px 10px;">
-                  <summary style="cursor:pointer; outline:none; font-size:.72rem; color:#94a3b8;">📅 누적 타임라인 (<%= c.timeline.length %>건, 과거→최근)</summary>
-                  <div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;">
-                    <% for (const ev of c.timeline) { const tone = getSignalKindTone(ev.signal_kind); %>
-                      <span style="display:inline-flex; align-items:center; gap:4px; background:#0f172a; border:1px solid #1e293b; border-radius:4px; padding:2px 6px; font-size:.68rem;">
-                        <span style="color:#64748b;"><%= ev.signal_date %></span>
-                        <span class="pill pill-board" style="margin:0; padding:1px 5px; font-size:.62rem;" title="<%= ev.board_name %>"><%= formatBoardName(ev.board_name) %></span>
-                        <span class="pill pill-<%= tone === 'positive' ? 'pos' : tone === 'negative' ? 'neg' : 'mut' %>" style="margin:0; padding:1px 5px; font-size:.62rem;" title="<%= ev.signal_kind %>"><%= getSignalKindDisplay(ev.signal_kind) %></span>
-                        <% if (ev.source_type) { %><span class="pill <%= ev.source_type === 'DAILY_RUN' ? 'pill-pos' : 'pill-mut' %>" style="margin:0; padding:1px 5px; font-size:.6rem;" title="<%= ev.source_type %>"><%= getSourceTypeDisplay(ev.source_type) %></span><% } %>
-                      </span>
+            <tr class="priority-detail" id="<%= detailId %>">
+              <td colspan="7">
+                <div class="detail-head">
+                  <strong>보드</strong> <%= boardArr.map(b => formatBoardName(b)).join(', ') || '—' %>
+                  <span class="sep" style="color:#475569; margin:0 6px;">·</span>
+                  <strong>신호 종류</strong>
+                  <% if (kindArr.length === 0) { %>—<% } else { %>
+                    <% const visibleKinds = kindArr.slice(0, 6); %>
+                    <%= visibleKinds.map(k => getSignalKindDisplay(k)).join(', ') %>
+                    <% if (kindArr.length > visibleKinds.length) { %><span style="color:#64748b;"> 외 <%= kindArr.length - visibleKinds.length %>개</span><% } %>
+                  <% } %>
+                </div>
+                <% if (tlAll.length === 0) { %>
+                  <div style="color:#64748b; font-size:.72rem;">누적된 신호 기록이 없습니다.</div>
+                <% } else { %>
+                  <div class="detail-head" style="margin-top:4px;"><strong>최근 흐름</strong> <span style="color:#64748b;">(과거 → 최근, 최대 8건)</span></div>
+                  <ul class="timeline-list">
+                    <% for (const ev of tlVisible) {
+                         const dotCls = timelineDotClass(ev.signal_kind);
+                         const isWarn = ['FAILED','BREACH_NO_RECOVER','BREACH_RECOVER_ILLUSION','INTRADAY_PUSHBACK','NO_REBREAK','BROKEN','OVERHEATED'].includes(ev.signal_kind);
+                    %>
+                      <li>
+                        <span class="dot <%= isWarn ? 'bad' : dotCls %>"></span>
+                        <span class="date"><%= String(ev.signal_date).slice(0,10) %></span>
+                        <span class="sep">·</span>
+                        <%= formatBoardName(ev.board_name) %>
+                        <span class="sep">·</span>
+                        <%= getSignalKindDisplay(ev.signal_kind) %>
+                        <% if (ev.source_type) { %><span class="src">· <%= getSourceTypeDisplay(ev.source_type) %></span><% } %>
+                      </li>
                     <% } %>
-                  </div>
-                </details>
+                  </ul>
+                  <% if (tlHidden > 0) { %><div class="more-row">외 <%= tlHidden %>개 기록 더 있음</div><% } %>
+                <% } %>
               </td>
             </tr>
-            <% } %>
           <% }); %>
           </tbody>
         </table></div>
       <% } %>
+
+      <script>
+        function togglePriorityDetail(stockCode, btn) {
+          var el = document.getElementById('priority-detail-' + stockCode);
+          if (!el) return;
+          var open = el.style.display === 'table-row';
+          el.style.display = open ? 'none' : 'table-row';
+          if (btn) btn.textContent = open ? '자세히' : '접기';
+        }
+      </script>
     </div>
 
     <!-- 7차: DB 누적 신호 흐름 -->

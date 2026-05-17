@@ -363,13 +363,19 @@ function explainTimelineSummary(timeline) {
   return { summaryText: lines.join(' '), badges };
 }
 
+// 등급 라벨 + 톤. EJS에서 pill class로 매핑됨.
+//   purple → pill-board  (강한 관찰, 보라)
+//   blue   → pill-info   (우선 관찰, 파랑)
+//   green  → pill-pos    (관찰, 녹색)
+//   muted  → pill-mut    (약한 관찰 / 참고, 회색)
+// 빨간색(pill-neg) 사용 X — 매수/위험 신호처럼 보이지 않도록.
 function getPriorityGrade(score) {
   const s = Number(score) || 0;
-  if (s >= 80) return { label: '강한 관찰',  tone: 'danger'    };
-  if (s >= 60) return { label: '관찰 권장',  tone: 'warning'   };
-  if (s >= 40) return { label: '관찰',        tone: 'primary'   };
-  if (s >= 20) return { label: '약한 관찰',  tone: 'secondary' };
-  return         { label: '참고',            tone: 'light'     };
+  if (s >= 80) return { label: '강한 관찰', tone: 'purple' };
+  if (s >= 60) return { label: '우선 관찰', tone: 'blue'   };
+  if (s >= 40) return { label: '관찰',      tone: 'green'  };
+  if (s >= 20) return { label: '약한 관찰', tone: 'muted'  };
+  return         { label: '참고',           tone: 'muted'  };
 }
 
 module.exports = {

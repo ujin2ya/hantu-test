@@ -306,8 +306,8 @@ async function getDbBoardDashboard(req, res) {
     const days  = Math.max(1, Number((req.query && req.query.days)  || 60) | 0);
     const limit = Math.max(5, Math.min(Number((req.query && req.query.limit) || 50) | 0, 100));
     const stockSearch = (req.query && req.query.stockCode) ? String(req.query.stockCode).trim() : null;
-    // 8차: 우선순위 후보 옵션
-    const priorityLimit    = Math.max(5,  Math.min(Number((req.query && req.query.priorityLimit)    || 30) | 0, 200));
+    // 8차: 우선순위 후보 옵션 (9차 — 기본 15개로 축소)
+    const priorityLimit    = Math.max(5,  Math.min(Number((req.query && req.query.priorityLimit)    || 15) | 0, 200));
     const minPriorityScore = Math.max(0,  Math.min(Number((req.query && req.query.minPriorityScore) != null ? req.query.minPriorityScore : 20) | 0, 200));
 
     // 섹션별로 격리 — 한 곳 실패해도 다른 섹션은 표시되어야 함

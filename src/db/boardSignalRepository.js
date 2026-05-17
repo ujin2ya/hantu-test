@@ -809,12 +809,19 @@ async function findTodayPriorityCandidates(opts = {}) {
                 : 'MUTED';
     const positiveKinds = kindArr.filter(k => POS.includes(k));
     const negativeKinds = kindArr.filter(k => NEG.includes(k));
+    // 정렬용 effective_score — 주의 신호가 누적될수록 같은 점수대에서 아래로 밀어냄
+    // (priority_score는 화면 표시용 그대로 두고, 정렬만 효과적 점수 사용)
+    const sortNegKinds = ['FAILED','BREACH_NO_RECOVER','BREACH_RECOVER_ILLUSION','INTRADAY_PUSHBACK','NO_REBREAK'];
+    const negativeCount = kindArr.filter(k => sortNegKinds.includes(k)).length;
+    const effectiveScore = score - Math.min(negativeCount * 5, 20);
 
     scored.push({
       stock_code: r.stock_code,
       stock_name: r.stock_name,
       market: r.market,
       priority_score: score,
+      effective_score: effectiveScore,
+      negative_count: negativeCount,
       priority_grade: grade,
       score_parts: parts,
       signal_count: agg.signal_count,
@@ -831,9 +838,11 @@ async function findTodayPriorityCandidates(opts = {}) {
   }
 
   // 3단계: 정렬 + limit
+  // effective_score DESC → 마지막 신호일 DESC → 보드 다양성 DESC → 등장 횟수 DESC
   scored.sort((x, y) =>
-    (y.priority_score - x.priority_score)
+    (y.effective_score - x.effective_score)
     || String(y.last_signal_date).localeCompare(String(x.last_signal_date))
+    || (y.board_count - x.board_count)
     || (y.signal_count - x.signal_count)
   );
   const top = scored.slice(0, limit);
