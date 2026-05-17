@@ -152,7 +152,7 @@
       "FAR_FROM_BASE": "기준 종가 대비 많이 떠 있어 추격 위험이 있습니다.",
       "QUIET_BREAKOUT": "기준선은 돌파했지만 거래대금 증가는 보통 수준입니다."
     },
-    "generatedAt": "2026-05-17T07:37:32.461Z"
+    "generatedAt": "2026-05-17T08:48:10.203Z"
   },
   "summary": {
     "today": "20260515",
@@ -183,7 +183,7 @@
       "LONG_QVA_ALL": 20,
       "FAILED": 169
     },
-    "generatedAt": "2026-05-17T07:37:32.460Z"
+    "generatedAt": "2026-05-17T08:48:10.203Z"
   },
   "earlyQvaSummary": {
     "todayCount": 9,

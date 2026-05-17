@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "1-Day Surge Board v5 · GOOD_TRADE 중심 단타 후보 보드",
-    "generatedAt": "2026-05-17T07:18:12.240Z",
+    "generatedAt": "2026-05-17T08:48:23.445Z",
     "analysisDate": "20260515",
     "analysisDateFmt": "2026-05-15",
     "stockUniverse": 4270,
@@ -22094,7 +22094,7 @@
     "status": "holiday_closed",
     "label": "휴장일",
     "isMarketClosed": true,
-    "generatedAtTime": "16:18",
+    "generatedAtTime": "17:48",
     "guide": "오늘은 휴장일입니다 (주말/공휴일/대체공휴일). 직전 거래일 (2026-05-15) 기준 결과를 표시합니다.",
     "forcedNote": null,
     "todayDate": "2026-05-17",

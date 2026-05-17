@@ -35,7 +35,11 @@ router.get("/admin/db-signals/performance",           requireAdmin, c.getDbSigna
 router.get("/admin/db-signals/link-summary",          requireAdmin, c.getDbSignalsLinkSummary);
 router.get("/admin/db-signals/today-focus",           requireAdmin, c.getDbSignalsTodayFocus);
 
-// 4차 (2026-05-17) — JSON API들을 HTML로 묶은 관리자 대시보드
-router.get("/admin/db-board-dashboard",               requireAdmin, c.getDbBoardDashboard);
+// 4차 (2026-05-17) — DB 신호 운영판 화면은 공개 라우트(/db-board)로 이전됨.
+// 기존 /admin/db-board-dashboard URL은 redirect로 호환 유지 (admin gate도 거치지 않음).
+router.get("/admin/db-board-dashboard", (req, res) => {
+  const qs = req.url.split("?")[1];
+  res.redirect("/db-board" + (qs ? "?" + qs : ""));
+});
 
 module.exports = router;

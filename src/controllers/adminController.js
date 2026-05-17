@@ -295,6 +295,7 @@ async function getDbSignalsTodayFocus(req, res) {
 async function getDbBoardDashboard(req, res) {
   try {
     const repo = require('../db/boardSignalRepository');
+    const labels = require('../db/boardSignalLabels');
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -315,7 +316,20 @@ async function getDbBoardDashboard(req, res) {
       catch (e) { errors[name] = e.message || String(e); sections[name] = null; }
     }
 
-    await safe('todayFocus', () => repo.findTodayFocus(date, { minBoards: 1, limit }));
+    await safe('todayFocus', async () => {
+      const rows = await repo.findTodayFocus(date, { minBoards: 1, limit });
+      // boards 문자열 "BOARD/KIND, BOARD/KIND, ..." 을 파싱해서 stage_score 합산
+      for (const r of rows) {
+        const items = String(r.boards || '').split(', ').filter(Boolean);
+        let stageScore = 0;
+        for (const it of items) {
+          const [bn, sk] = it.split('/', 2);
+          stageScore += labels.getBoardKindWeight(bn, sk);
+        }
+        r.stage_score = stageScore;
+      }
+      return rows;
+    });
     await safe('overlap',    () => repo.findOverlap(date, { minBoards: 2, includeFailed: false, limit }));
     await safe('repeated',   () => repo.findRepeated({ days, minCount: 2, limit }));
 
@@ -340,6 +354,53 @@ async function getDbBoardDashboard(req, res) {
 
     await safe('linkSummary', () => repo.findLinkSummary({ days }));
 
+    // ─── 사용자 조합 필터 (5차, 2026-05-17) ─────────────────────────────
+    function arr(v) {
+      if (v == null) return [];
+      if (Array.isArray(v)) return v.filter(Boolean);
+      return String(v).split(',').map(s => s.trim()).filter(Boolean);
+    }
+    const presetKey = (req.query && req.query.preset) || null;
+    const overrides = {
+      includeBoard: req.query.includeBoard !== undefined ? arr(req.query.includeBoard) : null,
+      excludeBoard: req.query.excludeBoard !== undefined ? arr(req.query.excludeBoard) : null,
+      includeKind:  req.query.includeKind  !== undefined ? arr(req.query.includeKind)  : null,
+      excludeKind:  req.query.excludeKind  !== undefined ? arr(req.query.excludeKind)  : null,
+      matchMode:    req.query.matchMode || null,
+    };
+    const filterApplied = !!(presetKey || overrides.includeBoard || overrides.excludeBoard ||
+                             overrides.includeKind || overrides.excludeKind || overrides.matchMode);
+    const filterMerged = labels.mergePresetWithOverrides(presetKey, overrides);
+    const filterMinBoardCount  = Math.max(0, Number(req.query.minBoardCount  || 0) | 0);
+    const filterMinRepeatCount = Math.max(0, Number(req.query.minRepeatCount || 0) | 0);
+
+    let filterResolved = null;
+    if (filterApplied) {
+      filterResolved = {
+        ...filterMerged,
+        date: req.query.filterDate || null,     // 별도 filterDate 또는 null (= days 사용)
+        days,
+        limit,
+        minBoardCount: filterMinBoardCount,
+        minRepeatCount: filterMinRepeatCount,
+      };
+      await safe('filteredSignals', async () => {
+        const rows = await repo.findFilteredSignals(filterResolved);
+        // stage_score 계산 (today-focus와 동일 방식)
+        for (const r of rows) {
+          const items = String(r.raw_boards || '').split(', ').filter(Boolean);
+          let stageScore = 0;
+          for (const it of items) {
+            const [bn, sk] = it.split('/', 2);
+            stageScore += labels.getBoardKindWeight(bn, sk);
+          }
+          r.stage_score = stageScore;
+        }
+        rows.sort((a, b) => (b.stage_score - a.stage_score) || (b.signal_count - a.signal_count));
+        return rows;
+      });
+    }
+
     // 종목 검색 — 입력 있으면 history 결과 직접 표시
     let stockHistory = null;
     if (stockSearch && /^\d{4,6}$/.test(stockSearch)) {
@@ -354,6 +415,20 @@ async function getDbBoardDashboard(req, res) {
       sections, errors,
       negativeKinds: repo.NEGATIVE_KINDS,
       positiveKinds: repo.POSITIVE_KINDS,
+      // 라벨 헬퍼 (EJS에서 사용)
+      formatBoardName: labels.formatBoardName,
+      formatSignalKind: labels.formatSignalKind,
+      formatBoardKind: labels.formatBoardKind,
+      getBoardKindWeight: labels.getBoardKindWeight,
+      // 5차 필터
+      FILTER_PRESETS: labels.FILTER_PRESETS,
+      BOARD_LABELS: labels.BOARD_LABELS,
+      KIND_LABELS: labels.KIND_LABELS,
+      filterApplied,
+      filterPreset: presetKey,
+      filterResolved,
+      filterMinBoardCount,
+      filterMinRepeatCount,
     });
   } catch (e) {
     res.status(500).send(`<h1>대시보드 로딩 실패</h1><pre>${(e && e.stack) || e}</pre>`);

@@ -9,6 +9,7 @@ const qva2Routes = require("./qva2Routes");
 const rebreakRoutes = require("./rebreakRoutes");
 const oneDaySurgeRoutes = require("./oneDaySurgeRoutes");
 const aiRoutes = require("./aiRoutes");
+const dbBoardRoutes = require("./dbBoardRoutes");
 
 const router = express.Router();
 router.use(authRoutes);
@@ -20,6 +21,7 @@ router.use(qvaVviRedefinedRoutes);
 router.use(qva2Routes);
 router.use(rebreakRoutes);
 router.use(oneDaySurgeRoutes);
+router.use(dbBoardRoutes);   // 공개 /db-board (DB 신호 운영판)
 router.use(aiRoutes);
 
 module.exports = router;

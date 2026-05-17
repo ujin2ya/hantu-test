@@ -527,6 +527,108 @@ async function findTodayFocus(dateYMD, opts = {}) {
   return rows;
 }
 
+// 5차 (2026-05-17) — 사용자 정의 태그 조합 필터
+//
+// opts:
+//   - date          (YYYY-MM-DD) — 있으면 해당 날짜만
+//   - days          (number)     — 없으면 30일 default. date 없을 때 사용
+//   - limit         (number)     — safeLimit, default 100, max 500
+//   - includeBoard  (string[])   — 종목이 이들 보드 중 1+ 에 등장 (행 단위 필터)
+//   - excludeBoard  (string[])   — 이들 보드 신호는 카운트에서 제외 (행 단위 필터)
+//   - includeKind   (string[])   — matchMode=any: 1+ 매칭, all: 모두 매칭
+//   - excludeKind   (string[])   — 종목 단위 제외 (한 번이라도 매칭되면 종목 자체 제외)
+//   - matchMode     ('any'|'all') — default 'any'
+//   - minBoardCount (number)     — HAVING board_count >= ?
+//   - minRepeatCount(number)     — HAVING signal_count >= ?
+async function findFilteredSignals(opts = {}) {
+  const limit = _safeLimit(opts.limit, 100, 500);
+  const date = _dateOrNull(opts.date);
+  const days = Math.max(1, Number(opts.days || 30) | 0);
+  const matchMode = opts.matchMode === 'all' ? 'all' : 'any';
+
+  const includeBoard = Array.isArray(opts.includeBoard) ? opts.includeBoard.filter(Boolean) : [];
+  const excludeBoard = Array.isArray(opts.excludeBoard) ? opts.excludeBoard.filter(Boolean) : [];
+  const includeKind  = Array.isArray(opts.includeKind)  ? opts.includeKind.filter(Boolean)  : [];
+  const excludeKind  = Array.isArray(opts.excludeKind)  ? opts.excludeKind.filter(Boolean)  : [];
+
+  const minBoardCount  = Math.max(0, Number(opts.minBoardCount  || 0) | 0);
+  const minRepeatCount = Math.max(0, Number(opts.minRepeatCount || 0) | 0);
+
+  // ─── WHERE 절 (행 단위) ──────────────────────────────────────────────
+  const where = [];
+  const params = [];
+
+  if (date) { where.push('s.signal_date = ?'); params.push(date); }
+  else      { where.push('s.signal_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)'); params.push(days); }
+
+  if (includeBoard.length) {
+    where.push('s.board_name IN (' + _placeholders(includeBoard) + ')');
+    params.push(...includeBoard);
+  }
+  if (excludeBoard.length) {
+    where.push('s.board_name NOT IN (' + _placeholders(excludeBoard) + ')');
+    params.push(...excludeBoard);
+  }
+  if (includeKind.length && matchMode === 'any') {
+    // any: 행에 includeKind 매칭만 통과. (all 모드는 HAVING에서 처리)
+    where.push('s.signal_kind IN (' + _placeholders(includeKind) + ')');
+    params.push(...includeKind);
+  }
+  // excludeKind는 종목 단위 — WHERE에 서브쿼리로 NOT IN 처리 (인덱스 활용)
+  if (excludeKind.length) {
+    where.push(
+      's.stock_code NOT IN (SELECT stock_code FROM board_signals WHERE signal_kind IN (' + _placeholders(excludeKind) + ')' +
+      (date ? ' AND signal_date = ?' : ' AND signal_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)') +
+      ')'
+    );
+    params.push(...excludeKind);
+    params.push(date ? date : days);
+  }
+
+  // ─── HAVING (그룹 단위) ──────────────────────────────────────────────
+  const having = [];
+  const havingParams = [];
+
+  if (minBoardCount > 0)  { having.push('COUNT(DISTINCT s.board_name) >= ?'); havingParams.push(minBoardCount); }
+  if (minRepeatCount > 0) { having.push('COUNT(*) >= ?'); havingParams.push(minRepeatCount); }
+  if (matchMode === 'all' && includeKind.length) {
+    // all: 종목이 includeKind 의 모든 종류를 가져야 함
+    having.push('COUNT(DISTINCT CASE WHEN s.signal_kind IN (' + _placeholders(includeKind) + ') THEN s.signal_kind END) = ?');
+    havingParams.push(...includeKind);
+    havingParams.push(includeKind.length);
+  }
+
+  const whereSQL  = where.length  ? 'WHERE '  + where.join(' AND ')  : '';
+  const havingSQL = having.length ? 'HAVING ' + having.join(' AND ') : '';
+
+  // ─── 최종 쿼리 ───────────────────────────────────────────────────────
+  const sql = `
+    SELECT
+      s.stock_code,
+      MAX(s.stock_name) AS stock_name,
+      MAX(s.market)     AS market,
+      COUNT(*)          AS signal_count,
+      COUNT(DISTINCT s.board_name) AS board_count,
+      SUM(CASE WHEN s.signal_kind IN (${_placeholders(POSITIVE_KINDS)}) THEN 1 ELSE 0 END) AS positive_kind_count,
+      SUM(CASE WHEN s.signal_kind IN (${_placeholders(NEGATIVE_KINDS)}) THEN 1 ELSE 0 END) AS negative_kind_count,
+      MIN(s.signal_date) AS first_signal_date,
+      MAX(s.signal_date) AS last_signal_date,
+      GROUP_CONCAT(DISTINCT s.board_name  ORDER BY s.board_name  SEPARATOR ', ') AS matched_boards,
+      GROUP_CONCAT(DISTINCT s.signal_kind ORDER BY s.signal_kind SEPARATOR ', ') AS matched_kinds,
+      GROUP_CONCAT(DISTINCT CONCAT(s.board_name, '/', s.signal_kind) ORDER BY s.board_name SEPARATOR ', ') AS raw_boards
+    FROM board_signals s
+    ${whereSQL}
+    GROUP BY s.stock_code
+    ${havingSQL}
+    ORDER BY signal_count DESC, board_count DESC, stock_code ASC
+    LIMIT ${limit}
+  `;
+  // POSITIVE/NEGATIVE param 두 set + WHERE params + HAVING params
+  const finalParams = [...POSITIVE_KINDS, ...NEGATIVE_KINDS, ...params, ...havingParams];
+
+  return await query(sql, finalParams);
+}
+
 module.exports = {
   createBoardRun,
   upsertBoardSignals,
@@ -542,6 +644,7 @@ module.exports = {
   findPerformance,
   findLinkSummary,
   findTodayFocus,
+  findFilteredSignals,
   NEGATIVE_KINDS,
   POSITIVE_KINDS,
 };

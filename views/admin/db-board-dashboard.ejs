@@ -7,74 +7,86 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
   <style>
-    body { background:#f3f5fb; color:#1f2937; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif; padding:24px 16px; }
+    body { background:#0f172a; color:#cbd5e1; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif; padding:24px 16px; }
     .wrap { max-width:1380px; margin:0 auto; }
     .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px; }
-    .topbar h1 { font-size:1.3rem; font-weight:700; margin:0; }
-    .topbar .sub { color:#64748b; font-size:.85rem; margin-top:4px; }
-    .card-soft { background:#fff; border-radius:14px; padding:18px 20px; box-shadow:0 4px 14px rgba(15,23,42,0.05); margin-bottom:18px; }
-    .card-soft h2 { font-size:1rem; font-weight:700; margin-bottom:6px; color:#0f172a; display:flex; align-items:center; gap:8px; }
-    .card-soft .hint { color:#64748b; font-size:.78rem; margin-bottom:12px; line-height:1.5; }
-    .card-soft .err { color:#b91c1c; font-size:.8rem; background:#fee2e2; padding:8px 12px; border-radius:8px; }
-    .card-soft .empty { color:#94a3b8; font-size:.85rem; padding:16px; text-align:center; background:#f8fafc; border-radius:8px; }
-    table.t { font-size:.82rem; width:100%; }
-    table.t th { font-weight:600; color:#475569; font-size:.72rem; text-transform:uppercase; letter-spacing:.3px; border-bottom:2px solid #e2e8f0; padding:8px 8px; background:#f8fafc; position:sticky; top:0; }
-    table.t td { vertical-align:middle; padding:6px 8px; border-bottom:1px solid #f1f5f9; }
-    table.t tr:hover td { background:#fafbfd; }
-    table.t .rank { color:#64748b; font-weight:600; width:32px; text-align:right; }
-    table.t .code { color:#64748b; font-family:Menlo,Consolas,monospace; font-size:.75rem; }
-    table.t .name a { color:#1d4ed8; font-weight:600; text-decoration:none; }
-    table.t .name a:hover { text-decoration:underline; }
+    .topbar h1 { font-size:1.3rem; font-weight:700; margin:0; color:#f1f5f9; }
+    .topbar .sub { color:#94a3b8; font-size:.85rem; margin-top:4px; }
+    .card-soft { background:#1e293b; border:1px solid #334155; border-radius:14px; padding:18px 20px; box-shadow:0 4px 14px rgba(0,0,0,0.25); margin-bottom:18px; }
+    .card-soft h2 { font-size:1rem; font-weight:700; margin-bottom:6px; color:#f1f5f9; display:flex; align-items:center; gap:8px; }
+    .card-soft .hint { color:#94a3b8; font-size:.78rem; margin-bottom:12px; line-height:1.5; }
+    .card-soft .err { color:#fca5a5; font-size:.8rem; background:#450a0a; border:1px solid #7f1d1d; padding:8px 12px; border-radius:8px; }
+    .card-soft .empty { color:#64748b; font-size:.85rem; padding:16px; text-align:center; background:#0f172a; border-radius:8px; }
+    table.t { font-size:.82rem; width:100%; color:#cbd5e1; }
+    table.t th { font-weight:600; color:#94a3b8; font-size:.72rem; text-transform:uppercase; letter-spacing:.3px; border-bottom:2px solid #334155; padding:8px 8px; background:#0f172a; position:sticky; top:0; }
+    table.t td { vertical-align:middle; padding:6px 8px; border-bottom:1px solid #334155; }
+    table.t tr:hover td { background:#0f172a; }
+    table.t .rank { color:#94a3b8; font-weight:600; width:32px; text-align:right; }
+    table.t .code { color:#94a3b8; font-family:Menlo,Consolas,monospace; font-size:.75rem; }
+    table.t .name a { color:#93c5fd; font-weight:600; text-decoration:none; }
+    table.t .name a:hover { color:#dbeafe; text-decoration:underline; }
     table.t .num { text-align:right; font-variant-numeric:tabular-nums; }
-    table.t .pos { color:#15803d; font-weight:600; }
-    table.t .neg { color:#b91c1c; font-weight:600; }
+    table.t .pos { color:#86efac; font-weight:600; }
+    table.t .neg { color:#fca5a5; font-weight:600; }
     .pill { display:inline-block; padding:1.5px 7px; border-radius:999px; font-size:.7rem; font-weight:600; margin:1px 2px 1px 0; white-space:nowrap; }
-    .pill-board { background:#e0e7ff; color:#3730a3; }
-    .pill-pos   { background:#dcfce7; color:#166534; }
-    .pill-neg   { background:#fee2e2; color:#991b1b; }
-    .pill-mut   { background:#f1f5f9; color:#475569; }
-    .pill-warn  { background:#fef3c7; color:#92400e; }
+    .pill-board { background:#1e1b4b; color:#c4b5fd; border:1px solid #4338ca; }
+    .pill-pos   { background:#052e16; color:#86efac; border:1px solid #166534; }
+    .pill-neg   { background:#450a0a; color:#fca5a5; border:1px solid #7f1d1d; }
+    .pill-mut   { background:#0f172a; color:#94a3b8; border:1px solid #334155; }
+    .pill-warn  { background:#3a1a04; color:#fde68a; border:1px solid #78350f; }
     .toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-    .toolbar select, .toolbar input { font-size:.85rem; padding:6px 10px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; }
+    .toolbar > span { color:#94a3b8; }
+    .toolbar select, .toolbar input { font-size:.85rem; padding:6px 10px; border:1px solid #475569; border-radius:8px; background:#0f172a; color:#e2e8f0; }
+    .toolbar select:focus, .toolbar input:focus { border-color:#60a5fa; outline:none; }
     .toolbar input[type="date"] { width:160px; }
     .toolbar input[type="text"] { width:180px; }
-    .toolbar button { font-size:.85rem; padding:6px 14px; border-radius:8px; border:0; background:#1d4ed8; color:#fff; font-weight:600; cursor:pointer; }
-    .toolbar button.ghost { background:#fff; color:#475569; border:1px solid #cbd5e1; }
-    .meta-row { display:flex; gap:14px; align-items:center; font-size:.8rem; color:#64748b; margin-top:4px; }
-    .meta-row strong { color:#0f172a; }
-    .note-box { background:#fef9c3; border-left:4px solid #f59e0b; color:#78350f; padding:10px 14px; border-radius:8px; font-size:.82rem; margin-bottom:16px; line-height:1.6; }
-    .note-box code { background:rgba(0,0,0,0.06); padding:1px 5px; border-radius:4px; font-size:.78rem; }
+    .toolbar button { font-size:.85rem; padding:6px 14px; border-radius:8px; border:0; background:#2563eb; color:#fff; font-weight:600; cursor:pointer; }
+    .toolbar button:hover { background:#1d4ed8; }
+    .toolbar button.ghost { background:transparent; color:#cbd5e1; border:1px solid #475569; }
+    .toolbar button.ghost:hover { background:#1e293b; }
+    .meta-row { display:flex; gap:14px; align-items:center; font-size:.8rem; color:#94a3b8; margin-top:4px; }
+    .meta-row strong { color:#f1f5f9; }
+    .note-box { background:#3a2a08; border-left:4px solid #f59e0b; color:#fde68a; padding:10px 14px; border-radius:8px; font-size:.82rem; margin-bottom:16px; line-height:1.6; }
+    .note-box strong { color:#fef3c7; }
+    .note-box code { background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:4px; font-size:.78rem; color:#fde68a; }
     .priority-bar { display:inline-block; height:6px; background:#3b82f6; border-radius:3px; vertical-align:middle; margin-left:6px; }
     .scroll-wrap { overflow-x:auto; }
+    .scroll-wrap::-webkit-scrollbar { height:8px; }
+    .scroll-wrap::-webkit-scrollbar-thumb { background:#475569; border-radius:4px; }
   </style>
 </head>
 <body>
   <div class="wrap">
 
+    <!-- 보드 네비게이션 (7 보드의 통일 nav와 같은 톤) -->
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+      <div style="background:linear-gradient(90deg,#064e3b 0%,#065f46 100%);border:1px solid #10b981;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#a7f3d0;font-weight:700;letter-spacing:0.3px;">🟢 운영 보드</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파</a></div>
+      <div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인</span><a href="/one-day-surge-board" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">⚡ 1DS 단타 후보</a></div>
+      <div style="background:linear-gradient(90deg,#1e293b 0%,#334155 100%);border:1px solid #64748b;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;opacity:0.92;"><span style="color:#cbd5e1;font-weight:700;letter-spacing:0.3px;">📜 과거 보드</span><a href="/qva-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR (구)</a><a href="/rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (구)</a><a href="/qva-vvi-redefined-board" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (구)</a></div>
+      <div style="background:linear-gradient(90deg,#042f2e 0%,#134e4a 100%);border:1px solid #14b8a6;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#5eead4;font-weight:700;letter-spacing:0.3px;">📊 통합 보기</span><a href="/db-board" style="color:#fff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.22);border:1px solid #fff;font-weight:700;">🗄 DB 신호 운영판</a></div>
+    </div>
+
     <!-- 상단 -->
     <div class="topbar">
       <div>
         <h1><i class="bi bi-database me-1"></i>DB 신호 운영판</h1>
-        <div class="sub">매수 추천이 아닙니다 — 여러 보드에 반복/중복 등장한 종목을 압축해서 보는 관리자 화면</div>
+        <div class="sub">매수 추천이 아닙니다 — 여러 보드에 반복/중복 등장한 종목을 압축해서 보는 통합 뷰</div>
       </div>
-      <a href="/admin" class="text-decoration-none text-secondary small">
-        <i class="bi bi-arrow-left me-1"></i>관리자 대시보드로
-      </a>
     </div>
 
     <!-- 필터 toolbar -->
     <div class="card-soft">
       <form method="get" action="/admin/db-board-dashboard">
         <div class="toolbar">
-          <span style="color:#64748b; font-size:.85rem;">기준일</span>
+          <span style="color:#94a3b8; font-size:.85rem;">기준일</span>
           <input type="date" name="date" value="<%= date %>" />
-          <span style="color:#64748b; font-size:.85rem;">반복 기간</span>
+          <span style="color:#94a3b8; font-size:.85rem;">반복 기간</span>
           <select name="days">
             <% for (const d of [20, 60, 180]) { %>
               <option value="<%= d %>" <%= Number(days) === d ? 'selected' : '' %>><%= d %>일</option>
             <% } %>
           </select>
-          <span style="color:#64748b; font-size:.85rem;">limit</span>
+          <span style="color:#94a3b8; font-size:.85rem;">limit</span>
           <select name="limit">
             <% for (const l of [20, 50, 100]) { %>
               <option value="<%= l %>" <%= Number(limit) === l ? 'selected' : '' %>><%= l %></option>
@@ -82,7 +94,7 @@
           </select>
           <button type="submit"><i class="bi bi-search me-1"></i>조회</button>
           <span style="flex:1"></span>
-          <span style="color:#64748b; font-size:.85rem;">종목 검색</span>
+          <span style="color:#94a3b8; font-size:.85rem;">종목 검색</span>
           <input type="text" name="stockCode" placeholder="005930" value="<%= stockSearch || '' %>" maxlength="6" pattern="\d{4,6}" />
           <button type="submit" class="ghost">히스토리</button>
         </div>
@@ -90,16 +102,16 @@
     </div>
 
     <div class="note-box">
-      <strong>💡 priority_score 해석</strong> — 매수 점수가 아닙니다. <code>먼저 볼 순서</code>입니다.
-      <code>board_count × 10</code> + <code>positive_kind × 5</code> − <code>failed_kind × 8</code>
-      + <code>recent_repeat × 3</code> + <code>strong_kind × 10</code>의 단순 합산.
-      여러 보드에 동시에 잡혔거나 최근 반복된 종목이 자연스럽게 상위로 올라옵니다.
+      <strong>💡 priority_score / 단계점수</strong> — 둘 다 매수 점수가 아닙니다. <code>먼저 볼 순서</code>를 돕는 보조 점수.<br>
+      • <strong>priority_score</strong> = <code>board×10 + positive×5 − failed×8 + repeat×3 + strong×10</code> (출현 빈도 중심)<br>
+      • <strong>단계점수 (stage_score)</strong> = 각 보드/단계의 weight 합산. 예: <code>VVI2_FIRED +16</code>, <code>BREAKOUT_SUCCESS +18</code>, <code>FAILED −15</code>, <code>BREACH_NO_RECOVER −18</code>. 단계가 진척된 종목이 자연스럽게 상위로.<br>
+      • 모든 pill에 hover하면 원본 코드(<code>QVA2_WATCHLIST/VVI2_FIRED</code> 등)가 보입니다.
     </div>
 
     <!-- (검색 결과) 종목별 히스토리 -->
     <% if (stockSearch) { %>
       <div class="card-soft">
-        <h2><i class="bi bi-clock-history"></i>종목 히스토리 — <%= stockSearch %><% if (stockHistory && stockHistory.stock_name) { %> <span style="color:#64748b; font-weight:400; font-size:.9rem;">(<%= stockHistory.stock_name %>)</span><% } %></h2>
+        <h2><i class="bi bi-clock-history"></i>종목 히스토리 — <%= stockSearch %><% if (stockHistory && stockHistory.stock_name) { %> <span style="color:#94a3b8; font-weight:400; font-size:.9rem;">(<%= stockHistory.stock_name %>)</span><% } %></h2>
         <div class="hint">최근 180일 동안 어떤 보드/단계에 떴는지 + 각 신호의 D+N 성과 + cross-board link</div>
         <% if (errors && errors.stockHistory) { %>
           <div class="err">API 오류: <%= errors.stockHistory %></div>
@@ -121,20 +133,20 @@
                   <tr>
                     <td><%= s.signal_date %></td>
                     <td>
-                      <span class="pill pill-board"><%= s.board_name %></span>
+                      <span class="pill pill-board" title="<%= s.board_name %>"><%= formatBoardName(s.board_name) %></span>
                       <% if (negativeKinds.includes(s.signal_kind)) { %>
-                        <span class="pill pill-neg"><%= s.signal_kind %></span>
+                        <span class="pill pill-neg" title="<%= s.signal_kind %>"><%= formatSignalKind(s.signal_kind) %></span>
                       <% } else if (positiveKinds.includes(s.signal_kind)) { %>
-                        <span class="pill pill-pos"><%= s.signal_kind %></span>
+                        <span class="pill pill-pos" title="<%= s.signal_kind %>"><%= formatSignalKind(s.signal_kind) %></span>
                       <% } else { %>
-                        <span class="pill pill-mut"><%= s.signal_kind %></span>
+                        <span class="pill pill-mut" title="<%= s.signal_kind %>"><%= formatSignalKind(s.signal_kind) %></span>
                       <% } %>
                     </td>
                     <td class="num"><%= s.signal_price != null ? Number(s.signal_price).toLocaleString() : '—' %></td>
                     <td class="num"><%= s.score != null ? Number(s.score).toFixed(0) : '—' %></td>
                     <td>
                       <% if (s.grade) { %><span class="pill pill-mut"><%= s.grade %></span><% } %>
-                      <% if (s.status_label) { %><span style="color:#64748b; font-size:.78rem;"><%= s.status_label %></span><% } %>
+                      <% if (s.status_label) { %><span style="color:#94a3b8; font-size:.78rem;"><%= s.status_label %></span><% } %>
                     </td>
                     <td>
                       <% if (!s.outcomes || s.outcomes.length === 0) { %>—<% } else { %>
@@ -144,8 +156,8 @@
                       <% } %>
                     </td>
                     <td>
-                      <% for (const l of (s.outgoing_links || [])) { %><span class="pill pill-board" title="→ signal #<%= l.other_id %>">→ <%= l.link_type %></span><% } %>
-                      <% for (const l of (s.incoming_links  || [])) { %><span class="pill pill-board" title="← signal #<%= l.other_id %>">← <%= l.link_type %></span><% } %>
+                      <% for (const l of (s.outgoing_links || [])) { %><span class="pill pill-board" title="<%= l.link_type %> → signal #<%= l.other_id %>">→ <%= l.link_type %></span><% } %>
+                      <% for (const l of (s.incoming_links  || [])) { %><span class="pill pill-board" title="<%= l.link_type %> ← signal #<%= l.other_id %>">← <%= l.link_type %></span><% } %>
                     </td>
                   </tr>
                 <% } %>
@@ -168,25 +180,27 @@
             <tr>
               <th class="rank">#</th>
               <th>종목</th>
-              <th class="num">priority</th>
+              <th class="num" title="board_count×10 + positive×5 - failed×8 + repeat×3 + strong×10">priority</th>
+              <th class="num" title="단계별 KIND_WEIGHTS + BOARD_WEIGHTS 합산 (보조)">단계점수</th>
               <th class="num">boards</th>
               <th class="num">repeat<br/>(최근20일)</th>
               <th class="num">positive</th>
               <th class="num">failed</th>
-              <th>보드 / stage</th>
+              <th>보드 / 단계</th>
             </tr>
           </thead>
           <tbody>
             <% sections.todayFocus.forEach(function(r, i) { %>
               <tr>
                 <td class="rank"><%= i + 1 %></td>
-                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/admin/db-board-dashboard?date=<%= date %>&stockCode=<%= r.stock_code %>"><%= r.stock_name %></a></span></td>
+                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/db-board?date=<%= date %>&stockCode=<%= r.stock_code %>"><%= r.stock_name %></a></span></td>
                 <td class="num"><strong><%= r.priority_score %></strong></td>
+                <td class="num <%= Number(r.stage_score || 0) > 0 ? 'pos' : Number(r.stage_score || 0) < 0 ? 'neg' : '' %>"><%= r.stage_score != null ? r.stage_score : '—' %></td>
                 <td class="num"><%= r.board_count %></td>
                 <td class="num"><%= r.recent_repeat_count %></td>
                 <td class="num pos"><%= r.positive_kind_count %></td>
                 <td class="num <%= Number(r.failed_kind_count) > 0 ? 'neg' : '' %>"><%= r.failed_kind_count %></td>
-                <td><% for (const bk of String(r.boards || '').split(', ')) { if (!bk) continue; const isNeg = negativeKinds.some(k => bk.endsWith('/'+k)); const isPos = positiveKinds.some(k => bk.endsWith('/'+k)); %><span class="pill <%= isNeg ? 'pill-neg' : isPos ? 'pill-pos' : 'pill-board' %>"><%= bk %></span><% } %></td>
+                <td><% for (const bk of String(r.boards || '').split(', ')) { if (!bk) continue; const isNeg = negativeKinds.some(k => bk.endsWith('/'+k)); const isPos = positiveKinds.some(k => bk.endsWith('/'+k)); %><span class="pill <%= isNeg ? 'pill-neg' : isPos ? 'pill-pos' : 'pill-board' %>" title="<%= bk %>"><%= formatBoardKind(bk) %></span><% } %></td>
               </tr>
             <% }); %>
           </tbody>
@@ -211,7 +225,7 @@
                 <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/admin/db-board-dashboard?date=<%= date %>&stockCode=<%= r.stock_code %>"><%= r.stock_name %></a></span></td>
                 <td class="num"><strong><%= r.board_count %></strong></td>
                 <td class="num"><%= r.total_score != null ? Number(r.total_score).toFixed(0) : '—' %></td>
-                <td><% for (const bk of String(r.boards || '').split(', ')) { if (!bk) continue; const isPos = positiveKinds.some(k => bk.endsWith('/'+k)); %><span class="pill <%= isPos ? 'pill-pos' : 'pill-board' %>"><%= bk %></span><% } %></td>
+                <td><% for (const bk of String(r.boards || '').split(', ')) { if (!bk) continue; const isPos = positiveKinds.some(k => bk.endsWith('/'+k)); %><span class="pill <%= isPos ? 'pill-pos' : 'pill-board' %>" title="<%= bk %>"><%= formatBoardKind(bk) %></span><% } %></td>
               </tr>
             <% }); %>
           </tbody>
@@ -239,7 +253,7 @@
                 <td class="num pos"><%= r.positive_kind_count %></td>
                 <td class="num <%= Number(r.failed_count) > 0 ? 'neg' : '' %>"><%= r.failed_count %></td>
                 <td style="font-size:.75rem; color:#64748b;"><%= r.first_signal_date %> → <%= r.last_signal_date %></td>
-                <td><% for (const bk of String(r.board_kind_summary || '').split(', ')) { if (!bk) continue; const isNeg = negativeKinds.some(k => bk.endsWith('/'+k)); const isPos = positiveKinds.some(k => bk.endsWith('/'+k)); %><span class="pill <%= isNeg ? 'pill-neg' : isPos ? 'pill-pos' : 'pill-board' %>"><%= bk %></span><% } %></td>
+                <td><% for (const bk of String(r.board_kind_summary || '').split(', ')) { if (!bk) continue; const isNeg = negativeKinds.some(k => bk.endsWith('/'+k)); const isPos = positiveKinds.some(k => bk.endsWith('/'+k)); %><span class="pill <%= isNeg ? 'pill-neg' : isPos ? 'pill-pos' : 'pill-board' %>" title="<%= bk %>"><%= formatBoardKind(bk) %></span><% } %></td>
               </tr>
             <% }); %>
           </tbody>
@@ -270,7 +284,7 @@
           <tbody>
             <% sections.performance.forEach(function(r) { %>
               <tr>
-                <td><span class="pill pill-board"><%= r.board_name %></span><% if (r.signal_kind) { %> <span class="pill pill-mut"><%= r.signal_kind %></span><% } else { %> <span class="pill pill-mut">전체</span><% } %> <span class="code">D+<%= r.horizon_days %></span></td>
+                <td><span class="pill pill-board" title="<%= r.board_name %>"><%= formatBoardName(r.board_name) %></span><% if (r.signal_kind) { %> <span class="pill pill-mut" title="<%= r.signal_kind %>"><%= formatSignalKind(r.signal_kind) %></span><% } else { %> <span class="pill pill-mut">전체</span><% } %> <span class="code">D+<%= r.horizon_days %></span></td>
                 <% if (r.error || r.sample_count === 0) { %>
                   <td class="num" colspan="7" style="color:#94a3b8;">데이터 부족 <% if (r.error) { %>(<%= r.error %>)<% } %></td>
                 <% } else { %>
@@ -307,7 +321,139 @@
                 <td class="num"><strong><%= r.link_count %></strong></td>
                 <td class="num"><%= r.avg_days_between != null ? Number(r.avg_days_between).toFixed(1) : '—' %></td>
                 <td class="num"><%= r.max_days_between != null ? r.max_days_between : '—' %></td>
-                <td style="font-size:.75rem;"><% for (const ex of (r.examples || []).slice(0, 5)) { %><span class="pill pill-mut" title="<%= ex.from_kind %> → <%= ex.to_kind %> (Δ<%= ex.days_between %>d)"><%= ex.stock_code %> <%= ex.stock_name %></span><% } %></td>
+                <td style="font-size:.75rem;"><% for (const ex of (r.examples || []).slice(0, 5)) { %><span class="pill pill-mut" title="<%= ex.from_kind %> → <%= ex.to_kind %> (Δ<%= ex.days_between %>d) | <%= formatSignalKind(ex.from_kind) %> → <%= formatSignalKind(ex.to_kind) %>"><%= ex.stock_code %> <%= ex.stock_name %></span><% } %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table></div>
+      <% } %>
+    </div>
+
+    <!-- 6. 사용자 조합 필터 -->
+    <div class="card-soft" id="filter-section">
+      <h2><i class="bi bi-funnel"></i>사용자 조합 필터</h2>
+      <div class="hint">이 필터는 매수 조건이 아니라, 많은 후보 중 <strong>먼저 볼 대상을 좁히기 위한 화면 조건</strong>입니다. 프리셋 선택 또는 단계/보드 체크박스로 조합하세요. matchMode <code>any</code>=하나라도, <code>all</code>=모두 포함.</div>
+
+      <form method="get" action="/db-board#filter-section" style="margin-bottom:14px;">
+        <!-- 현재 화면 필터(date/days/limit/stockCode) 유지 -->
+        <input type="hidden" name="date"  value="<%= date %>" />
+        <input type="hidden" name="days"  value="<%= days %>" />
+        <input type="hidden" name="limit" value="<%= limit %>" />
+        <% if (stockSearch) { %><input type="hidden" name="stockCode" value="<%= stockSearch %>" /><% } %>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:12px; margin-bottom:10px;">
+          <!-- 프리셋 -->
+          <div>
+            <label style="color:#94a3b8; font-size:.78rem; display:block; margin-bottom:4px;">프리셋</label>
+            <select name="preset" style="font-size:.85rem; padding:6px 10px; border:1px solid #475569; border-radius:8px; background:#0f172a; color:#e2e8f0; width:100%;">
+              <option value="">— 직접 선택 —</option>
+              <% for (const k of Object.keys(FILTER_PRESETS)) { %>
+                <option value="<%= k %>" <%= filterPreset === k ? 'selected' : '' %>><%= FILTER_PRESETS[k].label %></option>
+              <% } %>
+            </select>
+            <% if (filterPreset && FILTER_PRESETS[filterPreset]) { %>
+              <div style="font-size:.72rem; color:#94a3b8; margin-top:4px;"><%= FILTER_PRESETS[filterPreset].description %></div>
+            <% } %>
+          </div>
+
+          <!-- 보드 선택 -->
+          <div>
+            <label style="color:#94a3b8; font-size:.78rem; display:block; margin-bottom:4px;">보드 포함 (선택 안 하면 전체)</label>
+            <select name="includeBoard" multiple size="4" style="font-size:.82rem; padding:6px 10px; border:1px solid #475569; border-radius:8px; background:#0f172a; color:#e2e8f0; width:100%;">
+              <% const incBoards = (filterResolved && filterResolved.includeBoard) || []; %>
+              <% for (const [code, label] of Object.entries(BOARD_LABELS)) { %>
+                <option value="<%= code %>" <%= incBoards.includes(code) ? 'selected' : '' %>><%= label %> <span style="color:#64748b">(<%= code %>)</span></option>
+              <% } %>
+            </select>
+          </div>
+
+          <!-- matchMode -->
+          <div>
+            <label style="color:#94a3b8; font-size:.78rem; display:block; margin-bottom:4px;">단계 매칭 방식</label>
+            <div style="display:flex; gap:14px; padding:6px 0;">
+              <% const mm = (filterResolved && filterResolved.matchMode) || 'any'; %>
+              <label style="font-size:.85rem; color:#cbd5e1;"><input type="radio" name="matchMode" value="any" <%= mm === 'any' ? 'checked' : '' %> /> 하나라도 포함</label>
+              <label style="font-size:.85rem; color:#cbd5e1;"><input type="radio" name="matchMode" value="all" <%= mm === 'all' ? 'checked' : '' %> /> 모두 포함</label>
+            </div>
+            <label style="color:#94a3b8; font-size:.72rem; display:block; margin-top:4px;">최소 보드 수
+              <input type="number" name="minBoardCount" min="0" max="10" value="<%= filterMinBoardCount %>" style="width:60px; font-size:.82rem; padding:3px 8px; border:1px solid #475569; border-radius:6px; background:#0f172a; color:#e2e8f0; margin-left:6px;" />
+            </label>
+            <label style="color:#94a3b8; font-size:.72rem; display:block; margin-top:4px;">최소 등장 횟수
+              <input type="number" name="minRepeatCount" min="0" max="20" value="<%= filterMinRepeatCount %>" style="width:60px; font-size:.82rem; padding:3px 8px; border:1px solid #475569; border-radius:6px; background:#0f172a; color:#e2e8f0; margin-left:6px;" />
+            </label>
+          </div>
+        </div>
+
+        <!-- 단계(signal_kind) 선택 — 포함 / 제외 -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:10px;">
+          <div>
+            <label style="color:#94a3b8; font-size:.78rem; display:block; margin-bottom:4px;">포함 단계</label>
+            <select name="includeKind" multiple size="7" style="font-size:.82rem; padding:6px 10px; border:1px solid #475569; border-radius:8px; background:#0f172a; color:#e2e8f0; width:100%;">
+              <% const incKinds = (filterResolved && filterResolved.includeKind) || []; %>
+              <% for (const [code, label] of Object.entries(KIND_LABELS)) { %>
+                <option value="<%= code %>" <%= incKinds.includes(code) ? 'selected' : '' %>><%= label %> <span style="color:#64748b">(<%= code %>)</span></option>
+              <% } %>
+            </select>
+          </div>
+          <div>
+            <label style="color:#94a3b8; font-size:.78rem; display:block; margin-bottom:4px;">제외 단계 (종목 단위)</label>
+            <select name="excludeKind" multiple size="7" style="font-size:.82rem; padding:6px 10px; border:1px solid #475569; border-radius:8px; background:#0f172a; color:#e2e8f0; width:100%;">
+              <% const excKinds = (filterResolved && filterResolved.excludeKind) || []; %>
+              <% for (const [code, label] of Object.entries(KIND_LABELS)) { %>
+                <option value="<%= code %>" <%= excKinds.includes(code) ? 'selected' : '' %>><%= label %> <span style="color:#64748b">(<%= code %>)</span></option>
+              <% } %>
+            </select>
+            <div style="font-size:.72rem; color:#94a3b8; margin-top:4px;">한 번이라도 매칭되면 종목 전체를 결과에서 제외</div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <button type="submit" style="font-size:.85rem; padding:6px 14px; border-radius:8px; border:0; background:#2563eb; color:#fff; font-weight:600; cursor:pointer;"><i class="bi bi-funnel-fill me-1"></i>필터 적용</button>
+          <a href="/db-board?date=<%= date %>&days=<%= days %>&limit=<%= limit %>" style="font-size:.85rem; padding:6px 14px; border-radius:8px; background:transparent; color:#cbd5e1; border:1px solid #475569; text-decoration:none;">초기화</a>
+        </div>
+      </form>
+
+      <!-- 결과 표 -->
+      <% if (!filterApplied) { %>
+        <div class="empty">프리셋을 고르거나 단계/보드를 선택해서 <strong>필터 적용</strong> 버튼을 누르세요.</div>
+      <% } else if (errors.filteredSignals) { %>
+        <div class="err">필터 오류: <%= errors.filteredSignals %></div>
+      <% } else if (!sections.filteredSignals || sections.filteredSignals.length === 0) { %>
+        <div class="empty">조건에 맞는 종목이 없습니다.</div>
+      <% } else { %>
+        <div class="meta-row" style="margin-bottom:10px;">
+          매칭: <strong><%= sections.filteredSignals.length %></strong>건
+          · 모드: <strong><%= filterResolved.matchMode === 'all' ? '모두 포함 (all)' : '하나라도 포함 (any)' %></strong>
+          <% if (filterResolved.includeKind && filterResolved.includeKind.length) { %>· 포함: <%= filterResolved.includeKind.map(k => KIND_LABELS[k] || k).join(', ') %><% } %>
+          <% if (filterResolved.excludeKind && filterResolved.excludeKind.length) { %>· 제외: <%= filterResolved.excludeKind.map(k => KIND_LABELS[k] || k).join(', ') %><% } %>
+          <% if (filterResolved.includeBoard && filterResolved.includeBoard.length) { %>· 보드: <%= filterResolved.includeBoard.map(b => BOARD_LABELS[b] || b).join(', ') %><% } %>
+        </div>
+        <div class="scroll-wrap"><table class="t">
+          <thead>
+            <tr>
+              <th class="rank">#</th>
+              <th>종목</th>
+              <th class="num">signals</th>
+              <th class="num">boards</th>
+              <th class="num">단계점수</th>
+              <th class="num">positive</th>
+              <th class="num">negative</th>
+              <th>기간</th>
+              <th>매칭된 보드/단계</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% sections.filteredSignals.forEach(function(r, i) { %>
+              <tr>
+                <td class="rank"><%= i + 1 %></td>
+                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/db-board?date=<%= date %>&stockCode=<%= r.stock_code %>"><%= r.stock_name %></a></span></td>
+                <td class="num"><strong><%= r.signal_count %></strong></td>
+                <td class="num"><%= r.board_count %></td>
+                <td class="num <%= Number(r.stage_score || 0) > 0 ? 'pos' : Number(r.stage_score || 0) < 0 ? 'neg' : '' %>"><%= r.stage_score != null ? r.stage_score : '—' %></td>
+                <td class="num pos"><%= r.positive_kind_count %></td>
+                <td class="num <%= Number(r.negative_kind_count) > 0 ? 'neg' : '' %>"><%= r.negative_kind_count %></td>
+                <td style="font-size:.75rem; color:#94a3b8;"><%= r.first_signal_date %> → <%= r.last_signal_date %></td>
+                <td><% for (const bk of String(r.raw_boards || '').split(', ')) { if (!bk) continue; const isNeg = negativeKinds.some(k => bk.endsWith('/'+k)); const isPos = positiveKinds.some(k => bk.endsWith('/'+k)); %><span class="pill <%= isNeg ? 'pill-neg' : isPos ? 'pill-pos' : 'pill-board' %>" title="<%= bk %>"><%= formatBoardKind(bk) %></span><% } %></td>
               </tr>
             <% }); %>
           </tbody>
