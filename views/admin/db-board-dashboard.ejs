@@ -763,12 +763,14 @@
             <% } %>
           </div>
 
-          <!-- 보드 선택 -->
+          <!-- 보드 선택 — 과거 보드(QVA_WATCHLIST / HGROUP_REBREAK / QVA_VVI_REDEFINED) 제외, 운영/실험 보드만 -->
           <div>
-            <label style="color:#94a3b8; font-size:.78rem; display:block; margin-bottom:4px;">보드 포함 (선택 안 하면 전체)</label>
+            <label style="color:#94a3b8; font-size:.78rem; display:block; margin-bottom:4px;">보드 포함 (선택 안 하면 전체 · 운영/실험 보드만 노출)</label>
             <select name="includeBoard" multiple size="4" style="font-size:.82rem; padding:6px 10px; border:1px solid #475569; border-radius:8px; background:#0f172a; color:#e2e8f0; width:100%;">
               <% const incBoards = (filterResolved && filterResolved.includeBoard) || []; %>
+              <% const PAST_BOARDS = ['QVA_WATCHLIST', 'HGROUP_REBREAK', 'QVA_VVI_REDEFINED']; %>
               <% for (const [code, label] of Object.entries(BOARD_LABELS)) { %>
+                <% if (PAST_BOARDS.includes(code)) continue; %>
                 <option value="<%= code %>" <%= incBoards.includes(code) ? 'selected' : '' %>><%= label %> <span style="color:#64748b">(<%= code %>)</span></option>
               <% } %>
             </select>
