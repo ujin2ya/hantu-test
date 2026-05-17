@@ -290,7 +290,7 @@
               <td class="rank"><%= idx + 1 %></td>
               <td class="stock-cell">
                 <span class="code"><%= c.stock_code %></span>
-                <a class="name" href="/db-board?date=<%= date %>&stockCode=<%= c.stock_code %>" style="color:#f1f5f9; text-decoration:none;"><%= c.stock_name %></a>
+                <a class="name" href="/stock/<%= c.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기" style="color:#f1f5f9; text-decoration:none;"><%= c.stock_name %></a>
                 <% if (c.market) { %><span class="market"><%= c.market %></span><% } %>
               </td>
               <td class="score-cell num">
@@ -389,7 +389,7 @@
             <tbody>
               <% for (const r of sections.recentRepeatedStocks.slice(0, 20)) { %>
                 <tr>
-                  <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/db-board?date=<%= date %>&stockCode=<%= r.stock_code %>"><%= r.stock_name %></a></span></td>
+                  <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/stock/<%= r.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기"><%= r.stock_name %></a></span></td>
                   <td class="num"><strong><%= r.signal_count %></strong></td>
                   <td class="num"><%= r.board_count %></td>
                   <td style="font-size:.75rem; color:#94a3b8;"><%= r.first_signal_date %></td>
@@ -418,7 +418,7 @@
               <tbody>
                 <% for (const r of sections.qvaFunnelStocks) { %>
                   <tr>
-                    <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/db-board?date=<%= date %>&stockCode=<%= r.stock_code %>"><%= r.stock_name %></a></span></td>
+                    <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/stock/<%= r.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기"><%= r.stock_name %></a></span></td>
                     <td class="num"><strong><%= r.signal_count %></strong></td>
                     <td class="num"><%= r.board_count %></td>
                     <td style="font-size:.72rem; color:#94a3b8;"><%= r.first_signal_date %> → <%= r.last_signal_date %></td>
@@ -442,7 +442,7 @@
               <tbody>
                 <% for (const r of sections.qva2FunnelStocks) { %>
                   <tr>
-                    <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/db-board?date=<%= date %>&stockCode=<%= r.stock_code %>"><%= r.stock_name %></a></span></td>
+                    <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/stock/<%= r.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기"><%= r.stock_name %></a></span></td>
                     <td class="num"><strong><%= r.signal_count %></strong></td>
                     <td class="num"><%= r.board_count %></td>
                     <td style="font-size:.72rem; color:#94a3b8;"><%= r.first_signal_date %> → <%= r.last_signal_date %></td>
@@ -600,7 +600,7 @@
             <% sections.todayFocus.forEach(function(r, i) { %>
               <tr>
                 <td class="rank"><%= i + 1 %></td>
-                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/db-board?date=<%= date %>&stockCode=<%= r.stock_code %>"><%= r.stock_name %></a></span></td>
+                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/stock/<%= r.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기"><%= r.stock_name %></a></span></td>
                 <td class="num"><strong><%= r.priority_score %></strong></td>
                 <td class="num <%= Number(r.stage_score || 0) > 0 ? 'pos' : Number(r.stage_score || 0) < 0 ? 'neg' : '' %>"><%= r.stage_score != null ? r.stage_score : '—' %></td>
                 <td class="num"><%= r.board_count %></td>
@@ -629,7 +629,7 @@
           <tbody>
             <% sections.overlap.forEach(function(r) { %>
               <tr>
-                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/admin/db-board-dashboard?date=<%= date %>&stockCode=<%= r.stock_code %>"><%= r.stock_name %></a></span></td>
+                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/stock/<%= r.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기"><%= r.stock_name %></a></span></td>
                 <td class="num"><strong><%= r.board_count %></strong></td>
                 <td class="num"><%= r.total_score != null ? Number(r.total_score).toFixed(0) : '—' %></td>
                 <td><% for (const bk of String(r.boards || '').split(', ')) { if (!bk) continue; const isPos = positiveKinds.some(k => bk.endsWith('/'+k)); %><span class="pill <%= isPos ? 'pill-pos' : 'pill-board' %>" title="<%= bk %>"><%= formatBoardKind(bk) %></span><% } %></td>
@@ -654,7 +654,7 @@
           <tbody>
             <% sections.repeated.forEach(function(r) { %>
               <tr>
-                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/admin/db-board-dashboard?date=<%= date %>&stockCode=<%= r.stock_code %>"><%= r.stock_name %></a></span></td>
+                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/stock/<%= r.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기"><%= r.stock_name %></a></span></td>
                 <td class="num"><strong><%= r.signal_count %></strong></td>
                 <td class="num"><%= r.board_count %></td>
                 <td class="num pos"><%= r.positive_kind_count %></td>
@@ -880,7 +880,7 @@
             <% sections.filteredSignals.forEach(function(r, i) { %>
               <tr>
                 <td class="rank"><%= i + 1 %></td>
-                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/db-board?date=<%= date %>&stockCode=<%= r.stock_code %>"><%= r.stock_name %></a></span></td>
+                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/stock/<%= r.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기"><%= r.stock_name %></a></span></td>
                 <td class="num"><strong><%= r.signal_count %></strong></td>
                 <td class="num"><%= r.board_count %></td>
                 <td class="num <%= Number(r.stage_score || 0) > 0 ? 'pos' : Number(r.stage_score || 0) < 0 ? 'neg' : '' %>"><%= r.stage_score != null ? r.stage_score : '—' %></td>
