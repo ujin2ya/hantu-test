@@ -74,7 +74,7 @@ scripts/                            # sync-remote-cache.sh 등 ops
   - QVA2 검증/백테스트/사전감시 보고서들은 모두 2026-05-10에 제거됨.
   - 의존성 순서 (16:35 cron + admin trigger): qva2-watchlist → qva2-d5-rebreak → qva2-vvi.
   - 컨트롤러/라우터: [src/controllers/qva2Controller.js](src/controllers/qva2Controller.js), [src/routes/qva2Routes.js](src/routes/qva2Routes.js). [src/routes/index.js](src/routes/index.js)에 mount.
-  - 살아있는 7개 보드의 HTML 상단에 보라색 QVA2 nav banner가 inline으로 들어가 있다.
+  - 살아있는 7개 보드의 HTML 상단에 3-section 통일 nav가 inline으로 들어가 있다 (🟢 운영 / 🟣 실험 / 📜 과거 — [네비게이션 카테고리](#네비게이션-카테고리-2026-05-17) 참고).
   - **임계값 튜닝은 `boards/qva2/qva2-screener.js`의 `QVA2_CONFIG`만 수정**. 보드 3개 모두 동일 screener를 import하므로 단일 진입점에서 동기화됨.
 - **운영 서버 캐시 동기화 (push 전 필수)**: `bash scripts/sync-remote-cache.sh` — 운영 서버의 `cache/pattern-result.json` + `cache/flow-history/` + `cache/stock-charts-long/`를 로컬로 받는다. 이유는 [push 절차](#push-절차) 참고.
 
@@ -138,13 +138,31 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 
 크게 세 개의 축이 한 코드베이스에 공존한다:
 1. **패턴 스크리너 + 일일 분석 캐시** (`screeners/pattern-screener.js`, QVA/VVI/CSB/Rebound/Trend Template/펀더멘탈 등을 결합한 5,000줄급 단일 모듈) → `cache/pattern-result.json`
-2. **운영 보드** — 패턴 결과를 funnel 단계별 운용 화면으로 재가공
-   - QVA Watchlist Board (`boards/qva/qva-watchlist-board.js` → `/qva-watchlist`)
-   - D+5 재돌파 운용 보드 (`boards/rebreak/hgroup-rebreak-operation-board.js` → `/rebreak`, `/d5-rebreak/:code`)
-   - 1-Day Surge Board — **QVA/VVI/BMS와 분리된 독립 단타 후보 보드** (`boards/oneDaySurge/one-day-surge-board.js` → `/one-day-surge-board`). 본체 점수에는 QVA/VVI/BMS 조건을 섞지 않고, QVA/VVI 이력은 카드 참고 태그로만 부착.
+2. **보드 (7개, 3 카테고리로 분류 — 2026-05-17)** — [네비게이션 카테고리](#네비게이션-카테고리-2026-05-17) 참고
+   - 🟢 **운영 보드 (3)**: `/qva2-watchlist`, `/qva2-d5-rebreak`, `/qva2-vvi`
+   - 🟣 **실험 라인 (1)**: `/one-day-surge-board`
+   - 📜 **과거 보드 (3)**: `/qva-watchlist`, `/rebreak`, `/qva-vvi-redefined-board`
 3. **일일 갱신 파이프라인** (`pipeline/update-flow-daily.js`, `update-daily-pykrx.py`, `pipeline/run-daily-analysis.js` + node-cron 4개)
 
 운영 UI(관리자 대시보드, 구독 메일)는 위 세 축이 만든 결과물 위에 얇게 얹힌다.
+
+### 네비게이션 카테고리 (2026-05-17)
+
+7개 보드 모두의 HTML 상단에 동일한 3-section nav가 inline으로 들어있다. 카테고리는 다음과 같이 재분류됨:
+
+| 카테고리 | 보드 | 라우트 | 색상 |
+|---------|------|--------|------|
+| 🟢 **운영 보드** | QVA2 H그룹/VPR | `/qva2-watchlist` | green |
+| 🟢 **운영 보드** | QVA2 D+5 재돌파 | `/qva2-d5-rebreak` | green |
+| 🟢 **운영 보드** | QVA2 고점 재돌파 | `/qva2-vvi` | green |
+| 🟣 **실험 라인** | 1DS 단타 후보 | `/one-day-surge-board` | purple |
+| 📜 **과거 보드** | QVA H그룹/VPR (구) | `/qva-watchlist` | gray |
+| 📜 **과거 보드** | D+5 재돌파 운용 (구) | `/rebreak` | gray |
+| 📜 **과거 보드** | QVA 고점 재돌파 (구) | `/qva-vvi-redefined-board` | gray |
+
+이전 분류와의 차이: (a) QVA2 가족이 실험 라인에서 운영 보드로 승격, (b) 1DS가 운영에서 실험 라인으로 이동, (c) 기존 QVA/Rebreak/QVA-VVI-redefined 3개는 과거 보드로 분류. 코드/라우트/cron은 그대로 유지하고 UI 분류만 바뀜.
+
+각 보드의 HTML 생성 코드에 인라인 nav HTML이 직접 들어가 있어 (별도 helper 모듈 없음), 카테고리를 다시 바꾸려면 7개 board generator 파일을 모두 수정해야 한다. 카테고리 변경 시 [src/routes/index.js](src/routes/index.js)의 mount 순서나 `BOARD_SCRIPTS` cron 실행 순서는 영향받지 않는다 (UI-only 분류).
 
 ### 부트스트랩과 src/ 분리 (3698f61e 이후)
 
@@ -182,12 +200,14 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 | `POST /d5-rebreak/:code/ai` | qvaVviRedefinedController.postCompanyAnalysis | 통일 상세 페이지의 AI 사업내용 요약 lazy 호출 |
 | `GET /one-day-surge-board` | oneDaySurgeController.getBoard | 단타 관심 후보 보드 HTML sendFile (`reports/one-day-surge-board-result.html`) |
 | `GET /one-day-surge`, `/ods` | (redirect) | `/one-day-surge-board`로 |
+| `GET /one-day-surge-board/:code`, `/one-day-surge/:code` | qvaVviRedefinedController.getRedefinedVviStockDetail | 1DS 종목 상세 — 다른 보드들과 같은 통일 상세 페이지 (qva-vvi-redefined-detail.ejs) 공유. 보드 카드의 종목명 클릭 시 진입. 메인 카드 + 스캐너 카드 + 공격형 TOP 카드 모두 링크됨. literal route(/backtest, /explosive-backtest) 뒤에 등록되어 매칭 충돌 없음 |
+| `POST /one-day-surge-board/:code/ai`, `/one-day-surge/:code/ai` | qvaVviRedefinedController.postCompanyAnalysis | 통일 상세 페이지의 AI 사업내용 요약 lazy 호출 |
 | `GET /qva-vvi-redefined-board` | qvaVviRedefinedController.getRedefinedVviBoard | 새 VVI 정의 (QVA 고가 + 거래량 + 거래대금 동시 재돌파) 후보 보드 HTML sendFile (`reports/qva-vvi-redefined-board-result.html`) |
 | `GET /qva-vvi-redefined/:code` | qvaVviRedefinedController.getRedefinedVviStockDetail | 새 VVI 종목 상세 페이지 — naver 메타 + KIS 실시간 + 60일 SVG 차트 + DART 재무 + Naver 뉴스 8건 + DART 공시 10건 + 새 VVI funnel 위치 + AI 분석 버튼. `views/qva-vvi-redefined-detail.ejs` 렌더. 보드 카드의 종목명이 이 라우트로 링크 |
 | `POST /qva-vvi-redefined/:code/ai` | qvaVviRedefinedController.postCompanyAnalysis | 상세 페이지 AI 버튼이 fetch로 호출. Gemini가 기업분석/사업내용/최근이슈 3섹션 생성 (in-memory 30분 TTL 캐시). `geminiCompanyAnalysis.js` |
-| `GET /qva2-watchlist` | qva2Controller.getWatchlistBoard | QVA2 H그룹/VPR 보드 sendFile (`reports/qva2-watchlist-board.html`). 기존 `/qva-watchlist`의 funnel 구조 mirror. 실험 라인 |
-| `GET /qva2-d5-rebreak` | qva2Controller.getD5RebreakBoard | QVA2 D+5 재돌파 운용보드 sendFile (`reports/qva2-d5-rebreak-board.html`). 기존 `/rebreak`의 mirror, 입력은 qva2-watchlist의 BREAKOUT_SUCCESS. 실험 라인 |
-| `GET /qva2-vvi` | qva2Controller.getVviBoard | QVA2 고점 재돌파 보드 sendFile (`reports/qva2-vvi-board.html`). 기존 `/qva-vvi-redefined-board` mirror. 실험 라인 |
+| `GET /qva2-watchlist` | qva2Controller.getWatchlistBoard | QVA2 H그룹/VPR 보드 sendFile (`reports/qva2-watchlist-board.html`). 기존 `/qva-watchlist`의 funnel 구조 mirror. **운영 보드** (2026-05-17 재분류) |
+| `GET /qva2-d5-rebreak` | qva2Controller.getD5RebreakBoard | QVA2 D+5 재돌파 운용보드 sendFile (`reports/qva2-d5-rebreak-board.html`). 기존 `/rebreak`의 mirror, 입력은 qva2-watchlist의 BREAKOUT_SUCCESS. **운영 보드** (2026-05-17 재분류) |
+| `GET /qva2-vvi` | qva2Controller.getVviBoard | QVA2 고점 재돌파 보드 sendFile (`reports/qva2-vvi-board.html`). 기존 `/qva-vvi-redefined-board` mirror. **운영 보드** (2026-05-17 재분류) |
 | `GET /stock/:code` | qvaVviRedefinedController.getRedefinedVviStockDetail | 모든 보드 상세 페이지가 공유하는 통일 페이지. `/qva-vvi-redefined/:code`와 동일 |
 | `POST /stock/:code/ai` | qvaVviRedefinedController.postCompanyAnalysis | 통일 상세 페이지의 AI 사업내용 요약 lazy 호출 |
 | `POST /ai/comment` | aiController.postComment | Gemini 짧은 코멘트 호출. (현재 통일 상세 페이지는 `/qva-vvi-redefined/:code/ai` 등 컨트롤러 전용 AI 라우트를 사용하므로 사용처가 줄었다) |
@@ -236,6 +256,14 @@ GitHub Actions deploy(`deploy.yml`)는 운영 서버에서 `git fetch origin mai
 `screeners/pattern-screener.js`는 라우트 핸들러에 직접 노출되지 않는다 — 컨트롤러는 cache 파일을 읽어 렌더만 한다. seed/analyze는 [src/services/pattern/adminTriggers.js](src/services/pattern/adminTriggers.js)가 비동기로 띄우고 `patternState`로 진행 상태를 추적한다.
 
 라이브 QVA 구현은 `screeners/pattern-screener.js`의 `calculateQuietVolumeAnomaly()`. 5가설(FIRST/2DAY/ABSORB/HIGHER_LOW/HOLD) 검증은 별도 일회성 스크립트 가족에서 했었지만 현재는 정리됐고, 라이브 boardgenerator (`boards/qva/qva-watchlist-board.js`)가 funnel 단계 시각화로 대체.
+
+**VVI = VVI2 통일 (2026-05-17)**: 모든 VVI 검출은 `boards/qva2/qva2-screener.js`의 `findVvi2AfterQva2` (absorption type)로 통일됨. 원본 standalone VVI 검출 로직(volumeRatio20/valueRatio20/closeLocation 임계값)은 폐기되고, "QVA event를 anchor로 VVI2 absorption 발화 여부 검사"로 시맨틱이 바뀜.
+- `screeners/pattern-screener.js`의 `calculateVolumeValueIgnition` 함수는 시그니처는 유지하되 내부적으로: (1) lastIdx-1 부터 40 거래일 거슬러 `calculateRedefinedQVA`로 직전 QVA anchor를 추론, (2) 첫 anchor에 대해 `findVvi2AfterQva2(rows, qvaIdx, ...)` 호출, (3) vvi2Idx === lastIdx면 passed. 호환 위해 `passed/category/signals.signalHigh/signals.signalClose` 등 기존 return shape는 유지.
+- `boards/qva/qva-watchlist-board.js`는 (이 보드는 이미 qvaIdx를 알고 있어 anchor 추론이 불필요하므로) `findVvi2AfterQva2`를 **직접** import해서 호출. 3개 사이트(주 funnel VVI 검출 + EARLY_QVA 윈도우 체크 + LONG_QVA 윈도우 체크) 모두 단일 호출로 단순화.
+- D+5 재돌파 보드(`boards/rebreak/`)는 `qva-watchlist-board.json`의 BREAKOUT_SUCCESS를 입력으로만 받으므로 자동으로 VVI2 결과를 상속.
+- 1DS 보드(`boards/oneDaySurge/`)의 `vviRecentSignals` 참고 태그는 `cache/pattern-result.json` 경유 → cache 재생성(16:10 cron 또는 `/admin/refresh-pattern-cache`) 후 VVI2 결과로 갱신됨.
+- `vvi.category`는 `STRONG_IGNITION`(volumeRatioToQva ≥ 1.5 + valueRatioToQva ≥ 1.5 + closeLocation ≥ 0.7) / `IGNITION`(그 외)로 derived. 원본의 STRONG_IGNITION/IGNITION 의미와 다르지만 `VVI_STRONG`/`VVI_IGNITION` 태그 분기는 그대로 유지됨.
+- VVI 임계값 튜닝은 이제 `boards/qva2/qva2-screener.js`의 `VVI2_CONFIG` 한 곳에서 관리. QVA2 보드 가족과 H그룹/D+5 보드가 동일한 VVI2 detector를 공유한다.
 
 ### 운영 보드 — QVA Watchlist (`boards/qva/qva-watchlist-board.js`)
 
@@ -295,6 +323,10 @@ QVA/VVI/H그룹과 **분리된 독립 보드**. 본체 점수에 QVA/VVI/BMS 조
 - 키워드 매칭 (방어용): `EXCLUDE_NAME_KEYWORDS` (KODEX/TIGER/ACE/SOL/KBSTAR/HANARO/ARIRANG/TIMEFOLIO/KOSEF/히어로즈/PLUS/인버스/레버리지/리츠/스팩/제1~4호) + 종목명 끝 우선주 정규식 `/\s?\d*우[A-Z]?$/`
 - 시총 < 500억 / ≥ 5조 / 시총 미확인 → 제외
 - 결과: ~4270 chart 중 ~2350개를 **차트 파싱 전에 컷오프**해서 실제 처리량 절반 감소 → 1.8초 wall time
+
+**stale 후보 가드 (2026-05-17, [boards/oneDaySurge/one-day-surge-board.js:1265](boards/oneDaySurge/one-day-surge-board.js#L1265))**: chart 캐시는 매일 OHLC=0 row가 추가되지만 거래정지/장기 미거래 종목은 `baseDate`(가장 최근 volume>0 row)가 옛 날짜로 떨어진다. 이런 후보는 1DS 매수 의미가 없고 `entryConfirmDate` / `targetDateForResult` 계산을 오염시킨다 (실제로 정상 후보 169건이 nextDayDir=null이고 stale 10건만 nextDayDir을 만들어 옛 날짜가 entryConfirmDate로 잡히는 사례 확인됨). → 후보 push 직후 가장 흔한 baseDate(consensus)를 산출하고, 거기서 **7 calendar days 이상 떨어진 후보는 제외**. 콘솔에 `🧹 stale 후보 N건 제외 (consensus baseDate YYYYMMDD에서 7일 이상 옛 후보 — 거래정지/미거래 추정)` 로그. 다른 funnel 보드(QVA / QVA2 / rebreak)는 D+0~D+30 추적 윈도우 안 옛 날짜가 의도된 동작이라 동일 가드 불필요.
+
+**휴장일 처리 (2026-05-17, [boards/oneDaySurge/one-day-surge-board.js:60](boards/oneDaySurge/one-day-surge-board.js#L60))**: `getMarketStatus()`가 주말/한국 공휴일을 감지해 `status='holiday_closed'` 반환. KR_HOLIDAYS는 `screeners/pattern-screener.js`에서 export. `marketStatus.previousTradingDate`는 보드의 실제 데이터 `targetDateForResult`로 정정 (간단 holiday 목록 오차 보정). 상단 status banner(`computeBoardStatus`)는 휴장일이면 시각 무관 `'holiday'` 반환 → "📅 휴장일 (주말/공휴일/대체공휴일)". `renderTodayResult` 섹션 제목도 `📊 직전 거래일 1DS 결과 (YYYY-MM-DD)`로 자동 변경 + 보라색 휴장 안내 배너 prepend. `--force-status holiday_closed`로 테스트 가능.
 
 **점수 구성**: 거래대금 증가(25) + 거래량 증가(15) + 종가 위치(20) + 당일 상승률(15) + 20일 고점 돌파/근접(15) + 거래대금 순위(10) − 윗꼬리(20) − 과열(20) − 위험(30) − 시가총액(8). 시총 감점은 1.5조~3조 -3 / 3조~5조 -8 / 500억~1,000억 -5, 핵심 1,000억~1.5조는 0.
 
@@ -377,8 +409,8 @@ EJS 템플릿:
 - `views/admin/login.ejs` — `/admin/login`
 - `views/admin/dashboard.ejs` — `/admin`
 
-**모든 종목 상세 페이지를 QVA2 고점돌파 상세(qvaVviRedefinedController.getRedefinedVviStockDetail)로 통일 (2026-05-10)**:
-다음 8개 라우트 모두 동일 컨트롤러·동일 EJS를 공유한다 — `/qva-vvi-redefined/:code`, `/qva2-vvi/:code`, `/qva2-watchlist/:code`, `/qva2-d5-rebreak/:code`, `/stock/:code`, `/d5-rebreak/:code`, AI POST는 모두 `/<route>/:code/ai`. 보드 generator의 종목명 링크가 어느 라우트로 가도 같은 페이지를 보게 된다 (URL은 진입 보드 컨텍스트 보존, 페이지는 동일).
+**모든 종목 상세 페이지를 QVA2 고점돌파 상세(qvaVviRedefinedController.getRedefinedVviStockDetail)로 통일 (2026-05-10, 1DS 합류 2026-05-17)**:
+다음 10개 라우트 모두 동일 컨트롤러·동일 EJS를 공유한다 — `/qva-vvi-redefined/:code`, `/qva2-vvi/:code`, `/qva2-watchlist/:code`, `/qva2-d5-rebreak/:code`, `/stock/:code`, `/d5-rebreak/:code`, `/one-day-surge-board/:code`, `/one-day-surge/:code`, AI POST는 모두 `/<route>/:code/ai`. 보드 generator의 종목명 링크가 어느 라우트로 가도 같은 페이지를 보게 된다 (URL은 진입 보드 컨텍스트 보존, 페이지는 동일). 1DS는 메인 카드 + 09:30 스캐너 카드 + 공격형 TOP 카드 종목명이 모두 `/one-day-surge-board/:code`로 링크.
 - 차트: TradingView Lightweight Charts v4 (CDN: `unpkg.com/lightweight-charts@4.2.0`). 3-pane 동기화 (캔들+MA6 / 거래량+MA20 / 거래대금+MA20), 기간 선택 1M/3M/6M/200D/1Y/ALL, 봉 개수에 따른 모드 자동 전환 (detail/mid/wide), 흰 배경 KIS 스타일.
 - 발행 주식 정보: 보통주식수(DART cmpnyOvrviw `stk_total_no` 우선, 없으면 KIS `lstn_stcn` fallback) + 유동주식수(보통주식수 × (1 − 최대주주+특수관계인 지분율 / 100), DART hyslrSttus 기반 추정 — 5% 임원·우리사주 추가 lock-up 미반영). [src/utils/sharesInfo.js](src/utils/sharesInfo.js)의 `computeSharesInfo()`가 단일 진입점.
 - D+5 재돌파의 H돌파일 마커·기준선 3개는 통일 과정에서 빠졌다 (qvaVviRedefined 컨트롤러는 보드 컨텍스트를 받지 않음). 운용에 다시 필요하면 lookupRebreakItem 같은 보강을 별도로 추가.

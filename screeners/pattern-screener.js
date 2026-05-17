@@ -15,6 +15,7 @@ const path = require("path");
 const axios = require("axios");
 const dart = require("./dart-fetcher");
 const korea = require("./korea-filter");
+const { findVvi2AfterQva2 } = require("../boards/qva2/qva2-screener");
 
 const CACHE_DIR = path.join(__dirname, "..", "cache", "stock-charts");
 const LONG_CACHE_DIR = path.join(__dirname, "..", "cache", "stock-charts-long");
@@ -3448,125 +3449,91 @@ function calculateReboundScore(chartRows, flowRows, meta = {}) {
 
 // ─── VolumeValueIgnition (거래대금 초동 후보) ───
 // 평소 거래대금 대비 폭증 + 양호한 종가 마감 → 다음날 진입 성과 검증
+// VVI = VVI2 (2026-05-17 통일). 원본 standalone VVI 검출 로직은 폐기되고,
+// "직전 QVA event를 anchor로 추론한 VVI2"로 시맨틱 변경됨.
+//   - lastIdx = chartRows.length - 1 이 검사 대상 일자
+//   - lastIdx-1 부터 LOOKBACK_QVA_DAYS 거슬러 calculateRedefinedQVA로 QVA anchor 검색
+//   - 첫 QVA anchor에 대해 findVvi2AfterQva2(absorption)을 돌려 vvi2Idx === lastIdx면 passed
+//   - return shape는 호환 유지: passed/category/score/breakdown/signals(.signalHigh, .signalClose)
+const VVI_ANCHOR_LOOKBACK_DAYS = 40;
 function calculateVolumeValueIgnition(chartRows, flowRows, meta = {}) {
   if (!chartRows || chartRows.length < 60) return null;
-  if (!flowRows || flowRows.length < 10) return null;
-
   const idx = chartRows.length - 1;
   const today = chartRows[idx];
-  const close = today?.close;
-  if (!close || close <= 0) return null;
+  if (!today?.close || today.close <= 0) return null;
 
   const reject = (reason) => ({ passed: false, reason });
 
-  // ─── Hard filter ───
+  // 공통 hard filter (special/etf/marketCap) — VVI2 진입 전 차단
   if (meta.isSpecial || meta.isEtf) return reject('special/etf');
   if ((meta.marketValue || 0) < 50_000_000_000) return reject('marketCap<500억');
 
+  // ─── 직전 QVA anchor 검색 ───
+  let qvaIdx = -1;
+  for (let back = 1; back <= VVI_ANCHOR_LOOKBACK_DAYS; back++) {
+    const candIdx = idx - back;
+    if (candIdx < 60) break;
+    const sliced = chartRows.slice(0, candIdx + 1);
+    let qva = null;
+    try { qva = calculateRedefinedQVA(sliced, [], meta); } catch (_) {}
+    if (qva?.passed) { qvaIdx = candIdx; break; }
+  }
+  if (qvaIdx < 0) return reject('no prior QVA anchor');
+
+  // ─── VVI2 검출 (absorption, QVA event anchor 기준) ───
+  const maxDays = idx - qvaIdx; // anchor 부터 오늘까지만 스캔
+  const v2 = findVvi2AfterQva2(chartRows, qvaIdx, maxDays, { qva2Type: 'absorption' });
+  if (v2.vvi2Idx !== idx) return reject('today is not VVI2 of recent QVA');
+
+  // ─── return shape 호환 (VVI2 detection 기반 derived metrics) ───
+  const qvaRow = chartRows[qvaIdx];
+  const range = today.high - today.low;
+  const closeLocation = range > 0 ? (today.close - today.low) / range : 0.5;
+  const volumeRatioToQva = qvaRow.volume > 0 ? (today.volume || 0) / qvaRow.volume : 0;
+  const valueRatioToQva  = qvaRow.valueApprox > 0 ? (today.valueApprox || 0) / qvaRow.valueApprox : 0;
+  const isStrong = volumeRatioToQva >= 1.5 && valueRatioToQva >= 1.5 && closeLocation >= 0.7;
+
+  // 표시용 보조 지표
   const last20rows = chartRows.slice(-20);
   const avg20Value = last20rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last20rows.length, 1);
-  if (avg20Value < 2_000_000_000) return reject('avg20Value<20억');
-
-  const atrObj = computeATR(chartRows, idx, 14);
-  const atrPct = atrObj ? atrObj.atr / close : null;
-  if (!atrPct) return reject('ATR n/a');
-  if (atrPct >= 0.30) return reject('atrPct>=30%');
-
-  const ret5d = chartRows.length >= 6 ? (close / chartRows[idx - 5].close - 1) : 0;
-  const ret20d = chartRows.length >= 21 ? (close / chartRows[idx - 20].close - 1) : 0;
-  if (ret5d > 0.18) return reject('ret5d>18%');
-  if (ret20d > 0.40) return reject('ret20d>40%');
-
-  const todayReturn = today.open > 0 ? (close / today.open - 1) : 0;
-  if (todayReturn <= 0) return reject('todayReturn<=0');
-
-  const range = today.high - today.low;
-  const closeLocation = range > 0 ? (close - today.low) / range : 0;
-  if (closeLocation < 0.4) return reject('closeLocation<0.4');
-
-  // ─── 핵심 지표 ───
-  const last20vol = last20rows.map(r => r.volume || 0);
-  const avg20Vol = last20vol.reduce((s, v) => s + v, 0) / Math.max(last20rows.length, 1);
+  const avg20Vol = last20rows.reduce((s, r) => s + (r.volume || 0), 0) / Math.max(last20rows.length, 1);
   const volumeRatio20 = avg20Vol > 0 ? (today.volume || 0) / avg20Vol : 0;
+  const valueRatio20  = avg20Value > 0 ? (today.valueApprox || 0) / avg20Value : 0;
+  const todayReturn = today.open > 0 ? (today.close / today.open - 1) : 0;
 
-  const valueRatio20 = avg20Value > 0 ? (today.valueApprox || 0) / avg20Value : 0;
-  const last60rows = chartRows.slice(-60);
-  const avg60Value = last60rows.reduce((s, r) => s + (r.valueApprox || 0), 0) / Math.max(last60rows.length, 1);
-  const valueRatio60 = avg60Value > 0 ? (today.valueApprox || 0) / avg60Value : 0;
-
-  const ma20 = sma(chartRows.slice(-20).map(r => r.close), 20);
-  const distance20 = ma20 ? (close / ma20 - 1) : 0;
-
-  const upperWick = today.high > today.close ? (today.high - today.close) : 0;
-  const bodyHeight = Math.abs(today.close - today.open);
-  const upperWickRatio = bodyHeight > 0 ? upperWick / bodyHeight : 0;
-
-  // ─── 초동 조건 판정 ───
-  const isIgnition = volumeRatio20 >= 2.0 && valueRatio20 >= 2.0 && valueRatio20 <= 5.0
-    && todayReturn >= 0.02 && todayReturn <= 0.12 && closeLocation >= 0.7 && upperWickRatio <= 0.35;
-  const isStrongIgnition = volumeRatio20 >= 2.5 && valueRatio20 >= 3.0 && valueRatio20 <= 5.0
-    && todayReturn >= 0.03 && todayReturn <= 0.15 && closeLocation >= 0.8 && upperWickRatio <= 0.25;
-  const isOverheat = valueRatio20 > 5.0 || todayReturn > 0.15 || ret5d > 0.18 || upperWickRatio > 0.45;
-
-  if (!isIgnition && !isStrongIgnition) return reject('not ignition');
-  if (isOverheat) return reject('overheat');
-
-  // ─── 점수 계산 ───
-  let valueExplosionScore = 0;
-  if (valueRatio20 >= 5.0) valueExplosionScore = 25;
-  else if (valueRatio20 >= 3.0) valueExplosionScore = 20;
-  else if (valueRatio20 >= 2.0) valueExplosionScore = 12;
-  if (valueRatio60 >= 3.0) valueExplosionScore = Math.min(30, valueExplosionScore + 5);
-
-  let volumeExplosionScore = 0;
-  if (volumeRatio20 >= 3.0) volumeExplosionScore = 20;
-  else if (volumeRatio20 >= 2.5) volumeExplosionScore = 16;
-  else if (volumeRatio20 >= 2.0) volumeExplosionScore = 10;
-
-  let candleQualityScore = 0;
-  if (closeLocation >= 0.8) candleQualityScore += 10;
-  else if (closeLocation >= 0.6) candleQualityScore += 6;
-  if (today.close > today.open) candleQualityScore += 5;
-  if (upperWick < 0.02) candleQualityScore += 5;
-  else if (upperWick < 0.05) candleQualityScore += 2;
-
-  let cooldownScore = 0;
-  if (ret5d <= 0.10) cooldownScore += 5;
-  else if (ret5d <= 0.15) cooldownScore += 2;
-  if (ret20d <= 0.20) cooldownScore += 5;
-  else if (ret20d <= 0.35) cooldownScore += 2;
-
-  let structureScore = 0;
-  if (ma20 && close >= ma20) structureScore += 5;
-  if (distance20 >= -0.05 && distance20 <= 0.15) structureScore += 5;
-
-  let liquidityScore = 0;
-  if (avg20Value >= 30_000_000_000) liquidityScore = 5;
-  else if (avg20Value >= 10_000_000_000) liquidityScore = 3;
-  else if (avg20Value >= 2_000_000_000) liquidityScore = 1;
-
-  let flowScore = 0;
-  if (flowRows?.length >= 3) {
-    const flow3 = flowRows.slice(-3);
-    const net3 = flow3.reduce((s, r) => s + ((r.foreignNetValue || 0) + (r.instNetValue || 0)), 0);
-    if (net3 > 0) flowScore = 5;
-    else if (net3 > -5_000_000_000) flowScore = 2;
-  }
-
-  const category = isStrongIgnition ? 'STRONG_IGNITION' : 'IGNITION';
-  const score = valueExplosionScore + volumeExplosionScore + candleQualityScore
-    + cooldownScore + structureScore + liquidityScore + flowScore;
+  const score = Math.round(50 + (volumeRatioToQva + valueRatioToQva) * 5 + closeLocation * 10);
 
   return {
     passed: true,
-    category,
+    category: isStrong ? 'STRONG_IGNITION' : 'IGNITION',
     score,
-    breakdown: { valueExplosionScore, volumeExplosionScore, candleQualityScore,
-      cooldownScore, structureScore, liquidityScore, flowScore },
-    signals: { volumeRatio20: +(volumeRatio20.toFixed(2)), valueRatio20: +(valueRatio20.toFixed(2)), valueRatio60: +(valueRatio60.toFixed(2)),
-      closeLocation: +(closeLocation.toFixed(2)), todayReturn: +(todayReturn * 100).toFixed(2), ret5d: +(ret5d * 100).toFixed(2),
-      ret20d: +(ret20d * 100).toFixed(2), distance20: +(distance20 * 100).toFixed(2), atrPct: +(atrPct * 100).toFixed(2),
-      avg20Value, upperWickRatio: +(upperWickRatio.toFixed(2)), signalHigh: today.high, signalClose: today.close },
+    breakdown: {
+      volumeRatioToQva: +(volumeRatioToQva.toFixed(2)),
+      valueRatioToQva:  +(valueRatioToQva.toFixed(2)),
+      closeLocation:    +(closeLocation.toFixed(2)),
+      daysSinceQva:     idx - qvaIdx,
+    },
+    signals: {
+      // 공통 (downstream consumer)
+      signalHigh: today.high,
+      signalClose: today.close,
+      // VVI2 anchor 정보
+      qvaAnchorDate: qvaRow.date,
+      qvaAnchorIdx: qvaIdx,
+      daysSinceQva: idx - qvaIdx,
+      qvaHigh: qvaRow.high,
+      qvaClose: qvaRow.close,
+      qvaVolume: qvaRow.volume,
+      qvaValue: qvaRow.valueApprox,
+      // 비율 (VVI2 통과 기준)
+      volumeRatioToQva: +(volumeRatioToQva.toFixed(2)),
+      valueRatioToQva:  +(valueRatioToQva.toFixed(2)),
+      closeLocation:    +(closeLocation.toFixed(2)),
+      // 표시용 (20일 평균 대비)
+      volumeRatio20: +(volumeRatio20.toFixed(2)),
+      valueRatio20:  +(valueRatio20.toFixed(2)),
+      todayReturn:   +(todayReturn * 100).toFixed(2),
+    },
   };
 }
 
@@ -5425,4 +5392,6 @@ module.exports = {
   calculateQuietVolumeHigherLow,
   calculateQuietVolumeHold,
   extractPreIgnitionFeatures,
+  KR_HOLIDAYS,
+  isKrHoliday,
 };

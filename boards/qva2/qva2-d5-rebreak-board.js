@@ -298,6 +298,9 @@ h1 { font-size:22px; margin:6px 0 4px; color:#f1f5f9; font-weight:700; }
 .subtitle { font-size:13px; color:#94a3b8; margin-bottom:12px; line-height:1.6; }
 .purpose-box { background:#0f172a; border-left:3px solid #a78bfa; padding:12px 16px; border-radius:6px; margin-bottom:14px; line-height:1.7; color:#cbd5e1; font-size:13px; }
 .purpose-box strong { color:#c4b5fd; }
+.funnel-chip { display:inline-block; text-decoration:none; padding:4px 10px; border-radius:5px; font-size:12px; font-weight:600; transition: transform 0.1s, filter 0.15s; }
+.funnel-chip:hover { transform: translateY(-1px); filter: brightness(1.25); }
+h2[id^="sec-"] { scroll-margin-top: 14px; }
 .caution-box { background:#1f1b14; border-left:3px solid #fbbf24; padding:10px 14px; border-radius:6px; margin-bottom:14px; color:#fcd34d; font-size:12px; line-height:1.6; }
 
 .summary-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:16px; }
@@ -355,14 +358,11 @@ footer.foot { margin-top:30px; padding:14px; background:#1e293b; border-radius:8
 </style>
 </head>
 <body>
-<div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인 (QVA2)</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR (QVA2)</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.18);border:1px solid #a78bfa;">🔥 D+5 재돌파 (QVA2)</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (QVA2)</a></div>
-<nav class="boards">
-  <span class="group-label">운영</span>
-  <a href="/qva-watchlist" class="live">📋 H그룹/VPR 보드</a>
-  <a href="/rebreak" class="live">🔥 D+5 재돌파 운용</a>
-  <a href="/qva-vvi-redefined-board" class="live">🎯 QVA 고점 재돌파</a>
-  <a href="/one-day-surge-board" class="live">⚡ 1DS</a>
-</nav>
+<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+  <div style="background:linear-gradient(90deg,#064e3b 0%,#065f46 100%);border:1px solid #10b981;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#a7f3d0;font-weight:700;letter-spacing:0.3px;">🟢 운영 보드</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR</a><a href="/qva2-d5-rebreak" style="color:#fff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.22);border:1px solid #fff;font-weight:700;">🔥 D+5 재돌파</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파</a></div>
+  <div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인</span><a href="/one-day-surge-board" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">⚡ 1DS 단타 후보</a></div>
+  <div style="background:linear-gradient(90deg,#1e293b 0%,#334155 100%);border:1px solid #64748b;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;opacity:0.92;"><span style="color:#cbd5e1;font-weight:700;letter-spacing:0.3px;">📜 과거 보드</span><a href="/qva-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR (구)</a><a href="/rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (구)</a><a href="/qva-vvi-redefined-board" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (구)</a></div>
+</div>
 
 <h1>🔥 QVA2 D+5 재돌파 운용 보드 <span class="exp-pill">실험 라인</span></h1>
 <div class="subtitle" id="subtitle"></div>
@@ -370,6 +370,14 @@ footer.foot { margin-top:30px; padding:14px; background:#1e293b; border-radius:8
 <div class="purpose-box">
   <strong>QVA2 BREAKOUT_SUCCESS</strong> 후보를 입력으로 받아, D+0 고가가 D+1~D+5 안에 종가 기준 다시 돌파됐는지 추적하는 운용 보드입니다.
   <br>기존 <a href="/rebreak" style="color:#c4b5fd;">/rebreak</a> 의 1:1 QVA2 mirror.
+  <br><br><span style="color:#94a3b8;font-size:12px;">상태 분포 (chip 클릭 = 해당 섹션으로 이동):</span><br>
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+    <a href="#sec-rb" class="funnel-chip" style="background:#052e16;border:1px solid #22c55e;color:#86efac;">🟢 종가 재돌파 성공</a>
+    <a href="#sec-td" class="funnel-chip" style="background:#0c2740;border:1px solid #3b82f6;color:#93c5fd;">🔵 오늘 D+0 돌파</a>
+    <a href="#sec-in" class="funnel-chip" style="background:#3a2a08;border:1px solid #eab308;color:#fde047;">🟡 장중만 돌파 후 밀림</a>
+    <a href="#sec-br" class="funnel-chip" style="background:#450a0a;border:1px solid #f87171;color:#fca5a5;">🔴 진입가 이탈 후 회복 실패</a>
+    <a href="#sec-nr" class="funnel-chip" style="background:#1e293b;border:1px solid #94a3b8;color:#cbd5e1;">⚪ 재돌파 없음</a>
+  </div>
 </div>
 
 <div class="caution-box">
@@ -379,19 +387,19 @@ footer.foot { margin-top:30px; padding:14px; background:#1e293b; border-radius:8
 <h2>📊 화면 요약</h2>
 <div class="summary-grid" id="summary-grid"></div>
 
-<h2>🟢 종가 재돌파 성공 <span class="count" id="rb-count"></span></h2>
+<h2 id="sec-rb">🟢 종가 재돌파 성공 <span class="count" id="rb-count"></span></h2>
 <div id="rb-host"></div>
 
-<h2>🔵 오늘 D+0 돌파 <span class="count" id="td-count"></span></h2>
+<h2 id="sec-td">🔵 오늘 D+0 돌파 <span class="count" id="td-count"></span></h2>
 <div id="td-host"></div>
 
-<h2>🟡 장중만 돌파 후 밀림 <span class="count" id="in-count"></span></h2>
+<h2 id="sec-in">🟡 장중만 돌파 후 밀림 <span class="count" id="in-count"></span></h2>
 <div id="in-host"></div>
 
-<h2>🔴 진입가 이탈 후 회복 실패 <span class="count" id="br-count"></span></h2>
+<h2 id="sec-br">🔴 진입가 이탈 후 회복 실패 <span class="count" id="br-count"></span></h2>
 <div id="br-host"></div>
 
-<h2>⚪ 재돌파 없음 <span class="count" id="nr-count"></span></h2>
+<h2 id="sec-nr">⚪ 재돌파 없음 <span class="count" id="nr-count"></span></h2>
 <div id="nr-host"></div>
 
 <footer class="foot" id="foot"></footer>

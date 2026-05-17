@@ -450,6 +450,9 @@ h1 { font-size: 22px; margin: 6px 0 4px; color: #f1f5f9; font-weight: 700; }
 .subtitle { font-size: 13px; color: #94a3b8; margin-bottom: 12px; line-height:1.6; }
 .purpose-box { background: #0f172a; border-left: 3px solid #a78bfa; padding: 12px 16px; border-radius: 6px; margin-bottom: 14px; line-height: 1.7; color: #cbd5e1; font-size: 13px; }
 .purpose-box strong { color: #c4b5fd; }
+.funnel-chip { display:inline-block; text-decoration:none; padding:4px 10px; border-radius:5px; font-size:12px; font-weight:600; transition: transform 0.1s, filter 0.15s; }
+.funnel-chip:hover { transform: translateY(-1px); filter: brightness(1.25); }
+h2[id^="sec-"] { scroll-margin-top: 14px; }
 .caution-box { background:#1f1b14; border-left:3px solid #fbbf24; padding:10px 14px; border-radius:6px; margin-bottom:14px; color:#fcd34d; font-size:12px; line-height:1.6; }
 
 .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
@@ -501,18 +504,11 @@ footer.foot { margin-top:30px; padding:14px; background:#1e293b; border-radius:8
 </style>
 </head>
 <body>
-<nav class="boards">
-  <span class="group-label">운영</span>
-  <a href="/qva-watchlist" class="live">📋 QVA</a>
-  <a href="/qva-vvi-redefined-board" class="live">🎯 VVI</a>
-  <a href="/rebreak" class="live">🔥 D+5 재돌파</a>
-  <a href="/one-day-surge-board" class="live">⚡ 1DS</a>
-  <span class="sep">|</span>
-  <span class="group-label">실험 QVA2</span>
-  <a href="/qva2-watchlist" class="experiment">📋 H그룹/VPR (QVA2)</a>
-  <a href="/qva2-d5-rebreak" class="experiment">🔥 D+5 재돌파 (QVA2)</a>
-  <a href="/qva2-vvi" class="experiment active">🎯 고점 재돌파 (QVA2)</a>
-</nav>
+<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+  <div style="background:linear-gradient(90deg,#064e3b 0%,#065f46 100%);border:1px solid #10b981;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#a7f3d0;font-weight:700;letter-spacing:0.3px;">🟢 운영 보드</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파</a><a href="/qva2-vvi" style="color:#fff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.22);border:1px solid #fff;font-weight:700;">🎯 고점 재돌파</a></div>
+  <div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인</span><a href="/one-day-surge-board" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">⚡ 1DS 단타 후보</a></div>
+  <div style="background:linear-gradient(90deg,#1e293b 0%,#334155 100%);border:1px solid #64748b;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;opacity:0.92;"><span style="color:#cbd5e1;font-weight:700;letter-spacing:0.3px;">📜 과거 보드</span><a href="/qva-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR (구)</a><a href="/rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (구)</a><a href="/qva-vvi-redefined-board" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (구)</a></div>
+</div>
 
 <h1>🟣 QVA2 → VVI2: 약했던 마감을 다시 뚫는 후보 <span class="exp-pill">실험 라인</span></h1>
 <div class="subtitle" id="subtitle"></div>
@@ -521,6 +517,17 @@ footer.foot { margin-top:30px; padding:14px; background:#1e293b; border-radius:8
   <strong>VVI2란?</strong> QVA2 신호일의 (high, volume, value)를 기준으로, 그 이후 처음으로
   ① 고가 재돌파, ② 거래량 ≥ QVA2 당일, ③ 거래대금 ≥ QVA2 당일, ④ 종가가 캔들 중간 이상에서 마감한 날을 VVI2로 봅니다.
   <br>QVA2 종가 대비 -5% 이상 무너지면 자격 박탈 (BROKEN).
+  <br><br><span style="color:#94a3b8;font-size:12px;">상태 분포 (chip 클릭 = 해당 섹션으로 이동):</span><br>
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+    <a href="#sec-today" class="funnel-chip" style="background:#1e1b4b;border:1px solid #a78bfa;color:#c4b5fd;">📅 오늘 신규 VVI2</a>
+    <a href="#sec-vvi2"  class="funnel-chip" style="background:#052e16;border:1px solid #22c55e;color:#86efac;">🟢 VVI2 재돌파 성공</a>
+    <a href="#sec-cw"    class="funnel-chip" style="background:#3a1a04;border:1px solid #fb923c;color:#fdba74;">🟠 종가 위치 부족</a>
+    <a href="#sec-vw"    class="funnel-chip" style="background:#3a2a08;border:1px solid #eab308;color:#fde047;">🟡 거래대금/량 부족</a>
+    <a href="#sec-near"  class="funnel-chip" style="background:#0c2740;border:1px solid #3b82f6;color:#93c5fd;">🔵 고가 근처 대기</a>
+    <a href="#sec-wait"  class="funnel-chip" style="background:#1e293b;border:1px solid #64748b;color:#cbd5e1;">⏳ 재돌파 대기</a>
+    <a href="#sec-po"    class="funnel-chip" style="background:#1e293b;border:1px solid #94a3b8;color:#cbd5e1;">⚪ 가격만 돌파 (참고)</a>
+    <a href="#sec-brk"   class="funnel-chip" style="background:#450a0a;border:1px solid #f87171;color:#fca5a5;">🔴 QVA2 -5% 이탈</a>
+  </div>
 </div>
 
 <div class="caution-box">
@@ -530,33 +537,33 @@ footer.foot { margin-top:30px; padding:14px; background:#1e293b; border-radius:8
 <h2>📊 화면 요약</h2>
 <div class="summary-grid" id="summary-grid"></div>
 
-<h2>📅 오늘 신규 VVI2 <span class="count" id="today-count"></span></h2>
+<h2 id="sec-today">📅 오늘 신규 VVI2 <span class="count" id="today-count"></span></h2>
 <div id="today-host"></div>
 
 <div id="chart-end-banner"></div>
 
-<h2>🟢 VVI2 재돌파 성공 <span class="count" id="vvi2-count"></span></h2>
+<h2 id="sec-vvi2">🟢 VVI2 재돌파 성공 <span class="count" id="vvi2-count"></span></h2>
 <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;">qva2-watchlist와 동일 정의 — type별 분기. absorption: high+vol+val+closeLoc / spike: close+closeLoc+val·vol(OR 절).</div>
 <div id="vvi2-host"></div>
 
-<h2>🟠 종가 위치 부족 (CLOSE_WEAK) <span class="count" id="cw-count"></span></h2>
+<h2 id="sec-cw">🟠 종가 위치 부족 (CLOSE_WEAK) <span class="count" id="cw-count"></span></h2>
 <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;">가격·거래량·거래대금은 통과했지만 closeLocation이 0.50 미만이라 미달한 후보입니다 (마음AI 5/7 같은 borderline). chart 다음 거래일 데이터가 들어오면 결과가 바뀔 수 있습니다.</div>
 <div id="cw-host"></div>
 
-<h2>🟡 거래대금/거래량 부족 (VALUE_WEAK) <span class="count" id="vw-count"></span></h2>
+<h2 id="sec-vw">🟡 거래대금/거래량 부족 (VALUE_WEAK) <span class="count" id="vw-count"></span></h2>
 <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;">가격은 QVA2 high를 넘었지만 거래대금 또는 거래량이 QVA2 당일에 못 미친 후보.</div>
 <div id="vw-host"></div>
 
-<h2>🔵 고가 근처 대기 <span class="count" id="near-count"></span></h2>
+<h2 id="sec-near">🔵 고가 근처 대기 <span class="count" id="near-count"></span></h2>
 <div id="near-host"></div>
 
-<h2>⏳ 재돌파 대기 <span class="count" id="wait-count"></span></h2>
+<h2 id="sec-wait">⏳ 재돌파 대기 <span class="count" id="wait-count"></span></h2>
 <div id="wait-host"></div>
 
-<h2>⚪ 가격만 돌파 (참고) <span class="count" id="po-count"></span></h2>
+<h2 id="sec-po">⚪ 가격만 돌파 (참고) <span class="count" id="po-count"></span></h2>
 <div id="po-host"></div>
 
-<h2>🔴 QVA2 -5% 이탈 <span class="count" id="brk-count"></span></h2>
+<h2 id="sec-brk">🔴 QVA2 -5% 이탈 <span class="count" id="brk-count"></span></h2>
 <div id="brk-host"></div>
 
 <footer class="foot" id="foot"></footer>

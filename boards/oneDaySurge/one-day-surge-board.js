@@ -27,6 +27,7 @@ const path = require('path');
 const core = require('./one-day-surge-core');
 const entryReport = require('./one-day-surge-entry-confirm-report');
 const tradePlanModule = require('./one-day-surge-trade-plan');
+const { isKrHoliday } = require('../../screeners/pattern-screener');
 
 const ROOT = path.join(__dirname, '..', '..');
 const CHART_DIR = path.join(ROOT, 'cache', 'stock-charts-long');
@@ -40,6 +41,201 @@ const MANUAL_TARGETS_PATH = path.join(ROOT, 'data', 'manual-1ds-targets.json');
 const SCANNER_0930_PATH = path.join(REPORTS_DIR, 'one-day-surge-0930-scanner.json');
 const OUT_JSON = path.join(REPORTS_DIR, 'one-day-surge-board-result.json');
 const OUT_HTML = path.join(REPORTS_DIR, 'one-day-surge-board-result.html');
+
+// ─────────────────────────────────────────────────────────────────
+// CLI 옵션 — 테스트용 --force-status intraday|closed|final_closed
+// 실제 cron에서는 사용하지 않음. 장중/장마감 표시 동작 확인용.
+// ─────────────────────────────────────────────────────────────────
+const CLI_FORCE_MARKET_STATUS = (function () {
+  const args = process.argv.slice(2);
+  const idx = args.indexOf('--force-status');
+  if (idx >= 0 && args[idx + 1]) {
+    const v = String(args[idx + 1]).toLowerCase();
+    if (['intraday', 'closed', 'final_closed', 'holiday_closed'].includes(v)) return v;
+    console.warn(`[WARN] --force-status 값이 잘못됨 (${args[idx + 1]}). intraday | closed | final_closed | holiday_closed 중 하나여야 함. 무시합니다.`);
+  }
+  return null;
+})();
+
+// ─────────────────────────────────────────────────────────────────
+// 시장 상태 (KST 기준) — 장중/장마감/최종확정/휴장
+//   주말 / 공휴일             : holiday_closed (직전 거래일 결과 표시)
+//   09:00 ~ 15:35  (평일)     : intraday      (결과 미확정)
+//   15:35 ~ 16:00  (평일)     : closed        (장마감 직후, 일봉 저장 약간 지연 가능)
+//   16:00 ~ 다음 09:00 (평일) : final_closed  (확정 결과 사용 가능, 심야 포함)
+// ─────────────────────────────────────────────────────────────────
+// KST 기준 YYYYMMDD / YYYY-MM-DD 헬퍼
+function _ymdKst(date) {
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
+    weekday: 'short',
+  });
+  const parts = fmt.formatToParts(date);
+  const get = (t) => parts.find(p => p.type === t)?.value || '';
+  const yyyy = get('year'), mm = get('month'), dd = get('day');
+  const wd = get('weekday'); // 'Sun','Mon','Tue','Wed','Thu','Fri','Sat'
+  return { yyyymmdd: yyyy + mm + dd, dashed: yyyy + '-' + mm + '-' + dd, weekday: wd };
+}
+function _isHolidayKst(yyyymmdd, weekdayStr) {
+  if (weekdayStr === 'Sat' || weekdayStr === 'Sun') return true;
+  if (isKrHoliday(yyyymmdd)) return true;
+  return false;
+}
+function _previousTradingDateKst(fromDate) {
+  // fromDate (Date) 기준 최대 14일 거슬러 첫 비휴장일을 찾는다.
+  let d = new Date(fromDate.getTime() - 24 * 3600 * 1000);
+  for (let i = 0; i < 14; i++) {
+    const ymd = _ymdKst(d);
+    if (!_isHolidayKst(ymd.yyyymmdd, ymd.weekday)) return ymd.dashed;
+    d = new Date(d.getTime() - 24 * 3600 * 1000);
+  }
+  return null;
+}
+
+function getMarketStatus(forced) {
+  const now = new Date();
+  const utcMin = now.getUTCHours() * 60 + now.getUTCMinutes();
+  const kstMin = (utcMin + 9 * 60) % (24 * 60);
+  const hh = String(Math.floor(kstMin / 60)).padStart(2, '0');
+  const mm = String(kstMin % 60).padStart(2, '0');
+  const generatedAtTime = hh + ':' + mm;
+
+  const today = _ymdKst(now);
+  const isHoliday = _isHolidayKst(today.yyyymmdd, today.weekday);
+  const previousTradingDate = isHoliday ? _previousTradingDateKst(now) : null;
+
+  let status;
+  let forcedNote = null;
+  if (forced) {
+    status = forced;
+    forcedNote = `테스트용 --force-status=${forced} 적용 (실제 시각 ${generatedAtTime})`;
+  } else if (isHoliday) status = 'holiday_closed';
+  else if (kstMin >= 9 * 60 && kstMin < 15 * 60 + 35) status = 'intraday';
+  else if (kstMin >= 15 * 60 + 35 && kstMin < 16 * 60)   status = 'closed';
+  else                                                     status = 'final_closed';
+
+  const isMarketClosed = (status === 'closed' || status === 'final_closed' || status === 'holiday_closed');
+  const LABELS = {
+    intraday:       '아직 장중',
+    closed:         '장마감 후',
+    final_closed:   '최종 결과 확인 가능',
+    holiday_closed: '휴장일',
+  };
+  const GUIDES = {
+    intraday:       '아직 장중입니다. 현재 후보는 장중 기준 후보이며, 당일 고가/종가 기준 최종 결과는 장마감 후 표시됩니다.',
+    closed:         '장마감 후입니다. 오늘 1DS 후보의 당일 고가/종가 기준 결과를 집계했습니다.',
+    final_closed:   '최종 결과 확인 가능 시간입니다. 오늘 1DS 후보들의 당일 결과를 확인할 수 있습니다.',
+    holiday_closed: `오늘은 휴장일입니다 (주말/공휴일/대체공휴일). 직전 거래일${previousTradingDate ? ` (${previousTradingDate})` : ''} 기준 결과를 표시합니다.`,
+  };
+  return { status, label: LABELS[status], isMarketClosed, generatedAtTime, guide: GUIDES[status], forcedNote, todayDate: today.dashed, todayWeekday: today.weekday, isHoliday, previousTradingDate };
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 결과 계산용 차트 캐시 (기존 board의 메모리 차트와 별도. read-only 메모이즈)
+// ─────────────────────────────────────────────────────────────────
+const _resultChartCache = new Map();
+function loadResultChartRows(code) {
+  if (_resultChartCache.has(code)) return _resultChartCache.get(code);
+  const p = path.join(CHART_DIR, code + '.json');
+  if (!fs.existsSync(p)) { _resultChartCache.set(code, null); return null; }
+  try {
+    const j = JSON.parse(fs.readFileSync(p, 'utf-8'));
+    const rows = Array.isArray(j.rows) ? j.rows : null;
+    _resultChartCache.set(code, rows);
+    return rows;
+  } catch (_) { _resultChartCache.set(code, null); return null; }
+}
+
+// 한 후보의 당일 결과 계산. basePrice 기준 일봉 high/close/low.
+//   - targetDateYYYYMMDD: 후보가 활동한 거래일 (entryConfirmDate 또는 baseDate)
+//   - basePrice: 진입 기준가 (1DS는 09:30 close, attackTop은 decisionPrice)
+// 반환:
+//   - row 못 찾으면 { available: false, reason }
+//   - 가격 sanity 어긋나면 { available: false, reason: 'price_mismatch' }
+function calculateCandidateDayResult(code, basePrice, targetDateYYYYMMDD) {
+  if (!code || !targetDateYYYYMMDD || !(basePrice > 0)) {
+    return { available: false, reason: !code ? 'no_code' : !targetDateYYYYMMDD ? 'no_target_date' : 'no_base_price' };
+  }
+  const rows = loadResultChartRows(code);
+  if (!rows) return { available: false, reason: 'no_chart' };
+  const row = rows.find((r) => r && r.date === targetDateYYYYMMDD);
+  if (!row) return { available: false, reason: 'no_row_for_date' };
+  const dayHigh  = Number.isFinite(row.high)  ? row.high  : null;
+  const dayClose = Number.isFinite(row.close) ? row.close : null;
+  const dayLow   = Number.isFinite(row.low)   ? row.low   : null;
+  const dayOpen  = Number.isFinite(row.open)  ? row.open  : null;
+  if (!(dayHigh > 0) || !(dayClose > 0) || !(dayLow > 0)) {
+    return { available: false, reason: 'invalid_ohlc' };
+  }
+  // 가격 sanity guard: basePrice vs dayOpen 1.5배 이상 차이 시 차트 오염 의심
+  if (dayOpen && basePrice && (dayOpen / basePrice > 1.5 || dayOpen / basePrice < 0.67)) {
+    return { available: false, reason: 'price_mismatch' };
+  }
+  const dayHighReturn  = Number(((dayHigh  / basePrice - 1) * 100).toFixed(2));
+  const dayCloseReturn = Number(((dayClose / basePrice - 1) * 100).toFixed(2));
+  const dayLowReturn   = Number(((dayLow   / basePrice - 1) * 100).toFixed(2));
+  const highCloseDrop  = Number(((dayClose / dayHigh   - 1) * 100).toFixed(2));
+  const reached3  = dayHighReturn >= 3;
+  const reached5  = dayHighReturn >= 5;
+  const reached10 = dayHighReturn >= 10;
+  const reached15 = dayHighReturn >= 15;
+  const reached20 = dayHighReturn >= 20;
+  const reached25 = dayHighReturn >= 25;
+  const closeStrong = dayCloseReturn >= 5;
+  const closeStrongPlus = dayCloseReturn >= 10;
+  const spikeFade = (dayHighReturn >= 5 && dayCloseReturn < 1) || highCloseDrop <= -7;
+  const failedSpike = dayHighReturn < 3 && dayLowReturn <= -3;
+  return {
+    available: true,
+    basePrice, dayOpen, dayHigh, dayClose, dayLow,
+    dayHighReturn, dayCloseReturn, dayLowReturn, highCloseDrop,
+    reached3, reached5, reached10, reached15, reached20, reached25,
+    closeStrong, closeStrongPlus, spikeFade, failedSpike,
+  };
+}
+
+// 결과 태그 (성공 + 주의)
+function assignResultTags(r) {
+  if (!r || !r.available) return { tags: [], label: '결과 미확정', comment: '장중 결과는 아직 확정되지 않았습니다.' };
+  const tags = [];
+  // 성공 (높은 도달 우선)
+  if (r.reached25)        tags.push('상한가 근처');
+  if (r.reached20)        tags.push('BIG20 성공');
+  if (r.reached15)        tags.push('BIG15 성공');
+  if (r.reached10)        tags.push('BIG10 성공');
+  if (r.reached5)         tags.push('BIG5 성공');
+  if (r.closeStrongPlus)  tags.push('강한 종가');
+  else if (r.closeStrong) tags.push('종가 유지');
+  // 주의
+  if (r.highCloseDrop != null && r.highCloseDrop <= -7) tags.push('고가 대비 밀림');
+  if (r.dayHighReturn >= 10 && r.dayCloseReturn < 3)    tags.push('장중만 강함');
+  if (r.dayCloseReturn < 0)                              tags.push('종가 약함');
+  if (r.failedSpike)                                     tags.push('실패');
+  if (r.dayLowReturn != null && r.dayLowReturn <= -3)   tags.push('-3% 구간 발생');
+
+  // resultLabel — 가장 강한 신호 우선
+  let label = '결과 평이';
+  if (r.reached20)       label = 'BIG20 성공';
+  else if (r.reached15)  label = 'BIG15 성공';
+  else if (r.reached10)  label = 'BIG10 성공';
+  else if (r.reached5)   label = 'BIG5 성공';
+  else if (r.closeStrong) label = '종가 유지';
+  else if (r.dayHighReturn >= 10 && r.dayCloseReturn < 3) label = '장중 상승 후 밀림';
+  else if (r.failedSpike) label = '실패';
+  else if (r.dayCloseReturn < 0 && r.dayHighReturn < 5) label = '약세';
+
+  // resultComment
+  let comment;
+  if (r.reached15 && r.closeStrong) comment = `당일 고가 +${r.dayHighReturn}%로 BIG15 이상 도달, 종가도 +${r.dayCloseReturn}%로 양호하게 유지했습니다.`;
+  else if (r.reached15) comment = `당일 고가 +${r.dayHighReturn}%로 BIG15 이상 도달했으나, 종가는 ${r.dayCloseReturn > 0 ? '+' : ''}${r.dayCloseReturn}%로 ${r.dayCloseReturn < 3 ? '많이 밀렸습니다' : '유지됐습니다'}.`;
+  else if (r.reached10) comment = `당일 고가 +${r.dayHighReturn}%로 BIG10 도달. 종가 ${r.dayCloseReturn > 0 ? '+' : ''}${r.dayCloseReturn}%${r.highCloseDrop <= -7 ? ' (고가 대비 크게 밀림)' : ''}.`;
+  else if (r.reached5)  comment = `당일 고가 +${r.dayHighReturn}%로 BIG5 도달. 종가 ${r.dayCloseReturn > 0 ? '+' : ''}${r.dayCloseReturn}%.`;
+  else if (r.failedSpike) comment = `당일 고가 +${r.dayHighReturn}%로 약했고 -3% 이탈도 발생했습니다.`;
+  else if (r.dayCloseReturn < 0) comment = `당일 고가 +${r.dayHighReturn}%, 종가는 음전됐습니다 (${r.dayCloseReturn}%).`;
+  else comment = `당일 고가 +${r.dayHighReturn}%, 종가 ${r.dayCloseReturn > 0 ? '+' : ''}${r.dayCloseReturn}%.`;
+
+  return { tags, label, comment };
+}
 
 // 09:30 실시간 스캐너 결과 로드 (없으면 null) — 전일 후보와 무관한 09:30 포착 결과.
 function loadScanner0930() {
@@ -663,6 +859,320 @@ function topShelfSort(a, b) {
   return (b.valueToMarketCapRatio || 0) - (a.valueToMarketCapRatio || 0);
 }
 
+// ─────────────────────────────────────────────────────────────────
+// 🔥 공격형 TOP 1DS — BIG RUNNER 감사 보고서 검증 결과 반영 (2026-05-17)
+//
+// 60일 감사 결과:
+//   BASE 1DS: BIG10 7.9%, BIG15 3.5%, BIG20 1.7%, 평균 당일고가 4.01%
+//   BIG_MONEY_REBREAK (거래대금 상위 10% + 장초 고가 재돌파):
+//     n=541, 일평균 8.87개, BIG10 35.7% (+27.8pp), BIG15 18.1% (+14.7pp),
+//     BIG20 8.1% (+6.4pp), 평균 당일고가 9.57%
+//   → strong 등급 통과. --days 20과 --days 100 모두에서 Top 1 일관성 확인.
+//
+// 운영 보드 구현 원칙:
+//   - 기존 1DS 후보 산출 로직은 일체 수정하지 않음
+//   - lookahead 방지: 실행 시점까지의 분봉만 사용
+//   - 매수 확정 신호 아님 — "큰 상승 가능성이 높았던 패턴" 필터
+//   - 기존 후보 위에 "공격형 TOP" 섹션만 얹는다
+// ─────────────────────────────────────────────────────────────────
+
+// 60일 감사 결과 (HTML 상단 검증 요약에 표시)
+const ATTACK_VALIDATION_SNAPSHOT = {
+  source: '60일 BIG RUNNER 감사 (2026-02-13 ~ 2026-05-15)',
+  base:           { big10: 7.9,  big15: 3.5,  big20: 1.7,  avgDayHigh: 4.01 },
+  bigMoneyRebreak:{ n: 541, perDayAvg: 8.87, big10: 35.7, big15: 18.1, big20: 8.1, avgDayHigh: 9.57, minus3First: 13.5 },
+  recent20:       { n: 193, big10: 32.1, big15: 14.5, big20: 3.6, avgDayHigh: 8.64, minus3First: 13.5 },
+  passLevel: 'strong',
+};
+
+// 시간대별 안내 라벨
+function attackDecisionMode(decisionTime) {
+  if (!decisionTime) return { key: 'unknown', label: '시간대 미상', guide: '시간대 미상 — 분봉 데이터가 없습니다.' };
+  if (decisionTime < '09:40')  return { key: 'early',   label: '빠른 확인 구간',     guide: '09:30 전후. 재돌파 여부가 아직 충분히 확인되지 않은 초기 공격 후보입니다.' };
+  if (decisionTime < '09:50')  return { key: 'rebreak', label: '재돌파 확인 구간',   guide: '09:45 전후. 09:40~10:00 재돌파 흐름이 막 시작된 구간입니다.' };
+  if (decisionTime <= '10:00') return { key: 'top',     label: '공격형 TOP 후보',    guide: '10:00 전후. 09:00~10:00 morning 전체가 보이는 구간. 가장 안정적.' };
+  return { key: 'late', label: '상태 확인 구간', guide: '10시 이후. 일부 상승 구간이 지나갔을 수 있어 신규 추격 주의.' };
+}
+
+// 분봉 → 거래대금 segment + 재돌파 (lookahead-safe: decisionTime 이하 bar만 사용)
+function computeAttackMetricsFromBars(bars, decisionTime) {
+  if (!Array.isArray(bars) || bars.length === 0) return null;
+  const upto = bars.filter((b) => b && b.time && b.time <= decisionTime && Number.isFinite(b.close));
+  if (upto.length < 5) return null;
+
+  // segments
+  function sumIn(min, max, inclusive) {
+    let value = 0, volume = 0;
+    for (const b of upto) {
+      if (b.time < min) continue;
+      if (inclusive ? b.time > max : b.time >= max) continue;
+      const v = (b.value != null) ? b.value : ((b.close || 0) * (b.volume || 0));
+      value += v || 0;
+      volume += b.volume || 0;
+    }
+    return { value, volume };
+  }
+  function maxHighIn(min, max, inclusive) {
+    let mh = -Infinity;
+    for (const b of upto) {
+      if (b.time < min) continue;
+      if (inclusive ? b.time > max : b.time >= max) continue;
+      if (Number.isFinite(b.high) && b.high > mh) mh = b.high;
+    }
+    return mh === -Infinity ? null : mh;
+  }
+  function firstBarMatch(min, max, predicate) {
+    for (const b of upto) {
+      if (b.time < min) continue;
+      if (b.time > max) break;
+      if (predicate(b)) return b;
+    }
+    return null;
+  }
+
+  const s_0900_0930 = sumIn('09:00', '09:30', false);  // [09:00, 09:30)
+  const s_0930_0945 = sumIn('09:30', '09:45', false);
+  const s_0945_1000 = sumIn('09:45', '10:00', true);   // [09:45, 10:00]
+  const s_0930_1000 = sumIn('09:30', '10:00', true);
+  const s_0900_1000 = sumIn('09:00', '10:00', true);
+
+  const morningHigh_0_30 = maxHighIn('09:00', '09:30', false);
+  const high_0940_now    = maxHighIn('09:40', decisionTime, true);
+
+  const open0900 = upto[0].open != null ? upto[0].open : upto[0].close;
+  const lastBar = upto[upto.length - 1];
+  const decisionPrice = lastBar.close;
+  const highSoFar = Math.max(...upto.map((b) => b.high).filter(Number.isFinite));
+  const lowSoFar  = Math.min(...upto.map((b) => b.low ).filter(Number.isFinite));
+
+  // 재돌파: 09:40 이후 분봉 중 09:00~09:30 morningHigh 초과한 첫 bar
+  let rebreakTime = null;
+  if (morningHigh_0_30 != null && decisionTime >= '09:40') {
+    const r = firstBarMatch('09:40', decisionTime, (b) => Number.isFinite(b.high) && b.high > morningHigh_0_30);
+    if (r) rebreakTime = r.time;
+  }
+  const rebreakMorningHigh = rebreakTime != null;
+
+  // 2차 파동 거래대금 비율 — 09:45~현재 / 09:30~09:45
+  const valueSecondWaveRatio = (s_0930_0945.value > 0) ? Number((s_0945_1000.value / s_0930_0945.value).toFixed(3)) : null;
+  const valueContinueRatio   = (s_0900_0930.value > 0) ? Number((s_0930_1000.value / s_0900_0930.value).toFixed(3)) : null;
+  const rebreakWithValue = rebreakMorningHigh && valueSecondWaveRatio != null && valueSecondWaveRatio >= 1.0;
+
+  const morningRangeRate = (highSoFar > 0 && lowSoFar > 0) ? Number(((highSoFar / lowSoFar - 1) * 100).toFixed(2)) : null;
+
+  return {
+    decisionTime: lastBar.time,
+    decisionPrice,
+    open0900,
+    morningHigh_0_30, high_0940_now,
+    highSoFar, lowSoFar,
+    morningRangeRate,
+    morningValue: s_0900_1000.value,
+    morningVolume: s_0900_1000.volume,
+    rebreakMorningHigh, rebreakTime, rebreakWithValue,
+    valueContinueRatio, valueSecondWaveRatio,
+  };
+}
+
+// 공격형 태그 + 위험 태그
+function assignAttackTags(m, isTop10Value, isBigValue) {
+  const tags = [];
+  if (isTop10Value)               tags.push('거래대금 상위 10%');
+  if (isBigValue)                 tags.push('대형 거래대금');
+  if (m.rebreakMorningHigh)       tags.push('장초 고가 재돌파');
+  if (m.rebreakWithValue)         tags.push('재돌파 + 거래대금 동반');
+  if (m.valueSecondWaveRatio != null && m.valueSecondWaveRatio >= 1.2) tags.push('2차 파동');
+  if (m.valueContinueRatio   != null && m.valueContinueRatio   >= 0.8) tags.push('강한 거래대금 유지');
+  if (m.decisionPrice && m.highSoFar && (m.decisionPrice / m.highSoFar) >= 0.97) tags.push('고가권 유지');
+  if (isTop10Value && m.rebreakMorningHigh) tags.push('공격형 TOP');
+  return tags;
+}
+function assignAttackRiskTags(m, prevClose) {
+  const tags = [];
+  const gapRate = (m.open0900 && prevClose) ? ((m.open0900 / prevClose) - 1) * 100 : null;
+  if (gapRate != null && gapRate >= 8) tags.push('갭 과열');
+  const fromOpen = (m.decisionPrice && m.open0900) ? ((m.decisionPrice / m.open0900) - 1) * 100 : null;
+  if (fromOpen != null && fromOpen >= 8) tags.push('시가 대비 너무 멀어짐');
+  if (m.morningRangeRate != null && m.morningRangeRate >= 8) tags.push('장초 변동성 큼');
+  // 첫 급등만 (재돌파 없음) — 09:00~09:20 high가 시가 대비 +2% 이상이고 rebreak 안 됨
+  if (m.decisionTime >= '09:40' && !m.rebreakMorningHigh) tags.push('재돌파 실패');
+  if (m.valueContinueRatio != null && m.valueContinueRatio < 0.3) tags.push('거래대금 급감');
+  // 고가 대비 밀림 (decisionPrice가 highSoFar 대비 -3% 이하)
+  if (m.decisionPrice && m.highSoFar && (m.decisionPrice / m.highSoFar - 1) * 100 <= -3) tags.push('고가 대비 밀림');
+  return tags;
+}
+
+// attackScore (우선순위 보조 — UI에는 등급 표시)
+function calculateAttackScore(m, isTop10Value, riskTags, prevClose) {
+  let s = 0;
+  if (isTop10Value)         s += 30;
+  if (m.rebreakMorningHigh) s += 30;
+  if (m.rebreakWithValue)   s += 15;
+  if (m.valueContinueRatio   != null && m.valueContinueRatio   >= 0.8) s += 10;
+  if (m.valueSecondWaveRatio != null && m.valueSecondWaveRatio >= 1.2) s += 10;
+  if (riskTags.includes('갭 과열'))                 s -= 8;
+  if (riskTags.includes('시가 대비 너무 멀어짐'))    s -= 8;
+  if (riskTags.includes('장초 변동성 큼'))           s -= 6;
+  if (riskTags.includes('재돌파 실패'))              s -= 20;
+  return Number(s.toFixed(1));
+}
+
+// 공격형 TOP 후보 빌드 (전체 1DS 후보 입력 → BIG_MONEY_REBREAK 우선 추출)
+function buildAttackTopFromCandidates(candidates) {
+  const intradayDirs = loadIntradayDirs();
+  // 1단계: 분봉 로드 + metric 계산
+  const enriched = [];
+  let withMinute = 0, missingMinute = 0;
+  let globalMaxBarTime = '09:30';
+  // baseDate를 YYYY-MM-DD 디렉토리 이름으로 변환 (preview fallback용)
+  function baseDateToDir(bd) {
+    if (!bd || bd.length !== 8) return null;
+    return bd.slice(0, 4) + '-' + bd.slice(4, 6) + '-' + bd.slice(6, 8);
+  }
+  for (const it of candidates) {
+    if (!it || !it.code || !it.baseDate) continue;
+    // 1차: 운영 모드 nextDayDir (cron 09:30 직후 시나리오 — 어제 close-of-day로 선정된 mainPool + 오늘 morning intraday)
+    // 2차: baseDate 자체 dir (로컬 weekend 프리뷰/16:35 cron — next day intraday가 아직 없는 경우)
+    let dir = it.nextDayDir || findNextDayDir(it.baseDate, intradayDirs);
+    let dirSource = 'nextDay';
+    if (!dir) {
+      const bdDir = baseDateToDir(it.baseDate);
+      if (bdDir && intradayDirs.includes(bdDir)) { dir = bdDir; dirSource = 'baseDate'; }
+    }
+    if (!dir) { missingMinute++; continue; }
+    const minuteData = loadMinuteBars(dir, it.code);
+    if (!minuteData || !Array.isArray(minuteData.bars) || minuteData.bars.length === 0) { missingMinute++; continue; }
+    // 글로벌 max bar time 추적
+    const lastBar = minuteData.bars.filter((b) => b && b.time && Number.isFinite(b.close)).slice(-1)[0];
+    if (lastBar && lastBar.time > globalMaxBarTime) globalMaxBarTime = lastBar.time;
+    enriched.push({ it, bars: minuteData.bars, prevClose: it.prevClose, dirUsed: dir, dirSource });
+    withMinute++;
+  }
+  if (enriched.length === 0) {
+    return {
+      summary: { count: 0, bigMoneyRebreakCount: 0, rebreakWithValueCount: 0, secondWaveCount: 0, riskCount: 0,
+        generatedAtDecisionTime: null, decisionMode: attackDecisionMode(null),
+        totalCandidates: candidates.length, candidatesWithMinute: 0, missingMinute,
+        validationSnapshot: ATTACK_VALIDATION_SNAPSHOT,
+        message: '분봉 데이터가 없어 공격형 TOP 분석 불가.',
+      },
+      candidates: [],
+    };
+  }
+  const decisionTime = globalMaxBarTime; // 모든 후보 동일 시점 기준
+  // 2단계: metric 계산
+  const computed = [];
+  for (const e of enriched) {
+    const m = computeAttackMetricsFromBars(e.bars, decisionTime);
+    if (!m) continue;
+    // 가격 sanity guard (intraday open vs daily candle 비교는 여기선 skip — 기존 board가 이미 필터)
+    computed.push({ it: e.it, m, prevClose: e.prevClose, dirUsed: e.dirUsed, dirSource: e.dirSource });
+  }
+  // 3단계: morning value 랭킹 (전체 후보 풀 기준)
+  computed.sort((a, b) => (b.m.morningValue || 0) - (a.m.morningValue || 0));
+  const n = computed.length;
+  const top10Threshold = Math.max(1, Math.ceil(n * 0.10));
+  const top30Threshold = Math.max(1, Math.ceil(n * 0.30));
+  computed.forEach((c, i) => {
+    c.morningValueRank = i + 1;
+    c.morningValuePercentile = Number((((i + 1) / n) * 100).toFixed(1));
+    c.isTop10Value = (i + 1) <= top10Threshold;
+    c.isBigValue   = (i + 1) <= top30Threshold;
+  });
+  // 4단계: 태그 + score
+  for (const c of computed) {
+    c.riskTags = assignAttackRiskTags(c.m, c.prevClose);
+    c.attackTags = assignAttackTags(c.m, c.isTop10Value, c.isBigValue);
+    c.attackScore = calculateAttackScore(c.m, c.isTop10Value, c.riskTags, c.prevClose);
+    // BIG_MONEY_REBREAK = isTop10Value AND rebreakMorningHigh
+    c.bigMoneyRebreak = c.isTop10Value && c.m.rebreakMorningHigh;
+  }
+  // 5단계: 정렬 (BIG_MONEY_REBREAK 우선 → rebreakWithValue → morningValueRank → valueContinue → secondWave → fromOpen → 위험 적음)
+  computed.sort((a, b) => {
+    if (a.bigMoneyRebreak !== b.bigMoneyRebreak) return b.bigMoneyRebreak ? 1 : -1;
+    if (!!a.m.rebreakWithValue !== !!b.m.rebreakWithValue) return b.m.rebreakWithValue ? 1 : -1;
+    if (a.morningValueRank !== b.morningValueRank) return a.morningValueRank - b.morningValueRank;
+    const ac = a.m.valueContinueRatio   || 0, bc = b.m.valueContinueRatio   || 0; if (ac !== bc) return bc - ac;
+    const aw = a.m.valueSecondWaveRatio || 0, bw = b.m.valueSecondWaveRatio || 0; if (aw !== bw) return bw - aw;
+    const af = (a.m.decisionPrice && a.m.open0900) ? (a.m.decisionPrice / a.m.open0900 - 1) * 100 : 999;
+    const bf = (b.m.decisionPrice && b.m.open0900) ? (b.m.decisionPrice / b.m.open0900 - 1) * 100 : 999;
+    if (af !== bf) return af - bf;
+    return (a.riskTags.length) - (b.riskTags.length);
+  });
+  // 6단계: BIG_MONEY_REBREAK 통과 후보만 추출 (메인) + rank
+  const passing = computed.filter((c) => c.bigMoneyRebreak);
+  passing.forEach((c, i) => { c.attackRank = i + 1; });
+
+  function shortCommentOf(c) {
+    if (c.bigMoneyRebreak && c.m.rebreakWithValue) return '큰 돈이 들어왔고 장초 고가를 다시 돌파했으며 거래대금까지 함께 따라온 강한 공격형 후보입니다.';
+    if (c.bigMoneyRebreak) return '거래대금 상위권이면서 장초 고가를 다시 돌파한 공격형 후보입니다.';
+    if (c.isTop10Value && !c.m.rebreakMorningHigh) return '거래대금은 크지만 재돌파 확인이 약해 추격 주의가 필요합니다.';
+    if (c.m.rebreakMorningHigh && !c.isTop10Value) return '재돌파는 있지만 거래대금 상위권은 아니어서 공격형 TOP에서는 한 단계 낮습니다.';
+    return '장초 첫 급등 이후 재돌파가 없어 공격형 TOP에서는 제외됩니다.';
+  }
+
+  const cards = passing.map((c) => {
+    const fromPrev = (c.m.decisionPrice && c.prevClose) ? Number(((c.m.decisionPrice / c.prevClose - 1) * 100).toFixed(2)) : null;
+    const fromOpen = (c.m.decisionPrice && c.m.open0900) ? Number(((c.m.decisionPrice / c.m.open0900 - 1) * 100).toFixed(2)) : null;
+    const pposRng = (c.m.highSoFar && c.m.lowSoFar && c.m.highSoFar !== c.m.lowSoFar && c.m.decisionPrice)
+      ? Number(((c.m.decisionPrice - c.m.lowSoFar) / (c.m.highSoFar - c.m.lowSoFar)).toFixed(3)) : null;
+    const gapRate = (c.m.open0900 && c.prevClose) ? Number(((c.m.open0900 / c.prevClose - 1) * 100).toFixed(2)) : null;
+    return {
+      code: c.it.code,
+      name: c.it.name,
+      market: c.it.market || null,
+      attackRank: c.attackRank,
+      attackScore: c.attackScore,
+      decisionTime,
+      decisionPrice: c.m.decisionPrice,
+      signalPrice: c.it.intraday?.close_0930 != null ? c.it.intraday.close_0930 : (c.m.decisionPrice || null),
+      prevClose: c.prevClose,
+      open0900: c.m.open0900,
+      gapRate,
+      morningValue: c.m.morningValue,
+      morningValueRank: c.morningValueRank,
+      morningValuePercentile: c.morningValuePercentile,
+      isTop10Value: c.isTop10Value,
+      morningHigh: c.m.morningHigh_0_30,
+      rebreakMorningHigh: c.m.rebreakMorningHigh,
+      rebreakTime: c.m.rebreakTime,
+      rebreakWithValue: c.m.rebreakWithValue,
+      valueContinueRatio: c.m.valueContinueRatio,
+      valueSecondWaveRatio: c.m.valueSecondWaveRatio,
+      decisionFromPrevClose: fromPrev,
+      decisionFromOpen: fromOpen,
+      morningRangeRate: c.m.morningRangeRate,
+      pricePositionInMorningRange: pposRng,
+      gtBand: c.it.gtBand || null,
+      oneDaySurgeScore: c.it.oneDaySurgeScore != null ? c.it.oneDaySurgeScore : null,
+      attackTags: c.attackTags,
+      riskTags: c.riskTags,
+      shortComment: shortCommentOf(c),
+      // 결과 계산용 — 이 후보의 실제 활동 거래일 (분봉 dir = YYYY-MM-DD)
+      targetDir: c.dirUsed,
+      targetDirSource: c.dirSource,
+    };
+  });
+
+  const summary = {
+    count: cards.length,
+    bigMoneyRebreakCount: cards.length,
+    rebreakWithValueCount: cards.filter((c) => c.rebreakWithValue).length,
+    secondWaveCount: cards.filter((c) => c.valueSecondWaveRatio != null && c.valueSecondWaveRatio >= 1.2).length,
+    riskCount: cards.filter((c) => c.riskTags && c.riskTags.length > 0).length,
+    generatedAtDecisionTime: decisionTime,
+    decisionMode: attackDecisionMode(decisionTime),
+    totalCandidates: candidates.length,
+    candidatesWithMinute: withMinute,
+    missingMinute,
+    morningValueTop10Threshold: top10Threshold,
+    morningValueUniverseSize: n,
+    validationSnapshot: ATTACK_VALIDATION_SNAPSHOT,
+    overflowWarning: cards.length >= 20,
+  };
+  return { summary, candidates: cards };
+}
+
 function main() {
   if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR, { recursive: true });
   if (!fs.existsSync(CHART_DIR)) {
@@ -750,6 +1260,41 @@ function main() {
       qvaHistoryLabel: qvaCodes.get(code) || null,
       vviHistory: vviCodes.get(code) || null,
     });
+  }
+
+  // 1.5차: stale 후보 제거 (거래정지/장기 미거래 종목)
+  // chart 캐시는 매일 OHLC=0 row가 추가되지만 거래가 없는 종목은 baseDate(가장 최근 volume>0 row)가
+  // 옛 날짜로 떨어진다. 이런 후보는 1DS 매수 의미 없음 + entryConfirmDate 계산 오염시킴.
+  // → 가장 흔한 baseDate(=실제 최신 거래일) 기준 7 calendar days 이상 떨어진 후보는 제외.
+  const _bdFreq = new Map();
+  for (const it of candidates) _bdFreq.set(it.baseDate, (_bdFreq.get(it.baseDate) || 0) + 1);
+  let _consensusBaseDate = null, _consensusFreq = 0;
+  for (const [d, n] of _bdFreq) { if (n > _consensusFreq) { _consensusFreq = n; _consensusBaseDate = d; } }
+  let staleExcluded = 0;
+  const staleExcludedSamples = [];
+  if (_consensusBaseDate && _consensusBaseDate.length === 8) {
+    const cy = +_consensusBaseDate.slice(0, 4), cm = +_consensusBaseDate.slice(4, 6), cd = +_consensusBaseDate.slice(6, 8);
+    const consensusMs = Date.UTC(cy, cm - 1, cd);
+    const cutoffMs = consensusMs - 7 * 24 * 3600 * 1000;
+    const filtered = [];
+    for (const it of candidates) {
+      if (!it.baseDate || it.baseDate.length !== 8) { filtered.push(it); continue; }
+      const y = +it.baseDate.slice(0, 4), mo = +it.baseDate.slice(4, 6), dy = +it.baseDate.slice(6, 8);
+      const itMs = Date.UTC(y, mo - 1, dy);
+      if (itMs < cutoffMs) {
+        staleExcluded++;
+        if (staleExcludedSamples.length < 10) staleExcludedSamples.push({ code: it.code, name: it.name, baseDate: it.baseDate });
+        continue;
+      }
+      filtered.push(it);
+    }
+    if (staleExcluded > 0) {
+      console.log(`  🧹 stale 후보 ${staleExcluded}건 제외 (consensus baseDate ${_consensusBaseDate}에서 7일 이상 옛 후보 — 거래정지/미거래 추정)`);
+      for (const s of staleExcludedSamples.slice(0, 5)) console.log(`     - ${s.baseDate} ${s.code} ${s.name}`);
+      if (staleExcludedSamples.length > 5) console.log(`     ... +${staleExcluded - 5}건`);
+    }
+    candidates.length = 0;
+    candidates.push(...filtered);
   }
 
   // 2차: 일자내 거래대금 순위 (같은 baseDate 안에서)
@@ -1003,13 +1548,232 @@ function main() {
     else if (it.entryStatus === 'INTRADAY_INVALID') entryStatusCounts.intraday_invalid++;
   }
   // 분봉 적용된 candidate들이 가리키는 nextDayDir (모두 같은 거래일이어야 함; 다르면 가장 흔한 거 선택)
+  // 단, 가장 최신 intraday dir 기준 5일 이상 오래된 후보는 stale로 보고 entryConfirmDate 결정에서 제외.
+  // (drop 이유: 일부 종목의 chart 캐시가 비어서 baseDate가 2024년 같은 옛 날짜로 떨어지면
+  //  findNextDayDir이 그 옛 baseDate의 다음 날(예: 2026-04-28)을 가리키게 되어 전체 운영 보드의
+  //  targetDateForResult가 옛 날짜로 오염되는 사례 방지.)
+  const _intradayDirsForCutoff = loadIntradayDirs();
+  const _latestIntradayDir = _intradayDirsForCutoff.length ? _intradayDirsForCutoff[_intradayDirsForCutoff.length - 1] : null;
+  const _cutoffMs = _latestIntradayDir ? new Date(_latestIntradayDir + 'T00:00:00Z').getTime() - 5 * 24 * 3600 * 1000 : null;
   const nextDirFreq = new Map();
   for (const it of all) {
     if (!it.nextDayDir) continue;
+    if (_cutoffMs != null) {
+      const ms = new Date(it.nextDayDir + 'T00:00:00Z').getTime();
+      if (ms < _cutoffMs) continue; // stale chart 후보 제외
+    }
     nextDirFreq.set(it.nextDayDir, (nextDirFreq.get(it.nextDayDir) || 0) + 1);
   }
   let entryConfirmDate = null, entryConfirmFreq = 0;
   for (const [d, n] of nextDirFreq) { if (n > entryConfirmFreq) { entryConfirmFreq = n; entryConfirmDate = d; } }
+  // entryConfirmDate가 못 잡히면 (휴장일/주말 프리뷰 — 모든 후보가 NO_DIR) 가장 최신 intraday dir로 폴백.
+  // 이것도 없으면 analysisDate를 YYYY-MM-DD로 변환해서 사용.
+  if (!entryConfirmDate) {
+    if (_latestIntradayDir) entryConfirmDate = _latestIntradayDir;
+    else if (analysisDate && analysisDate.length === 8) {
+      entryConfirmDate = analysisDate.slice(0, 4) + '-' + analysisDate.slice(4, 6) + '-' + analysisDate.slice(6, 8);
+    }
+  }
+
+  // 🔥 공격형 TOP 1DS 계산 (BIG_MONEY_REBREAK 기반, lookahead-safe)
+  // BIG RUNNER 감사 보고서 검증 결과: --days 20 / --days 100 모두 strong 등급 통과 (Top 1)
+  // 기존 후보 산출 로직 무수정, 별도 함수로 추가 분석만 진행.
+  const attackTopResult = buildAttackTopFromCandidates(all);
+  console.log(`  🔥 공격형 TOP 1DS: ${attackTopResult.summary.count}개 (BIG_MONEY_REBREAK 통과 — 거래대금 상위 10% + 장초 고가 재돌파)`);
+  if (attackTopResult.summary.generatedAtDecisionTime) {
+    console.log(`     기준 시점: ${attackTopResult.summary.generatedAtDecisionTime} (${attackTopResult.summary.decisionMode.label}) — ${attackTopResult.summary.candidatesWithMinute}/${attackTopResult.summary.totalCandidates}건 분봉 가용`);
+  }
+
+  // ── 📊 시장 상태 + 오늘 결과 ───────────────────────────────────
+  // 장중: 결과 미확정 표시만. 장마감 후: attackTop / 전체 1DS의 당일 일봉 결과 집계.
+  // 기존 1DS / attackTop 산출 로직 무수정 — 결과 필드만 추가 부착.
+  const marketStatus = getMarketStatus(CLI_FORCE_MARKET_STATUS);
+  console.log(`  📊 시장 상태: ${marketStatus.label} (${marketStatus.status}, KST ${marketStatus.generatedAtTime})${marketStatus.forcedNote ? ' — ' + marketStatus.forcedNote : ''}`);
+
+  // 결과 계산용 targetDate (후보들이 활동한 거래일)
+  // 우선순위: entryConfirmDate (operational, next day intraday's date)
+  //          → analysisDate (baseDate, weekend/local preview)
+  const targetDateForResult = entryConfirmDate || analysisDate || null;
+  const targetDateYYYYMMDD = targetDateForResult ? targetDateForResult.replace(/-/g, '') : null;
+
+  // 휴장일이면 previousTradingDate를 실제 보드 데이터의 targetDate로 정정 (간단 holiday list 오차 보정)
+  if (marketStatus.status === 'holiday_closed' && targetDateForResult) {
+    marketStatus.previousTradingDate = targetDateForResult;
+    marketStatus.guide = `오늘은 휴장일입니다 (주말/공휴일/대체공휴일). 직전 거래일 (${targetDateForResult}) 기준 결과를 표시합니다.`;
+  }
+
+  let todayResultSummary = {
+    isAvailable: false, targetDate: targetDateForResult, total1ds: all.length, attackTopCount: attackTopResult.candidates.length,
+    attackTopBig10: 0, attackTopBig15: 0, attackTopBig20: 0, attackTopCloseStrong: 0, attackTopFailed: 0,
+    all1dsBig10: 0, all1dsBig15: 0, all1dsBig20: 0, all1dsCloseStrong: 0, all1dsFailed: 0,
+    bigMoneyRebreakBig10: 0, bigMoneyRebreakBig15: 0, bigMoneyRebreakBig20: 0,
+    rebreakWithValueBig10: 0, secondWaveBig10: 0,
+    riskTagResult: { riskCount: 0, riskBig10: 0, noRiskCount: 0, noRiskBig10: 0 },
+    missingResultPriceCount: 0,
+    avgAttackTopDayHigh: null, avgAttackTopDayClose: null,
+    avgAll1dsDayHigh: null, avgAll1dsDayClose: null,
+    notes: [],
+  };
+  let todayResultCandidates = { attackTop: [], big10: [], big15: [], big20: [], failed: [], spikeFade: [] };
+
+  if (marketStatus.isMarketClosed) {
+    if (!targetDateYYYYMMDD) {
+      todayResultSummary.notes.push('targetDate 결정 불가 — 분석 기준일/entryConfirmDate 모두 없음.');
+    } else {
+      // 1) attackTop에 결과 부착 (decisionPrice + 각 후보의 targetDir 사용 — 분봉 로드한 실제 거래일)
+      const attackTopWithResult = [];
+      let attackMissingPrice = 0;
+      for (const c of attackTopResult.candidates) {
+        if (!(c.decisionPrice > 0)) { attackMissingPrice++; continue; }
+        // 각 후보의 실제 거래일 (targetDir = YYYY-MM-DD) → YYYYMMDD
+        const perCandTarget = c.targetDir ? c.targetDir.replace(/-/g, '') : targetDateYYYYMMDD;
+        const r = calculateCandidateDayResult(c.code, c.decisionPrice, perCandTarget);
+        const t = assignResultTags(r);
+        c.dayResult = { ...r, resultTargetDate: c.targetDir || targetDateForResult, resultTags: t.tags, resultLabel: t.label, resultComment: t.comment };
+        if (r.available) attackTopWithResult.push(c);
+      }
+      // 2) 전체 1DS 후보에 결과 부착
+      //    각 후보의 nextDayDir 우선 사용 (운영 모드: today's intraday → today's daily row).
+      //    nextDayDir이 없으면 baseDate dir로 fallback (weekend preview).
+      //    basePrice: it.intraday.close_0930 → it.intraday.entryPrice → it.close.
+      let allWithResult = [];
+      let allMissingPrice = 0;
+      function itTargetDir(it) {
+        if (it.nextDayDir) return it.nextDayDir;
+        if (it.baseDate && it.baseDate.length === 8) {
+          return it.baseDate.slice(0, 4) + '-' + it.baseDate.slice(4, 6) + '-' + it.baseDate.slice(6, 8);
+        }
+        return null;
+      }
+      for (const it of all) {
+        // basePrice는 반드시 morning 진입 기준가 (09:30 close)여야 의미 있음.
+        // D close를 basePrice로 쓰면 같은 날 dayHigh와 비교 시 dayHigh>=dayClose가 trivially 성립해 결과가 왜곡됨.
+        // → it.intraday.close_0930 또는 it.intraday.entryPrice만 사용. 둘 다 없으면 skip.
+        const basePrice = (it.intraday && Number.isFinite(it.intraday.close_0930) ? it.intraday.close_0930
+                         : it.intraday && Number.isFinite(it.intraday.entryPrice) ? it.intraday.entryPrice
+                         : null);
+        if (!(basePrice > 0)) { allMissingPrice++; continue; }
+        // perDir: 진입가가 it.intraday에서 왔으므로 it.nextDayDir이 반드시 있어야 함.
+        const perDir = it.nextDayDir;
+        const perTarget = perDir ? perDir.replace(/-/g, '') : null;
+        if (!perTarget) { allMissingPrice++; continue; }
+        const r = calculateCandidateDayResult(it.code, basePrice, perTarget);
+        if (!r.available) { allMissingPrice++; continue; }
+        const t = assignResultTags(r);
+        it.dayResult = { ...r, resultTargetDate: perDir,
+                          basePriceSource: (it.intraday?.close_0930 ? 'intraday_0930' : 'intraday_entry'),
+                          resultTags: t.tags, resultLabel: t.label, resultComment: t.comment };
+        allWithResult.push(it);
+      }
+      // 3) 집계
+      function countBy(list, pred) { return list.filter(pred).length; }
+      function avgBy(list, getter) {
+        const xs = list.map(getter).filter((x) => Number.isFinite(x));
+        return xs.length ? Number((xs.reduce((s, x) => s + x, 0) / xs.length).toFixed(2)) : null;
+      }
+      todayResultSummary.isAvailable = true;
+      todayResultSummary.targetDate = targetDateForResult;
+      todayResultSummary.attackTopBig10        = countBy(attackTopWithResult, (c) => c.dayResult.reached10);
+      todayResultSummary.attackTopBig15        = countBy(attackTopWithResult, (c) => c.dayResult.reached15);
+      todayResultSummary.attackTopBig20        = countBy(attackTopWithResult, (c) => c.dayResult.reached20);
+      todayResultSummary.attackTopBig25        = countBy(attackTopWithResult, (c) => c.dayResult.reached25);
+      todayResultSummary.attackTopCloseStrong  = countBy(attackTopWithResult, (c) => c.dayResult.closeStrong);
+      todayResultSummary.attackTopFailed       = countBy(attackTopWithResult, (c) => c.dayResult.failedSpike);
+      todayResultSummary.attackTopSpikeFade    = countBy(attackTopWithResult, (c) => c.dayResult.spikeFade);
+      todayResultSummary.avgAttackTopDayHigh   = avgBy(attackTopWithResult, (c) => c.dayResult.dayHighReturn);
+      todayResultSummary.avgAttackTopDayClose  = avgBy(attackTopWithResult, (c) => c.dayResult.dayCloseReturn);
+
+      todayResultSummary.all1dsBig10        = countBy(allWithResult, (it) => it.dayResult.reached10);
+      todayResultSummary.all1dsBig15        = countBy(allWithResult, (it) => it.dayResult.reached15);
+      todayResultSummary.all1dsBig20        = countBy(allWithResult, (it) => it.dayResult.reached20);
+      todayResultSummary.all1dsBig25        = countBy(allWithResult, (it) => it.dayResult.reached25);
+      todayResultSummary.all1dsCloseStrong  = countBy(allWithResult, (it) => it.dayResult.closeStrong);
+      todayResultSummary.all1dsFailed       = countBy(allWithResult, (it) => it.dayResult.failedSpike);
+      todayResultSummary.all1dsWithResult   = allWithResult.length;
+      todayResultSummary.avgAll1dsDayHigh   = avgBy(allWithResult, (it) => it.dayResult.dayHighReturn);
+      todayResultSummary.avgAll1dsDayClose  = avgBy(allWithResult, (it) => it.dayResult.dayCloseReturn);
+
+      // attackTop과 모든 1DS는 사실상 같은 집합 (attackTop은 BIG_MONEY_REBREAK 필터한 부분집합)
+      // BIG_MONEY_REBREAK = attackTop과 동일 (현재 정의상)
+      todayResultSummary.bigMoneyRebreakBig10 = todayResultSummary.attackTopBig10;
+      todayResultSummary.bigMoneyRebreakBig15 = todayResultSummary.attackTopBig15;
+      todayResultSummary.bigMoneyRebreakBig20 = todayResultSummary.attackTopBig20;
+      todayResultSummary.rebreakWithValueBig10 = countBy(attackTopWithResult, (c) => c.dayResult.reached10 && c.rebreakWithValue);
+      todayResultSummary.secondWaveBig10       = countBy(attackTopWithResult, (c) => c.dayResult.reached10 && c.valueSecondWaveRatio != null && c.valueSecondWaveRatio >= 1.2);
+
+      const withRisk    = attackTopWithResult.filter((c) => Array.isArray(c.riskTags) && c.riskTags.length > 0);
+      const withoutRisk = attackTopWithResult.filter((c) => !Array.isArray(c.riskTags) || c.riskTags.length === 0);
+      todayResultSummary.riskTagResult = {
+        riskCount: withRisk.length,
+        riskBig10: countBy(withRisk, (c) => c.dayResult.reached10),
+        riskBig15: countBy(withRisk, (c) => c.dayResult.reached15),
+        noRiskCount: withoutRisk.length,
+        noRiskBig10: countBy(withoutRisk, (c) => c.dayResult.reached10),
+        noRiskBig15: countBy(withoutRisk, (c) => c.dayResult.reached15),
+      };
+      todayResultSummary.missingResultPriceCount = attackMissingPrice + allMissingPrice;
+      if (allWithResult.length === 0 && attackTopWithResult.length === 0) {
+        todayResultSummary.notes.push(`오늘 일봉 데이터(${targetDateYYYYMMDD})가 아직 저장되지 않았거나 분봉 미수집으로 결과 미확정.`);
+        todayResultSummary.isAvailable = false;
+      }
+
+      // candidate 카드용 데이터 (light shape — 카드 표시에 필요한 필드만)
+      function lightCard(it, src) {
+        const r = it.dayResult || {};
+        const o = src === 'attack' ? it : null;
+        return {
+          code: it.code, name: it.name, market: it.market || null,
+          source: src,                 // 'attack' | 'all'
+          attackRank: o ? o.attackRank : null,
+          gtBand: it.gtBand || it.gtGroup || null,
+          basePrice: r.basePrice ?? null,
+          dayHigh: r.dayHigh ?? null, dayClose: r.dayClose ?? null, dayLow: r.dayLow ?? null,
+          dayHighReturn: r.dayHighReturn ?? null,
+          dayCloseReturn: r.dayCloseReturn ?? null,
+          dayLowReturn: r.dayLowReturn ?? null,
+          highCloseDrop: r.highCloseDrop ?? null,
+          reached5: !!r.reached5, reached10: !!r.reached10, reached15: !!r.reached15, reached20: !!r.reached20, reached25: !!r.reached25,
+          closeStrong: !!r.closeStrong, spikeFade: !!r.spikeFade, failedSpike: !!r.failedSpike,
+          resultTags: r.resultTags || [], resultLabel: r.resultLabel || '', resultComment: r.resultComment || '',
+          attackTags: o ? (o.attackTags || []) : null,
+          riskTags:   o ? (o.riskTags   || []) : null,
+        };
+      }
+      todayResultCandidates.attackTop = attackTopWithResult
+        .slice()
+        .sort((a, b) => (b.dayResult.dayHighReturn || 0) - (a.dayResult.dayHighReturn || 0))
+        .map((c) => lightCard(c, 'attack'));
+      // BIG10/BIG15/BIG20 (전체 1DS에서) — attackTop 포함 여부 표시
+      const attackCodes = new Set(attackTopWithResult.map((c) => c.code));
+      function pickBig(list, minHigh, limit) {
+        return list.filter((it) => (it.dayResult.dayHighReturn || 0) >= minHigh)
+          .slice().sort((a, b) => (b.dayResult.dayHighReturn || 0) - (a.dayResult.dayHighReturn || 0))
+          .slice(0, limit)
+          .map((it) => {
+            const c = lightCard(it, attackCodes.has(it.code) ? 'attack' : 'all');
+            c.inAttackTop = attackCodes.has(it.code);
+            return c;
+          });
+      }
+      todayResultCandidates.big10 = pickBig(allWithResult, 10, 30);
+      todayResultCandidates.big15 = pickBig(allWithResult, 15, 30);
+      todayResultCandidates.big20 = pickBig(allWithResult, 20, 30);
+      todayResultCandidates.failed = allWithResult.filter((it) => it.dayResult.failedSpike)
+        .slice().sort((a, b) => (a.dayResult.dayCloseReturn || 0) - (b.dayResult.dayCloseReturn || 0))
+        .slice(0, 20).map((it) => lightCard(it, attackCodes.has(it.code) ? 'attack' : 'all'));
+      todayResultCandidates.spikeFade = allWithResult.filter((it) => it.dayResult.spikeFade)
+        .slice().sort((a, b) => (b.dayResult.highCloseDrop || 0) - (a.dayResult.highCloseDrop || 0))
+        .slice(0, 20).map((it) => lightCard(it, attackCodes.has(it.code) ? 'attack' : 'all'));
+
+      console.log(`  📊 오늘 결과 (targetDate ${targetDateForResult}):`);
+      console.log(`     1DS 전체 ${allWithResult.length}개 결과 가능 / 결과 미계산 ${allMissingPrice}건`);
+      console.log(`     공격형 TOP ${attackTopWithResult.length}개 결과 가능`);
+      console.log(`     공격형 TOP — BIG10 ${todayResultSummary.attackTopBig10} / BIG15 ${todayResultSummary.attackTopBig15} / BIG20 ${todayResultSummary.attackTopBig20} / 종가유지 ${todayResultSummary.attackTopCloseStrong} / 실패 ${todayResultSummary.attackTopFailed}`);
+      console.log(`     전체 1DS  — BIG10 ${todayResultSummary.all1dsBig10} / BIG15 ${todayResultSummary.all1dsBig15} / BIG20 ${todayResultSummary.all1dsBig20} / 종가유지 ${todayResultSummary.all1dsCloseStrong} / 실패 ${todayResultSummary.all1dsFailed}`);
+    }
+  } else {
+    console.log(`  📊 오늘 결과: 장중 — 결과 미확정 (장마감 후 자동 표시)`);
+  }
 
   const out = {
     meta: {
@@ -1121,6 +1885,13 @@ function main() {
       analysisDateConfirmReady: !!findNextDayDir(analysisDate || '', intradayDirs),
       analysisDateNextDir: analysisDate ? findNextDayDir(analysisDate, intradayDirs) : null,
     },
+    // 🔥 공격형 TOP 1DS — 기존 1DS 후보 중 BIG_MONEY_REBREAK 통과 (60일 감사 strong 등급)
+    attackTopSummary: attackTopResult.summary,
+    attackTopCandidates: attackTopResult.candidates,
+    // 📊 시장 상태 + 오늘 결과 — 장중에는 안내만, 장마감 후 일봉 기준 결과 표시
+    marketStatus,
+    todayResultSummary,
+    todayResultCandidates,
   };
 
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
@@ -1386,6 +2157,11 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 .card h3 { margin: 0 0 6px; font-size: 15px; color: #f1f5f9; font-weight: 700; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .card h3 .code { color: #64748b; font-size: 12px; font-weight: 400; }
 .card h3 .market { color: #94a3b8; font-size: 11px; font-weight: 400; padding: 1px 6px; border: 1px solid #334155; border-radius: 4px; }
+/* 종목명 상세 페이지 링크 — 다른 보드들과 같은 통일 상세(/one-day-surge-board/:code, qvaVviRedefinedController) 사용 */
+.card h3 a.name-link { color: #f1f5f9; text-decoration: none; border-bottom: 1px dashed transparent; }
+.card h3 a.name-link:hover { color: #5eead4; border-bottom-color: #5eead4; }
+.attack-card .ac-title a.name-link { color: #f1f5f9; text-decoration: none; border-bottom: 1px dashed transparent; }
+.attack-card .ac-title a.name-link:hover { color: #fbbf24; border-bottom-color: #fbbf24; }
 .card .meta { font-size: 11px; color: #94a3b8; margin-bottom: 8px; display:flex; flex-wrap:wrap; gap:4px; align-items:center; }
 
 .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 999px; line-height: 1.3; border: 1px solid transparent; }
@@ -1619,6 +2395,90 @@ h2 { font-size: 16px; margin: 22px 0 10px; color: #cbd5e1; }
 
 footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.7; }
 
+/* 🔥 공격형 TOP 1DS — 60일 감사 strong 등급 검증된 BIG_MONEY_REBREAK 조건 */
+.attack-top-section { background: linear-gradient(180deg, #7c2d12 0%, #1e293b 90%); border: 1px solid #ea580c; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; }
+.attack-top-section h2 { margin: 0 0 4px; color: #fdba74; font-size: 18px; }
+.attack-top-section .subhdr { color: #fed7aa; font-size: 12px; margin-bottom: 10px; line-height: 1.6; }
+.attack-top-section .desc { background: rgba(0,0,0,0.25); border-left: 3px solid #fb923c; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; color: #fed7aa; line-height: 1.7; }
+.attack-top-section .desc strong { color: #fdba74; }
+.attack-top-section .validation { font-size: 11.5px; color: #fcd34d; margin-bottom: 10px; padding: 8px 12px; background: rgba(0,0,0,0.2); border-radius: 6px; line-height: 1.6; }
+.attack-top-section .validation strong { color: #fef08a; }
+.attack-top-section .mode-banner { font-size: 12px; padding: 6px 12px; background: rgba(0,0,0,0.3); border-radius: 6px; margin-bottom: 10px; color: #fcd34d; }
+.attack-top-section .mode-banner .mode-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; background: #ea580c; color: #fff; font-weight: 700; margin-right: 8px; font-size: 11px; }
+.attack-top-section .warn-overflow { background: #7f1d1d; border-left: 3px solid #ef4444; padding: 8px 12px; border-radius: 6px; margin-bottom: 10px; color: #fca5a5; font-size: 12px; }
+.attack-top-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.attack-top-grid .cell { background: rgba(0,0,0,0.3); border: 1px solid #92400e; border-radius: 6px; padding: 8px 12px; }
+.attack-top-grid .cell .lbl { font-size: 10.5px; color: #fdba74; text-transform: uppercase; letter-spacing: 0.4px; }
+.attack-top-grid .cell .val { font-size: 18px; font-weight: 700; color: #fef08a; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.attack-top-grid .cell .sub { font-size: 10.5px; color: #fed7aa; margin-top: 2px; }
+.attack-card { background: #1e293b; border: 1px solid #334155; border-left: 5px solid #fb923c; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; }
+.attack-card.is-top { background: linear-gradient(90deg, #7c2d12 0%, #1e293b 25%); border-left-color: #fbbf24; }
+.attack-card.has-second-wave { border-left-color: #ef4444; }
+.attack-card .ac-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+.attack-card .ac-rank { font-size: 13px; font-weight: 800; color: #fbbf24; background: #422006; padding: 2px 8px; border-radius: 5px; min-width: 30px; text-align: center; }
+.attack-card .ac-title { font-size: 14px; font-weight: 700; display: flex; gap: 6px; align-items: baseline; }
+.attack-card .ac-title .name { color: #f1f5f9; }
+.attack-card .ac-title .code { color: #94a3b8; font-size: 11px; font-weight: 400; }
+.attack-card .ac-title .market { color: #cbd5e1; font-size: 11px; padding: 1px 5px; border: 1px solid #334155; border-radius: 4px; }
+.attack-card .ac-score { margin-left: auto; font-size: 11px; color: #fcd34d; }
+.attack-card .ac-meta { font-size: 11.5px; color: #cbd5e1; margin: 2px 0; }
+.attack-card .ac-meta b { color: #f1f5f9; }
+.attack-card .ac-meta .pos { color: #5eead4; }
+.attack-card .ac-meta .neg { color: #fca5a5; }
+.attack-card .ac-meta .warn { color: #fbbf24; }
+.attack-card .ac-tags { margin-top: 4px; }
+.attack-chip { display: inline-block; font-size: 10.5px; padding: 2px 7px; border-radius: 4px; margin: 1px 3px 1px 0; border: 1px solid; }
+.attack-chip.pos { background: #422006; color: #fdba74; border-color: #ea580c; }
+.attack-chip.risk { background: #7f1d1d; color: #fca5a5; border-color: #ef4444; }
+.attack-card .ac-comment { font-size: 11.5px; color: #fed7aa; margin-top: 5px; font-style: italic; }
+.attack-empty { padding: 16px; background: rgba(0,0,0,0.3); border: 1px dashed #92400e; border-radius: 6px; color: #fdba74; text-align: center; font-size: 12.5px; }
+.attack-top-section details { margin-top: 8px; }
+.attack-top-section details summary { cursor: pointer; padding: 6px 12px; background: rgba(0,0,0,0.3); border-radius: 6px; font-size: 12px; color: #fdba74; user-select: none; }
+/* 공격형 TOP 카드 inline 결과 (장마감 후) */
+.attack-card .ac-result { margin-top: 6px; padding: 6px 10px; background: rgba(0,0,0,0.35); border-radius: 5px; font-size: 11.5px; }
+.attack-card .ac-result .result-pos { color: #5eead4; font-weight: 700; }
+.attack-card .ac-result .result-neg { color: #fca5a5; font-weight: 700; }
+.attack-card .ac-result .result-warn { color: #fbbf24; font-weight: 700; }
+.attack-card .ac-result .result-label-big { color: #5eead4; font-weight: 700; }
+.attack-card .ac-result .result-label-mid { color: #93c5fd; font-weight: 700; }
+.attack-card .ac-result .result-label-warn { color: #fbbf24; font-weight: 700; }
+.attack-card .ac-result .result-label-fail { color: #fca5a5; font-weight: 700; }
+.attack-card .ac-result-pending { font-size: 11px; color: #94a3b8; margin-top: 6px; font-style: italic; }
+
+/* 📊 오늘 결과 섹션 (장마감 후) — 통일된 다크 + 청록 강조 */
+.today-result-section { background: linear-gradient(180deg, #042f2e 0%, #0f172a 90%); border: 1px solid #14b8a6; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; }
+.today-result-section h2 { margin: 0 0 4px; color: #5eead4; font-size: 18px; }
+.today-result-section .subhdr { color: #99f6e4; font-size: 12px; margin-bottom: 10px; line-height: 1.6; }
+.today-result-section .desc { background: rgba(0,0,0,0.25); border-left: 3px solid #14b8a6; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; color: #99f6e4; line-height: 1.7; }
+.today-result-section .desc strong { color: #5eead4; }
+.today-result-section .warn-note { background: #422006; border-left: 3px solid #f59e0b; padding: 8px 12px; border-radius: 6px; margin-bottom: 10px; color: #fde68a; font-size: 11.5px; line-height: 1.6; }
+.today-result-section .target-line { font-size: 11.5px; color: #94a3b8; margin-bottom: 10px; }
+.today-result-section .target-line strong { color: #cbd5e1; }
+.today-result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.today-result-grid .cell { background: rgba(0,0,0,0.3); border: 1px solid #134e4a; border-radius: 6px; padding: 8px 12px; }
+.today-result-grid .cell.attack { border-color: #ea580c; }
+.today-result-grid .cell.fail { border-color: #ef4444; }
+.today-result-grid .cell .lbl { font-size: 10.5px; color: #5eead4; text-transform: uppercase; letter-spacing: 0.4px; }
+.today-result-grid .cell.attack .lbl { color: #fdba74; }
+.today-result-grid .cell.fail .lbl { color: #fca5a5; }
+.today-result-grid .cell .val { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.today-result-grid .cell .sub { font-size: 10.5px; color: #94a3b8; margin-top: 2px; }
+.today-result-table { width: 100%; border-collapse: collapse; background: #1e293b; border: 1px solid #334155; border-radius: 8px; overflow: hidden; font-size: 11.5px; margin-bottom: 12px; }
+.today-result-table th, .today-result-table td { padding: 7px 9px; text-align: left; border-bottom: 1px solid #334155; color: #cbd5e1; vertical-align: top; }
+.today-result-table th { background: #0f172a; color: #5eead4; font-weight: 600; font-size: 11px; }
+.today-result-table td.pos { color: #5eead4; font-weight: 600; }
+.today-result-table td.neg { color: #fca5a5; font-weight: 600; }
+.today-result-table td.warn { color: #fbbf24; font-weight: 600; }
+.today-result-table .chip-big { display: inline-block; font-size: 10.5px; padding: 1px 6px; border-radius: 3px; margin: 1px 2px; background: #042f2e; color: #5eead4; border: 1px solid #14b8a6; }
+.today-result-table .chip-warn { display: inline-block; font-size: 10.5px; padding: 1px 6px; border-radius: 3px; margin: 1px 2px; background: #422006; color: #fde68a; border: 1px solid #d97706; }
+.today-result-table .chip-fail { display: inline-block; font-size: 10.5px; padding: 1px 6px; border-radius: 3px; margin: 1px 2px; background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
+.today-result-table .chip-attack-mark { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-left: 4px; background: #7c2d12; color: #fdba74; border: 1px solid #ea580c; }
+.today-result-section .intraday-banner { background: #422006; border: 1px solid #f59e0b; border-radius: 10px; padding: 18px 22px; text-align: center; }
+.today-result-section .intraday-banner .ib-title { font-size: 18px; font-weight: 700; color: #fde68a; margin-bottom: 8px; }
+.today-result-section .intraday-banner .ib-line { font-size: 13px; color: #fcd34d; margin: 4px 0; line-height: 1.6; }
+.today-result-section .empty-note { background: rgba(0,0,0,0.3); border: 1px dashed #334155; padding: 12px; text-align: center; border-radius: 6px; color: #94a3b8; font-size: 12px; }
+.today-result-section details summary { cursor: pointer; padding: 6px 12px; background: rgba(0,0,0,0.3); border-radius: 6px; font-size: 12px; color: #5eead4; user-select: none; margin: 8px 0; }
+
 @media (max-width: 900px) {
   body { padding: 12px 12px 60px; }
   .metrics-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1627,13 +2487,11 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 </head>
 <body>
 
-<div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인 (QVA2)</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR (QVA2)</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (QVA2)</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (QVA2)</a></div>
-<nav>
-  <a href="/qva-watchlist">📋 H그룹/VPR 보드</a>
-  <a href="/rebreak">🔥 D+5 재돌파 운용</a>
-  <a href="/one-day-surge-board" class="active">⚡ 1DS 단타 후보</a>
-  <a href="/qva-vvi-redefined-board">🎯 QVA 고점 재돌파</a>
-</nav>
+<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+  <div style="background:linear-gradient(90deg,#064e3b 0%,#065f46 100%);border:1px solid #10b981;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#a7f3d0;font-weight:700;letter-spacing:0.3px;">🟢 운영 보드</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파</a></div>
+  <div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인</span><a href="/one-day-surge-board" style="color:#fff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.22);border:1px solid #fff;font-weight:700;">⚡ 1DS 단타 후보</a></div>
+  <div style="background:linear-gradient(90deg,#1e293b 0%,#334155 100%);border:1px solid #64748b;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;opacity:0.92;"><span style="color:#cbd5e1;font-weight:700;letter-spacing:0.3px;">📜 과거 보드</span><a href="/qva-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR (구)</a><a href="/rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (구)</a><a href="/qva-vvi-redefined-board" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (구)</a></div>
+</div>
 
 <!-- 운영자 상단 sticky 상태 배너 (스크롤 내려도 항상 보임) -->
 <div class="status-banner-host-wrap"><div id="status-banner-host"></div></div>
@@ -1653,6 +2511,12 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 <div id="market-banner-host"></div>
 <div id="daytype-banner-host"></div>
 <div class="filter-info" id="filter-info"></div>
+
+<!-- 🔥 공격형 TOP 1DS — 60일 BIG RUNNER 감사 strong 등급 (거래대금 상위 10% + 장초 고가 재돌파) -->
+<div id="attack-top-host"></div>
+
+<!-- 📊 오늘 1DS 결과 — 장중에는 안내만, 장마감 후 일봉 기준 결과 집계 -->
+<div id="today-result-host"></div>
 
 <h2>📊 화면 요약</h2>
 <div class="summary-grid" id="summary-grid"></div>
@@ -1840,6 +2704,8 @@ function fmtRemaining(ms) {
 // 신 모델 (2026-05-14 개편): 09:30 = 예선 / 10:00 = 본선 / 10:00 이후 = 대응
 // status: 시각 + scanner0930 survivor1000Ready 플래그 결합
 function computeBoardStatus() {
+  // 휴장일(주말/공휴일)은 시각과 무관하게 holiday 상태
+  if (DATA.marketStatus && DATA.marketStatus.status === 'holiday_closed') return 'holiday';
   const sc = DATA.priorityRanked && DATA.priorityRanked.scanner0930;
   const survivorReady = !!(sc && sc.survivor1000Ready);
   const hhmm = getSeoulHHMM();
@@ -1913,6 +2779,16 @@ function renderStatusBanner() {
       cls: 'after-market',
       title: '🌙 장 마감 — 다음 거래일 09:30 대기',
       desc: '<strong>오늘 대응 시간은 종료되었습니다.</strong> 결과 복기 또는 다음 거래일 준비용. 다음 09:30까지 약 <strong>' + remStr + '</strong> 후.',
+      action: '다음 거래일 09:30 이후 새로고침',
+    },
+    'holiday': {
+      cls: 'previous-close',
+      title: '📅 휴장일 (주말/공휴일/대체공휴일)',
+      desc: '<strong>오늘은 한국 증시가 휴장입니다.</strong>' +
+            (DATA.marketStatus && DATA.marketStatus.previousTradingDate
+              ? ' 직전 거래일 <strong>' + DATA.marketStatus.previousTradingDate + '</strong> 결과를 표시합니다.'
+              : '') +
+            ' 다음 거래일 09:30까지 약 <strong>' + remStr + '</strong> 후.',
       action: '다음 거래일 09:30 이후 새로고침',
     },
   };
@@ -2325,7 +3201,7 @@ function buildCardHtml(it) {
   }
 
   return '<div class="card g-' + it.gtGroup + '" data-group="' + it.gtGroup + '" data-candle="' + (it.candleType || '') + '" data-qva="' + (it.qvaHistoryLabel ? '1' : '0') + '" data-has-qva="' + (it.hasRecentQva ? '1' : '0') + '" data-vvi="' + (it.vviHistory ? '1' : '0') + '" data-strategies="' + ((it.entryStrategies || []).join(',')) + '" data-manual-targets="' + (it.manualTargets ? '1' : '0') + '" data-trade-plan="' + (it.tradePlan && it.tradePlan.status || 'NONE') + '">' +
-    '<h3>' + (it.name || '-') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' + statusBadge + ' ' + scannerOverlapBadge(it) + ' ' + entryStatusPill(it) + '</h3>' +
+    '<h3><a class="name-link" href="/one-day-surge-board/' + it.code + '" title="' + (it.name || '-').replace(/"/g,'&quot;') + ' 상세 (통일 상세 페이지)">' + (it.name || '-') + '</a> <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' + statusBadge + ' ' + scannerOverlapBadge(it) + ' ' + entryStatusPill(it) + '</h3>' +
     qvaStrip +
     '<div class="meta">' + strategyChips(it) + badges.join('') + '</div>' +
     perfBox +
@@ -2445,7 +3321,7 @@ const PREMARKET_MODE = isPremarketMode();
       ? '<div class="summary-line" style="color:#94a3b8;font-size:10.5px;margin-top:3px;font-style:italic;">└ ' + e.reason + '</div>'
       : '';
     return '<div class="card s-' + e.status + '">' +
-      '<h3>' + (e.name || e.code) + ' <span class="code">' + e.code + '</span> <span class="market">' + (e.market || '') + '</span>' +
+      '<h3><a class="name-link" href="/one-day-surge-board/' + e.code + '" title="' + (e.name || e.code).replace(/"/g,'&quot;') + ' 상세">' + (e.name || e.code) + '</a> <span class="code">' + e.code + '</span> <span class="market">' + (e.market || '') + '</span>' +
       ' <span class="badge ' + statusCls + '">' + (e.statusLabel || e.status) + '</span>' +
       // finalScore 배지 (READY 상태만 의미 있음)
       (e.status === 'READY' && Number.isFinite(e.finalScore) ? ' <span class="badge aux" title="실전 우선 후보 선출용 종합 점수 (finalScore)">final ' + e.finalScore.toFixed(1) + '</span>' : '') +
@@ -2679,6 +3555,367 @@ document.getElementById('foot').innerHTML =
   '• <strong>10시 생존 후보라도 손절 기준 없이 보유하면 위험합니다.</strong> 장중 급락 사례가 있으므로 -3% 이탈은 실패로 보고 정리하세요.<br>' +
   '• <strong>09:30에 즉시 매수 확정 신호가 아닙니다.</strong> 09:30~10:00은 후보 관찰만, 10:00 본선 확인 후 진입 검토.<br>' +
   '• 본 보드는 일봉 캐시 + 09:30 분봉 + 10:00 분봉을 결합한 의사결정 도구이며, 매수 추천이 아니라 <strong>후보를 좁혀주는 운영 보드</strong>입니다.';
+
+// ─────────────────────────────────────────────────────────────────
+// 🔥 공격형 TOP 1DS 섹션 (BIG_MONEY_REBREAK 기반)
+// 60일 BIG RUNNER 감사 strong 등급 검증된 조건. 기존 1DS 후보 위에 얹는 상위 필터.
+// ─────────────────────────────────────────────────────────────────
+(function renderAttackTop() {
+  const host = document.getElementById('attack-top-host');
+  if (!host) return;
+  const sum = DATA.attackTopSummary;
+  const cards = DATA.attackTopCandidates || [];
+  if (!sum) return;
+
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function fnum(v, p) { return v == null || !Number.isFinite(v) ? '—' : Number(v).toFixed(p != null ? p : 2); }
+  function fpct(v, p) { return v == null || !Number.isFinite(v) ? '—' : (v > 0 ? '+' : '') + Number(v).toFixed(p != null ? p : 2) + '%'; }
+  function fmoneyLocal(v) {
+    if (v == null || !Number.isFinite(v)) return '—';
+    if (v >= 1e12) return (v / 1e12).toFixed(2) + '조';
+    if (v >= 1e8)  return (v / 1e8 ).toFixed(1) + '억';
+    if (v >= 1e4)  return (v / 1e4 ).toFixed(0) + '만';
+    return Math.round(v).toLocaleString();
+  }
+
+  const vs = sum.validationSnapshot || {};
+  const bmr = vs.bigMoneyRebreak || {};
+  const base = vs.base || {};
+
+  const modeBanner = sum.decisionMode ? (
+    '<div class="mode-banner">' +
+    '<span class="mode-pill">' + esc(sum.decisionMode.label) + '</span>' +
+    '기준 시점 <b>' + esc(sum.generatedAtDecisionTime || '—') + '</b> · ' +
+    esc(sum.decisionMode.guide) +
+    '</div>'
+  ) : '';
+
+  const overflow = sum.overflowWarning ? (
+    '<div class="warn-overflow">⚠ 공격형 TOP 후보가 ' + sum.count + '개 — 후보 과다. 거래대금 순위와 재돌파 동반 여부를 우선 확인하세요.</div>'
+  ) : '';
+
+  const summaryGrid = (
+    '<div class="attack-top-grid">' +
+    '<div class="cell"><div class="lbl">공격형 TOP 후보</div><div class="val">' + sum.count + '</div><div class="sub">BIG_MONEY_REBREAK 통과</div></div>' +
+    '<div class="cell"><div class="lbl">재돌파 + 거래대금</div><div class="val">' + sum.rebreakWithValueCount + '</div><div class="sub">동반 후보</div></div>' +
+    '<div class="cell"><div class="lbl">2차 파동</div><div class="val">' + sum.secondWaveCount + '</div><div class="sub">09:45~ 거래대금 1.2배+</div></div>' +
+    '<div class="cell"><div class="lbl">위험 태그 후보</div><div class="val">' + sum.riskCount + '</div><div class="sub">갭/변동성/추격</div></div>' +
+    '<div class="cell"><div class="lbl">분봉 가용</div><div class="val">' + sum.candidatesWithMinute + '</div><div class="sub">/' + sum.totalCandidates + ' (모집단)</div></div>' +
+    '</div>'
+  );
+
+  const validationLine = (
+    '<div class="validation">' +
+    '<strong>60일 감사 검증 (' + (vs.passLevel || 'strong') + '):</strong> 거래대금 상위 10% + 재돌파 = BIG10 ' +
+    (bmr.big10 != null ? bmr.big10 + '%' : '—') + ', BIG15 ' +
+    (bmr.big15 != null ? bmr.big15 + '%' : '—') + ', BIG20 ' +
+    (bmr.big20 != null ? bmr.big20 + '%' : '—') + ', 평균 당일고가 ' +
+    (bmr.avgDayHigh != null ? bmr.avgDayHigh + '%' : '—') + ' · BASE 1DS 전체: BIG10 ' +
+    (base.big10 != null ? base.big10 + '%' : '—') + ', BIG15 ' +
+    (base.big15 != null ? base.big15 + '%' : '—') + ', BIG20 ' +
+    (base.big20 != null ? base.big20 + '%' : '—') + ', 평균고가 ' +
+    (base.avgDayHigh != null ? base.avgDayHigh + '%' : '—') +
+    '</div>'
+  );
+
+  function renderCard(c) {
+    const cls = ['attack-card'];
+    if (c.attackRank <= 5) cls.push('is-top');
+    if (c.valueSecondWaveRatio != null && c.valueSecondWaveRatio >= 1.2) cls.push('has-second-wave');
+    const tagsPos  = (c.attackTags || []).map((t) => '<span class="attack-chip pos">' + esc(t) + '</span>').join('');
+    const tagsRisk = (c.riskTags   || []).map((t) => '<span class="attack-chip risk">' + esc(t) + '</span>').join('');
+    return (
+      '<div class="' + cls.join(' ') + '">' +
+      '<div class="ac-head">' +
+        '<span class="ac-rank">#' + c.attackRank + '</span>' +
+        '<div class="ac-title">' +
+          '<a class="name-link" href="/one-day-surge-board/' + esc(c.code) + '" title="' + esc(c.name) + ' 상세 (통일 상세 페이지)">' + esc(c.name) + '</a>' +
+          '<span class="code">' + esc(c.code) + '</span>' +
+          (c.market ? '<span class="market">' + esc(c.market) + '</span>' : '') +
+        '</div>' +
+        '<div class="ac-score">attackScore ' + fnum(c.attackScore, 1) +
+          (c.oneDaySurgeScore != null ? ' · 1DS ' + fnum(c.oneDaySurgeScore, 0) : '') +
+          (c.gtBand ? ' · ' + esc(c.gtBand) : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="ac-meta">기준 시각 <b>' + esc(c.decisionTime) + '</b> · 1DS 신호가 <b>' + fmt0(c.signalPrice) + '</b> · 현재가 <b>' + fmt0(c.decisionPrice) + '</b> · 전일종가 ' + fmt0(c.prevClose) + ' · 시가 ' + fmt0(c.open0900) + '</div>' +
+      '<div class="ac-meta">09:00~현재 거래대금 <b>' + fmoneyLocal(c.morningValue) + '</b> · 거래대금 순위 <b>' + c.morningValueRank + '위 (상위 ' + fnum(c.morningValuePercentile, 1) + '%)</b> · 장초 고가 ' + fmt0(c.morningHigh) + '</div>' +
+      '<div class="ac-meta">재돌파: <b class="pos">' + (c.rebreakMorningHigh ? '✓ ' + esc(c.rebreakTime || '') : '—') + '</b> · 거래대금 동반: <b class="' + (c.rebreakWithValue ? 'pos' : '') + '">' + (c.rebreakWithValue ? '✓' : '—') + '</b> · 2차 파동: <b class="' + (c.valueSecondWaveRatio != null && c.valueSecondWaveRatio >= 1.2 ? 'pos' : '') + '">' + (c.valueSecondWaveRatio != null && c.valueSecondWaveRatio >= 1.2 ? '✓ (' + fnum(c.valueSecondWaveRatio, 2) + 'x)' : '—') + '</b></div>' +
+      '<div class="ac-meta">시가 대비 <b class="' + (c.decisionFromOpen >= 8 ? 'warn' : 'pos') + '">' + fpct(c.decisionFromOpen) + '</b> · 전일종가 대비 ' + fpct(c.decisionFromPrevClose) + ' · 갭 ' + fpct(c.gapRate) + ' · 장초 고저폭 ' + fpct(c.morningRangeRate) + '</div>' +
+      (tagsPos  ? '<div class="ac-tags">' + tagsPos  + '</div>' : '') +
+      (tagsRisk ? '<div class="ac-tags">' + tagsRisk + '</div>' : '') +
+      '<div class="ac-comment">' + esc(c.shortComment) + '</div>' +
+      // 장마감 후: 결과 inline 표시. 장중: 안내.
+      (function () {
+        const r = c.dayResult;
+        const ms = DATA.marketStatus || {};
+        if (!ms.isMarketClosed) return '<div class="ac-result-pending">📊 결과: 장마감 후 표시</div>';
+        if (!r || !r.available) return '<div class="ac-result-pending">📊 결과: 미확정 (' + esc(r && r.reason ? r.reason : '데이터 부족') + ')</div>';
+        const hCls = r.dayHighReturn  >= 10 ? 'result-pos' : r.dayHighReturn  >= 3 ? 'result-warn' : 'result-neg';
+        const cCls = r.dayCloseReturn >= 3  ? 'result-pos' : r.dayCloseReturn >= 0 ? 'result-warn' : 'result-neg';
+        const lblCls = r.reached15 ? 'result-label-big' : r.reached10 ? 'result-label-mid' : r.failedSpike ? 'result-label-fail' : 'result-label-warn';
+        const tagsHtml = (r.resultTags || []).slice(0, 4).map((t) => '<span style="font-size:10.5px;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,0.4);color:#cbd5e1;margin:1px 2px 1px 0;display:inline-block;">' + esc(t) + '</span>').join('');
+        return '<div class="ac-result">' +
+          '📊 <span class="' + lblCls + '">' + esc(r.resultLabel || '-') + '</span> · ' +
+          '당일 고가 <b class="' + hCls + '">' + (r.dayHighReturn > 0 ? '+' : '') + r.dayHighReturn + '%</b> · ' +
+          '종가 <b class="' + cCls + '">' + (r.dayCloseReturn > 0 ? '+' : '') + r.dayCloseReturn + '%</b>' +
+          (r.highCloseDrop != null ? ' · 고가→종가 <b>' + r.highCloseDrop + '%</b>' : '') +
+          (tagsHtml ? '<div style="margin-top:3px;">' + tagsHtml + '</div>' : '') +
+          (r.resultComment ? '<div style="margin-top:3px;color:#94a3b8;font-style:italic;">' + esc(r.resultComment) + '</div>' : '') +
+          '</div>';
+      })() +
+      '</div>'
+    );
+  }
+  function fmt0(v) { return v == null || !Number.isFinite(v) ? '—' : Math.round(v).toLocaleString(); }
+
+  let cardListHtml;
+  if (cards.length === 0) {
+    cardListHtml = '<div class="attack-empty">' +
+      '현재 공격형 TOP 조건 (거래대금 상위 10% + 장초 고가 재돌파)을 만족한 후보가 없습니다.<br>' +
+      '<span style="color:#fed7aa;font-size:11px;">' + (sum.message || '09:40 이후 분봉이 부족하거나 모집단이 부족할 수 있습니다.') + '</span>' +
+      '</div>';
+  } else if (cards.length <= 15) {
+    cardListHtml = cards.map(renderCard).join('');
+  } else {
+    const first15 = cards.slice(0, 15).map(renderCard).join('');
+    const rest = cards.slice(15).map(renderCard).join('');
+    cardListHtml = first15 +
+      '<details><summary>나머지 ' + (cards.length - 15) + '개 펼치기</summary>' + rest + '</details>';
+  }
+
+  host.innerHTML = (
+    '<div class="attack-top-section">' +
+    '<h2>🔥 공격형 TOP 1DS</h2>' +
+    '<div class="subhdr">기존 1DS 중 거래대금이 크고, 장초 고가를 다시 뚫은 후보</div>' +
+    '<div class="desc">' +
+    '이 섹션은 기존 1DS 전체 후보 중 <strong>거래대금 상위 10% + 장초 고가 재돌파</strong> 조건을 만족한 후보만 따로 보여줍니다. ' +
+    '감사 결과, 이 조건은 기존 1DS 전체보다 당일 +10%, +15%, +20% 도달률이 높았습니다. ' +
+    '단, 공격형 조건이므로 변동성도 함께 커질 수 있습니다. ' +
+    '<br>10시 이후에는 이미 일부 상승 구간이 지나갔을 수 있으므로, 공격형 TOP은 09:30~09:45 확인이 가장 중요합니다. ' +
+    '<br>이 섹션은 매수 확정 신호가 아니라, 기존 1DS 중 큰 상승이 나올 가능성이 높았던 패턴을 우선 보여주는 필터입니다.' +
+    '</div>' +
+    validationLine +
+    modeBanner +
+    overflow +
+    summaryGrid +
+    cardListHtml +
+    '</div>'
+  );
+})();
+
+// ─────────────────────────────────────────────────────────────────
+// 📊 오늘 1DS 결과 섹션 (장중: 안내만 / 장마감 후: 실제 결과 집계)
+// ─────────────────────────────────────────────────────────────────
+(function renderTodayResult() {
+  const host = document.getElementById('today-result-host');
+  if (!host) return;
+  const ms = DATA.marketStatus;
+  const sum = DATA.todayResultSummary;
+  const cands = DATA.todayResultCandidates || { attackTop: [], big10: [], big15: [], big20: [], failed: [], spikeFade: [] };
+  if (!ms) return;
+
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function fn(v, p) { return v == null || !Number.isFinite(v) ? '—' : Number(v).toFixed(p != null ? p : 2); }
+  function fp(v, p) { return v == null || !Number.isFinite(v) ? '—' : (v > 0 ? '+' : '') + Number(v).toFixed(p != null ? p : 2) + '%'; }
+  function f0(v) { return v == null || !Number.isFinite(v) ? '—' : Math.round(v).toLocaleString(); }
+  function chip(t) { return '<span style="font-size:10.5px;padding:1px 5px;border-radius:3px;background:#1e293b;color:#cbd5e1;margin:1px 2px 1px 0;display:inline-block;">' + esc(t) + '</span>'; }
+  function chipBig(t) { return '<span class="chip-big">' + esc(t) + '</span>'; }
+  function chipWarn(t) { return '<span class="chip-warn">' + esc(t) + '</span>'; }
+  function chipFail(t) { return '<span class="chip-fail">' + esc(t) + '</span>'; }
+  function tagChips(tags) {
+    return (tags || []).map((t) => {
+      if (t.startsWith('BIG') || t === '상한가 근처' || t === '강한 종가' || t === '종가 유지') return chipBig(t);
+      if (t === '실패' || t === '종가 약함') return chipFail(t);
+      return chipWarn(t);
+    }).join('');
+  }
+
+  // 장중: 안내 배너만
+  if (!ms.isMarketClosed) {
+    host.innerHTML = (
+      '<div class="today-result-section">' +
+      '<h2>📊 오늘 1DS 결과</h2>' +
+      '<div class="intraday-banner">' +
+      '<div class="ib-title">📌 아직 장중입니다 (KST ' + esc(ms.generatedAtTime) + ')</div>' +
+      '<div class="ib-line">현재 후보는 장중 기준으로 계산된 1DS 후보입니다.</div>' +
+      '<div class="ib-line">당일 고가, 종가, BIG10/BIG15/BIG20 도달 여부는 <b>장마감 후 자동으로 표시</b>됩니다.</div>' +
+      (ms.forcedNote ? '<div class="ib-line" style="color:#94a3b8;font-size:11px;margin-top:8px;">⚙ ' + esc(ms.forcedNote) + '</div>' : '') +
+      '</div>' +
+      '</div>'
+    );
+    return;
+  }
+
+  // 휴장 안내 (주말/공휴일/대체공휴일)
+  let holidayNote = '';
+  if (ms.status === 'holiday_closed') {
+    holidayNote = (
+      '<div class="intraday-banner" style="background:#1e1b4b;border-color:#a78bfa;margin-bottom:12px;">' +
+      '<div class="ib-title" style="color:#c4b5fd;">📌 오늘은 휴장일입니다 (주말/공휴일/대체공휴일)</div>' +
+      '<div class="ib-line" style="color:#ddd6fe;">' + esc(ms.todayDate || '') + (ms.todayWeekday ? ' (' + esc(ms.todayWeekday) + ')' : '') + ' — 한국 증시 휴장</div>' +
+      (ms.previousTradingDate
+        ? '<div class="ib-line" style="color:#ddd6fe;">직전 거래일 <b>' + esc(ms.previousTradingDate) + '</b> 결과를 아래에 표시합니다.</div>'
+        : '<div class="ib-line" style="color:#fca5a5;">직전 거래일을 찾을 수 없습니다.</div>') +
+      (ms.forcedNote ? '<div class="ib-line" style="color:#94a3b8;font-size:11px;margin-top:8px;">⚙ ' + esc(ms.forcedNote) + '</div>' : '') +
+      '</div>'
+    );
+  }
+
+  // 장마감 후: 결과 표시 (결과 데이터 없으면 안내)
+  const sectionTitle = ms.status === 'holiday_closed'
+    ? '📊 직전 거래일 1DS 결과' + (ms.previousTradingDate ? ' (' + ms.previousTradingDate + ')' : '')
+    : '📊 오늘 1DS 결과';
+  if (!sum || !sum.isAvailable) {
+    host.innerHTML = (
+      '<div class="today-result-section">' +
+      '<h2>' + sectionTitle + '</h2>' +
+      holidayNote +
+      '<div class="warn-note">' +
+      '⚠ ' + (ms.status === 'holiday_closed' ? '직전 거래일' : '장마감 후이지만') + ' 결과 집계 불가 — ' +
+      (sum && sum.notes && sum.notes.length ? sum.notes.map(esc).join(' / ') : '일봉 데이터가 아직 저장되지 않았거나 분봉 미수집') +
+      '</div>' +
+      '<div class="empty-note">장마감 데이터가 저장된 뒤 보드를 다시 생성하면 결과가 표시됩니다.</div>' +
+      '</div>'
+    );
+    return;
+  }
+
+  // 상단 결과 카드 (10개)
+  const summaryGrid = (
+    '<div class="today-result-grid">' +
+    '<div class="cell"><div class="lbl">전체 1DS</div><div class="val">' + sum.all1dsWithResult + '</div><div class="sub">결과 계산 가능</div></div>' +
+    '<div class="cell attack"><div class="lbl">공격형 TOP</div><div class="val">' + sum.attackTopCount + '</div><div class="sub">BIG_MONEY_REBREAK</div></div>' +
+    '<div class="cell attack"><div class="lbl">공격형 BIG10</div><div class="val">' + sum.attackTopBig10 + '</div><div class="sub">+10% 이상 도달</div></div>' +
+    '<div class="cell attack"><div class="lbl">공격형 BIG15</div><div class="val">' + sum.attackTopBig15 + '</div><div class="sub">+15% 이상</div></div>' +
+    '<div class="cell attack"><div class="lbl">공격형 BIG20</div><div class="val">' + sum.attackTopBig20 + '</div><div class="sub">+20% 이상</div></div>' +
+    '<div class="cell"><div class="lbl">공격형 종가 유지</div><div class="val">' + sum.attackTopCloseStrong + '</div><div class="sub">종가 +5%↑</div></div>' +
+    '<div class="cell fail"><div class="lbl">공격형 실패</div><div class="val">' + sum.attackTopFailed + '</div><div class="sub">+3% 못 가고 -3% 발생</div></div>' +
+    '<div class="cell"><div class="lbl">전체 BIG10</div><div class="val">' + sum.all1dsBig10 + '</div><div class="sub">1DS 전체 중</div></div>' +
+    '<div class="cell"><div class="lbl">전체 BIG15</div><div class="val">' + sum.all1dsBig15 + '</div><div class="sub">1DS 전체 중</div></div>' +
+    '<div class="cell"><div class="lbl">전체 BIG20</div><div class="val">' + sum.all1dsBig20 + '</div><div class="sub">1DS 전체 중</div></div>' +
+    '</div>'
+  );
+
+  // 결과 표 1: 공격형 TOP 결과
+  function attackResultRow(c, i) {
+    const r = (cands.attackTop[i] === c) ? c : c; // identity unused; just for clarity
+    const hClass = c.dayHighReturn  >= 10 ? 'pos' : c.dayHighReturn  >= 3 ? 'warn' : 'neg';
+    const cClass = c.dayCloseReturn >= 3  ? 'pos' : c.dayCloseReturn >= 0 ? 'warn' : 'neg';
+    return '<tr>' +
+      '<td>' + (c.attackRank != null ? '#' + c.attackRank : '—') + '</td>' +
+      '<td><b>' + esc(c.name) + '</b></td>' +
+      '<td><span style="color:#64748b;">' + esc(c.code) + '</span></td>' +
+      '<td>' + f0(c.basePrice) + '</td>' +
+      '<td class="' + hClass + '">' + fp(c.dayHighReturn) + '</td>' +
+      '<td class="' + cClass + '">' + fp(c.dayCloseReturn) + '</td>' +
+      '<td>' + (c.highCloseDrop != null ? fp(c.highCloseDrop) : '—') + '</td>' +
+      '<td>' + tagChips(c.resultTags) + '</td>' +
+      '<td>' + (c.attackTags || []).slice(0, 3).map(chip).join('') + '</td>' +
+      '<td>' + (c.riskTags && c.riskTags.length ? c.riskTags.map(chipFail).join('') : '<span style="color:#64748b;">—</span>') + '</td>' +
+      '<td style="font-size:10.5px;color:#94a3b8;max-width:200px;">' + esc(c.resultComment || '') + '</td>' +
+      '</tr>';
+  }
+  const attackResultTable = cands.attackTop.length > 0
+    ? '<table class="today-result-table">' +
+        '<thead><tr><th>순위</th><th>종목명</th><th>코드</th><th>기준가</th><th>당일 고가%</th><th>종가%</th><th>고가→종가</th><th>결과 태그</th><th>공격형 태그</th><th>위험</th><th>해석</th></tr></thead>' +
+        '<tbody>' + cands.attackTop.map(attackResultRow).join('') + '</tbody>' +
+      '</table>'
+    : '<div class="empty-note">공격형 TOP 후보가 없거나 결과 계산이 불가능합니다.</div>';
+
+  // 결과 표 2: 전체 1DS 그룹 요약
+  // attackTopWithResult / withRisk / withoutRisk / rebreakWithValue / secondWave를 row로 (전체 1DS는 별도 row)
+  function avgPct(v) { return v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(2) + '%'; }
+  const groupRows = [
+    { label: '전체 1DS',            n: sum.all1dsWithResult,    big10: sum.all1dsBig10, big15: sum.all1dsBig15, big20: sum.all1dsBig20,
+      closeStrong: sum.all1dsCloseStrong, failed: sum.all1dsFailed,
+      avgHigh: sum.avgAll1dsDayHigh, avgClose: sum.avgAll1dsDayClose,
+      interp: '비교 기준' },
+    { label: '공격형 TOP',           n: sum.attackTopCount,      big10: sum.attackTopBig10, big15: sum.attackTopBig15, big20: sum.attackTopBig20,
+      closeStrong: sum.attackTopCloseStrong, failed: sum.attackTopFailed,
+      avgHigh: sum.avgAttackTopDayHigh, avgClose: sum.avgAttackTopDayClose,
+      interp: 'BIG_MONEY_REBREAK 필터' },
+    { label: 'BIG_MONEY_REBREAK',    n: sum.attackTopCount,      big10: sum.bigMoneyRebreakBig10, big15: sum.bigMoneyRebreakBig15, big20: sum.bigMoneyRebreakBig20,
+      closeStrong: sum.attackTopCloseStrong, failed: sum.attackTopFailed,
+      avgHigh: sum.avgAttackTopDayHigh, avgClose: sum.avgAttackTopDayClose,
+      interp: '공격형 TOP과 동일' },
+    { label: '재돌파 + 거래대금 동반', n: '—', big10: sum.rebreakWithValueBig10, big15: '—', big20: '—',
+      closeStrong: '—', failed: '—', avgHigh: '—', avgClose: '—',
+      interp: '거래대금 동반 재돌파만' },
+    { label: '2차 파동',             n: '—', big10: sum.secondWaveBig10, big15: '—', big20: '—',
+      closeStrong: '—', failed: '—', avgHigh: '—', avgClose: '—',
+      interp: '09:45~ 거래대금 1.2배+' },
+    { label: '위험 태그 있음',        n: sum.riskTagResult.riskCount,   big10: sum.riskTagResult.riskBig10,   big15: sum.riskTagResult.riskBig15,   big20: '—',
+      closeStrong: '—', failed: '—', avgHigh: '—', avgClose: '—',
+      interp: '갭/변동성/추격 등' },
+    { label: '위험 태그 없음',        n: sum.riskTagResult.noRiskCount, big10: sum.riskTagResult.noRiskBig10, big15: sum.riskTagResult.noRiskBig15, big20: '—',
+      closeStrong: '—', failed: '—', avgHigh: '—', avgClose: '—',
+      interp: '깔끔한 공격형' },
+  ];
+  function r2v(v) { return v === '—' ? v : v; }
+  const groupTable = '<table class="today-result-table">' +
+    '<thead><tr><th>그룹</th><th>n</th><th>BIG10</th><th>BIG15</th><th>BIG20</th><th>종가 유지</th><th>실패</th><th>평균 당일고가</th><th>평균 종가</th><th>해석</th></tr></thead>' +
+    '<tbody>' + groupRows.map((g) => '<tr>' +
+      '<td><b>' + esc(g.label) + '</b></td>' +
+      '<td>' + r2v(g.n) + '</td>' +
+      '<td class="pos">' + r2v(g.big10) + '</td>' +
+      '<td class="pos">' + r2v(g.big15) + '</td>' +
+      '<td class="pos">' + r2v(g.big20) + '</td>' +
+      '<td>' + r2v(g.closeStrong) + '</td>' +
+      '<td class="neg">' + r2v(g.failed) + '</td>' +
+      '<td>' + (g.avgHigh === '—' ? '—' : avgPct(g.avgHigh)) + '</td>' +
+      '<td>' + (g.avgClose === '—' ? '—' : avgPct(g.avgClose)) + '</td>' +
+      '<td style="font-size:10.5px;color:#94a3b8;">' + esc(g.interp) + '</td>' +
+    '</tr>').join('') + '</tbody></table>';
+
+  // 결과 표 3: BIG10/BIG15/BIG20 종목 카드
+  function bigRow(c) {
+    const hClass = c.dayHighReturn  >= 15 ? 'pos' : c.dayHighReturn  >= 10 ? 'warn' : 'neg';
+    const cClass = c.dayCloseReturn >= 3  ? 'pos' : c.dayCloseReturn >= 0 ? 'warn' : 'neg';
+    const inTopMark = c.inAttackTop ? '<span class="chip-attack-mark">공격형 TOP 포함</span>' : '<span style="font-size:10px;color:#64748b;margin-left:4px;">기존 1DS 전체에서만 포착</span>';
+    return '<tr>' +
+      '<td><b>' + esc(c.name) + '</b>' + inTopMark + '</td>' +
+      '<td><span style="color:#64748b;">' + esc(c.code) + '</span></td>' +
+      '<td>' + f0(c.basePrice) + '</td>' +
+      '<td class="' + hClass + '">' + fp(c.dayHighReturn) + '</td>' +
+      '<td class="' + cClass + '">' + fp(c.dayCloseReturn) + '</td>' +
+      '<td>' + tagChips(c.resultTags) + '</td>' +
+    '</tr>';
+  }
+  function bigTable(list) {
+    if (!list || list.length === 0) return '<div class="empty-note">오늘은 해당 조건의 결과 후보가 없습니다.</div>';
+    return '<table class="today-result-table">' +
+      '<thead><tr><th>종목명</th><th>코드</th><th>기준가</th><th>당일 고가%</th><th>종가%</th><th>결과 태그</th></tr></thead>' +
+      '<tbody>' + list.map(bigRow).join('') + '</tbody></table>';
+  }
+
+  host.innerHTML = (
+    '<div class="today-result-section">' +
+    '<h2>' + sectionTitle + '</h2>' +
+    holidayNote +
+    '<div class="subhdr">' + (ms.status === 'holiday_closed' ? '휴장일 — 직전 거래일 기준' : '장마감 기준 (' + esc(ms.label) + ', KST ' + esc(ms.generatedAtTime) + ')') + '으로 1DS 후보들이 실제로 얼마나 움직였는지 집계</div>' +
+    '<div class="desc">' +
+    '장마감 기준으로 오늘 1DS 후보들이 실제로 얼마나 움직였는지 집계했습니다. <strong>공격형 TOP 후보</strong>와 <strong>전체 1DS 후보</strong>의 결과를 비교합니다. ' +
+    '이 결과는 다음 조건 개선과 복기용으로 사용합니다.' +
+    '<br><span style="color:#fbbf24;">⚠ 장중 고가 기준 결과와 종가 기준 결과는 다릅니다. BIG10에 도달했더라도 종가에서 크게 밀릴 수 있습니다.</span>' +
+    '</div>' +
+    '<div class="target-line">대상 거래일: <strong>' + esc(sum.targetDate || '—') + '</strong> · 결과 미계산 후보: ' + (sum.missingResultPriceCount || 0) + '건' +
+    (ms.forcedNote ? ' · <span style="color:#fbbf24;">⚙ ' + esc(ms.forcedNote) + '</span>' : '') +
+    '</div>' +
+    summaryGrid +
+    '<h3 style="color:#fdba74;margin-top:14px;margin-bottom:6px;">🔥 공격형 TOP 결과</h3>' +
+    '<div style="font-size:11.5px;color:#94a3b8;margin-bottom:6px;">공격형 TOP 후보들이 실제로 BIG10/BIG15/BIG20에 도달했는지 확인합니다.</div>' +
+    attackResultTable +
+    '<h3 style="color:#5eead4;margin-top:14px;margin-bottom:6px;">전체 1DS 결과 요약</h3>' +
+    groupTable +
+    '<details><summary>🚀 오늘 BIG10 종목 (' + cands.big10.length + ')</summary>' + bigTable(cands.big10) + '</details>' +
+    '<details><summary>🚀🚀 오늘 BIG15 종목 (' + cands.big15.length + ')</summary>' + bigTable(cands.big15) + '</details>' +
+    '<details><summary>🚀🚀🚀 오늘 BIG20 종목 (' + cands.big20.length + ')</summary>' + bigTable(cands.big20) + '</details>' +
+    (cands.failed.length ? '<details><summary>💥 오늘 실패 사례 (' + cands.failed.length + ')</summary>' + bigTable(cands.failed) + '</details>' : '') +
+    (cands.spikeFade.length ? '<details><summary>📉 장중 상승 후 밀림 (' + cands.spikeFade.length + ')</summary>' + bigTable(cands.spikeFade) + '</details>' : '') +
+    '</div>'
+  );
+})();
 </script>
 
 </body>

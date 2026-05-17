@@ -23,6 +23,7 @@ require('dotenv').config({ quiet: true });
 const fs = require('fs');
 const path = require('path');
 const ps = require('../../screeners/pattern-screener');
+const { findVvi2AfterQva2 } = require('../qva2/qva2-screener');
 const vprAnalyzer = require('./vpr-analyzer');
 
 const ROOT = path.join(__dirname, '..', '..');
@@ -318,19 +319,21 @@ for (let fi = 0; fi < files.length; fi++) {
     }
   }
 
-  // ─── VVI 검출 (QVA 이후) ───
+  // ─── VVI 검출 (QVA 이후) — VVI2 absorption (2026-05-17 통일) ───
+  // anchor: qvaIdx (이 종목의 QVA 발생일). today까지 VVI2 발화 여부 스캔.
   let vviIdx = null;
   let vviInfo = null;
-  for (let k = 1; k <= daysSinceQva; k++) {
-    const cand = qvaIdx + k;
-    const candDate = rows[cand].date;
-    const slicedChart = rows.slice(0, cand + 1);
-    const slicedFlow = flowRows.filter(r => r.date <= candDate);
-    if (slicedFlow.length < 10) continue;
-    let vvi = null;
-    try { vvi = ps.calculateVolumeValueIgnition(slicedChart, slicedFlow, namedMeta); }
-    catch (_) { vvi = null; }
-    if (vvi?.passed) { vviIdx = cand; vviInfo = vvi; break; }
+  if (daysSinceQva >= 1) {
+    const v2 = findVvi2AfterQva2(rows, qvaIdx, daysSinceQva, { qva2Type: 'absorption' });
+    if (v2.vvi2Idx > qvaIdx) {
+      vviIdx = v2.vvi2Idx;
+      const vRow = rows[vviIdx];
+      vviInfo = {
+        passed: true,
+        category: 'VVI2_ABSORPTION',
+        signals: { signalHigh: vRow.high, signalClose: vRow.close, qvaAnchorIdx: qvaIdx, daysSinceQva: vviIdx - qvaIdx },
+      };
+    }
   }
 
   // ─── 돌파 결과 (VVI 발생 시) ───
@@ -713,16 +716,13 @@ for (let fi = 0; fi < files.length; fi++) {
   const isTodayReconfirm = firstSig && latestSig && !isTodayNew && latestSig.date === TODAY;
   if (latestSig && latestSig.date === TODAY) debugCounts.qvaCandidatesTodayRaw++;
 
-  // VVI 체크: firstSig.idx 이후부터 today까지 VVI 발화 여부 — 발화했으면 TRACKING에서 제외
+  // VVI 체크 (VVI2 absorption, 2026-05-17 통일): firstSig.idx 이후 today까지 발화 여부
   let hasVvi = false;
   let vviDateLocal = null;
-  for (let k = (firstSig?.idx ?? todayIdx) + 1; k <= todayIdx; k++) {
-    const slC = rows.slice(0, k + 1);
-    const slF = flowRowsForVvi.filter(r => r?.date && r.date <= rows[k].date);
-    if (slF.length < 10) continue;
-    let vvi = null;
-    try { vvi = ps.calculateVolumeValueIgnition(slC, slF, namedMeta); } catch (_) {}
-    if (vvi?.passed) { hasVvi = true; vviDateLocal = rows[k].date; break; }
+  if (firstSig && firstSig.idx < todayIdx) {
+    const maxScan = todayIdx - firstSig.idx;
+    const v2 = findVvi2AfterQva2(rows, firstSig.idx, maxScan, { qva2Type: 'absorption' });
+    if (v2.vvi2Idx > firstSig.idx) { hasVvi = true; vviDateLocal = rows[v2.vvi2Idx].date; }
   }
 
   const currentClose = todayRow.close;
@@ -805,16 +805,13 @@ for (let fi = 0; fi < files.length; fi++) {
       continue; // 보드에서 제외 (장기 추적 가치 없음)
     }
 
-    // VVI/H 미전환 — longFirstSig.idx 이후 VVI 발화 여부 검사
+    // VVI/H 미전환 (VVI2 absorption, 2026-05-17 통일) — longFirstSig.idx 이후 VVI2 발화 여부
     let longHasVvi = false;
     let longVviDate = null;
-    for (let k = longFirstSig.idx + 1; k <= todayIdx; k++) {
-      const slC = rows.slice(0, k + 1);
-      const slF = flowRowsForVvi.filter(r => r?.date && r.date <= rows[k].date);
-      if (slF.length < 10) continue;
-      let vvi = null;
-      try { vvi = ps.calculateVolumeValueIgnition(slC, slF, namedMeta); } catch (_) {}
-      if (vvi?.passed) { longHasVvi = true; longVviDate = rows[k].date; break; }
+    if (longFirstSig.idx < todayIdx) {
+      const maxScan = todayIdx - longFirstSig.idx;
+      const v2 = findVvi2AfterQva2(rows, longFirstSig.idx, maxScan, { qva2Type: 'absorption' });
+      if (v2.vvi2Idx > longFirstSig.idx) { longHasVvi = true; longVviDate = rows[v2.vvi2Idx].date; }
     }
     if (longHasVvi) continue; // VVI/H로 이미 진행 — 별도 단계에서 추적
 
@@ -1657,13 +1654,11 @@ const htmlTemplate = `<!DOCTYPE html>
 </style>
 </head>
 <body>
-  <div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인 (QVA2)</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR (QVA2)</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (QVA2)</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (QVA2)</a></div>
-  <nav class="nav">
-    <a href="/qva-watchlist" class="active">📋 H그룹/VPR 보드</a>
-    <a href="/rebreak">🔥 D+5 재돌파 운용</a>
-    <a href="/one-day-surge-board">⚡ 1DS 단타 후보</a>
-    <a href="/qva-vvi-redefined-board">🎯 QVA 고점 재돌파</a>
-  </nav>
+  <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+    <div style="background:linear-gradient(90deg,#064e3b 0%,#065f46 100%);border:1px solid #10b981;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#a7f3d0;font-weight:700;letter-spacing:0.3px;">🟢 운영 보드</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파</a></div>
+    <div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인</span><a href="/one-day-surge-board" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">⚡ 1DS 단타 후보</a></div>
+    <div style="background:linear-gradient(90deg,#1e293b 0%,#334155 100%);border:1px solid #64748b;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;opacity:0.92;"><span style="color:#cbd5e1;font-weight:700;letter-spacing:0.3px;">📜 과거 보드</span><a href="/qva-watchlist" style="color:#fff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.22);border:1px solid #fff;font-weight:700;">📋 H그룹/VPR (구)</a><a href="/rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (구)</a><a href="/qva-vvi-redefined-board" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (구)</a></div>
+  </div>
   <h1>📋 QVA 매일 운영 보드<span class="sub">— 매일 장마감 후 갱신되는 후보 추적 보드 (백테스트 보고서 아님)</span></h1>
   <div class="subtitle" id="subtitle"></div>
 

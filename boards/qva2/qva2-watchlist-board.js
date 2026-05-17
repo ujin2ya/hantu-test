@@ -496,6 +496,9 @@ h1 { font-size:22px; margin:6px 0 4px; color:#f1f5f9; font-weight:700; }
 .purpose-box { background: #0f172a; border-left: 3px solid #a78bfa; padding: 12px 16px; border-radius: 6px; margin-bottom: 14px; line-height: 1.7; color: #cbd5e1; font-size: 13px; }
 .purpose-box strong { color: #c4b5fd; }
 .caution-box { background:#1f1b14; border-left:3px solid #fbbf24; padding:10px 14px; border-radius:6px; margin-bottom:14px; color:#fcd34d; font-size:12px; line-height:1.6; }
+.funnel-chip { display:inline-block; text-decoration:none; padding:4px 10px; border-radius:5px; font-size:12px; font-weight:600; transition: transform 0.1s, filter 0.15s; }
+.funnel-chip:hover { transform: translateY(-1px); filter: brightness(1.25); }
+h2[id^="sec-"] { scroll-margin-top: 14px; }
 
 .stage-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:18px; }
 .stage-pill { background:#1e293b; border:1px solid #334155; border-radius:10px; padding:14px 14px; text-align:center; cursor:pointer; transition:all 0.15s; }
@@ -557,14 +560,11 @@ footer.foot { margin-top:30px; padding:14px; background:#1e293b; border-radius:8
 </style>
 </head>
 <body>
-<div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인 (QVA2)</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.18);border:1px solid #a78bfa;">📋 H그룹/VPR (QVA2)</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (QVA2)</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (QVA2)</a></div>
-<nav class="boards">
-  <span class="group-label">운영</span>
-  <a href="/qva-watchlist" class="live">📋 H그룹/VPR 보드</a>
-  <a href="/rebreak" class="live">🔥 D+5 재돌파 운용</a>
-  <a href="/qva-vvi-redefined-board" class="live">🎯 QVA 고점 재돌파</a>
-  <a href="/one-day-surge-board" class="live">⚡ 1DS</a>
-</nav>
+<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+  <div style="background:linear-gradient(90deg,#064e3b 0%,#065f46 100%);border:1px solid #10b981;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#a7f3d0;font-weight:700;letter-spacing:0.3px;">🟢 운영 보드</span><a href="/qva2-watchlist" style="color:#fff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.22);border:1px solid #fff;font-weight:700;">📋 H그룹/VPR</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파</a></div>
+  <div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인</span><a href="/one-day-surge-board" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">⚡ 1DS 단타 후보</a></div>
+  <div style="background:linear-gradient(90deg,#1e293b 0%,#334155 100%);border:1px solid #64748b;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;opacity:0.92;"><span style="color:#cbd5e1;font-weight:700;letter-spacing:0.3px;">📜 과거 보드</span><a href="/qva-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR (구)</a><a href="/rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (구)</a><a href="/qva-vvi-redefined-board" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (구)</a></div>
+</div>
 
 <h1>📋 QVA2 — 고점 대비 많이 내려온 뒤 돈이 다시 들어온 후보 <span class="exp-pill">실험 라인</span></h1>
 <div class="subtitle" id="subtitle"></div>
@@ -577,7 +577,18 @@ footer.foot { margin-top:30px; padding:14px; background:#1e293b; border-radius:8
     <li><strong>absorption</strong> — 마감은 약하지만 장중 저가에서 어느 정도 회복했고, 거래대금이 강하게 들어온 후보</li>
     <li><strong>spike</strong> — 고점 대비 많이 내려온 자리에서, 장중 강한 반응과 큰 거래대금이 함께 나온 후보</li>
   </ul>
-  <br>흐름: <span style="color:#22c55e;">🟢 QVA2_NEW</span> → <span style="color:#94a3b8;">📋 QVA2_TRACKING (D+1~20)</span> → <span style="color:#f97316;">🔥 VVI2_FIRED</span> → <span style="color:#5eead4;">💥 BREAKOUT_SUCCESS</span> · 또는 <span style="color:#fca5a5;">❌ FAILED</span>
+  <br><br><span style="color:#94a3b8;font-size:12px;">흐름 (chip 클릭 = 해당 섹션으로 이동):</span><br>
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+    <a href="#sec-new" class="funnel-chip" style="background:#052e16;border:1px solid #22c55e;color:#86efac;">🟢 확인 신규</a>
+    <span style="color:#475569;">→</span>
+    <a href="#sec-tr"  class="funnel-chip" style="background:#0f172a;border:1px solid #64748b;color:#cbd5e1;">📋 추적 중 (D+1~30)</a>
+    <span style="color:#475569;">→</span>
+    <a href="#sec-vvi" class="funnel-chip" style="background:#431407;border:1px solid #f97316;color:#fdba74;">🔥 다음 거래일 돌파 대기</a>
+    <span style="color:#475569;">→</span>
+    <a href="#sec-bk"  class="funnel-chip" style="background:#042f2e;border:1px solid #5eead4;color:#5eead4;">💥 돌파 성공 (H그룹)</a>
+    <span style="color:#475569;">·또는·</span>
+    <a href="#sec-fl"  class="funnel-chip" style="background:#450a0a;border:1px solid #fca5a5;color:#fca5a5;">❌ 실패/이탈</a>
+  </div>
 </div>
 
 <div class="caution-box">
@@ -587,7 +598,7 @@ footer.foot { margin-top:30px; padding:14px; background:#1e293b; border-radius:8
 <h2>📊 단계별 카운트</h2>
 <div class="stage-row" id="stage-row"></div>
 
-<h2>🟢 QVA2 확인 신규 <span class="count" id="new-count"></span></h2>
+<h2 id="sec-new">🟢 QVA2 확인 신규 <span class="count" id="new-count"></span></h2>
 <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;">오늘 처음 QVA2 본 신호가 발동한 종목입니다. 매수 확정이 아니라 30거래일 동안 후속 반응을 추적하는 출발점입니다.</div>
 <div id="new-host"></div>
 
@@ -595,19 +606,19 @@ footer.foot { margin-top:30px; padding:14px; background:#1e293b; border-radius:8
 <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;">최근 QVA2가 나온 뒤 가격이 무너지지 않고, 다시 거래량과 거래대금이 살아난 후보입니다. 첫 QVA2보다 늦은 자리이므로 고점 근처 여부와 추격 위험을 함께 확인해야 합니다.</div>
 <div id="follow-host"></div>
 
-<h2>🔥 다음 거래일 돌파 대기 (VVI2) <span class="count" id="vvi-count"></span></h2>
+<h2 id="sec-vvi">🔥 다음 거래일 돌파 대기 (VVI2) <span class="count" id="vvi-count"></span></h2>
 <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;">QVA2 후보 중 거래대금 초동이 더 강하게 확인된 상태입니다. VVI2 다음 거래일에 vviHigh 돌파 여부를 기다리는 후보입니다.</div>
 <div id="vvi-host"></div>
 
-<h2>💥 돌파 성공 확인 종목 (H그룹) <span class="count" id="bk-count"></span></h2>
+<h2 id="sec-bk">💥 돌파 성공 확인 종목 (H그룹) <span class="count" id="bk-count"></span></h2>
 <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;">VVI2 돌파대기일 종가 × 1.01(=기준선)을 다음 거래일이 돌파한 후보입니다. 최근 5거래일 안 발생 건만 표시됩니다.</div>
 <div id="bk-host"></div>
 
-<h2>📋 QVA2 확인 추적 중 <span class="count" id="tr-count"></span></h2>
+<h2 id="sec-tr">📋 QVA2 확인 추적 중 <span class="count" id="tr-count"></span></h2>
 <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;">QVA2 발생 후 30거래일 동안 VVI2/돌파 진행 여부를 지켜보는 후보입니다 (후속 반응 후보 제외). D+21~30은 "연장 추적 구간".</div>
 <div id="tr-host"></div>
 
-<h2>❌ 실패/이탈 <span class="count" id="fl-count"></span></h2>
+<h2 id="sec-fl">❌ 실패/이탈 <span class="count" id="fl-count"></span></h2>
 <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;">최근 5거래일 안에 -15% 이탈, 돌파 실패, 또는 D+30 만료된 후보입니다.</div>
 <div id="fl-host"></div>
 
