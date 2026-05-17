@@ -306,6 +306,9 @@ async function getDbBoardDashboard(req, res) {
     const days  = Math.max(1, Number((req.query && req.query.days)  || 60) | 0);
     const limit = Math.max(5, Math.min(Number((req.query && req.query.limit) || 50) | 0, 100));
     const stockSearch = (req.query && req.query.stockCode) ? String(req.query.stockCode).trim() : null;
+    // 8차: 우선순위 후보 옵션
+    const priorityLimit    = Math.max(5,  Math.min(Number((req.query && req.query.priorityLimit)    || 30) | 0, 200));
+    const minPriorityScore = Math.max(0,  Math.min(Number((req.query && req.query.minPriorityScore) != null ? req.query.minPriorityScore : 20) | 0, 200));
 
     // 섹션별로 격리 — 한 곳 실패해도 다른 섹션은 표시되어야 함
     const sections = {};
@@ -361,6 +364,11 @@ async function getDbBoardDashboard(req, res) {
     await safe('qva2FunnelStocks',      () => repo.findFunnelPassedStocks({ days, funnelType: 'QVA2',     limit: 30 }));
     await safe('bothVviStocks',         () => repo.findFunnelPassedStocks({ days, funnelType: 'BOTH_VVI', limit: 30 }));
     await safe('recentRepeatedStocks',  () => repo.findRecentRepeatedStocks({ days, minSignalCount: 3, limit: 50 }));
+
+    // 8차 (2026-05-17) — DB 누적 기반 오늘 볼 후보 TOP (정렬 참고값)
+    await safe('todayPriorityCandidates', () =>
+      repo.findTodayPriorityCandidates({ days, limit: priorityLimit, minScore: minPriorityScore, timelineLimit: 12 })
+    );
 
     // 타임라인 카드에 요약+배지 미리 계산 (EJS에서 호출하는 것보다 안전)
     if (sections.stockTimelines && Array.isArray(sections.stockTimelines)) {
@@ -457,6 +465,10 @@ async function getDbBoardDashboard(req, res) {
       filterResolved,
       filterMinBoardCount,
       filterMinRepeatCount,
+      // 8차 helper + 옵션
+      getPriorityGrade: labels.getPriorityGrade,
+      priorityLimit,
+      minPriorityScore,
     });
   } catch (e) {
     res.status(500).send(`<h1>대시보드 로딩 실패</h1><pre>${(e && e.stack) || e}</pre>`);

@@ -363,6 +363,15 @@ function explainTimelineSummary(timeline) {
   return { summaryText: lines.join(' '), badges };
 }
 
+function getPriorityGrade(score) {
+  const s = Number(score) || 0;
+  if (s >= 80) return { label: '강한 관찰',  tone: 'danger'    };
+  if (s >= 60) return { label: '관찰 권장',  tone: 'warning'   };
+  if (s >= 40) return { label: '관찰',        tone: 'primary'   };
+  if (s >= 20) return { label: '약한 관찰',  tone: 'secondary' };
+  return         { label: '참고',            tone: 'light'     };
+}
+
 module.exports = {
   BOARD_LABELS,
   KIND_LABELS,
@@ -381,4 +390,5 @@ module.exports = {
   getSignalKindTone,
   getSourceTypeDisplay,
   explainTimelineSummary,
+  getPriorityGrade,
 };

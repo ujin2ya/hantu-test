@@ -690,6 +690,187 @@ async function findRecentRepeatedStocks(opts = {}) {
   );
 }
 
+// ─── 오늘 볼 후보 TOP — 점수화 (8차, 2026-05-17) ────────────────────────
+//
+// 점수표 (사용자 spec, 정렬용. 매수 신호 아님).
+
+const PRIORITY_KIND_SCORE = Object.freeze({
+  QVA_NEW: 3, QVA_TRACKING: 1,
+  QVA2_NEW: 3, QVA2_TRACKING: 1,
+  VVI_FIRED: 12, VVI2_FIRED: 12,
+  BREAKOUT_SUCCESS: 15,
+  CLOSE_REBREAK: 14, CLOSE_REBREAK_NO_BREACH: 16,
+  TODAY_INITIAL_BREAKOUT: 12,
+  LONG_QVA_ALL: 3,
+});
+const PRIORITY_NEGATIVE_SCORE = Object.freeze({
+  FAILED: -8, BREACH_NO_RECOVER: -10, BREACH_RECOVER_ILLUSION: -6,
+  INTRADAY_PUSHBACK: -5, NO_REBREAK: -4,
+});
+
+function _daysFromToday(dateStr) {
+  if (!dateStr) return 999;
+  const d = new Date(String(dateStr).slice(0, 10) + 'T00:00:00Z').getTime();
+  const today = new Date(); today.setUTCHours(0,0,0,0);
+  return Math.max(0, Math.floor((today.getTime() - d) / 86400000));
+}
+
+function _calcPriorityScore(agg) {
+  // A. 반복 등장
+  const a = Math.min(20, agg.signal_count * 2);
+  // B. 보드 중복
+  const b = Math.min(25, agg.board_count * 5);
+  // C. 좋은 단계
+  let c = 0;
+  for (const k of agg.kindSet) if (PRIORITY_KIND_SCORE[k] != null) c += PRIORITY_KIND_SCORE[k];
+  // D. 주의 단계
+  let d = 0;
+  for (const k of agg.kindSet) if (PRIORITY_NEGATIVE_SCORE[k] != null) d += PRIORITY_NEGATIVE_SCORE[k];
+  // E. 흐름 완성 보너스
+  let e = 0;
+  const has = (k) => agg.kindSet.has(k);
+  if (has('QVA_NEW')  && has('VVI_FIRED'))  e += 10;
+  if (has('QVA_NEW')  && has('VVI_FIRED')  && has('BREAKOUT_SUCCESS')) e += 20;
+  if (has('QVA2_NEW') && has('VVI2_FIRED')) e += 10;
+  if (has('QVA2_NEW') && has('VVI2_FIRED') && has('BREAKOUT_SUCCESS')) e += 20;
+  if (has('VVI_FIRED') && has('VVI2_FIRED')) e += 15;
+  if (has('BREAKOUT_SUCCESS') && has('CLOSE_REBREAK_NO_BREACH')) e += 18;
+  if (has('BREAKOUT_SUCCESS') && has('CLOSE_REBREAK')) e += 12;
+  // F. 최근성
+  const dd = _daysFromToday(agg.last_signal_date);
+  const f = dd <= 1 ? 20 : dd <= 3 ? 15 : dd <= 5 ? 10 : dd <= 10 ? 5 : 0;
+  // G. source_type
+  const g = agg.sourceSet.has('DAILY_RUN') ? 8 : 0;
+  return { score: a + b + c + d + e + f + g, parts: { a, b, c, d, e, f, g, days_since_last: dd } };
+}
+
+function _buildReasons(agg, parts) {
+  const has = (k) => agg.kindSet.has(k);
+  const r = [];
+  if (parts.f >= 10) r.push('최근 신호 있음');
+  if (agg.board_count >= 2) r.push('여러 보드 중복');
+  if (has('QVA_NEW')  && has('VVI_FIRED')  && has('BREAKOUT_SUCCESS')) r.push('QVA→VVI→돌파 흐름');
+  else if (has('QVA_NEW') && has('VVI_FIRED')) r.push('QVA→VVI 흐름');
+  if (has('QVA2_NEW') && has('VVI2_FIRED') && has('BREAKOUT_SUCCESS')) r.push('QVA2→VVI2→돌파 흐름');
+  else if (has('QVA2_NEW') && has('VVI2_FIRED')) r.push('QVA2→VVI2 흐름');
+  if (has('VVI_FIRED') && has('VVI2_FIRED')) r.push('양쪽 VVI 확인');
+  if (has('CLOSE_REBREAK') || has('CLOSE_REBREAK_NO_BREACH')) r.push('재돌파 기록');
+  const hasRisk = ['FAILED','BREACH_NO_RECOVER','BREACH_RECOVER_ILLUSION','INTRADAY_PUSHBACK','NO_REBREAK'].some(has);
+  if (hasRisk) r.push('주의 기록 있음');
+  return r;
+}
+
+async function findTodayPriorityCandidates(opts = {}) {
+  const days = Math.max(1, Number(opts.days || 60) | 0);
+  const limit = _safeLimit(opts.limit, 30, 200);
+  const minScore = Number(opts.minScore != null ? opts.minScore : 20);
+  const timelineLimit = Math.max(1, Number(opts.timelineLimit || 12) | 0);
+
+  // 1단계: 종목별 raw aggregate
+  const aggregates = await query(
+    `SELECT
+       stock_code,
+       MAX(stock_name) AS stock_name,
+       MAX(market)     AS market,
+       COUNT(*) AS signal_count,
+       COUNT(DISTINCT board_name) AS board_count,
+       MIN(signal_date) AS first_signal_date,
+       MAX(signal_date) AS last_signal_date,
+       GROUP_CONCAT(DISTINCT board_name  ORDER BY board_name  SEPARATOR ',') AS boards,
+       GROUP_CONCAT(DISTINCT signal_kind ORDER BY signal_kind SEPARATOR ',') AS signal_kinds,
+       GROUP_CONCAT(DISTINCT source_type ORDER BY source_type SEPARATOR ',') AS source_types
+     FROM board_signals
+     WHERE signal_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+     GROUP BY stock_code`,
+    [days]
+  );
+  if (aggregates.length === 0) return [];
+
+  // 2단계: JS 점수 계산
+  const NEG = ['FAILED','BROKEN','BREACH_NO_RECOVER','BREACH_RECOVER_ILLUSION','INTRADAY_PUSHBACK','NO_REBREAK','OVERHEATED'];
+  const POS = ['QVA_NEW','QVA2_NEW','VVI_FIRED','VVI2_FIRED','BREAKOUT_SUCCESS','CLOSE_REBREAK','CLOSE_REBREAK_NO_BREACH','TODAY_INITIAL_BREAKOUT','TODAY_NEW_VVI','TODAY_NEW_VVI2','ATTACK_TOP'];
+  const scored = [];
+  for (const r of aggregates) {
+    const kindArr = String(r.signal_kinds || '').split(',').filter(Boolean);
+    const agg = {
+      signal_count: Number(r.signal_count),
+      board_count: Number(r.board_count),
+      last_signal_date: r.last_signal_date,
+      kindSet: new Set(kindArr),
+      sourceSet: new Set(String(r.source_types || '').split(',').filter(Boolean)),
+    };
+    const { score, parts } = _calcPriorityScore(agg);
+    if (score < minScore) continue;
+
+    const grade = score >= 80 ? 'STRONG'
+                : score >= 60 ? 'GOOD'
+                : score >= 40 ? 'WATCH'
+                : score >= 20 ? 'WEAK'
+                : 'MUTED';
+    const positiveKinds = kindArr.filter(k => POS.includes(k));
+    const negativeKinds = kindArr.filter(k => NEG.includes(k));
+
+    scored.push({
+      stock_code: r.stock_code,
+      stock_name: r.stock_name,
+      market: r.market,
+      priority_score: score,
+      priority_grade: grade,
+      score_parts: parts,
+      signal_count: agg.signal_count,
+      board_count: agg.board_count,
+      first_signal_date: r.first_signal_date,
+      last_signal_date: r.last_signal_date,
+      boards: r.boards,
+      signal_kinds: r.signal_kinds,
+      positive_kinds: positiveKinds,
+      negative_kinds: negativeKinds,
+      source_types: r.source_types,
+      reasons: _buildReasons(agg, parts),
+    });
+  }
+
+  // 3단계: 정렬 + limit
+  scored.sort((x, y) =>
+    (y.priority_score - x.priority_score)
+    || String(y.last_signal_date).localeCompare(String(x.last_signal_date))
+    || (y.signal_count - x.signal_count)
+  );
+  const top = scored.slice(0, limit);
+  if (top.length === 0) return [];
+
+  // 4단계: 선정 종목 timeline (IN list)
+  const codes = top.map(r => r.stock_code);
+  const timelineRows = await query(
+    `SELECT stock_code, signal_date, board_name, signal_kind, status_label, score, source_type
+     FROM board_signals
+     WHERE stock_code IN (${_placeholders(codes)})
+       AND signal_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+     ORDER BY signal_date DESC, board_name ASC`,
+    [...codes, days]
+  );
+  const tlBy = new Map();
+  for (const r of timelineRows) {
+    if (!tlBy.has(r.stock_code)) tlBy.set(r.stock_code, []);
+    if (tlBy.get(r.stock_code).length < timelineLimit) {
+      tlBy.get(r.stock_code).push({
+        signal_date: r.signal_date,
+        board_name: r.board_name,
+        signal_kind: r.signal_kind,
+        status_label: r.status_label,
+        score: r.score,
+        source_type: r.source_type,
+      });
+    }
+  }
+  // timeline은 위에서 DESC로 가져왔으므로 다시 ASC로 정렬 (사용자 spec: 시간순 표시 일관)
+  for (const t of top) {
+    const arr = (tlBy.get(t.stock_code) || []).slice().reverse();
+    t.timeline = arr;
+  }
+  return top;
+}
+
 // DB 신호 누적 상태 요약 — /db-board 상단 카드용
 async function findDbSummary() {
   const totals = await query(`
@@ -839,7 +1020,10 @@ module.exports = {
   findStockTimelines,
   findFunnelPassedStocks,
   findRecentRepeatedStocks,
+  findTodayPriorityCandidates,
   FUNNEL_REQUIRED_KINDS,
   NEGATIVE_KINDS,
   POSITIVE_KINDS,
+  PRIORITY_KIND_SCORE,
+  PRIORITY_NEGATIVE_SCORE,
 };

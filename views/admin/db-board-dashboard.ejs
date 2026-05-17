@@ -145,6 +145,147 @@
     </div>
     <% } %>
 
+    <!-- 8차 (2026-05-17): DB 기반 오늘 볼 후보 TOP -->
+    <div class="card-soft" id="priority-top-section">
+      <h2><i class="bi bi-stars"></i>오늘 볼 후보 TOP <span style="color:#94a3b8; font-weight:400; font-size:.85rem;">— DB 누적 기준 정렬 참고값</span></h2>
+      <div class="hint">
+        최근 DB에 누적된 신호를 기준으로 <strong>여러 보드에 반복 등장</strong>했거나, <strong>QVA→VVI→돌파</strong> 같은 흐름이 이어진 종목을 우선순위로 정리한 화면입니다.
+        점수는 <strong>매수 신호가 아니라 후보를 정렬하기 위한 참고값</strong>이며, 그대로 매매하라는 의미가 아닙니다.
+      </div>
+
+      <!-- 필터 -->
+      <form method="get" action="/db-board" style="margin:10px 0 14px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:.78rem; color:#cbd5e1;">
+        <input type="hidden" name="date" value="<%= date %>">
+        <% if (stockSearch) { %><input type="hidden" name="stockCode" value="<%= stockSearch %>"><% } %>
+        <label>기간
+          <select name="days" style="background:#0f172a; color:#f1f5f9; border:1px solid #334155; border-radius:6px; padding:3px 6px; margin-left:4px;">
+            <% for (const d of [20, 40, 60, 90]) { %>
+              <option value="<%= d %>" <%= Number(days) === d ? 'selected' : '' %>><%= d %>일</option>
+            <% } %>
+          </select>
+        </label>
+        <label>최소 점수
+          <select name="minPriorityScore" style="background:#0f172a; color:#f1f5f9; border:1px solid #334155; border-radius:6px; padding:3px 6px; margin-left:4px;">
+            <% for (const m of [0, 20, 40, 60]) { %>
+              <option value="<%= m %>" <%= Number(minPriorityScore) === m ? 'selected' : '' %>><%= m === 0 ? '제한 없음' : (m + '점 이상') %></option>
+            <% } %>
+          </select>
+        </label>
+        <label>표시 수
+          <select name="priorityLimit" style="background:#0f172a; color:#f1f5f9; border:1px solid #334155; border-radius:6px; padding:3px 6px; margin-left:4px;">
+            <% for (const l of [15, 30, 50, 100]) { %>
+              <option value="<%= l %>" <%= Number(priorityLimit) === l ? 'selected' : '' %>><%= l %>개</option>
+            <% } %>
+          </select>
+        </label>
+        <button type="submit" class="btn-soft" style="font-size:.75rem;">필터 적용</button>
+        <span style="color:#94a3b8; font-size:.72rem;">
+          (점수 = A 반복 + B 보드 다양성 + C 좋은 단계 + D 부정 신호 감점 + E 흐름 완성 보너스 + F 최근성 + G 운영 저장 가산 — 80+ 강한 관찰 / 60+ 관찰 권장 / 40+ 관찰 / 20+ 약한 관찰)
+        </span>
+      </form>
+
+      <% if (errors.todayPriorityCandidates) { %>
+        <div class="err">오류: <%= errors.todayPriorityCandidates %></div>
+      <% } else if (!sections.todayPriorityCandidates || sections.todayPriorityCandidates.length === 0) { %>
+        <div class="empty">아직 조건에 맞는 누적 후보가 없습니다. 기간을 늘리거나 최소 점수를 낮춰 보세요.</div>
+      <% } else {
+           function priorityPillClass(tone) {
+             if (tone === 'danger')    return 'pill-neg';   // 강한 관찰
+             if (tone === 'warning')   return 'pill-warn';  // 관찰 권장
+             if (tone === 'primary')   return 'pill-board'; // 관찰
+             if (tone === 'secondary') return 'pill-mut';   // 약한 관찰
+             return 'pill-mut';                              // 참고
+           }
+      %>
+        <div class="scroll-wrap"><table class="t">
+          <thead>
+            <tr>
+              <th class="num" style="width:36px;">#</th>
+              <th>종목</th>
+              <th class="num" style="width:64px;">점수</th>
+              <th style="width:96px;">등급</th>
+              <th class="num" style="width:60px;">등장</th>
+              <th class="num" style="width:64px;">보드 수</th>
+              <th style="width:96px;">마지막</th>
+              <th>주요 이유</th>
+              <th>보드</th>
+              <th>신호 종류</th>
+              <th style="width:120px;">출처</th>
+            </tr>
+          </thead>
+          <tbody>
+          <% sections.todayPriorityCandidates.forEach(function(c, idx) {
+               const grade = getPriorityGrade(c.priority_score);
+               const pillCls = priorityPillClass(grade.tone);
+               const parts = c.score_parts || {};
+               const tlOpen = idx < 5;
+          %>
+            <tr>
+              <td class="num" style="color:#94a3b8;"><%= idx + 1 %></td>
+              <td>
+                <span class="code"><%= c.stock_code %></span>
+                <span class="name"><a href="/db-board?date=<%= date %>&stockCode=<%= c.stock_code %>"><%= c.stock_name %></a></span>
+                <% if (c.market) { %><span style="color:#94a3b8; font-size:.7rem;"> · <%= c.market %></span><% } %>
+              </td>
+              <td class="num"><strong style="color:#f1f5f9; font-size:1rem;"><%= c.priority_score %></strong>
+                <div style="font-size:.65rem; color:#64748b;" title="A 반복 <%= parts.a %> · B 보드 <%= parts.b %> · C 좋은 <%= parts.c %> · D 부정 <%= parts.d %> · E 흐름 <%= parts.e %> · F 최근 <%= parts.f %> · G 출처 <%= parts.g %>">
+                  A<%= parts.a %>·B<%= parts.b %>·C<%= parts.c %><% if (parts.d) { %>·D<%= parts.d %><% } %>·E<%= parts.e %>·F<%= parts.f %><% if (parts.g) { %>·G<%= parts.g %><% } %>
+                </div>
+              </td>
+              <td><span class="pill <%= pillCls %>" title="점수 <%= c.priority_score %>"><%= grade.label %></span></td>
+              <td class="num"><strong><%= c.signal_count %></strong></td>
+              <td class="num"><%= c.board_count %></td>
+              <td style="font-size:.72rem; color:#94a3b8;">
+                <%= c.last_signal_date %>
+                <% if (parts.days_since_last != null) { %><div style="font-size:.65rem;">D-<%= parts.days_since_last %></div><% } %>
+              </td>
+              <td style="font-size:.72rem;">
+                <% for (const r of (c.reasons || [])) { %>
+                  <span class="pill <%= r === '주의 기록 있음' ? 'pill-warn' : 'pill-pos' %>" style="font-size:.68rem;"><%= r %></span>
+                <% } %>
+              </td>
+              <td>
+                <% for (const b of String(c.boards || '').split(',')) { if (!b) continue; %>
+                  <span class="pill pill-board" title="<%= b %>"><%= formatBoardName(b) %></span>
+                <% } %>
+              </td>
+              <td>
+                <% for (const k of String(c.signal_kinds || '').split(',')) { if (!k) continue; const tone = getSignalKindTone(k); %>
+                  <span class="pill pill-<%= tone === 'positive' ? 'pos' : tone === 'negative' ? 'neg' : 'mut' %>" title="<%= k %>"><%= getSignalKindDisplay(k) %></span>
+                <% } %>
+              </td>
+              <td style="font-size:.7rem;">
+                <% for (const s of String(c.source_types || '').split(',')) { if (!s) continue; %>
+                  <span class="pill <%= s === 'DAILY_RUN' ? 'pill-pos' : 'pill-mut' %>" title="<%= s %>"><%= getSourceTypeDisplay(s) %></span>
+                <% } %>
+              </td>
+            </tr>
+            <% if (c.timeline && c.timeline.length) { %>
+            <tr>
+              <td></td>
+              <td colspan="10" style="padding:0 0 6px 0;">
+                <details <%= tlOpen ? 'open' : '' %> style="background:#0b1220; border:1px solid #1f2937; border-radius:6px; padding:6px 10px;">
+                  <summary style="cursor:pointer; outline:none; font-size:.72rem; color:#94a3b8;">📅 누적 타임라인 (<%= c.timeline.length %>건, 과거→최근)</summary>
+                  <div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;">
+                    <% for (const ev of c.timeline) { const tone = getSignalKindTone(ev.signal_kind); %>
+                      <span style="display:inline-flex; align-items:center; gap:4px; background:#0f172a; border:1px solid #1e293b; border-radius:4px; padding:2px 6px; font-size:.68rem;">
+                        <span style="color:#64748b;"><%= ev.signal_date %></span>
+                        <span class="pill pill-board" style="margin:0; padding:1px 5px; font-size:.62rem;" title="<%= ev.board_name %>"><%= formatBoardName(ev.board_name) %></span>
+                        <span class="pill pill-<%= tone === 'positive' ? 'pos' : tone === 'negative' ? 'neg' : 'mut' %>" style="margin:0; padding:1px 5px; font-size:.62rem;" title="<%= ev.signal_kind %>"><%= getSignalKindDisplay(ev.signal_kind) %></span>
+                        <% if (ev.source_type) { %><span class="pill <%= ev.source_type === 'DAILY_RUN' ? 'pill-pos' : 'pill-mut' %>" style="margin:0; padding:1px 5px; font-size:.6rem;" title="<%= ev.source_type %>"><%= getSourceTypeDisplay(ev.source_type) %></span><% } %>
+                      </span>
+                    <% } %>
+                  </div>
+                </details>
+              </td>
+            </tr>
+            <% } %>
+          <% }); %>
+          </tbody>
+        </table></div>
+      <% } %>
+    </div>
+
     <!-- 7차: DB 누적 신호 흐름 -->
     <div class="card-soft" id="signal-flow-section">
       <h2><i class="bi bi-diagram-3"></i>DB 누적 신호 흐름</h2>
