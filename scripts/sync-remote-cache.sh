@@ -21,12 +21,24 @@
 # 비밀번호: .env의 REMOTE_SSH_PASSWORD에서 읽는다 (공백 줄·따옴표 모두 OK).
 #
 # 빠른 사용:
-#   ./scripts/sync-remote-cache.sh        # 캐시만 동기화 (commit은 사용자가 직접)
+#   ./scripts/sync-remote-cache.sh                    # 전체 동기화 (~260MB tar)
+#   ./scripts/sync-remote-cache.sh --minute-only      # 분봉만 빠르게 (~10MB tar) — 일봉/flow 제외
 #   ./scripts/sync-remote-cache.sh --commit "메시지"  # 동기화 후 자동 commit (push는 별도)
 
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+
+# 모드 파싱
+MODE="full"
+COMMIT_MSG=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --minute-only) MODE="minute"; shift ;;
+    --commit) COMMIT_MSG="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
 
 # .env 로드 (KEY=VALUE 한 줄씩)
 if [ -f .env ]; then
@@ -64,13 +76,21 @@ REMOTE_TARGET="$REMOTE_USER@$REMOTE_HOST"
 REMOTE_TMP="/tmp/hantu-cache-$$.tar.gz"
 LOCAL_TMP="cache/.sync-tmp.tar.gz"
 
-echo "🔄 운영 서버 캐시 동기화 시작 ($REMOTE_TARGET:$REMOTE_PORT)"
+echo "🔄 운영 서버 캐시 동기화 시작 ($REMOTE_TARGET:$REMOTE_PORT)  [mode=$MODE]"
 echo
 
+# tar에 포함할 대상 (모드에 따라)
+if [ "$MODE" = "minute" ]; then
+  # 분봉 + 검증 결과만 (일봉/flow/보드 캐시 제외 — 빠름)
+  TAR_TARGETS="cache/kis-minute reports/qva-vvi2-pre-intraday-minute-validation-result.json reports/qva-vvi2-pre-intraday-minute-validation-result.html reports/qva-vvi2-pre-intraday-fetch-failures.json data/intraday/1ds"
+else
+  TAR_TARGETS="cache/flow-history cache/stock-charts-long cache/pattern-result.json cache/market-state-live.json cache/kis-minute reports qva-watchlist-board.html qva-watchlist-board.json data/intraday/1ds"
+fi
+
 # 1) 원격에서 tar.gz 만들기
-echo "[1/4] 원격에서 cache + reports + intraday tar.gz 만들기..."
+echo "[1/4] 원격에서 tar.gz 만들기..."
 plink -P "$REMOTE_PORT" -pw "$PASSWORD" -batch "$REMOTE_TARGET" \
-  "cd '$REMOTE_PATH' && tar -czf '$REMOTE_TMP' cache/flow-history cache/stock-charts-long cache/pattern-result.json cache/market-state-live.json cache/kis-minute reports qva-watchlist-board.html qva-watchlist-board.json data/intraday/1ds 2>/dev/null; ls -la '$REMOTE_TMP'"
+  "cd '$REMOTE_PATH' && tar -czf '$REMOTE_TMP' $TAR_TARGETS 2>/dev/null; ls -la '$REMOTE_TMP'"
 
 # 2) 로컬로 다운로드
 echo "[2/4] tar.gz 다운로드..."
@@ -98,15 +118,14 @@ echo "동기화된 1DS 분봉 (최근 3거래일):"
 ls -1 data/intraday/1ds/ 2>/dev/null | sort | tail -3 | sed 's/^/  /' || true
 
 # 옵션: --commit 으로 자동 commit
-if [ "${1:-}" = "--commit" ]; then
-  msg="${2:-cache: 운영 서버 일일 업데이트 결과 동기화}"
+if [ -n "$COMMIT_MSG" ]; then
   echo
-  echo "🗂️  자동 commit (push는 별도): $msg"
+  echo "🗂️  자동 commit (push는 별도): $COMMIT_MSG"
   git add cache/pattern-result.json cache/flow-history cache/stock-charts-long reports qva-watchlist-board.html qva-watchlist-board.json 2>/dev/null || true
   if git diff --cached --quiet; then
     echo "   변경 없음 — commit 생략"
   else
-    git commit -m "$msg
+    git commit -m "$COMMIT_MSG
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
   fi

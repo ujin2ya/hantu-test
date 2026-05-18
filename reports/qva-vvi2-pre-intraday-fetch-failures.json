@@ -1,0 +1,50 @@
+{
+  "generatedAt": "2026-05-18T16:44:36.601Z",
+  "failures": [
+    {
+      "code": "380540",
+      "dayDate": "20260310",
+      "reason": "Request failed with status code 500"
+    },
+    {
+      "code": "025980",
+      "dayDate": "20260303",
+      "reason": "Request failed with status code 500"
+    },
+    {
+      "code": "234340",
+      "dayDate": "20260303",
+      "reason": "Request failed with status code 500"
+    },
+    {
+      "code": "251270",
+      "dayDate": "20260306",
+      "reason": "Request failed with status code 500"
+    },
+    {
+      "code": "450080",
+      "dayDate": "20260306",
+      "reason": "Request failed with status code 500"
+    },
+    {
+      "code": "131290",
+      "dayDate": "20260303",
+      "reason": "Request failed with status code 500"
+    },
+    {
+      "code": "329180",
+      "dayDate": "20260304",
+      "reason": "Request failed with status code 500"
+    },
+    {
+      "code": "251270",
+      "dayDate": "20260316",
+      "reason": "Request failed with status code 500"
+    },
+    {
+      "code": "376900",
+      "dayDate": "20260304",
+      "reason": "Request failed with status code 500"
+    }
+  ]
+}
