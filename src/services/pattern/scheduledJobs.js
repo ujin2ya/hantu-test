@@ -1,4 +1,4 @@
-// 일일 cron 스케줄 — 16:10 분석 / 16:20 일일 갱신(평일) / 16:35 보드 갱신(평일, 1DS 제외) / 평일 09:00~15:30 매 30분 시장 상태 라이브 / 평일 09:30 1DS 분봉+보드 / 평일 10:01·10:03·10:05 1DS 10시 생존 확인 3중 retry / 평일 10:06 1DS 메일(MAIL_CRON_ENABLED).
+// 일일 cron 스케줄 — 16:10 분석 / 16:20 일일 갱신(평일) / 16:35 보드 갱신(평일, 1DS 제외) / 평일 09:00~15:30 매 30분 시장 상태 라이브 / 평일 09:30 1DS 분봉+보드 / 평일 09:42 1DS 공격형 TOP 재판단 (09:40 이후 분봉 재취득 + 보드 재생성) / 평일 10:01·10:03·10:05 1DS 10시 생존 확인 3중 retry / 평일 10:06 1DS 메일(MAIL_CRON_ENABLED).
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
@@ -115,6 +115,17 @@ function registerSchedules() {
     if (!r.ok) console.warn("[1DS Intraday cron] 실행 거부:", r.message);
   }, { scheduled: true, timezone: "Asia/Seoul" });
   console.log("[스케줄] 평일 09:30 1DS 분봉 수집 + 보드 재생성 활성화 (한국 시간)");
+
+  // 평일 09:42 — 1DS 공격형 TOP 재판단
+  // 09:30 cron이 생성한 분봉은 마지막 bar가 09:30이라 rebreakMorningHigh 조건(decisionTime >= '09:40')을 충족 못함.
+  // 09:42에 재실행하면 collect가 09:30 파일을 skip하지 않고(last bar < 09:55) 09:41 bar까지 재취득 →
+  // decisionTime ≈ '09:41' ≥ '09:40' 이 되어 공격형 TOP 후보가 정상 계산됨.
+  cron.schedule("0 42 9 * * 1-5", () => {
+    console.log("[1DS AttackTop cron] 09:42 시작 — 09:40 이후 분봉 재취득 + 공격형 TOP 재판단");
+    const r = refresh1dsIntraday();
+    if (!r.ok) console.warn("[1DS AttackTop cron] 실행 거부:", r.message);
+  }, { scheduled: true, timezone: "Asia/Seoul" });
+  console.log("[스케줄] 평일 09:42 1DS 공격형 TOP 재판단 활성화 (한국 시간)");
 
   // 평일 09:00 ~ 15:30 매 30분 — 시장 상태 라이브 (KOSPI/KOSDAQ 실시간 변화율)
   // 기존 cache/kospi-daily.json은 전일 종가 vs 그 전일 종가만 봤기 때문에 장중 흐름 변화를 반영 못 함.
