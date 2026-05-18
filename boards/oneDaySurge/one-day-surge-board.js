@@ -3815,7 +3815,12 @@ document.getElementById('foot').innerHTML =
         const r = c.dayResult;
         const e = c.earlyResult;
         const ms = DATA.marketStatus || {};
-        if (!ms.isMarketClosed) return '<div class="ac-result-pending">📊 결과: 장마감 후 표시 (10시까지 + 장 마감 결과)</div>';
+        if (!ms.isMarketClosed) return (
+          '<div style="margin:6px 0;padding:8px 12px;background:rgba(252,211,77,0.12);border-left:3px solid #fbbf24;border-radius:4px;color:#fde68a;">' +
+          '<div style="font-size:13px;font-weight:600;">📊 ⏳ 아직 장중입니다 <span style="font-weight:400;font-size:11.5px;color:#fcd34d;">(KST ' + esc(ms.generatedAtTime || '') + ')</span></div>' +
+          '<div style="font-size:11px;color:#fcd34d;margin-top:3px;">결과(⏱ 10시까지 + 🏁 장 마감)는 장마감 후 자동 표시됩니다.</div>' +
+          '</div>'
+        );
         if (!r || !r.available) return '<div class="ac-result-pending">📊 결과: 미확정 (' + esc(r && r.reason ? r.reason : '데이터 부족') + ')</div>';
         function cls(v) { return v >= 5 ? 'result-pos' : v >= 0 ? 'result-warn' : 'result-neg'; }
         const dayHighCls  = cls(r.dayHighReturn);
