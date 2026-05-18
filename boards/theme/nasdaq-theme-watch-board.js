@@ -397,6 +397,12 @@ async function main() {
     if (alreadyExtended)                                  interp.push('이미 많이 오른 상태 — 추격 주의');
     if (recentMaxDrop != null && recentMaxDrop <= -10)    interp.push('최근 -10% 이상 흔들림 — 위험');
 
+    // ─── 추가 방어 필터: bestThemeStrength NONE도 제외 (SHIPBUILDING 등 UNKNOWN 강도 테마) ───
+    if (bestThemeStrength === 'NONE') {
+      excludedNoThemeCount++;
+      continue;
+    }
+
     candidates.push({
       code, name,
       // 테마
