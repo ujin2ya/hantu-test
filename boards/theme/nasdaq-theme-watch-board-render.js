@@ -176,6 +176,7 @@ module.exports = function renderHtml({ themesMap, themeStrength, latestDaily, re
 <div class="note">
   이 보드는 전일 미국장 강세 테마와 국내 수급 흔적을 연결해 <b>오늘 지켜볼 후보</b>를 정리한 화면입니다.
   매수 신호가 아니며, 실제 판단은 차트·뉴스·당일 흐름을 함께 확인해야 합니다.
+  <br><b style="color:#fde68a;">이 보드는 전일 미국장 강세 테마와 매칭된 국내 종목만 표시합니다.</b> 테마 매칭이 없는 국내 QVA/VVI/1DS 후보는 기존 보드에서 확인하세요.
   <details style="margin-top:4px;"><summary style="cursor:pointer;color:#94a3b8;font-size:11px;">자세히</summary>
   <div style="margin-top:6px;font-size:11.5px;line-height:1.6;">
     출발점은 전일 미국장 테마. 그 테마와 연결되는 국내 종목 중 최근 QVA1/QVA2/VVI2/1DS 수급 흔적이 있는 종목을 score 합산해 등급화.

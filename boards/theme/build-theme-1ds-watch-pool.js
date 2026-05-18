@@ -41,8 +41,14 @@ function fmtVal(v) {
   return Math.round(v).toLocaleString();
 }
 
-// 종목 코드별 그룹 분류
+// 종목 코드별 그룹 분류 (사용자 spec 2026-05-19: 테마 없는 신호 후보는 풀에서 제외)
 function classifyGroup(c) {
+  // ─── 방어 필터: 테마 매칭 없으면 풀에서 무조건 제외 ───
+  const matched = c.matchedThemes || [];
+  if (matched.length === 0 || c.bestThemeStrength === 'NONE' || !c.bestThemeKey) {
+    return null;
+  }
+
   const strong = c.bestThemeStrength === 'STRONG';
   const mid = c.bestThemeStrength === 'MID';
   const ab = c.grade === 'A' || c.grade === 'B';
@@ -50,10 +56,12 @@ function classifyGroup(c) {
 
   if (strong && ab && anySignal) return 'GROUP_A_THEME_SIGNAL';
   if ((strong || mid) && (c.hasQva1 || c.hasQva2)) return 'GROUP_B_THEME_QVA';
+  if (strong && mid === false && c.hasVvi2) return 'GROUP_C_THEME_VVI';
   if ((strong || mid) && c.hasVvi2) return 'GROUP_C_THEME_VVI';
-  if (strong && !anySignal && (c.matchedThemes || []).length > 0) return 'GROUP_D_THEME_ONLY';
-  if (anySignal && !strong && !mid) return 'GROUP_E_SIGNAL_NO_THEME';
-  return null; // 그룹화 안 되는 후보 — 풀에서 제외
+  if (strong && !anySignal) return 'GROUP_D_THEME_ONLY';
+  // GROUP_E_SIGNAL_NO_THEME 제거됨 — 테마 없는 후보는 위에서 이미 제외됨
+  // 테마 있지만 위 조건 미충족 (WEAK 테마 + 신호 약) → 풀에서 제외
+  return null;
 }
 
 // theme1dsWatchScore 계산
@@ -95,13 +103,10 @@ function calcWatchScore(c, group) {
   else if (group === 'GROUP_B_THEME_QVA') score += 10;
   else if (group === 'GROUP_C_THEME_VVI') score += 10;
   else if (group === 'GROUP_D_THEME_ONLY') score -= 10;
-  else if (group === 'GROUP_E_SIGNAL_NO_THEME') score -= 25;
 
   if (c.bestThemeStrength === 'STRONG') score += 10;
   else if (c.bestThemeStrength === 'MID') score += 5;
-  else if (c.bestThemeStrength === 'NONE') score -= 20;
-
-  if (!c.matchedThemes || c.matchedThemes.length === 0) score -= 15;
+  // bestThemeStrength NONE / matchedThemes 빈 후보는 classifyGroup에서 이미 풀에서 제외됨.
 
   // 감점 (기존 유지)
   if (c.alreadyExtended) score -= 10;
@@ -125,16 +130,7 @@ function classifyWatchGrade(score, group, c) {
     score >= 80;
   if (eligibleForA) return 'WATCH_A';
 
-  // ─── GROUP_E_SIGNAL_NO_THEME 상한: 최대 WATCH_C (조건부 WATCH_B) ───
-  if (group === 'GROUP_E_SIGNAL_NO_THEME') {
-    const allowB =
-      (c.hasVvi2 || c.hasOneDaySurge) &&
-      (c.latestValue != null && c.latestValue >= 5e9) &&
-      (((c.latestChangePct != null) && c.latestChangePct >= 0) || c.closeStrong) &&
-      (c.themeWatchScore != null && c.themeWatchScore >= 65);
-    if (allowB && score >= 60) return 'WATCH_B';
-    return score >= 40 ? 'WATCH_C' : 'WATCH_D';
-  }
+  // GROUP_E_SIGNAL_NO_THEME 그룹은 제거됨 (테마 매칭 없는 후보는 classifyGroup에서 이미 풀에서 제외).
 
   // ─── GROUP_D_THEME_ONLY 상한: 최대 WATCH_C (조건부 WATCH_B) ───
   if (group === 'GROUP_D_THEME_ONLY') {
@@ -191,9 +187,6 @@ function buildWatchReason(c, group, watchGrade) {
   }
   if (group === 'GROUP_D_THEME_ONLY') {
     return `미국장 테마는 강하지만 국내 수급 신호는 아직 약함 → 참고 감시`;
-  }
-  if (group === 'GROUP_E_SIGNAL_NO_THEME') {
-    return `나스닥 테마 매칭은 없지만 국내 수급 신호가 있어 보조 참고`;
   }
   return '';
 }
@@ -252,13 +245,12 @@ function main() {
   // 정렬 — morningWatchPriority desc
   pool.sort((a, b) => b.morningWatchPriority - a.morningWatchPriority);
 
-  // 그룹 묶음
+  // 그룹 묶음 (GROUP_E_SIGNAL_NO_THEME 제거됨 — 테마 매칭 없는 후보는 풀에서 제외)
   const grouped = {
     GROUP_A_THEME_SIGNAL: pool.filter(c => c.watchGroup === 'GROUP_A_THEME_SIGNAL'),
     GROUP_B_THEME_QVA:    pool.filter(c => c.watchGroup === 'GROUP_B_THEME_QVA'),
     GROUP_C_THEME_VVI:    pool.filter(c => c.watchGroup === 'GROUP_C_THEME_VVI'),
     GROUP_D_THEME_ONLY:   pool.filter(c => c.watchGroup === 'GROUP_D_THEME_ONLY'),
-    GROUP_E_SIGNAL_NO_THEME: pool.filter(c => c.watchGroup === 'GROUP_E_SIGNAL_NO_THEME'),
   };
 
   // 요약
@@ -280,7 +272,6 @@ function main() {
       GROUP_B_THEME_QVA:    grouped.GROUP_B_THEME_QVA.length,
       GROUP_C_THEME_VVI:    grouped.GROUP_C_THEME_VVI.length,
       GROUP_D_THEME_ONLY:   grouped.GROUP_D_THEME_ONLY.length,
-      GROUP_E_SIGNAL_NO_THEME: grouped.GROUP_E_SIGNAL_NO_THEME.length,
     },
   };
 
@@ -316,17 +307,22 @@ function main() {
   console.log(`  GROUP_B 테마+QVA:         ${summary.groupCounts.GROUP_B_THEME_QVA}`);
   console.log(`  GROUP_C 테마+VVI:         ${summary.groupCounts.GROUP_C_THEME_VVI}`);
   console.log(`  GROUP_D 테마만 (신호 약): ${summary.groupCounts.GROUP_D_THEME_ONLY}`);
-  console.log(`  GROUP_E 신호만 (테마 약): ${summary.groupCounts.GROUP_E_SIGNAL_NO_THEME}`);
+  // (GROUP_E_SIGNAL_NO_THEME 제거됨 — 테마 매칭 없는 후보는 nasdaq-theme-watch-board에서 이미 제외)
   console.log();
-  // ─── 등급 상한 적용 검증 ────────────────────────────────────────────
+  // ─── 등급 상한 + 그룹 필터 검증 ───────────────────────────────────────
   const watchAList = pool.filter(c => c.watchGrade === 'WATCH_A');
   const watchA_NoneStrength = watchAList.filter(c => c.bestThemeStrength === 'NONE').length;
-  const watchA_GroupE       = watchAList.filter(c => c.watchGroup === 'GROUP_E_SIGNAL_NO_THEME').length;
   const watchA_GroupD       = watchAList.filter(c => c.watchGroup === 'GROUP_D_THEME_ONLY').length;
-  console.log('=== 등급 상한 적용 검증 ===');
+  const poolEmptyMatch      = pool.filter(c => !c.matchedThemes || c.matchedThemes.length === 0).length;
+  const poolNoneStrength    = pool.filter(c => c.bestThemeStrength === 'NONE').length;
+  const poolGroupE          = pool.filter(c => c.watchGroup === 'GROUP_E_SIGNAL_NO_THEME').length;
+  console.log('=== 등급 상한 + 그룹 필터 검증 ===');
+  console.log(`최종 1DS 감시 후보: ${pool.length}`);
+  console.log(`  └ matchedThemes 빈 후보:  ${poolEmptyMatch} (기대 0) ${poolEmptyMatch === 0 ? '✓' : '❌'}`);
+  console.log(`  └ bestThemeStrength=NONE: ${poolNoneStrength} (기대 0) ${poolNoneStrength === 0 ? '✓' : '❌'}`);
+  console.log(`  └ GROUP_E_SIGNAL_NO_THEME: ${poolGroupE} (기대 0) ${poolGroupE === 0 ? '✓' : '❌'}`);
   console.log(`WATCH_A 전체: ${watchAList.length}`);
   console.log(`  └ bestThemeStrength=NONE: ${watchA_NoneStrength} (기대 0) ${watchA_NoneStrength === 0 ? '✓' : '❌'}`);
-  console.log(`  └ GROUP_E_SIGNAL_NO_THEME: ${watchA_GroupE} (기대 0) ${watchA_GroupE === 0 ? '✓' : '❌'}`);
   console.log(`  └ GROUP_D_THEME_ONLY: ${watchA_GroupD} (기대 0) ${watchA_GroupD === 0 ? '✓' : '❌'}`);
   const countByGrade = (arr) => ({
     A: arr.filter(c => c.watchGrade === 'WATCH_A').length,
@@ -334,9 +330,7 @@ function main() {
     C: arr.filter(c => c.watchGrade === 'WATCH_C').length,
     D: arr.filter(c => c.watchGrade === 'WATCH_D').length,
   });
-  const e = countByGrade(grouped.GROUP_E_SIGNAL_NO_THEME);
   const d = countByGrade(grouped.GROUP_D_THEME_ONLY);
-  console.log(`GROUP_E 등급 분포: A ${e.A} / B ${e.B} / C ${e.C} / D ${e.D}`);
   console.log(`GROUP_D 등급 분포: A ${d.A} / B ${d.B} / C ${d.C} / D ${d.D}`);
   console.log();
   console.log(`📝 1DS 보드에는 아직 통합하지 않음 — helper는 src/utils/theme1dsWatchPool.js`);
@@ -515,8 +509,7 @@ function renderHtml(result) {
     <tr><td style="padding:5px 8px;border-bottom:1px solid #334155;"><b>GROUP_A 테마+신호</b></td><td style="text-align:right;padding:5px 8px;border-bottom:1px solid #334155;">${summary.groupCounts.GROUP_A_THEME_SIGNAL}</td><td style="padding:5px 8px;border-bottom:1px solid #334155;color:#94a3b8;">STRONG 테마 + grade A/B + 신호 (가장 핵심)</td></tr>
     <tr><td style="padding:5px 8px;border-bottom:1px solid #334155;"><b>GROUP_B 테마+QVA</b></td><td style="text-align:right;padding:5px 8px;border-bottom:1px solid #334155;">${summary.groupCounts.GROUP_B_THEME_QVA}</td><td style="padding:5px 8px;border-bottom:1px solid #334155;color:#94a3b8;">STRONG/MID 테마 + QVA1/QVA2 흔적</td></tr>
     <tr><td style="padding:5px 8px;border-bottom:1px solid #334155;"><b>GROUP_C 테마+VVI</b></td><td style="text-align:right;padding:5px 8px;border-bottom:1px solid #334155;">${summary.groupCounts.GROUP_C_THEME_VVI}</td><td style="padding:5px 8px;border-bottom:1px solid #334155;color:#94a3b8;">STRONG/MID 테마 + VVI2 흔적</td></tr>
-    <tr><td style="padding:5px 8px;border-bottom:1px solid #334155;"><b>GROUP_D 테마만</b></td><td style="text-align:right;padding:5px 8px;border-bottom:1px solid #334155;">${summary.groupCounts.GROUP_D_THEME_ONLY}</td><td style="padding:5px 8px;border-bottom:1px solid #334155;color:#94a3b8;">STRONG 테마 (국내 수급은 약함, 참고)</td></tr>
-    <tr><td style="padding:5px 8px;"><b>GROUP_E 신호만</b></td><td style="text-align:right;padding:5px 8px;">${summary.groupCounts.GROUP_E_SIGNAL_NO_THEME}</td><td style="padding:5px 8px;color:#94a3b8;">국내 신호 있음, 테마 약 (보조 참고)</td></tr>
+    <tr><td style="padding:5px 8px;"><b>GROUP_D 테마만</b></td><td style="text-align:right;padding:5px 8px;">${summary.groupCounts.GROUP_D_THEME_ONLY}</td><td style="padding:5px 8px;color:#94a3b8;">STRONG 테마 (국내 수급은 약함, 참고)</td></tr>
   </tbody>
 </table>
 </details>

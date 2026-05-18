@@ -250,12 +250,17 @@ async function main() {
 
   // 6) 각 후보에 테마 매칭 + 최신 흐름 + 점수
   const candidates = [];
+  // ─── 후보 포함 기준 (사용자 spec, 2026-05-19 강화) ───
+  // 이 보드는 "전일 미국장 강세 테마 + 국내 수급 흔적"이 겹친 종목만 본다.
+  // 테마 매칭 없는 국내 신호 후보는 무조건 제외 → 기존 QVA/VVI/1DS 보드에서 보면 됨.
+  let excludedNoThemeCount = 0;
   for (const sig of sigByCode.values()) {
     const code = sig.code;
     const name = sig.name || '';
     const themeMatches = matchThemeForStock(name, themesMap);
-    if (themeMatches.length === 0 && !sig.qva1 && !sig.qva2 && !sig.vvi2 && !sig.oneds) {
-      // 테마 매칭도 없고 신호도 없으면 스킵 (이론상 없음)
+    if (themeMatches.length === 0) {
+      // 테마 매칭 없는 후보는 무조건 제외 (국내 신호 유무 무관)
+      excludedNoThemeCount++;
       continue;
     }
 
@@ -505,7 +510,14 @@ async function main() {
   console.log(`STRONG 테마: ${strongThemes.map(k => themesMap[k].label).join(', ') || '—'}`);
   console.log(`MID 테마:    ${midThemes.map(k => themesMap[k].label).join(', ') || '—'}`);
   console.log();
-  console.log(`전체 후보:           ${candidates.length}`);
+  // ─── 후보 포함 기준 검증 ───
+  console.log(`원본 후보 풀:        ${sigByCode.size}`);
+  console.log(`제외 (테마 매칭 X): ${excludedNoThemeCount}`);
+  console.log(`최종 후보 (테마 O): ${candidates.length}`);
+  const noneStrengthCount = candidates.filter(c => c.bestThemeStrength === 'NONE').length;
+  const emptyMatchedCount = candidates.filter(c => !c.matchedThemes || c.matchedThemes.length === 0).length;
+  console.log(`  └ bestThemeStrength=NONE: ${noneStrengthCount} (기대 0) ${noneStrengthCount === 0 ? '✓' : '❌'}`);
+  console.log(`  └ matchedThemes 비어있음: ${emptyMatchedCount} (기대 0) ${emptyMatchedCount === 0 ? '✓' : '❌'}`);
   console.log(`  A (최우선 관찰):   ${summary.gradeA}`);
   console.log(`  B (우선 관찰):     ${summary.gradeB}`);
   console.log(`  C (테마 후보):     ${summary.gradeC}`);
