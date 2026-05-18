@@ -1892,6 +1892,8 @@ async function main() {
             }
             for (const s of (snap.survivor1000 || [])) pushItem(s.code, s.name, s.metrics?.last0930, 'survivor1000');
             for (const c of (snap.attackTopCandidates || [])) pushItem(c.code, c.name, c.decisionPrice, 'attackTop');
+            // 조기 포착(explosiveStable) — survivor1000에 흡수 안 된 09:30 조기 포착 후보
+            for (const e of (snap.explosiveStable || [])) pushItem(e.code, e.name, e.metrics?.last0930, 'explosiveStable');
             console.log(`     mainResult: ${todayResultCandidates.mainResult.length}종목 (스냅샷 ${_snapDateStr}, 전일종가 기준)`);
           } catch(e) {
             console.warn(`  ⚠ mainResult 계산 실패: ${e.message}`);
@@ -2043,10 +2045,11 @@ async function main() {
       snapshotDate: _sd,
       savedAt: new Date().toISOString(),
       survivor1000: out.priorityRanked?.scanner0930?.survivor1000 || [],
+      explosiveStable: out.priorityRanked?.scanner0930?.explosiveStable || [],
       attackTopCandidates: out.attackTopCandidates || [],
     };
     fs.writeFileSync(_snapPath, JSON.stringify(_snap, null, 2));
-    console.log(`  📸 09:30 스냅샷 저장 (${_sd}): survivor=${_snap.survivor1000.length}개 / attackTop=${_snap.attackTopCandidates.length}개`);
+    console.log(`  📸 09:30 스냅샷 저장 (${_sd}): survivor=${_snap.survivor1000.length}개 / explosive=${_snap.explosiveStable.length}개 / attackTop=${_snap.attackTopCandidates.length}개`);
   }
 
   // DB 저장 (실패해도 HTML/JSON은 이미 정상 저장됐으므로 보드 출력에 영향 없음)
@@ -3983,9 +3986,14 @@ document.getElementById('foot').innerHTML =
       return 'neg';
     }
     function mrRow(c) {
-      const srcChip = c.basePriceSource === 'survivor1000'
-        ? '<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#064e3b;color:#a7f3d0;">✅ 10시생존</span>'
-        : '<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#1e3a5f;color:#93c5fd;">⚡ 공격형</span>';
+      let srcChip;
+      if (c.basePriceSource === 'survivor1000') {
+        srcChip = '<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#064e3b;color:#a7f3d0;">✅ 10시생존</span>';
+      } else if (c.basePriceSource === 'explosiveStable') {
+        srcChip = '<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#3a1a04;color:#fdba74;">🚀 조기포착</span>';
+      } else {
+        srcChip = '<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#1e3a5f;color:#93c5fd;">⚡ 공격형</span>';
+      }
       const hC = clsFor(c.prevRefHigh);
       const lC = clsFor(c.prevRefLow);
       const cC = clsFor(c.prevRefClose);
