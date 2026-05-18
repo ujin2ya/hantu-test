@@ -1875,6 +1875,8 @@ async function main() {
               if (!(basePrice > 0)) return;
               const r = calculateCandidateDayResult(code, basePrice, _snapTarget);
               if (!r.available) return;
+              // DB 저장용 — 결과가 측정된 실제 거래일을 dayResult에 기록 (snapshot 날짜와 동일)
+              r.resultTargetDate = _snapDateStr;
               const pt = getPeakTroughTime(code, _snapDateStr);
               const prevClose = _prevClose(code, _snapTarget);
               // 전일종가 대비 % (사용자 요청: 기준가 기준 X)

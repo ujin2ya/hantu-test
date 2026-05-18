@@ -50,6 +50,10 @@ const KIND_LABELS = Object.freeze({
   // 1DS
   ATTACK_TOP:              '공격형 TOP',
   MAIN:                    '메인 후보',
+  // 1DS mainResult (D+0 일중 결과, 출처별)
+  SURVIVOR1000:            '10시 생존 결과',
+  EXPLOSIVE_STABLE:        '조기 포착 결과',
+  ATTACK_TOP_RESULT:       '공격형 TOP 결과',
   // 중간 상태
   WAITING:                 '대기',
   NEAR_HIGH:               '고가 근처',
@@ -207,7 +211,7 @@ const BOARD_KIND_MATRIX = Object.freeze({
   QVA2_VVI:          ['VVI2_FIRED', 'CLOSE_WEAK', 'VALUE_WEAK', 'NEAR_HIGH', 'WAITING', 'PRICE_ONLY', 'BROKEN', 'TODAY_NEW_VVI2'],
   HGROUP_REBREAK:    ['CLOSE_REBREAK', 'CLOSE_REBREAK_NO_BREACH', 'CLOSE_REBREAK_VOL_EXPLOSION', 'CLOSE_REBREAK_HOLD_NEXTDAY', 'CLOSE_REBREAK_BREACH_RECOVER', 'INTRADAY_PUSHBACK', 'BREACH_RECOVER_ILLUSION', 'BREACH_NO_RECOVER', 'NO_REBREAK'],
   QVA2_D5_REBREAK:   ['CLOSE_REBREAK', 'TODAY_INITIAL_BREAKOUT', 'INTRADAY_PUSHBACK', 'BREACH_NO_RECOVER', 'NO_REBREAK'],
-  ONE_DAY_SURGE:     ['MAIN', 'ATTACK_TOP'],
+  ONE_DAY_SURGE:     ['MAIN', 'ATTACK_TOP', 'SURVIVOR1000', 'EXPLOSIVE_STABLE', 'ATTACK_TOP_RESULT'],
 });
 
 // 필터 조합이 모순인지 진단. 0건 결과 + 보드/단계 모두 선택했을 때 호출.
@@ -301,6 +305,9 @@ const KIND_DISPLAY = Object.freeze({
   STRONG_VALUE:            '강한 거래대금',
   ATTACK_TOP:              '공격형 TOP',
   MAIN:                    '메인 후보',
+  SURVIVOR1000:            '10시 생존',
+  EXPLOSIVE_STABLE:        '조기 포착',
+  ATTACK_TOP_RESULT:       '공격형 결과',
   WAITING:                 '대기',
   NEAR_HIGH:               '고가 근처',
   CLOSE_WEAK:              '종가 약함',

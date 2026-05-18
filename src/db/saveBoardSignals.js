@@ -117,6 +117,58 @@ function _normalizeOneDaySurgeAttackTop(c, asOfDate) {
   };
 }
 
+// mainResult 항목 — 09:30 스냅샷의 survivor1000 / explosiveStable / attackTop의 당일 결과
+// signal_kind: SURVIVOR1000 (10시 생존) / EXPLOSIVE_STABLE (조기 포착) / 기존 ATTACK_TOP은 별도 처리
+function _normalizeOneDaySurgeMainResult(c, asOfDate, resultDate) {
+  const srcMap = { survivor1000: 'SURVIVOR1000', explosiveStable: 'EXPLOSIVE_STABLE', attackTop: 'ATTACK_TOP_RESULT' };
+  const signalKind = srcMap[c.basePriceSource] || 'MAIN_RESULT';
+  const r = c.dayResult || {};
+  // signal_date = mainResult가 측정한 실제 거래일
+  // 우선순위: dayResult.resultTargetDate (보드 generator가 직접 잡은 result row의 date)
+  //          → resultDate (인자, snapshot/summary 기반)
+  //          → asOfDate fallback
+  const sigDate = _toYMD(r.resultTargetDate) || _toYMD(resultDate) || asOfDate;
+  return {
+    board_name: 'ONE_DAY_SURGE',
+    signal_kind: signalKind,
+    signal_date: sigDate,
+    as_of_date: asOfDate,
+    stock_code: c.code,
+    stock_name: c.name || c.code,
+    market: null,
+    signal_price: _num(c.basePrice),
+    signal_open:  _num(r.dayOpen),
+    signal_high:  _num(r.dayHigh ?? c.dayHigh),
+    signal_low:   _num(r.dayLow  ?? c.dayLow),
+    signal_close: _num(r.dayClose ?? c.dayClose),
+    volume: null,
+    trading_value: null,
+    score: _num(r.dayHighReturn),
+    rank_no: null,
+    grade: c.basePriceSource || null,
+    status_label: r.resultLabel || null,
+    tags_json: { resultTags: r.resultTags || [], source: c.basePriceSource },
+    metrics_json: {
+      // 진입 기준 (09:30 close)
+      basePrice: c.basePrice,
+      basePriceSource: c.basePriceSource,
+      // 전일종가 + 그 대비 % (사용자 화면 표 기준)
+      prevClose: c.prevClose,
+      prevRefHigh: c.prevRefHigh,
+      prevRefLow: c.prevRefLow,
+      prevRefClose: c.prevRefClose,
+      // 기준가 대비 % (BIG 박스 기준)
+      dayHighReturn: r.dayHighReturn,
+      dayLowReturn:  r.dayLowReturn,
+      dayCloseReturn: r.dayCloseReturn,
+      // 일중 시각 (분봉 기준)
+      peakTime: c.peakTime,
+      troughTime: c.troughTime,
+    },
+    raw_json: c,
+  };
+}
+
 async function saveOneDaySurgeBoardToDB(data, opts = {}) {
   if (!isEnabled()) return null;
   if (!data || !data.meta) throw new Error('1DS data.meta missing');
@@ -136,6 +188,14 @@ async function saveOneDaySurgeBoardToDB(data, opts = {}) {
     if (!c || !c.code) continue;
     rows.push(_normalizeOneDaySurgeAttackTop(c, asOfDate));
   }
+  // mainResult — 09:30 후보들의 당일 결과 (장 마감 후에만 채워짐)
+  const mainResult = (data.todayResultCandidates && data.todayResultCandidates.mainResult) || [];
+  // 결과 거래일 = todayResultSummary.targetDate (mainResult가 가리키는 실제 거래일)
+  const resultDate = (data.todayResultSummary && data.todayResultSummary.targetDate) || asOfDate;
+  for (const c of mainResult) {
+    if (!c || !c.code) continue;
+    rows.push(_normalizeOneDaySurgeMainResult(c, asOfDate, resultDate));
+  }
 
   const runId = await repo.createBoardRun({
     board_name: 'ONE_DAY_SURGE',
@@ -148,6 +208,8 @@ async function saveOneDaySurgeBoardToDB(data, opts = {}) {
     meta_json: {
       mainCount: top.length + extra.length,
       attackTopCount: attack.length,
+      mainResultCount: mainResult.length,
+      mainResultDate: resultDate,
       marketState: data.marketState || null,
       marketStatus: data.marketStatus ? { status: data.marketStatus.status, label: data.marketStatus.label } : null,
     },
