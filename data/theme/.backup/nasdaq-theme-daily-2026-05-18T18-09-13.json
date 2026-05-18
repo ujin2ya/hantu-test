@@ -1,0 +1,61 @@
+{
+  "_meta": {
+    "version": "1.1",
+    "note": "수동 입력 — 나스닥 테마 강도. 거래일 단위 갱신. avgChangePct는 nasdaqTickers의 전일 등락률 평균(임의값 — 실제 운영에서는 yfinance/Investing.com 등으로 자동 수집 가능). usMarketDate는 한국 거래일 전일 밤 미국 거래일.",
+    "strengthRules": {
+      "STRONG": "avgChangePct >= 2.5 OR strongTickerCount/totalTickerCount >= 0.6",
+      "MID":    "avgChangePct >= 1.0",
+      "WEAK":   "그 외"
+    }
+  },
+  "history": [
+    {
+      "date": "2026-05-18",
+      "usMarketDate": "2026-05-15",
+      "themes": {
+        "AI_SEMICON":       { "strength": "STRONG", "avgChangePct":  3.2, "strongTickerCount": 5, "totalTickerCount": 8, "reason": "NVDA, AMD, AVGO 등 AI 반도체 관련주 강세" },
+        "POWER_GRID":       { "strength": "MID",    "avgChangePct":  1.4, "strongTickerCount": 2, "totalTickerCount": 4, "reason": "VRT/ETN 전력 인프라주 일부 강세" },
+        "ROBOT":            { "strength": "STRONG", "avgChangePct":  2.8, "strongTickerCount": 3, "totalTickerCount": 5, "reason": "TSLA 옵티머스 + NVDA 로봇 시너지" },
+        "DEFENSE_SPACE":    { "strength": "MID",    "avgChangePct":  1.1, "strongTickerCount": 2, "totalTickerCount": 7, "reason": "LMT/RTX 일부 회복" },
+        "NUCLEAR":          { "strength": "STRONG", "avgChangePct":  4.5, "strongTickerCount": 5, "totalTickerCount": 6, "reason": "SMR/OKLO/NNE 등 SMR 관련주 폭등" },
+        "BIO":              { "strength": "WEAK",   "avgChangePct": -0.3, "strongTickerCount": 1, "totalTickerCount": 7, "reason": "특이 모멘텀 없음" },
+        "SHIPBUILDING":     { "strength": "WEAK",   "avgChangePct":  0.5, "strongTickerCount": 0, "totalTickerCount": 0, "reason": "미국 직접 관련주 거의 없음 — 글로벌 발주 흐름 참고" },
+        "BATTERY":          { "strength": "WEAK",   "avgChangePct":  0.2, "strongTickerCount": 1, "totalTickerCount": 5, "reason": "TSLA 외 약세" },
+        "QUANTUM_SECURITY": { "strength": "STRONG", "avgChangePct":  5.1, "strongTickerCount": 4, "totalTickerCount": 7, "reason": "IONQ/RGTI/QBTS 양자컴 관련주 폭등" },
+        "CRYPTO":           { "strength": "MID",    "avgChangePct":  1.8, "strongTickerCount": 2, "totalTickerCount": 6, "reason": "COIN/MSTR 비트코인 가격 반등 동반" }
+      }
+    },
+    {
+      "date": "2026-05-15",
+      "usMarketDate": "2026-05-14",
+      "themes": {
+        "AI_SEMICON":       { "strength": "STRONG", "avgChangePct":  2.7, "strongTickerCount": 4, "totalTickerCount": 8, "reason": "NVDA/AMD 강세" },
+        "POWER_GRID":       { "strength": "STRONG", "avgChangePct":  2.1, "strongTickerCount": 3, "totalTickerCount": 4, "reason": "VRT/ETN 전력 인프라 강세" },
+        "ROBOT":            { "strength": "MID",    "avgChangePct":  1.5, "strongTickerCount": 2, "totalTickerCount": 5, "reason": "TSLA 일부 강세" },
+        "DEFENSE_SPACE":    { "strength": "WEAK",   "avgChangePct":  0.8, "strongTickerCount": 2, "totalTickerCount": 7, "reason": "약보합" },
+        "NUCLEAR":          { "strength": "STRONG", "avgChangePct":  3.6, "strongTickerCount": 4, "totalTickerCount": 6, "reason": "SMR 관련주 강세" },
+        "BIO":              { "strength": "WEAK",   "avgChangePct":  0.4, "strongTickerCount": 2, "totalTickerCount": 7, "reason": "약보합" },
+        "SHIPBUILDING":     { "strength": "WEAK",   "avgChangePct":  0.0, "strongTickerCount": 0, "totalTickerCount": 0, "reason": "—" },
+        "BATTERY":          { "strength": "WEAK",   "avgChangePct": -0.5, "strongTickerCount": 0, "totalTickerCount": 5, "reason": "약세" },
+        "QUANTUM_SECURITY": { "strength": "MID",    "avgChangePct":  1.6, "strongTickerCount": 2, "totalTickerCount": 7, "reason": "양자컴 관련주 일부 강세" },
+        "CRYPTO":           { "strength": "WEAK",   "avgChangePct":  0.5, "strongTickerCount": 1, "totalTickerCount": 6, "reason": "약보합" }
+      }
+    },
+    {
+      "date": "2026-05-14",
+      "usMarketDate": "2026-05-13",
+      "themes": {
+        "AI_SEMICON":       { "strength": "MID",    "avgChangePct":  1.8, "strongTickerCount": 3, "totalTickerCount": 8, "reason": "AI 반도체 일부 강세" },
+        "POWER_GRID":       { "strength": "WEAK",   "avgChangePct":  0.6, "strongTickerCount": 1, "totalTickerCount": 4, "reason": "약보합" },
+        "ROBOT":            { "strength": "STRONG", "avgChangePct":  2.2, "strongTickerCount": 3, "totalTickerCount": 5, "reason": "휴머노이드 모멘텀" },
+        "DEFENSE_SPACE":    { "strength": "MID",    "avgChangePct":  1.3, "strongTickerCount": 3, "totalTickerCount": 7, "reason": "방산주 회복" },
+        "NUCLEAR":          { "strength": "MID",    "avgChangePct":  2.1, "strongTickerCount": 3, "totalTickerCount": 6, "reason": "SMR 일부 강세" },
+        "BIO":              { "strength": "MID",    "avgChangePct":  1.0, "strongTickerCount": 3, "totalTickerCount": 7, "reason": "LLY/NVO GLP-1 반등" },
+        "SHIPBUILDING":     { "strength": "WEAK",   "avgChangePct":  0.0, "strongTickerCount": 0, "totalTickerCount": 0, "reason": "—" },
+        "BATTERY":          { "strength": "WEAK",   "avgChangePct":  0.8, "strongTickerCount": 2, "totalTickerCount": 5, "reason": "약보합" },
+        "QUANTUM_SECURITY": { "strength": "WEAK",   "avgChangePct":  0.4, "strongTickerCount": 1, "totalTickerCount": 7, "reason": "—" },
+        "CRYPTO":           { "strength": "WEAK",   "avgChangePct": -0.2, "strongTickerCount": 1, "totalTickerCount": 6, "reason": "약세" }
+      }
+    }
+  ]
+}

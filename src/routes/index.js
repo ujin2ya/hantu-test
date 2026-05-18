@@ -8,6 +8,7 @@ const qvaVviRedefinedRoutes = require("./qvaVviRedefinedRoutes");
 const qva2Routes = require("./qva2Routes");
 const rebreakRoutes = require("./rebreakRoutes");
 const oneDaySurgeRoutes = require("./oneDaySurgeRoutes");
+const themeRoutes = require("./themeRoutes");
 const aiRoutes = require("./aiRoutes");
 const dbBoardRoutes = require("./dbBoardRoutes");
 
@@ -21,6 +22,7 @@ router.use(qvaVviRedefinedRoutes);
 router.use(qva2Routes);
 router.use(rebreakRoutes);
 router.use(oneDaySurgeRoutes);
+router.use(themeRoutes);     // /nasdaq-theme-watch (실험 라인 — 전일 미국장 테마 기반 감시 후보)
 router.use(dbBoardRoutes);   // 공개 /db-board (DB 신호 운영판)
 router.use(aiRoutes);
 

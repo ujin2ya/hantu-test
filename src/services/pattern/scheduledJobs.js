@@ -157,6 +157,30 @@ function registerSchedules() {
   // 1DS 운영 철학 변경 (2026-05-14): 09:30 예선 시점에 메일 보내봤자 절반 이상이 10시 전에 무너지므로
   // 10시 본선 확인 후 발송으로 변경. 사용자가 보는 후보 = 실제 진입 검토 1순위.
   // 10:02 → 10:06 (2026-05-15): 10:01/03/05 3중 retry 후 안정된 결과를 보내기 위해 마진 확장.
+  // 평일 06:30 — 미국 NYSE 정규장 종료 후 나스닥 테마 강도 fetch + 나스닥 테마 watch 보드 재생성
+  // NYSE close: 16:00 ET → EDT 기간(3월 둘째 일요일~11월 첫째 일요일) KST 05:00, EST 기간 KST 06:00.
+  // 06:30 KST = EDT 마감 1.5h 후 / EST 마감 30분 후 — 양쪽 다 quote 데이터 안정화 후.
+  cron.schedule("0 30 6 * * 1-5", () => {
+    console.log("[Nasdaq Theme] 06:30 시작 — FMP/Yahoo fetch + watch 보드 재생성");
+    try {
+      const t0 = Date.now();
+      execSync(`node ${path.join(ROOT, "scripts/fetch-nasdaq-theme-daily.js")}`, { stdio: "pipe" });
+      console.log(`[Nasdaq Theme] ✅ fetch (${Date.now() - t0}ms)`);
+    } catch (e) {
+      console.error(`[Nasdaq Theme] ❌ fetch: ${String(e.message || e).slice(0, 200)}`);
+    }
+    try {
+      const t0 = Date.now();
+      execSync(`node ${path.join(ROOT, "boards/theme/nasdaq-theme-watch-board.js")}`, { stdio: "pipe" });
+      console.log(`[Nasdaq Theme] ✅ 보드 재생성 (${Date.now() - t0}ms)`);
+    } catch (e) {
+      console.error(`[Nasdaq Theme] ❌ 보드 재생성: ${String(e.message || e).slice(0, 200)}`);
+    }
+    console.log("[Nasdaq Theme] 06:30 완료");
+  }, { scheduled: true, timezone: "Asia/Seoul" });
+  console.log("[스케줄] 매일 평일 06:30 나스닥 테마 fetch + watch 보드 재생성 활성화 (미국장 마감 후, 한국 시간)");
+
+  // ─── (이전 1DS 메일 cron 블록 보존) ────────────────────────────────────
   if (process.env.MAIL_CRON_ENABLED === "1") {
     cron.schedule("0 6 10 * * 1-5", async () => {
       console.log("[1DS메일] 10:06 — one-day-surge-board-result.json 기반 (10시 생존 3중 확인 후) 메일 발송 시작");

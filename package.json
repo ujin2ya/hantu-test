@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "generate-stocks": "node pipeline/generate-stocks.js"
+    "generate-stocks": "node pipeline/generate-stocks.js",
+    "fetch:nasdaq-theme": "node scripts/fetch-nasdaq-theme-daily.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
