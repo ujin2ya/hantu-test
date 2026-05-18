@@ -41,6 +41,7 @@ const BOARD_SCRIPTS = [
   { name: "QVA2 H그룹/VPR 보드",            file: "boards/qva2/qva2-watchlist-board.js" },
   { name: "QVA2 D+5 재돌파 운용보드",        file: "boards/qva2/qva2-d5-rebreak-board.js" },
   { name: "QVA2 고점 재돌파 보드",           file: "boards/qva2/qva2-vvi-board.js" },
+  { name: "1DS 단타 후보 보드",              file: "boards/oneDaySurge/one-day-surge-board.js" },
 ];
 
 const PATTERN_RESULT_PATH = path.join(CACHE_DIR, "pattern-result.json");

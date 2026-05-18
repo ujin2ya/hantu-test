@@ -195,6 +195,23 @@ function calculateCandidateDayResult(code, basePrice, targetDateYYYYMMDD) {
   };
 }
 
+// 분봉에서 당일 고점/저점 시각 추출 (mainResult 표시용)
+function getPeakTroughTime(code, dateStr) {
+  const fp = path.join(INTRADAY_BASE, dateStr, code + '.json');
+  if (!fs.existsSync(fp)) return null;
+  try {
+    const d = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+    const bars = d.bars || [];
+    if (!bars.length) return null;
+    let pk = bars[0], tr = bars[0];
+    for (const b of bars) {
+      if (b.high > pk.high) pk = b;
+      if (b.low < tr.low) tr = b;
+    }
+    return { peakTime: pk.time || null, troughTime: tr.time || null };
+  } catch (_) { return null; }
+}
+
 // 결과 태그 (성공 + 주의)
 function assignResultTags(r) {
   if (!r || !r.available) return { tags: [], label: '결과 미확정', comment: '장중 결과는 아직 확정되지 않았습니다.' };
@@ -1617,7 +1634,7 @@ async function main() {
     avgAll1dsDayHigh: null, avgAll1dsDayClose: null,
     notes: [],
   };
-  let todayResultCandidates = { attackTop: [], big10: [], big15: [], big20: [], failed: [], spikeFade: [] };
+  let todayResultCandidates = { mainResult: [], attackTop: [], big10: [], big15: [], big20: [], failed: [], spikeFade: [] };
 
   if (marketStatus.isMarketClosed) {
     if (!targetDateYYYYMMDD) {
@@ -1768,6 +1785,54 @@ async function main() {
         .slice().sort((a, b) => (b.dayResult.highCloseDrop || 0) - (a.dayResult.highCloseDrop || 0))
         .slice(0, 20).map((it) => lightCard(it, attackCodes.has(it.code) ? 'attack' : 'all'));
 
+      // mainResult: 오늘 09:30 스냅샷의 survivor1000 + attackTop 결과 계산
+      // 스냅샷 날짜를 result 기준일로 사용 (외부 targetDateYYYYMMDD와 무관)
+      {
+        const _sd = KST_TODAY_NUM.slice(0,4)+'-'+KST_TODAY_NUM.slice(4,6)+'-'+KST_TODAY_NUM.slice(6,8);
+        const _snapPath = path.join(REPORTS_DIR, `one-day-surge-0930-snapshot-${_sd}.json`);
+        if (fs.existsSync(_snapPath)) {
+          try {
+            const snap = JSON.parse(fs.readFileSync(_snapPath, 'utf-8'));
+            const _snapDateStr = snap.snapshotDate || _sd;
+            const _snapTarget = _snapDateStr.replace(/-/g, '');
+            const seen = new Set();
+            for (const s of (snap.survivor1000 || [])) {
+              if (!s.code || seen.has(s.code)) continue;
+              seen.add(s.code);
+              const basePrice = s.metrics?.last0930 || null;
+              if (!(basePrice > 0)) continue;
+              const r = calculateCandidateDayResult(s.code, basePrice, _snapTarget);
+              if (!r.available) continue;
+              const pt = getPeakTroughTime(s.code, _snapDateStr);
+              todayResultCandidates.mainResult.push({
+                code: s.code, name: s.name, basePrice, basePriceSource: 'survivor1000',
+                dayResult: r, resultTags: assignResultTags(r).tags,
+                peakTime: pt?.peakTime || null, troughTime: pt?.troughTime || null,
+              });
+            }
+            for (const c of (snap.attackTopCandidates || [])) {
+              if (!c.code || seen.has(c.code)) continue;
+              seen.add(c.code);
+              const basePrice = c.decisionPrice || null;
+              if (!(basePrice > 0)) continue;
+              const r = calculateCandidateDayResult(c.code, basePrice, _snapTarget);
+              if (!r.available) continue;
+              const pt = getPeakTroughTime(c.code, _snapDateStr);
+              todayResultCandidates.mainResult.push({
+                code: c.code, name: c.name, basePrice, basePriceSource: 'attackTop',
+                dayResult: r, resultTags: assignResultTags(r).tags,
+                peakTime: pt?.peakTime || null, troughTime: pt?.troughTime || null,
+              });
+            }
+            console.log(`     mainResult: ${todayResultCandidates.mainResult.length}종목 (스냅샷 ${_snapDateStr})`);
+          } catch(e) {
+            console.warn(`  ⚠ mainResult 계산 실패: ${e.message}`);
+          }
+        } else {
+          console.log(`     mainResult: 스냅샷 없음 (${_snapPath})`);
+        }
+      }
+
       console.log(`  📊 오늘 결과 (targetDate ${targetDateForResult}):`);
       console.log(`     1DS 전체 ${allWithResult.length}개 결과 가능 / 결과 미계산 ${allMissingPrice}건`);
       console.log(`     공격형 TOP ${attackTopWithResult.length}개 결과 가능`);
@@ -1899,6 +1964,21 @@ async function main() {
 
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
   fs.writeFileSync(OUT_HTML, HTML_TEMPLATE.replace('__JSON_DATA__', JSON.stringify(out)), 'utf-8');
+
+  // 09:00~12:00 실행 (09:30/10:01/10:03/10:05 cron) 또는 FORCE_0930_SNAPSHOT=1 이면 스냅샷 저장
+  // 16:35 cron이 이 스냅샷을 읽어 mainResult를 채움
+  if ((KST_MIN >= 9*60 && KST_MIN < 12*60) || process.env.FORCE_0930_SNAPSHOT === '1') {
+    const _sd = KST_TODAY_NUM.slice(0,4)+'-'+KST_TODAY_NUM.slice(4,6)+'-'+KST_TODAY_NUM.slice(6,8);
+    const _snapPath = path.join(REPORTS_DIR, `one-day-surge-0930-snapshot-${_sd}.json`);
+    const _snap = {
+      snapshotDate: _sd,
+      savedAt: new Date().toISOString(),
+      survivor1000: out.priorityRanked?.scanner0930?.survivor1000 || [],
+      attackTopCandidates: out.attackTopCandidates || [],
+    };
+    fs.writeFileSync(_snapPath, JSON.stringify(_snap, null, 2));
+    console.log(`  📸 09:30 스냅샷 저장 (${_sd}): survivor=${_snap.survivor1000.length}개 / attackTop=${_snap.attackTopCandidates.length}개`);
+  }
 
   // DB 저장 (실패해도 HTML/JSON은 이미 정상 저장됐으므로 보드 출력에 영향 없음)
   try {
@@ -3728,7 +3808,7 @@ document.getElementById('foot').innerHTML =
   if (!host) return;
   const ms = DATA.marketStatus;
   const sum = DATA.todayResultSummary;
-  const cands = DATA.todayResultCandidates || { attackTop: [], big10: [], big15: [], big20: [], failed: [], spikeFade: [] };
+  const cands = DATA.todayResultCandidates || { mainResult: [], attackTop: [], big10: [], big15: [], big20: [], failed: [], spikeFade: [] };
   if (!ms) return;
 
   function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -3795,6 +3875,37 @@ document.getElementById('foot').innerHTML =
       '</div>'
     );
     return;
+  }
+
+  // mainResult 표: 09:30 cron이 실제로 포착한 핵심 후보 (survivor1000 + attackTop) 결과
+  let mainResultTable = '';
+  if (cands.mainResult && cands.mainResult.length > 0) {
+    function mrRow(c) {
+      const r = c.dayResult;
+      const hCls = r.dayHighReturn >= 10 ? 'pos' : r.dayHighReturn >= 3 ? 'warn' : 'neg';
+      const cCls = r.dayCloseReturn >= 3 ? 'pos' : r.dayCloseReturn >= 0 ? 'warn' : 'neg';
+      const srcChip = c.basePriceSource === 'survivor1000'
+        ? '<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#064e3b;color:#a7f3d0;">✅ 10시생존</span>'
+        : '<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#1e3a5f;color:#93c5fd;">⚡ 공격형</span>';
+      return '<tr>' +
+        '<td>' + srcChip + '</td>' +
+        '<td><b>' + esc(c.name) + '</b><br><span style="color:#64748b;font-size:10.5px;">' + esc(c.code) + '</span></td>' +
+        '<td>' + f0(c.basePrice) + '</td>' +
+        '<td class="' + hCls + '">' + fp(r.dayHighReturn) + (c.peakTime ? '<br><span style="color:#94a3b8;font-size:10px;">' + esc(c.peakTime) + '</span>' : '') + '</td>' +
+        '<td>' + fp(r.dayLowReturn) + (c.troughTime ? '<br><span style="color:#94a3b8;font-size:10px;">' + esc(c.troughTime) + '</span>' : '') + '</td>' +
+        '<td class="' + cCls + '">' + fp(r.dayCloseReturn) + '</td>' +
+        '<td>' + tagChips(c.resultTags) + '</td>' +
+        '</tr>';
+    }
+    mainResultTable = (
+      '<div style="margin-bottom:18px;">' +
+      '<h3 style="margin:0 0 8px;font-size:16px;color:#e2e8f0;">📊 오늘 09:30 실제 후보 결과 (survivor1000 + 공격형TOP)</h3>' +
+      '<table class="today-result-table">' +
+      '<thead><tr><th>구분</th><th>종목</th><th>기준가</th><th>당일 고가%<br><span style="font-size:10px;font-weight:400;">고점 시각</span></th><th>당일 저가%<br><span style="font-size:10px;font-weight:400;">저점 시각</span></th><th>종가%</th><th>결과</th></tr></thead>' +
+      '<tbody>' + cands.mainResult.map(mrRow).join('') + '</tbody>' +
+      '</table>' +
+      '</div>'
+    );
   }
 
   // 상단 결과 카드 (10개)
@@ -3918,6 +4029,7 @@ document.getElementById('foot').innerHTML =
     '<div class="target-line">대상 거래일: <strong>' + esc(sum.targetDate || '—') + '</strong> · 결과 미계산 후보: ' + (sum.missingResultPriceCount || 0) + '건' +
     (ms.forcedNote ? ' · <span style="color:#fbbf24;">⚙ ' + esc(ms.forcedNote) + '</span>' : '') +
     '</div>' +
+    mainResultTable +
     summaryGrid +
     '<h3 style="color:#fdba74;margin-top:14px;margin-bottom:6px;">🔥 공격형 TOP 결과</h3>' +
     '<div style="font-size:11.5px;color:#94a3b8;margin-bottom:6px;">공격형 TOP 후보들이 실제로 BIG10/BIG15/BIG20에 도달했는지 확인합니다.</div>' +

@@ -1,4 +1,4 @@
-// 일일 cron 스케줄 — 16:10 분석 / 16:20 일일 갱신(평일) / 16:35 보드 갱신(평일, 1DS 제외) / 평일 09:00~15:30 매 30분 시장 상태 라이브 / 평일 09:30 1DS 분봉+보드 / 평일 09:42 1DS 공격형 TOP 재판단 (09:40 이후 분봉 재취득 + 보드 재생성) / 평일 10:01·10:03·10:05 1DS 10시 생존 확인 3중 retry / 평일 10:06 1DS 메일(MAIL_CRON_ENABLED).
+// 일일 cron 스케줄 — 16:10 분석 / 16:20 일일 갱신(평일) / 16:35 보드 갱신(평일, 1DS 포함 7개) / 평일 09:00~15:30 매 30분 시장 상태 라이브 / 평일 09:30 1DS 분봉+보드+스냅샷 / 평일 09:42 1DS 공격형 TOP 재판단 / 평일 10:01·10:03·10:05 1DS 10시 생존 확인 3중 retry / 평일 10:06 1DS 메일(MAIL_CRON_ENABLED).
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
@@ -81,7 +81,7 @@ function registerSchedules() {
     }
     console.log(`[Boards] 16:35 완료 — 성공 ${okCount} / 실패 ${failCount}`);
   }, { scheduled: true, timezone: "Asia/Seoul" });
-  console.log(`[스케줄] 매일 평일 16:35 전체 보드 갱신 활성화 (${BOARD_SCRIPTS.length}개 — QVA + QVA 고점 재돌파 + D+5 재돌파 운용 + QVA2 × 3, 1DS 제외)`);
+  console.log(`[스케줄] 매일 평일 16:35 전체 보드 갱신 활성화 (${BOARD_SCRIPTS.length}개 — QVA + QVA 고점 재돌파 + D+5 재돌파 운용 + QVA2 × 3 + 1DS)`);
 
   // 16:40 평일 — DB 신호 후속 작업: outcomes 채우기 + signal_links 재정렬
   // (보드 generators 16:35 완료 후 ~5분 마진. 같은 cron 안에서 순차 실행)
