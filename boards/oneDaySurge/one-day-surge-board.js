@@ -2646,6 +2646,22 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 .today-result-section .empty-note { background: rgba(0,0,0,0.3); border: 1px dashed #334155; padding: 12px; text-align: center; border-radius: 6px; color: #94a3b8; font-size: 12px; }
 .today-result-section details summary { cursor: pointer; padding: 6px 12px; background: rgba(0,0,0,0.3); border-radius: 6px; font-size: 12px; color: #5eead4; user-select: none; margin: 8px 0; }
 
+/* 🕐 1DS 오전 갱신 일정 카드 */
+.cron-schedule-card { background: linear-gradient(180deg, #0c4a6e 0%, #0f172a 90%); border: 1px solid #0ea5e9; border-radius: 10px; padding: 12px 16px; margin: 12px 0; color: #e0f2fe; }
+.cron-schedule-card .cs-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.cron-schedule-card .cs-title { font-size: 14px; font-weight: 700; color: #7dd3fc; }
+.cron-schedule-card .cs-now   { font-size: 12px; color: #bae6fd; background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 4px; }
+.cron-schedule-card .cs-next  { font-size: 12px; color: #fde68a; background: rgba(252,211,77,0.12); border: 1px solid #fbbf24; padding: 2px 8px; border-radius: 4px; }
+.cron-schedule-card .cs-row { display: grid; grid-template-columns: 28px 100px 1fr; gap: 8px; padding: 4px 0; font-size: 12.5px; color: #cbd5e1; align-items: center; }
+.cron-schedule-card .cs-row.done   { color: #cbd5e1; }
+.cron-schedule-card .cs-row.now    { color: #fde68a; font-weight: 600; background: rgba(252,211,77,0.08); border-left: 3px solid #fbbf24; padding-left: 6px; margin-left: -9px; border-radius: 3px; }
+.cron-schedule-card .cs-row.future { color: #64748b; }
+.cron-schedule-card .cs-icon { text-align: center; }
+.cron-schedule-card .cs-time { color: #94a3b8; font-variant-numeric: tabular-nums; }
+.cron-schedule-card .cs-row.done .cs-time { color: #94a3b8; }
+.cron-schedule-card .cs-row.now  .cs-time { color: #fde68a; }
+.cron-schedule-card .cs-note { font-size: 11px; color: #94a3b8; margin-top: 6px; line-height: 1.55; }
+
 @media (max-width: 900px) {
   body { padding: 12px 12px 60px; }
   .metrics-grid { grid-template-columns: repeat(2, 1fr); }
@@ -2678,6 +2694,8 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 </div>
 <div id="market-banner-host"></div>
 <div id="daytype-banner-host"></div>
+<!-- 🕐 1DS 오전 갱신 일정 — 현재 KST 기준으로 어느 cron이 끝났고 다음 새로고침은 언제가 좋은지 안내 -->
+<div id="cron-schedule-host"></div>
 <div class="filter-info" id="filter-info"></div>
 
 <!-- 🔥 공격형 TOP 1DS — 60일 BIG RUNNER 감사 strong 등급 (거래대금 상위 10% + 장초 고가 재돌파) -->
@@ -3723,6 +3741,84 @@ document.getElementById('foot').innerHTML =
   '• <strong>10시 생존 후보라도 손절 기준 없이 보유하면 위험합니다.</strong> 장중 급락 사례가 있으므로 -3% 이탈은 실패로 보고 정리하세요.<br>' +
   '• <strong>09:30에 즉시 매수 확정 신호가 아닙니다.</strong> 09:30~10:00은 후보 관찰만, 10:00 본선 확인 후 진입 검토.<br>' +
   '• 본 보드는 일봉 캐시 + 09:30 분봉 + 10:00 분봉을 결합한 의사결정 도구이며, 매수 추천이 아니라 <strong>후보를 좁혀주는 운영 보드</strong>입니다.';
+
+// ─────────────────────────────────────────────────────────────────
+// 🕐 1DS 오전 갱신 일정 카드 — 현재 KST 시각 기준으로 cron 흐름 + 다음 새로고침 권장 시각 안내
+// ─────────────────────────────────────────────────────────────────
+(function renderCronSchedule() {
+  const host = document.getElementById('cron-schedule-host');
+  if (!host) return;
+  const ms = DATA.marketStatus || {};
+  // 휴장일 / 장 마감 후는 숨김
+  if (ms.status === 'holiday_closed' || ms.isMarketClosed) return;
+  // 현재 KST 시각 (분 단위) — generatedAtTime은 보드 생성 시점, 페이지 시각이 더 최신일 수 있어 클라이언트 Date 사용
+  const now = new Date();
+  // KST = UTC+9
+  const kst = new Date(now.getTime() + (now.getTimezoneOffset() + 9 * 60) * 60 * 1000);
+  const hh = kst.getHours(), mm = kst.getMinutes();
+  const kstMin = hh * 60 + mm;
+  const nowLabel = String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
+  // 단계 정의
+  const T_0930 = 9 * 60 + 30;
+  const T_0942 = 9 * 60 + 42;
+  const T_1003 = 10 * 60 + 3;
+  const T_1530 = 15 * 60 + 30;
+  function stage(t) {
+    if (kstMin < t) return 'future';
+    if (kstMin < t + 2) return 'now'; // 시작 2분 안은 진행 중
+    return 'done';
+  }
+  const s0930 = stage(T_0930);
+  const s0942 = stage(T_0942);
+  const s1003 = stage(T_1003);
+  const s1530 = stage(T_1530);
+  // 현재 위치 — 가장 가까운 미완료 cron
+  let nextHint = '';
+  if (kstMin < T_0930)      nextHint = '곧 09:30 — 메인 후보 산출 예정';
+  else if (kstMin < T_0942) nextHint = '⏳ 다음 새로고침: 09:42 (공격형 TOP 잡힘)';
+  else if (kstMin < T_1003) nextHint = '⏳ 다음 새로고침: 10:03분쯤 (10시 생존 후보 확정)';
+  else if (kstMin < T_1530) nextHint = '✅ 모든 갱신 완료 — 결과는 장 마감 후 자동';
+  else                       nextHint = '🏁 장 마감 — 페이지 최하단 결과 표 확인';
+
+  // 첫 미완료 stage를 'now' 강조
+  function mark(s, t) {
+    if (kstMin < t) return 'future';
+    if (kstMin >= t && kstMin < t + 8) return 'now'; // 시작 후 8분 내는 'now'
+    return 'done';
+  }
+  // 더 직관적인 'now' = 다음에 대기 중인 stage
+  function rowCls(t, _idx) {
+    if (kstMin < t) {
+      // 이게 다음 단계인가?
+      const prev = (_idx === 0) ? 0 : [T_0930, T_0942, T_1003, T_1530][_idx - 1];
+      return (kstMin >= prev) ? 'now' : 'future';
+    }
+    return 'done';
+  }
+  const rows = [
+    { t: T_0930, label: '09:30',     desc: '메인 후보 산출 (분봉 09:00~09:30 수집)' },
+    { t: T_0942, label: '09:42',     desc: '공격형 TOP 재판단 (09:40 분봉 보완)' },
+    { t: T_1003, label: '10:03분쯤', desc: '10시 생존 후보 확정 (10:01 첫 시도 / 10:03·10:05 retry)' },
+    { t: T_1530, label: '15:30',     desc: '장 마감 후 결과 표시 (mainResult 표 자동 채워짐)' },
+  ];
+  const rowsHtml = rows.map((r, i) => {
+    const cls = rowCls(r.t, i);
+    const icon = cls === 'done' ? '✅' : cls === 'now' ? '⏳' : '○';
+    return '<div class="cs-row ' + cls + '"><span class="cs-icon">' + icon + '</span><span class="cs-time">' + r.label + '</span><span>' + r.desc + '</span></div>';
+  }).join('');
+
+  host.innerHTML = (
+    '<div class="cron-schedule-card">' +
+    '<div class="cs-head">' +
+      '<span class="cs-title">🕐 오늘 1DS 갱신 일정</span>' +
+      '<span class="cs-now">현재 KST ' + nowLabel + '</span>' +
+      '<span class="cs-next">' + nextHint + '</span>' +
+    '</div>' +
+    rowsHtml +
+    '<div class="cs-note">10:03분쯤 새로고침이 가장 안정적 — 10시 생존 후보가 모두 확정된 후이고 공격형 TOP도 10:00 분봉 반영으로 더 정확해집니다.</div>' +
+    '</div>'
+  );
+})();
 
 // ─────────────────────────────────────────────────────────────────
 // 🔥 공격형 TOP 1DS 섹션 (BIG_MONEY_REBREAK 기반)
