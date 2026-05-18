@@ -1965,9 +1965,10 @@ async function main() {
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
   fs.writeFileSync(OUT_HTML, HTML_TEMPLATE.replace('__JSON_DATA__', JSON.stringify(out)), 'utf-8');
 
-  // 09:00~12:00 실행 (09:30/10:01/10:03/10:05 cron) 또는 FORCE_0930_SNAPSHOT=1 이면 스냅샷 저장
+  // 09:00~10:00 실행 (09:30 cron 한정) 또는 FORCE_0930_SNAPSHOT=1 이면 스냅샷 저장
+  // 10:01~10:05 survivor cron은 제외 — 09:30 기준 attackTopCandidates를 보존해야 함
   // 16:35 cron이 이 스냅샷을 읽어 mainResult를 채움
-  if ((KST_MIN >= 9*60 && KST_MIN < 12*60) || process.env.FORCE_0930_SNAPSHOT === '1') {
+  if ((KST_MIN >= 9*60 && KST_MIN < 10*60) || process.env.FORCE_0930_SNAPSHOT === '1') {
     const _sd = KST_TODAY_NUM.slice(0,4)+'-'+KST_TODAY_NUM.slice(4,6)+'-'+KST_TODAY_NUM.slice(6,8);
     const _snapPath = path.join(REPORTS_DIR, `one-day-surge-0930-snapshot-${_sd}.json`);
     const _snap = {
