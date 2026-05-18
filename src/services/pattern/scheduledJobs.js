@@ -176,6 +176,13 @@ function registerSchedules() {
     } catch (e) {
       console.error(`[Nasdaq Theme] ❌ 보드 재생성: ${String(e.message || e).slice(0, 200)}`);
     }
+    try {
+      const t0 = Date.now();
+      execSync(`node ${path.join(ROOT, "boards/theme/build-theme-1ds-watch-pool.js")}`, { stdio: "pipe" });
+      console.log(`[Nasdaq Theme] ✅ 1DS 감시 후보풀 빌드 (${Date.now() - t0}ms)`);
+    } catch (e) {
+      console.error(`[Nasdaq Theme] ❌ 후보풀 빌드: ${String(e.message || e).slice(0, 200)}`);
+    }
     console.log("[Nasdaq Theme] 06:30 완료");
   }, { scheduled: true, timezone: "Asia/Seoul" });
   console.log("[스케줄] 매일 평일 06:30 나스닥 테마 fetch + watch 보드 재생성 활성화 (미국장 마감 후, 한국 시간)");

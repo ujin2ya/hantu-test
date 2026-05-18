@@ -193,7 +193,7 @@ module.exports = function renderHtml({ themesMap, themeStrength, latestDaily, re
   <div class="stat"><div class="lbl">VVI2/1DS 연결</div><div class="val">${recentSignalCount}</div></div>
 </div>
 
-<details style="margin-bottom:10px;"><summary style="cursor:pointer;color:#5eead4;font-size:12px;padding:4px 0;">📊 테마별 강도 요약 보기</summary>
+<details open style="margin-bottom:10px;"><summary style="cursor:pointer;color:#5eead4;font-size:12px;padding:4px 0;">📊 테마별 강도 요약</summary>
 <table class="theme-strength-table">
   <thead><tr><th>테마</th><th>강도</th><th class="num">평균 등락</th><th>이유</th></tr></thead>
   <tbody>
@@ -207,16 +207,7 @@ module.exports = function renderHtml({ themesMap, themeStrength, latestDaily, re
 </table>
 </details>
 
-<!-- 필터 바 (sticky) -->
-<div class="filter-bar">
-  <label>테마<select id="f-theme"><option value="">전체</option>${themeKeys.map(k => `<option value="${esc(k)}">${esc(themesMap[k].label)}</option>`).join('')}</select></label>
-  <label>강도<select id="f-strength"><option value="">전체</option><option value="STRONG">STRONG</option><option value="MID">MID</option><option value="WEAK">WEAK</option><option value="DOWN">DOWN</option></select></label>
-  <label>등급<select id="f-grade"><option value="">전체</option><option value="A">A 최우선</option><option value="B">B 우선</option><option value="C">C 후보</option><option value="D">D 참고</option></select></label>
-  <label>신호<select id="f-signal"><option value="">전체</option><option value="QVA1">QVA1</option><option value="QVA2">QVA2</option><option value="VVI2">VVI2</option><option value="ODS">1DS</option><option value="NONE">신호 없음</option></select></label>
-  <label>정렬<select id="f-sort"><option value="score">점수순</option><option value="recent">최근 신호순</option><option value="value">거래대금순</option><option value="strength">테마 강도순</option><option value="change">등락률순</option></select></label>
-  <button onclick="resetFilters()">초기화</button>
-  <span class="meta-count" id="meta-count">—</span>
-</div>
+<!-- 필터바 제거됨 — 기본 점수순 정렬 + 탭 전환으로만 그룹 변경 -->
 
 <!-- 탭 -->
 <div class="tabs">
@@ -340,42 +331,11 @@ function cardHtml(c) {
     + '</div>';
 }
 
-// 필터 + 정렬 적용
+// 후보 목록 — 점수 내림차순 (필터 제거, 단순 정렬)
 function getFiltered() {
-  const fTheme = document.getElementById('f-theme').value;
-  const fStrength = document.getElementById('f-strength').value;
-  const fGrade = document.getElementById('f-grade').value;
-  const fSignal = document.getElementById('f-signal').value;
-  const sort = document.getElementById('f-sort').value;
-
-  let list = window.__CANDIDATES__.slice();
-  if (fTheme)    list = list.filter(c => (c.matchedThemes||[]).indexOf(fTheme) >= 0);
-  if (fStrength) list = list.filter(c => c.themeStrength === fStrength);
-  if (fGrade)    list = list.filter(c => c.grade === fGrade);
-  if (fSignal) {
-    if (fSignal === 'NONE') list = list.filter(c => !c.hasAnySignal);
-    else if (fSignal === 'QVA1') list = list.filter(c => c.hasQva1);
-    else if (fSignal === 'QVA2') list = list.filter(c => c.hasQva2);
-    else if (fSignal === 'VVI2') list = list.filter(c => c.hasVvi2);
-    else if (fSignal === 'ODS')  list = list.filter(c => c.hasOneds);
-  }
-
-  // 정렬
-  if (sort === 'score')    list.sort((a, b) => b.score - a.score);
-  else if (sort === 'recent') {
-    const r = c => Math.min(c.qva1DaysAgo??999, c.qva2DaysAgo??999, c.vvi2DaysAgo??999, c.onedsDaysAgo??999);
-    list.sort((a, b) => r(a) - r(b));
-  }
-  else if (sort === 'value')    list.sort((a, b) => (b.latestValue||0) - (a.latestValue||0));
-  else if (sort === 'strength') list.sort((a, b) => (STRENGTH_RANK[b.themeStrength]||0) - (STRENGTH_RANK[a.themeStrength]||0) || b.score - a.score);
-  else if (sort === 'change')   list.sort((a, b) => (b.latestChangePct||-999) - (a.latestChangePct||-999));
-
-  return list;
+  return window.__CANDIDATES__.slice().sort((a, b) => b.score - a.score);
 }
-
-function updateMetaCount(n) {
-  document.getElementById('meta-count').textContent = '필터 결과 ' + n + '건 / 전체 ' + window.__CANDIDATES__.length + '건';
-}
+function updateMetaCount() { /* no-op (필터바 제거) */ }
 
 // ─── 탭 렌더 ──────────────────────────────────────────────────────────
 function renderTodayTab() {
@@ -518,22 +478,8 @@ function switchTab(name) {
   TAB_RENDERERS[name]();
 }
 
-function resetFilters() {
-  document.getElementById('f-theme').value = '';
-  document.getElementById('f-strength').value = '';
-  document.getElementById('f-grade').value = '';
-  document.getElementById('f-signal').value = '';
-  document.getElementById('f-sort').value = 'score';
-  TAB_RENDERERS[activeTab]();
-}
-
-function onFilterChange() {
-  TAB_RENDERERS[activeTab]();
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
-  document.querySelectorAll('.filter-bar select').forEach(sel => sel.addEventListener('change', onFilterChange));
   switchTab('today');
 });
 </script>
