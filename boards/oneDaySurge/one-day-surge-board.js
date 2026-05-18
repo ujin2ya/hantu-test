@@ -2620,9 +2620,6 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 <!-- 🔥 공격형 TOP 1DS — 60일 BIG RUNNER 감사 strong 등급 (거래대금 상위 10% + 장초 고가 재돌파) -->
 <div id="attack-top-host"></div>
 
-<!-- 📊 오늘 1DS 결과 — 장중에는 안내만, 장마감 후 일봉 기준 결과 집계 -->
-<div id="today-result-host"></div>
-
 <h2>📊 화면 요약</h2>
 <div class="summary-grid" id="summary-grid"></div>
 <div id="trade-plan-summary"></div>
@@ -2635,6 +2632,9 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 <!-- 장전 보조 영역(전일 후보 09:30 상태표, 보류/재관찰)은 2026-05-14 제거.
      1DS 운영 철학이 09:30 = 예선 / 10:00 = 본선으로 바뀌면서 "어제 mainPool" 관점 후보군은 더 이상 필요 없음. -->
 <div id="risk-excluded-note"></div>
+
+<!-- 📊 오늘 1DS 결과 — 장중에는 안내만, 장마감 후 mainResult 표시 (페이지 최하단) -->
+<div id="today-result-host"></div>
 
 <footer class="foot" id="foot"></footer>
 
