@@ -920,6 +920,90 @@ for (let fi = 0; fi < files.length; fi++) {
   }
 }
 process.stdout.write(`  QVA 진행 ${files.length}/${files.length}\n`);
+
+// ─── Cross-reference: 같은 종목이 여러 stage / 다른 보드에 동시 등장하는 경우 명시 ───
+// 헷갈림 방지용 (같은 종목 다중 노출 자체는 보드 설계상 정상이지만 카드에 명시해서 사용자 혼선 방지).
+{
+  const trackingByCode = new Map();
+  for (const c of candidates) {
+    if (['BREAKOUT_SUCCESS', 'VVI_FIRED', 'QVA_TRACKING', 'QVA_NEW'].includes(c.mainStage)) {
+      trackingByCode.set(c.code, c);
+    }
+  }
+  // QVA_TODAY 종목이 funnel에 이미 살아있으면 그 사이클 정보 부착
+  for (const t of todayQvaCandidates) {
+    const existing = trackingByCode.get(t.code);
+    if (existing) {
+      t.existingTracking = {
+        mainStage: existing.mainStage,
+        qvaSignalDate: existing.qvaSignalDate,
+        daysSinceQva: existing.daysSinceQva,
+        vviDate: existing.vviDate || null,
+        breakoutDate: existing.breakoutDate || null,
+      };
+    }
+  }
+  // candidates(QVA_TRACKING/VVI_FIRED/BREAKOUT_SUCCESS) → 오늘 새 QVA 이벤트가 있으면 부착
+  // QVA_NEW main stage는 자체가 D=0 신규라 중복 의미 없어서 제외.
+  const todayByCode = new Map(todayQvaCandidates.map(t => [t.code, t]));
+  for (const c of candidates) {
+    if (c.mainStage === 'QVA_NEW') continue;
+    const today = todayByCode.get(c.code);
+    if (today && (today.todayReconfirmed === true || today.isTodayNew === true)) {
+      c.todayReconfirmEvent = {
+        score: today.bestEarlyQvaScore,
+        grade: today.bestEarlyQvaGrade,
+        date: today.bestEarlyQvaDate,
+      };
+    }
+  }
+
+  // 다른 보드와의 cross-reference (qva-vvi-redefined / qva2-watchlist)
+  const crossBoardLookup = new Map();
+  function addCross(code, ref) {
+    if (!crossBoardLookup.has(code)) crossBoardLookup.set(code, []);
+    crossBoardLookup.get(code).push(ref);
+  }
+  try {
+    const vviPath = path.join(ROOT, 'reports', 'qva-vvi-redefined-board-result.json');
+    if (fs.existsSync(vviPath)) {
+      const vvi = JSON.parse(fs.readFileSync(vviPath, 'utf-8'));
+      const groups = vvi.visibleGroups || {};
+      const labels = {
+        stableBreakoutCandidates: '🎯 VVI2 확정 (안정형)',
+        strongValueBreakoutCandidates: '🎯 VVI2 확정 (강한 거래)',
+        valueInsufficientPreviewCandidates: '👀 거래대금 부족 돌파',
+        waitingPreviewCandidates: '⏳ VVI2 대기',
+      };
+      for (const k of Object.keys(labels)) {
+        for (const it of (groups[k] || [])) addCross(it.code, { board: 'vvi-redefined', label: labels[k] });
+      }
+    }
+  } catch (_) {}
+  try {
+    const q2Path = path.join(ROOT, 'reports', 'qva2-watchlist-board.json');
+    if (fs.existsSync(q2Path)) {
+      const q2 = JSON.parse(fs.readFileSync(q2Path, 'utf-8'));
+      const stagesQ2 = q2.stages || {};
+      const labels = {
+        BREAKOUT_SUCCESS: 'QVA2 H그룹',
+        VVI2_FIRED: 'QVA2 VVI2 발화',
+        QVA2_NEW: 'QVA2 신규',
+        QVA2_TRACKING: 'QVA2 추적',
+      };
+      for (const k of Object.keys(labels)) {
+        for (const it of (stagesQ2[k] || [])) addCross(it.code, { board: 'qva2', label: labels[k] });
+      }
+    }
+  } catch (_) {}
+  for (const arr of [candidates, todayQvaCandidates, longQvaCandidates]) {
+    for (const c of arr) {
+      const refs = crossBoardLookup.get(c.code);
+      if (refs) c.crossBoardRefs = refs;
+    }
+  }
+}
+
 console.log(`→ QVA_TODAY (오늘 통과 = 신규 + 재확인): ${todayQvaCandidates.length}건  (신규 ${debugCounts.qvaCandidatesTodayAfterFilters} + 재확인 ${debugCounts.qvaTodayReconfirmedCount})`);
 console.log(`→ EARLY_QVA (추적 중, D+1~D+20, VVI 전): ${earlyQvaCandidates.length}건`);
 console.log(`  (윈도우 안 통과 후 VVI 이미 발생: ${debugCounts.qvaTrackingHasVviCount}건 — VVI_FIRED/BREAKOUT_SUCCESS 단계에서 추적)`);
@@ -1628,6 +1712,10 @@ const htmlTemplate = `<!DOCTYPE html>
   .badge.tag-LONG_QVA_WATCH { background: #1e1b4b; color: #c7d2fe; }
   .badge.tag-LONG_QVA_TRACKING { background: #1e1b4b; color: #818cf8; }
   .badge.tag-PULLBACK_WAIT { background: #5c2c0f; color: #fb923c; border: 1px solid #fb923c; font-weight: 600; }
+  /* 같은 종목 다중 노출 명시 (헷갈림 방지 — 별도 사이클을 한 화면에 보일 때) */
+  .badge.tag-RECONFIRM_DUAL      { background: #4c1d1d; color: #fca5a5; border: 1px solid #f87171; font-weight: 600; }
+  .badge.tag-TODAY_RECONFIRM_NEW { background: #422006; color: #fde047; border: 1px solid #facc15; font-weight: 600; }
+  .badge.tag-CROSS_BOARD         { background: #134e4a; color: #5eead4; border: 1px solid #2dd4bf; font-weight: 500; }
   .badge.pref { background: #4c1d1d; color: #fca5a5; }
 
   .stage-section { margin-bottom: 24px; }
@@ -1892,6 +1980,23 @@ const TAG_DESCS = DATA.meta.auxTagDescriptions;
 function badges(c) {
   let b = '';
   if (c.isPreferred) b += '<span class="badge pref">우</span>';
+
+  // ─── 같은 종목 다중 노출 명시 배지 (헷갈림 방지) ───
+  // 1) QVA_TODAY 카드 — funnel에 이미 살아있는 사이클이 따로 있으면 표시
+  //    (todayReconfirmed/isTodayNew 분기 무관 — existingTracking 자체가 "다른 사이클 동시 진행" 신호)
+  if (c.existingTracking) {
+    const e = c.existingTracking;
+    const stageKr = { QVA_TRACKING: '추적중', VVI_FIRED: 'VVI', BREAKOUT_SUCCESS: 'H그룹', QVA_NEW: '신규' }[e.mainStage] || e.mainStage;
+    const dStr = e.qvaSignalDate ? (e.qvaSignalDate.slice(4,6) + '/' + e.qvaSignalDate.slice(6,8)) : '';
+    const dPlus = (e.daysSinceQva != null) ? ('D+' + e.daysSinceQva) : '';
+    b += '<span class="badge tag-RECONFIRM_DUAL" title="funnel에 이미 살아있는 종목이 오늘 다시 QVA 조건을 통과 — 같은 사이클이 아닌 새 발화">🔄 ' + dStr + ' ' + stageKr + ' ' + dPlus + ' 사이클 동시</span>';
+  }
+  // 2) candidates 카드 (QVA_TRACKING / VVI_FIRED / BREAKOUT_SUCCESS) — 오늘 새 QVA 발화 동반 시
+  if (c.todayReconfirmEvent) {
+    const ev = c.todayReconfirmEvent;
+    b += '<span class="badge tag-TODAY_RECONFIRM_NEW" title="이 추적 사이클이 진행 중인데 오늘 새 QVA 조건이 또 통과됨 (재발화)">⚡ 오늘 재발화 ' + (ev.score || '') + 'p</span>';
+  }
+
   // H그룹(VPR 적용 종목)은 VPR 보조 태그를 종목명 옆에 표시 — 일반 추적 태그(PRICE_HOLD/LOW_RISING/VALUE_REACTIVATION)는 H그룹에서는 숨김
   if (c.vprMain && c.vprTags && c.vprTags.length > 0) {
     const vprAuxLabels = (DATA.meta.vprAuxLabels || {});
@@ -1899,10 +2004,22 @@ function badges(c) {
     for (const t of c.vprTags) {
       b += '<span class="badge vpr-aux" title="' + (vprAuxDescs[t] || '').replace(/"/g, '&quot;') + '">' + (vprAuxLabels[t] || t) + '</span>';
     }
+    // 다른 보드 매칭 배지 (H그룹도 동시 표시)
+    if (c.crossBoardRefs) {
+      for (const r of c.crossBoardRefs) {
+        b += '<span class="badge tag-CROSS_BOARD" title="' + r.board + ' 보드에도 같은 종목">' + r.label + '</span>';
+      }
+    }
     return b;
   }
   for (const t of (c.auxTags || [])) {
     b += '<span class="badge tag-' + t + '" title="' + (TAG_DESCS[t] || '') + '">' + (TAG_LABELS[t] || t) + '</span>';
+  }
+  // 다른 보드 매칭 배지
+  if (c.crossBoardRefs) {
+    for (const r of c.crossBoardRefs) {
+      b += '<span class="badge tag-CROSS_BOARD" title="' + r.board + ' 보드에도 같은 종목">' + r.label + '</span>';
+    }
   }
   return b;
 }

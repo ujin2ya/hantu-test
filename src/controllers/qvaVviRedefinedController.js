@@ -19,6 +19,7 @@ const dartFetcher = require("../../screeners/dart-fetcher");
 
 const BOARD_HTML    = path.join(REPORTS_DIR, "qva-vvi-redefined-board-result.html");
 const BOARD_JSON    = path.join(REPORTS_DIR, "qva-vvi-redefined-board-result.json");
+const QVA_WATCHLIST_JSON = path.join(ROOT, "qva-watchlist-board.json");
 const NAVER_LIST    = path.join(CACHE_DIR, "naver-stocks-list.json");
 const FINANCIALS_DIR = path.join(CACHE_DIR, "dart-financials");
 
@@ -93,24 +94,37 @@ function computePeriodReturns(rows) {
   };
 }
 
-// 새 VVI 보드 funnel 정보
-function lookupVviMembership(code) {
-  if (!fs.existsSync(BOARD_JSON)) return null;
-  try {
-    const b = JSON.parse(fs.readFileSync(BOARD_JSON, "utf-8"));
-    const groups = b.visibleGroups || {};
-    const checks = [
-      { key: "stableBreakoutCandidates",      group: "stable",     label: "안정형 고점 재돌파" },
-      { key: "strongValueBreakoutCandidates", group: "strong",     label: "강한 거래대금 재돌파" },
-      { key: "valueInsufficientPreviewCandidates", group: "valueInsuf", label: "거래대금 부족 돌파 참고" },
-      { key: "waitingPreviewCandidates",      group: "waiting",    label: "고점 재돌파 대기" },
-    ];
-    for (const c of checks) {
-      const hit = (groups[c.key] || []).find((it) => it.code === code);
-      if (hit) return { group: c.group, label: c.label, item: hit };
-    }
-  } catch (_) {}
-  return null;
+// 종목의 모든 QVA 발화일 수집 — qva-watchlist-board의 다양한 stage에서 같은 종목의 QVA 신호일을 모두 모음.
+// 한 종목이 여러 사이클로 발화한 경우 모든 발화일을 시간순으로 반환.
+function lookupQvaSignalDates(code) {
+  const dates = new Set();
+  // (a) qva-watchlist-board.json — candidates의 qvaSignalDate + todayQvaCandidates의 firstEarlyQvaDate
+  if (fs.existsSync(QVA_WATCHLIST_JSON)) {
+    try {
+      const b = JSON.parse(fs.readFileSync(QVA_WATCHLIST_JSON, "utf-8"));
+      const stages = b.stages || {};
+      for (const k of Object.keys(stages)) {
+        for (const it of (stages[k] || [])) {
+          if (it.code !== code) continue;
+          if (it.qvaSignalDate) dates.add(String(it.qvaSignalDate));
+          if (it.firstEarlyQvaDate) dates.add(String(it.firstEarlyQvaDate));
+        }
+      }
+    } catch (_) {}
+  }
+  // (b) qva-vvi-redefined-board의 qvaSignalDate (별도 anchor일 수 있음 — 같은 종목 여러 사이클)
+  if (fs.existsSync(BOARD_JSON)) {
+    try {
+      const b = JSON.parse(fs.readFileSync(BOARD_JSON, "utf-8"));
+      const groups = b.visibleGroups || {};
+      for (const k of Object.keys(groups)) {
+        for (const it of (groups[k] || [])) {
+          if (it.code === code && it.qvaSignalDate) dates.add(String(it.qvaSignalDate));
+        }
+      }
+    } catch (_) {}
+  }
+  return [...dates].sort();
 }
 
 // KIS 현재가 raw output → 시세현황·메타 view data로 정리
@@ -176,7 +190,7 @@ async function getRedefinedVviStockDetail(req, res) {
     if (!meta) return res.status(404).send(`종목 ${code}을(를) 찾을 수 없습니다.`);
 
     const chart = loadFullChart(code);
-    const vviMembership = lookupVviMembership(code);
+    const qvaSignalDates = lookupQvaSignalDates(code);
     const periodReturns = chart ? computePeriodReturns(chart.rows) : null;
 
     // 8개 외부 호출 병렬
@@ -206,7 +220,7 @@ async function getRedefinedVviStockDetail(req, res) {
       meta,
       chartRows: (chart && chart.rows) || [],
       financials,
-      vviMembership,
+      qvaSignalDates,
       priceQuote,
       kisStockInfo: kisStockInfo && !kisStockInfo.error ? kisStockInfo : null,
       kisStockInfoError: kisStockInfo && kisStockInfo.error ? kisStockInfo.error : null,

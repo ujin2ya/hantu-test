@@ -291,18 +291,18 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 <div class="empty-msg">차트 데이터가 없습니다 (cache/stock-charts-long/<%= code %>.json 부재).</div>
 <% } %>
 
-<!-- 새 VVI 보드 funnel 멤버십 -->
-<% if (vviMembership) { %>
+<!-- QVA 발화일 — 종목의 모든 QVA 발화일을 짧게 한 줄로 -->
+<% if (qvaSignalDates && qvaSignalDates.length > 0) { %>
 <div class="member-section">
-  <h3>🎯 새 VVI 보드 위치</h3>
-  <div class="member-row">
-    <span class="stage <%= vviMembership.group %>"><%= vviMembership.label %></span>
-    <% var it = vviMembership.item; %>
-    <% if (it.qvaSignalDate) { %>QVA 발생일 <%= fmtDate(it.qvaSignalDate) %><% } %>
-    <% if (it.vviDate) { %> · VVI2 발생일 <%= fmtDate(it.vviDate) %><% } %>
-    <% if (it.daysFromQvaToVvi != null) { %> · QVA→VVI2 <%= it.daysFromQvaToVvi %>거래일<% } %>
-    <% if (it.vviValueRatio) { %> · 거래대금 ×<%= Number(it.vviValueRatio).toFixed(2) %><% } %>
-    <% if (it.currentFromQvaCloseRate != null) { %> · QVA→현재 <%= fmtPct(it.currentFromQvaCloseRate, 1) %><% } %>
+  <h3>🌱 QVA 발화일</h3>
+  <div class="member-row" style="font-size:13px;">
+    <% qvaSignalDates.forEach(function(d, i) { %>
+      <% if (i > 0) { %><span style="color:#475569;"> · </span><% } %>
+      <span style="color:#fde68a; font-weight:600;"><%= fmtDate(d) %></span>
+    <% }); %>
+    <% if (qvaSignalDates.length > 1) { %>
+      <span style="margin-left:8px; color:#94a3b8; font-size:11.5px;">— 같은 종목에서 <%= qvaSignalDates.length %>회 발화</span>
+    <% } %>
   </div>
 </div>
 <% } %>
