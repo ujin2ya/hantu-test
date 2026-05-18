@@ -71,6 +71,7 @@ function parseArgs(argv) {
     resume: false,           // 이전 실행에서 받지 못한 항목부터 이어받기 (실제로는 skip 로직이 동일하지만 명시적 플래그)
     retryFailed: false,      // missing log의 실패 항목만 재시도
     statusOutPath: null,     // 상태 파일 경로 (default reports/one-day-surge-intraday-collection-status.json)
+    codes: null,             // 직접 코드 리스트 (comma-separated). --target-date 필수
   };
   // 환경변수 (history 모드에서 sleep / max-fetch 오버라이드)
   if (process.env.ONEDS_HISTORY_SLEEP_MS) a.sleepMs = parseInt(process.env.ONEDS_HISTORY_SLEEP_MS, 10) || a.sleepMs;
@@ -99,6 +100,7 @@ function parseArgs(argv) {
     else if (k === '--resume') a.resume = true;
     else if (k === '--retry-failed') a.retryFailed = true;
     else if (k === '--status-out') a.statusOutPath = argv[++i];
+    else if (k === '--codes') a.codes = argv[++i].split(',').map((s) => s.trim()).filter(Boolean);
     else if (k === '--help' || k === '-h') { printHelp(); process.exit(0); }
   }
   // history 모드는 자동으로 full-day 분봉 수집 강제
@@ -129,6 +131,7 @@ function printHelp() {
   --resume                     이전 실행에서 못 받은 항목부터 이어받기 (skip-if-exists는 항상 적용, 이 플래그는 명시용)
   --retry-failed               missing log의 실패 항목만 재시도 (모든 history task 대신)
   --status-out PATH            상태 파일 출력 경로 (default reports/one-day-surge-intraday-collection-status.json)
+  --codes CODE1,CODE2,...      직접 코드 리스트 지정. --target-date 필수. --full-day와 조합 가능
   환경변수: ONEDS_HISTORY_SLEEP_MS=350 / ONEDS_HISTORY_LIMIT_PER_RUN=1000`);
 }
 
@@ -414,6 +417,16 @@ async function main() {
       args.targetDate = ad.slice(0, 4) + '-' + ad.slice(4, 6) + '-' + ad.slice(6, 8);
     }
     console.log(`  📌 --from-board: ${boardMainPoolCodes.size}개 코드 / target-date=${args.targetDate}`);
+  }
+
+  // --codes: 직접 코드 리스트 지정 (--target-date 필수)
+  if (args.codes && args.codes.length > 0 && !boardMainPoolCodes) {
+    if (!args.targetDate) {
+      console.error('  [ERROR] --codes 모드는 --target-date YYYY-MM-DD 가 필요합니다.');
+      process.exit(1);
+    }
+    boardMainPoolCodes = new Set(args.codes);
+    console.log(`  📌 --codes: ${boardMainPoolCodes.size}개 코드 / target-date=${args.targetDate}`);
   }
 
   // 1) 후보 산출
