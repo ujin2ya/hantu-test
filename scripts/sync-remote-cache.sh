@@ -11,6 +11,10 @@
 #   - cache/pattern-result.json
 #   - cache/flow-history/{code}.json
 #   - cache/stock-charts-long/{code}.json
+#   - cache/market-state-live.json
+#   - reports/                                      (보드 generator 산출물 — 16:35 cron의 결과.
+#                                                    얘를 같이 받지 않으면 deploy reset --hard로 손실)
+#   - qva-watchlist-board.{html,json}               (루트에 있는 QVA 운영 보드 산출물)
 #   - data/intraday/1ds/{YYYY-MM-DD}/{code}.json  (1DS 분봉 — gitignore되어 git에는 안 들어가지만,
 #                                                  로컬에서 1DS 보드 재생성 시 입력으로 필요)
 #
@@ -64,9 +68,9 @@ echo "🔄 운영 서버 캐시 동기화 시작 ($REMOTE_TARGET:$REMOTE_PORT)"
 echo
 
 # 1) 원격에서 tar.gz 만들기
-echo "[1/4] 원격에서 cache + intraday tar.gz 만들기..."
+echo "[1/4] 원격에서 cache + reports + intraday tar.gz 만들기..."
 plink -P "$REMOTE_PORT" -pw "$PASSWORD" -batch "$REMOTE_TARGET" \
-  "cd '$REMOTE_PATH' && tar -czf '$REMOTE_TMP' cache/flow-history cache/stock-charts-long cache/pattern-result.json cache/market-state-live.json data/intraday/1ds 2>/dev/null; ls -la '$REMOTE_TMP'"
+  "cd '$REMOTE_PATH' && tar -czf '$REMOTE_TMP' cache/flow-history cache/stock-charts-long cache/pattern-result.json cache/market-state-live.json reports qva-watchlist-board.html qva-watchlist-board.json data/intraday/1ds 2>/dev/null; ls -la '$REMOTE_TMP'"
 
 # 2) 로컬로 다운로드
 echo "[2/4] tar.gz 다운로드..."
@@ -88,6 +92,8 @@ echo "동기화된 핵심 파일:"
 ls -la cache/pattern-result.json 2>/dev/null | sed 's/^/  /'
 ls -la cache/flow-history/000020.json 2>/dev/null | sed 's/^/  /' || true
 ls -la cache/stock-charts-long/018880.json 2>/dev/null | sed 's/^/  /' || true
+echo "동기화된 보드 산출물:"
+ls -la qva-watchlist-board.html reports/qva2-watchlist-board.html reports/qva2-d5-rebreak-board.html reports/qva2-vvi-board.html reports/hgroup-rebreak-operation-board-result.html reports/qva-vvi-redefined-board-result.html reports/one-day-surge-board-result.html 2>/dev/null | sed 's/^/  /' || true
 echo "동기화된 1DS 분봉 (최근 3거래일):"
 ls -1 data/intraday/1ds/ 2>/dev/null | sort | tail -3 | sed 's/^/  /' || true
 
@@ -96,7 +102,7 @@ if [ "${1:-}" = "--commit" ]; then
   msg="${2:-cache: 운영 서버 일일 업데이트 결과 동기화}"
   echo
   echo "🗂️  자동 commit (push는 별도): $msg"
-  git add cache/pattern-result.json cache/flow-history cache/stock-charts-long 2>/dev/null || true
+  git add cache/pattern-result.json cache/flow-history cache/stock-charts-long reports qva-watchlist-board.html qva-watchlist-board.json 2>/dev/null || true
   if git diff --cached --quiet; then
     echo "   변경 없음 — commit 생략"
   else
