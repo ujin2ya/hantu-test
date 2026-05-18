@@ -212,6 +212,35 @@ function getPeakTroughTime(code, dateStr) {
   } catch (_) { return null; }
 }
 
+// 분봉에서 09:00~10:00 윈도우 안의 OHLC를 추출 (10시 시점 결과 표시용)
+// dateStr: YYYY-MM-DD, basePrice: 09:30 진입가
+// returns: { bars, high/highTime, low/lowTime, close(10:00 마지막 분봉)/closeTime, *Return: basePrice 대비 % }
+function getEarlyResultFromIntraday(code, dateStr, basePrice) {
+  if (!(basePrice > 0)) return null;
+  const fp = path.join(INTRADAY_BASE, dateStr, code + '.json');
+  if (!fs.existsSync(fp)) return null;
+  try {
+    const d = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+    const bars = (d.bars || []).filter((b) => b && b.time && b.time <= '10:00' && Number.isFinite(b.close));
+    if (bars.length === 0) return null;
+    let pk = bars[0], tr = bars[0];
+    for (const b of bars) {
+      if (Number.isFinite(b.high) && b.high > pk.high) pk = b;
+      if (Number.isFinite(b.low)  && b.low  < tr.low)  tr = b;
+    }
+    const closeBar = bars[bars.length - 1];
+    return {
+      bars: bars.length,
+      high: pk.high, highTime: pk.time,
+      low: tr.low,  lowTime: tr.time,
+      close: closeBar.close, closeTime: closeBar.time,
+      highReturn:  +((pk.high     / basePrice - 1) * 100).toFixed(2),
+      lowReturn:   +((tr.low      / basePrice - 1) * 100).toFixed(2),
+      closeReturn: +((closeBar.close / basePrice - 1) * 100).toFixed(2),
+    };
+  } catch (_) { return null; }
+}
+
 // 결과 태그 (성공 + 주의)
 function assignResultTags(r) {
   if (!r || !r.available) return { tags: [], label: '결과 미확정', comment: '장중 결과는 아직 확정되지 않았습니다.' };
@@ -1077,7 +1106,9 @@ function buildAttackTopFromCandidates(candidates) {
       candidates: [],
     };
   }
-  const decisionTime = globalMaxBarTime; // 모든 후보 동일 시점 기준
+  // 1DS는 "10시 새로고침 시점"의 후보를 잡는 보드 — 풀-데이 분봉이 있어도 decisionTime을 10:00로 클램프.
+  // (보드 generator를 언제 돌려도 attackTop이 10시 시점 데이터로 일관되게 결정됨)
+  const decisionTime = globalMaxBarTime > '10:00' ? '10:00' : globalMaxBarTime;
   // 2단계: metric 계산
   const computed = [];
   for (const e of enriched) {
@@ -1599,6 +1630,29 @@ async function main() {
   // BIG RUNNER 감사 보고서 검증 결과: --days 20 / --days 100 모두 strong 등급 통과 (Top 1)
   // 기존 후보 산출 로직 무수정, 별도 함수로 추가 분석만 진행.
   const attackTopResult = buildAttackTopFromCandidates(all);
+  // 근본 수정: decisionPrice를 분봉 09:30 close로 고정 (cron 시각 / 분봉 윈도우 무관)
+  // 이전 동작: globalMaxBarTime이 풀-데이 분봉 시 15:30이 되어 decisionPrice가 종가로 잡히는 버그.
+  // 1DS 의미는 항상 "09:30 진입가 기준" — 분봉 09:30 bar의 close가 정본.
+  let _fixed0930 = 0;
+  for (const c of attackTopResult.candidates || []) {
+    if (!c || !c.targetDir || !c.code) continue;
+    const fp = path.join(INTRADAY_BASE, c.targetDir, c.code + '.json');
+    if (!fs.existsSync(fp)) continue;
+    try {
+      const d = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+      const bar0930 = (d.bars || []).find((b) => b && b.time === '09:30' && Number.isFinite(b.close));
+      if (!bar0930) continue;
+      const newPrice = bar0930.close;
+      if (!(newPrice > 0) || newPrice === c.decisionPrice) continue;
+      c.decisionPrice = newPrice;
+      c.decisionTime  = '09:30';
+      c.signalPrice   = newPrice;
+      if (Number.isFinite(c.prevClose) && c.prevClose > 0) c.decisionFromPrevClose = +((newPrice / c.prevClose - 1) * 100).toFixed(2);
+      if (Number.isFinite(c.open0900) && c.open0900 > 0)  c.decisionFromOpen      = +((newPrice / c.open0900 - 1) * 100).toFixed(2);
+      _fixed0930++;
+    } catch (_) { /* skip */ }
+  }
+  if (_fixed0930 > 0) console.log(`  🔧 attackTop decisionPrice 09:30 분봉 close로 ${_fixed0930}건 고정 (풀-데이 분봉 사용 시 종가로 빠지는 버그 차단)`);
   console.log(`  🔥 공격형 TOP 1DS: ${attackTopResult.summary.count}개 (BIG_MONEY_REBREAK 통과 — 거래대금 상위 10% + 장초 고가 재돌파)`);
   if (attackTopResult.summary.generatedAtDecisionTime) {
     console.log(`     기준 시점: ${attackTopResult.summary.generatedAtDecisionTime} (${attackTopResult.summary.decisionMode.label}) — ${attackTopResult.summary.candidatesWithMinute}/${attackTopResult.summary.totalCandidates}건 분봉 가용`);
@@ -1641,6 +1695,7 @@ async function main() {
       todayResultSummary.notes.push('targetDate 결정 불가 — 분석 기준일/entryConfirmDate 모두 없음.');
     } else {
       // 1) attackTop에 결과 부착 (decisionPrice + 각 후보의 targetDir 사용 — 분봉 로드한 실제 거래일)
+      // 사용자 워크플로: 09:30~10:00 진입 판단 후 장 끝 확인 → 박스에 "10시 시점 결과" + "장 마감 결과" 둘 다.
       const attackTopWithResult = [];
       let attackMissingPrice = 0;
       for (const c of attackTopResult.candidates) {
@@ -1650,6 +1705,11 @@ async function main() {
         const r = calculateCandidateDayResult(c.code, c.decisionPrice, perCandTarget);
         const t = assignResultTags(r);
         c.dayResult = { ...r, resultTargetDate: c.targetDir || targetDateForResult, resultTags: t.tags, resultLabel: t.label, resultComment: t.comment };
+        // 10시 시점 결과 (분봉 09:00~10:00 안의 OHLC, decisionPrice 기준)
+        if (c.targetDir) {
+          const er = getEarlyResultFromIntraday(c.code, c.targetDir, c.decisionPrice);
+          if (er) c.earlyResult = er;
+        }
         if (r.available) attackTopWithResult.push(c);
       }
       // 2) 전체 1DS 후보에 결과 부착
@@ -3750,23 +3810,44 @@ document.getElementById('foot').innerHTML =
       (tagsPos  ? '<div class="ac-tags">' + tagsPos  + '</div>' : '') +
       (tagsRisk ? '<div class="ac-tags">' + tagsRisk + '</div>' : '') +
       '<div class="ac-comment">' + esc(c.shortComment) + '</div>' +
-      // 장마감 후: 결과 inline 표시. 장중: 안내.
+      // 장마감 후: 결과 inline 표시 (10시 시점 + 장 마감 두 줄). 장중: 안내.
       (function () {
         const r = c.dayResult;
+        const e = c.earlyResult;
         const ms = DATA.marketStatus || {};
-        if (!ms.isMarketClosed) return '<div class="ac-result-pending">📊 결과: 장마감 후 표시</div>';
+        if (!ms.isMarketClosed) return '<div class="ac-result-pending">📊 결과: 장마감 후 표시 (10시까지 + 장 마감 결과)</div>';
         if (!r || !r.available) return '<div class="ac-result-pending">📊 결과: 미확정 (' + esc(r && r.reason ? r.reason : '데이터 부족') + ')</div>';
-        const hCls = r.dayHighReturn  >= 10 ? 'result-pos' : r.dayHighReturn  >= 3 ? 'result-warn' : 'result-neg';
-        const cCls = r.dayCloseReturn >= 3  ? 'result-pos' : r.dayCloseReturn >= 0 ? 'result-warn' : 'result-neg';
+        function cls(v) { return v >= 5 ? 'result-pos' : v >= 0 ? 'result-warn' : 'result-neg'; }
+        const dayHighCls  = cls(r.dayHighReturn);
+        const dayCloseCls = cls(r.dayCloseReturn);
         const lblCls = r.reached15 ? 'result-label-big' : r.reached10 ? 'result-label-mid' : r.failedSpike ? 'result-label-fail' : 'result-label-warn';
-        const tagsHtml = (r.resultTags || []).slice(0, 4).map((t) => '<span style="font-size:10.5px;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,0.4);color:#cbd5e1;margin:1px 2px 1px 0;display:inline-block;">' + esc(t) + '</span>').join('');
+        const baseHeader = (
+          '<div style="margin:2px 0 6px;padding:6px 10px;background:rgba(252,211,77,0.12);border-left:3px solid #fbbf24;border-radius:4px;font-size:12.5px;color:#fde68a;">' +
+          '💰 <b>진입 기준가 ' + Math.round(c.decisionPrice).toLocaleString() + '원</b> ' +
+          '<span style="font-size:10.5px;color:#fcd34d;">(09:30 분봉 종가 — 아래 % 는 이 가격 대비 등락)</span>' +
+          '</div>'
+        );
+        const earlyLine = e ? (
+          '<div style="margin-top:4px;font-size:11px;">' +
+          '<b style="color:#7dd3fc;">⏱ 10시까지:</b> ' +
+          '고가 <b class="' + cls(e.highReturn)  + '">' + (e.highReturn  > 0 ? '+' : '') + e.highReturn  + '%</b> (' + Math.round(e.high).toLocaleString()  + ' @' + esc(e.highTime)  + ') · ' +
+          '저가 <b class="' + cls(e.lowReturn)   + '">' + (e.lowReturn   > 0 ? '+' : '') + e.lowReturn   + '%</b> (' + Math.round(e.low).toLocaleString()   + ' @' + esc(e.lowTime)   + ') · ' +
+          '10시 종가 <b class="' + cls(e.closeReturn) + '">' + (e.closeReturn > 0 ? '+' : '') + e.closeReturn + '%</b> (' + Math.round(e.close).toLocaleString() + ')' +
+          '</div>'
+        ) : '';
+        const dayLine = (
+          '<div style="margin-top:2px;font-size:11px;">' +
+          '<b style="color:#fdba74;">🏁 장 마감:</b> ' +
+          '고가 <b class="' + dayHighCls + '">' + (r.dayHighReturn  > 0 ? '+' : '') + r.dayHighReturn  + '%</b> (' + Math.round(r.dayHigh).toLocaleString()  + ')' +
+          ' · 저가 <b class="' + cls(r.dayLowReturn) + '">' + (r.dayLowReturn > 0 ? '+' : '') + r.dayLowReturn + '%</b> (' + Math.round(r.dayLow).toLocaleString() + ')' +
+          ' · 종가 <b class="' + dayCloseCls + '">' + (r.dayCloseReturn > 0 ? '+' : '') + r.dayCloseReturn + '%</b> (' + Math.round(r.dayClose).toLocaleString() + ')' +
+          '</div>'
+        );
         return '<div class="ac-result">' +
-          '📊 <span class="' + lblCls + '">' + esc(r.resultLabel || '-') + '</span> · ' +
-          '당일 고가 <b class="' + hCls + '">' + (r.dayHighReturn > 0 ? '+' : '') + r.dayHighReturn + '%</b> · ' +
-          '종가 <b class="' + cCls + '">' + (r.dayCloseReturn > 0 ? '+' : '') + r.dayCloseReturn + '%</b>' +
-          (r.highCloseDrop != null ? ' · 고가→종가 <b>' + r.highCloseDrop + '%</b>' : '') +
-          (tagsHtml ? '<div style="margin-top:3px;">' + tagsHtml + '</div>' : '') +
-          (r.resultComment ? '<div style="margin-top:3px;color:#94a3b8;font-style:italic;">' + esc(r.resultComment) + '</div>' : '') +
+          '📊 <span class="' + lblCls + '">' + esc(r.resultLabel || '-') + '</span>' +
+          baseHeader +
+          earlyLine +
+          dayLine +
           '</div>';
       })() +
       '</div>'
