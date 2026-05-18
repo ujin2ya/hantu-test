@@ -28,6 +28,8 @@ const core = require('./one-day-surge-core');
 const entryReport = require('./one-day-surge-entry-confirm-report');
 const tradePlanModule = require('./one-day-surge-trade-plan');
 const { isKrHoliday } = require('../../screeners/pattern-screener');
+// 나스닥 테마 1DS 감시 후보풀 helper (1DS universe 확장용 — 본체 로직 변경 X, 태그 부착만)
+const themeWatchPool = require('../../src/utils/theme1dsWatchPool');
 
 const ROOT = path.join(__dirname, '..', '..');
 const CHART_DIR = path.join(ROOT, 'cache', 'stock-charts-long');
@@ -1238,6 +1240,21 @@ async function main() {
   const files = fs.readdirSync(CHART_DIR).filter(f => f.endsWith('.json'));
   console.log(`  차트 캐시 파일: ${files.length}건`);
 
+  // ─── 나스닥 테마 1DS 감시 후보풀 lookup (universe 확장 — 본체 변경 X) ───
+  // 기존 1DS는 차트 캐시의 모든 종목을 검사하므로 theme WATCH_A/B 후보는 이미 universe에 포함됨.
+  // 하지만 passesHardFilter / 기타 컷으로 빠질 수 있으므로 통과/미통과를 별도 카운트.
+  // 통과 후보에는 themeWatchInfo 부착 → mainPool 카드에 "🌎 테마감시 A/B" 태그.
+  const THEME_WATCH_GRADES_INCLUDE = ['WATCH_A', 'WATCH_B'];
+  let themeWatchABList = [];
+  try {
+    themeWatchABList = themeWatchPool.getThemeWatchCandidates({ grades: THEME_WATCH_GRADES_INCLUDE });
+  } catch (e) {
+    console.warn(`  ⚠ theme-1ds-watch-pool 로드 실패 (1DS는 정상 진행): ${e.message}`);
+  }
+  const themeWatchInfoByCode = new Map();
+  for (const tw of themeWatchABList) themeWatchInfoByCode.set(tw.code, tw);
+  console.log(`  나스닥 테마 WATCH_A/B 후보: ${themeWatchABList.length}건 (universe 확장 대상)`);
+
   // 1DS 보드 baseDate 정책: KST 장 진행 중(09:00~16:30)에만 오늘 일봉이 부분값이라
   // fallback이 필요. 장 마감 후(16:30~다음날 09:00)엔 종가 확정이라 fallback X.
   //   KST 09:00 ~ 16:30 → 부분 일봉 → 한 행 앞(어제)으로 fallback
@@ -1254,14 +1271,22 @@ async function main() {
   const filterCounts = { no_meta: 0, etf: 0, special: 0, excluded_name: 0, no_marketcap: 0, mc_under_500: 0, mc_over_5t: 0 };
   let parseErrCount = 0;
   let skippedNoMetrics = 0;
+  // 테마 universe 확장: hardFilter에서 컷되었지만 테마 WATCH_A/B 후보라 강제 포함된 카운트
+  let themeBypassedHardFilter = 0;
+  const themeBypassedReasons = {};
 
   for (const f of files) {
     const code = f.replace(/\.json$/, '');
     const meta = metaMap.get(code);
     const filt = core.passesHardFilter(meta);
+    const isThemeWatch = themeWatchInfoByCode.has(code);
     if (!filt.ok) {
       filterCounts[filt.reason] = (filterCounts[filt.reason] || 0) + 1;
-      continue;
+      // 테마 WATCH_A/B 후보는 universe 확장 — hardFilter 컷이어도 분석 진행.
+      // 단 meta 자체가 없으면(no_meta) marketCap 등 후속 계산이 불가하므로 스킵.
+      if (!isThemeWatch || !meta) continue;
+      themeBypassedHardFilter++;
+      themeBypassedReasons[filt.reason] = (themeBypassedReasons[filt.reason] || 0) + 1;
     }
     let chart;
     try {
@@ -1294,6 +1319,9 @@ async function main() {
     const recent10Up15Count = core.countRecentSurges(rows, baseIdx, 10, 15);
     const baseGapRate = m.gapPct; // alias
 
+    // 나스닥 테마 1DS 감시 후보풀 lookup (해당하면 태그 부착, 본체 분석 로직과 무관)
+    const themeWatchHit = themeWatchInfoByCode.get(code) || null;
+
     candidates.push({
       code,
       name: chart.name || meta.name || code,
@@ -1310,6 +1338,19 @@ async function main() {
       baseGapRate: baseGapRate != null ? core.round(baseGapRate, 2) : null,
       qvaHistoryLabel: qvaCodes.get(code) || null,
       vviHistory: vviCodes.get(code) || null,
+      // ─── 나스닥 테마 감시 정보 (표시만 — 1DS 점수/판정에는 영향 X) ───
+      isThemeWatchCandidate: !!themeWatchHit,
+      themeWatchInfo: themeWatchHit ? {
+        watchGrade:        themeWatchHit.watchGrade,
+        watchGroup:        themeWatchHit.watchGroup,
+        bestThemeKey:      themeWatchHit.bestThemeKey,
+        bestThemeLabel:    themeWatchHit.bestThemeLabel,
+        bestThemeStrength: themeWatchHit.bestThemeStrength,
+        theme1dsWatchScore: themeWatchHit.theme1dsWatchScore,
+        watchReason:       themeWatchHit.watchReason,
+      } : null,
+      sourceTags: themeWatchHit ? ['ONE_DAY_SURGE_BASE', 'NASDAQ_THEME_WATCH'] : ['ONE_DAY_SURGE_BASE'],
+      poolAddedByTheme: !!themeWatchHit && !filt.ok,  // hardFilter는 컷했지만 테마 후보라 universe에 추가된 경우 true
     });
   }
 
@@ -1564,6 +1605,45 @@ async function main() {
     qvaSignalMapSize: qvaSignalMap.size,
     displayOnly: true,
   };
+
+  // ─── 나스닥 테마 1DS 감시 후보풀 통계 (1DS 본체 로직 변경 X — universe 확장만) ───
+  // hardFilter 컷되었지만 테마 WATCH_A/B 후보라 candidates에 강제 추가된 종목 = poolAddedByTheme:true
+  const candidatesCodes = new Set(candidates.map((c) => c.code));
+  const themeWatchTotal = themeWatchABList.length;
+  const themeInCandidatesAll = themeWatchABList.filter((tw) => candidatesCodes.has(tw.code)).length;
+  const themeBypassedAdded = candidates.filter((c) => c.poolAddedByTheme).length;
+  const themeNaturalPass = themeInCandidatesAll - themeBypassedAdded;
+  const themeMissingFromCandidates = themeWatchTotal - themeInCandidatesAll;  // chart 없거나 no_meta 등으로 분석 자체 불가
+  // 1DS 본체 candidates (테마 후보 제외)
+  const basePoolCount = candidates.length - themeBypassedAdded;
+  // mainPool에 들어간 테마 후보 (= 실제 1DS 발화)
+  const themeTriggered = mainPool.filter((it) => it.isThemeWatchCandidate);
+  const watchATriggered = themeTriggered.filter((it) => it.themeWatchInfo?.watchGrade === 'WATCH_A');
+  const watchBTriggered = themeTriggered.filter((it) => it.themeWatchInfo?.watchGrade === 'WATCH_B');
+  const themeWatchPoolSummary = {
+    basePoolCount,                                     // 1DS 본체 1차 통과 (테마 bypass 제외)
+    themePoolCount: themeWatchTotal,                   // theme WATCH_A/B 후보 수
+    duplicatedThemeCount: themeNaturalPass,            // hardFilter 자연 통과 (기존 universe와 겹침)
+    addedThemeCount: themeBypassedAdded,               // hardFilter 컷되었으나 테마라 bypass된 신규 추가
+    themeMissingFromCandidates,                        // chart 없거나 no_meta 등으로 분석 불가
+    mergedPoolCount: candidates.length,                // 최종 candidates 길이 (자연 + bypass)
+    themeBypassedHardFilter,                           // bypass 카운트 (loop 단계)
+    themeBypassedReasons,                              // bypass 사유 분포
+    themeTriggeredCount: themeTriggered.length,        // 테마 후보 중 mainPool 발화
+    watchATriggeredCount: watchATriggered.length,
+    watchBTriggeredCount: watchBTriggered.length,
+  };
+  console.log(`\n🌎 나스닥 테마 1DS 감시 후보풀 (universe 확장):`);
+  console.log(`  기존 1DS 본체 1차 통과 (테마 제외): ${themeWatchPoolSummary.basePoolCount}`);
+  console.log(`  테마 WATCH_A/B 후보:                ${themeWatchPoolSummary.themePoolCount}`);
+  console.log(`  중복 (hardFilter 자연 통과):        ${themeWatchPoolSummary.duplicatedThemeCount}`);
+  console.log(`  신규 추가 (hardFilter bypass):      ${themeWatchPoolSummary.addedThemeCount} ${Object.keys(themeBypassedReasons).length ? '(사유 ' + JSON.stringify(themeBypassedReasons) + ')' : ''}`);
+  if (themeWatchPoolSummary.themeMissingFromCandidates > 0) {
+    console.log(`  분석 불가 (chart/meta 부재):        ${themeWatchPoolSummary.themeMissingFromCandidates}`);
+  }
+  console.log(`  병합 후 universe:                   ${themeWatchPoolSummary.mergedPoolCount}`);
+  console.log(`  테마 후보 중 1DS 발화 (mainPool):    ${themeWatchPoolSummary.themeTriggeredCount}`);
+  console.log(`    └ WATCH_A 발화: ${themeWatchPoolSummary.watchATriggeredCount} / WATCH_B 발화: ${themeWatchPoolSummary.watchBTriggeredCount}`);
 
   // 가시성 카운트 (요약 cards용)
   const totalRiskExcluded = Object.values(riskExcludeCounts).reduce((a, b) => a + b, 0);
@@ -1948,6 +2028,7 @@ async function main() {
     groupLabels: FRIENDLY_GROUP_LABELS,        // 운영자 친화 라벨 (내부명 ENTRY_CONFIRM/SAFE 노출 방지)
     groupDescriptions: core.GT_GROUP_DESC,
     visibilityCounts,
+    themeWatchPoolSummary,
     priorityRanked: {
       // 09:30 분봉 반영 후 status별 분리:
       // topPriority/extraPriority = READY 후보만 (진입 가능)

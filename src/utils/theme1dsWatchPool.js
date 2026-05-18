@@ -60,9 +60,31 @@ function getThemeWatchCodeSet() {
   return new Set(pool.candidates.map((c) => c.code));
 }
 
+// 특정 watchGrade 후보만 추출. 기본 ['WATCH_A','WATCH_B'].
+// 1DS 보드가 universe 확장 시 우선순위 후보풀로 사용.
+function getThemeWatchCandidates({ grades = ['WATCH_A', 'WATCH_B'] } = {}) {
+  const pool = loadTheme1dsWatchPool();
+  if (!pool || !Array.isArray(pool.candidates)) return [];
+  const set = new Set(grades);
+  return pool.candidates
+    .filter((c) => set.has(c.watchGrade))
+    .map((c) => ({
+      code: c.code,
+      name: c.name,
+      watchGrade: c.watchGrade,
+      watchGroup: c.watchGroup,
+      bestThemeKey: c.bestThemeKey,
+      bestThemeLabel: c.bestThemeLabel,
+      bestThemeStrength: c.bestThemeStrength,
+      theme1dsWatchScore: c.theme1dsWatchScore,
+      watchReason: c.watchReason,
+    }));
+}
+
 module.exports = {
   loadTheme1dsWatchPool,
   getThemeWatchInfoByCode,
   getThemeWatchCodeSet,
+  getThemeWatchCandidates,
   POOL_PATH,
 };
