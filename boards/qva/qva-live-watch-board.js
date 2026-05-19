@@ -699,43 +699,63 @@ function renderHtml(data) {
 <meta charset="utf-8" />
 <title>QVA 장중 감시 보드</title>
 <style>
-  body { font-family:'Segoe UI','Malgun Gothic',Arial,sans-serif; background:#f6f8fa; color:#1f2328; margin:0; padding:24px; }
-  h1 { margin:0 0 4px; font-size:24px; }
-  h2 { margin:24px 0 8px; font-size:18px; border-bottom:2px solid #d0d7de; padding-bottom:4px; }
-  .meta { color:#57606a; font-size:13px; margin-bottom:8px; }
-  .intro { background:#fff; border:1px solid #d0d7de; border-radius:8px; padding:12px; margin-bottom:16px; font-size:13px; line-height:1.5; }
-  .summary { background:#fff; border:1px solid #d0d7de; border-radius:8px; padding:16px; display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
-  .summary .item { background:#f6f8fa; padding:10px; border-radius:6px; }
-  .summary .lbl { color:#57606a; font-size:12px; }
-  .summary .val { font-size:18px; font-weight:700; }
-  .cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:12px; }
-  .card { background:#fff; border:1px solid #d0d7de; border-radius:8px; padding:12px; }
+  body { font-family:'Segoe UI','Malgun Gothic',Arial,sans-serif; background:#0f172a; color:#cbd5e1; margin:0; padding:24px; }
+  h1 { margin:0 0 4px; font-size:24px; color:#f1f5f9; }
+  h1 span { color:#94a3b8 !important; }
+  h2 { margin:24px 0 8px; font-size:16px; color:#5eead4; border-left:3px solid #14b8a6; border-bottom:none; padding-left:8px; }
+  a { color:#7dd3fc; }
+  .meta { color:#94a3b8; font-size:13px; margin-bottom:8px; }
+  .intro { background:#1e293b; border:1px solid #334155; border-left:3px solid #14b8a6; border-radius:6px; padding:12px 14px; margin-bottom:16px; font-size:13px; line-height:1.55; color:#cbd5e1; }
+  .intro b { color:#fde68a; }
+  .summary { background:#1e293b; border:1px solid #334155; border-radius:8px; padding:14px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .summary .item { background:#0f172a; border:1px solid #334155; padding:10px; border-radius:6px; }
+  .summary .lbl { color:#94a3b8; font-size:11px; text-transform:uppercase; letter-spacing:0.2px; }
+  .summary .val { font-size:20px; font-weight:700; color:#f1f5f9; margin-top:2px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:10px; }
+  .card { background:#1e293b; border:1px solid #334155; border-radius:6px; padding:11px; color:#cbd5e1; }
   .card-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; gap:8px; }
-  .card-head .name { font-size:15px; font-weight:700; }
-  .card-head .code { font-size:11px; color:#57606a; }
-  .card-head .meta { font-size:11px; color:#57606a; margin-bottom:0; text-align:right; }
-  .dN { color:#0969da; font-weight:600; }
+  .card-head .name { font-size:14px; font-weight:700; color:#f1f5f9; }
+  .card-head .code { font-size:11px; color:#94a3b8; }
+  .card-head .meta { font-size:11px; color:#94a3b8; margin-bottom:0; text-align:right; }
+  .dN { color:#7dd3fc; font-weight:600; }
   .card-row { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px; }
   .grade { padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; }
-  .grade.a { background:#d6f5d6; color:#0a6900; }
-  .grade.b { background:#cce6ff; color:#0a4480; }
-  .grade.c { background:#fff5cc; color:#7a5a00; }
-  .grade.w { background:#eef2f5; color:#444; }
-  .grade.r { background:#f0d0d0; color:#7a3030; }
-  .score { font-size:12px; color:#57606a; }
-  .tag { background:#eef2f5; color:#0a4480; font-size:10px; padding:1px 6px; border-radius:8px; }
+  .grade.a { background:#064e3b; color:#a7f3d0; border:1px solid #10b981; }
+  .grade.b { background:#1e3a8a; color:#bfdbfe; border:1px solid #3b82f6; }
+  .grade.c { background:#713f12; color:#fde68a; border:1px solid #d97706; }
+  .grade.w { background:#334155; color:#cbd5e1; border:1px solid #64748b; }
+  .grade.r { background:#7f1d1d; color:#fecaca; border:1px solid #ef4444; }
+  .score { font-size:11px; color:#94a3b8; }
+  .tag { background:#0f172a; color:#7dd3fc; border:1px solid #334155; font-size:10px; padding:1px 6px; border-radius:8px; }
   .card-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; font-size:11px; margin:6px 0; }
-  .card-grid .lbl { color:#57606a; }
-  .headline { font-size:12px; color:#1f2328; background:#f0f3f6; padding:8px; border-radius:6px; line-height:1.4; }
-  details { margin-top:12px; }
-  summary { cursor:pointer; padding:6px 0; font-weight:600; }
-  .notes { background:#fff3cd; border:1px solid #f0c14b; border-radius:8px; padding:12px; margin-top:16px; font-size:13px; }
+  .card-grid .lbl { color:#94a3b8; }
+  .card-grid b { color:#fde68a; }
+  .headline { font-size:12px; color:#cbd5e1; background:#0f172a; border:1px solid #334155; padding:8px 10px; border-radius:6px; line-height:1.5; }
+  details { margin-top:12px; background:#1e293b; border:1px solid #334155; border-radius:6px; padding:6px 10px; }
+  details > summary { cursor:pointer; padding:4px 0; font-weight:600; color:#7dd3fc; font-size:13px; }
+  details > summary:hover { color:#a5f3fc; }
+  details .cards { margin-top:8px; }
+  .notes { background:#1e293b; border:1px solid #f59e0b; border-left:3px solid #f59e0b; border-radius:6px; padding:10px 12px; margin-top:16px; font-size:12px; color:#fde68a; line-height:1.6; }
 </style>
 </head>
 <body>
-<h1>QVA 장중 감시 보드</h1>
+<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+  <div style="background:linear-gradient(90deg,#064e3b 0%,#065f46 100%);border:1px solid #10b981;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#a7f3d0;font-weight:700;letter-spacing:0.3px;">🟢 운영 보드</span><a href="/qva2-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR</a><a href="/qva2-d5-rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파</a><a href="/qva2-vvi" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파</a></div>
+  <div style="background:linear-gradient(90deg,#1e1b4b 0%,#312e81 100%);border:1px solid #6366f1;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#c4b5fd;font-weight:700;letter-spacing:0.3px;">🟣 실험 라인</span><a href="/one-day-surge-board" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">⚡ 1DS 단타 후보</a><a href="/nasdaq-theme-watch" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🌎 나스닥 테마 감시</a><a href="/qva-live-watch" style="color:#fff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.22);border:1px solid #fff;font-weight:700;">⚡ QVA 장중 감시</a></div>
+  <div style="background:linear-gradient(90deg,#1e293b 0%,#334155 100%);border:1px solid #64748b;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;opacity:0.92;"><span style="color:#cbd5e1;font-weight:700;letter-spacing:0.3px;">📜 과거 보드</span><a href="/qva-watchlist" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">📋 H그룹/VPR (구)</a><a href="/rebreak" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🔥 D+5 재돌파 (구)</a><a href="/qva-vvi-redefined-board" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🎯 고점 재돌파 (구)</a></div>
+  <div style="background:linear-gradient(90deg,#042f2e 0%,#134e4a 100%);border:1px solid #14b8a6;border-radius:8px;padding:8px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;"><span style="color:#5eead4;font-weight:700;letter-spacing:0.3px;">📊 통합 보기</span><a href="/db-board" style="color:#e0e7ff;text-decoration:none;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.08);">🗄 DB 신호 운영판</a></div>
+</div>
+
+<h1>⚡ QVA 장중 감시 보드 <span style="font-size:12px;color:#6c757d;font-weight:400;">— 관찰용 (매수/진입 신호 아님)</span></h1>
 <div class="meta">생성 ${safe(data.generatedAt)} · 감시일 <b>${safe(data.watchDate)}</b> · mode <b>${safe(data.mode)}</b> · lookback ${safe(data.lookbackDays)}거래일</div>
-<div class="intro">최근 QVA/QVA2 후보 중 오늘 장중에 갭 상승, 거래대금 증가, QVA 고가 접근/돌파, 고가권 유지 등 움직임이 시작된 종목을 감시합니다. VVI나 1DS 확정 신호가 아니라 QVA 후보의 당일 반응 확인용입니다.</div>
+<div class="intro">
+  이 화면은 <b>QVA 후보 중 오늘 강하게 움직이는 종목을 보여주는 관찰용 보드</b>입니다.
+  최근 QVA/QVA2 후보 중 오늘 장중에 갭 상승, 거래대금 증가, QVA 고가 접근/돌파, 고가권 유지 등 움직임이 시작된 종목을 감시합니다.
+  VVI나 1DS 확정 신호가 아닙니다.
+  <br><br>
+  <b>LIVE_A</b>는 강한 반응 후보를 뜻하지만, 백테스트(60거래일·9,126 이벤트)상 D+1~D+5 안에 −5% 흔들림도 자주 발생(<b>breach5Rate 79.2%</b>)하므로 진입 신호로 해석하지 않습니다.
+  <b>LIVE_A의 평균 D+5 최대 상승은 +31.85%</b>, <b>hit10 78% / hit15 72%</b>로 "강한 후보 식별"엔 의미가 있지만 변동성이 큽니다.
+</div>
 
 <h2>섹션 1 — 요약</h2>
 <div class="summary">
