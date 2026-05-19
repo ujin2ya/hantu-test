@@ -87,6 +87,124 @@ function determineBaseDate(metaMap, codes) {
   return best;
 }
 
+// ─── 운영등급 (operationGrade) ────────────────────────────────────────────────
+// 기존 QVA2_NEW 판정/score/grade/type은 그대로 두고, 화면에서 같은 급으로 보이지
+// 않도록 운영용 분류만 새로 만든다. 우선순서:
+//   1. WEAK_CLOSE_SPIKE → 2. REIGNITION_HOT → 3. LOW_PRIORITY_QVA2 →
+//   4. STRONG_QVA2 → 5. ABSORB_QVA2 → 6. WATCH_ABSORB_QVA2 → 7. CORE_QVA2 → fallback
+// WEAK_CLOSE_SPIKE는 REIGNITION_HOT보다 항상 우선 (둘 다 걸려도 WEAK 우선).
+// LOW_PRIORITY는 STRONG/CORE 전에 컷해서 점수 낮은 후보를 하단으로 보낸다.
+const OP_GRADE_RANK = Object.freeze({
+  STRONG_QVA2:       1,
+  CORE_QVA2:         2,
+  ABSORB_QVA2:       3,
+  WATCH_ABSORB_QVA2: 4,
+  REIGNITION_HOT:    5,
+  WEAK_CLOSE_SPIKE:  6,
+  LOW_PRIORITY_QVA2: 7,
+});
+function opRank(g) { return OP_GRADE_RANK[g] || 99; }
+
+function computeOperationGrade(qva2Result) {
+  const s = (qva2Result && qva2Result.signals) || {};
+  const score = (qva2Result && qva2Result.score) || 0;
+  const type = (qva2Result && qva2Result.qva2Type) || 'absorption';
+  const changePct = s.changePct ?? 0;
+  const closeLoc = s.closeLocation ?? 0;
+  const valR = s.valueRatio ?? 0;
+  const dd60 = s.drawdownFromHigh60 ?? 0;
+  const riseLow60 = s.riseFromLow60 ?? 0;
+
+  const riskTags = [];
+  if (riseLow60 >= 40) riskTags.push('저점 대비 많이 올라옴');
+  if (type === 'spike' && changePct < 0) riskTags.push('종가 마이너스');
+  if (type === 'spike' && closeLoc < 0.30) riskTags.push('종가 위치 낮음');
+  if (valR >= 50) riskTags.push('거래대금 배수 과대');
+  if (score < 40) riskTags.push('점수 낮음');
+
+  // 1. WEAK_CLOSE_SPIKE — 장중엔 강했지만 종가 밀린 spike (천일고속 케이스)
+  //    동양고속(-2.17%, closeLoc 0.31) 같은 단순 약세 spike는 빠지도록
+  //    changePct < -4 AND closeLoc < 0.30 으로 엄격하게 잡는다.
+  if (type === 'spike' && changePct < -4 && closeLoc < 0.30) {
+    return {
+      operationGrade: 'WEAK_CLOSE_SPIKE',
+      operationLabel: '종가 밀림 주의',
+      operationReason: '장중에는 강했지만 종가가 밀렸습니다. 다음 거래일 회복 확인 전까지 우선순위를 낮춥니다.',
+      riskTags,
+    };
+  }
+
+  // 2. REIGNITION_HOT — 저점에서 이미 많이 오른 뒤 거래대금 폭발 (동양고속 케이스)
+  if (riseLow60 >= 40 && valR >= 8) {
+    return {
+      operationGrade: 'REIGNITION_HOT',
+      operationLabel: '과열 후 재점화',
+      operationReason: '이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.',
+      riskTags,
+    };
+  }
+
+  // 3. LOW_PRIORITY_QVA2 — 점수 낮은 후보를 하단으로
+  if (score < 40) {
+    return {
+      operationGrade: 'LOW_PRIORITY_QVA2',
+      operationLabel: '후순위 후보',
+      operationReason: 'QVA2 조건은 통과했지만 강도와 점수가 낮아 우선순위를 낮춥니다.',
+      riskTags,
+    };
+  }
+
+  // 4. STRONG_QVA2 — 깊은 조정 + 거래대금 강력 (YG PLUS, 블루엠텍)
+  if (score >= 70 && valR >= 8 && dd60 >= 25 && riseLow60 <= 35) {
+    return {
+      operationGrade: 'STRONG_QVA2',
+      operationLabel: '강한 초동 후보',
+      operationReason: '깊은 조정 후 거래대금이 강하게 들어온 후보입니다.',
+      riskTags,
+    };
+  }
+
+  // 5. ABSORB_QVA2 — 흡수형 정상 (휴메딕스)
+  if (type === 'absorption' && closeLoc >= 0.50 && valR >= 2 &&
+      changePct >= -4 && changePct <= -1 && score >= 50) {
+    return {
+      operationGrade: 'ABSORB_QVA2',
+      operationLabel: '흡수형 후보',
+      operationReason: '종가는 약했지만 장중 저가에서 회복했고 거래대금이 늘어난 종목입니다.',
+      riskTags,
+    };
+  }
+
+  // 6. WATCH_ABSORB_QVA2 — 약한 흡수형 (대원미디어)
+  if (type === 'absorption' && closeLoc >= 0.35 && valR >= 2 &&
+      score >= 40 && score < 50) {
+    return {
+      operationGrade: 'WATCH_ABSORB_QVA2',
+      operationLabel: '흡수형 관찰 후보',
+      operationReason: '흡수 흔적은 있지만 강도는 아직 약한 후보입니다.',
+      riskTags,
+    };
+  }
+
+  // 7. CORE_QVA2 — 정상 초동 (바이오니아, 콘텐트리중앙, 한화손해보험, 그린생명과학)
+  if (score >= 55 && riseLow60 <= 35 && closeLoc >= 0.35 && changePct >= -4) {
+    return {
+      operationGrade: 'CORE_QVA2',
+      operationLabel: '정상 초동 후보',
+      operationReason: '충분히 내려온 자리에서 거래대금이 살아난 종목입니다.',
+      riskTags,
+    };
+  }
+
+  // 8. fallback
+  return {
+    operationGrade: (qva2Result && qva2Result.grade) || 'WATCH_QVA2',
+    operationLabel: (qva2Result && qva2Result.gradeLabel) || '관찰 후보',
+    operationReason: '추가 분류 기준에 맞지 않는 후보입니다.',
+    riskTags,
+  };
+}
+
 function buildAuxTags(rows, qva2Idx, todayIdx, signalPrice, currentClose) {
   const auxTags = [];
   if (currentClose >= signalPrice * 0.95) auxTags.push('PRICE_HOLD');
@@ -233,6 +351,7 @@ function analyzeStock(code, meta, rows, baseDate) {
   const currentClose = todayRow.close;
   const currentReturnFromSignal = ((currentClose / signalPrice) - 1) * 100;
   const auxTags = buildAuxTags(rows, qva2Idx, todayIdx, signalPrice, currentClose);
+  const opGrade = computeOperationGrade(qva2Result);
 
   // ─── QVA2 후속 반응 평가 (장기 관찰 태그) ─────────────────────────────────
   // 새 모델이 아니라 QVA2_TRACKING 안에서 부착되는 태그.
@@ -355,6 +474,11 @@ function analyzeStock(code, meta, rows, baseDate) {
 
     mainStage, stageReason, auxTags,
     riskTag, expiringSoon, watchScore,
+    // 운영등급 (기존 grade/score 무수정, 화면 그룹핑용)
+    operationGrade: opGrade.operationGrade,
+    operationLabel: opGrade.operationLabel,
+    operationReason: opGrade.operationReason,
+    riskTags: opGrade.riskTags,
     // QVA2 후속 반응 (장기 관찰 태그)
     hasFollowReaction,
     followInfo,
@@ -393,8 +517,13 @@ async function main() {
   const stages = { QVA2_NEW: [], QVA2_TRACKING: [], VVI2_FIRED: [], BREAKOUT_SUCCESS: [], FAILED: [] };
   for (const c of candidates) (stages[c.mainStage] || (stages[c.mainStage] = [])).push(c);
 
-  // 정렬 — 운영 보드 spec
-  stages.QVA2_NEW.sort((a, b) => (b.qva2Score || 0) - (a.qva2Score || 0));
+  // 정렬 — QVA2_NEW은 운영등급 우선, 그 안에서 score desc
+  stages.QVA2_NEW.sort((a, b) => {
+    const ra = opRank(a.operationGrade);
+    const rb = opRank(b.operationGrade);
+    if (ra !== rb) return ra - rb;
+    return (b.qva2Score || 0) - (a.qva2Score || 0);
+  });
   // QVA2_TRACKING 정렬: 후속 반응 후보를 상단으로
   stages.QVA2_TRACKING.sort((a, b) => {
     const af = a.hasFollowReaction ? 1 : 0;
@@ -415,9 +544,17 @@ async function main() {
   const trackingExtendedCount = stages.QVA2_TRACKING.filter(c => c.daysSinceQva2 > TRACKING_DAYS_PRIMARY).length;
   const trackingNearHighCount = stages.QVA2_TRACKING.filter(c => (c.followInfo && c.followInfo.distanceFromHigh60 != null && c.followInfo.distanceFromHigh60 < 15)).length;
 
+  // QVA2_NEW 안에서 운영등급별 카운트
+  const qva2NewByOpGrade = {};
+  for (const c of stages.QVA2_NEW) {
+    const g = c.operationGrade || 'OTHER';
+    qva2NewByOpGrade[g] = (qva2NewByOpGrade[g] || 0) + 1;
+  }
+
   const counts = {
     total: candidates.length,
     QVA2_NEW:         stages.QVA2_NEW.length,
+    QVA2_NEW_byOpGrade: qva2NewByOpGrade,
     QVA2_TRACKING:    stages.QVA2_TRACKING.length,
     QVA2_TRACKING_followReaction: trackingFollowCount,
     QVA2_TRACKING_extended:       trackingExtendedCount,
@@ -566,7 +703,23 @@ h2 .count { font-size:13px; color:#64748b; font-weight:400; margin-left:6px; }
 .tag { font-size:10.5px; padding:2px 7px; border-radius:999px; background:#1e293b; color:#94a3b8; border:1px solid #334155; }
 .tag.aux { background:#1e1b4b; color:#c4b5fd; border-color:#6366f1; }
 .tag.risk { background:#7f1d1d; color:#fca5a5; border-color:#ef4444; }
+.tag.risk-soft { background:#1f1b14; color:#fcd34d; border-color:#d97706; }
 .tag.expiring { background:#3f1d05; color:#fdba74; border-color:#f97316; }
+
+/* 운영등급 (operationGrade) */
+.op-group { margin-bottom: 22px; }
+.op-heading { font-size: 15px; margin: 12px 0 4px; color: #e2e8f0; font-weight: 700; display:flex; align-items:center; gap:6px; }
+.op-count { font-size: 12px; color: #64748b; font-weight: 400; }
+.op-desc { font-size: 12px; color: #94a3b8; margin-bottom: 8px; line-height: 1.55; }
+.op-badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; border: 1px solid; }
+.op-STRONG_QVA2       { background: #052e16; color: #86efac; border-color: #22c55e; }
+.op-CORE_QVA2         { background: #042f2e; color: #5eead4; border-color: #14b8a6; }
+.op-ABSORB_QVA2       { background: #1e1b4b; color: #c4b5fd; border-color: #7c3aed; }
+.op-WATCH_ABSORB_QVA2 { background: #1e293b; color: #cbd5e1; border-color: #6366f1; }
+.op-REIGNITION_HOT    { background: #3f1d05; color: #fdba74; border-color: #f97316; }
+.op-WEAK_CLOSE_SPIKE  { background: #422006; color: #fcd34d; border-color: #d97706; }
+.op-LOW_PRIORITY_QVA2 { background: #1e293b; color: #94a3b8; border-color: #475569; }
+.op-reason { font-size: 11.5px; color: #94a3b8; margin-top: 4px; line-height: 1.45; font-style: italic; }
 
 .stage-reason { font-size:11.5px; color:#fca5a5; padding:6px 10px; background:#0f172a; border:1px solid #7f1d1d; border-radius:5px; margin-top:6px; }
 
@@ -700,11 +853,7 @@ function emptyHtml(msg, links) {
   return html;
 }
 
-renderCards('new-host',    DATA.stages.QVA2_NEW,
-  emptyHtml('오늘 새로 발동한 QVA2 본 신호가 없습니다.', [
-    { href: '#follow-host', label: 'QVA2 후속 반응 보기' },
-    { href: '#tr-host',     label: 'QVA2 추적 중 보기' },
-  ]));
+renderQva2NewGrouped('new-host', DATA.stages.QVA2_NEW);
 
 renderCards('follow-host', followList,
   emptyHtml('QVA2 후속 반응 후보가 없습니다. (최근 QVA2 발생 + 가격 유지 + 거래대금 재증가)', [
@@ -732,6 +881,71 @@ document.getElementById('foot').innerHTML =
   '<br><strong>spike:</strong> 장중 +' + DATA.meta.qva2Thresholds.spikeMinIntradayHighPct + '% ↑ · val ≥×' + DATA.meta.qva2Thresholds.spikeMinValueRatio + ' · closeLoc ≥' + DATA.meta.qva2Thresholds.spikeMinCloseLocation + '. ' +
   '<br>임계값은 qva2-screener.js의 QVA2_CONFIG에서 조정.';
 
+function renderQva2NewGrouped(hostId, items) {
+  // 화면 그룹 순서 — TDZ 회피 위해 함수 내부에 둔다.
+  const OP_GROUP_ORDER = [
+    { keys: ['STRONG_QVA2'],                     heading: '🔥 강한 초동 후보',
+      desc: '깊은 조정 후 거래대금이 강하게 들어온 후보입니다.' },
+    { keys: ['CORE_QVA2'],                       heading: '✅ 정상 초동 후보',
+      desc: 'QVA2의 원래 취지에 가장 가까운 후보입니다. 충분히 내려온 자리에서 거래대금이 살아난 종목입니다.' },
+    { keys: ['ABSORB_QVA2', 'WATCH_ABSORB_QVA2'], heading: '🧲 흡수형 후보',
+      desc: '종가는 약했지만 장중 저가에서 회복했고 거래량/거래대금이 늘어난 종목입니다. (관찰 후보 포함)' },
+    { keys: ['REIGNITION_HOT'],                  heading: '⚠️ 과열 후 재점화',
+      desc: '이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.' },
+    { keys: ['WEAK_CLOSE_SPIKE'],                heading: '⚠️ 종가 밀림 주의',
+      desc: '장중에는 강했지만 종가가 밀렸습니다. 다음 거래일 회복 확인 전까지 우선순위를 낮춥니다.' },
+    { keys: ['LOW_PRIORITY_QVA2'],               heading: '⬇️ 후순위 후보',
+      desc: 'QVA2 조건은 통과했지만 강도와 점수가 낮아 우선순위를 낮춥니다.' },
+  ];
+  const host = document.getElementById(hostId);
+  if (!items || items.length === 0) {
+    host.innerHTML =
+      '<div class="section-empty">오늘 새로 발동한 QVA2 본 신호가 없습니다.' +
+      '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">' +
+      '<a href="#follow-host" style="color:#c4b5fd;text-decoration:none;padding:4px 12px;border-radius:5px;background:#1e1b4b;border:1px solid #6366f1;font-size:11.5px;">QVA2 후속 반응 보기</a>' +
+      '<a href="#tr-host" style="color:#c4b5fd;text-decoration:none;padding:4px 12px;border-radius:5px;background:#1e1b4b;border:1px solid #6366f1;font-size:11.5px;">QVA2 추적 중 보기</a>' +
+      '</div></div>';
+    return;
+  }
+  const byGrade = {};
+  for (const it of items) {
+    const g = it.operationGrade || 'OTHER';
+    (byGrade[g] = byGrade[g] || []).push(it);
+  }
+  const used = new Set();
+  let html = '';
+  for (const group of OP_GROUP_ORDER) {
+    const cands = [];
+    for (const k of group.keys) {
+      if (byGrade[k]) {
+        for (const c of byGrade[k]) cands.push(c);
+        used.add(k);
+      }
+    }
+    if (cands.length === 0) continue;
+    cands.sort((a, b) => (b.qva2Score || 0) - (a.qva2Score || 0));
+    html += '<div class="op-group">';
+    html += '<h3 class="op-heading">' + group.heading + ' <span class="op-count">(' + cands.length + ')</span></h3>';
+    html += '<div class="op-desc">' + group.desc + '</div>';
+    html += cands.map(card).join('');
+    html += '</div>';
+  }
+  // fallback — 정의된 group에 속하지 않는 등급
+  const fallback = [];
+  for (const k of Object.keys(byGrade)) {
+    if (!used.has(k)) fallback.push.apply(fallback, byGrade[k]);
+  }
+  if (fallback.length > 0) {
+    fallback.sort((a, b) => (b.qva2Score || 0) - (a.qva2Score || 0));
+    html += '<div class="op-group">';
+    html += '<h3 class="op-heading">기타 <span class="op-count">(' + fallback.length + ')</span></h3>';
+    html += '<div class="op-desc">추가 분류 기준에 맞지 않는 후보입니다 (기존 grade 표시).</div>';
+    html += fallback.map(card).join('');
+    html += '</div>';
+  }
+  host.innerHTML = html;
+}
+
 function renderCards(hostId, items, emptyHtmlOrMsg) {
   const host = document.getElementById(hostId);
   if (!items || items.length === 0) {
@@ -746,10 +960,17 @@ function renderCards(hostId, items, emptyHtmlOrMsg) {
 function card(e) {
   const stage = e.mainStage;
   const tagsHtml = (e.auxTags || []).map(t => '<span class="tag aux">' + t + '</span>').join('') +
+    (e.riskTags || []).map(t => '<span class="tag risk-soft">' + t + '</span>').join('') +
     (e.riskTag ? '<span class="tag risk">위험 (-5%↓)</span>' : '') +
     (e.expiringSoon && stage === 'QVA2_TRACKING' ? '<span class="tag expiring">만료 임박 (D+15~20)</span>' : '');
   const judgment = e.judgmentStatus
     ? '<span class="judgment-badge judgment-' + e.judgmentStatus + '">' + judgmentLabel(e.judgmentStatus) + '</span>'
+    : '';
+  const opBadge = e.operationGrade
+    ? '<span class="op-badge op-' + e.operationGrade + '">' + (e.operationLabel || e.operationGrade) + '</span>'
+    : '';
+  const opReason = (stage === 'QVA2_NEW' && e.operationReason)
+    ? '<div class="op-reason">' + e.operationReason + '</div>'
     : '';
   return '<div class="card s-' + stage + '">' +
     '<h3>' +
@@ -757,8 +978,10 @@ function card(e) {
       '<span class="code">' + e.code + '</span>' +
       '<span class="market">' + (e.market || '') + '</span>' +
       '<span class="grade-badge">QVA2 ' + e.qva2Score + '점 · ' + (e.qva2Grade || '') + '</span>' +
+      opBadge +
       judgment +
     '</h3>' +
+    opReason +
     metricsHtml(e) +
     (e.stageReason ? '<div class="stage-reason">⚠ ' + e.stageReason + '</div>' : '') +
     '<div class="tags">' + tagsHtml + '</div>' +
@@ -766,12 +989,28 @@ function card(e) {
 }
 
 function metricsHtml(e) {
+  const isNew = e.daysSinceQva2 === 0;
+  const sig = e.qva2Signals || {};
   const cells = [
     ['QVA2 신호일',   fmtDate(e.qva2SignalDate) + ' (D+' + e.daysSinceQva2 + ')'],
-    ['신호가',        fmtNum(e.qva2SignalPrice)],
-    ['현재 종가',     fmtNum(e.currentClose)],
-    ['신호 대비',     (e.currentReturnFromSignal >= 0 ? '+' : '') + (e.currentReturnFromSignal ?? 0).toFixed(2) + '%', pctClass(e.currentReturnFromSignal)],
   ];
+  if (isNew) {
+    // D+0 — 오늘이 신호일이라 신호가 = 현재 종가. 중복 제거하고 D+0 의미 있는 셀로 채운다.
+    if (sig.prevClose != null) cells.push(['전일 종가', fmtNum(sig.prevClose)]);
+    cells.push(['신호 종가',     fmtNum(e.qva2SignalPrice)]);
+    if (sig.changePct != null) {
+      cells.push(['당일 변동',   (sig.changePct >= 0 ? '+' : '') + sig.changePct.toFixed(2) + '%', pctClass(sig.changePct)]);
+    }
+    if (sig.intradayHighPct != null && (e.qva2Type === 'spike' || sig.intradayHighPct >= 5)) {
+      cells.push(['장중 고점',   '+' + sig.intradayHighPct.toFixed(1) + '%', 'cell-pos']);
+    }
+    if (sig.valueRatio != null) cells.push(['거래대금',   '×' + sig.valueRatio.toFixed(1)]);
+    if (sig.closeLocation != null) cells.push(['종가 위치', (sig.closeLocation * 100).toFixed(0) + '%']);
+  } else {
+    cells.push(['신호가',         fmtNum(e.qva2SignalPrice)]);
+    cells.push(['현재 종가',      fmtNum(e.currentClose)]);
+    cells.push(['신호 대비',      (e.currentReturnFromSignal >= 0 ? '+' : '') + (e.currentReturnFromSignal ?? 0).toFixed(2) + '%', pctClass(e.currentReturnFromSignal)]);
+  }
   if (e.vvi2Date) {
     cells.push(['VVI2',           fmtDate(e.vvi2Date) + ' (D+' + (e.daysSinceVvi2 ?? '?') + ')']);
     cells.push(['VVI2 고가',       fmtNum(e.vvi2High)]);

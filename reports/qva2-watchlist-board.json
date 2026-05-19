@@ -3,7 +3,7 @@
     "title": "QVA2 — 고점 대비 많이 내려온 뒤 돈이 다시 들어온 후보",
     "subtitle": "최근 고점 대비 충분히 내려온 자리에서, 거래량과 거래대금이 평소보다 크게 늘어난 종목입니다. 정확한 저점을 맞히는 신호가 아니라, 다시 관심이 들어오기 시작했는지 확인하기 위한 관찰 후보입니다.",
     "caution": "QVA2는 매수 확정 신호가 아닙니다. 최근 고점 대비 많이 내려온 자리에서 돈이 다시 들어온 흔적을 찾는 관찰용 신호입니다. 저점을 정확히 맞히는 모델이 아닙니다.",
-    "generatedAt": "2026-05-19T07:35:18.677Z",
+    "generatedAt": "2026-05-19T08:16:32.137Z",
     "baseDate": "20260519",
     "baseDateFmt": "2026-05-19",
     "trackingDays": 30,
@@ -39,6 +39,15 @@
   "counts": {
     "total": 190,
     "QVA2_NEW": 12,
+    "QVA2_NEW_byOpGrade": {
+      "STRONG_QVA2": 2,
+      "CORE_QVA2": 4,
+      "ABSORB_QVA2": 1,
+      "WATCH_ABSORB_QVA2": 1,
+      "REIGNITION_HOT": 1,
+      "WEAK_CLOSE_SPIKE": 1,
+      "LOW_PRIORITY_QVA2": 2
+    },
     "QVA2_TRACKING": 86,
     "QVA2_TRACKING_followReaction": 6,
     "QVA2_TRACKING_extended": 26,
@@ -138,6 +147,12 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 65,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": null
       },
@@ -230,6 +245,12 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 65,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": null
       },
@@ -323,99 +344,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 90,
-        "hasFollowReaction": false,
-        "followInfo": null
-      },
-      {
-        "code": "084670",
-        "name": "동양고속",
-        "market": "KOSPI",
-        "isPreferred": false,
-        "marketValue": 109500000000,
-        "qva2SignalDate": "20260519",
-        "qva2SignalPrice": 49600,
-        "qva2Type": "spike",
-        "qva2Score": 65,
-        "qva2Grade": "SPIKE",
-        "qva2GradeLabel": "spike (저점권 + 장중 강한 반응)",
-        "qva2Tags": [
-          "고점 -40% 깊은 조정",
-          "거래대금 폭발",
-          "장중 +16%",
-          "거래대금 ×135.7",
-          "저점 이탈 없음"
-        ],
-        "qva2Signals": {
-          "date": "20260519",
-          "open": 52900,
-          "high": 59000,
-          "low": 45300,
-          "close": 49600,
-          "prevClose": 50700,
-          "changePct": -2.17,
-          "intradayHighPct": 16.37,
-          "closeLocation": 0.314,
-          "closeLocationLabel": "저가권",
-          "upperWickRatio": 0.445,
-          "bodyRatio": 0.241,
-          "isBearCandle": true,
-          "todayVolume": 2103981,
-          "todayValue": 104357457600,
-          "volumeRatio": 104.7,
-          "valueRatio": 135.72,
-          "avg20Volume": 392982,
-          "avg20Value": 22977035103,
-          "medianPrev20Volume": 20096,
-          "medianPrev20Value": 768908250,
-          "high60": 83000,
-          "low60": 32600,
-          "high120": 172800,
-          "low120": 0,
-          "low20": 32600,
-          "drawdownFromHigh60": 40.24,
-          "drawdownFromHigh120": 71.3,
-          "pricePosition60": 0.337,
-          "pricePosition120": 0.287,
-          "riseFromLow20": 52.15,
-          "riseFromLow60": 52.15,
-          "distanceFromHigh60": 40.24,
-          "volumeRatio20": 104.7,
-          "valueRatio20": 135.72,
-          "recentLow20": 32600,
-          "recentLow60": 32600,
-          "low20HoldPct": 52.15,
-          "low60HoldPct": 52.15
-        },
-        "daysSinceQva2": 0,
-        "currentDate": "20260519",
-        "currentClose": 49600,
-        "currentVolume": 2103981,
-        "currentValue": 104357457600,
-        "currentReturnFromSignal": 0,
-        "vvi2Date": null,
-        "vvi2High": null,
-        "vvi2Close": null,
-        "vvi2Low": null,
-        "daysSinceVvi2": null,
-        "breakoutDate": null,
-        "breakoutVviHigh": null,
-        "breakoutEntryPrice1Pct": null,
-        "breakoutNextHigh": null,
-        "breakoutNextClose": null,
-        "breakoutSuccess": null,
-        "daysFromBreakout": null,
-        "currentReturnFromEntry": null,
-        "judgmentStatus": null,
-        "mainStage": "QVA2_NEW",
-        "stageReason": null,
-        "auxTags": [
-          "PRICE_HOLD",
-          "LOW_RISING",
-          "VALUE_REACTIVATION"
-        ],
-        "riskTag": false,
-        "expiringSoon": false,
-        "watchScore": 90,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": null
       },
@@ -507,6 +439,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 65,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": null
       },
@@ -600,6 +536,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 90,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": null
       },
@@ -692,6 +632,303 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 65,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
+        "hasFollowReaction": false,
+        "followInfo": null
+      },
+      {
+        "code": "200670",
+        "name": "휴메딕스",
+        "market": "KOSDAQ",
+        "isPreferred": false,
+        "marketValue": 397000000000,
+        "qva2SignalDate": "20260519",
+        "qva2SignalPrice": 28800,
+        "qva2Type": "absorption",
+        "qva2Score": 55,
+        "qva2Grade": "QVA2",
+        "qva2GradeLabel": "QVA2 (저점권 + 흡수 흔적)",
+        "qva2Tags": [
+          "고점 -39% 조정",
+          "장중 방어 흔적",
+          "마감 약함",
+          "투매형 제외 통과",
+          "저점 이탈 없음"
+        ],
+        "qva2Signals": {
+          "date": "20260519",
+          "open": 29000,
+          "high": 29350,
+          "low": 27700,
+          "close": 28800,
+          "prevClose": 29200,
+          "changePct": -1.37,
+          "intradayHighPct": 0.51,
+          "closeLocation": 0.667,
+          "closeLocationLabel": "고가권",
+          "upperWickRatio": 0.212,
+          "bodyRatio": 0.121,
+          "isBearCandle": true,
+          "todayVolume": 97640,
+          "todayValue": 2812032000,
+          "volumeRatio": 2.38,
+          "valueRatio": 2.03,
+          "avg20Volume": 53806,
+          "avg20Value": 1804809310,
+          "medianPrev20Volume": 40964,
+          "medianPrev20Value": 1386672800,
+          "high60": 46900,
+          "low60": 27450,
+          "high120": 46900,
+          "low120": 27450,
+          "low20": 27450,
+          "drawdownFromHigh60": 38.59,
+          "drawdownFromHigh120": 38.59,
+          "pricePosition60": 0.069,
+          "pricePosition120": 0.069,
+          "riseFromLow20": 4.92,
+          "riseFromLow60": 4.92,
+          "distanceFromHigh60": 38.59,
+          "volumeRatio20": 2.38,
+          "valueRatio20": 2.03,
+          "recentLow20": 27450,
+          "recentLow60": 27450,
+          "low20HoldPct": 4.92,
+          "low60HoldPct": 4.92
+        },
+        "daysSinceQva2": 0,
+        "currentDate": "20260519",
+        "currentClose": 28800,
+        "currentVolume": 97640,
+        "currentValue": 2812032000,
+        "currentReturnFromSignal": 0,
+        "vvi2Date": null,
+        "vvi2High": null,
+        "vvi2Close": null,
+        "vvi2Low": null,
+        "daysSinceVvi2": null,
+        "breakoutDate": null,
+        "breakoutVviHigh": null,
+        "breakoutEntryPrice1Pct": null,
+        "breakoutNextHigh": null,
+        "breakoutNextClose": null,
+        "breakoutSuccess": null,
+        "daysFromBreakout": null,
+        "currentReturnFromEntry": null,
+        "judgmentStatus": null,
+        "mainStage": "QVA2_NEW",
+        "stageReason": null,
+        "auxTags": [
+          "PRICE_HOLD",
+          "VALUE_REACTIVATION"
+        ],
+        "riskTag": false,
+        "expiringSoon": false,
+        "watchScore": 65,
+        "operationGrade": "ABSORB_QVA2",
+        "operationLabel": "흡수형 후보",
+        "operationReason": "종가는 약했지만 장중 저가에서 회복했고 거래대금이 늘어난 종목입니다.",
+        "riskTags": [],
+        "hasFollowReaction": false,
+        "followInfo": null
+      },
+      {
+        "code": "048910",
+        "name": "대원미디어",
+        "market": "KOSDAQ",
+        "isPreferred": false,
+        "marketValue": 96900000000,
+        "qva2SignalDate": "20260519",
+        "qva2SignalPrice": 6190,
+        "qva2Type": "absorption",
+        "qva2Score": 48,
+        "qva2Grade": "WATCH_QVA2",
+        "qva2GradeLabel": "관찰 — 약한 흡수 흔적",
+        "qva2Tags": [
+          "고점 -36% 조정",
+          "장중 방어 흔적",
+          "마감 약함",
+          "투매형 제외 통과",
+          "저점 이탈 없음"
+        ],
+        "qva2Signals": {
+          "date": "20260519",
+          "open": 6310,
+          "high": 6450,
+          "low": 5890,
+          "close": 6190,
+          "prevClose": 6370,
+          "changePct": -2.83,
+          "intradayHighPct": 1.26,
+          "closeLocation": 0.536,
+          "closeLocationLabel": "중간 이상",
+          "upperWickRatio": 0.25,
+          "bodyRatio": 0.214,
+          "isBearCandle": true,
+          "todayVolume": 208828,
+          "todayValue": 1292645320,
+          "volumeRatio": 3.05,
+          "valueRatio": 2.47,
+          "avg20Volume": 83421,
+          "avg20Value": 599798344,
+          "medianPrev20Volume": 68375,
+          "medianPrev20Value": 524091180,
+          "high60": 9640,
+          "low60": 5890,
+          "high120": 9640,
+          "low120": 5890,
+          "low20": 5890,
+          "drawdownFromHigh60": 35.79,
+          "drawdownFromHigh120": 35.79,
+          "pricePosition60": 0.08,
+          "pricePosition120": 0.08,
+          "riseFromLow20": 5.09,
+          "riseFromLow60": 5.09,
+          "distanceFromHigh60": 35.79,
+          "volumeRatio20": 3.05,
+          "valueRatio20": 2.47,
+          "recentLow20": 5890,
+          "recentLow60": 5890,
+          "low20HoldPct": 5.09,
+          "low60HoldPct": 5.09
+        },
+        "daysSinceQva2": 0,
+        "currentDate": "20260519",
+        "currentClose": 6190,
+        "currentVolume": 208828,
+        "currentValue": 1292645320,
+        "currentReturnFromSignal": 0,
+        "vvi2Date": null,
+        "vvi2High": null,
+        "vvi2Close": null,
+        "vvi2Low": null,
+        "daysSinceVvi2": null,
+        "breakoutDate": null,
+        "breakoutVviHigh": null,
+        "breakoutEntryPrice1Pct": null,
+        "breakoutNextHigh": null,
+        "breakoutNextClose": null,
+        "breakoutSuccess": null,
+        "daysFromBreakout": null,
+        "currentReturnFromEntry": null,
+        "judgmentStatus": null,
+        "mainStage": "QVA2_NEW",
+        "stageReason": null,
+        "auxTags": [
+          "PRICE_HOLD",
+          "VALUE_REACTIVATION"
+        ],
+        "riskTag": false,
+        "expiringSoon": false,
+        "watchScore": 65,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
+        "hasFollowReaction": false,
+        "followInfo": null
+      },
+      {
+        "code": "084670",
+        "name": "동양고속",
+        "market": "KOSPI",
+        "isPreferred": false,
+        "marketValue": 109500000000,
+        "qva2SignalDate": "20260519",
+        "qva2SignalPrice": 49600,
+        "qva2Type": "spike",
+        "qva2Score": 65,
+        "qva2Grade": "SPIKE",
+        "qva2GradeLabel": "spike (저점권 + 장중 강한 반응)",
+        "qva2Tags": [
+          "고점 -40% 깊은 조정",
+          "거래대금 폭발",
+          "장중 +16%",
+          "거래대금 ×135.7",
+          "저점 이탈 없음"
+        ],
+        "qva2Signals": {
+          "date": "20260519",
+          "open": 52900,
+          "high": 59000,
+          "low": 45300,
+          "close": 49600,
+          "prevClose": 50700,
+          "changePct": -2.17,
+          "intradayHighPct": 16.37,
+          "closeLocation": 0.314,
+          "closeLocationLabel": "저가권",
+          "upperWickRatio": 0.445,
+          "bodyRatio": 0.241,
+          "isBearCandle": true,
+          "todayVolume": 2103981,
+          "todayValue": 104357457600,
+          "volumeRatio": 104.7,
+          "valueRatio": 135.72,
+          "avg20Volume": 392982,
+          "avg20Value": 22977035103,
+          "medianPrev20Volume": 20096,
+          "medianPrev20Value": 768908250,
+          "high60": 83000,
+          "low60": 32600,
+          "high120": 172800,
+          "low120": 0,
+          "low20": 32600,
+          "drawdownFromHigh60": 40.24,
+          "drawdownFromHigh120": 71.3,
+          "pricePosition60": 0.337,
+          "pricePosition120": 0.287,
+          "riseFromLow20": 52.15,
+          "riseFromLow60": 52.15,
+          "distanceFromHigh60": 40.24,
+          "volumeRatio20": 104.7,
+          "valueRatio20": 135.72,
+          "recentLow20": 32600,
+          "recentLow60": 32600,
+          "low20HoldPct": 52.15,
+          "low60HoldPct": 52.15
+        },
+        "daysSinceQva2": 0,
+        "currentDate": "20260519",
+        "currentClose": 49600,
+        "currentVolume": 2103981,
+        "currentValue": 104357457600,
+        "currentReturnFromSignal": 0,
+        "vvi2Date": null,
+        "vvi2High": null,
+        "vvi2Close": null,
+        "vvi2Low": null,
+        "daysSinceVvi2": null,
+        "breakoutDate": null,
+        "breakoutVviHigh": null,
+        "breakoutEntryPrice1Pct": null,
+        "breakoutNextHigh": null,
+        "breakoutNextClose": null,
+        "breakoutSuccess": null,
+        "daysFromBreakout": null,
+        "currentReturnFromEntry": null,
+        "judgmentStatus": null,
+        "mainStage": "QVA2_NEW",
+        "stageReason": null,
+        "auxTags": [
+          "PRICE_HOLD",
+          "LOW_RISING",
+          "VALUE_REACTIVATION"
+        ],
+        "riskTag": false,
+        "expiringSoon": false,
+        "watchScore": 90,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴",
+          "종가 마이너스",
+          "거래대금 배수 과대"
+        ],
         "hasFollowReaction": false,
         "followInfo": null
       },
@@ -785,190 +1022,15 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 90,
-        "hasFollowReaction": false,
-        "followInfo": null
-      },
-      {
-        "code": "200670",
-        "name": "휴메딕스",
-        "market": "KOSDAQ",
-        "isPreferred": false,
-        "marketValue": 397000000000,
-        "qva2SignalDate": "20260519",
-        "qva2SignalPrice": 28800,
-        "qva2Type": "absorption",
-        "qva2Score": 55,
-        "qva2Grade": "QVA2",
-        "qva2GradeLabel": "QVA2 (저점권 + 흡수 흔적)",
-        "qva2Tags": [
-          "고점 -39% 조정",
-          "장중 방어 흔적",
-          "마감 약함",
-          "투매형 제외 통과",
-          "저점 이탈 없음"
+        "operationGrade": "WEAK_CLOSE_SPIKE",
+        "operationLabel": "종가 밀림 주의",
+        "operationReason": "장중에는 강했지만 종가가 밀렸습니다. 다음 거래일 회복 확인 전까지 우선순위를 낮춥니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴",
+          "종가 마이너스",
+          "종가 위치 낮음",
+          "거래대금 배수 과대"
         ],
-        "qva2Signals": {
-          "date": "20260519",
-          "open": 29000,
-          "high": 29350,
-          "low": 27700,
-          "close": 28800,
-          "prevClose": 29200,
-          "changePct": -1.37,
-          "intradayHighPct": 0.51,
-          "closeLocation": 0.667,
-          "closeLocationLabel": "고가권",
-          "upperWickRatio": 0.212,
-          "bodyRatio": 0.121,
-          "isBearCandle": true,
-          "todayVolume": 97640,
-          "todayValue": 2812032000,
-          "volumeRatio": 2.38,
-          "valueRatio": 2.03,
-          "avg20Volume": 53806,
-          "avg20Value": 1804809310,
-          "medianPrev20Volume": 40964,
-          "medianPrev20Value": 1386672800,
-          "high60": 46900,
-          "low60": 27450,
-          "high120": 46900,
-          "low120": 27450,
-          "low20": 27450,
-          "drawdownFromHigh60": 38.59,
-          "drawdownFromHigh120": 38.59,
-          "pricePosition60": 0.069,
-          "pricePosition120": 0.069,
-          "riseFromLow20": 4.92,
-          "riseFromLow60": 4.92,
-          "distanceFromHigh60": 38.59,
-          "volumeRatio20": 2.38,
-          "valueRatio20": 2.03,
-          "recentLow20": 27450,
-          "recentLow60": 27450,
-          "low20HoldPct": 4.92,
-          "low60HoldPct": 4.92
-        },
-        "daysSinceQva2": 0,
-        "currentDate": "20260519",
-        "currentClose": 28800,
-        "currentVolume": 97640,
-        "currentValue": 2812032000,
-        "currentReturnFromSignal": 0,
-        "vvi2Date": null,
-        "vvi2High": null,
-        "vvi2Close": null,
-        "vvi2Low": null,
-        "daysSinceVvi2": null,
-        "breakoutDate": null,
-        "breakoutVviHigh": null,
-        "breakoutEntryPrice1Pct": null,
-        "breakoutNextHigh": null,
-        "breakoutNextClose": null,
-        "breakoutSuccess": null,
-        "daysFromBreakout": null,
-        "currentReturnFromEntry": null,
-        "judgmentStatus": null,
-        "mainStage": "QVA2_NEW",
-        "stageReason": null,
-        "auxTags": [
-          "PRICE_HOLD",
-          "VALUE_REACTIVATION"
-        ],
-        "riskTag": false,
-        "expiringSoon": false,
-        "watchScore": 65,
-        "hasFollowReaction": false,
-        "followInfo": null
-      },
-      {
-        "code": "048910",
-        "name": "대원미디어",
-        "market": "KOSDAQ",
-        "isPreferred": false,
-        "marketValue": 96900000000,
-        "qva2SignalDate": "20260519",
-        "qva2SignalPrice": 6190,
-        "qva2Type": "absorption",
-        "qva2Score": 48,
-        "qva2Grade": "WATCH_QVA2",
-        "qva2GradeLabel": "관찰 — 약한 흡수 흔적",
-        "qva2Tags": [
-          "고점 -36% 조정",
-          "장중 방어 흔적",
-          "마감 약함",
-          "투매형 제외 통과",
-          "저점 이탈 없음"
-        ],
-        "qva2Signals": {
-          "date": "20260519",
-          "open": 6310,
-          "high": 6450,
-          "low": 5890,
-          "close": 6190,
-          "prevClose": 6370,
-          "changePct": -2.83,
-          "intradayHighPct": 1.26,
-          "closeLocation": 0.536,
-          "closeLocationLabel": "중간 이상",
-          "upperWickRatio": 0.25,
-          "bodyRatio": 0.214,
-          "isBearCandle": true,
-          "todayVolume": 208828,
-          "todayValue": 1292645320,
-          "volumeRatio": 3.05,
-          "valueRatio": 2.47,
-          "avg20Volume": 83421,
-          "avg20Value": 599798344,
-          "medianPrev20Volume": 68375,
-          "medianPrev20Value": 524091180,
-          "high60": 9640,
-          "low60": 5890,
-          "high120": 9640,
-          "low120": 5890,
-          "low20": 5890,
-          "drawdownFromHigh60": 35.79,
-          "drawdownFromHigh120": 35.79,
-          "pricePosition60": 0.08,
-          "pricePosition120": 0.08,
-          "riseFromLow20": 5.09,
-          "riseFromLow60": 5.09,
-          "distanceFromHigh60": 35.79,
-          "volumeRatio20": 3.05,
-          "valueRatio20": 2.47,
-          "recentLow20": 5890,
-          "recentLow60": 5890,
-          "low20HoldPct": 5.09,
-          "low60HoldPct": 5.09
-        },
-        "daysSinceQva2": 0,
-        "currentDate": "20260519",
-        "currentClose": 6190,
-        "currentVolume": 208828,
-        "currentValue": 1292645320,
-        "currentReturnFromSignal": 0,
-        "vvi2Date": null,
-        "vvi2High": null,
-        "vvi2Close": null,
-        "vvi2Low": null,
-        "daysSinceVvi2": null,
-        "breakoutDate": null,
-        "breakoutVviHigh": null,
-        "breakoutEntryPrice1Pct": null,
-        "breakoutNextHigh": null,
-        "breakoutNextClose": null,
-        "breakoutSuccess": null,
-        "daysFromBreakout": null,
-        "currentReturnFromEntry": null,
-        "judgmentStatus": null,
-        "mainStage": "QVA2_NEW",
-        "stageReason": null,
-        "auxTags": [
-          "PRICE_HOLD",
-          "VALUE_REACTIVATION"
-        ],
-        "riskTag": false,
-        "expiringSoon": false,
-        "watchScore": 65,
         "hasFollowReaction": false,
         "followInfo": null
       },
@@ -1061,6 +1123,13 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 65,
+        "operationGrade": "LOW_PRIORITY_QVA2",
+        "operationLabel": "후순위 후보",
+        "operationReason": "QVA2 조건은 통과했지만 강도와 점수가 낮아 우선순위를 낮춥니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴",
+          "점수 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": null
       },
@@ -1151,6 +1220,12 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 40,
+        "operationGrade": "LOW_PRIORITY_QVA2",
+        "operationLabel": "후순위 후보",
+        "operationReason": "QVA2 조건은 통과했지만 강도와 점수가 낮아 우선순위를 낮춥니다.",
+        "riskTags": [
+          "점수 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": null
       }
@@ -1248,6 +1323,12 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 100,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": true,
         "followInfo": {
           "hasFollowReaction": true,
@@ -1364,6 +1445,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 100,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": true,
         "followInfo": {
           "hasFollowReaction": true,
@@ -1477,6 +1562,10 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 100,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": true,
         "followInfo": {
           "hasFollowReaction": true,
@@ -1591,6 +1680,12 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 100,
+        "operationGrade": "ABSORB_QVA2",
+        "operationLabel": "흡수형 후보",
+        "operationReason": "종가는 약했지만 장중 저가에서 회복했고 거래대금이 늘어난 종목입니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": true,
         "followInfo": {
           "hasFollowReaction": true,
@@ -1707,6 +1802,12 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 100,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": true,
         "followInfo": {
           "hasFollowReaction": true,
@@ -1820,6 +1921,10 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 100,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": true,
         "followInfo": {
           "hasFollowReaction": true,
@@ -1935,6 +2040,10 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 100,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -2052,6 +2161,10 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 100,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -2167,6 +2280,10 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 100,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -2282,6 +2399,10 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 100,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -2397,6 +2518,10 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 80,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -2511,6 +2636,13 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 80,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴",
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -2624,6 +2756,10 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 80,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -2737,6 +2873,10 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 80,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -2849,6 +2989,12 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 65,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -2962,6 +3108,10 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 65,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -3075,6 +3225,12 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 60,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -3188,6 +3344,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 55,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -3300,6 +3460,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 55,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -3413,6 +3577,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 55,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -3526,6 +3694,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 55,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -3638,6 +3810,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 55,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -3751,6 +3927,10 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 55,
+        "operationGrade": "ABSORB_QVA2",
+        "operationLabel": "흡수형 후보",
+        "operationReason": "종가는 약했지만 장중 저가에서 회복했고 거래대금이 늘어난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -3864,6 +4044,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 50,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -3977,6 +4161,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 50,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -4091,6 +4279,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 50,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -4203,6 +4395,10 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 50,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -4316,6 +4512,12 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 50,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -4428,6 +4630,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 40,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -4541,6 +4749,10 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 40,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -4654,6 +4866,10 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 40,
+        "operationGrade": "WATCH_QVA2",
+        "operationLabel": "관찰 — 약한 흡수 흔적",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -4767,6 +4983,12 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 40,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -4879,6 +5101,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 30,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -4990,6 +5216,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 30,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -5102,6 +5332,12 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 30,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -5213,6 +5449,12 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 30,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -5325,6 +5567,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 30,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -5436,6 +5682,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 30,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -5548,6 +5798,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 30,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -5661,6 +5915,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 25,
+        "operationGrade": "ABSORB_QVA2",
+        "operationLabel": "흡수형 후보",
+        "operationReason": "종가는 약했지만 장중 저가에서 회복했고 거래대금이 늘어난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -5772,6 +6030,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 25,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -5885,6 +6147,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 25,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -5997,6 +6263,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 25,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -6109,6 +6379,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 15,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -6221,6 +6495,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 15,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -6333,6 +6611,13 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 15,
+        "operationGrade": "WEAK_CLOSE_SPIKE",
+        "operationLabel": "종가 밀림 주의",
+        "operationReason": "장중에는 강했지만 종가가 밀렸습니다. 다음 거래일 회복 확인 전까지 우선순위를 낮춥니다.",
+        "riskTags": [
+          "종가 마이너스",
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -6444,6 +6729,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 15,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -6556,6 +6847,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 15,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -6668,6 +6963,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 10,
+        "operationGrade": "ABSORB_QVA2",
+        "operationLabel": "흡수형 후보",
+        "operationReason": "종가는 약했지만 장중 저가에서 회복했고 거래대금이 늘어난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -6779,6 +7078,13 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 10,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴",
+          "거래대금 배수 과대"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -6889,6 +7195,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "ABSORB_QVA2",
+        "operationLabel": "흡수형 후보",
+        "operationReason": "종가는 약했지만 장중 저가에서 회복했고 거래대금이 늘어난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -6998,6 +7308,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -7107,6 +7423,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "LOW_PRIORITY_QVA2",
+        "operationLabel": "후순위 후보",
+        "operationReason": "QVA2 조건은 통과했지만 강도와 점수가 낮아 우선순위를 낮춥니다.",
+        "riskTags": [
+          "점수 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -7217,6 +7539,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -7327,6 +7653,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -7437,6 +7767,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -7547,6 +7883,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -7657,6 +7997,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -7767,6 +8113,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -7877,6 +8227,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -7986,6 +8342,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -8094,6 +8454,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -8204,6 +8568,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -8314,6 +8682,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -8423,6 +8797,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -8532,6 +8912,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "LOW_PRIORITY_QVA2",
+        "operationLabel": "후순위 후보",
+        "operationReason": "QVA2 조건은 통과했지만 강도와 점수가 낮아 우선순위를 낮춥니다.",
+        "riskTags": [
+          "점수 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -8642,6 +9028,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -8751,6 +9143,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -8862,6 +9258,13 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음",
+          "거래대금 배수 과대"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -8972,6 +9375,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_QVA2",
+        "operationLabel": "관찰 — 약한 흡수 흔적",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -9081,6 +9488,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -9192,6 +9603,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -9301,6 +9716,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_QVA2",
+        "operationLabel": "관찰 — 약한 흡수 흔적",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -9412,6 +9831,13 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음",
+          "거래대금 배수 과대"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -9522,6 +9948,13 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음",
+          "거래대금 배수 과대"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -9631,6 +10064,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -9743,6 +10180,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -9855,6 +10296,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -9967,6 +10412,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -10078,6 +10529,13 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음",
+          "거래대금 배수 과대"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -10189,6 +10647,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -10301,6 +10763,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -10413,6 +10879,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -10525,6 +10997,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -10637,6 +11115,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -10750,6 +11234,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "ABSORB_QVA2",
+        "operationLabel": "흡수형 후보",
+        "operationReason": "종가는 약했지만 장중 저가에서 회복했고 거래대금이 늘어난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -10868,6 +11356,12 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 100,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": true,
         "followInfo": {
           "hasFollowReaction": true,
@@ -10984,6 +11478,13 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 100,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 마이너스",
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": true,
         "followInfo": {
           "hasFollowReaction": true,
@@ -11101,6 +11602,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 100,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": true,
         "followInfo": {
           "hasFollowReaction": true,
@@ -11217,6 +11722,12 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 100,
+        "operationGrade": "LOW_PRIORITY_QVA2",
+        "operationLabel": "후순위 후보",
+        "operationReason": "QVA2 조건은 통과했지만 강도와 점수가 낮아 우선순위를 낮춥니다.",
+        "riskTags": [
+          "점수 낮음"
+        ],
         "hasFollowReaction": true,
         "followInfo": {
           "hasFollowReaction": true,
@@ -11330,6 +11841,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 75,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -11448,6 +11963,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 100,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": true,
         "followInfo": {
           "hasFollowReaction": true,
@@ -11563,6 +12082,12 @@
         "riskTag": false,
         "expiringSoon": true,
         "watchScore": 100,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": true,
         "followInfo": {
           "hasFollowReaction": true,
@@ -11676,6 +12201,14 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 65,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴",
+          "종가 마이너스",
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -11792,6 +12325,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 100,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": true,
         "followInfo": {
           "hasFollowReaction": true,
@@ -11904,6 +12441,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 50,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -12016,6 +12557,10 @@
         "riskTag": false,
         "expiringSoon": false,
         "watchScore": 25,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -12128,6 +12673,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 15,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -12239,6 +12788,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 10,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -12352,6 +12907,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 25,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -12462,6 +13023,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -12572,6 +13137,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -12682,6 +13251,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -12795,6 +13370,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 25,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -12905,6 +13484,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -13015,6 +13600,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -13127,6 +13716,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -13236,6 +13829,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -13348,6 +13945,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -13460,6 +14061,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -13570,6 +14177,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -13679,6 +14292,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -13789,6 +14406,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -13901,6 +14522,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -14011,6 +14638,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -14122,6 +14753,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -14232,6 +14867,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -14342,6 +14983,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -14452,6 +15097,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -14562,6 +15213,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -14671,6 +15326,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -14781,6 +15442,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -14892,6 +15559,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 10,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -15002,6 +15673,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -15110,6 +15785,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "LOW_PRIORITY_QVA2",
+        "operationLabel": "후순위 후보",
+        "operationReason": "QVA2 조건은 통과했지만 강도와 점수가 낮아 우선순위를 낮춥니다.",
+        "riskTags": [
+          "점수 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -15221,6 +15902,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 10,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -15333,6 +16018,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 25,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -15445,6 +16134,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -15557,6 +16252,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -15669,6 +16368,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 15,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -15779,6 +16482,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "ABSORB_QVA2",
+        "operationLabel": "흡수형 후보",
+        "operationReason": "종가는 약했지만 장중 저가에서 회복했고 거래대금이 늘어난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -15888,6 +16595,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -15998,6 +16709,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -16107,6 +16822,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -16215,6 +16934,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "LOW_PRIORITY_QVA2",
+        "operationLabel": "후순위 후보",
+        "operationReason": "QVA2 조건은 통과했지만 강도와 점수가 낮아 우선순위를 낮춥니다.",
+        "riskTags": [
+          "점수 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -16325,6 +17050,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -16435,6 +17164,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -16547,6 +17280,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -16657,6 +17394,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -16766,6 +17507,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -16878,6 +17623,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -16988,6 +17739,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -17097,6 +17852,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -17207,6 +17966,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -17319,6 +18082,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -17429,6 +18196,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -17541,6 +18314,13 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴",
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -17652,6 +18432,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [
+          "거래대금 배수 과대"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -17762,6 +18548,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -17871,6 +18661,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "거래대금 배수 과대"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -17980,6 +18776,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -18092,6 +18892,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -18202,6 +19008,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_ABSORB_QVA2",
+        "operationLabel": "흡수형 관찰 후보",
+        "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -18312,6 +19122,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -18424,6 +19240,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -18533,6 +19353,13 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴",
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -18643,6 +19470,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -18755,6 +19586,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "STRONG_SPIKE",
+        "operationLabel": "강한 spike (저점권 + 거래대금 폭발)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -18864,6 +19699,15 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "LOW_PRIORITY_QVA2",
+        "operationLabel": "후순위 후보",
+        "operationReason": "QVA2 조건은 통과했지만 강도와 점수가 낮아 우선순위를 낮춥니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴",
+          "종가 마이너스",
+          "종가 위치 낮음",
+          "점수 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -18975,6 +19819,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -19088,6 +19936,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 25,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -19197,6 +20049,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -19306,6 +20162,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -19416,6 +20276,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -19526,6 +20390,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "STRONG_SPIKE",
+        "operationLabel": "강한 spike (저점권 + 거래대금 폭발)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -19638,6 +20508,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -19747,6 +20621,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -19857,6 +20735,12 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "LOW_PRIORITY_QVA2",
+        "operationLabel": "후순위 후보",
+        "operationReason": "QVA2 조건은 통과했지만 강도와 점수가 낮아 우선순위를 낮춥니다.",
+        "riskTags": [
+          "점수 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -19966,6 +20850,10 @@
         "riskTag": true,
         "expiringSoon": false,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -20076,6 +20964,14 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WEAK_CLOSE_SPIKE",
+        "operationLabel": "종가 밀림 주의",
+        "operationReason": "장중에는 강했지만 종가가 밀렸습니다. 다음 거래일 회복 확인 전까지 우선순위를 낮춥니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴",
+          "종가 마이너스",
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -20188,6 +21084,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -20297,6 +21197,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -20406,6 +21310,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_SPIKE",
+        "operationLabel": "관찰 — spike",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -20519,6 +21427,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "WATCH_QVA2",
+        "operationLabel": "관찰 — 약한 흡수 흔적",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -20631,6 +21543,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "CORE_QVA2",
+        "operationLabel": "정상 초동 후보",
+        "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -20741,6 +21657,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "SPIKE",
+        "operationLabel": "spike (저점권 + 장중 강한 반응)",
+        "operationReason": "추가 분류 기준에 맞지 않는 후보입니다.",
+        "riskTags": [
+          "종가 위치 낮음"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -20851,6 +21773,10 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "STRONG_QVA2",
+        "operationLabel": "강한 초동 후보",
+        "operationReason": "깊은 조정 후 거래대금이 강하게 들어온 후보입니다.",
+        "riskTags": [],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -20963,6 +21889,12 @@
         "riskTag": true,
         "expiringSoon": true,
         "watchScore": 0,
+        "operationGrade": "REIGNITION_HOT",
+        "operationLabel": "과열 후 재점화",
+        "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+        "riskTags": [
+          "저점 대비 많이 올라옴"
+        ],
         "hasFollowReaction": false,
         "followInfo": {
           "hasFollowReaction": false,
@@ -21082,6 +22014,12 @@
       "riskTag": false,
       "expiringSoon": false,
       "watchScore": 100,
+      "operationGrade": "REIGNITION_HOT",
+      "operationLabel": "과열 후 재점화",
+      "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+      "riskTags": [
+        "저점 대비 많이 올라옴"
+      ],
       "hasFollowReaction": true,
       "followInfo": {
         "hasFollowReaction": true,
@@ -21198,6 +22136,10 @@
       "riskTag": false,
       "expiringSoon": false,
       "watchScore": 100,
+      "operationGrade": "CORE_QVA2",
+      "operationLabel": "정상 초동 후보",
+      "operationReason": "충분히 내려온 자리에서 거래대금이 살아난 종목입니다.",
+      "riskTags": [],
       "hasFollowReaction": true,
       "followInfo": {
         "hasFollowReaction": true,
@@ -21311,6 +22253,10 @@
       "riskTag": false,
       "expiringSoon": true,
       "watchScore": 100,
+      "operationGrade": "WATCH_ABSORB_QVA2",
+      "operationLabel": "흡수형 관찰 후보",
+      "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+      "riskTags": [],
       "hasFollowReaction": true,
       "followInfo": {
         "hasFollowReaction": true,
@@ -21425,6 +22371,12 @@
       "riskTag": false,
       "expiringSoon": true,
       "watchScore": 100,
+      "operationGrade": "ABSORB_QVA2",
+      "operationLabel": "흡수형 후보",
+      "operationReason": "종가는 약했지만 장중 저가에서 회복했고 거래대금이 늘어난 종목입니다.",
+      "riskTags": [
+        "저점 대비 많이 올라옴"
+      ],
       "hasFollowReaction": true,
       "followInfo": {
         "hasFollowReaction": true,
@@ -21541,6 +22493,12 @@
       "riskTag": false,
       "expiringSoon": true,
       "watchScore": 100,
+      "operationGrade": "REIGNITION_HOT",
+      "operationLabel": "과열 후 재점화",
+      "operationReason": "이미 저점에서 많이 오른 뒤 다시 거래대금이 터진 종목입니다. 초동 후보보다는 변동성 후보로 봅니다.",
+      "riskTags": [
+        "저점 대비 많이 올라옴"
+      ],
       "hasFollowReaction": true,
       "followInfo": {
         "hasFollowReaction": true,
@@ -21654,6 +22612,10 @@
       "riskTag": false,
       "expiringSoon": true,
       "watchScore": 100,
+      "operationGrade": "WATCH_ABSORB_QVA2",
+      "operationLabel": "흡수형 관찰 후보",
+      "operationReason": "흡수 흔적은 있지만 강도는 아직 약한 후보입니다.",
+      "riskTags": [],
       "hasFollowReaction": true,
       "followInfo": {
         "hasFollowReaction": true,
