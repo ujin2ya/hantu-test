@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>1DS miss 디버그 — 에이치브이엠(295310)</title>
+<style>
+  body { font-family: 'Segoe UI','Malgun Gothic',Arial,sans-serif; background:#f6f8fa; color:#1f2328; margin:0; padding:24px; }
+  h1 { margin:0 0 4px; font-size:24px; }
+  h2 { margin:24px 0 8px; font-size:18px; border-bottom:2px solid #d0d7de; padding-bottom:4px; }
+  .meta { color:#57606a; font-size:13px; margin-bottom:24px; }
+  .summary { background:#fff; border:1px solid #d0d7de; border-radius:8px; padding:16px; }
+  .summary .label { color:#57606a; font-size:12px; }
+  .summary .val   { font-size:14px; margin-bottom:8px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:600; }
+  .badge.fail { background:#ffd6d6; color:#a40000; }
+  .badge.ok   { background:#d6f5d6; color:#0a6900; }
+  .badge.warn { background:#fff5cc; color:#7a5a00; }
+  table { width:100%; border-collapse:collapse; background:#fff; border:1px solid #d0d7de; margin-top:8px; font-size:13px; }
+  th, td { border:1px solid #d0d7de; padding:6px 10px; text-align:left; vertical-align:top; }
+  th { background:#eaeef2; font-weight:600; }
+  td.ok   { color:#0a6900; font-weight:600; }
+  td.fail { color:#a40000; font-weight:600; }
+  tr.target { background:#fff7e6; }
+  pre { background:#f0f3f6; padding:10px; border-radius:6px; overflow-x:auto; font-size:12px; }
+  .ohlcv { font-family:monospace; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  ul { margin:6px 0; padding-left:20px; }
+</style>
+</head>
+<body>
+<h1>1DS miss 디버그 — 에이치브이엠 (295310)</h1>
+<div class="meta">생성: 2026-05-18T23:58:03.832Z · 분석 기준일 20260518 · QVA 발생일 2026-05-15</div>
+
+<h2>섹션 1 — 요약</h2>
+<div class="summary">
+  <div class="label">최종 탈락 단계</div>
+  <div class="val"><span class="badge fail">단계 13: classifyGtGroup → UNCLASSIFIED</span> 시총 band=MID_CAP, candleType=GAP_HOLD, v/mc=15.59% — 1DS GT 그룹 조건 불일치</div>
+  <div class="label">가장 유력한 탈락 원인</div>
+  <div class="val">MID_CAP band (7,000억~1.5조)는 candleType=LOW_GAP_INTRADAY만 통과. 대상 종목은 candleType=GAP_HOLD (갭상승 + 종가 유지형)이라 정책상 제외.</div>
+  <div class="label">버그 가능성 여부</div>
+  <div class="val">낮음 — 1DS의 정책적 그룹 정의(시총 구간별 캔들 패턴 제한)에 따른 정상 제외.</div>
+  <div class="label">조건상 정상 탈락 여부</div>
+  <div class="val">예 — 단타 후보 보드의 시총 구간별 캔들 정책상 제외.</div>
+  <div class="label">결론 분류</div>
+  <div class="val"><span class="badge warn">LOGIC_GAP</span></div>
+</div>
+
+<h2>섹션 2 — 에이치브이엠 QVA 이력</h2>
+<table>
+  <thead><tr><th>signal_date</th><th>board_name</th><th>signal_kind</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>2026-05-18</td>
+      <td>QVA_VVI_REDEFINED</td>
+      <td>TODAY_NEW_VVI</td>
+    </tr>
+    <tr>
+      <td>2026-05-18</td>
+      <td>QVA_VVI_REDEFINED</td>
+      <td>OVERHEATED</td>
+    </tr>
+    <tr>
+      <td>2026-05-18</td>
+      <td>QVA_WATCHLIST</td>
+      <td>VVI_FIRED</td>
+    </tr>
+    <tr>
+      <td>2026-05-15</td>
+      <td>QVA_WATCHLIST</td>
+      <td>QVA_NEW</td>
+    </tr>
+    <tr>
+      <td>2026-03-10</td>
+      <td>ONE_DAY_SURGE</td>
+      <td>ATTACK_TOP</td>
+    </tr></tbody>
+</table>
+<ul>
+  <li>QVA 발생일: <b>2026-05-15</b></li>
+  <li>QVA 종류: <b>QVA_WATCHLIST / QVA_NEW</b></li>
+  <li>상한가(또는 최고 changeRate) 발생일: <b>20260518</b> (27.99%)</li>
+  <li>QVA → 상한가 경과 거래일: <b>1일</b></li>
+</ul>
+
+<h2>섹션 3 — 1DS 파이프라인 단계별 결과</h2>
+<table>
+  <thead><tr><th>#</th><th>통과/탈락</th><th>단계</th><th>값/사유</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1. stockUniverse 포함 여부</td>
+      <td class="ok">✅ 통과</td>
+      <td>chart 파일 존재 (rows 457)</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>2. meta 존재 여부</td>
+      <td class="ok">✅ 통과</td>
+      <td>name=&quot;에이치브이엠&quot;, market=KOSDAQ, marketCap=1070400000000</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>3. chart 존재 여부</td>
+      <td class="ok">✅ 통과</td>
+      <td>rows 457건, 마지막 20260518</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>4. hardFilter 통과 여부</td>
+      <td class="ok">✅ 통과</td>
+      <td>PASS</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>5. hardFilter 탈락 사유</td>
+      <td class="ok">✅ 통과</td>
+      <td>N/A (통과)</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>6. theme universe 확장 대상 여부</td>
+      <td class="fail">❌ 탈락</td>
+      <td>테마 풀 미포함</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>7. analyzeAt 실행 여부</td>
+      <td class="ok">✅ 통과</td>
+      <td>baseIdx=456 (date=20260518)</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>8. analyzeAt 반환값</td>
+      <td class="ok">✅ 통과</td>
+      <td>정상 m 객체</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>9. retPct 값 (= changeRate, close/prevClose)</td>
+      <td class="ok">✅ 통과</td>
+      <td>changeRate=27.99% / openToClose=12.68% / gapPct=13.59%</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>10. signalPrice 값 (= 기준일 close)</td>
+      <td class="ok">✅ 통과</td>
+      <td>125300원 (open=111200, high=127000, low=102700)</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>11. oneDaySurgeScore 계산값</td>
+      <td class="ok">✅ 통과</td>
+      <td>70점</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>12. scoreMetrics 세부 점수</td>
+      <td class="ok">✅ 통과</td>
+      <td>{&quot;valueSurgeScore&quot;:25,&quot;volumeSurgeScore&quot;:15,&quot;closeStrengthScore&quot;:20,&quot;priceMomentumScore&quot;:15,&quot;breakoutPotentialScore&quot;:15,&quot;upperTailPenalty&quot;:0,&quot;overheatPenalty&quot;:-20,&quot;riskPenalty&quot;:0,&quot;marketCapPenalty&quot;:0,&quot;marketCapBand&quot;:&quot;CORE&quot;}</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>13. classifyGroup (legacy A/B/C/D) 결과</td>
+      <td class="ok">✅ 통과</td>
+      <td>D</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>13. classifyGtGroup 결과 (band=MID_CAP, candle=GAP_HOLD, v/mc=15.59%, rank=n/a, recent5Up15=1)</td>
+      <td class="fail">❌ 탈락</td>
+      <td>UNCLASSIFIED</td>
+      <td>-</td>
+    </tr></tbody>
+</table>
+
+<h2>섹션 4 — retPct(=changeRate) 분석</h2>
+<div class="grid2">
+  <div class="summary">
+    <div class="label">상한가 당일 OHLCV (20260518)</div>
+    <div class="ohlcv">{&quot;date&quot;:&quot;20260518&quot;,&quot;open&quot;:111200,&quot;high&quot;:127000,&quot;low&quot;:102700,&quot;close&quot;:125300,&quot;volume&quot;:1331599,&quot;valueApprox&quot;:166849354700}</div>
+    <div class="label" style="margin-top:8px">analyzeAt 반환값 핵심</div>
+    <pre>{
+  &quot;changeRate&quot;: 27.99,
+  &quot;openToClose&quot;: &quot;12.68%&quot;,
+  &quot;gapPct&quot;: 13.59,
+  &quot;closePosition&quot;: 0.93,
+  &quot;upperTailRatio&quot;: 0.07,
+  &quot;valueRatio&quot;: 6.62,
+  &quot;volumeRatio&quot;: 5.02,
+  &quot;ret3d&quot;: 30.52,
+  &quot;ret5d&quot;: 18.1,
+  &quot;isBreakoutOf20&quot;: true,
+  &quot;distFromHigh20&quot;: 10.01
+}</pre>
+  </div>
+  <div class="summary">
+    <div class="label">retPct 진단</div>
+    <ul>
+      <li>입력 데이터(OHLCV) 정상: <b>✅</b></li>
+      <li>prevClose 존재: <b>✅</b></li>
+      <li>open/high/low/close null 필드: <b>없음</b></li>
+      <li>analyzeAt 반환의 changeRate finite: <b>✅</b></li>
+      <li>분석일(20260518) ↔ chart 마지막 row(20260518) 일치: <b>✅</b></li>
+      <li>분봉 의존 여부: <b>✅ 일봉 기준</b></li>
+      <li>숫자 파싱 이상: <b>없음</b></li>
+    </ul>
+    <div class="label" style="margin-top:8px">결과</div>
+    <div class="val">analyzeAt이 정상적으로 changeRate=27.99%를 반환. retPct undefined 이슈는 외부 디버그(잘못된 필드명 참조)에서 발생한 것으로 1DS 본체에는 없음.</div>
+  </div>
+</div>
+
+<h2>섹션 5 — 성공 1DS 종목 3개와 비교 (20260518)</h2>
+<table>
+  <thead><tr>
+    <th>code</th><th>name</th><th>candleType</th><th>gtGroup</th><th>changeRate</th>
+    <th>oneDaySurgeScore</th><th>legacyGroup</th><th>displayPriorityScore</th><th>최종</th>
+  </tr></thead>
+  <tbody>
+    
+    <tr class="target">
+      <td>295310</td>
+      <td>에이치브이엠 (타겟)</td>
+      <td>GAP_HOLD</td>
+      <td>UNCLASSIFIED</td>
+      <td>27.99%</td>
+      <td>70</td>
+      <td>-</td>
+      <td>-</td>
+      <td class="fail">mainPool ✗</td>
+    </tr>
+    
+  </tbody>
+</table>
+
+<h2>섹션 6 — 결론</h2>
+<div class="summary">
+  <div class="val">대상 종목은 hardFilter와 analyzeAt까지 모두 통과했고 점수(70점)도 충분히 높았으나, GT 그룹 분류(classifyGtGroup) 단계에서 MID_CAP band + candleType=GAP_HOLD 조합이 어떤 GT 그룹에도 들어가지 못해 UNCLASSIFIED로 분류되어 보드에서 제외됨. 1DS는 &quot;단타 후보&quot; 보드라 GAP_HOLD 같은 갭상승 종가 유지형은 fail 비율이 높다는 백테스트 결과에 따라 의도적으로 제외하는 정책. QVA(중장기 흐름)와 1DS(단타)는 기준이 다르므로 QVA에 잡혔다 해서 1DS에도 잡혀야 하는 것은 아님. 만약 이런 유형도 단타 후보로 보고 싶다면 별도 보드/섹션을 추가하는 것이 1DS 본체를 수정하는 것보다 안전함.</div>
+</div>
+</body>
+</html>

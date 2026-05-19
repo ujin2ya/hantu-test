@@ -1,0 +1,295 @@
+{
+  "generatedAt": "2026-05-18T23:58:03.832Z",
+  "target": {
+    "code": "295310",
+    "name": "에이치브이엠",
+    "market": "KOSDAQ",
+    "marketCap": 1070400000000
+  },
+  "targetBaseDate": "20260518",
+  "targetOhlcv": {
+    "date": "20260518",
+    "open": 111200,
+    "high": 127000,
+    "low": 102700,
+    "close": 125300,
+    "volume": 1331599,
+    "valueApprox": 166849354700
+  },
+  "surgeDate": "20260518",
+  "surgeChange": 27.98774259448418,
+  "qvaSignalDate": "2026-05-15",
+  "qvaKind": "QVA_WATCHLIST / QVA_NEW",
+  "daysFromQvaToSurge": 1,
+  "qvaHistory": [
+    {
+      "id": 76908,
+      "board_name": "QVA_VVI_REDEFINED",
+      "signal_kind": "TODAY_NEW_VVI",
+      "signal_date": "2026-05-18",
+      "stock_code": "295310",
+      "stock_name": "에이치브이엠",
+      "market": "KOSDAQ",
+      "signal_price": "125300.0000",
+      "score": "3.2359",
+      "grade": "VVI_FIRED",
+      "status_label": "강한 거래대금 재돌파",
+      "tags_json": {
+        "isTodayNewVvi": true,
+        "isMainCandidate": true
+      },
+      "created_at": "2026-05-18 16:35:14"
+    },
+    {
+      "id": 76885,
+      "board_name": "QVA_VVI_REDEFINED",
+      "signal_kind": "OVERHEATED",
+      "signal_date": "2026-05-18",
+      "stock_code": "295310",
+      "stock_name": "에이치브이엠",
+      "market": "KOSDAQ",
+      "signal_price": "125300.0000",
+      "score": "3.2359",
+      "grade": "VVI_FIRED",
+      "status_label": "강한 거래대금 재돌파",
+      "tags_json": {
+        "isTodayNewVvi": true,
+        "isMainCandidate": true
+      },
+      "created_at": "2026-05-18 16:35:14"
+    },
+    {
+      "id": 76628,
+      "board_name": "QVA_WATCHLIST",
+      "signal_kind": "VVI_FIRED",
+      "signal_date": "2026-05-18",
+      "stock_code": "295310",
+      "stock_name": "에이치브이엠",
+      "market": "KOSDAQ",
+      "signal_price": "97900.0000",
+      "score": "95.0000",
+      "grade": null,
+      "status_label": null,
+      "tags_json": {
+        "auxTags": [
+          "PRICE_HOLD",
+          "LOW_RISING",
+          "VALUE_REACTIVATION"
+        ],
+        "riskTag": null,
+        "vprTags": []
+      },
+      "created_at": "2026-05-18 16:35:13"
+    },
+    {
+      "id": 586,
+      "board_name": "QVA_WATCHLIST",
+      "signal_kind": "QVA_NEW",
+      "signal_date": "2026-05-15",
+      "stock_code": "295310",
+      "stock_name": "에이치브이엠",
+      "market": "KOSDAQ",
+      "signal_price": "97900.0000",
+      "score": "65.0000",
+      "grade": null,
+      "status_label": null,
+      "tags_json": {
+        "auxTags": [
+          "PRICE_HOLD",
+          "LOW_RISING"
+        ],
+        "riskTag": null,
+        "vprTags": []
+      },
+      "created_at": "2026-05-17 16:36:37"
+    },
+    {
+      "id": 70055,
+      "board_name": "ONE_DAY_SURGE",
+      "signal_kind": "ATTACK_TOP",
+      "signal_date": "2026-03-10",
+      "stock_code": "295310",
+      "stock_name": "에이치브이엠",
+      "market": "KOSDAQ",
+      "signal_price": "108800.0000",
+      "score": "63.0000",
+      "grade": "MID_CAP",
+      "status_label": null,
+      "tags_json": {
+        "riskTags": [
+          "갭 과열",
+          "시가 대비 너무 멀어짐",
+          "장초 변동성 큼",
+          "고가 대비 밀림"
+        ],
+        "attackTags": [
+          "거래대금 상위 10%",
+          "대형 거래대금",
+          "장초 고가 재돌파",
+          "재돌파 + 거래대금 동반",
+          "강한 거래대금 유지",
+          "공격형 TOP"
+        ]
+      },
+      "created_at": "2026-05-18 00:39:17"
+    }
+  ],
+  "themeWatchInfo": {
+    "code": "295310",
+    "isThemeWatchCandidate": false
+  },
+  "trace": {
+    "steps": [
+      {
+        "stage": "1. stockUniverse 포함 여부",
+        "ok": true,
+        "value": "chart 파일 존재 (rows 457)",
+        "reason": null
+      },
+      {
+        "stage": "2. meta 존재 여부",
+        "ok": true,
+        "value": "name=\"에이치브이엠\", market=KOSDAQ, marketCap=1070400000000",
+        "reason": null
+      },
+      {
+        "stage": "3. chart 존재 여부",
+        "ok": true,
+        "value": "rows 457건, 마지막 20260518",
+        "reason": null
+      },
+      {
+        "stage": "4. hardFilter 통과 여부",
+        "ok": true,
+        "value": "PASS",
+        "reason": null
+      },
+      {
+        "stage": "5. hardFilter 탈락 사유",
+        "ok": true,
+        "value": "N/A (통과)",
+        "reason": null
+      },
+      {
+        "stage": "6. theme universe 확장 대상 여부",
+        "ok": false,
+        "value": "테마 풀 미포함",
+        "reason": null
+      },
+      {
+        "stage": "7. analyzeAt 실행 여부",
+        "ok": true,
+        "value": "baseIdx=456 (date=20260518)",
+        "reason": null
+      },
+      {
+        "stage": "8. analyzeAt 반환값",
+        "ok": true,
+        "value": "정상 m 객체",
+        "reason": null
+      },
+      {
+        "stage": "9. retPct 값 (= changeRate, close/prevClose)",
+        "ok": true,
+        "value": "changeRate=27.99% / openToClose=12.68% / gapPct=13.59%",
+        "reason": null
+      },
+      {
+        "stage": "10. signalPrice 값 (= 기준일 close)",
+        "ok": true,
+        "value": "125300원 (open=111200, high=127000, low=102700)",
+        "reason": null
+      },
+      {
+        "stage": "11. oneDaySurgeScore 계산값",
+        "ok": true,
+        "value": "70점",
+        "reason": null
+      },
+      {
+        "stage": "12. scoreMetrics 세부 점수",
+        "ok": true,
+        "value": "{\"valueSurgeScore\":25,\"volumeSurgeScore\":15,\"closeStrengthScore\":20,\"priceMomentumScore\":15,\"breakoutPotentialScore\":15,\"upperTailPenalty\":0,\"overheatPenalty\":-20,\"riskPenalty\":0,\"marketCapPenalty\":0,\"marketCapBand\":\"CORE\"}",
+        "reason": null
+      },
+      {
+        "stage": "13. classifyGroup (legacy A/B/C/D) 결과",
+        "ok": true,
+        "value": "D",
+        "reason": null
+      },
+      {
+        "stage": "13. classifyGtGroup 결과 (band=MID_CAP, candle=GAP_HOLD, v/mc=15.59%, rank=n/a, recent5Up15=1)",
+        "ok": false,
+        "value": "UNCLASSIFIED",
+        "reason": null
+      }
+    ],
+    "m": {
+      "baseIdx": 456,
+      "baseDate": "20260518",
+      "open": 111200,
+      "high": 127000,
+      "low": 102700,
+      "close": 125300,
+      "volume": 1331599,
+      "valueAmount": 166849354700,
+      "prevClose": 97900,
+      "avg20Value": 25189628415,
+      "avg20Volume": 265291.8,
+      "valueRatio": 6.62,
+      "volumeRatio": 5.02,
+      "closePosition": 0.93,
+      "upperTailRatio": 0.07,
+      "changeRate": 27.99,
+      "gapPct": 13.59,
+      "ret3d": 30.52,
+      "ret5d": 18.1,
+      "high20": 113900,
+      "distFromHigh20": 10.01,
+      "isBreakoutOf20": true,
+      "nearHigh20": false
+    },
+    "s": {
+      "valueSurgeScore": 25,
+      "volumeSurgeScore": 15,
+      "closeStrengthScore": 20,
+      "priceMomentumScore": 15,
+      "breakoutPotentialScore": 15,
+      "upperTailPenalty": 0,
+      "overheatPenalty": -20,
+      "riskPenalty": 0,
+      "marketCapPenalty": 0,
+      "marketCapBand": "CORE",
+      "oneDaySurgeScore": 70
+    },
+    "candleType": "GAP_HOLD",
+    "gtBand": "MID_CAP",
+    "gtGroup": "UNCLASSIFIED",
+    "valueToMarketCapRatio": 15.587570506352765,
+    "recent5Up15Count": 1,
+    "dailyValueRank": null,
+    "exit": "UNCLASSIFIED_GT"
+  },
+  "diag": {
+    "ohlcvOk": true,
+    "prevCloseOk": true,
+    "missingFields": [],
+    "changeRateFinite": true,
+    "lastChartDate": "20260518",
+    "baseDateOk": true,
+    "usesIntraday": false,
+    "parseAnomaly": null,
+    "summary": "analyzeAt이 정상적으로 changeRate=27.99%를 반환. retPct undefined 이슈는 외부 디버그(잘못된 필드명 참조)에서 발생한 것으로 1DS 본체에는 없음."
+  },
+  "comparison": [],
+  "conclusion": {
+    "classification": "LOGIC_GAP",
+    "finalCutStage": "단계 13: classifyGtGroup → UNCLASSIFIED",
+    "finalCutDetail": "시총 band=MID_CAP, candleType=GAP_HOLD, v/mc=15.59% — 1DS GT 그룹 조건 불일치",
+    "primaryReason": "MID_CAP band (7,000억~1.5조)는 candleType=LOW_GAP_INTRADAY만 통과. 대상 종목은 candleType=GAP_HOLD (갭상승 + 종가 유지형)이라 정책상 제외.",
+    "bugLikely": "낮음 — 1DS의 정책적 그룹 정의(시총 구간별 캔들 패턴 제한)에 따른 정상 제외.",
+    "intendedExclusion": "예 — 단타 후보 보드의 시총 구간별 캔들 정책상 제외.",
+    "narrative": "대상 종목은 hardFilter와 analyzeAt까지 모두 통과했고 점수(70점)도 충분히 높았으나, GT 그룹 분류(classifyGtGroup) 단계에서 MID_CAP band + candleType=GAP_HOLD 조합이 어떤 GT 그룹에도 들어가지 못해 UNCLASSIFIED로 분류되어 보드에서 제외됨. 1DS는 \"단타 후보\" 보드라 GAP_HOLD 같은 갭상승 종가 유지형은 fail 비율이 높다는 백테스트 결과에 따라 의도적으로 제외하는 정책. QVA(중장기 흐름)와 1DS(단타)는 기준이 다르므로 QVA에 잡혔다 해서 1DS에도 잡혀야 하는 것은 아님. 만약 이런 유형도 단타 후보로 보고 싶다면 별도 보드/섹션을 추가하는 것이 1DS 본체를 수정하는 것보다 안전함."
+  }
+}

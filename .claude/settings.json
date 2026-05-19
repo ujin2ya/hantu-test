@@ -17,7 +17,8 @@
       "PowerShell(cd c:\\\\Users\\\\Eugene\\\\workspace\\\\hantu-test ; $password = $env:SITE_PASSWORD ; if\\($password\\) { Write-Host \"비밀번호: $password\" } else { Write-Host \"환경변수에 SITE_PASSWORD 없음\" })",
       "PowerShell($password = \"내사랑단타\" ; $cookie = New-Object System.Net.Cookie ; $cookie.Name = \"site_session\" ; $cookie.Value = [System.Web.HttpUtility]::UrlEncode\\($password\\) ; $uri = [System.Uri]\"http://localhost:3012\" ; $cookie.Domain = $uri.Host ; $cookieContainer = New-Object System.Net.CookieContainer ; $cookieContainer.Add\\($cookie\\) ; $session = @{} ; $session.CookieContainer = $cookieContainer ; $r = Invoke-WebRequest -Uri \"http://localhost:3012/simple-report\" -UseBasicParsing -WebSession $session ; $r.Content.Substring\\(0, 1000\\))",
       "PowerShell($lines = Get-Content c:/Users/eugen/Documents/hantu-test/views/index.ejs; $kept = $lines[0..289] + $lines[440..\\($lines.Length-1\\)]; Set-Content -Path c:/Users/eugen/Documents/hantu-test/views/index.ejs -Value $kept -Encoding utf8; Write-Output \\(\"removed lines 291-440, new line count: \" + \\($lines.Length - $kept.Length\\)\\))",
-      "PowerShell(powershell -NoProfile -Command \"\\(Get-Command mysqlsh -ErrorAction SilentlyContinue\\).Source; mysqlsh --version\")"
+      "PowerShell(powershell -NoProfile -Command \"\\(Get-Command mysqlsh -ErrorAction SilentlyContinue\\).Source; mysqlsh --version\")",
+      "PowerShell(Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Select-Object ProcessId, CreationDate, @{n='Cmd';e={$_.CommandLine.Substring\\(0, [Math]::Min\\(200, $_.CommandLine.Length\\)\\)}} | Format-Table -AutoSize -Wrap)"
     ],
     "defaultMode": "bypassPermissions"
   }
