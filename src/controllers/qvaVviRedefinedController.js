@@ -224,6 +224,7 @@ async function getRedefinedVviStockDetail(req, res) {
       "one-day-surge-board":"/one-day-surge-board",
       "one-day-surge":      "/one-day-surge-board",
       "d5-rebreak":         "/rebreak",
+      "qva-live-watch":     "/qva-live-watch",
       "stock":              "",
     };
     const _seg = (req.path || "").split("/")[1] || "";

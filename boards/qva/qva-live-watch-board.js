@@ -663,7 +663,7 @@ function renderCard(c) {
   return `
   <div class="card">
     <div class="card-head">
-      <div class="name">${safe(c.name)} <span class="code">${safe(c.code)}</span></div>
+      <div class="name"><a href="/qva-live-watch/${safe(c.code)}" class="name-link" title="상세 페이지로 이동" target="_blank" rel="noopener">${safe(c.name)}</a> <span class="code">${safe(c.code)}</span></div>
       <div class="meta">QVA ${safe(c.qvaDate)} (${safe(c.qvaType)}) → 감시 ${safe(c.watchDate)} <span class="dN">D+${safe(c.daysFromQva)}</span> · ${safe(c.snapshot.mode)}${c.snapshot.lastBarTime ? '@'+safe(c.snapshot.lastBarTime) : ''}</div>
     </div>
     <div class="card-row">
@@ -716,6 +716,8 @@ function renderHtml(data) {
   .card { background:#1e293b; border:1px solid #334155; border-radius:6px; padding:11px; color:#cbd5e1; }
   .card-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; gap:8px; }
   .card-head .name { font-size:14px; font-weight:700; color:#f1f5f9; }
+  .card-head .name-link { color:#f1f5f9; text-decoration:none; border-bottom:1px dotted #475569; }
+  .card-head .name-link:hover { color:#7dd3fc; border-bottom-color:#7dd3fc; }
   .card-head .code { font-size:11px; color:#94a3b8; }
   .card-head .meta { font-size:11px; color:#94a3b8; margin-bottom:0; text-align:right; }
   .dN { color:#7dd3fc; font-weight:600; }
@@ -751,7 +753,55 @@ ${getBoardNavHtml('/qva-live-watch')}
   <br><br>
   <b>LIVE_A</b>는 강한 반응 후보를 뜻하지만, 백테스트(60거래일·9,126 이벤트)상 D+1~D+5 안에 −5% 흔들림도 자주 발생(<b>breach5Rate 79.2%</b>)하므로 진입 신호로 해석하지 않습니다.
   <b>LIVE_A의 평균 D+5 최대 상승은 +31.85%</b>, <b>hit10 78% / hit15 72%</b>로 "강한 후보 식별"엔 의미가 있지만 변동성이 큽니다.
+  <br><br>
+  <span style="color:#94a3b8;">💡 카드의 <b>종목명을 클릭</b>하면 상세 페이지(차트·재무·뉴스·공시·AI 분석)로 이동합니다.</span>
 </div>
+
+<details style="margin-bottom:14px;">
+  <summary>📖 등급/태그/점수 기준 자세히 보기</summary>
+  <div style="padding:10px 4px;line-height:1.7;font-size:12.5px;color:#cbd5e1;">
+    <div style="margin-bottom:10px;">
+      <b style="color:#fde68a;">등급 정의 (liveWatchScore 기준, intraday 시간 보정 후)</b>
+      <ul style="margin:6px 0 0 18px;padding:0;">
+        <li><span style="color:#a7f3d0;font-weight:700;">LIVE_A — 지금 강하게 움직임</span> (70+): 갭 상승 + 거래대금 깨어남 + QVA 고가 접근/돌파 + 고가권 유지가 동시에 만족된 후보.</li>
+        <li><span style="color:#bfdbfe;font-weight:700;">LIVE_B — 움직일 기세</span> (50~69): 일부 조건은 만족하나 아직 약함. 흐름 확인 필요.</li>
+        <li><span style="color:#fde68a;font-weight:700;">LIVE_C — 예열</span> (35~49): 거래대금/가격이 깨어나기 시작.</li>
+        <li><span style="color:#cbd5e1;font-weight:700;">WAIT — 대기</span> (20~34): 태그가 켜졌지만 점수가 낮음.</li>
+        <li><span style="color:#fecaca;font-weight:700;">RISK — 추격 주의</span>: 위꼬리 큼 / 갭 깨짐 / closePos 약 등 위험 우세. 단타로 추격 위험.</li>
+      </ul>
+    </div>
+    <div style="margin-bottom:10px;">
+      <b style="color:#fde68a;">주요 태그</b>
+      <ul style="margin:6px 0 0 18px;padding:0;">
+        <li><b>STRONG_GAP_UP</b>: 갭 +7% 이상</li>
+        <li><b>GAP_UP</b>: 갭 +3% 이상</li>
+        <li><b>STRONG_VALUE_WAKE</b>: 20일 평균 거래대금 4× 이상 또는 QVA일 대비 1.5× 이상 (intraday는 시간 보정 후 4× / 2×)</li>
+        <li><b>VALUE_WAKE</b>: 20일 평균 2× 이상 또는 QVA일 대비 0.8× 이상 (intraday는 보정 후 2.5× / 1.2×)</li>
+        <li><b>QVA_HIGH_BREAK</b>: 장중 high 또는 현재가가 QVA일 high 돌파</li>
+        <li><b>QVA_HIGH_APPROACH</b>: high가 QVA일 high의 98%까지 근접</li>
+        <li><b>HOLDING_HIGH_ZONE</b>: currentPos ≥ 0.70, 위꼬리 ≤ 0.40</li>
+        <li><b>STRONG_MOMENTUM</b>: 전일 종가 대비 +7% 이상 + currentPos ≥ 0.70</li>
+        <li><b>LIMIT_UP_LIKE</b>: 전일 종가 대비 +20% 이상 + currentPos ≥ 0.80 (상한가 근접)</li>
+        <li><b>EARLY_REACTION</b>: QVA 발생 후 D+1~D+5 안에 위 조건 2개 이상 동시 만족</li>
+        <li><b>OVERHEAT_CAUTION / UPPER_TAIL_CAUTION / GAP_FAIL_CAUTION</b>: 위험 표시</li>
+      </ul>
+    </div>
+    <div style="margin-bottom:10px;">
+      <b style="color:#fde68a;">intraday 시간 보정</b>
+      <div style="margin:4px 0 0 6px;">분봉이 아직 1시간 분량이면 거래대금 배수가 과소평가되므로 시간대별 가중치 곱:
+        09:10↓ ×2.5 / 09:30↓ ×2.2 / 10:00↓ ×2.0 / 10:30↓ ×1.7 / 11:00↓ ×1.5 / 13:00↓ ×1.25 / 14:00↓ ×1.1. (cap 10)
+      </div>
+    </div>
+    <div>
+      <b style="color:#fde68a;">반드시 알아둘 것</b>
+      <ul style="margin:6px 0 0 18px;padding:0;">
+        <li>이 보드는 <b>매수/진입 신호가 아닙니다</b>. QVA 후보의 당일 움직임을 관찰하는 화면.</li>
+        <li>LIVE_A라도 D+1~D+5 안 −5% 빠짐 빈도(breach5Rate)가 79.2%로 높습니다. <b>변동성이 큽니다.</b></li>
+        <li>10시 분봉 수집 cron(09:30 평일)이 도착해야 분봉 기반 정확 판정. 그 전엔 일봉 fallback(dailySnapshot).</li>
+      </ul>
+    </div>
+  </div>
+</details>
 
 <h2>섹션 1 — 요약</h2>
 <div class="summary">
