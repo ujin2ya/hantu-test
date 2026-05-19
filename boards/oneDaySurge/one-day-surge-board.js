@@ -1224,6 +1224,197 @@ function buildAttackTopFromCandidates(candidates) {
   return { summary, candidates: cards };
 }
 
+// ── 표시 정책 후처리 ──────────────────────────────────────────────────
+// 1DS 탐지/점수/그룹 분류는 무수정. 표시 단계에서만:
+//  - 메인 후보(10시 생존/09:30 강한 후보 등)에서 "이미 크게 발화" 분리 → 🚀 별도 섹션
+//  - 공격형 후보는 위험 사유로 제거하지 않음. attackRiskLevel만 부여해 NORMAL vs HIGH_RISK 표시.
+//
+// 공격형 = 고위험 감시 영역. riskTrap/riskExcluded 단독으로 제외하지 않는다.
+const ALREADY_FIRED_RATE_THRESHOLD = 20;
+// 호환성용 alias (외부 일부 코드에서 참조할 수 있음)
+const ALREADY_LIMIT_RATE_THRESHOLD = ALREADY_FIRED_RATE_THRESHOLD;
+
+function classifyAlreadyLimitLikeAttack(card) {
+  // attackTopCandidates 카드 기준 — decisionFromPrevClose / gapRate / morningRangeRate 사용
+  if (Number.isFinite(card.decisionFromPrevClose) && card.decisionFromPrevClose >= ALREADY_LIMIT_RATE_THRESHOLD)
+    return { yes: true, reason: `전일 대비 ${card.decisionFromPrevClose.toFixed(2)}% 진행 (≥${ALREADY_LIMIT_RATE_THRESHOLD}%)` };
+  if (Number.isFinite(card.gapRate) && card.gapRate >= ALREADY_LIMIT_RATE_THRESHOLD)
+    return { yes: true, reason: `갭 ${card.gapRate.toFixed(2)}%로 출발` };
+  return { yes: false, reason: null };
+}
+
+function classifyOperatorRiskExcludedAttack(card, candidate) {
+  if (candidate?.riskExcluded)
+    return { yes: true, reason: `riskExcluded=${candidate.riskExcluded}` };
+  if (candidate?.tradePlan?.status === 'AUTO_EXCLUDED_RISK')
+    return { yes: true, reason: 'tradePlan AUTO_EXCLUDED_RISK' };
+  if (Number.isFinite(candidate?.riskTrapScore) && candidate.riskTrapScore >= 70)
+    return { yes: true, reason: `riskTrapScore ${candidate.riskTrapScore.toFixed(1)}` };
+  const cp30 = candidate?.intraday?.closePosition_0_30;
+  if (Number.isFinite(cp30) && cp30 < 0.35)
+    return { yes: true, reason: `09:30 close 위치 ${cp30.toFixed(3)} < 0.35` };
+  const hd30 = candidate?.intraday?.highToCloseDrop_0_30;
+  if (Number.isFinite(hd30) && hd30 <= -4)
+    return { yes: true, reason: `장초 고점 대비 ${hd30.toFixed(2)}% 밀림` };
+  if (Number.isFinite(card.morningRangeRate) && card.morningRangeRate >= 25)
+    return { yes: true, reason: `장초 변동폭 ${card.morningRangeRate.toFixed(2)}% (≥25%)` };
+  return { yes: false, reason: null };
+}
+
+// scanner 항목의 prevClose가 candidate(mainPool)에 없을 때 chart에서 직접 lookup.
+function lookupPrevCloseFromChart(code, baseDateYYYYMMDD) {
+  try {
+    const p = path.join(CHART_DIR, `${code}.json`);
+    if (!fs.existsSync(p)) return null;
+    const c = JSON.parse(fs.readFileSync(p, 'utf-8'));
+    const rows = c?.rows;
+    if (!Array.isArray(rows)) return null;
+    // baseDate 인덱스 찾고 그 직전 거래일 close
+    const idx = rows.findIndex(r => r && r.date === baseDateYYYYMMDD);
+    if (idx > 0) return rows[idx - 1].close;
+    // baseDate 못 찾으면 가장 최근의 volume>0 row 직전
+    for (let i = rows.length - 1; i >= 1; i--) {
+      if (rows[i].volume > 0 && rows[i].close > 0) return rows[i - 1].close;
+    }
+    return null;
+  } catch (_) { return null; }
+}
+
+function classifyAlreadyLimitLikeScan(item, candidate) {
+  // scanner0930 항목 — metrics.last0930 / survivor1000.close1000 / candidate.prevClose
+  let prevClose = candidate?.prevClose;
+  if (!Number.isFinite(prevClose) && item?.baseDate) {
+    prevClose = lookupPrevCloseFromChart(item.code, item.baseDate);
+  }
+  const last0930 = item?.metrics?.last0930;
+  const close1000 = item?.survivor1000?.close1000;
+  if (Number.isFinite(last0930) && Number.isFinite(prevClose) && prevClose > 0) {
+    const rate = (last0930 / prevClose - 1) * 100;
+    if (rate >= ALREADY_LIMIT_RATE_THRESHOLD) return { yes: true, reason: `09:30 close 전일 대비 +${rate.toFixed(2)}%` };
+  }
+  if (Number.isFinite(close1000) && Number.isFinite(prevClose) && prevClose > 0) {
+    const rate = (close1000 / prevClose - 1) * 100;
+    if (rate >= ALREADY_LIMIT_RATE_THRESHOLD) return { yes: true, reason: `10:00 close 전일 대비 +${rate.toFixed(2)}%` };
+  }
+  const openToLast = item?.metrics?.openToLastRate;
+  if (Number.isFinite(openToLast) && openToLast >= ALREADY_LIMIT_RATE_THRESHOLD)
+    return { yes: true, reason: `시가 대비 +${openToLast.toFixed(2)}% (≥${ALREADY_LIMIT_RATE_THRESHOLD}%)` };
+  return { yes: false, reason: null };
+}
+
+function classifyOperatorRiskExcludedScan(item, candidate) {
+  if (candidate?.riskExcluded)
+    return { yes: true, reason: `riskExcluded=${candidate.riskExcluded}` };
+  if (candidate?.tradePlan?.status === 'AUTO_EXCLUDED_RISK')
+    return { yes: true, reason: 'tradePlan AUTO_EXCLUDED_RISK' };
+  if (Number.isFinite(candidate?.riskTrapScore) && candidate.riskTrapScore >= 70)
+    return { yes: true, reason: `riskTrapScore ${candidate.riskTrapScore.toFixed(1)}` };
+  const cp30 = item?.metrics?.closePosition0930;
+  if (Number.isFinite(cp30) && cp30 < 0.35)
+    return { yes: true, reason: `09:30 close 위치 ${cp30.toFixed(3)}` };
+  const ht = item?.metrics?.highToLastDrop;
+  if (Number.isFinite(ht) && ht <= -4)
+    return { yes: true, reason: `09:30 high 대비 ${ht.toFixed(2)}% 밀림` };
+  return { yes: false, reason: null };
+}
+
+// attackTop 카드 위험 등급 — HIGH_RISK_ATTACK 또는 NORMAL_ATTACK. 제거 X.
+function classifyAttackRiskLevel(card, candidate) {
+  const reasons = [];
+  if (candidate?.riskExcluded) reasons.push(`riskExcluded=${candidate.riskExcluded}`);
+  if (candidate?.tradePlan?.status === 'AUTO_EXCLUDED_RISK') reasons.push('tradePlan AUTO_EXCLUDED_RISK');
+  if (Number.isFinite(candidate?.riskTrapScore) && candidate.riskTrapScore >= 70)
+    reasons.push(`riskTrapScore ${candidate.riskTrapScore.toFixed(1)}`);
+  if (Number.isFinite(card.gapRate) && card.gapRate >= 15) reasons.push(`갭 ${card.gapRate.toFixed(2)}%`);
+  if (Number.isFinite(card.decisionFromPrevClose) && card.decisionFromPrevClose >= 25)
+    reasons.push(`전일 대비 +${card.decisionFromPrevClose.toFixed(2)}%`);
+  const cp30 = candidate?.intraday?.closePosition_0_30;
+  if (Number.isFinite(cp30) && cp30 < 0.35) reasons.push(`09:30 closePos ${cp30.toFixed(3)}`);
+  const hd30 = candidate?.intraday?.highToCloseDrop_0_30;
+  if (Number.isFinite(hd30) && hd30 <= -4) reasons.push(`09:30 고점 대비 ${hd30.toFixed(2)}%`);
+  if (Number.isFinite(card.morningRangeRate) && card.morningRangeRate >= 20)
+    reasons.push(`장초 변동폭 ${card.morningRangeRate.toFixed(2)}%`);
+  return reasons.length > 0
+    ? { level: 'HIGH_RISK_ATTACK', reasons }
+    : { level: 'NORMAL_ATTACK', reasons: [] };
+}
+
+function applyDisplayPolicyPostProcess(out, allCandidates) {
+  const byCode = new Map();
+  for (const c of (allCandidates || [])) if (c && c.code) byCode.set(c.code, c);
+
+  // ─── attackTopCandidates: 제거 안 함. attackRiskLevel + isAlreadyFired 표시만 ───
+  // 공격형은 고위험 감시 영역 — riskTrap/riskExcluded 단독으로 제외하지 않는다.
+  // NORMAL_ATTACK과 HIGH_RISK_ATTACK 두 그룹으로 분리해 UI에 표시한다.
+  const attackNormal = [];
+  const attackHighRisk = [];
+  for (const card of (out.attackTopCandidates || [])) {
+    const cand = byCode.get(card.code);
+    const lvl = classifyAttackRiskLevel(card, cand);
+    card.attackRiskLevel = lvl.level;
+    card.attackRiskReasons = lvl.reasons;
+    const aL = classifyAlreadyLimitLikeAttack(card);
+    if (aL.yes) {
+      card.isAlreadyFired = true;
+      card.alreadyFiredReason = aL.reason;
+    }
+    if (lvl.level === 'HIGH_RISK_ATTACK') {
+      card.displayPolicyNote = '위험 감수형 공격 후보 — 변동성이 크고 고점 이탈 위험이 있으나, 장초 재상승/재돌파 흐름이 있어 공격형 감시 대상으로 유지합니다.';
+      attackHighRisk.push(card);
+    } else {
+      attackNormal.push(card);
+    }
+  }
+  attackNormal.forEach((c, i) => { c.attackRank = i + 1; });
+  attackHighRisk.forEach((c, i) => { c.attackRank = i + 1; });
+  out.attackTopCandidates = attackNormal;
+  out.attackTopHighRisk   = attackHighRisk;
+  if (out.attackTopSummary) {
+    out.attackTopSummary.normalCount = attackNormal.length;
+    out.attackTopSummary.highRiskCount = attackHighRisk.length;
+    out.attackTopSummary.count = attackNormal.length + attackHighRisk.length;
+  }
+
+  // ─── scanner0930: 메인 섹션에서 isAlreadyFired만 분리 ───
+  // 공격형 섹션(attackRebreak)에는 위험 사유로 제거하지 않음. isAlreadyFired만 분리 기준.
+  const sc = out.priorityRanked?.scanner0930;
+  if (sc) {
+    const splitFired = (arr) => {
+      const main = [], fired = [];
+      for (const item of (arr || [])) {
+        const cand = byCode.get(item.code);
+        const aF = classifyAlreadyLimitLikeScan(item, cand);
+        if (aF.yes) {
+          item.isAlreadyFired = true;
+          item.alreadyFiredReason = aF.reason;
+          item.displayPolicyNote = '09:30 기준 강했지만 이미 너무 진행되어 신규 감시 후보에서는 제외합니다.';
+          fired.push(item);
+        } else {
+          main.push(item);
+        }
+      }
+      return { main, fired };
+    };
+    const survivor = splitFired(sc.survivor1000);
+    const expl     = splitFired(sc.explosiveStable);
+    const attkR    = splitFired(sc.attackRebreak);
+    const ready    = splitFired(sc.readyRestFinal);
+    sc.survivor1000    = survivor.main;
+    sc.explosiveStable = expl.main;
+    sc.attackRebreak   = attkR.main;
+    sc.readyRestFinal  = ready.main;
+    sc.alreadyFired    = [...survivor.fired, ...expl.fired, ...attkR.fired, ...ready.fired];
+    sc.displayPolicySummary = {
+      alreadyFiredCount: sc.alreadyFired.length,
+      threshold: ALREADY_FIRED_RATE_THRESHOLD,
+      attackNormalCount: attackNormal.length,
+      attackHighRiskCount: attackHighRisk.length,
+    };
+  }
+
+  return out;
+}
+
 async function main() {
   if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR, { recursive: true });
   if (!fs.existsSync(CHART_DIR)) {
@@ -2114,6 +2305,36 @@ async function main() {
     todayResultSummary,
     todayResultCandidates,
   };
+
+  // ── 표시 정책 후처리 (1DS 본체 탐지 로직 무수정 — 분류/표시만 정리) ──
+  // 이미 상한가 근접까지 진행된 후보를 "🚀 이미 크게 발화한 종목" 섹션으로,
+  // 위험 자동 제외 후보를 "⚠ 관찰/제외 후보" 섹션으로 메인에서 분리.
+  applyDisplayPolicyPostProcess(out, all);
+  const _sc = out.priorityRanked?.scanner0930 || {};
+  console.log(`\n📋 표시 정책 후처리:`);
+  console.log(`  ✅ 10시 생존 확인:                 ${(_sc.survivor1000||[]).length}건`);
+  console.log(`  ⚡ 09:30 강한 후보 (조기 포착):    ${(_sc.explosiveStable||[]).length}건`);
+  console.log(`  🔥 공격형 TOP (NORMAL):            ${(out.attackTopCandidates||[]).length}건`);
+  console.log(`  ⚠ 고위험 공격형 TOP (HIGH_RISK):   ${(out.attackTopHighRisk||[]).length}건`);
+  console.log(`  🔥 공격형 재돌파 (scanner):        ${(_sc.attackRebreak||[]).length}건`);
+  console.log(`  🚀 이미 크게 발화 (≥+${ALREADY_FIRED_RATE_THRESHOLD}%):     ${(_sc.alreadyFired||[]).length}건`);
+  console.log(`  👀 관찰/제외 (기존 watchOnly):     ${(_sc.watchOnly||[]).length}건`);
+  // 흥아해운 / 아이로보틱스 / 아이씨티케이 분류 확인
+  const _trace = (code, name) => {
+    let where = '없음';
+    if ((out.attackTopCandidates||[]).some(x=>x.code===code)) where = 'attackTopCandidates (🔥 공격형 NORMAL)';
+    else if ((out.attackTopHighRisk||[]).some(x=>x.code===code)) where = 'attackTopHighRisk (⚠ 고위험 공격형)';
+    else if ((_sc.survivor1000||[]).some(x=>x.code===code)) where = 'scanner.survivor1000 (✅ 10시 생존)';
+    else if ((_sc.alreadyFired||[]).some(x=>x.code===code)) where = 'scanner.alreadyFired (🚀 이미 크게 발화)';
+    else if ((_sc.explosiveStable||[]).some(x=>x.code===code)) where = 'scanner.explosiveStable (⚡ 09:30 강한 후보)';
+    else if ((_sc.attackRebreak||[]).some(x=>x.code===code)) where = 'scanner.attackRebreak (🔥 공격형 재돌파)';
+    else if ((_sc.readyRestFinal||[]).some(x=>x.code===code)) where = 'scanner.readyRestFinal (📡 1차)';
+    else if ((_sc.watchOnly||[]).some(x=>x.code===code)) where = 'scanner.watchOnly (👀 관찰)';
+    console.log(`  ${name}(${code}): ${where}`);
+  };
+  _trace('003280', '흥아해운');
+  _trace('066430', '아이로보틱스');
+  _trace('456010', '아이씨티케이');
 
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
   fs.writeFileSync(OUT_HTML, HTML_TEMPLATE.replace('__JSON_DATA__', JSON.stringify(out)), 'utf-8');
@@ -3739,6 +3960,21 @@ const PREMARKET_MODE = isPremarketMode();
       '<div style="margin-top:8px;padding-bottom:10px;">' + attackRebreak.map((e) => renderCard(e, 'value-strong')).join('') + '</div></details>';
   }
 
+  // ── [3.5] 🚀 이미 크게 발화한 종목 (표시 정책 후처리 — 메인 섹션에서 분리) ─────
+  // 10시 생존 / 09:30 강한 후보 등 메인 섹션에서 +20% 이상 진행된 종목을 별도 노출.
+  // 공격형 후보는 위험 사유로 제거하지 않으며, attackRiskLevel만 부여한다.
+  const alreadyFiredList = sc.alreadyFired || [];
+  if (alreadyFiredList.length > 0) {
+    body += '<h3 style="margin:18px 0 6px;color:#fdba74;font-size:16px;">🚀 이미 크게 발화한 종목 (' + alreadyFiredList.length + '건) — 추격 주의</h3>' +
+      '<div class="shelf-desc" style="color:#fed7aa;line-height:1.7;background:rgba(251,146,60,0.06);border-left:3px solid #fb923c;padding:8px 12px;border-radius:4px;">' +
+        '09:30 기준 강하게 잡혔더라도 이미 상한가 또는 상한가 근처까지 진행된 종목입니다. ' +
+        '<strong>신규 감시 후보가 아니라 발화 완료/추격 주의 대상으로 분리</strong>합니다. ' +
+        '09:30 또는 10:00 기준으로 전일 종가 대비 +' + (sc.displayPolicySummary?.threshold || 20) + '% 이상 진행됐거나 시가 대비 큰 폭으로 올라간 상태입니다.<br>' +
+        '<span style="color:#fda4af;font-weight:700;">⚠ 큰 변동 후 흔들림/차익 매물 출회 위험이 있어 신규 진입 후보처럼 다루지 않습니다.</span>' +
+      '</div>' +
+      '<div style="margin-top:8px;">' + alreadyFiredList.map((e) => renderCard(e, 'value-strong')).join('') + '</div>';
+  }
+
   // ── [4] 📡 09:30 READY 1차 후보 (기본 접힘) ──
   if (readyRestFinal.length > 0) {
     body += '<details style="margin-top:14px;border:1px solid #475569;background:#0f172a;border-radius:8px;padding:0 10px;"><summary style="cursor:pointer;font-size:14px;font-weight:700;color:#5eead4;padding:10px 0;">📡 09:30 READY 1차 후보 (' + readyRestFinal.length + '건) — 펼쳐서 보기</summary>' +
@@ -4057,15 +4293,28 @@ document.getElementById('foot').innerHTML =
       '<details><summary>나머지 ' + (cards.length - 15) + '개 펼치기</summary>' + rest + '</details>';
   }
 
+  // 고위험 공격형 sub-section (HIGH_RISK_ATTACK)
+  const highRiskCards = DATA.attackTopHighRisk || [];
+  const highRiskBlock = highRiskCards.length > 0
+    ? ('<div style="margin-top:18px;padding:12px;border:1px solid #f59e0b;background:rgba(245,158,11,0.06);border-radius:8px;">' +
+       '<h3 style="margin:0 0 6px;color:#fbbf24;font-size:15px;">⚠ 고위험 공격형 감시 후보 (' + highRiskCards.length + '건)</h3>' +
+       '<div style="color:#fde68a;font-size:12px;line-height:1.6;margin-bottom:8px;">' +
+       '<strong>위험 감수형 공격 후보</strong>입니다. 변동성이 크고 고점 이탈 위험이 있으나, ' +
+       '장초 재상승/재돌파 흐름이 있어 공격형 감시 대상으로 유지합니다. ' +
+       '<strong>제외가 아니라 위험 표시 강화</strong>로 분류합니다.' +
+       '</div>' +
+       highRiskCards.map(renderCard).join('') +
+       '</div>')
+    : '';
+
   host.innerHTML = (
     '<div class="attack-top-section">' +
     '<h2>🔥 공격형 TOP 1DS</h2>' +
     '<div class="subhdr">기존 1DS 중 거래대금이 크고, 장초 고가를 다시 뚫은 후보</div>' +
     '<div class="desc">' +
-    '이 섹션은 기존 1DS 전체 후보 중 <strong>거래대금 상위 10% + 장초 고가 재돌파</strong> 조건을 만족한 후보만 따로 보여줍니다. ' +
-    '감사 결과, 이 조건은 기존 1DS 전체보다 당일 +10%, +15%, +20% 도달률이 높았습니다. ' +
-    '단, 공격형 조건이므로 변동성도 함께 커질 수 있습니다. ' +
-    '<br>10시 이후에는 이미 일부 상승 구간이 지나갔을 수 있으므로, 공격형 TOP은 09:30~09:45 확인이 가장 중요합니다. ' +
+    '공격형 후보는 <strong>안전한 후보가 아니라 장초 거래대금, 고가 재돌파, 급등 흐름을 보는 고위험 감시 영역</strong>입니다. ' +
+    '위험 태그가 있더라도 재상승 흐름이 있으면 후보로 유지하며, 이미 상한가성으로 너무 진행된 종목은 <strong>별도 발화 완료 섹션</strong>으로 분리합니다. ' +
+    '<br>감사 결과, 이 조건은 기존 1DS 전체보다 당일 +10%, +15%, +20% 도달률이 높았습니다. ' +
     '<br>이 섹션은 매수 확정 신호가 아니라, 기존 1DS 중 큰 상승이 나올 가능성이 높았던 패턴을 우선 보여주는 필터입니다.' +
     '</div>' +
     validationLine +
@@ -4073,6 +4322,7 @@ document.getElementById('foot').innerHTML =
     overflow +
     summaryGrid +
     cardListHtml +
+    highRiskBlock +
     '</div>'
   );
 })();
