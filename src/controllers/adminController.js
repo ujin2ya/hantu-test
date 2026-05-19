@@ -38,6 +38,7 @@ function getLogout(req, res) {
 }
 
 function getDashboard(req, res) {
+  const { getBoardNavHtml } = require("../utils/boardNav");
   res.render("admin/dashboard", {
     subscribers: loadSubscribers(),
     maxSubscribers: MAX_SUBSCRIBERS,
@@ -46,6 +47,7 @@ function getDashboard(req, res) {
     stocksMaster: getStocksMasterAge(),
     patternState: triggers.patternState,
     seededCount: patternScreener.listSeededStocks().length,
+    navHtml: getBoardNavHtml(""),
   });
 }
 
@@ -439,6 +441,7 @@ async function getDbBoardDashboard(req, res) {
       catch (e) { errors.stockHistory = e.message; }
     }
 
+    const { getBoardNavHtml } = require('../utils/boardNav');
     res.render('admin/db-board-dashboard', {
       date, days, limit,
       todayYMD,
@@ -446,6 +449,7 @@ async function getDbBoardDashboard(req, res) {
       sections, errors,
       negativeKinds: repo.NEGATIVE_KINDS,
       positiveKinds: repo.POSITIVE_KINDS,
+      navHtml: getBoardNavHtml('/db-board'),
       // 라벨 헬퍼 (EJS에서 사용)
       formatBoardName: labels.formatBoardName,
       formatSignalKind: labels.formatSignalKind,

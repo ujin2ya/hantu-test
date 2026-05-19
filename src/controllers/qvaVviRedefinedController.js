@@ -215,9 +215,24 @@ async function getRedefinedVviStockDetail(req, res) {
     const kisLiveForShares = priceQuote ? { listedShares: priceQuote.listedShares } : null;
     const sharesInfo = computeSharesInfo({ companyOverview, kisLive: kisLiveForShares, shareholders });
 
+    const { getBoardNavHtml: _getNav } = require("../utils/boardNav");
+    const _parentMap = {
+      "qva-vvi-redefined":  "/qva-vvi-redefined-board",
+      "qva2-vvi":           "/qva2-vvi",
+      "qva2-watchlist":     "/qva2-watchlist",
+      "qva2-d5-rebreak":    "/qva2-d5-rebreak",
+      "one-day-surge-board":"/one-day-surge-board",
+      "one-day-surge":      "/one-day-surge-board",
+      "d5-rebreak":         "/rebreak",
+      "stock":              "",
+    };
+    const _seg = (req.path || "").split("/")[1] || "";
+    const _navHtml = _getNav(_parentMap[_seg] !== undefined ? _parentMap[_seg] : "");
+
     res.render("qva-vvi-redefined-detail", {
       code,
       meta,
+      navHtml: _navHtml,
       chartRows: (chart && chart.rows) || [],
       financials,
       qvaSignalDates,

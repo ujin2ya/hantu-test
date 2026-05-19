@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "1-Day Surge Board v5 · GOOD_TRADE 중심 단타 후보 보드",
-    "generatedAt": "2026-05-19T01:53:01.989Z",
+    "generatedAt": "2026-05-19T02:24:07.558Z",
     "analysisDate": "20260518",
     "analysisDateFmt": "2026-05-18",
     "stockUniverse": 4270,
@@ -25603,35 +25603,35 @@
   },
   "latestDayType": null,
   "marketState": {
-    "updatedAt": "2026-05-19T01:30:00.365Z",
-    "asOfTime": "10:30",
+    "updatedAt": "2026-05-19T02:00:01.085Z",
+    "asOfTime": "11:00",
     "state": "KOSDAQ_WEAK",
     "label": "🟠 코스닥 약세 (단타 후보 종가 유지 약화 가능)",
     "desc": "코스닥 약세 — 1DS 후보 다수가 코스닥 종목이라 종가 유지가 약해질 수 있음. 짧은 대응 우선.",
     "kospi": {
       "code": "KOSPI",
       "marketStatus": "OPEN",
-      "value": 7258.09,
-      "change": -257.95,
-      "changeRate": -3.43,
+      "value": 7186.36,
+      "change": -329.68,
+      "changeRate": -4.39,
       "open": 7425.66,
       "high": 7446.57,
-      "low": 7227.72
+      "low": 7186.36
     },
     "kosdaq": {
       "code": "KOSDAQ",
       "marketStatus": "OPEN",
-      "value": 1078.96,
-      "change": -32.13,
-      "changeRate": -2.89,
+      "value": 1069.04,
+      "change": -42.05,
+      "changeRate": -3.78,
       "open": 1111.36,
       "high": 1122.85,
-      "low": 1075.3
+      "low": 1068.9
     },
     "isLive": true,
-    "elapsedMs": 124,
+    "elapsedMs": 127,
     "source": "live",
-    "ageMinutes": 23
+    "ageMinutes": 24
   },
   "qvaSummary": {
     "taggedTopCount": 0,
@@ -25780,7 +25780,7 @@
     "status": "intraday",
     "label": "아직 장중",
     "isMarketClosed": false,
-    "generatedAtTime": "10:53",
+    "generatedAtTime": "11:24",
     "guide": "아직 장중입니다. 현재 후보는 장중 기준 후보이며, 당일 고가/종가 기준 최종 결과는 장마감 후 표시됩니다.",
     "forcedNote": null,
     "todayDate": "2026-05-19",
