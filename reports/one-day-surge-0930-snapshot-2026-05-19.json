@@ -1,0 +1,218 @@
+{
+  "snapshotDate": "2026-05-19",
+  "savedAt": "2026-05-19T00:44:11.206Z",
+  "survivor1000": [],
+  "explosiveStable": [
+    {
+      "code": "456010",
+      "name": "아이씨티케이",
+      "market": "KOSDAQ",
+      "marketCap": 313500000000,
+      "baseDate": "20260518",
+      "avg20Value": 72357104205,
+      "baseValue": 8125834050,
+      "metrics": {
+        "bars_total": 29,
+        "open0900": 23000,
+        "last0930": 24450,
+        "high0930": 24500,
+        "low0930": 21600,
+        "value_0930": 45132513250,
+        "volume_0930": 1941935,
+        "closePosition0930": 0.983,
+        "openToLastRate": 6.3,
+        "highToLastDrop": -0.2,
+        "valueToAvgRatio_0930": 72.2,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 53.53,
+      "finalScore": 394.19,
+      "hasTenRebreak": true,
+      "tenRebreakTrigger": {
+        "triggerTime": "09:34",
+        "triggerPrice": 24500
+      },
+      "hasFadedRecovery": false,
+      "hasSurvivor1000": false,
+      "survivor1000": null,
+      "triggeredHypos": [
+        "TEN_REBREAK"
+      ],
+      "explosiveScore": 402.19,
+      "isSurvivor1000": false,
+      "isExplosiveTop": true,
+      "isAttackRebreak": true,
+      "overlapBadges": [
+        "조기 포착",
+        "공격형 재돌파 동시",
+        "10시 확인 필요"
+      ],
+      "suggestedStrategy": {
+        "type": "STABLE_SCALP",
+        "label": "안정형 단타",
+        "takeProfit": "+5%",
+        "stopLoss": "-2%",
+        "note": "19거래일 검증 기준 +5%/-2% 전략이 안정적 (n=64, 평균 +0.97%, 승률 46.9%, +10% 12.5%)"
+      },
+      "reason": "09:30 조기 포착 — 10시 생존 확인 전 감시 후보"
+    },
+    {
+      "code": "005290",
+      "name": "동진쎄미켐",
+      "market": "KOSDAQ",
+      "marketCap": 2910100000000,
+      "baseDate": "20260518",
+      "avg20Value": 55294315680,
+      "baseValue": 41515963500,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 55500,
+        "last0930": 59300,
+        "high0930": 59900,
+        "low0930": 55500,
+        "value_0930": 20684716600,
+        "volume_0930": 353525,
+        "closePosition0930": 0.864,
+        "openToLastRate": 6.85,
+        "highToLastDrop": -1,
+        "valueToAvgRatio_0930": 6.48,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 17.44,
+      "finalScore": 119.73,
+      "hasTenRebreak": true,
+      "tenRebreakTrigger": {
+        "triggerTime": "09:33",
+        "triggerPrice": 59900
+      },
+      "hasFadedRecovery": false,
+      "hasSurvivor1000": false,
+      "survivor1000": null,
+      "triggeredHypos": [
+        "TEN_REBREAK"
+      ],
+      "explosiveScore": 127.73,
+      "isSurvivor1000": false,
+      "isExplosiveTop": true,
+      "isAttackRebreak": true,
+      "overlapBadges": [
+        "조기 포착",
+        "공격형 재돌파 동시",
+        "10시 확인 필요"
+      ],
+      "suggestedStrategy": {
+        "type": "STABLE_SCALP",
+        "label": "안정형 단타",
+        "takeProfit": "+5%",
+        "stopLoss": "-2%",
+        "note": "19거래일 검증 기준 +5%/-2% 전략이 안정적 (n=64, 평균 +0.97%, 승률 46.9%, +10% 12.5%)"
+      },
+      "reason": "09:30 조기 포착 — 10시 생존 확인 전 감시 후보"
+    },
+    {
+      "code": "425040",
+      "name": "티이엠씨",
+      "market": "KOSDAQ",
+      "marketCap": 366000000000,
+      "baseDate": "20260518",
+      "avg20Value": 58464791655,
+      "baseValue": 46512528000,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 24000,
+        "last0930": 24250,
+        "high0930": 24350,
+        "low0930": 22150,
+        "value_0930": 11704233950,
+        "volume_0930": 506062,
+        "closePosition0930": 0.955,
+        "openToLastRate": 1.04,
+        "highToLastDrop": -0.41,
+        "valueToAvgRatio_0930": 3.27,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 1.88,
+      "finalScore": 78.81,
+      "hasTenRebreak": true,
+      "tenRebreakTrigger": {
+        "triggerTime": "09:35",
+        "triggerPrice": 24350
+      },
+      "hasFadedRecovery": false,
+      "hasSurvivor1000": false,
+      "survivor1000": null,
+      "triggeredHypos": [
+        "TEN_REBREAK"
+      ],
+      "explosiveScore": 81.81,
+      "isSurvivor1000": false,
+      "isExplosiveTop": true,
+      "isAttackRebreak": true,
+      "overlapBadges": [
+        "조기 포착",
+        "공격형 재돌파 동시",
+        "10시 확인 필요"
+      ],
+      "suggestedStrategy": {
+        "type": "STABLE_SCALP",
+        "label": "안정형 단타",
+        "takeProfit": "+5%",
+        "stopLoss": "-2%",
+        "note": "19거래일 검증 기준 +5%/-2% 전략이 안정적 (n=64, 평균 +0.97%, 승률 46.9%, +10% 12.5%)"
+      },
+      "reason": "09:30 조기 포착 — 10시 생존 확인 전 감시 후보"
+    }
+  ],
+  "attackTopCandidates": [
+    {
+      "code": "066430",
+      "name": "아이로보틱스",
+      "market": "KOSDAQ",
+      "attackRank": 1,
+      "attackScore": 38,
+      "decisionTime": "09:30",
+      "decisionPrice": 4355,
+      "signalPrice": 4355,
+      "prevClose": 3080,
+      "open0900": 4050,
+      "gapRate": 31.49,
+      "morningValue": 87086726264,
+      "morningValueRank": 6,
+      "morningValuePercentile": 5.2,
+      "isTop10Value": true,
+      "morningHigh": 4570,
+      "rebreakMorningHigh": true,
+      "rebreakTime": "09:40",
+      "rebreakWithValue": false,
+      "valueContinueRatio": 0.511,
+      "valueSecondWaveRatio": 0,
+      "decisionFromPrevClose": 41.4,
+      "decisionFromOpen": 7.53,
+      "morningRangeRate": 32.56,
+      "pricePositionInMorningRange": 0.933,
+      "gtBand": "MICRO",
+      "oneDaySurgeScore": 65,
+      "attackTags": [
+        "거래대금 상위 10%",
+        "대형 거래대금",
+        "장초 고가 재돌파",
+        "고가권 유지",
+        "공격형 TOP"
+      ],
+      "riskTags": [
+        "갭 과열",
+        "시가 대비 너무 멀어짐",
+        "장초 변동성 큼"
+      ],
+      "shortComment": "거래대금 상위권이면서 장초 고가를 다시 돌파한 공격형 후보입니다.",
+      "targetDir": "2026-05-19",
+      "targetDirSource": "nextDay"
+    }
+  ]
+}
