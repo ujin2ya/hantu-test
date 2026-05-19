@@ -1,0 +1,1275 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"/><title>QVA 장중 감시 백테스트</title>
+<style>
+  body { font-family:'Segoe UI','Malgun Gothic',Arial,sans-serif; background:#f6f8fa; color:#1f2328; margin:0; padding:24px; }
+  h1 { margin:0 0 4px; font-size:24px; }
+  h2 { margin:24px 0 8px; font-size:18px; border-bottom:2px solid #d0d7de; padding-bottom:4px; }
+  h3 { margin:18px 0 6px; font-size:14px; }
+  .meta { color:#57606a; font-size:13px; margin-bottom:16px; }
+  table { width:100%; border-collapse:collapse; background:#fff; font-size:11px; margin-top:6px; }
+  th, td { border:1px solid #d0d7de; padding:5px 7px; text-align:left; vertical-align:top; }
+  th { background:#eaeef2; }
+  tr:nth-child(even) td { background:#fafbfc; }
+  .summary { background:#fff; border:1px solid #d0d7de; border-radius:8px; padding:16px; display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .summary .item { background:#f6f8fa; padding:10px; border-radius:6px; }
+  .summary .lbl { color:#57606a; font-size:12px; }
+  .summary .val { font-size:18px; font-weight:700; }
+  .decision { padding:12px; border-radius:8px; margin-top:12px; font-weight:700; }
+  .decision.OPERATE_READY { background:#d6f5d6; color:#0a6900; }
+  .decision.WATCH_ONLY    { background:#fff5cc; color:#7a5a00; }
+  .decision.NEED_TUNING   { background:#ffd9b3; color:#7a4500; }
+  .decision.REJECT        { background:#f0d0d0; color:#7a3030; }
+  .ok { color:#0a6900; font-weight:700; } .fail { color:#a40000; font-weight:700; }
+  .card { background:#fff; border:1px solid #d0d7de; padding:12px; border-radius:8px; margin:8px 0; font-size:13px; line-height:1.5; }
+  .notes { background:#fff3cd; border:1px solid #f0c14b; border-radius:8px; padding:12px; margin-top:16px; font-size:13px; }
+</style></head>
+<body>
+<h1>QVA 장중 감시 백테스트</h1>
+<div class="meta">생성 2026-05-19T00:42:26.778Z · 기간 2026-02-13 ~ 2026-05-15 (60거래일) · signalTimes 09:30,10:00,11:00</div>
+
+<h2>섹션 1 — 요약 & 운영 판단</h2>
+<div class="summary">
+  <div class="item"><div class="lbl">전체 이벤트</div><div class="val">9126</div></div>
+  <div class="item"><div class="lbl">LIVE_A</div><div class="val">250</div></div>
+  <div class="item"><div class="lbl">LIVE_B</div><div class="val">329</div></div>
+  <div class="item"><div class="lbl">LIVE_C</div><div class="val">705</div></div>
+  <div class="item"><div class="lbl">WAIT</div><div class="val">2609</div></div>
+  <div class="item"><div class="lbl">RISK</div><div class="val">5233</div></div>
+  <div class="item"><div class="lbl">LIVE_A hit10</div><div class="val">78%</div></div>
+  <div class="item"><div class="lbl">LIVE_A hit15</div><div class="val">72%</div></div>
+  <div class="item"><div class="lbl">LIVE_A hit20</div><div class="val">56.8%</div></div>
+  <div class="item"><div class="lbl">LIVE_A brch5</div><div class="val">79.2%</div></div>
+  <div class="item"><div class="lbl">LIVE_A brch10</div><div class="val">62%</div></div>
+  <div class="item"><div class="lbl">LIVE_A avgD5↑</div><div class="val">31.85%</div></div>
+</div>
+
+<div class="decision WATCH_ONLY">운영 판단: WATCH_ONLY — 관찰 보드로는 가능, 진입 판단용 아님 (7/8 통과, minSample=30)</div>
+<table style="margin-top:8px">
+  <thead><tr><th>판단 기준</th><th>통과</th></tr></thead>
+  <tbody><tr><td>LIVE_A n&gt;=50</td><td><span class="ok">✅</span></td></tr><tr><td>LIVE_A hit10Rate&gt;=45</td><td><span class="ok">✅</span></td></tr><tr><td>LIVE_A hit15Rate&gt;=30</td><td><span class="ok">✅</span></td></tr><tr><td>LIVE_A breach5Rate&lt;=45</td><td><span class="fail">❌</span></td></tr><tr><td>LIVE_A firstHit10BeforeBreach5Rate&gt;=35</td><td><span class="ok">✅</span></td></tr><tr><td>LIVE_A hit10&gt;LIVE_B hit10</td><td><span class="ok">✅</span></td></tr><tr><td>LIVE_A hit15&gt;LIVE_B hit15</td><td><span class="ok">✅</span></td></tr><tr><td>LIVE_A maxHighD5&gt;RISK maxHighD5</td><td><span class="ok">✅</span></td></tr></tbody>
+</table>
+
+<h2>섹션 2 — liveGrade별 성과표</h2>
+<h3>liveGrade</h3>
+  <table>
+    <thead><tr>
+      <th>그룹</th><th>n</th><th>avgD1↑</th><th>avgD3↑</th><th>avgD5↑</th><th>avgD10↑</th><th>avgClose</th>
+      <th>hit5%</th><th>hit10%</th><th>hit15%</th><th>hit20%</th><th>brch5%</th><th>brch10%</th>
+      <th>hit10&lt;brch5%</th><th>avgDD5</th>
+    </tr></thead>
+    <tbody><tr>
+    <td>LIVE_A</td>
+    <td>250</td>
+    <td>12.86%</td>
+    <td>24.99%</td>
+    <td>31.85%</td>
+    <td>38.84%</td>
+    <td>-2.05%</td>
+    <td>84.4%</td>
+    <td>78%</td>
+    <td>72%</td>
+    <td>56.8%</td>
+    <td>79.2%</td>
+    <td>62%</td>
+    <td>46%</td>
+    <td>-12.67%</td>
+  </tr>
+<tr>
+    <td>LIVE_B</td>
+    <td>329</td>
+    <td>7.08%</td>
+    <td>12.58%</td>
+    <td>16.64%</td>
+    <td>22.3%</td>
+    <td>-1%</td>
+    <td>71.12%</td>
+    <td>59.27%</td>
+    <td>51.67%</td>
+    <td>43.16%</td>
+    <td>76.29%</td>
+    <td>63.22%</td>
+    <td>36.78%</td>
+    <td>-12.29%</td>
+  </tr>
+<tr>
+    <td>LIVE_C</td>
+    <td>705</td>
+    <td>6.55%</td>
+    <td>11.91%</td>
+    <td>15.83%</td>
+    <td>21.4%</td>
+    <td>-0.08%</td>
+    <td>71.91%</td>
+    <td>58.3%</td>
+    <td>46.24%</td>
+    <td>38.01%</td>
+    <td>79.43%</td>
+    <td>55.6%</td>
+    <td>34.61%</td>
+    <td>-10.26%</td>
+  </tr>
+<tr>
+    <td>WAIT</td>
+    <td>2609</td>
+    <td>5.38%</td>
+    <td>9.87%</td>
+    <td>13.21%</td>
+    <td>19.23%</td>
+    <td>0.27%</td>
+    <td>67.31%</td>
+    <td>50.63%</td>
+    <td>39.33%</td>
+    <td>30.2%</td>
+    <td>75.78%</td>
+    <td>51.59%</td>
+    <td>31.24%</td>
+    <td>-8.72%</td>
+  </tr>
+<tr>
+    <td>RISK</td>
+    <td>5233</td>
+    <td>4.56%</td>
+    <td>8.92%</td>
+    <td>11.86%</td>
+    <td>17.25%</td>
+    <td>-0.76%</td>
+    <td>66.69%</td>
+    <td>48.14%</td>
+    <td>36.46%</td>
+    <td>28.47%</td>
+    <td>76.38%</td>
+    <td>53.45%</td>
+    <td>30.79%</td>
+    <td>-9.57%</td>
+  </tr></tbody>
+  </table>
+
+<h2>섹션 3 — 시점별 성과표</h2>
+<h3>signalTime</h3>
+  <table>
+    <thead><tr>
+      <th>그룹</th><th>n</th><th>avgD1↑</th><th>avgD3↑</th><th>avgD5↑</th><th>avgD10↑</th><th>avgClose</th>
+      <th>hit5%</th><th>hit10%</th><th>hit15%</th><th>hit20%</th><th>brch5%</th><th>brch10%</th>
+      <th>hit10&lt;brch5%</th><th>avgDD5</th>
+    </tr></thead>
+    <tbody><tr>
+    <td>09:30</td>
+    <td>3026</td>
+    <td>5.27%</td>
+    <td>10.02%</td>
+    <td>13.31%</td>
+    <td>19.01%</td>
+    <td>-0.44%</td>
+    <td>67.51%</td>
+    <td>50.99%</td>
+    <td>40.05%</td>
+    <td>31.56%</td>
+    <td>76.47%</td>
+    <td>53.9%</td>
+    <td>32.02%</td>
+    <td>-9.56%</td>
+  </tr>
+<tr>
+    <td>10:00</td>
+    <td>3035</td>
+    <td>5.27%</td>
+    <td>10.04%</td>
+    <td>13.32%</td>
+    <td>18.94%</td>
+    <td>-0.44%</td>
+    <td>67.84%</td>
+    <td>50.91%</td>
+    <td>39.21%</td>
+    <td>31.04%</td>
+    <td>76.84%</td>
+    <td>53.87%</td>
+    <td>31.66%</td>
+    <td>-9.57%</td>
+  </tr>
+<tr>
+    <td>11:00</td>
+    <td>3065</td>
+    <td>5.26%</td>
+    <td>9.94%</td>
+    <td>13.18%</td>
+    <td>18.8%</td>
+    <td>-0.49%</td>
+    <td>68.38%</td>
+    <td>50.67%</td>
+    <td>39.41%</td>
+    <td>30.44%</td>
+    <td>76.25%</td>
+    <td>53.25%</td>
+    <td>31.84%</td>
+    <td>-9.56%</td>
+  </tr></tbody>
+  </table>
+
+<h2>섹션 4 — QVA 경과일별 성과표</h2>
+<h3>daysFromQva</h3>
+  <table>
+    <thead><tr>
+      <th>그룹</th><th>n</th><th>avgD1↑</th><th>avgD3↑</th><th>avgD5↑</th><th>avgD10↑</th><th>avgClose</th>
+      <th>hit5%</th><th>hit10%</th><th>hit15%</th><th>hit20%</th><th>brch5%</th><th>brch10%</th>
+      <th>hit10&lt;brch5%</th><th>avgDD5</th>
+    </tr></thead>
+    <tbody><tr>
+    <td>D+1</td>
+    <td>1111</td>
+    <td>3.99%</td>
+    <td>7.43%</td>
+    <td>9.86%</td>
+    <td>14.96%</td>
+    <td>-1.55%</td>
+    <td>63.19%</td>
+    <td>47.43%</td>
+    <td>36.27%</td>
+    <td>26.46%</td>
+    <td>80.65%</td>
+    <td>60.58%</td>
+    <td>30.24%</td>
+    <td>-10.54%</td>
+  </tr>
+<tr>
+    <td>D+2~D+3</td>
+    <td>1160</td>
+    <td>3.54%</td>
+    <td>7.53%</td>
+    <td>10.8%</td>
+    <td>15.83%</td>
+    <td>-1.51%</td>
+    <td>63.62%</td>
+    <td>43.62%</td>
+    <td>32.93%</td>
+    <td>25%</td>
+    <td>81.55%</td>
+    <td>64.14%</td>
+    <td>25.78%</td>
+    <td>-11.69%</td>
+  </tr>
+<tr>
+    <td>D+4~D+5</td>
+    <td>987</td>
+    <td>5.73%</td>
+    <td>11.14%</td>
+    <td>14.82%</td>
+    <td>20.52%</td>
+    <td>0.09%</td>
+    <td>68.29%</td>
+    <td>47.01%</td>
+    <td>36.27%</td>
+    <td>28.57%</td>
+    <td>75.79%</td>
+    <td>56.64%</td>
+    <td>31.1%</td>
+    <td>-9.24%</td>
+  </tr>
+<tr>
+    <td>D+6~D+10</td>
+    <td>2156</td>
+    <td>5.23%</td>
+    <td>10.01%</td>
+    <td>13.27%</td>
+    <td>19.03%</td>
+    <td>-0.37%</td>
+    <td>67.63%</td>
+    <td>50.93%</td>
+    <td>40.17%</td>
+    <td>33.21%</td>
+    <td>78.01%</td>
+    <td>55.38%</td>
+    <td>29.64%</td>
+    <td>-10.07%</td>
+  </tr>
+<tr>
+    <td>D+11~D+20</td>
+    <td>3712</td>
+    <td>6.08%</td>
+    <td>11.22%</td>
+    <td>14.66%</td>
+    <td>20.56%</td>
+    <td>0.01%</td>
+    <td>70.74%</td>
+    <td>55.12%</td>
+    <td>43.13%</td>
+    <td>33.62%</td>
+    <td>73.03%</td>
+    <td>46.55%</td>
+    <td>35.7%</td>
+    <td>-8.4%</td>
+  </tr></tbody>
+  </table>
+
+<h2>섹션 5 — 태그 조합별 성과표</h2>
+<h3>tag</h3>
+  <table>
+    <thead><tr>
+      <th>그룹</th><th>n</th><th>avgD1↑</th><th>avgD3↑</th><th>avgD5↑</th><th>avgD10↑</th><th>avgClose</th>
+      <th>hit5%</th><th>hit10%</th><th>hit15%</th><th>hit20%</th><th>brch5%</th><th>brch10%</th>
+      <th>hit10&lt;brch5%</th><th>avgDD5</th>
+    </tr></thead>
+    <tbody><tr>
+    <td>STRONG_GAP_UP</td>
+    <td>642</td>
+    <td>5.06%</td>
+    <td>11.25%</td>
+    <td>16.72%</td>
+    <td>23.38%</td>
+    <td>-5.32%</td>
+    <td>76.48%</td>
+    <td>61.37%</td>
+    <td>51.87%</td>
+    <td>42.21%</td>
+    <td>79.91%</td>
+    <td>63.24%</td>
+    <td>36.45%</td>
+    <td>-15.78%</td>
+  </tr>
+<tr>
+    <td>GAP_UP</td>
+    <td>2064</td>
+    <td>6.17%</td>
+    <td>11.71%</td>
+    <td>15.84%</td>
+    <td>22.11%</td>
+    <td>-1.81%</td>
+    <td>71.75%</td>
+    <td>56.83%</td>
+    <td>45.4%</td>
+    <td>36.19%</td>
+    <td>77.57%</td>
+    <td>56.4%</td>
+    <td>34.4%</td>
+    <td>-11.59%</td>
+  </tr>
+<tr>
+    <td>VALUE_WAKE</td>
+    <td>2122</td>
+    <td>8.15%</td>
+    <td>14.57%</td>
+    <td>18.61%</td>
+    <td>24.97%</td>
+    <td>-0.6%</td>
+    <td>74.36%</td>
+    <td>63.2%</td>
+    <td>52.17%</td>
+    <td>42.32%</td>
+    <td>79.97%</td>
+    <td>61.4%</td>
+    <td>35.34%</td>
+    <td>-11.74%</td>
+  </tr>
+<tr>
+    <td>STRONG_VALUE_WAKE</td>
+    <td>1422</td>
+    <td>9.24%</td>
+    <td>16.07%</td>
+    <td>20.39%</td>
+    <td>26.72%</td>
+    <td>-0.41%</td>
+    <td>75.53%</td>
+    <td>65.05%</td>
+    <td>54.22%</td>
+    <td>44.44%</td>
+    <td>81.58%</td>
+    <td>64.06%</td>
+    <td>36.15%</td>
+    <td>-12.18%</td>
+  </tr>
+<tr>
+    <td>QVA_HIGH_BREAK</td>
+    <td>4693</td>
+    <td>6.35%</td>
+    <td>12.12%</td>
+    <td>16.15%</td>
+    <td>22.77%</td>
+    <td>-0.62%</td>
+    <td>71.17%</td>
+    <td>58.02%</td>
+    <td>47.13%</td>
+    <td>38.16%</td>
+    <td>78.99%</td>
+    <td>58.45%</td>
+    <td>33.65%</td>
+    <td>-10.93%</td>
+  </tr>
+<tr>
+    <td>HOLDING_HIGH_ZONE</td>
+    <td>2314</td>
+    <td>5.64%</td>
+    <td>10.67%</td>
+    <td>14.37%</td>
+    <td>20.08%</td>
+    <td>-0.48%</td>
+    <td>69.45%</td>
+    <td>53.72%</td>
+    <td>42.7%</td>
+    <td>33.32%</td>
+    <td>76.23%</td>
+    <td>52.51%</td>
+    <td>33.06%</td>
+    <td>-9.48%</td>
+  </tr>
+<tr>
+    <td>STRONG_MOMENTUM</td>
+    <td>682</td>
+    <td>9.2%</td>
+    <td>16.95%</td>
+    <td>22.32%</td>
+    <td>28.5%</td>
+    <td>-1%</td>
+    <td>79.62%</td>
+    <td>67.01%</td>
+    <td>58.94%</td>
+    <td>48.39%</td>
+    <td>74.63%</td>
+    <td>55.72%</td>
+    <td>41.5%</td>
+    <td>-11.12%</td>
+  </tr>
+<tr>
+    <td>LIMIT_UP_LIKE</td>
+    <td>165</td>
+    <td>14.89%</td>
+    <td>30.04%</td>
+    <td>39.42%</td>
+    <td>48.16%</td>
+    <td>-2.85%</td>
+    <td>88.48%</td>
+    <td>84.85%</td>
+    <td>81.82%</td>
+    <td>66.06%</td>
+    <td>76.97%</td>
+    <td>61.21%</td>
+    <td>48.48%</td>
+    <td>-13.33%</td>
+  </tr>
+<tr>
+    <td>EARLY_REACTION</td>
+    <td>1531</td>
+    <td>4.32%</td>
+    <td>9.02%</td>
+    <td>12.58%</td>
+    <td>18.06%</td>
+    <td>-1.73%</td>
+    <td>64.47%</td>
+    <td>48.2%</td>
+    <td>37.75%</td>
+    <td>29.65%</td>
+    <td>82.89%</td>
+    <td>65.77%</td>
+    <td>28.41%</td>
+    <td>-12.55%</td>
+  </tr>
+<tr>
+    <td>OVERHEAT_CAUTION</td>
+    <td>1148</td>
+    <td>7.34%</td>
+    <td>14.6%</td>
+    <td>20.25%</td>
+    <td>27.51%</td>
+    <td>-2.33%</td>
+    <td>74.39%</td>
+    <td>64.81%</td>
+    <td>56.01%</td>
+    <td>48%</td>
+    <td>81.27%</td>
+    <td>68.73%</td>
+    <td>35.1%</td>
+    <td>-15.26%</td>
+  </tr>
+<tr>
+    <td>GAP_FAIL_CAUTION</td>
+    <td>163</td>
+    <td>-4.26%</td>
+    <td>0.98%</td>
+    <td>4.8%</td>
+    <td>12.65%</td>
+    <td>-14.03%</td>
+    <td>68.71%</td>
+    <td>55.21%</td>
+    <td>44.17%</td>
+    <td>38.04%</td>
+    <td>90.18%</td>
+    <td>74.85%</td>
+    <td>20.86%</td>
+    <td>-23.34%</td>
+  </tr>
+<tr>
+    <td>UPPER_TAIL_CAUTION</td>
+    <td>6000</td>
+    <td>4.8%</td>
+    <td>9.33%</td>
+    <td>12.44%</td>
+    <td>17.88%</td>
+    <td>-0.63%</td>
+    <td>67.17%</td>
+    <td>49.25%</td>
+    <td>37.67%</td>
+    <td>29.47%</td>
+    <td>76.28%</td>
+    <td>53.5%</td>
+    <td>31.08%</td>
+    <td>-9.56%</td>
+  </tr></tbody>
+  </table>
+<h3>combo</h3>
+  <table>
+    <thead><tr>
+      <th>그룹</th><th>n</th><th>avgD1↑</th><th>avgD3↑</th><th>avgD5↑</th><th>avgD10↑</th><th>avgClose</th>
+      <th>hit5%</th><th>hit10%</th><th>hit15%</th><th>hit20%</th><th>brch5%</th><th>brch10%</th>
+      <th>hit10&lt;brch5%</th><th>avgDD5</th>
+    </tr></thead>
+    <tbody><tr>
+    <td>LIVE_A + QVA_HIGH_BREAK</td>
+    <td>248</td>
+    <td>12.92%</td>
+    <td>25.02%</td>
+    <td>31.86%</td>
+    <td>38.9%</td>
+    <td>-2.06%</td>
+    <td>84.27%</td>
+    <td>77.82%</td>
+    <td>72.18%</td>
+    <td>56.85%</td>
+    <td>79.03%</td>
+    <td>62.5%</td>
+    <td>45.97%</td>
+    <td>-12.74%</td>
+  </tr>
+<tr>
+    <td>LIVE_A + VALUE_WAKE</td>
+    <td>238</td>
+    <td>13.84%</td>
+    <td>25.6%</td>
+    <td>32.41%</td>
+    <td>38.48%</td>
+    <td>-1.14%</td>
+    <td>84.03%</td>
+    <td>77.73%</td>
+    <td>72.69%</td>
+    <td>56.72%</td>
+    <td>79.41%</td>
+    <td>63.03%</td>
+    <td>45.38%</td>
+    <td>-12.03%</td>
+  </tr>
+<tr>
+    <td>LIVE_A + STRONG_GAP_UP</td>
+    <td>109</td>
+    <td>12.4%</td>
+    <td>28.07%</td>
+    <td>40%</td>
+    <td>50.52%</td>
+    <td>-3.98%</td>
+    <td>86.24%</td>
+    <td>83.49%</td>
+    <td>77.98%</td>
+    <td>60.55%</td>
+    <td>78.9%</td>
+    <td>60.55%</td>
+    <td>44.04%</td>
+    <td>-13.68%</td>
+  </tr>
+<tr>
+    <td>LIVE_A + EARLY_REACTION</td>
+    <td>126</td>
+    <td>10.7%</td>
+    <td>21.5%</td>
+    <td>31.68%</td>
+    <td>38.57%</td>
+    <td>-2.81%</td>
+    <td>81.75%</td>
+    <td>71.43%</td>
+    <td>61.11%</td>
+    <td>44.44%</td>
+    <td>82.54%</td>
+    <td>68.25%</td>
+    <td>42.06%</td>
+    <td>-12.77%</td>
+  </tr>
+<tr>
+    <td>LIVE_A + D+1~D+5</td>
+    <td>126</td>
+    <td>10.7%</td>
+    <td>21.5%</td>
+    <td>31.68%</td>
+    <td>38.57%</td>
+    <td>-2.81%</td>
+    <td>81.75%</td>
+    <td>71.43%</td>
+    <td>61.11%</td>
+    <td>44.44%</td>
+    <td>82.54%</td>
+    <td>68.25%</td>
+    <td>42.06%</td>
+    <td>-12.77%</td>
+  </tr>
+<tr>
+    <td>LIVE_B + QVA_HIGH_BREAK</td>
+    <td>291</td>
+    <td>6.85%</td>
+    <td>12.57%</td>
+    <td>16.55%</td>
+    <td>22.45%</td>
+    <td>-1.39%</td>
+    <td>69.42%</td>
+    <td>59.45%</td>
+    <td>51.2%</td>
+    <td>42.61%</td>
+    <td>79.73%</td>
+    <td>66.67%</td>
+    <td>34.36%</td>
+    <td>-13.05%</td>
+  </tr>
+<tr>
+    <td>RISK + GAP_FAIL_CAUTION</td>
+    <td>163</td>
+    <td>-4.26%</td>
+    <td>0.98%</td>
+    <td>4.8%</td>
+    <td>12.65%</td>
+    <td>-14.03%</td>
+    <td>68.71%</td>
+    <td>55.21%</td>
+    <td>44.17%</td>
+    <td>38.04%</td>
+    <td>90.18%</td>
+    <td>74.85%</td>
+    <td>20.86%</td>
+    <td>-23.34%</td>
+  </tr></tbody>
+  </table>
+<h3>qvaType</h3>
+  <table>
+    <thead><tr>
+      <th>그룹</th><th>n</th><th>avgD1↑</th><th>avgD3↑</th><th>avgD5↑</th><th>avgD10↑</th><th>avgClose</th>
+      <th>hit5%</th><th>hit10%</th><th>hit15%</th><th>hit20%</th><th>brch5%</th><th>brch10%</th>
+      <th>hit10&lt;brch5%</th><th>avgDD5</th>
+    </tr></thead>
+    <tbody><tr>
+    <td>QVA1</td>
+    <td>7501</td>
+    <td>5%</td>
+    <td>9.54%</td>
+    <td>12.59%</td>
+    <td>17.88%</td>
+    <td>-0.29%</td>
+    <td>66.7%</td>
+    <td>49.41%</td>
+    <td>38.3%</td>
+    <td>29.86%</td>
+    <td>77.11%</td>
+    <td>53.95%</td>
+    <td>30.73%</td>
+    <td>-9.36%</td>
+  </tr>
+<tr>
+    <td>QVA2</td>
+    <td>1250</td>
+    <td>6.89%</td>
+    <td>13.01%</td>
+    <td>17.63%</td>
+    <td>25.31%</td>
+    <td>-1.17%</td>
+    <td>76.24%</td>
+    <td>60.48%</td>
+    <td>48.88%</td>
+    <td>39.44%</td>
+    <td>71.84%</td>
+    <td>49.6%</td>
+    <td>38.4%</td>
+    <td>-10.35%</td>
+  </tr>
+<tr>
+    <td>BOTH</td>
+    <td>375</td>
+    <td>5.24%</td>
+    <td>9.14%</td>
+    <td>12.29%</td>
+    <td>18.22%</td>
+    <td>-1.37%</td>
+    <td>64.53%</td>
+    <td>47.73%</td>
+    <td>33.6%</td>
+    <td>25.87%</td>
+    <td>80.27%</td>
+    <td>61.6%</td>
+    <td>32.27%</td>
+    <td>-11.08%</td>
+  </tr></tbody>
+  </table>
+
+<h2>섹션 6 — LIVE_A 성공 사례 (maxHighD5 상위 20)</h2>
+<h3>liveASuccess (20건)</h3>
+    <table><thead><tr><th>cutoff @time</th><th>code</th><th>name</th><th>grade</th><th>score</th><th>gap</th><th>chg</th><th>D+N</th><th>maxHighD5</th><th>closeDay</th><th>brch5/10</th><th>tags</th></tr></thead>
+    <tbody><tr>
+    <td>2026-03-20 09:30</td>
+    <td>046970</td>
+    <td>우리로</td>
+    <td>LIVE_A</td>
+    <td>95</td>
+    <td>23.98%</td>
+    <td>23.98%</td>
+    <td>D+3</td>
+    <td>198.65%</td>
+    <td>4.84%</td>
+    <td>false/false</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-23 09:30</td>
+    <td>046970</td>
+    <td>우리로</td>
+    <td>LIVE_A</td>
+    <td>92</td>
+    <td>7.93%</td>
+    <td>29.89%</td>
+    <td>D+4</td>
+    <td>184.94%</td>
+    <td>0%</td>
+    <td>false/false</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-23 10:00</td>
+    <td>046970</td>
+    <td>우리로</td>
+    <td>LIVE_A</td>
+    <td>92</td>
+    <td>7.93%</td>
+    <td>29.89%</td>
+    <td>D+4</td>
+    <td>184.94%</td>
+    <td>0%</td>
+    <td>false/false</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-23 11:00</td>
+    <td>046970</td>
+    <td>우리로</td>
+    <td>LIVE_A</td>
+    <td>92</td>
+    <td>7.93%</td>
+    <td>29.89%</td>
+    <td>D+4</td>
+    <td>184.94%</td>
+    <td>0%</td>
+    <td>false/false</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-20 10:00</td>
+    <td>046970</td>
+    <td>우리로</td>
+    <td>LIVE_A</td>
+    <td>95</td>
+    <td>23.98%</td>
+    <td>29.98%</td>
+    <td>D+3</td>
+    <td>184.87%</td>
+    <td>0%</td>
+    <td>false/false</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-20 11:00</td>
+    <td>046970</td>
+    <td>우리로</td>
+    <td>LIVE_A</td>
+    <td>95</td>
+    <td>23.98%</td>
+    <td>29.98%</td>
+    <td>D+3</td>
+    <td>184.87%</td>
+    <td>0%</td>
+    <td>false/false</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-02-24 10:00</td>
+    <td>229000</td>
+    <td>젠큐릭스</td>
+    <td>LIVE_A</td>
+    <td>77</td>
+    <td>-0.73%</td>
+    <td>29.93%</td>
+    <td>D+4</td>
+    <td>174.16%</td>
+    <td>0%</td>
+    <td>false/false</td>
+    <td>STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE, STRONG_MOMENTUM</td>
+  </tr><tr>
+    <td>2026-02-24 11:00</td>
+    <td>229000</td>
+    <td>젠큐릭스</td>
+    <td>LIVE_A</td>
+    <td>77</td>
+    <td>-0.73%</td>
+    <td>29.93%</td>
+    <td>D+4</td>
+    <td>174.16%</td>
+    <td>0%</td>
+    <td>false/false</td>
+    <td>STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE, STRONG_MOMENTUM</td>
+  </tr><tr>
+    <td>2026-05-08 11:00</td>
+    <td>048770</td>
+    <td>TPC로보틱스</td>
+    <td>LIVE_A</td>
+    <td>75</td>
+    <td>3.01%</td>
+    <td>14.3%</td>
+    <td>D+13</td>
+    <td>134.69%</td>
+    <td>2.41%</td>
+    <td>true/false</td>
+    <td>GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-24 09:30</td>
+    <td>046970</td>
+    <td>우리로</td>
+    <td>LIVE_A</td>
+    <td>92</td>
+    <td>29.97%</td>
+    <td>27.56%</td>
+    <td>D+5</td>
+    <td>123.39%</td>
+    <td>1.89%</td>
+    <td>false/false</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-24 10:00</td>
+    <td>046970</td>
+    <td>우리로</td>
+    <td>LIVE_A</td>
+    <td>92</td>
+    <td>29.97%</td>
+    <td>29.97%</td>
+    <td>D+5</td>
+    <td>119.23%</td>
+    <td>0%</td>
+    <td>false/false</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-24 11:00</td>
+    <td>046970</td>
+    <td>우리로</td>
+    <td>LIVE_A</td>
+    <td>92</td>
+    <td>29.97%</td>
+    <td>29.97%</td>
+    <td>D+5</td>
+    <td>119.23%</td>
+    <td>0%</td>
+    <td>false/false</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-02-25 09:30</td>
+    <td>229000</td>
+    <td>젠큐릭스</td>
+    <td>LIVE_A</td>
+    <td>84</td>
+    <td>29.96%</td>
+    <td>29.96%</td>
+    <td>D+5</td>
+    <td>110.95%</td>
+    <td>0%</td>
+    <td>false/false</td>
+    <td>STRONG_GAP_UP, VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-02-25 10:00</td>
+    <td>229000</td>
+    <td>젠큐릭스</td>
+    <td>LIVE_A</td>
+    <td>84</td>
+    <td>29.96%</td>
+    <td>29.96%</td>
+    <td>D+5</td>
+    <td>110.95%</td>
+    <td>0%</td>
+    <td>false/false</td>
+    <td>STRONG_GAP_UP, VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-02-25 11:00</td>
+    <td>229000</td>
+    <td>젠큐릭스</td>
+    <td>LIVE_A</td>
+    <td>72</td>
+    <td>29.96%</td>
+    <td>29.96%</td>
+    <td>D+5</td>
+    <td>110.95%</td>
+    <td>0%</td>
+    <td>false/false</td>
+    <td>STRONG_GAP_UP, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE, STRONG_MOMENTUM</td>
+  </tr><tr>
+    <td>2026-03-25 09:30</td>
+    <td>049080</td>
+    <td>기가레인</td>
+    <td>LIVE_A</td>
+    <td>92</td>
+    <td>12.11%</td>
+    <td>29.9%</td>
+    <td>D+20</td>
+    <td>107.13%</td>
+    <td>0%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-25 10:00</td>
+    <td>049080</td>
+    <td>기가레인</td>
+    <td>LIVE_A</td>
+    <td>92</td>
+    <td>12.11%</td>
+    <td>29.9%</td>
+    <td>D+20</td>
+    <td>107.13%</td>
+    <td>0%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-25 11:00</td>
+    <td>049080</td>
+    <td>기가레인</td>
+    <td>LIVE_A</td>
+    <td>92</td>
+    <td>12.11%</td>
+    <td>29.9%</td>
+    <td>D+20</td>
+    <td>107.13%</td>
+    <td>0%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-04-23 09:30</td>
+    <td>006340</td>
+    <td>대원전선</td>
+    <td>LIVE_A</td>
+    <td>100</td>
+    <td>7.76%</td>
+    <td>27.95%</td>
+    <td>D+5</td>
+    <td>101.21%</td>
+    <td>-1.21%</td>
+    <td>true/false</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-04-23 10:00</td>
+    <td>006340</td>
+    <td>대원전선</td>
+    <td>LIVE_A</td>
+    <td>100</td>
+    <td>7.76%</td>
+    <td>28.26%</td>
+    <td>D+5</td>
+    <td>100.73%</td>
+    <td>-1.45%</td>
+    <td>true/false</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr></tbody></table>
+
+<h2>섹션 7 — LIVE_A 실패 사례 (sameDayClose 하위 20)</h2>
+<h3>liveAFail (20건)</h3>
+    <table><thead><tr><th>cutoff @time</th><th>code</th><th>name</th><th>grade</th><th>score</th><th>gap</th><th>chg</th><th>D+N</th><th>maxHighD5</th><th>closeDay</th><th>brch5/10</th><th>tags</th></tr></thead>
+    <tbody><tr>
+    <td>2026-03-18 10:00</td>
+    <td>053950</td>
+    <td>경남제약</td>
+    <td>LIVE_A</td>
+    <td>92</td>
+    <td>407.76%</td>
+    <td>500.91%</td>
+    <td>D+1</td>
+    <td>-8.5%</td>
+    <td>-82.41%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-19 09:30</td>
+    <td>053950</td>
+    <td>경남제약</td>
+    <td>LIVE_A</td>
+    <td>80</td>
+    <td>393.88%</td>
+    <td>423.87%</td>
+    <td>D+2</td>
+    <td>9.23%</td>
+    <td>-80.96%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE, STRONG_MOMENTUM</td>
+  </tr><tr>
+    <td>2026-03-20 10:00</td>
+    <td>040350</td>
+    <td>크레오에스지</td>
+    <td>LIVE_A</td>
+    <td>80</td>
+    <td>397.26%</td>
+    <td>413%</td>
+    <td>D+1</td>
+    <td>-78.16%</td>
+    <td>-80.13%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE, STRONG_MOMENTUM</td>
+  </tr><tr>
+    <td>2026-03-20 09:30</td>
+    <td>040350</td>
+    <td>크레오에스지</td>
+    <td>LIVE_A</td>
+    <td>80</td>
+    <td>397.26%</td>
+    <td>408.89%</td>
+    <td>D+1</td>
+    <td>-77.98%</td>
+    <td>-79.97%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE, STRONG_MOMENTUM</td>
+  </tr><tr>
+    <td>2026-02-24 09:30</td>
+    <td>221800</td>
+    <td>지구홀딩스</td>
+    <td>LIVE_A</td>
+    <td>72</td>
+    <td>7.88%</td>
+    <td>11.31%</td>
+    <td>D+8</td>
+    <td>19.06%</td>
+    <td>-27.51%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-27 09:30</td>
+    <td>340440</td>
+    <td>세림B&amp;G</td>
+    <td>LIVE_A</td>
+    <td>87</td>
+    <td>15.74%</td>
+    <td>29.86%</td>
+    <td>D+6</td>
+    <td>-3.57%</td>
+    <td>-19.43%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-27 10:00</td>
+    <td>340440</td>
+    <td>세림B&amp;G</td>
+    <td>LIVE_A</td>
+    <td>87</td>
+    <td>15.74%</td>
+    <td>29.86%</td>
+    <td>D+6</td>
+    <td>-3.57%</td>
+    <td>-19.43%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-04-27 10:00</td>
+    <td>900300</td>
+    <td>오가닉티코스메틱</td>
+    <td>LIVE_A</td>
+    <td>73</td>
+    <td>5.33%</td>
+    <td>8.2%</td>
+    <td>D+3</td>
+    <td>7.58%</td>
+    <td>-18.18%</td>
+    <td>true/true</td>
+    <td>GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-09 09:30</td>
+    <td>218150</td>
+    <td>미래생명자원</td>
+    <td>LIVE_A</td>
+    <td>100</td>
+    <td>8.93%</td>
+    <td>23.66%</td>
+    <td>D+3</td>
+    <td>-6.86%</td>
+    <td>-16.49%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-05-13 09:30</td>
+    <td>012860</td>
+    <td>모베이스전자</td>
+    <td>LIVE_A</td>
+    <td>73</td>
+    <td>3.15%</td>
+    <td>13.6%</td>
+    <td>D+3</td>
+    <td>-13.43%</td>
+    <td>-16.35%</td>
+    <td>true/true</td>
+    <td>GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-09 11:00</td>
+    <td>005860</td>
+    <td>한일사료</td>
+    <td>LIVE_A</td>
+    <td>87</td>
+    <td>13.14%</td>
+    <td>28.22%</td>
+    <td>D+9</td>
+    <td>-6.26%</td>
+    <td>-13.76%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-09 10:00</td>
+    <td>005860</td>
+    <td>한일사료</td>
+    <td>LIVE_A</td>
+    <td>87</td>
+    <td>13.14%</td>
+    <td>27.25%</td>
+    <td>D+9</td>
+    <td>-5.54%</td>
+    <td>-13.1%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-09 09:30</td>
+    <td>005860</td>
+    <td>한일사료</td>
+    <td>LIVE_A</td>
+    <td>87</td>
+    <td>13.14%</td>
+    <td>27.01%</td>
+    <td>D+9</td>
+    <td>-5.36%</td>
+    <td>-12.93%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-04-28 11:00</td>
+    <td>900300</td>
+    <td>오가닉티코스메틱</td>
+    <td>LIVE_A</td>
+    <td>82</td>
+    <td>2.31%</td>
+    <td>20.83%</td>
+    <td>D+4</td>
+    <td>8.81%</td>
+    <td>-12.26%</td>
+    <td>true/true</td>
+    <td>STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE, STRONG_MOMENTUM</td>
+  </tr><tr>
+    <td>2026-05-14 09:30</td>
+    <td>403550</td>
+    <td>쏘카</td>
+    <td>LIVE_A</td>
+    <td>80</td>
+    <td>17.27%</td>
+    <td>19.31%</td>
+    <td>D+2</td>
+    <td>-17.36%</td>
+    <td>-11.98%</td>
+    <td>true/true</td>
+    <td>STRONG_GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-04-14 11:00</td>
+    <td>340440</td>
+    <td>세림B&amp;G</td>
+    <td>LIVE_A</td>
+    <td>72</td>
+    <td>-3.68%</td>
+    <td>21.21%</td>
+    <td>D+18</td>
+    <td>-10.71%</td>
+    <td>-11.43%</td>
+    <td>true/true</td>
+    <td>STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE, STRONG_MOMENTUM</td>
+  </tr><tr>
+    <td>2026-04-20 10:00</td>
+    <td>356680</td>
+    <td>엑스게이트</td>
+    <td>LIVE_A</td>
+    <td>77</td>
+    <td>-0.27%</td>
+    <td>23.22%</td>
+    <td>D+10</td>
+    <td>-6.12%</td>
+    <td>-10.99%</td>
+    <td>true/true</td>
+    <td>STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE, STRONG_MOMENTUM</td>
+  </tr><tr>
+    <td>2026-03-24 11:00</td>
+    <td>014970</td>
+    <td>삼륭물산</td>
+    <td>LIVE_A</td>
+    <td>85</td>
+    <td>0%</td>
+    <td>23.74%</td>
+    <td>D+3</td>
+    <td>13.49%</td>
+    <td>-9.31%</td>
+    <td>true/true</td>
+    <td>STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE, STRONG_MOMENTUM</td>
+  </tr><tr>
+    <td>2026-03-04 11:00</td>
+    <td>402490</td>
+    <td>그린리소스</td>
+    <td>LIVE_A</td>
+    <td>90</td>
+    <td>6.37%</td>
+    <td>22.2%</td>
+    <td>D+8</td>
+    <td>13.37%</td>
+    <td>-9.08%</td>
+    <td>true/true</td>
+    <td>GAP_UP, STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE</td>
+  </tr><tr>
+    <td>2026-03-17 11:00</td>
+    <td>003280</td>
+    <td>흥아해운</td>
+    <td>LIVE_A</td>
+    <td>85</td>
+    <td>-0.49%</td>
+    <td>22.24%</td>
+    <td>D+2</td>
+    <td>17.12%</td>
+    <td>-8.76%</td>
+    <td>true/true</td>
+    <td>STRONG_VALUE_WAKE, QVA_HIGH_BREAK, HOLDING_HIGH_ZONE, STRONG_MOMENTUM</td>
+  </tr></tbody></table>
+
+<h2>섹션 8 — RISK 그룹 성과</h2>
+<h3>RISK 단독</h3>
+  <table>
+    <thead><tr>
+      <th>그룹</th><th>n</th><th>avgD1↑</th><th>avgD3↑</th><th>avgD5↑</th><th>avgD10↑</th><th>avgClose</th>
+      <th>hit5%</th><th>hit10%</th><th>hit15%</th><th>hit20%</th><th>brch5%</th><th>brch10%</th>
+      <th>hit10&lt;brch5%</th><th>avgDD5</th>
+    </tr></thead>
+    <tbody><tr>
+    <td>RISK</td>
+    <td>5233</td>
+    <td>4.56%</td>
+    <td>8.92%</td>
+    <td>11.86%</td>
+    <td>17.25%</td>
+    <td>-0.76%</td>
+    <td>66.69%</td>
+    <td>48.14%</td>
+    <td>36.46%</td>
+    <td>28.47%</td>
+    <td>76.38%</td>
+    <td>53.45%</td>
+    <td>30.79%</td>
+    <td>-9.57%</td>
+  </tr></tbody>
+  </table>
+
+<h2>섹션 9 — 에이치브이엠 재현 확인</h2>
+<div class="card"><b>2026-05-18 10:00</b> · 295310 에이치브이엠 · <b>LIVE_A (score 77)</b><br>
+       gap=13.59% change=17.88% closePos=0.977 v/avg20=1.64→3.27 (adj)<br>
+       성과 — sameDayHigh 10.05% / sameDayClose 8.58% / D+5 max -%</div>
+
+<h2>섹션 10 — 결론</h2>
+<div class="card">
+  <b>운영 판단:</b> 관찰 보드로는 가능, 진입 판단용 아님 (WATCH_ONLY)<br>
+  <b>통과 체크:</b> 7/8<br>
+  <b>추천 운영 방식:</b> 관찰 화면으로만 운영. LIVE_A를 진입 판단용으로 쓰진 않음.<br>
+  <b>주의점:</b> 분봉 수신이 cron에 의존하므로 09:00~10:00 외 시점은 실 운영 데이터 보강 필요.
+  <br>sameDay 잔여 high는 일봉 high로 추정 — 분봉 전체 시간대 누적이 들어와야 정확.
+</div>
+
+<div class="notes"><div>· 이 보고서는 백테스트입니다. 매수 신호 검증이 아니라 QVA 장중 감시 등급 변별력 검증입니다.</div><div>· 분봉 데이터가 있는 거래일/종목만 대상 (intraday 모드).</div><div>· sameDayHighAfterSignal은 일봉 high를 보조 추정값으로 사용 — 분봉 잔여 시간대까지의 high를 정확히 측정하기는 어려움.</div><div>· firstHitNBeforeBreachM은 일별 단위 — 같은 날 hit/breach가 동시 발생 시 hit 우선.</div></div>
+</body></html>
