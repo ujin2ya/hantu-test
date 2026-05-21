@@ -3234,6 +3234,11 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 .levels-grid .lvl-cell { font-size: 11.5px; color: #cbd5e1; line-height: 1.5; }
 .levels-grid .lvl-cell .lvl-name { color: #94a3b8; font-size: 10.5px; }
 .levels-grid .lvl-cell .lvl-val { color: #e2e8f0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.live-notice {
+  background: rgba(251,191,36,0.08); border-left: 3px solid #fbbf24;
+  padding: 8px 12px; border-radius: 4px; margin-bottom: 12px;
+  font-size: 11.5px; color: #fcd34d; line-height: 1.6;
+}
 </style>
 </head>
 <body>
@@ -5020,6 +5025,9 @@ document.getElementById('foot').innerHTML =
         '<div class="verdict-explain">' + escHtml(r.explainText || '') + '</div>' +
       '</div></div>';
 
+    // 고정 주의 문구 — 매번 표시 (매수 신호 오해 방지)
+    html += '<div class="live-notice">※ 이 판정은 현재까지 수집된 분봉/현재가 기준입니다. 이후 흐름에 따라 상태가 바뀔 수 있습니다.</div>';
+
     // 요약
     if (s && s.base1000) {
       html += '<div class="live-section">';
@@ -5225,7 +5233,19 @@ document.getElementById('foot').innerHTML =
       '</div>';
   }
 
+  // 첫 클릭 시 한 번만 안내 alert (localStorage 로 영구 기억)
+  const LIVE_ENTRY_NOTICE_KEY = 'oneDsLiveEntryNoticeConfirmed';
+  function showFirstClickNoticeIfNeeded() {
+    try {
+      if (localStorage.getItem(LIVE_ENTRY_NOTICE_KEY) === '1') return;
+      // 호스트 HTML_TEMPLATE 이 template literal — 백슬래시 escape 를 두 번 써야 클라이언트에서 줄바꿈으로 보임.
+      alert('현재분석은 지금까지 수집된 분봉/현재가 기준의 상태 판단입니다.\\n이후 가격 흐름에 따라 판정은 바뀔 수 있습니다.\\n매수 신호가 아니라 진입 위치를 점검하는 보조 기능입니다.');
+      localStorage.setItem(LIVE_ENTRY_NOTICE_KEY, '1');
+    } catch (_) { /* localStorage 차단 시 무시 */ }
+  }
+
   async function open(code, name, date) {
+    showFirstClickNoticeIfNeeded();
     titleEl.textContent = (name || code) + ' · ' + code;
     modal.classList.remove('hidden');
 
