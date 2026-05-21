@@ -583,11 +583,24 @@ async function main() {
   const hvm = candidates.find(c => c.code === HVM_CODE);
   const hvmCheck = { found: !!hvm, candidate: hvm || null };
 
+  // 분봉 모드 후보 중 가장 늦은 lastBarTime — “어디까지의 분봉으로 비교됐나” 표시용
+  let latestIntradayBarTime = null;
+  for (const c of candidates) {
+    if (c.snapshot && c.snapshot.mode === 'intraday' && c.snapshot.lastBarTime) {
+      if (!latestIntradayBarTime || c.snapshot.lastBarTime > latestIntradayBarTime) {
+        latestIntradayBarTime = c.snapshot.lastBarTime;
+      }
+    }
+  }
+
   const out = {
     generatedAt: new Date().toISOString(),
     watchDate: watchDateDash,
     lookbackDays: LOOKBACK_DAYS,
     mode,
+    latestIntradayBarTime,         // 분봉 모드 후보 중 가장 늦은 분봉 시각 (= 비교 기준 시점)
+    intradayCount, dailyCount,     // 모드별 후보 수
+    nextCronTimes: ['09:35', '12:30', '15:30'],  // QVA 장중 감시 갱신 cron
     summary,
     candidates,
     grouped,
@@ -595,7 +608,7 @@ async function main() {
     notes: [
       '이 보드는 매수 신호가 아닙니다. QVA 후보의 당일 움직임을 감시합니다.',
       'VVI 확정 신호가 아니라 QVA 이후 “움직이기 시작한 조짐”을 보여주는 화면입니다.',
-      'intraday 모드: 분봉 데이터(09:00~10:00) 기준 / dailySnapshot 모드: 일봉 기준 (장 마감 후 또는 분봉 미수신).',
+      'intraday 모드: 분봉 데이터 기준 / dailySnapshot 모드: 일봉 기준 (장 마감 후 또는 분봉 미수신).',
     ],
   };
 
@@ -664,7 +677,8 @@ function renderCard(c) {
   <div class="card">
     <div class="card-head">
       <div class="name"><a href="/qva-live-watch/${safe(c.code)}" class="name-link" title="상세 페이지로 이동" target="_blank" rel="noopener">${safe(c.name)}</a> <span class="code">${safe(c.code)}</span></div>
-      <div class="meta">QVA ${safe(c.qvaDate)} (${safe(c.qvaType)}) → 감시 ${safe(c.watchDate)} <span class="dN">D+${safe(c.daysFromQva)}</span> · ${safe(c.snapshot.mode)}${c.snapshot.lastBarTime ? '@'+safe(c.snapshot.lastBarTime) : ''}</div>
+      <div class="meta">QVA ${safe(c.qvaDate)} (${safe(c.qvaType)}) → 감시 ${safe(c.watchDate)} <span class="dN">D+${safe(c.daysFromQva)}</span>
+        <span class="data-mode-badge ${c.snapshot.mode === 'intraday' ? 'intraday' : 'daily'}">${c.snapshot.mode === 'intraday' ? '📊 분봉' : '📅 일봉'}</span>${c.snapshot.lastBarTime ? '<span class="data-mode-badge lastbar">~' + safe(c.snapshot.lastBarTime) + '</span>' : ''}</div>
     </div>
     <div class="card-row">
       ${gradeBadge(e.liveGrade)}
@@ -739,13 +753,85 @@ function renderHtml(data) {
   details > summary:hover { color:#a5f3fc; }
   details .cards { margin-top:8px; }
   .notes { background:#1e293b; border:1px solid #f59e0b; border-left:3px solid #f59e0b; border-radius:6px; padding:10px 12px; margin-top:16px; font-size:12px; color:#fde68a; line-height:1.6; }
+
+  /* 신선도 banner — 언제 갱신됐고 어떻게 비교됐는지 */
+  .freshness-banner {
+    background: linear-gradient(135deg, #042f2e 0%, #1e293b 100%);
+    border: 1px solid #14b8a6; border-left: 4px solid #14b8a6;
+    border-radius: 8px; padding: 14px 18px; margin: 10px 0 16px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;
+  }
+  .freshness-banner .fb-cell { display: flex; flex-direction: column; gap: 3px; }
+  .freshness-banner .fb-lbl { font-size: 10.5px; color: #5eead4; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .freshness-banner .fb-val { font-size: 14px; color: #e2e8f0; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .freshness-banner .fb-sub { font-size: 10.5px; color: #94a3b8; }
+  .freshness-banner .fb-age-fresh   { color: #5eead4; }
+  .freshness-banner .fb-age-medium  { color: #fcd34d; }
+  .freshness-banner .fb-age-stale   { color: #fca5a5; }
+
+  /* 데이터 비교 방식 박스 */
+  .compare-info {
+    background: rgba(167,139,250,0.08); border-left: 3px solid #a78bfa;
+    border-radius: 6px; padding: 10px 14px; margin-bottom: 14px;
+    font-size: 12px; line-height: 1.7; color: #e9d5ff;
+  }
+  .compare-info strong { color: #c4b5fd; }
+  .compare-info .mode-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin: 0 2px; }
+  .compare-info .mode-intraday { background: #042f2e; color: #5eead4; border: 1px solid #14b8a6; }
+  .compare-info .mode-daily    { background: #422006; color: #fcd34d; border: 1px solid #f59e0b; }
+
+  /* 카드 내 mode/lastBar 배지 강화 */
+  .meta .data-mode-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; margin-left: 4px; }
+  .meta .data-mode-badge.intraday { background: #042f2e; color: #5eead4; border: 1px solid #14b8a6; }
+  .meta .data-mode-badge.daily    { background: #422006; color: #fcd34d; border: 1px solid #f59e0b; }
+  .meta .data-mode-badge.lastbar  { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; margin-left: 3px; }
 </style>
 </head>
 <body>
 ${getBoardNavHtml('/qva-live-watch')}
 
 <h1>⚡ QVA 장중 감시 보드 <span style="font-size:12px;color:#6c757d;font-weight:400;">— 관찰용 (매수/진입 신호 아님)</span></h1>
-<div class="meta">생성 ${safe(data.generatedAt)} · 감시일 <b>${safe(data.watchDate)}</b> · mode <b>${safe(data.mode)}</b> · lookback ${safe(data.lookbackDays)}거래일</div>
+
+${(function() {
+  // freshness banner — 언제 갱신됐는지 + 어디까지의 분봉으로 비교됐는지 + 다음 갱신 시각
+  const genDateObj = new Date(data.generatedAt);
+  const genKstStr = genDateObj.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  // 경과시간 (분 단위)
+  const ageMin = Math.max(0, Math.floor((Date.now() - genDateObj.getTime()) / 60000));
+  let ageText, ageCls;
+  if (ageMin < 30) { ageText = ageMin + '분 전'; ageCls = 'fb-age-fresh'; }
+  else if (ageMin < 120) { ageText = ageMin + '분 전'; ageCls = 'fb-age-medium'; }
+  else if (ageMin < 60 * 24) { ageText = Math.floor(ageMin / 60) + '시간 ' + (ageMin % 60) + '분 전'; ageCls = 'fb-age-stale'; }
+  else { ageText = Math.floor(ageMin / 60 / 24) + '일 전'; ageCls = 'fb-age-stale'; }
+  // 다음 cron 시각 — KST 기준 현재 시각 이후의 가장 가까운 cron
+  const nowKstStr = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Seoul' });
+  const nowKstHm = nowKstStr.slice(11, 16);  // "HH:MM"
+  const crons = data.nextCronTimes || ['09:35', '12:30', '15:30'];
+  let nextCron = '내일 09:35';
+  for (const t of crons) { if (t > nowKstHm) { nextCron = '오늘 ' + t + ' KST'; break; } }
+  const latestBar = data.latestIntradayBarTime;
+  // 분봉 윈도우 안내
+  let barRangeText = '—';
+  if (latestBar) {
+    barRangeText = '09:00 ~ ' + latestBar;
+  } else if (data.intradayCount === 0) {
+    barRangeText = '분봉 없음 (일봉 fallback)';
+  }
+  return '<div class="freshness-banner">' +
+    '<div class="fb-cell"><div class="fb-lbl">🕐 마지막 갱신</div><div class="fb-val">' + safe(genKstStr) + '</div><div class="fb-sub ' + ageCls + '">' + safe(ageText) + '</div></div>' +
+    '<div class="fb-cell"><div class="fb-lbl">📅 감시 기준일</div><div class="fb-val">' + safe(data.watchDate) + '</div><div class="fb-sub">lookback ' + safe(data.lookbackDays) + '거래일</div></div>' +
+    '<div class="fb-cell"><div class="fb-lbl">📊 분봉 비교 범위</div><div class="fb-val">' + safe(barRangeText) + '</div><div class="fb-sub">' + (data.intradayCount || 0) + '종 intraday / ' + (data.dailyCount || 0) + '종 일봉 fallback</div></div>' +
+    '<div class="fb-cell"><div class="fb-lbl">🔄 다음 자동 갱신</div><div class="fb-val">' + safe(nextCron) + '</div><div class="fb-sub">평일 09:35 / 12:30 / 15:30 cron</div></div>' +
+  '</div>';
+})()}
+
+<div class="compare-info">
+  <strong>📐 어떻게 비교됐나:</strong>
+  각 종목별로 <strong>최근 QVA/QVA2 발생일</strong>의 가격·거래대금을 기준으로 <strong>오늘(${safe(data.watchDate)})</strong>의 가격·거래대금을 비교합니다.
+  <span class="mode-pill mode-intraday">intraday</span> 표시는 <strong>09:00 ~ ${safe(data.latestIntradayBarTime || '진행중')}</strong>까지의 분봉 누적 거래대금/고저 기준,
+  <span class="mode-pill mode-daily">dailySnapshot</span> 표시는 <strong>일봉 OHLC 1개</strong> 기준입니다 (분봉 미수신 종목).
+  분봉은 1시간 분량일 때 거래대금이 과소평가되므로 <strong>시간대별 가중치</strong>를 곱해 보정합니다 (09:10↓ ×2.5 / 10:00↓ ×2.0 / 12:30↓ ×1.25 등).
+</div>
 <div class="intro">
   이 화면은 <b>QVA 후보 중 오늘 강하게 움직이는 종목을 보여주는 관찰용 보드</b>입니다.
   최근 QVA/QVA2 후보 중 오늘 장중에 갭 상승, 거래대금 증가, QVA 고가 접근/돌파, 고가권 유지 등 움직임이 시작된 종목을 감시합니다.

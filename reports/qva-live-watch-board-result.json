@@ -1,8 +1,16 @@
 {
-  "generatedAt": "2026-05-21T09:20:33.045Z",
+  "generatedAt": "2026-05-21T11:47:07.790Z",
   "watchDate": "2026-05-21",
   "lookbackDays": 20,
   "mode": "dailySnapshot",
+  "latestIntradayBarTime": "10:00",
+  "intradayCount": 87,
+  "dailyCount": 441,
+  "nextCronTimes": [
+    "09:35",
+    "12:30",
+    "15:30"
+  ],
   "summary": {
     "qvaSeedCount": 639,
     "candidatesCount": 416,
@@ -87151,6 +87159,6 @@
   "notes": [
     "이 보드는 매수 신호가 아닙니다. QVA 후보의 당일 움직임을 감시합니다.",
     "VVI 확정 신호가 아니라 QVA 이후 “움직이기 시작한 조짐”을 보여주는 화면입니다.",
-    "intraday 모드: 분봉 데이터(09:00~10:00) 기준 / dailySnapshot 모드: 일봉 기준 (장 마감 후 또는 분봉 미수신)."
+    "intraday 모드: 분봉 데이터 기준 / dailySnapshot 모드: 일봉 기준 (장 마감 후 또는 분봉 미수신)."
   ]
 }
