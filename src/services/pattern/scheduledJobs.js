@@ -187,6 +187,23 @@ function registerSchedules() {
   }, { scheduled: true, timezone: "Asia/Seoul" });
   console.log("[스케줄] 매일 평일 06:30 나스닥 테마 fetch + watch 보드 재생성 활성화 (미국장 마감 후, 한국 시간)");
 
+  // 평일 16:42 — 1DS 장마감 후 mainResult 정확 peak time 보강
+  // 09:30 cron이 09:00~10:00 분봉만 수집하므로 dayHigh가 10:00 이후 갱신된 종목은 peakTime이
+  // 부정확. 장마감 후 mainResult 종목(~30종)만 full-day 분봉 재수집 + 1DS 보드 재실행.
+  // ~42초 소요. 16:35 BOARD_SCRIPTS 완료 후 ~7분 마진.
+  cron.schedule("42 16 * * 1-5", () => {
+    console.log("[1DS Postclose Peak] 16:42 시작 — mainResult 정확 peakTime 보강");
+    try {
+      const t0 = Date.now();
+      execSync(`node ${path.join(ROOT, "pipeline/refresh-1ds-postclose-peak.js")}`,
+        { stdio: "pipe", timeout: 10 * 60 * 1000 });
+      console.log(`[1DS Postclose Peak] 16:42 완료 (${Date.now() - t0}ms)`);
+    } catch (e) {
+      console.error(`[1DS Postclose Peak] 16:42 실패: ${String(e.message || e).slice(0, 200)}`);
+    }
+  }, { scheduled: true, timezone: "Asia/Seoul" });
+  console.log("[스케줄] 평일 16:42 1DS 장마감 후 mainResult 정확 peakTime 보강 활성화");
+
   // 평일 09:35 / 12:30 / 15:30 — QVA 장중 감시 보드 갱신 (3 runs, single endHour 모드)
   // pipeline/refresh-qva-live-watch.js 가 3 phase 수행:
   //   1. qva-live-watch-board.js 1차 — DB에서 후보 코드 산출

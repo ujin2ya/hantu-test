@@ -1,0 +1,1438 @@
+{
+  "meta": {
+    "title": "1DS — 09:45 시점 10시 생존 예측 백테스트",
+    "generatedAt": "2026-05-21T09:44:40.950Z",
+    "dateRange": {
+      "from": "2026-02-24",
+      "to": "2026-05-21",
+      "n": 60
+    },
+    "args": {
+      "days": 60,
+      "fromDate": null,
+      "toDate": null
+    }
+  },
+  "universe": {
+    "totalRecords": 17636,
+    "statusBreakdown": {
+      "FADED": 8050,
+      "WEAK": 8114,
+      "WAIT_PULLBACK": 407,
+      "READY": 1063,
+      "INSUFFICIENT_BARS": 2
+    },
+    "readyAllCount": 1063
+  },
+  "baselines": [
+    {
+      "id": "READY_0930",
+      "name": "09:30 READY 전체",
+      "desc": "",
+      "summary": {
+        "n": 1063,
+        "dailyAvgCount": 17.72,
+        "precSurvivor": 38.9,
+        "precBreakout": 29.6,
+        "precStrong": 12.2,
+        "breakAfter1000_rate": 57.4,
+        "breakBefore1015_rate": 26,
+        "breakBefore1100_rate": 41.1,
+        "avgRet": 0.24,
+        "medianRet": 0,
+        "winRate": 48.8,
+        "reach2": 57.9,
+        "reach3": 43.7,
+        "reach5": 26,
+        "reach7": 14.8,
+        "reach10": 6.8,
+        "drop15": 62.9,
+        "drop20": 52.8,
+        "drop30": 37.3,
+        "drop50": 17.5,
+        "avgMfe": 3.69,
+        "avgMae": -2.89,
+        "worstLoss": -24.52,
+        "closePositiveRate": 48.8,
+        "p3_before_m15": 34.5,
+        "p5_before_m20": 27.4,
+        "p10_before_m30": 14.2,
+        "avg_ret_entry_1000": 0.09
+      },
+      "recallVsReadyAll": 100,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.11,
+          "wins": 443,
+          "losses": 524,
+          "holds": 96,
+          "winRate": 41.7
+        },
+        "S2": {
+          "avgRet": 0.11,
+          "wins": 315,
+          "losses": 597,
+          "holds": 151,
+          "winRate": 29.6
+        },
+        "S3": {
+          "avgRet": 0.14,
+          "wins": 205,
+          "losses": 542,
+          "holds": 316,
+          "winRate": 19.3
+        },
+        "S4": {
+          "avgRet": 0.33,
+          "wins": 136,
+          "losses": 388,
+          "holds": 539,
+          "winRate": 12.8
+        },
+        "S5": {
+          "avgRet": 0.12,
+          "wins": 65,
+          "losses": 393,
+          "holds": 605,
+          "winRate": 6.1
+        },
+        "S6": {
+          "avgRet": 0.26
+        },
+        "S7": {
+          "avgRet": 0.93
+        }
+      },
+      "failures": {
+        "n": 687,
+        "drop_over_1pct_at_0945_rate": 65.8,
+        "volume_shrink_late_rate": 17.5,
+        "touched_m20_in_window_rate": 32,
+        "barely_above_0930_rate": 73.5,
+        "no_high_refresh_rate": 51.1,
+        "refresh_pushback_rate": 22.3,
+        "avgFinalRet": -0.76
+      }
+    },
+    {
+      "id": "EXPLOSIVE_0930",
+      "name": "09:30 EXPLOSIVE",
+      "desc": "",
+      "summary": {
+        "n": 353,
+        "dailyAvgCount": 6.19,
+        "precSurvivor": 33.1,
+        "precBreakout": 25.5,
+        "precStrong": 15.9,
+        "breakAfter1000_rate": 54.7,
+        "breakBefore1015_rate": 24.4,
+        "breakBefore1100_rate": 38.5,
+        "avgRet": 0.46,
+        "medianRet": 0,
+        "winRate": 48.4,
+        "reach2": 62,
+        "reach3": 49,
+        "reach5": 31.4,
+        "reach7": 18.4,
+        "reach10": 8.8,
+        "drop15": 65.7,
+        "drop20": 53.5,
+        "drop30": 38,
+        "drop50": 18.1,
+        "avgMfe": 4.09,
+        "avgMae": -2.98,
+        "worstLoss": -24.52,
+        "closePositiveRate": 48.4,
+        "p3_before_m15": 35.3,
+        "p5_before_m20": 31.6,
+        "p10_before_m30": 17,
+        "avg_ret_entry_1000": 0.34
+      },
+      "recallVsReadyAll": 28.3,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.14,
+          "wins": 154,
+          "losses": 172,
+          "holds": 27,
+          "winRate": 43.6
+        },
+        "S2": {
+          "avgRet": 0.1,
+          "wins": 112,
+          "losses": 205,
+          "holds": 36,
+          "winRate": 31.7
+        },
+        "S3": {
+          "avgRet": 0.31,
+          "wins": 83,
+          "losses": 180,
+          "holds": 90,
+          "winRate": 23.5
+        },
+        "S4": {
+          "avgRet": 0.48,
+          "wins": 55,
+          "losses": 132,
+          "holds": 166,
+          "winRate": 15.6
+        },
+        "S5": {
+          "avgRet": 0.32,
+          "wins": 27,
+          "losses": 132,
+          "holds": 194,
+          "winRate": 7.6
+        },
+        "S6": {
+          "avgRet": 0.37
+        },
+        "S7": {
+          "avgRet": 1.11
+        }
+      },
+      "failures": {
+        "n": 245,
+        "drop_over_1pct_at_0945_rate": 68.2,
+        "volume_shrink_late_rate": 14.7,
+        "touched_m20_in_window_rate": 38,
+        "barely_above_0930_rate": 67.8,
+        "no_high_refresh_rate": 44.1,
+        "refresh_pushback_rate": 25.7,
+        "avgFinalRet": -0.63
+      }
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "A",
+      "name": "0945_ALIVE_BASIC",
+      "desc": "close0945 > close0930 AND close0945 ≥ high0931_0945 × 0.985 AND low0931_0945 ≥ close0930 × 0.98",
+      "summary": {
+        "n": 348,
+        "dailyAvgCount": 6.33,
+        "precSurvivor": 63.5,
+        "precBreakout": 48.3,
+        "precStrong": 22.1,
+        "breakAfter1000_rate": 65.8,
+        "breakBefore1015_rate": 34.2,
+        "breakBefore1100_rate": 51.7,
+        "avgRet": 0.44,
+        "medianRet": 0.1,
+        "winRate": 50,
+        "reach2": 58.9,
+        "reach3": 46,
+        "reach5": 28.7,
+        "reach7": 15.8,
+        "reach10": 6.9,
+        "drop15": 61.8,
+        "drop20": 51.1,
+        "drop30": 34.2,
+        "drop50": 16.7,
+        "avgMfe": 3.78,
+        "avgMae": -2.68,
+        "worstLoss": -10.8,
+        "closePositiveRate": 50,
+        "p3_before_m15": 36.9,
+        "p5_before_m20": 29.8,
+        "p10_before_m30": 15,
+        "avg_ret_entry_1000": 0.32
+      },
+      "recallVsReadyAll": 53.5,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.14,
+          "wins": 145,
+          "losses": 166,
+          "holds": 37,
+          "winRate": 41.7
+        },
+        "S2": {
+          "avgRet": 0.18,
+          "wins": 108,
+          "losses": 185,
+          "holds": 55,
+          "winRate": 31
+        },
+        "S3": {
+          "avgRet": 0.26,
+          "wins": 72,
+          "losses": 170,
+          "holds": 106,
+          "winRate": 20.7
+        },
+        "S4": {
+          "avgRet": 0.49,
+          "wins": 45,
+          "losses": 118,
+          "holds": 185,
+          "winRate": 12.9
+        },
+        "S5": {
+          "avgRet": 0.31,
+          "wins": 21,
+          "losses": 119,
+          "holds": 208,
+          "winRate": 6
+        },
+        "S6": {
+          "avgRet": 0.29
+        },
+        "S7": {
+          "avgRet": 0.94
+        }
+      },
+      "failures": {
+        "n": 153,
+        "drop_over_1pct_at_0945_rate": 23.5,
+        "volume_shrink_late_rate": 16.3,
+        "touched_m20_in_window_rate": 0,
+        "barely_above_0930_rate": 22.2,
+        "no_high_refresh_rate": 13.1,
+        "refresh_pushback_rate": 0,
+        "avgFinalRet": -1.44
+      }
+    },
+    {
+      "id": "B",
+      "name": "0945_ALIVE_STRONG",
+      "desc": "close0945 ≥ close0930×1.01 + closeVsHigh ≥-1.5% + low0945 ≥ close0930×0.98",
+      "summary": {
+        "n": 189,
+        "dailyAvgCount": 3.63,
+        "precSurvivor": 66.1,
+        "precBreakout": 48.1,
+        "precStrong": 37.6,
+        "breakAfter1000_rate": 64.6,
+        "breakBefore1015_rate": 37,
+        "breakBefore1100_rate": 54,
+        "avgRet": 0.62,
+        "medianRet": 0.33,
+        "winRate": 54,
+        "reach2": 64.6,
+        "reach3": 54,
+        "reach5": 37.6,
+        "reach7": 21.2,
+        "reach10": 9,
+        "drop15": 63.5,
+        "drop20": 54.5,
+        "drop30": 36.5,
+        "drop50": 19.6,
+        "avgMfe": 4.33,
+        "avgMae": -2.86,
+        "worstLoss": -10.8,
+        "closePositiveRate": 54,
+        "p3_before_m15": 42.2,
+        "p5_before_m20": 35.4,
+        "p10_before_m30": 16.9,
+        "avg_ret_entry_1000": 0.47
+      },
+      "recallVsReadyAll": 30.3,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.25,
+          "wins": 86,
+          "losses": 88,
+          "holds": 15,
+          "winRate": 45.5
+        },
+        "S2": {
+          "avgRet": 0.39,
+          "wins": 70,
+          "losses": 96,
+          "holds": 23,
+          "winRate": 37
+        },
+        "S3": {
+          "avgRet": 0.5,
+          "wins": 52,
+          "losses": 95,
+          "holds": 42,
+          "winRate": 27.5
+        },
+        "S4": {
+          "avgRet": 0.77,
+          "wins": 32,
+          "losses": 68,
+          "holds": 89,
+          "winRate": 16.9
+        },
+        "S5": {
+          "avgRet": 0.49,
+          "wins": 14,
+          "losses": 69,
+          "holds": 106,
+          "winRate": 7.4
+        },
+        "S6": {
+          "avgRet": 0.35
+        },
+        "S7": {
+          "avgRet": 1.2
+        }
+      },
+      "failures": {
+        "n": 83,
+        "drop_over_1pct_at_0945_rate": 14.5,
+        "volume_shrink_late_rate": 13.3,
+        "touched_m20_in_window_rate": 0,
+        "barely_above_0930_rate": 0,
+        "no_high_refresh_rate": 2.4,
+        "refresh_pushback_rate": 0,
+        "avgFinalRet": -1.6
+      }
+    },
+    {
+      "id": "C",
+      "name": "0945_ALIVE_PLUS2",
+      "desc": "close0945 ≥ close0930×1.02 + closeVsHigh ≥-2% + low0945 ≥ close0930×0.98",
+      "summary": {
+        "n": 110,
+        "dailyAvgCount": 2.62,
+        "precSurvivor": 58.2,
+        "precBreakout": 44.5,
+        "precStrong": 55.5,
+        "breakAfter1000_rate": 64.5,
+        "breakBefore1015_rate": 38.2,
+        "breakBefore1100_rate": 52.7,
+        "avgRet": 0.45,
+        "medianRet": 0.21,
+        "winRate": 52.7,
+        "reach2": 74.5,
+        "reach3": 62.7,
+        "reach5": 41.8,
+        "reach7": 22.7,
+        "reach10": 8.2,
+        "drop15": 70,
+        "drop20": 62.7,
+        "drop30": 45.5,
+        "drop50": 27.3,
+        "avgMfe": 4.65,
+        "avgMae": -3.35,
+        "worstLoss": -10.09,
+        "closePositiveRate": 52.7,
+        "p3_before_m15": 42.6,
+        "p5_before_m20": 33,
+        "p10_before_m30": 10.7,
+        "avg_ret_entry_1000": 0.24
+      },
+      "recallVsReadyAll": 15.5,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.28,
+          "wins": 54,
+          "losses": 51,
+          "holds": 5,
+          "winRate": 49.1
+        },
+        "S2": {
+          "avgRet": 0.42,
+          "wins": 43,
+          "losses": 58,
+          "holds": 9,
+          "winRate": 39.1
+        },
+        "S3": {
+          "avgRet": 0.37,
+          "wins": 31,
+          "losses": 63,
+          "holds": 16,
+          "winRate": 28.2
+        },
+        "S4": {
+          "avgRet": 0.43,
+          "wins": 18,
+          "losses": 49,
+          "holds": 43,
+          "winRate": 16.4
+        },
+        "S5": {
+          "avgRet": -0.03,
+          "wins": 6,
+          "losses": 50,
+          "holds": 54,
+          "winRate": 5.5
+        },
+        "S6": {
+          "avgRet": 0.07
+        },
+        "S7": {
+          "avgRet": 1.03
+        }
+      },
+      "failures": {
+        "n": 57,
+        "drop_over_1pct_at_0945_rate": 19.3,
+        "volume_shrink_late_rate": 8.8,
+        "touched_m20_in_window_rate": 0,
+        "barely_above_0930_rate": 0,
+        "no_high_refresh_rate": 0,
+        "refresh_pushback_rate": 7,
+        "avgFinalRet": -1.34
+      }
+    },
+    {
+      "id": "D",
+      "name": "0945_NO_DROP",
+      "desc": "close0945 > close0930 + 무 -2%터치 + 구간 high 대비 -2% 이내",
+      "summary": {
+        "n": 382,
+        "dailyAvgCount": 6.82,
+        "precSurvivor": 63.1,
+        "precBreakout": 47.4,
+        "precStrong": 22.5,
+        "breakAfter1000_rate": 65.2,
+        "breakBefore1015_rate": 33.5,
+        "breakBefore1100_rate": 50.8,
+        "avgRet": 0.41,
+        "medianRet": 0.1,
+        "winRate": 50.3,
+        "reach2": 60.5,
+        "reach3": 47.1,
+        "reach5": 29.1,
+        "reach7": 15.4,
+        "reach10": 6.3,
+        "drop15": 62.3,
+        "drop20": 51.3,
+        "drop30": 34,
+        "drop50": 16.5,
+        "avgMfe": 3.78,
+        "avgMae": -2.69,
+        "worstLoss": -10.8,
+        "closePositiveRate": 50.3,
+        "p3_before_m15": 37.5,
+        "p5_before_m20": 30.7,
+        "p10_before_m30": 13.9,
+        "avg_ret_entry_1000": 0.27
+      },
+      "recallVsReadyAll": 58.4,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.16,
+          "wins": 163,
+          "losses": 182,
+          "holds": 37,
+          "winRate": 42.7
+        },
+        "S2": {
+          "avgRet": 0.21,
+          "wins": 122,
+          "losses": 203,
+          "holds": 57,
+          "winRate": 31.9
+        },
+        "S3": {
+          "avgRet": 0.31,
+          "wins": 82,
+          "losses": 185,
+          "holds": 115,
+          "winRate": 21.5
+        },
+        "S4": {
+          "avgRet": 0.49,
+          "wins": 49,
+          "losses": 128,
+          "holds": 205,
+          "winRate": 12.8
+        },
+        "S5": {
+          "avgRet": 0.25,
+          "wins": 21,
+          "losses": 130,
+          "holds": 231,
+          "winRate": 5.5
+        },
+        "S6": {
+          "avgRet": 0.25
+        },
+        "S7": {
+          "avgRet": 0.92
+        }
+      },
+      "failures": {
+        "n": 169,
+        "drop_over_1pct_at_0945_rate": 30.8,
+        "volume_shrink_late_rate": 17.8,
+        "touched_m20_in_window_rate": 0,
+        "barely_above_0930_rate": 22.5,
+        "no_high_refresh_rate": 12.4,
+        "refresh_pushback_rate": 8.9,
+        "avgFinalRet": -1.4
+      }
+    },
+    {
+      "id": "E",
+      "name": "0945_TREND_UP",
+      "desc": "35↑, 40↑, 45↑ 단조 + 무 -2%터치",
+      "summary": {
+        "n": 191,
+        "dailyAvgCount": 3.75,
+        "precSurvivor": 61.8,
+        "precBreakout": 45,
+        "precStrong": 34.6,
+        "breakAfter1000_rate": 66.5,
+        "breakBefore1015_rate": 35.6,
+        "breakBefore1100_rate": 52.4,
+        "avgRet": 0.47,
+        "medianRet": 0.1,
+        "winRate": 51.3,
+        "reach2": 66.5,
+        "reach3": 52.9,
+        "reach5": 33.5,
+        "reach7": 17.8,
+        "reach10": 7.3,
+        "drop15": 62.8,
+        "drop20": 53.9,
+        "drop30": 36.1,
+        "drop50": 17.3,
+        "avgMfe": 4.09,
+        "avgMae": -2.75,
+        "worstLoss": -10.03,
+        "closePositiveRate": 51.3,
+        "p3_before_m15": 40.1,
+        "p5_before_m20": 32.1,
+        "p10_before_m30": 13.9,
+        "avg_ret_entry_1000": 0.25
+      },
+      "recallVsReadyAll": 28.6,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.28,
+          "wins": 89,
+          "losses": 85,
+          "holds": 17,
+          "winRate": 46.6
+        },
+        "S2": {
+          "avgRet": 0.29,
+          "wins": 65,
+          "losses": 97,
+          "holds": 29,
+          "winRate": 34
+        },
+        "S3": {
+          "avgRet": 0.29,
+          "wins": 45,
+          "losses": 95,
+          "holds": 51,
+          "winRate": 23.6
+        },
+        "S4": {
+          "avgRet": 0.46,
+          "wins": 26,
+          "losses": 68,
+          "holds": 97,
+          "winRate": 13.6
+        },
+        "S5": {
+          "avgRet": 0.19,
+          "wins": 11,
+          "losses": 68,
+          "holds": 112,
+          "winRate": 5.8
+        },
+        "S6": {
+          "avgRet": 0.16
+        },
+        "S7": {
+          "avgRet": 0.94
+        }
+      },
+      "failures": {
+        "n": 88,
+        "drop_over_1pct_at_0945_rate": 26.1,
+        "volume_shrink_late_rate": 14.8,
+        "touched_m20_in_window_rate": 0,
+        "barely_above_0930_rate": 4.5,
+        "no_high_refresh_rate": 4.5,
+        "refresh_pushback_rate": 11.4,
+        "avgFinalRet": -1.04
+      }
+    },
+    {
+      "id": "F",
+      "name": "0945_VOLUME_HOLD",
+      "desc": "close0945 > close0930 + v_40-45 ≥ v_35-40×0.8 + closeVsHigh ≥-1.5%",
+      "summary": {
+        "n": 227,
+        "dailyAvgCount": 4.2,
+        "precSurvivor": 63.4,
+        "precBreakout": 48,
+        "precStrong": 28.2,
+        "breakAfter1000_rate": 68.7,
+        "breakBefore1015_rate": 37,
+        "breakBefore1100_rate": 55.5,
+        "avgRet": 0.65,
+        "medianRet": 0.15,
+        "winRate": 51.1,
+        "reach2": 63.9,
+        "reach3": 52,
+        "reach5": 33.9,
+        "reach7": 18.1,
+        "reach10": 8.8,
+        "drop15": 63.9,
+        "drop20": 54.2,
+        "drop30": 36.1,
+        "drop50": 18.1,
+        "avgMfe": 4.21,
+        "avgMae": -2.79,
+        "worstLoss": -10.8,
+        "closePositiveRate": 51.1,
+        "p3_before_m15": 40.2,
+        "p5_before_m20": 31.4,
+        "p10_before_m30": 17.2,
+        "avg_ret_entry_1000": 0.44
+      },
+      "recallVsReadyAll": 34.9,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.21,
+          "wins": 101,
+          "losses": 104,
+          "holds": 22,
+          "winRate": 44.5
+        },
+        "S2": {
+          "avgRet": 0.3,
+          "wins": 78,
+          "losses": 116,
+          "holds": 33,
+          "winRate": 34.4
+        },
+        "S3": {
+          "avgRet": 0.3,
+          "wins": 53,
+          "losses": 116,
+          "holds": 58,
+          "winRate": 23.3
+        },
+        "S4": {
+          "avgRet": 0.59,
+          "wins": 33,
+          "losses": 81,
+          "holds": 113,
+          "winRate": 14.5
+        },
+        "S5": {
+          "avgRet": 0.42,
+          "wins": 17,
+          "losses": 82,
+          "holds": 128,
+          "winRate": 7.5
+        },
+        "S6": {
+          "avgRet": 0.3
+        },
+        "S7": {
+          "avgRet": 0.97
+        }
+      },
+      "failures": {
+        "n": 101,
+        "drop_over_1pct_at_0945_rate": 12.9,
+        "volume_shrink_late_rate": 0,
+        "touched_m20_in_window_rate": 7.9,
+        "barely_above_0930_rate": 23.8,
+        "no_high_refresh_rate": 16.8,
+        "refresh_pushback_rate": 0,
+        "avgFinalRet": -0.93
+      }
+    },
+    {
+      "id": "G",
+      "name": "0945_REBREAK",
+      "desc": "09:30 high 재돌파 + heldAbove + 무 -2%터치",
+      "summary": {
+        "n": 401,
+        "dailyAvgCount": 7.29,
+        "precSurvivor": 61.6,
+        "precBreakout": 45.9,
+        "precStrong": 26.7,
+        "breakAfter1000_rate": 64.8,
+        "breakBefore1015_rate": 33.4,
+        "breakBefore1100_rate": 50.6,
+        "avgRet": 0.62,
+        "medianRet": 0.46,
+        "winRate": 54.6,
+        "reach2": 63.1,
+        "reach3": 50.1,
+        "reach5": 31.2,
+        "reach7": 17.7,
+        "reach10": 8,
+        "drop15": 59.9,
+        "drop20": 50.4,
+        "drop30": 34.2,
+        "drop50": 16.5,
+        "avgMfe": 4.04,
+        "avgMae": -2.67,
+        "worstLoss": -11.57,
+        "closePositiveRate": 54.6,
+        "p3_before_m15": 39.2,
+        "p5_before_m20": 32.2,
+        "p10_before_m30": 16.7,
+        "avg_ret_entry_1000": 0.46
+      },
+      "recallVsReadyAll": 59.8,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.2,
+          "wins": 174,
+          "losses": 189,
+          "holds": 38,
+          "winRate": 43.4
+        },
+        "S2": {
+          "avgRet": 0.31,
+          "wins": 133,
+          "losses": 206,
+          "holds": 62,
+          "winRate": 33.2
+        },
+        "S3": {
+          "avgRet": 0.39,
+          "wins": 91,
+          "losses": 192,
+          "holds": 118,
+          "winRate": 22.7
+        },
+        "S4": {
+          "avgRet": 0.7,
+          "wins": 59,
+          "losses": 133,
+          "holds": 209,
+          "winRate": 14.7
+        },
+        "S5": {
+          "avgRet": 0.5,
+          "wins": 27,
+          "losses": 135,
+          "holds": 239,
+          "winRate": 6.7
+        },
+        "S6": {
+          "avgRet": 0.32
+        },
+        "S7": {
+          "avgRet": 1.11
+        }
+      },
+      "failures": {
+        "n": 180,
+        "drop_over_1pct_at_0945_rate": 39.4,
+        "volume_shrink_late_rate": 18.3,
+        "touched_m20_in_window_rate": 0,
+        "barely_above_0930_rate": 15.6,
+        "no_high_refresh_rate": 0,
+        "refresh_pushback_rate": 22.8,
+        "avgFinalRet": -1.05
+      }
+    },
+    {
+      "id": "H",
+      "name": "0945_SURVIVOR_TOP",
+      "desc": "A + close0945 ≥ 0930×1.01 + v_40-45 유지 + low_40-45 상승",
+      "summary": {
+        "n": 131,
+        "dailyAvgCount": 2.67,
+        "precSurvivor": 66.4,
+        "precBreakout": 49.6,
+        "precStrong": 43.5,
+        "breakAfter1000_rate": 68.7,
+        "breakBefore1015_rate": 40.5,
+        "breakBefore1100_rate": 57.3,
+        "avgRet": 1.12,
+        "medianRet": 0.61,
+        "winRate": 57.3,
+        "reach2": 70.2,
+        "reach3": 59.5,
+        "reach5": 44.3,
+        "reach7": 23.7,
+        "reach10": 12.2,
+        "drop15": 64.1,
+        "drop20": 55,
+        "drop30": 35.9,
+        "drop50": 17.6,
+        "avgMfe": 4.86,
+        "avgMae": -2.78,
+        "worstLoss": -10.8,
+        "closePositiveRate": 57.3,
+        "p3_before_m15": 45.3,
+        "p5_before_m20": 39.3,
+        "p10_before_m30": 21.7,
+        "avg_ret_entry_1000": 0.85
+      },
+      "recallVsReadyAll": 21.1,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.33,
+          "wins": 64,
+          "losses": 58,
+          "holds": 9,
+          "winRate": 48.9
+        },
+        "S2": {
+          "avgRet": 0.51,
+          "wins": 53,
+          "losses": 64,
+          "holds": 14,
+          "winRate": 40.5
+        },
+        "S3": {
+          "avgRet": 0.7,
+          "wins": 42,
+          "losses": 65,
+          "holds": 24,
+          "winRate": 32.1
+        },
+        "S4": {
+          "avgRet": 0.99,
+          "wins": 25,
+          "losses": 47,
+          "holds": 59,
+          "winRate": 19.1
+        },
+        "S5": {
+          "avgRet": 0.85,
+          "wins": 13,
+          "losses": 47,
+          "holds": 71,
+          "winRate": 9.9
+        },
+        "S6": {
+          "avgRet": 0.7
+        },
+        "S7": {
+          "avgRet": 1.48
+        }
+      },
+      "failures": {
+        "n": 56,
+        "drop_over_1pct_at_0945_rate": 12.5,
+        "volume_shrink_late_rate": 0,
+        "touched_m20_in_window_rate": 0,
+        "barely_above_0930_rate": 0,
+        "no_high_refresh_rate": 1.8,
+        "refresh_pushback_rate": 0,
+        "avgFinalRet": -0.92
+      }
+    },
+    {
+      "id": "I",
+      "name": "0945_STRONG_TOP",
+      "desc": "A + close0945 ≥ 0930×1.02 + closeVsHigh ≥-1% + v_40-45 유지",
+      "summary": {
+        "n": 63,
+        "dailyAvgCount": 1.8,
+        "precSurvivor": 54,
+        "precBreakout": 44.4,
+        "precStrong": 58.7,
+        "breakAfter1000_rate": 71.4,
+        "breakBefore1015_rate": 42.9,
+        "breakBefore1100_rate": 60.3,
+        "avgRet": 0.55,
+        "medianRet": 0.21,
+        "winRate": 54,
+        "reach2": 82.5,
+        "reach3": 71.4,
+        "reach5": 47.6,
+        "reach7": 25.4,
+        "reach10": 11.1,
+        "drop15": 71.4,
+        "drop20": 63.5,
+        "drop30": 47.6,
+        "drop50": 27,
+        "avgMfe": 5.28,
+        "avgMae": -3.27,
+        "worstLoss": -10.03,
+        "closePositiveRate": 54,
+        "p3_before_m15": 50,
+        "p5_before_m20": 35.2,
+        "p10_before_m30": 11.8,
+        "avg_ret_entry_1000": 0.26
+      },
+      "recallVsReadyAll": 8.2,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.46,
+          "wins": 34,
+          "losses": 26,
+          "holds": 3,
+          "winRate": 54
+        },
+        "S2": {
+          "avgRet": 0.7,
+          "wins": 29,
+          "losses": 29,
+          "holds": 5,
+          "winRate": 46
+        },
+        "S3": {
+          "avgRet": 0.45,
+          "wins": 19,
+          "losses": 35,
+          "holds": 9,
+          "winRate": 30.2
+        },
+        "S4": {
+          "avgRet": 0.34,
+          "wins": 10,
+          "losses": 30,
+          "holds": 23,
+          "winRate": 15.9
+        },
+        "S5": {
+          "avgRet": 0.01,
+          "wins": 4,
+          "losses": 30,
+          "holds": 29,
+          "winRate": 6.3
+        },
+        "S6": {
+          "avgRet": 0.23
+        },
+        "S7": {
+          "avgRet": 0.77
+        }
+      },
+      "failures": {
+        "n": 36,
+        "drop_over_1pct_at_0945_rate": 0,
+        "volume_shrink_late_rate": 0,
+        "touched_m20_in_window_rate": 0,
+        "barely_above_0930_rate": 0,
+        "no_high_refresh_rate": 0,
+        "refresh_pushback_rate": 0,
+        "avgFinalRet": -0.95
+      }
+    },
+    {
+      "id": "J",
+      "name": "0945_EXPLOSIVE_ONLY",
+      "desc": "09:30 EXPLOSIVE + close0945 > 0930 + 무 -2%터치",
+      "summary": {
+        "n": 167,
+        "dailyAvgCount": 3.34,
+        "precSurvivor": 50.9,
+        "precBreakout": 37.1,
+        "precStrong": 31.1,
+        "breakAfter1000_rate": 61.7,
+        "breakBefore1015_rate": 32.3,
+        "breakBefore1100_rate": 46.1,
+        "avgRet": 0.94,
+        "medianRet": 0.46,
+        "winRate": 53.9,
+        "reach2": 68.9,
+        "reach3": 55.7,
+        "reach5": 36.5,
+        "reach7": 21,
+        "reach10": 10.2,
+        "drop15": 65.3,
+        "drop20": 53.3,
+        "drop30": 37.1,
+        "drop50": 18,
+        "avgMfe": 4.52,
+        "avgMae": -2.77,
+        "worstLoss": -10.03,
+        "closePositiveRate": 53.9,
+        "p3_before_m15": 39.1,
+        "p5_before_m20": 34.6,
+        "p10_before_m30": 18.7,
+        "avg_ret_entry_1000": 0.75
+      },
+      "recallVsReadyAll": 20.6,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.25,
+          "wins": 77,
+          "losses": 77,
+          "holds": 13,
+          "winRate": 46.1
+        },
+        "S2": {
+          "avgRet": 0.26,
+          "wins": 59,
+          "losses": 92,
+          "holds": 16,
+          "winRate": 35.3
+        },
+        "S3": {
+          "avgRet": 0.47,
+          "wins": 44,
+          "losses": 83,
+          "holds": 40,
+          "winRate": 26.3
+        },
+        "S4": {
+          "avgRet": 0.74,
+          "wins": 28,
+          "losses": 61,
+          "holds": 78,
+          "winRate": 16.8
+        },
+        "S5": {
+          "avgRet": 0.55,
+          "wins": 14,
+          "losses": 61,
+          "holds": 92,
+          "winRate": 8.4
+        },
+        "S6": {
+          "avgRet": 0.55
+        },
+        "S7": {
+          "avgRet": 1.28
+        }
+      },
+      "failures": {
+        "n": 91,
+        "drop_over_1pct_at_0945_rate": 41.8,
+        "volume_shrink_late_rate": 16.5,
+        "touched_m20_in_window_rate": 0,
+        "barely_above_0930_rate": 18.7,
+        "no_high_refresh_rate": 7.7,
+        "refresh_pushback_rate": 25.3,
+        "avgFinalRet": -0.66
+      }
+    },
+    {
+      "id": "K",
+      "name": "0945_EXPLOSIVE_SURVIVE",
+      "desc": "09:30 EXPLOSIVE + A 조건",
+      "summary": {
+        "n": 118,
+        "dailyAvgCount": 2.51,
+        "precSurvivor": 54.2,
+        "precBreakout": 42.4,
+        "precStrong": 30.5,
+        "breakAfter1000_rate": 66.9,
+        "breakBefore1015_rate": 38.1,
+        "breakBefore1100_rate": 51.7,
+        "avgRet": 1.2,
+        "medianRet": 0.59,
+        "winRate": 55.9,
+        "reach2": 66.1,
+        "reach3": 53.4,
+        "reach5": 37.3,
+        "reach7": 21.2,
+        "reach10": 11.9,
+        "drop15": 64.4,
+        "drop20": 50.8,
+        "drop30": 33.9,
+        "drop50": 18.6,
+        "avgMfe": 4.56,
+        "avgMae": -2.65,
+        "worstLoss": -10.03,
+        "closePositiveRate": 55.9,
+        "p3_before_m15": 37.7,
+        "p5_before_m20": 36.4,
+        "p10_before_m30": 23.1,
+        "avg_ret_entry_1000": 1.08
+      },
+      "recallVsReadyAll": 15.5,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.21,
+          "wins": 52,
+          "losses": 56,
+          "holds": 10,
+          "winRate": 44.1
+        },
+        "S2": {
+          "avgRet": 0.21,
+          "wins": 40,
+          "losses": 66,
+          "holds": 12,
+          "winRate": 33.9
+        },
+        "S3": {
+          "avgRet": 0.6,
+          "wins": 32,
+          "losses": 56,
+          "holds": 30,
+          "winRate": 27.1
+        },
+        "S4": {
+          "avgRet": 0.89,
+          "wins": 20,
+          "losses": 40,
+          "holds": 58,
+          "winRate": 16.9
+        },
+        "S5": {
+          "avgRet": 0.91,
+          "wins": 12,
+          "losses": 40,
+          "holds": 66,
+          "winRate": 10.2
+        },
+        "S6": {
+          "avgRet": 0.7
+        },
+        "S7": {
+          "avgRet": 1.43
+        }
+      },
+      "failures": {
+        "n": 62,
+        "drop_over_1pct_at_0945_rate": 24.2,
+        "volume_shrink_late_rate": 14.5,
+        "touched_m20_in_window_rate": 0,
+        "barely_above_0930_rate": 17.7,
+        "no_high_refresh_rate": 11.3,
+        "refresh_pushback_rate": 0,
+        "avgFinalRet": -0.62
+      }
+    },
+    {
+      "id": "L",
+      "name": "0945_READY_WIDE",
+      "desc": "READY + close0945 > 0930 + 무 -3%터치",
+      "summary": {
+        "n": 490,
+        "dailyAvgCount": 8.6,
+        "precSurvivor": 58.4,
+        "precBreakout": 44.1,
+        "precStrong": 24.1,
+        "breakAfter1000_rate": 63.7,
+        "breakBefore1015_rate": 32.7,
+        "breakBefore1100_rate": 49.8,
+        "avgRet": 0.41,
+        "medianRet": 0.1,
+        "winRate": 50.4,
+        "reach2": 62.2,
+        "reach3": 49.6,
+        "reach5": 30.4,
+        "reach7": 17.3,
+        "reach10": 7.6,
+        "drop15": 63.5,
+        "drop20": 54.3,
+        "drop30": 37.3,
+        "drop50": 18.4,
+        "avgMfe": 3.96,
+        "avgMae": -2.87,
+        "worstLoss": -16.06,
+        "closePositiveRate": 50.4,
+        "p3_before_m15": 37.2,
+        "p5_before_m20": 29.1,
+        "p10_before_m30": 15,
+        "avg_ret_entry_1000": 0.29
+      },
+      "recallVsReadyAll": 69.2,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.13,
+          "wins": 208,
+          "losses": 240,
+          "holds": 42,
+          "winRate": 42.4
+        },
+        "S2": {
+          "avgRet": 0.2,
+          "wins": 158,
+          "losses": 267,
+          "holds": 65,
+          "winRate": 32.2
+        },
+        "S3": {
+          "avgRet": 0.21,
+          "wins": 104,
+          "losses": 253,
+          "holds": 133,
+          "winRate": 21.2
+        },
+        "S4": {
+          "avgRet": 0.49,
+          "wins": 69,
+          "losses": 178,
+          "holds": 243,
+          "winRate": 14.1
+        },
+        "S5": {
+          "avgRet": 0.25,
+          "wins": 32,
+          "losses": 181,
+          "holds": 277,
+          "winRate": 6.5
+        },
+        "S6": {
+          "avgRet": 0.23
+        },
+        "S7": {
+          "avgRet": 1.05
+        }
+      },
+      "failures": {
+        "n": 234,
+        "drop_over_1pct_at_0945_rate": 39.3,
+        "volume_shrink_late_rate": 19.2,
+        "touched_m20_in_window_rate": 5.1,
+        "barely_above_0930_rate": 23.5,
+        "no_high_refresh_rate": 12,
+        "refresh_pushback_rate": 23.1,
+        "avgFinalRet": -1.2
+      }
+    }
+  ],
+  "ranking": {
+    "passed": [],
+    "allByAvgRet": [
+      {
+        "id": "K",
+        "name": "0945_EXPLOSIVE_SURVIVE",
+        "n": 118,
+        "avgRet": 1.2,
+        "precSurvivor": 54.2,
+        "dailyAvg": 2.51,
+        "drop30": 33.9
+      },
+      {
+        "id": "H",
+        "name": "0945_SURVIVOR_TOP",
+        "n": 131,
+        "avgRet": 1.12,
+        "precSurvivor": 66.4,
+        "dailyAvg": 2.67,
+        "drop30": 35.9
+      },
+      {
+        "id": "J",
+        "name": "0945_EXPLOSIVE_ONLY",
+        "n": 167,
+        "avgRet": 0.94,
+        "precSurvivor": 50.9,
+        "dailyAvg": 3.34,
+        "drop30": 37.1
+      },
+      {
+        "id": "F",
+        "name": "0945_VOLUME_HOLD",
+        "n": 227,
+        "avgRet": 0.65,
+        "precSurvivor": 63.4,
+        "dailyAvg": 4.2,
+        "drop30": 36.1
+      },
+      {
+        "id": "B",
+        "name": "0945_ALIVE_STRONG",
+        "n": 189,
+        "avgRet": 0.62,
+        "precSurvivor": 66.1,
+        "dailyAvg": 3.63,
+        "drop30": 36.5
+      },
+      {
+        "id": "G",
+        "name": "0945_REBREAK",
+        "n": 401,
+        "avgRet": 0.62,
+        "precSurvivor": 61.6,
+        "dailyAvg": 7.29,
+        "drop30": 34.2
+      },
+      {
+        "id": "I",
+        "name": "0945_STRONG_TOP",
+        "n": 63,
+        "avgRet": 0.55,
+        "precSurvivor": 54,
+        "dailyAvg": 1.8,
+        "drop30": 47.6
+      },
+      {
+        "id": "E",
+        "name": "0945_TREND_UP",
+        "n": 191,
+        "avgRet": 0.47,
+        "precSurvivor": 61.8,
+        "dailyAvg": 3.75,
+        "drop30": 36.1
+      },
+      {
+        "id": "EXPLOSIVE_0930",
+        "name": "09:30 EXPLOSIVE",
+        "n": 353,
+        "avgRet": 0.46,
+        "precSurvivor": 33.1,
+        "dailyAvg": 6.19,
+        "drop30": 38
+      },
+      {
+        "id": "C",
+        "name": "0945_ALIVE_PLUS2",
+        "n": 110,
+        "avgRet": 0.45,
+        "precSurvivor": 58.2,
+        "dailyAvg": 2.62,
+        "drop30": 45.5
+      },
+      {
+        "id": "A",
+        "name": "0945_ALIVE_BASIC",
+        "n": 348,
+        "avgRet": 0.44,
+        "precSurvivor": 63.5,
+        "dailyAvg": 6.33,
+        "drop30": 34.2
+      },
+      {
+        "id": "D",
+        "name": "0945_NO_DROP",
+        "n": 382,
+        "avgRet": 0.41,
+        "precSurvivor": 63.1,
+        "dailyAvg": 6.82,
+        "drop30": 34
+      },
+      {
+        "id": "L",
+        "name": "0945_READY_WIDE",
+        "n": 490,
+        "avgRet": 0.41,
+        "precSurvivor": 58.4,
+        "dailyAvg": 8.6,
+        "drop30": 37.3
+      },
+      {
+        "id": "READY_0930",
+        "name": "09:30 READY 전체",
+        "n": 1063,
+        "avgRet": 0.24,
+        "precSurvivor": 38.9,
+        "dailyAvg": 17.72,
+        "drop30": 37.3
+      }
+    ]
+  },
+  "referenceSurvivorSummary": {
+    "n": 413,
+    "dailyAvgCount": 7,
+    "precSurvivor": 100,
+    "precBreakout": 76.3,
+    "precStrong": 24.5,
+    "breakAfter1000_rate": 76.3,
+    "breakBefore1015_rate": 51.1,
+    "breakBefore1100_rate": 64.9,
+    "avgRet": 1.45,
+    "medianRet": 0.88,
+    "winRate": 63.9,
+    "reach2": 70.9,
+    "reach3": 56.7,
+    "reach5": 34.9,
+    "reach7": 19.9,
+    "reach10": 9.4,
+    "drop15": 42.9,
+    "drop20": 32.7,
+    "drop30": 19.6,
+    "drop50": 7.7,
+    "avgMfe": 4.52,
+    "avgMae": -1.86,
+    "worstLoss": -10.03,
+    "closePositiveRate": 63.9,
+    "p3_before_m15": 58.7,
+    "p5_before_m20": 50.8,
+    "p10_before_m30": 31.9,
+    "avg_ret_entry_1000": 0.24
+  }
+}

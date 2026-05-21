@@ -26,6 +26,9 @@ pids/
 # QVA 장중 감시 보드 동시 실행 lock
 reports/.qva-live-watch.lock
 
+# 1DS 장마감 후 peak time 보강 lock
+reports/.1ds-postclose-peak.lock
+
 # PM2
 .pm2/
 ecosystem.config.local.js

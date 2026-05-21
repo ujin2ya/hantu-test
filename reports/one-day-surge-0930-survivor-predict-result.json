@@ -1,0 +1,2259 @@
+{
+  "meta": {
+    "title": "1DS — 09:30 시점에서 10시 생존 예측 백테스트",
+    "generatedAt": "2026-05-21T09:29:14.398Z",
+    "dateRange": {
+      "from": "2026-02-24",
+      "to": "2026-05-21",
+      "n": 60
+    },
+    "args": {
+      "days": 60,
+      "fromDate": null,
+      "toDate": null
+    }
+  },
+  "universe": {
+    "totalRecords": 17688,
+    "statusBreakdown": {
+      "FADED": 8074,
+      "WEAK": 8138,
+      "WAIT_PULLBACK": 408,
+      "READY": 1066,
+      "INSUFFICIENT_BARS": 2
+    },
+    "readyAllCount": 1066
+  },
+  "baselines": [
+    {
+      "id": "READY_ALL",
+      "name": "READY 전체",
+      "desc": "",
+      "summary": {
+        "n": 1066,
+        "dailyAvgCount": 17.77,
+        "precSurvivor": 39,
+        "precBreakout": 29.5,
+        "precStrong": 12.2,
+        "breakAfter1000_rate": 57.2,
+        "breakBefore1015_rate": 25.9,
+        "breakBefore1100_rate": 41,
+        "avgRet": 0.72,
+        "medianRet": -0.15,
+        "winRate": 47.5,
+        "reach3": 50.2,
+        "reach5": 31.9,
+        "reach7": 21.1,
+        "reach10": 11,
+        "drop2": 61.9,
+        "drop3": 45.5,
+        "drop5": 25.9,
+        "avgMfe": 4.76,
+        "avgMae": -3.16,
+        "worstLoss": -24.52,
+        "closePositiveRate": 47.5,
+        "p5_before_m2": 31.2,
+        "p10_before_m3": 19.6
+      },
+      "recallVsReadyAll": 100,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.44,
+          "wins": 377,
+          "losses": 496,
+          "holds": 193,
+          "winRate": 35.4
+        },
+        "S2": {
+          "avgRet": 0.57,
+          "wins": 249,
+          "losses": 548,
+          "holds": 269,
+          "winRate": 23.4
+        },
+        "S3": {
+          "avgRet": 0.74,
+          "wins": 193,
+          "losses": 395,
+          "holds": 478,
+          "winRate": 18.1
+        },
+        "S4": {
+          "avgRet": 0.78,
+          "wins": 97,
+          "losses": 398,
+          "holds": 571,
+          "winRate": 9.1
+        },
+        "S5": {
+          "avgRet": 0.43
+        },
+        "S6": {
+          "avgRet": 1.2
+        }
+      },
+      "failures": {
+        "n": 680,
+        "high_drop_over_1pct_rate": 49.6,
+        "value_shrink_late_rate": 34,
+        "overheated_rate": 0,
+        "very_low_v_to_mc_rate": 8.5,
+        "last5min_low_break_rate": 29.7,
+        "last5min_value_shrink_rate": 11.5,
+        "close_pct_from_morning_low_rate": 0,
+        "avgFinalRet": -0.55,
+        "examples": [
+          {
+            "date": "2026-02-24",
+            "code": "024840",
+            "name": "KBI메탈",
+            "drop": -0.39,
+            "openToLast": 7.87,
+            "closePos": 0.964,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.986
+          },
+          {
+            "date": "2026-02-24",
+            "code": "192820",
+            "name": "코스맥스",
+            "drop": -1.28,
+            "openToLast": 2.04,
+            "closePos": 0.807,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -1.851
+          },
+          {
+            "date": "2026-02-24",
+            "code": "200710",
+            "name": "에이디테크놀로지",
+            "drop": -0.11,
+            "openToLast": 7.19,
+            "closePos": 0.988,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0.532
+          },
+          {
+            "date": "2026-02-24",
+            "code": "389470",
+            "name": "인벤티지랩",
+            "drop": -0.12,
+            "openToLast": 5.1,
+            "closePos": 0.976,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -2.985
+          },
+          {
+            "date": "2026-02-24",
+            "code": "417200",
+            "name": "LS머트리얼즈",
+            "drop": -2.05,
+            "openToLast": 7.1,
+            "closePos": 0.784,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -1.189
+          },
+          {
+            "date": "2026-02-24",
+            "code": "491000",
+            "name": "리브스메드",
+            "drop": -1.86,
+            "openToLast": 1.93,
+            "closePos": 0.696,
+            "valueShrinkAfterMorning": true,
+            "finalRet": 1.335
+          },
+          {
+            "date": "2026-02-25",
+            "code": "006360",
+            "name": "GS건설",
+            "drop": -0.62,
+            "openToLast": 2.58,
+            "closePos": 0.824,
+            "valueShrinkAfterMorning": true,
+            "finalRet": 0.419
+          },
+          {
+            "date": "2026-02-25",
+            "code": "018880",
+            "name": "한온시스템",
+            "drop": -0.38,
+            "openToLast": 1.12,
+            "closePos": 0.887,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -3.862
+          }
+        ]
+      }
+    },
+    {
+      "id": "EXPLOSIVE",
+      "name": "explosiveTop",
+      "desc": "",
+      "summary": {
+        "n": 354,
+        "dailyAvgCount": 6.21,
+        "precSurvivor": 33.3,
+        "precBreakout": 25.4,
+        "precStrong": 15.8,
+        "breakAfter1000_rate": 54.5,
+        "breakBefore1015_rate": 24.3,
+        "breakBefore1100_rate": 38.4,
+        "avgRet": 1.81,
+        "medianRet": 0,
+        "winRate": 48.6,
+        "reach3": 57.6,
+        "reach5": 36.7,
+        "reach7": 25.4,
+        "reach10": 15.5,
+        "drop2": 61.3,
+        "drop3": 45.8,
+        "drop5": 28,
+        "avgMfe": 6.15,
+        "avgMae": -2.66,
+        "worstLoss": -24.52,
+        "closePositiveRate": 48.6,
+        "p5_before_m2": 35.8,
+        "p10_before_m3": 25.1
+      },
+      "recallVsReadyAll": 28.4,
+      "strategies": {
+        "S1": {
+          "avgRet": 1.41,
+          "wins": 150,
+          "losses": 155,
+          "holds": 49,
+          "winRate": 42.4
+        },
+        "S2": {
+          "avgRet": 1.56,
+          "wins": 100,
+          "losses": 179,
+          "holds": 75,
+          "winRate": 28.2
+        },
+        "S3": {
+          "avgRet": 1.74,
+          "wins": 79,
+          "losses": 133,
+          "holds": 142,
+          "winRate": 22.3
+        },
+        "S4": {
+          "avgRet": 1.86,
+          "wins": 45,
+          "losses": 134,
+          "holds": 175,
+          "winRate": 12.7
+        },
+        "S5": {
+          "avgRet": 0.68
+        },
+        "S6": {
+          "avgRet": 1.49
+        }
+      },
+      "failures": {
+        "n": 239,
+        "high_drop_over_1pct_rate": 55.6,
+        "value_shrink_late_rate": 30.1,
+        "overheated_rate": 0,
+        "very_low_v_to_mc_rate": 16.7,
+        "last5min_low_break_rate": 33.1,
+        "last5min_value_shrink_rate": 10.9,
+        "close_pct_from_morning_low_rate": 0,
+        "avgFinalRet": 0.81,
+        "examples": [
+          {
+            "date": "2026-02-24",
+            "code": "192820",
+            "name": "코스맥스",
+            "drop": -1.28,
+            "openToLast": 2.04,
+            "closePos": 0.807,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -1.851
+          },
+          {
+            "date": "2026-02-24",
+            "code": "389470",
+            "name": "인벤티지랩",
+            "drop": -0.12,
+            "openToLast": 5.1,
+            "closePos": 0.976,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -2.985
+          },
+          {
+            "date": "2026-02-24",
+            "code": "417200",
+            "name": "LS머트리얼즈",
+            "drop": -2.05,
+            "openToLast": 7.1,
+            "closePos": 0.784,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -1.189
+          },
+          {
+            "date": "2026-02-25",
+            "code": "006360",
+            "name": "GS건설",
+            "drop": -0.62,
+            "openToLast": 2.58,
+            "closePos": 0.824,
+            "valueShrinkAfterMorning": true,
+            "finalRet": 0.419
+          },
+          {
+            "date": "2026-02-25",
+            "code": "020150",
+            "name": "롯데에너지머티리얼즈",
+            "drop": -1.12,
+            "openToLast": 2.37,
+            "closePos": 0.716,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -1.562
+          },
+          {
+            "date": "2026-02-25",
+            "code": "298830",
+            "name": "슈어소프트테크",
+            "drop": -1.14,
+            "openToLast": 5.45,
+            "closePos": 0.825,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0
+          },
+          {
+            "date": "2026-02-25",
+            "code": "389500",
+            "name": "에스비비테크",
+            "drop": -0.63,
+            "openToLast": 3.81,
+            "closePos": 0.902,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 6.869
+          },
+          {
+            "date": "2026-02-25",
+            "code": "476060",
+            "name": "온코닉테라퓨틱스",
+            "drop": -1.26,
+            "openToLast": 7.05,
+            "closePos": 0.854,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -3.839
+          }
+        ]
+      }
+    },
+    {
+      "id": "I_COND_PREFILTER",
+      "name": "I 조건 prefilter",
+      "desc": "",
+      "summary": {
+        "n": 872,
+        "dailyAvgCount": 14.53,
+        "precSurvivor": 37.8,
+        "precBreakout": 29,
+        "precStrong": 12.4,
+        "breakAfter1000_rate": 57,
+        "breakBefore1015_rate": 25.5,
+        "breakBefore1100_rate": 41.2,
+        "avgRet": 0.24,
+        "medianRet": -0.16,
+        "winRate": 47.8,
+        "reach3": 50.8,
+        "reach5": 33,
+        "reach7": 21.6,
+        "reach10": 10.8,
+        "drop2": 64.2,
+        "drop3": 47.7,
+        "drop5": 27.9,
+        "avgMfe": 4.46,
+        "avgMae": -3.69,
+        "worstLoss": -19.82,
+        "closePositiveRate": 47.8,
+        "p5_before_m2": 31.3,
+        "p10_before_m3": 18.9
+      },
+      "recallVsReadyAll": 79.3,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.01,
+          "wins": 311,
+          "losses": 423,
+          "holds": 138,
+          "winRate": 35.7
+        },
+        "S2": {
+          "avgRet": 0.18,
+          "wins": 211,
+          "losses": 463,
+          "holds": 198,
+          "winRate": 24.2
+        },
+        "S3": {
+          "avgRet": 0.31,
+          "wins": 163,
+          "losses": 340,
+          "holds": 369,
+          "winRate": 18.7
+        },
+        "S4": {
+          "avgRet": 0.33,
+          "wins": 80,
+          "losses": 343,
+          "holds": 449,
+          "winRate": 9.2
+        },
+        "S5": {
+          "avgRet": 0.37
+        },
+        "S6": {
+          "avgRet": 1.27
+        }
+      },
+      "failures": {
+        "n": 569,
+        "high_drop_over_1pct_rate": 49,
+        "value_shrink_late_rate": 27.9,
+        "overheated_rate": 2.6,
+        "very_low_v_to_mc_rate": 10.7,
+        "last5min_low_break_rate": 30.9,
+        "last5min_value_shrink_rate": 12.8,
+        "close_pct_from_morning_low_rate": 0,
+        "avgFinalRet": -1.31,
+        "examples": [
+          {
+            "date": "2026-02-24",
+            "code": "024840",
+            "name": "KBI메탈",
+            "drop": -0.39,
+            "openToLast": 7.87,
+            "closePos": 0.964,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.986
+          },
+          {
+            "date": "2026-02-24",
+            "code": "036170",
+            "name": "에이치엠넥스",
+            "drop": -2.6,
+            "openToLast": 14.13,
+            "closePos": 0.835,
+            "valueShrinkAfterMorning": true,
+            "finalRet": 6.476
+          },
+          {
+            "date": "2026-02-24",
+            "code": "078600",
+            "name": "대주전자재료",
+            "drop": -2.66,
+            "openToLast": 1.96,
+            "closePos": 0.591,
+            "valueShrinkAfterMorning": true,
+            "finalRet": 0.809
+          },
+          {
+            "date": "2026-02-24",
+            "code": "192820",
+            "name": "코스맥스",
+            "drop": -1.28,
+            "openToLast": 2.04,
+            "closePos": 0.807,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -1.851
+          },
+          {
+            "date": "2026-02-24",
+            "code": "200710",
+            "name": "에이디테크놀로지",
+            "drop": -0.11,
+            "openToLast": 7.19,
+            "closePos": 0.988,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0.532
+          },
+          {
+            "date": "2026-02-24",
+            "code": "306620",
+            "name": "지아이에스",
+            "drop": -2.61,
+            "openToLast": 10.19,
+            "closePos": 0.828,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -11.26
+          },
+          {
+            "date": "2026-02-24",
+            "code": "389470",
+            "name": "인벤티지랩",
+            "drop": -0.12,
+            "openToLast": 5.1,
+            "closePos": 0.976,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -2.985
+          },
+          {
+            "date": "2026-02-24",
+            "code": "417200",
+            "name": "LS머트리얼즈",
+            "drop": -2.05,
+            "openToLast": 7.1,
+            "closePos": 0.784,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -1.189
+          }
+        ]
+      }
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "P1",
+      "name": "고점권 유지형",
+      "desc": "READY + closePos ≥0.70 + drop ≥-1.5 + 종가 > 시가",
+      "summary": {
+        "n": 797,
+        "dailyAvgCount": 13.28,
+        "precSurvivor": 39.6,
+        "precBreakout": 30.7,
+        "precStrong": 11.7,
+        "breakAfter1000_rate": 58.5,
+        "breakBefore1015_rate": 26.7,
+        "breakBefore1100_rate": 41.7,
+        "avgRet": 0.83,
+        "medianRet": -0.17,
+        "winRate": 47.1,
+        "reach3": 48.3,
+        "reach5": 30.4,
+        "reach7": 19.4,
+        "reach10": 9.7,
+        "drop2": 60,
+        "drop3": 43,
+        "drop5": 23.8,
+        "avgMfe": 4.66,
+        "avgMae": -2.88,
+        "worstLoss": -24.52,
+        "closePositiveRate": 47.1,
+        "p5_before_m2": 30.4,
+        "p10_before_m3": 19.1
+      },
+      "recallVsReadyAll": 76,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.51,
+          "wins": 276,
+          "losses": 368,
+          "holds": 153,
+          "winRate": 34.6
+        },
+        "S2": {
+          "avgRet": 0.64,
+          "wins": 176,
+          "losses": 402,
+          "holds": 219,
+          "winRate": 22.1
+        },
+        "S3": {
+          "avgRet": 0.87,
+          "wins": 137,
+          "losses": 279,
+          "holds": 381,
+          "winRate": 17.2
+        },
+        "S4": {
+          "avgRet": 0.9,
+          "wins": 66,
+          "losses": 280,
+          "holds": 451,
+          "winRate": 8.3
+        },
+        "S5": {
+          "avgRet": 0.4
+        },
+        "S6": {
+          "avgRet": 1.17
+        }
+      },
+      "failures": {
+        "n": 506,
+        "high_drop_over_1pct_rate": 33,
+        "value_shrink_late_rate": 32.4,
+        "overheated_rate": 0,
+        "very_low_v_to_mc_rate": 7.3,
+        "last5min_low_break_rate": 24.1,
+        "last5min_value_shrink_rate": 9.9,
+        "close_pct_from_morning_low_rate": 0,
+        "avgFinalRet": -0.38,
+        "examples": [
+          {
+            "date": "2026-02-24",
+            "code": "024840",
+            "name": "KBI메탈",
+            "drop": -0.39,
+            "openToLast": 7.87,
+            "closePos": 0.964,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.986
+          },
+          {
+            "date": "2026-02-24",
+            "code": "192820",
+            "name": "코스맥스",
+            "drop": -1.28,
+            "openToLast": 2.04,
+            "closePos": 0.807,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -1.851
+          },
+          {
+            "date": "2026-02-24",
+            "code": "200710",
+            "name": "에이디테크놀로지",
+            "drop": -0.11,
+            "openToLast": 7.19,
+            "closePos": 0.988,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0.532
+          },
+          {
+            "date": "2026-02-24",
+            "code": "389470",
+            "name": "인벤티지랩",
+            "drop": -0.12,
+            "openToLast": 5.1,
+            "closePos": 0.976,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -2.985
+          },
+          {
+            "date": "2026-02-25",
+            "code": "006360",
+            "name": "GS건설",
+            "drop": -0.62,
+            "openToLast": 2.58,
+            "closePos": 0.824,
+            "valueShrinkAfterMorning": true,
+            "finalRet": 0.419
+          },
+          {
+            "date": "2026-02-25",
+            "code": "018880",
+            "name": "한온시스템",
+            "drop": -0.38,
+            "openToLast": 1.12,
+            "closePos": 0.887,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -3.862
+          },
+          {
+            "date": "2026-02-25",
+            "code": "020150",
+            "name": "롯데에너지머티리얼즈",
+            "drop": -1.12,
+            "openToLast": 2.37,
+            "closePos": 0.716,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -1.562
+          },
+          {
+            "date": "2026-02-25",
+            "code": "038500",
+            "name": "삼표시멘트",
+            "drop": -0.98,
+            "openToLast": 3.31,
+            "closePos": 0.826,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.554
+          }
+        ]
+      }
+    },
+    {
+      "id": "P2",
+      "name": "직전 10분 재가속형",
+      "desc": "READY + v_20-30 ≥ v_10-20 + close_30 > close_20 + low_25_30 ≥ low_15_20",
+      "summary": {
+        "n": 440,
+        "dailyAvgCount": 7.72,
+        "precSurvivor": 36.8,
+        "precBreakout": 29.8,
+        "precStrong": 11.8,
+        "breakAfter1000_rate": 58.2,
+        "breakBefore1015_rate": 25,
+        "breakBefore1100_rate": 40.7,
+        "avgRet": 0.48,
+        "medianRet": -0.24,
+        "winRate": 48,
+        "reach3": 53.9,
+        "reach5": 34.3,
+        "reach7": 23.4,
+        "reach10": 15.2,
+        "drop2": 64.1,
+        "drop3": 46.8,
+        "drop5": 28,
+        "avgMfe": 4.86,
+        "avgMae": -3.65,
+        "worstLoss": -24.52,
+        "closePositiveRate": 48,
+        "p5_before_m2": 32,
+        "p10_before_m3": 25
+      },
+      "recallVsReadyAll": 38.9,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.09,
+          "wins": 168,
+          "losses": 210,
+          "holds": 62,
+          "winRate": 38.2
+        },
+        "S2": {
+          "avgRet": 0.2,
+          "wins": 110,
+          "losses": 234,
+          "holds": 96,
+          "winRate": 25
+        },
+        "S3": {
+          "avgRet": 0.47,
+          "wins": 88,
+          "losses": 168,
+          "holds": 184,
+          "winRate": 20
+        },
+        "S4": {
+          "avgRet": 0.72,
+          "wins": 56,
+          "losses": 168,
+          "holds": 216,
+          "winRate": 12.7
+        },
+        "S5": {
+          "avgRet": 0.4
+        },
+        "S6": {
+          "avgRet": 1.31
+        }
+      },
+      "failures": {
+        "n": 291,
+        "high_drop_over_1pct_rate": 41.6,
+        "value_shrink_late_rate": 12.4,
+        "overheated_rate": 0,
+        "very_low_v_to_mc_rate": 12.4,
+        "last5min_low_break_rate": 11,
+        "last5min_value_shrink_rate": 10,
+        "close_pct_from_morning_low_rate": 0,
+        "avgFinalRet": -0.91,
+        "examples": [
+          {
+            "date": "2026-02-24",
+            "code": "024840",
+            "name": "KBI메탈",
+            "drop": -0.39,
+            "openToLast": 7.87,
+            "closePos": 0.964,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.986
+          },
+          {
+            "date": "2026-02-24",
+            "code": "200710",
+            "name": "에이디테크놀로지",
+            "drop": -0.11,
+            "openToLast": 7.19,
+            "closePos": 0.988,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0.532
+          },
+          {
+            "date": "2026-02-24",
+            "code": "389470",
+            "name": "인벤티지랩",
+            "drop": -0.12,
+            "openToLast": 5.1,
+            "closePos": 0.976,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -2.985
+          },
+          {
+            "date": "2026-02-24",
+            "code": "491000",
+            "name": "리브스메드",
+            "drop": -1.86,
+            "openToLast": 1.93,
+            "closePos": 0.696,
+            "valueShrinkAfterMorning": true,
+            "finalRet": 1.335
+          },
+          {
+            "date": "2026-02-25",
+            "code": "038500",
+            "name": "삼표시멘트",
+            "drop": -0.98,
+            "openToLast": 3.31,
+            "closePos": 0.826,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.554
+          },
+          {
+            "date": "2026-02-25",
+            "code": "389500",
+            "name": "에스비비테크",
+            "drop": -0.63,
+            "openToLast": 3.81,
+            "closePos": 0.902,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 6.869
+          },
+          {
+            "date": "2026-02-25",
+            "code": "396300",
+            "name": "세아메카닉스",
+            "drop": -1.69,
+            "openToLast": 3.56,
+            "closePos": 0.753,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -5.725
+          },
+          {
+            "date": "2026-02-25",
+            "code": "476060",
+            "name": "온코닉테라퓨틱스",
+            "drop": -1.26,
+            "openToLast": 7.05,
+            "closePos": 0.854,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -3.839
+          }
+        ]
+      }
+    },
+    {
+      "id": "P3",
+      "name": "마지막 5분 힘 유지형",
+      "desc": "READY + close30 ≥ high_25_30×0.99 + v_25_30 ≥ v_20_25×0.8 + low_25_30 ≥ low_20_25",
+      "summary": {
+        "n": 332,
+        "dailyAvgCount": 5.63,
+        "precSurvivor": 38,
+        "precBreakout": 30.4,
+        "precStrong": 13,
+        "breakAfter1000_rate": 58.7,
+        "breakBefore1015_rate": 24.7,
+        "breakBefore1100_rate": 41,
+        "avgRet": 0.2,
+        "medianRet": -0.3,
+        "winRate": 45.2,
+        "reach3": 47,
+        "reach5": 31.3,
+        "reach7": 21.1,
+        "reach10": 9.9,
+        "drop2": 60.2,
+        "drop3": 44.3,
+        "drop5": 22.6,
+        "avgMfe": 4.23,
+        "avgMae": -3.35,
+        "worstLoss": -15.65,
+        "closePositiveRate": 45.2,
+        "p5_before_m2": 31.5,
+        "p10_before_m3": 19
+      },
+      "recallVsReadyAll": 30.3,
+      "strategies": {
+        "S1": {
+          "avgRet": 0,
+          "wins": 114,
+          "losses": 150,
+          "holds": 68,
+          "winRate": 34.3
+        },
+        "S2": {
+          "avgRet": 0.16,
+          "wins": 75,
+          "losses": 163,
+          "holds": 94,
+          "winRate": 22.6
+        },
+        "S3": {
+          "avgRet": 0.37,
+          "wins": 62,
+          "losses": 118,
+          "holds": 152,
+          "winRate": 18.7
+        },
+        "S4": {
+          "avgRet": 0.37,
+          "wins": 28,
+          "losses": 119,
+          "holds": 185,
+          "winRate": 8.4
+        },
+        "S5": {
+          "avgRet": 0.4
+        },
+        "S6": {
+          "avgRet": 1.08
+        }
+      },
+      "failures": {
+        "n": 217,
+        "high_drop_over_1pct_rate": 13.8,
+        "value_shrink_late_rate": 30,
+        "overheated_rate": 0,
+        "very_low_v_to_mc_rate": 6.5,
+        "last5min_low_break_rate": 0,
+        "last5min_value_shrink_rate": 0,
+        "close_pct_from_morning_low_rate": 0,
+        "avgFinalRet": -1.22,
+        "examples": [
+          {
+            "date": "2026-02-24",
+            "code": "024840",
+            "name": "KBI메탈",
+            "drop": -0.39,
+            "openToLast": 7.87,
+            "closePos": 0.964,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.986
+          },
+          {
+            "date": "2026-02-24",
+            "code": "192820",
+            "name": "코스맥스",
+            "drop": -1.28,
+            "openToLast": 2.04,
+            "closePos": 0.807,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -1.851
+          },
+          {
+            "date": "2026-02-24",
+            "code": "200710",
+            "name": "에이디테크놀로지",
+            "drop": -0.11,
+            "openToLast": 7.19,
+            "closePos": 0.988,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0.532
+          },
+          {
+            "date": "2026-02-25",
+            "code": "018880",
+            "name": "한온시스템",
+            "drop": -0.38,
+            "openToLast": 1.12,
+            "closePos": 0.887,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -3.862
+          },
+          {
+            "date": "2026-02-25",
+            "code": "038500",
+            "name": "삼표시멘트",
+            "drop": -0.98,
+            "openToLast": 3.31,
+            "closePos": 0.826,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.554
+          },
+          {
+            "date": "2026-02-25",
+            "code": "389500",
+            "name": "에스비비테크",
+            "drop": -0.63,
+            "openToLast": 3.81,
+            "closePos": 0.902,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 6.869
+          },
+          {
+            "date": "2026-02-26",
+            "code": "009290",
+            "name": "광동제약",
+            "drop": -0.1,
+            "openToLast": 5.1,
+            "closePos": 0.986,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -3.636
+          },
+          {
+            "date": "2026-02-27",
+            "code": "038500",
+            "name": "삼표시멘트",
+            "drop": -0.12,
+            "openToLast": 3.54,
+            "closePos": 0.981,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 7.965
+          }
+        ]
+      }
+    },
+    {
+      "id": "P4",
+      "name": "고점권 + 거래대금 유지 (P1+P3)",
+      "desc": "P1 AND P3",
+      "summary": {
+        "n": 303,
+        "dailyAvgCount": 5.32,
+        "precSurvivor": 37,
+        "precBreakout": 29.4,
+        "precStrong": 12.5,
+        "breakAfter1000_rate": 58.1,
+        "breakBefore1015_rate": 24.1,
+        "breakBefore1100_rate": 40.9,
+        "avgRet": 0.01,
+        "medianRet": -0.51,
+        "winRate": 44.6,
+        "reach3": 47.9,
+        "reach5": 30.7,
+        "reach7": 20.1,
+        "reach10": 8.6,
+        "drop2": 61.1,
+        "drop3": 45.5,
+        "drop5": 23.4,
+        "avgMfe": 4.11,
+        "avgMae": -3.4,
+        "worstLoss": -15.65,
+        "closePositiveRate": 44.6,
+        "p5_before_m2": 30.8,
+        "p10_before_m3": 16.9
+      },
+      "recallVsReadyAll": 26.9,
+      "strategies": {
+        "S1": {
+          "avgRet": -0.04,
+          "wins": 107,
+          "losses": 140,
+          "holds": 56,
+          "winRate": 35.3
+        },
+        "S2": {
+          "avgRet": 0.09,
+          "wins": 68,
+          "losses": 153,
+          "holds": 82,
+          "winRate": 22.4
+        },
+        "S3": {
+          "avgRet": 0.27,
+          "wins": 56,
+          "losses": 112,
+          "holds": 135,
+          "winRate": 18.5
+        },
+        "S4": {
+          "avgRet": 0.22,
+          "wins": 23,
+          "losses": 113,
+          "holds": 167,
+          "winRate": 7.6
+        },
+        "S5": {
+          "avgRet": 0.26
+        },
+        "S6": {
+          "avgRet": 1.02
+        }
+      },
+      "failures": {
+        "n": 202,
+        "high_drop_over_1pct_rate": 7.9,
+        "value_shrink_late_rate": 26.2,
+        "overheated_rate": 0,
+        "very_low_v_to_mc_rate": 6.9,
+        "last5min_low_break_rate": 0,
+        "last5min_value_shrink_rate": 0,
+        "close_pct_from_morning_low_rate": 0,
+        "avgFinalRet": -1.41,
+        "examples": [
+          {
+            "date": "2026-02-24",
+            "code": "024840",
+            "name": "KBI메탈",
+            "drop": -0.39,
+            "openToLast": 7.87,
+            "closePos": 0.964,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.986
+          },
+          {
+            "date": "2026-02-24",
+            "code": "192820",
+            "name": "코스맥스",
+            "drop": -1.28,
+            "openToLast": 2.04,
+            "closePos": 0.807,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -1.851
+          },
+          {
+            "date": "2026-02-24",
+            "code": "200710",
+            "name": "에이디테크놀로지",
+            "drop": -0.11,
+            "openToLast": 7.19,
+            "closePos": 0.988,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0.532
+          },
+          {
+            "date": "2026-02-25",
+            "code": "018880",
+            "name": "한온시스템",
+            "drop": -0.38,
+            "openToLast": 1.12,
+            "closePos": 0.887,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -3.862
+          },
+          {
+            "date": "2026-02-25",
+            "code": "038500",
+            "name": "삼표시멘트",
+            "drop": -0.98,
+            "openToLast": 3.31,
+            "closePos": 0.826,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.554
+          },
+          {
+            "date": "2026-02-25",
+            "code": "389500",
+            "name": "에스비비테크",
+            "drop": -0.63,
+            "openToLast": 3.81,
+            "closePos": 0.902,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 6.869
+          },
+          {
+            "date": "2026-02-26",
+            "code": "009290",
+            "name": "광동제약",
+            "drop": -0.1,
+            "openToLast": 5.1,
+            "closePos": 0.986,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -3.636
+          },
+          {
+            "date": "2026-02-27",
+            "code": "038500",
+            "name": "삼표시멘트",
+            "drop": -0.12,
+            "openToLast": 3.54,
+            "closePos": 0.981,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 7.965
+          }
+        ]
+      }
+    },
+    {
+      "id": "P5",
+      "name": "재가속 + 거래대금 유지 (P2+P3)",
+      "desc": "P2 AND P3",
+      "summary": {
+        "n": 186,
+        "dailyAvgCount": 3.58,
+        "precSurvivor": 35.5,
+        "precBreakout": 29.6,
+        "precStrong": 11.8,
+        "breakAfter1000_rate": 58.1,
+        "breakBefore1015_rate": 23.1,
+        "breakBefore1100_rate": 39.8,
+        "avgRet": 0.2,
+        "medianRet": -0.26,
+        "winRate": 47.8,
+        "reach3": 50,
+        "reach5": 32.3,
+        "reach7": 21,
+        "reach10": 11.8,
+        "drop2": 63.4,
+        "drop3": 46.2,
+        "drop5": 27.4,
+        "avgMfe": 4.43,
+        "avgMae": -3.62,
+        "worstLoss": -15.65,
+        "closePositiveRate": 47.8,
+        "p5_before_m2": 30.6,
+        "p10_before_m3": 21.7
+      },
+      "recallVsReadyAll": 15.9,
+      "strategies": {
+        "S1": {
+          "avgRet": -0.14,
+          "wins": 63,
+          "losses": 89,
+          "holds": 34,
+          "winRate": 33.9
+        },
+        "S2": {
+          "avgRet": 0.08,
+          "wins": 41,
+          "losses": 93,
+          "holds": 52,
+          "winRate": 22
+        },
+        "S3": {
+          "avgRet": 0.33,
+          "wins": 33,
+          "losses": 65,
+          "holds": 88,
+          "winRate": 17.7
+        },
+        "S4": {
+          "avgRet": 0.48,
+          "wins": 18,
+          "losses": 65,
+          "holds": 103,
+          "winRate": 9.7
+        },
+        "S5": {
+          "avgRet": 0.31
+        },
+        "S6": {
+          "avgRet": 1.08
+        }
+      },
+      "failures": {
+        "n": 126,
+        "high_drop_over_1pct_rate": 6.3,
+        "value_shrink_late_rate": 13.5,
+        "overheated_rate": 0,
+        "very_low_v_to_mc_rate": 8.7,
+        "last5min_low_break_rate": 0,
+        "last5min_value_shrink_rate": 0,
+        "close_pct_from_morning_low_rate": 0,
+        "avgFinalRet": -1.21,
+        "examples": [
+          {
+            "date": "2026-02-24",
+            "code": "024840",
+            "name": "KBI메탈",
+            "drop": -0.39,
+            "openToLast": 7.87,
+            "closePos": 0.964,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.986
+          },
+          {
+            "date": "2026-02-24",
+            "code": "200710",
+            "name": "에이디테크놀로지",
+            "drop": -0.11,
+            "openToLast": 7.19,
+            "closePos": 0.988,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0.532
+          },
+          {
+            "date": "2026-02-25",
+            "code": "038500",
+            "name": "삼표시멘트",
+            "drop": -0.98,
+            "openToLast": 3.31,
+            "closePos": 0.826,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.554
+          },
+          {
+            "date": "2026-02-25",
+            "code": "389500",
+            "name": "에스비비테크",
+            "drop": -0.63,
+            "openToLast": 3.81,
+            "closePos": 0.902,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 6.869
+          },
+          {
+            "date": "2026-02-27",
+            "code": "038500",
+            "name": "삼표시멘트",
+            "drop": -0.12,
+            "openToLast": 3.54,
+            "closePos": 0.981,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 7.965
+          },
+          {
+            "date": "2026-03-03",
+            "code": "001430",
+            "name": "세아베스틸지주",
+            "drop": -0.14,
+            "openToLast": 5.47,
+            "closePos": 0.977,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -6.031
+          },
+          {
+            "date": "2026-03-03",
+            "code": "071970",
+            "name": "HD현대마린엔진",
+            "drop": -0.67,
+            "openToLast": 3.01,
+            "closePos": 0.867,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -5.849
+          },
+          {
+            "date": "2026-03-05",
+            "code": "225190",
+            "name": "LK삼양",
+            "drop": -1.35,
+            "openToLast": 5.53,
+            "closePos": 0.86,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.683
+          }
+        ]
+      }
+    },
+    {
+      "id": "P6",
+      "name": "강한 10시 생존 예상형",
+      "desc": "READY + 종가 ≥ prevClose×1.03 + drop ≥-2.0 + (value≥3억 OR ratio상위)",
+      "summary": {
+        "n": 708,
+        "dailyAvgCount": 12.21,
+        "precSurvivor": 39.1,
+        "precBreakout": 29.4,
+        "precStrong": 13.4,
+        "breakAfter1000_rate": 56.5,
+        "breakBefore1015_rate": 25.8,
+        "breakBefore1100_rate": 40.4,
+        "avgRet": 0.58,
+        "medianRet": 0,
+        "winRate": 48.4,
+        "reach3": 54.1,
+        "reach5": 34.6,
+        "reach7": 22.9,
+        "reach10": 13,
+        "drop2": 63.3,
+        "drop3": 47,
+        "drop5": 26,
+        "avgMfe": 4.69,
+        "avgMae": -3.47,
+        "worstLoss": -24.52,
+        "closePositiveRate": 48.4,
+        "p5_before_m2": 31.9,
+        "p10_before_m3": 21.4
+      },
+      "recallVsReadyAll": 66.6,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.15,
+          "wins": 267,
+          "losses": 330,
+          "holds": 111,
+          "winRate": 37.7
+        },
+        "S2": {
+          "avgRet": 0.28,
+          "wins": 174,
+          "losses": 372,
+          "holds": 162,
+          "winRate": 24.6
+        },
+        "S3": {
+          "avgRet": 0.51,
+          "wins": 137,
+          "losses": 269,
+          "holds": 302,
+          "winRate": 19.4
+        },
+        "S4": {
+          "avgRet": 0.6,
+          "wins": 74,
+          "losses": 271,
+          "holds": 363,
+          "winRate": 10.5
+        },
+        "S5": {
+          "avgRet": 0.62
+        },
+        "S6": {
+          "avgRet": 1.31
+        }
+      },
+      "failures": {
+        "n": 451,
+        "high_drop_over_1pct_rate": 44.1,
+        "value_shrink_late_rate": 32.8,
+        "overheated_rate": 0,
+        "very_low_v_to_mc_rate": 10.2,
+        "last5min_low_break_rate": 27.7,
+        "last5min_value_shrink_rate": 10.6,
+        "close_pct_from_morning_low_rate": 0,
+        "avgFinalRet": -1.03,
+        "examples": [
+          {
+            "date": "2026-02-24",
+            "code": "024840",
+            "name": "KBI메탈",
+            "drop": -0.39,
+            "openToLast": 7.87,
+            "closePos": 0.964,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.986
+          },
+          {
+            "date": "2026-02-24",
+            "code": "192820",
+            "name": "코스맥스",
+            "drop": -1.28,
+            "openToLast": 2.04,
+            "closePos": 0.807,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -1.851
+          },
+          {
+            "date": "2026-02-24",
+            "code": "200710",
+            "name": "에이디테크놀로지",
+            "drop": -0.11,
+            "openToLast": 7.19,
+            "closePos": 0.988,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0.532
+          },
+          {
+            "date": "2026-02-24",
+            "code": "389470",
+            "name": "인벤티지랩",
+            "drop": -0.12,
+            "openToLast": 5.1,
+            "closePos": 0.976,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -2.985
+          },
+          {
+            "date": "2026-02-24",
+            "code": "491000",
+            "name": "리브스메드",
+            "drop": -1.86,
+            "openToLast": 1.93,
+            "closePos": 0.696,
+            "valueShrinkAfterMorning": true,
+            "finalRet": 1.335
+          },
+          {
+            "date": "2026-02-25",
+            "code": "018880",
+            "name": "한온시스템",
+            "drop": -0.38,
+            "openToLast": 1.12,
+            "closePos": 0.887,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -3.862
+          },
+          {
+            "date": "2026-02-25",
+            "code": "020150",
+            "name": "롯데에너지머티리얼즈",
+            "drop": -1.12,
+            "openToLast": 2.37,
+            "closePos": 0.716,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -1.562
+          },
+          {
+            "date": "2026-02-25",
+            "code": "298830",
+            "name": "슈어소프트테크",
+            "drop": -1.14,
+            "openToLast": 5.45,
+            "closePos": 0.825,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "P7",
+      "name": "과열 제외형",
+      "desc": "READY + openToLast <8 + drop ≥-2.5 + v_20-30/v_00-10 ≥0.5",
+      "summary": {
+        "n": 680,
+        "dailyAvgCount": 11.33,
+        "precSurvivor": 37.5,
+        "precBreakout": 29.9,
+        "precStrong": 12.9,
+        "breakAfter1000_rate": 56.8,
+        "breakBefore1015_rate": 26.6,
+        "breakBefore1100_rate": 40.9,
+        "avgRet": 0.26,
+        "medianRet": -0.24,
+        "winRate": 46.9,
+        "reach3": 52.5,
+        "reach5": 33.4,
+        "reach7": 22.8,
+        "reach10": 11.8,
+        "drop2": 63.2,
+        "drop3": 46.6,
+        "drop5": 28.7,
+        "avgMfe": 4.57,
+        "avgMae": -3.63,
+        "worstLoss": -24.52,
+        "closePositiveRate": 46.9,
+        "p5_before_m2": 31.9,
+        "p10_before_m3": 20.7
+      },
+      "recallVsReadyAll": 61.3,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.05,
+          "wins": 257,
+          "losses": 321,
+          "holds": 102,
+          "winRate": 37.8
+        },
+        "S2": {
+          "avgRet": 0.15,
+          "wins": 169,
+          "losses": 360,
+          "holds": 151,
+          "winRate": 24.9
+        },
+        "S3": {
+          "avgRet": 0.39,
+          "wins": 135,
+          "losses": 259,
+          "holds": 286,
+          "winRate": 19.9
+        },
+        "S4": {
+          "avgRet": 0.44,
+          "wins": 68,
+          "losses": 261,
+          "holds": 351,
+          "winRate": 10
+        },
+        "S5": {
+          "avgRet": 0.32
+        },
+        "S6": {
+          "avgRet": 1.23
+        }
+      },
+      "failures": {
+        "n": 449,
+        "high_drop_over_1pct_rate": 48.1,
+        "value_shrink_late_rate": 0,
+        "overheated_rate": 0,
+        "very_low_v_to_mc_rate": 8.9,
+        "last5min_low_break_rate": 25.4,
+        "last5min_value_shrink_rate": 12.9,
+        "close_pct_from_morning_low_rate": 0,
+        "avgFinalRet": -1.21,
+        "examples": [
+          {
+            "date": "2026-02-24",
+            "code": "024840",
+            "name": "KBI메탈",
+            "drop": -0.39,
+            "openToLast": 7.87,
+            "closePos": 0.964,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.986
+          },
+          {
+            "date": "2026-02-24",
+            "code": "200710",
+            "name": "에이디테크놀로지",
+            "drop": -0.11,
+            "openToLast": 7.19,
+            "closePos": 0.988,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0.532
+          },
+          {
+            "date": "2026-02-24",
+            "code": "389470",
+            "name": "인벤티지랩",
+            "drop": -0.12,
+            "openToLast": 5.1,
+            "closePos": 0.976,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -2.985
+          },
+          {
+            "date": "2026-02-24",
+            "code": "417200",
+            "name": "LS머트리얼즈",
+            "drop": -2.05,
+            "openToLast": 7.1,
+            "closePos": 0.784,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -1.189
+          },
+          {
+            "date": "2026-02-25",
+            "code": "038500",
+            "name": "삼표시멘트",
+            "drop": -0.98,
+            "openToLast": 3.31,
+            "closePos": 0.826,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.554
+          },
+          {
+            "date": "2026-02-25",
+            "code": "298830",
+            "name": "슈어소프트테크",
+            "drop": -1.14,
+            "openToLast": 5.45,
+            "closePos": 0.825,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0
+          },
+          {
+            "date": "2026-02-25",
+            "code": "375500",
+            "name": "DL이앤씨",
+            "drop": -0.38,
+            "openToLast": 1.75,
+            "closePos": 0.846,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.763
+          },
+          {
+            "date": "2026-02-25",
+            "code": "389500",
+            "name": "에스비비테크",
+            "drop": -0.63,
+            "openToLast": 3.81,
+            "closePos": 0.902,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 6.869
+          }
+        ]
+      }
+    },
+    {
+      "id": "P8",
+      "name": "최고 압축형",
+      "desc": "READY + drop ≥-1.5 + closePos ≥0.70 + v_20-30 ≥ v_10-20 + low_25_30 상승 + openToLast<8",
+      "summary": {
+        "n": 336,
+        "dailyAvgCount": 6,
+        "precSurvivor": 38.1,
+        "precBreakout": 29.8,
+        "precStrong": 10.1,
+        "breakAfter1000_rate": 57.4,
+        "breakBefore1015_rate": 23.8,
+        "breakBefore1100_rate": 39.6,
+        "avgRet": 0.2,
+        "medianRet": -0.26,
+        "winRate": 47,
+        "reach3": 49.7,
+        "reach5": 31.3,
+        "reach7": 20.2,
+        "reach10": 12.2,
+        "drop2": 63.7,
+        "drop3": 46.1,
+        "drop5": 28.3,
+        "avgMfe": 4.39,
+        "avgMae": -3.67,
+        "worstLoss": -24.52,
+        "closePositiveRate": 47,
+        "p5_before_m2": 29.6,
+        "p10_before_m3": 22.4
+      },
+      "recallVsReadyAll": 30.8,
+      "strategies": {
+        "S1": {
+          "avgRet": -0.12,
+          "wins": 116,
+          "losses": 167,
+          "holds": 53,
+          "winRate": 34.5
+        },
+        "S2": {
+          "avgRet": 0.04,
+          "wins": 75,
+          "losses": 178,
+          "holds": 83,
+          "winRate": 22.3
+        },
+        "S3": {
+          "avgRet": 0.3,
+          "wins": 59,
+          "losses": 125,
+          "holds": 152,
+          "winRate": 17.6
+        },
+        "S4": {
+          "avgRet": 0.5,
+          "wins": 36,
+          "losses": 125,
+          "holds": 175,
+          "winRate": 10.7
+        },
+        "S5": {
+          "avgRet": 0.32
+        },
+        "S6": {
+          "avgRet": 1.22
+        }
+      },
+      "failures": {
+        "n": 219,
+        "high_drop_over_1pct_rate": 28.8,
+        "value_shrink_late_rate": 12.8,
+        "overheated_rate": 0,
+        "very_low_v_to_mc_rate": 9.6,
+        "last5min_low_break_rate": 0,
+        "last5min_value_shrink_rate": 9.6,
+        "close_pct_from_morning_low_rate": 0,
+        "avgFinalRet": -1.34,
+        "examples": [
+          {
+            "date": "2026-02-24",
+            "code": "024840",
+            "name": "KBI메탈",
+            "drop": -0.39,
+            "openToLast": 7.87,
+            "closePos": 0.964,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.986
+          },
+          {
+            "date": "2026-02-24",
+            "code": "200710",
+            "name": "에이디테크놀로지",
+            "drop": -0.11,
+            "openToLast": 7.19,
+            "closePos": 0.988,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0.532
+          },
+          {
+            "date": "2026-02-24",
+            "code": "389470",
+            "name": "인벤티지랩",
+            "drop": -0.12,
+            "openToLast": 5.1,
+            "closePos": 0.976,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -2.985
+          },
+          {
+            "date": "2026-02-25",
+            "code": "038500",
+            "name": "삼표시멘트",
+            "drop": -0.98,
+            "openToLast": 3.31,
+            "closePos": 0.826,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.554
+          },
+          {
+            "date": "2026-02-25",
+            "code": "389500",
+            "name": "에스비비테크",
+            "drop": -0.63,
+            "openToLast": 3.81,
+            "closePos": 0.902,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 6.869
+          },
+          {
+            "date": "2026-02-25",
+            "code": "476060",
+            "name": "온코닉테라퓨틱스",
+            "drop": -1.26,
+            "openToLast": 7.05,
+            "closePos": 0.854,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -3.839
+          },
+          {
+            "date": "2026-02-27",
+            "code": "038500",
+            "name": "삼표시멘트",
+            "drop": -0.12,
+            "openToLast": 3.54,
+            "closePos": 0.981,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 7.965
+          },
+          {
+            "date": "2026-03-03",
+            "code": "001430",
+            "name": "세아베스틸지주",
+            "drop": -0.14,
+            "openToLast": 5.47,
+            "closePos": 0.977,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -6.031
+          }
+        ]
+      }
+    },
+    {
+      "id": "P9",
+      "name": "공격형 포함형 (P8 + I/explosive)",
+      "desc": "P8 AND (I 조건 prefilter OR explosiveTop)",
+      "summary": {
+        "n": 282,
+        "dailyAvgCount": 5.04,
+        "precSurvivor": 38.7,
+        "precBreakout": 30.9,
+        "precStrong": 9.9,
+        "breakAfter1000_rate": 57.1,
+        "breakBefore1015_rate": 24.8,
+        "breakBefore1100_rate": 41.5,
+        "avgRet": 0.09,
+        "medianRet": -0.46,
+        "winRate": 46.8,
+        "reach3": 48.9,
+        "reach5": 30.1,
+        "reach7": 19.1,
+        "reach10": 11.3,
+        "drop2": 64.5,
+        "drop3": 46.1,
+        "drop5": 28.4,
+        "avgMfe": 4.28,
+        "avgMae": -3.73,
+        "worstLoss": -24.52,
+        "closePositiveRate": 46.8,
+        "p5_before_m2": 28.2,
+        "p10_before_m3": 21.3
+      },
+      "recallVsReadyAll": 26.2,
+      "strategies": {
+        "S1": {
+          "avgRet": -0.2,
+          "wins": 95,
+          "losses": 146,
+          "holds": 41,
+          "winRate": 33.7
+        },
+        "S2": {
+          "avgRet": -0.05,
+          "wins": 61,
+          "losses": 155,
+          "holds": 66,
+          "winRate": 21.6
+        },
+        "S3": {
+          "avgRet": 0.23,
+          "wins": 49,
+          "losses": 107,
+          "holds": 126,
+          "winRate": 17.4
+        },
+        "S4": {
+          "avgRet": 0.42,
+          "wins": 29,
+          "losses": 107,
+          "holds": 146,
+          "winRate": 10.3
+        },
+        "S5": {
+          "avgRet": 0.28
+        },
+        "S6": {
+          "avgRet": 1.21
+        }
+      },
+      "failures": {
+        "n": 182,
+        "high_drop_over_1pct_rate": 24.7,
+        "value_shrink_late_rate": 9.9,
+        "overheated_rate": 0,
+        "very_low_v_to_mc_rate": 10.4,
+        "last5min_low_break_rate": 0,
+        "last5min_value_shrink_rate": 9.9,
+        "close_pct_from_morning_low_rate": 0,
+        "avgFinalRet": -1.52,
+        "examples": [
+          {
+            "date": "2026-02-24",
+            "code": "024840",
+            "name": "KBI메탈",
+            "drop": -0.39,
+            "openToLast": 7.87,
+            "closePos": 0.964,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.986
+          },
+          {
+            "date": "2026-02-24",
+            "code": "200710",
+            "name": "에이디테크놀로지",
+            "drop": -0.11,
+            "openToLast": 7.19,
+            "closePos": 0.988,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0.532
+          },
+          {
+            "date": "2026-02-24",
+            "code": "389470",
+            "name": "인벤티지랩",
+            "drop": -0.12,
+            "openToLast": 5.1,
+            "closePos": 0.976,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -2.985
+          },
+          {
+            "date": "2026-02-25",
+            "code": "038500",
+            "name": "삼표시멘트",
+            "drop": -0.98,
+            "openToLast": 3.31,
+            "closePos": 0.826,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.554
+          },
+          {
+            "date": "2026-02-25",
+            "code": "389500",
+            "name": "에스비비테크",
+            "drop": -0.63,
+            "openToLast": 3.81,
+            "closePos": 0.902,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 6.869
+          },
+          {
+            "date": "2026-02-25",
+            "code": "476060",
+            "name": "온코닉테라퓨틱스",
+            "drop": -1.26,
+            "openToLast": 7.05,
+            "closePos": 0.854,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -3.839
+          },
+          {
+            "date": "2026-02-27",
+            "code": "038500",
+            "name": "삼표시멘트",
+            "drop": -0.12,
+            "openToLast": 3.54,
+            "closePos": 0.981,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 7.965
+          },
+          {
+            "date": "2026-03-03",
+            "code": "001430",
+            "name": "세아베스틸지주",
+            "drop": -0.14,
+            "openToLast": 5.47,
+            "closePos": 0.977,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -6.031
+          }
+        ]
+      }
+    },
+    {
+      "id": "P10",
+      "name": "넓은 후보형",
+      "desc": "READY + drop ≥-2.5 + close_30 > close_20 + v_20-30 유지",
+      "summary": {
+        "n": 554,
+        "dailyAvgCount": 9.39,
+        "precSurvivor": 37.2,
+        "precBreakout": 29.8,
+        "precStrong": 11.4,
+        "breakAfter1000_rate": 57.8,
+        "breakBefore1015_rate": 25.5,
+        "breakBefore1100_rate": 41.2,
+        "avgRet": 0.38,
+        "medianRet": -0.24,
+        "winRate": 47.1,
+        "reach3": 53.1,
+        "reach5": 33.6,
+        "reach7": 21.8,
+        "reach10": 13,
+        "drop2": 63.4,
+        "drop3": 45.7,
+        "drop5": 27.3,
+        "avgMfe": 4.65,
+        "avgMae": -3.57,
+        "worstLoss": -24.52,
+        "closePositiveRate": 47.1,
+        "p5_before_m2": 31.4,
+        "p10_before_m3": 22.3
+      },
+      "recallVsReadyAll": 49.5,
+      "strategies": {
+        "S1": {
+          "avgRet": 0.04,
+          "wins": 207,
+          "losses": 262,
+          "holds": 85,
+          "winRate": 37.4
+        },
+        "S2": {
+          "avgRet": 0.14,
+          "wins": 134,
+          "losses": 293,
+          "holds": 127,
+          "winRate": 24.2
+        },
+        "S3": {
+          "avgRet": 0.4,
+          "wins": 104,
+          "losses": 205,
+          "holds": 245,
+          "winRate": 18.8
+        },
+        "S4": {
+          "avgRet": 0.54,
+          "wins": 59,
+          "losses": 206,
+          "holds": 289,
+          "winRate": 10.6
+        },
+        "S5": {
+          "avgRet": 0.35
+        },
+        "S6": {
+          "avgRet": 1.24
+        }
+      },
+      "failures": {
+        "n": 363,
+        "high_drop_over_1pct_rate": 41,
+        "value_shrink_late_rate": 15.7,
+        "overheated_rate": 0,
+        "very_low_v_to_mc_rate": 10.2,
+        "last5min_low_break_rate": 14.9,
+        "last5min_value_shrink_rate": 10.2,
+        "close_pct_from_morning_low_rate": 0,
+        "avgFinalRet": -1.04,
+        "examples": [
+          {
+            "date": "2026-02-24",
+            "code": "024840",
+            "name": "KBI메탈",
+            "drop": -0.39,
+            "openToLast": 7.87,
+            "closePos": 0.964,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.986
+          },
+          {
+            "date": "2026-02-24",
+            "code": "200710",
+            "name": "에이디테크놀로지",
+            "drop": -0.11,
+            "openToLast": 7.19,
+            "closePos": 0.988,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0.532
+          },
+          {
+            "date": "2026-02-24",
+            "code": "389470",
+            "name": "인벤티지랩",
+            "drop": -0.12,
+            "openToLast": 5.1,
+            "closePos": 0.976,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -2.985
+          },
+          {
+            "date": "2026-02-24",
+            "code": "491000",
+            "name": "리브스메드",
+            "drop": -1.86,
+            "openToLast": 1.93,
+            "closePos": 0.696,
+            "valueShrinkAfterMorning": true,
+            "finalRet": 1.335
+          },
+          {
+            "date": "2026-02-25",
+            "code": "020150",
+            "name": "롯데에너지머티리얼즈",
+            "drop": -1.12,
+            "openToLast": 2.37,
+            "closePos": 0.716,
+            "valueShrinkAfterMorning": true,
+            "finalRet": -1.562
+          },
+          {
+            "date": "2026-02-25",
+            "code": "038500",
+            "name": "삼표시멘트",
+            "drop": -0.98,
+            "openToLast": 3.31,
+            "closePos": 0.826,
+            "valueShrinkAfterMorning": false,
+            "finalRet": -0.554
+          },
+          {
+            "date": "2026-02-25",
+            "code": "298830",
+            "name": "슈어소프트테크",
+            "drop": -1.14,
+            "openToLast": 5.45,
+            "closePos": 0.825,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 0
+          },
+          {
+            "date": "2026-02-25",
+            "code": "389500",
+            "name": "에스비비테크",
+            "drop": -0.63,
+            "openToLast": 3.81,
+            "closePos": 0.902,
+            "valueShrinkAfterMorning": false,
+            "finalRet": 6.869
+          }
+        ]
+      }
+    }
+  ],
+  "ranking": {
+    "passed": [],
+    "allByAvgRet": [
+      {
+        "id": "EXPLOSIVE",
+        "name": "explosiveTop",
+        "n": 354,
+        "avgRet": 1.81,
+        "precSurvivor": 33.3,
+        "dailyAvg": 6.21
+      },
+      {
+        "id": "P1",
+        "name": "고점권 유지형",
+        "n": 797,
+        "avgRet": 0.83,
+        "precSurvivor": 39.6,
+        "dailyAvg": 13.28
+      },
+      {
+        "id": "READY_ALL",
+        "name": "READY 전체",
+        "n": 1066,
+        "avgRet": 0.72,
+        "precSurvivor": 39,
+        "dailyAvg": 17.77
+      },
+      {
+        "id": "P6",
+        "name": "강한 10시 생존 예상형",
+        "n": 708,
+        "avgRet": 0.58,
+        "precSurvivor": 39.1,
+        "dailyAvg": 12.21
+      },
+      {
+        "id": "P2",
+        "name": "직전 10분 재가속형",
+        "n": 440,
+        "avgRet": 0.48,
+        "precSurvivor": 36.8,
+        "dailyAvg": 7.72
+      },
+      {
+        "id": "P10",
+        "name": "넓은 후보형",
+        "n": 554,
+        "avgRet": 0.38,
+        "precSurvivor": 37.2,
+        "dailyAvg": 9.39
+      },
+      {
+        "id": "P7",
+        "name": "과열 제외형",
+        "n": 680,
+        "avgRet": 0.26,
+        "precSurvivor": 37.5,
+        "dailyAvg": 11.33
+      },
+      {
+        "id": "I_COND_PREFILTER",
+        "name": "I 조건 prefilter",
+        "n": 872,
+        "avgRet": 0.24,
+        "precSurvivor": 37.8,
+        "dailyAvg": 14.53
+      },
+      {
+        "id": "P3",
+        "name": "마지막 5분 힘 유지형",
+        "n": 332,
+        "avgRet": 0.2,
+        "precSurvivor": 38,
+        "dailyAvg": 5.63
+      },
+      {
+        "id": "P5",
+        "name": "재가속 + 거래대금 유지 (P2+P3)",
+        "n": 186,
+        "avgRet": 0.2,
+        "precSurvivor": 35.5,
+        "dailyAvg": 3.58
+      },
+      {
+        "id": "P8",
+        "name": "최고 압축형",
+        "n": 336,
+        "avgRet": 0.2,
+        "precSurvivor": 38.1,
+        "dailyAvg": 6
+      },
+      {
+        "id": "P9",
+        "name": "공격형 포함형 (P8 + I/explosive)",
+        "n": 282,
+        "avgRet": 0.09,
+        "precSurvivor": 38.7,
+        "dailyAvg": 5.04
+      },
+      {
+        "id": "P4",
+        "name": "고점권 + 거래대금 유지 (P1+P3)",
+        "n": 303,
+        "avgRet": 0.01,
+        "precSurvivor": 37,
+        "dailyAvg": 5.32
+      }
+    ]
+  },
+  "referenceSurvivorSummary": {
+    "n": 416,
+    "dailyAvgCount": 7.05,
+    "precSurvivor": 100,
+    "precBreakout": 75.7,
+    "precStrong": 24.3,
+    "breakAfter1000_rate": 75.7,
+    "breakBefore1015_rate": 50.7,
+    "breakBefore1100_rate": 64.4,
+    "avgRet": 2.39,
+    "medianRet": 1.71,
+    "winRate": 69,
+    "reach3": 70,
+    "reach5": 45.4,
+    "reach7": 28.8,
+    "reach10": 15.1,
+    "drop2": 35.8,
+    "drop3": 21.4,
+    "drop5": 9.4,
+    "avgMfe": 5.76,
+    "avgMae": -2.03,
+    "worstLoss": -11.66,
+    "closePositiveRate": 69,
+    "p5_before_m2": 60.8,
+    "p10_before_m3": 52.6
+  }
+}

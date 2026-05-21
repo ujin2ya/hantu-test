@@ -12,6 +12,9 @@ router.get("/ods", (req, res) => res.redirect("/one-day-surge-board"));
 router.get("/one-day-surge-board/backtest", c.getBacktestReport);
 router.get("/one-day-surge-board/explosive-backtest", c.getExplosiveBacktestReport);
 
+// 클릭한 종목만 현재 진입 가능 여부 분석 (10시 생존 후보 모달용)
+router.get("/api/one-day-surge/live-entry-check", c.getLiveEntryCheck);
+
 // 1DS 종목 상세 — 기존 통일 상세 페이지(qvaVviRedefinedController.getRedefinedVviStockDetail) 재사용.
 // 다른 보드들(/qva-vvi-redefined/:code, /qva2-*/:code, /d5-rebreak/:code, /stock/:code)과 동일 컨트롤러·EJS.
 // 주의: /:code 라우트는 위의 literal 경로(/backtest, /explosive-backtest) 뒤에 등록해야 literal이 먼저 매칭됨.

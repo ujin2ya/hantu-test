@@ -198,6 +198,10 @@ function calculateCandidateDayResult(code, basePrice, targetDateYYYYMMDD) {
 }
 
 // 분봉에서 당일 고점/저점 시각 추출 (mainResult 표시용)
+// ⚠ 1DS 분봉은 default 09:00~10:00 윈도우만 수집되므로, dayHigh/Low가 10:00 이후 발생 시
+//   분봉 내 max만 보면 잘못된 시각 표시 (예: 이랜텍 5/21 — 분봉 09:39 max 13700 vs 일봉 dayHigh 13880).
+//   → 일봉 OHLC(이미 16:20 cron으로 갱신됨)와 cross-check 해서 분봉 max가 일봉 dayHigh와
+//     일치할 때만 시각 신뢰. 불일치 시 peakTime=null + beyondWindow 플래그.
 function getPeakTroughTime(code, dateStr) {
   const fp = path.join(INTRADAY_BASE, dateStr, code + '.json');
   if (!fs.existsSync(fp)) return null;
@@ -210,7 +214,137 @@ function getPeakTroughTime(code, dateStr) {
       if (b.high > pk.high) pk = b;
       if (b.low < tr.low) tr = b;
     }
-    return { peakTime: pk.time || null, troughTime: tr.time || null };
+    const intradayMaxHigh = pk.high;
+    const intradayMinLow = tr.low;
+    const lastBarTime = bars[bars.length - 1]?.time || null;
+
+    // 일봉 cross-check
+    let peakBeyondWindow = false, troughBeyondWindow = false;
+    let dayHigh = null, dayLow = null;
+    const chartPath = path.join(CHART_DIR, code + '.json');
+    if (fs.existsSync(chartPath)) {
+      try {
+        const chart = JSON.parse(fs.readFileSync(chartPath, 'utf-8'));
+        const ymd = dateStr.replace(/-/g, '');
+        const dayRow = (chart.rows || []).find(r => r && r.date === ymd);
+        if (dayRow) {
+          dayHigh = Number.isFinite(dayRow.high) ? dayRow.high : null;
+          dayLow  = Number.isFinite(dayRow.low)  ? dayRow.low  : null;
+          // tolerance 1원 — KIS 분봉과 일봉의 호가 단위 차이 흡수
+          if (dayHigh != null && dayHigh > intradayMaxHigh + 1) peakBeyondWindow = true;
+          if (dayLow  != null && dayLow  < intradayMinLow  - 1) troughBeyondWindow = true;
+        }
+      } catch (_) {}
+    }
+
+    return {
+      peakTime: peakBeyondWindow ? null : (pk.time || null),
+      troughTime: troughBeyondWindow ? null : (tr.time || null),
+      peakBeyondWindow, troughBeyondWindow,
+      intradayMaxHigh, intradayMinLow, dayHigh, dayLow, lastBarTime,
+    };
+  } catch (_) { return null; }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// findIntradayExtremes + buildPost1000Chart — 정확한 dayHigh/Low 시각 + 10:00 이후 차트 데이터
+// 사용자 요청 (2026-05-21):
+//   - 고가/저가 시각이 분봉 윈도우 한정으로 잘못 표시되던 문제 → 전체 분봉으로 정확히 계산
+//   - 결과표 각 행에 "10시 이후 차트보기" 모달 버튼 추가 → 분봉 points 데이터 필요
+// 동일 max/min 가격이 여러 번 나오면 최초 시각 사용 (strict > 만 갱신).
+// ────────────────────────────────────────────────────────────────────────────
+function findIntradayExtremes(code, dateStr) {
+  const fp = path.join(INTRADAY_BASE, dateStr, code + '.json');
+  if (!fs.existsSync(fp)) return null;
+  try {
+    const d = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+    const bars = (d.bars || []).filter(b => b && b.time && b.high > 0 && b.low > 0 && b.close > 0);
+    if (!bars.length) return null;
+
+    let dayH = -Infinity, dayHT = null, dayL = Infinity, dayLT = null;
+    let postH = -Infinity, postHT = null, postL = Infinity, postLT = null;
+    let pre1000H = -Infinity;
+    let close1000 = null, lastClose = null, lastTime = null;
+
+    for (const b of bars) {
+      if (b.high > dayH) { dayH = b.high; dayHT = b.time; }
+      if (b.low  < dayL) { dayL = b.low;  dayLT = b.time; }
+      if (b.time <= '10:00') {
+        if (b.time >= '09:31' && b.high > pre1000H) pre1000H = b.high;
+        if (b.time === '10:00') close1000 = b.close;
+      } else {
+        if (b.high > postH) { postH = b.high; postHT = b.time; }
+        if (b.low  < postL) { postL = b.low;  postLT = b.time; }
+      }
+      lastClose = b.close; lastTime = b.time;
+    }
+    // 10:00 정확 분봉 없으면 10:00 이후 첫 분봉 close 로 fallback
+    if (close1000 == null) {
+      const firstPost = bars.find(b => b.time > '10:00');
+      if (firstPost) close1000 = firstPost.close;
+    }
+    return {
+      dayHighPrice:      dayH > 0 ? dayH : null,
+      dayHighTime:       dayHT,
+      dayLowPrice:       dayL < Infinity ? dayL : null,
+      dayLowTime:        dayLT,
+      post1000HighPrice: postH > 0 ? postH : null,
+      post1000HighTime:  postHT,
+      post1000LowPrice:  postL < Infinity ? postL : null,
+      post1000LowTime:   postLT,
+      close1000,
+      pre1000High:       pre1000H > 0 ? pre1000H : null,
+      lastClose, lastTime,
+      barCount: bars.length,
+      windowTo: d.windowTo || null,
+    };
+  } catch (_) { return null; }
+}
+
+// 10:00 이후 분봉 points + 돌파 정보. JSON 크기 절약 위해 {t, c} 만 보존.
+function buildPost1000Chart(code, dateStr, extremes) {
+  if (!extremes || !extremes.close1000) return null;
+  const fp = path.join(INTRADAY_BASE, dateStr, code + '.json');
+  if (!fs.existsSync(fp)) return null;
+  try {
+    const d = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+    const all = (d.bars || []).filter(b => b && b.time && b.close > 0);
+    const post = all.filter(b => b.time > '10:00');
+    if (post.length < 2) return null;
+
+    const points = post.map(b => ({ t: b.time, c: b.close }));
+    const basePrice = extremes.close1000;
+    const preHigh = extremes.pre1000High || 0;
+    // breakout: 10:00 이후 첫 high > preHigh
+    let breakout = null;
+    if (preHigh > 0) {
+      const hit = post.find(b => b.high > preHigh);
+      if (hit) breakout = { success: true, time: hit.time, price: hit.high };
+    }
+    function rateFromBase(price) {
+      return basePrice > 0 ? +(((price / basePrice) - 1) * 100).toFixed(2) : null;
+    }
+    return {
+      basePrice,
+      pre1000High: preHigh || null,
+      points,
+      postHigh: extremes.post1000HighTime ? {
+        time: extremes.post1000HighTime,
+        price: extremes.post1000HighPrice,
+        rateFrom1000: rateFromBase(extremes.post1000HighPrice),
+      } : null,
+      postLow: extremes.post1000LowTime ? {
+        time: extremes.post1000LowTime,
+        price: extremes.post1000LowPrice,
+        rateFrom1000: rateFromBase(extremes.post1000LowPrice),
+      } : null,
+      last: extremes.lastTime ? {
+        time: extremes.lastTime,
+        price: extremes.lastClose,
+        rateFrom1000: rateFromBase(extremes.lastClose),
+      } : null,
+      breakout,
+    };
   } catch (_) { return null; }
 }
 
@@ -2180,13 +2314,35 @@ async function main() {
           const prevRefHigh  = _pct(r.dayHigh,  prevClose);
           const prevRefLow   = _pct(r.dayLow,   prevClose);
           const prevRefClose = _pct(r.dayClose, prevClose);
+          // 정확한 분봉 기반 극값 + 10:00 이후 차트 데이터
+          const extremes = findIntradayExtremes(code, _snapDateStr);
+          const post1000Chart = buildPost1000Chart(code, _snapDateStr, extremes);
+          // peakTime: extremes 이 있으면 그 dayHighTime 사용 (전체 분봉 기준, 정확).
+          // 없으면 (분봉 윈도우만 09:00~10:00 있는 경우) 기존 getPeakTroughTime fallback.
+          let resolvedPeakTime = pt?.peakTime || null;
+          let resolvedTroughTime = pt?.troughTime || null;
+          let resolvedPeakBeyondWindow = !!pt?.peakBeyondWindow;
+          let resolvedTroughBeyondWindow = !!pt?.troughBeyondWindow;
+          if (extremes && extremes.dayHighTime && Math.abs((extremes.dayHighPrice || 0) - (r.dayHigh || 0)) <= 1) {
+            // extremes 의 dayHigh 가 일봉 dayHigh 와 일치 — 정확한 시각 사용
+            resolvedPeakTime = extremes.dayHighTime;
+            resolvedPeakBeyondWindow = false;
+          }
+          if (extremes && extremes.dayLowTime && Math.abs((extremes.dayLowPrice || 0) - (r.dayLow || 0)) <= 1) {
+            resolvedTroughTime = extremes.dayLowTime;
+            resolvedTroughBeyondWindow = false;
+          }
           todayResultCandidates.mainResult.push({
             code, name, basePrice, basePriceSource: source,
             prevClose,
             dayHigh: r.dayHigh, dayLow: r.dayLow, dayClose: r.dayClose,
             prevRefHigh, prevRefLow, prevRefClose,
             dayResult: r, resultTags: assignResultTags(r).tags,
-            peakTime: pt?.peakTime || null, troughTime: pt?.troughTime || null,
+            peakTime: resolvedPeakTime, troughTime: resolvedTroughTime,
+            peakBeyondWindow: resolvedPeakBeyondWindow,
+            troughBeyondWindow: resolvedTroughBeyondWindow,
+            intradayExtremes: extremes,
+            post1000Chart,
           });
         }
         for (const s of survivors)  pushItem(s.code, s.name, s.metrics?.last0930, 'survivor1000');
@@ -2996,6 +3152,88 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
   body { padding: 12px 12px 60px; }
   .metrics-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ─── 10시 이후 차트 모달 ─── */
+.post1000-chart-btn {
+  background: #042f2e; color: #5eead4; border: 1px solid #14b8a6;
+  padding: 4px 10px; border-radius: 4px; font-size: 11.5px; cursor: pointer;
+  font-weight: 600; transition: all 0.15s;
+}
+.post1000-chart-btn:hover { background: #134e4a; color: #99f6e4; border-color: #5eead4; }
+.chart-modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 9999;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.chart-modal.hidden { display: none; }
+.chart-modal-panel {
+  background: #0f172a; border: 1px solid #334155; border-radius: 12px;
+  max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto;
+  padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.chart-modal-header {
+  display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;
+}
+.chart-modal-header h3 { margin: 0; color: #f1f5f9; font-size: 18px; }
+.chart-modal-header p { margin: 4px 0 0; color: #94a3b8; font-size: 12px; }
+.chart-modal-header button {
+  background: #1e293b; color: #cbd5e1; border: 1px solid #334155; border-radius: 6px;
+  width: 36px; height: 36px; font-size: 22px; cursor: pointer; line-height: 1;
+}
+.chart-modal-header button:hover { background: #334155; color: #f1f5f9; }
+#chartSummary {
+  background: rgba(20,184,166,0.07); border-left: 3px solid #14b8a6;
+  padding: 12px 14px; border-radius: 6px; margin-bottom: 12px;
+  font-size: 12.5px; line-height: 1.8;
+}
+#chartSummary .summary-line { display: flex; justify-content: space-between; }
+#chartSummary .lbl { color: #94a3b8; }
+#chartSummary .val { color: #e2e8f0; font-weight: 600; font-variant-numeric: tabular-nums; }
+#chartSummary .val.pos { color: #5eead4; }
+#chartSummary .val.neg { color: #fca5a5; }
+.chart-wrap {
+  background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+  padding: 12px; position: relative;
+}
+#post1000ChartSvg { width: 100%; height: 360px; display: block; }
+.chart-empty { color: #94a3b8; text-align: center; padding: 40px; font-size: 13px; }
+@media (max-width: 700px) {
+  .chart-modal { padding: 10px; }
+  .chart-modal-panel { padding: 14px; max-height: 95vh; }
+  #post1000ChartSvg { height: 280px; }
+}
+
+/* 현재 진입 가능 여부 분석 모달 */
+.live-entry-check-btn {
+  background: #1e1b4b; color: #c4b5fd; border: 1px solid #7c3aed;
+  padding: 4px 10px; border-radius: 4px; font-size: 11.5px; cursor: pointer;
+  font-weight: 600; transition: all 0.15s;
+}
+.live-entry-check-btn:hover { background: #312e81; color: #e0e7ff; border-color: #a78bfa; }
+.verdict-card {
+  padding: 14px 18px; border-radius: 8px; margin-bottom: 12px;
+  font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 12px;
+  border: 2px solid;
+}
+.verdict-card .verdict-explain {
+  font-size: 12.5px; font-weight: 400; color: #cbd5e1; margin-top: 4px;
+}
+.verdict-ENTER_OK     { background: #052e16; color: #86efac; border-color: #22c55e; }
+.verdict-WATCH        { background: #1e1b4b; color: #c4b5fd; border-color: #6366f1; }
+.verdict-CHASE_RISK   { background: #422006; color: #fdba74; border-color: #f59e0b; }
+.verdict-INVALID      { background: #450a0a; color: #fca5a5; border-color: #ef4444; }
+.verdict-DATA_MISSING { background: #1e293b; color: #94a3b8; border-color: #475569; }
+.live-section { margin-top: 12px; }
+.live-section h4 { margin: 0 0 6px; font-size: 12.5px; color: #cbd5e1; font-weight: 700; }
+.live-section ul { margin: 0; padding-left: 18px; color: #cbd5e1; font-size: 12px; line-height: 1.7; }
+.live-section ul.warnings li { color: #fcd34d; }
+.live-source-note { font-size: 10.5px; color: #64748b; margin-top: 8px; text-align: right; font-style: italic; }
+.levels-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px;
+  background: rgba(0,0,0,0.25); padding: 10px; border-radius: 6px; margin-top: 8px;
+}
+.levels-grid .lvl-cell { font-size: 11.5px; color: #cbd5e1; line-height: 1.5; }
+.levels-grid .lvl-cell .lvl-name { color: #94a3b8; font-size: 10.5px; }
+.levels-grid .lvl-cell .lvl-val { color: #e2e8f0; font-weight: 600; font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body>
@@ -3041,6 +3279,39 @@ footer.foot { margin-top: 24px; padding: 14px; background: #1e293b; border-radiu
 
 <!-- 📊 오늘 1DS 결과 — 장중에는 안내만, 장마감 후 mainResult 표시 (페이지 최하단) -->
 <div id="today-result-host"></div>
+
+<!-- 10시 이후 차트 모달 -->
+<div id="post1000ChartModal" class="chart-modal hidden" role="dialog" aria-modal="true">
+  <div class="chart-modal-panel">
+    <div class="chart-modal-header">
+      <div>
+        <h3 id="chartModalTitle"></h3>
+        <p id="chartModalSubtitle">10:00 이후 1분봉 흐름</p>
+      </div>
+      <button id="chartModalClose" type="button" aria-label="닫기">×</button>
+    </div>
+    <div id="chartSummary"></div>
+    <div class="chart-wrap">
+      <svg id="post1000ChartSvg" viewBox="0 0 800 360" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+</div>
+
+<!-- 현재 진입 가능 여부 분석 모달 (10시 생존 후보만) -->
+<div id="liveEntryModal" class="chart-modal hidden" role="dialog" aria-modal="true">
+  <div class="chart-modal-panel">
+    <div class="chart-modal-header">
+      <div>
+        <h3 id="liveEntryTitle"></h3>
+        <p id="liveEntrySubtitle">현재 진입 가능 여부 분석 (10시 생존 후보)</p>
+      </div>
+      <button id="liveEntryClose" type="button" aria-label="닫기">×</button>
+    </div>
+    <div id="liveEntryBody">
+      <div class="chart-empty">분석 중...</div>
+    </div>
+  </div>
+</div>
 
 <footer class="foot" id="foot"></footer>
 
@@ -3808,7 +4079,7 @@ const PREMARKET_MODE = isPremarketMode();
     if (!Array.isArray(badges) || badges.length === 0) return '';
     return badges.map((b) => '<span class="overlap-badge" style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700;margin-left:4px;' + (BADGE_STYLE[b] || 'background:#e5e7eb;color:#374151;') + '">' + b + '</span>').join('');
   };
-  const renderCard = (e, statusCls) => {
+  const renderCard = (e, statusCls, sectionKind) => {
     const m = e.metrics || {};
     const sign = (m.openToLastRate >= 0 ? '+' : '');
     const strategy = e.suggestedStrategy;
@@ -3830,6 +4101,10 @@ const PREMARKET_MODE = isPremarketMode();
       : '';
     const reasonChip = e.reason
       ? '<div class="summary-line" style="color:#94a3b8;font-size:10.5px;margin-top:3px;font-style:italic;">└ ' + e.reason + '</div>'
+      : '';
+    // 현재분석 버튼 — 10시 생존 후보 카드에만 노출 (공격형/explosive 등 제외)
+    const liveEntryBtn = sectionKind === 'survivor1000'
+      ? '<div style="margin-top:8px;text-align:right;"><button class="live-entry-check-btn" data-code="' + e.code + '" data-name="' + (e.name || e.code).replace(/"/g,'&quot;') + '" data-date="' + (DATA.todayResultSummary?.targetDate || '') + '">🔎 지금 진입 가능 여부 분석</button></div>'
       : '';
     return '<div class="card s-' + e.status + '">' +
       '<h3><a class="name-link" href="/one-day-surge-board/' + e.code + '" title="' + (e.name || e.code).replace(/"/g,'&quot;') + ' 상세">' + (e.name || e.code) + '</a> <span class="code">' + e.code + '</span> <span class="market">' + (e.market || '') + '</span>' +
@@ -3856,6 +4131,7 @@ const PREMARKET_MODE = isPremarketMode();
       tenRebreakChip +
       strategyChip +
       reasonChip +
+      liveEntryBtn +
     '</div>';
   };
   const c = sc.counts || {};
@@ -3942,9 +4218,10 @@ const PREMARKET_MODE = isPremarketMode();
         '09:30 READY 후보 중 <strong>10:00까지 09:30 기준가 위에서 살아남은 종목</strong>입니다. ' +
         '60거래일 백테스트에서 평균 <strong>+2.49%</strong>, 승률 <strong>69.9%</strong>, +5% 도달률 <strong>52.6%</strong>, +10% 도달률 <strong>18.2%</strong>로 가장 좋은 결과를 보였습니다.<br>' +
         '<strong>기본 대응</strong>: 10:00 생존 확인 후 진입 검토. <strong>+5% 구간은 1차 수익 실현</strong>, <strong>+10%는 확장 목표</strong>, <strong>-3% 이탈은 실패</strong>로 봅니다.<br>' +
-        '<span style="color:#fda4af;font-weight:700;">⚠ 10시 생존 후보라도 손절 기준 없이 보유하면 위험합니다. 장중 급락 사례가 있으므로 기준가 이탈과 고점 이탈을 반드시 확인하세요.</span>' +
+        '<span style="color:#fda4af;font-weight:700;">⚠ 10시 생존 후보라도 손절 기준 없이 보유하면 위험합니다. 장중 급락 사례가 있으므로 기준가 이탈과 고점 이탈을 반드시 확인하세요.</span><br>' +
+        '<span style="color:#5eead4;">🔎 각 카드의 <strong>"지금 진입 가능 여부 분석" 버튼</strong>을 누르면 그 종목만 최신 분봉 기준으로 진입 가능 여부를 판단합니다. 분석은 클릭한 종목만 수행됩니다 (10시 생존 후보 한정).</span>' +
       '</div>' +
-      '<div style="margin-top:8px;">' + survivor1000.map((e) => renderCard(e, 'value-strong')).join('') + '</div>';
+      '<div style="margin-top:8px;">' + survivor1000.map((e) => renderCard(e, 'value-strong', 'survivor1000')).join('') + '</div>';
   } else if (!survivor1000Ready) {
     body += '<h3 style="margin:14px 0 6px;color:#fcd34d;font-size:19px;">⏳ 10시 생존 확인 후보 — 10:00 확인 대기</h3>' +
       '<div class="empty-list" style="padding:14px;color:#fde68a;line-height:1.7;background:rgba(252,211,77,0.06);border-left:3px solid #fcd34d;border-radius:4px;">' +
@@ -4447,29 +4724,72 @@ document.getElementById('foot').innerHTML =
       const hC = clsFor(c.prevRefHigh);
       const lC = clsFor(c.prevRefLow);
       const cC = clsFor(c.prevRefClose);
-      return '<tr>' +
+      // 🟡 10:03 이후 고점 = "10:00 cron 도착 후에도 진입 가능했던" 후보 — 행 전체 강조
+      const latePeak = c.peakTime && c.peakTime > '10:03';
+      const veryLatePeak = c.peakTime && c.peakTime > '11:00';  // 11시 이후 고점 = 더 늦은 진입도 가능
+      const rowStyle = veryLatePeak
+        ? ' style="background:rgba(245,158,11,0.15);border-left:3px solid #f59e0b;"'
+        : (latePeak ? ' style="background:rgba(251,191,36,0.10);border-left:3px solid #fbbf24;"' : '');
+      // peakTime 표시 — 10:03 이후면 강조 색
+      let peakBadge;
+      if (c.peakTime) {
+        if (veryLatePeak) {
+          peakBadge = '<br><span style="color:#fbbf24;font-size:11px;font-weight:700;background:rgba(245,158,11,0.2);padding:1px 6px;border-radius:3px;border:1px solid #f59e0b;">🔥 ⏱ ' + esc(c.peakTime) + ' (11시↑ 진입 가능)</span>';
+        } else if (latePeak) {
+          peakBadge = '<br><span style="color:#fcd34d;font-size:11px;font-weight:700;background:rgba(251,191,36,0.15);padding:1px 6px;border-radius:3px;border:1px solid #fbbf24;">⭐ ⏱ ' + esc(c.peakTime) + ' (10:03↑ 진입 가능)</span>';
+        } else {
+          peakBadge = '<br><span style="color:#94a3b8;font-size:10px;">⏱ ' + esc(c.peakTime) + '</span>';
+        }
+      } else if (c.peakBeyondWindow) {
+        peakBadge = '<br><span style="color:#fbbf24;font-size:10px;">⏱ 10:00 이후 갱신</span>';
+      } else {
+        peakBadge = '';
+      }
+      return '<tr' + rowStyle + '>' +
         '<td>' + srcChip + '</td>' +
-        '<td><b>' + esc(c.name) + '</b><br><span style="color:#64748b;font-size:10.5px;">' + esc(c.code) + '</span></td>' +
+        '<td><b>' + esc(c.name) + '</b>' +
+          (latePeak ? ' <span style="font-size:10px;background:rgba(251,191,36,0.2);color:#fcd34d;padding:1px 5px;border-radius:3px;border:1px solid #fbbf24;font-weight:700;">늦은 고점</span>' : '') +
+          '<br><span style="color:#64748b;font-size:10.5px;">' + esc(c.code) + '</span></td>' +
         '<td style="text-align:right;color:#94a3b8;">' + f0(c.prevClose) + '</td>' +
         '<td class="' + hC + '" style="text-align:right;"><b>' + fp(c.prevRefHigh) + '</b>' +
           '<br><span style="color:#cbd5e1;font-size:10px;font-weight:400;">' + f0(c.dayHigh) + '원</span>' +
-          (c.peakTime ? '<br><span style="color:#94a3b8;font-size:10px;">⏱ ' + esc(c.peakTime) + '</span>' : '') +
+          peakBadge +
         '</td>' +
         '<td class="' + lC + '" style="text-align:right;"><b>' + fp(c.prevRefLow) + '</b>' +
           '<br><span style="color:#cbd5e1;font-size:10px;font-weight:400;">' + f0(c.dayLow) + '원</span>' +
-          (c.troughTime ? '<br><span style="color:#94a3b8;font-size:10px;">⏱ ' + esc(c.troughTime) + '</span>' : '') +
+          (c.troughTime ? '<br><span style="color:#94a3b8;font-size:10px;">⏱ ' + esc(c.troughTime) + '</span>' :
+            (c.troughBeyondWindow ? '<br><span style="color:#fbbf24;font-size:10px;">⏱ 10:00 이후 갱신</span>' : '')) +
         '</td>' +
         '<td class="' + cC + '" style="text-align:right;"><b>' + fp(c.prevRefClose) + '</b>' +
           '<br><span style="color:#cbd5e1;font-size:10px;font-weight:400;">' + f0(c.dayClose) + '원</span>' +
         '</td>' +
+        // 10시 이후 차트보기 버튼
+        '<td style="text-align:center;">' +
+          (c.post1000Chart && c.post1000Chart.points && c.post1000Chart.points.length >= 2
+            ? '<button class="post1000-chart-btn" data-code="' + esc(c.code) + '" data-name="' + esc(c.name) + '">📈 10시 이후</button>'
+            : '<span style="color:#475569;font-size:10.5px;">분봉 없음</span>') +
+        '</td>' +
         '</tr>';
     }
+    // 늦은 고점 종목 카운트 — 사용자 인식용 요약
+    const lateCount = (cands.mainResult || []).filter(c => c.peakTime && c.peakTime > '10:03').length;
+    const veryLateCount = (cands.mainResult || []).filter(c => c.peakTime && c.peakTime > '11:00').length;
     mainResultTable = (
       '<div style="margin-bottom:18px;">' +
       '<h3 style="margin:0 0 8px;font-size:16px;color:#e2e8f0;">📊 오늘 09:30 실제 후보 결과 (survivor1000 + 공격형TOP)</h3>' +
       '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">전일종가 대비 — 오늘 어디까지 올랐고(고가) / 어디까지 떨어졌고(저가) / 어떻게 마감했나(종가). 시각은 1분봉 기준.</div>' +
+      // 차트보기 안내
+      '<div style="font-size:11.5px;background:rgba(20,184,166,0.08);border-left:3px solid #14b8a6;padding:8px 12px;margin-bottom:8px;border-radius:4px;line-height:1.6;color:#99f6e4;">' +
+        '💡 고가/저가 숫자만으로 판단하지 말고, 각 종목의 <strong>"📈 10시 이후" 버튼</strong>을 눌러 10:00 이후 실제 흐름과 09:31~10:00 고점 돌파 여부를 확인하세요.' +
+      '</div>' +
+      // 범례 + 강조 카운트
+      '<div style="font-size:11.5px;background:rgba(251,191,36,0.08);border-left:3px solid #fbbf24;padding:8px 12px;margin-bottom:8px;border-radius:4px;line-height:1.6;">' +
+        '<strong style="color:#fcd34d;">⭐ 늦은 고점 후보 (10:03 이후 고점):</strong> <strong>' + lateCount + '건</strong>' +
+        (veryLateCount > 0 ? ' <span style="color:#f59e0b;">(그중 🔥 11시 이후 ' + veryLateCount + '건)</span>' : '') +
+        ' <span style="color:#94a3b8;">— 10:00 cron 도착 후에도 추가 진입 기회가 있던 후보. 노란/주황 배경 행으로 표시.</span>' +
+      '</div>' +
       '<table class="today-result-table">' +
-      '<thead><tr><th>구분</th><th>종목</th><th style="text-align:right;">전일종가</th><th style="text-align:right;">당일 고가</th><th style="text-align:right;">당일 저가</th><th style="text-align:right;">종가</th></tr></thead>' +
+      '<thead><tr><th>구분</th><th>종목</th><th style="text-align:right;">전일종가</th><th style="text-align:right;">당일 고가</th><th style="text-align:right;">당일 저가</th><th style="text-align:right;">종가</th><th style="text-align:center;">10시 이후</th></tr></thead>' +
       '<tbody>' + cands.mainResult.map(mrRow).join('') + '</tbody>' +
       '</table>' +
       '</div>'
@@ -4485,6 +4805,478 @@ document.getElementById('foot').innerHTML =
     body +
     '</div>'
   );
+})();
+
+// ─── 10시 이후 차트 모달 (event delegation 으로 동적 행에 대응) ───
+(function setupPost1000ChartModal() {
+  const modal = document.getElementById('post1000ChartModal');
+  const closeBtn = document.getElementById('chartModalClose');
+  const titleEl = document.getElementById('chartModalTitle');
+  const summaryEl = document.getElementById('chartSummary');
+  const svg = document.getElementById('post1000ChartSvg');
+  if (!modal || !svg) return;
+
+  // mainResult 에서 code→item 맵
+  function buildIndex() {
+    const idx = new Map();
+    const mr = DATA.todayResultCandidates?.mainResult || [];
+    for (const c of mr) if (c.code) idx.set(c.code, c);
+    return idx;
+  }
+  const itemIndex = buildIndex();
+
+  function fmtNum(v) { return v == null ? '-' : Math.round(v).toLocaleString(); }
+  function fmtPct(v) {
+    if (v == null) return '-';
+    const sign = v >= 0 ? '+' : '';
+    return sign + v.toFixed(2) + '%';
+  }
+  function pctClass(v) { return v == null ? 'val' : (v >= 0 ? 'val pos' : 'val neg'); }
+
+  function openModal(code) {
+    const item = itemIndex.get(code);
+    if (!item || !item.post1000Chart) {
+      titleEl.textContent = code;
+      summaryEl.innerHTML = '<div class="chart-empty">10시 이후 분봉 데이터가 없습니다.</div>';
+      svg.innerHTML = '';
+      modal.classList.remove('hidden');
+      return;
+    }
+    const ch = item.post1000Chart;
+    titleEl.textContent = (item.name || code) + ' · ' + code;
+    // 요약
+    const lines = [];
+    lines.push('<div class="summary-line"><span class="lbl">10:00 기준가</span><span class="val">' + fmtNum(ch.basePrice) + '원</span></div>');
+    if (ch.pre1000High) {
+      lines.push('<div class="summary-line"><span class="lbl">09:31~10:00 고점 (돌파 기준)</span><span class="val">' + fmtNum(ch.pre1000High) + '원</span></div>');
+    }
+    if (ch.postHigh) {
+      lines.push('<div class="summary-line"><span class="lbl">10시 이후 고가</span><span class="' + pctClass(ch.postHigh.rateFrom1000) + '">' + fmtNum(ch.postHigh.price) + '원 (' + fmtPct(ch.postHigh.rateFrom1000) + ') · ⏱ ' + ch.postHigh.time + '</span></div>');
+    }
+    if (ch.postLow) {
+      lines.push('<div class="summary-line"><span class="lbl">10시 이후 저가</span><span class="' + pctClass(ch.postLow.rateFrom1000) + '">' + fmtNum(ch.postLow.price) + '원 (' + fmtPct(ch.postLow.rateFrom1000) + ') · ⏱ ' + ch.postLow.time + '</span></div>');
+    }
+    if (ch.last) {
+      lines.push('<div class="summary-line"><span class="lbl">마지막</span><span class="' + pctClass(ch.last.rateFrom1000) + '">' + fmtNum(ch.last.price) + '원 (' + fmtPct(ch.last.rateFrom1000) + ') · ⏱ ' + ch.last.time + '</span></div>');
+    }
+    if (ch.breakout && ch.breakout.success) {
+      lines.push('<div class="summary-line"><span class="lbl">돌파 상태</span><span class="val pos">✅ 09:31~10:00 고점 돌파 성공 · ⏱ ' + ch.breakout.time + '</span></div>');
+    } else if (ch.pre1000High) {
+      lines.push('<div class="summary-line"><span class="lbl">돌파 상태</span><span class="val neg">❌ 09:31~10:00 고점 돌파 실패</span></div>');
+    }
+    summaryEl.innerHTML = lines.join('');
+
+    // SVG 차트 — 가격 라인 + 10:00 기준선 + 돌파 기준선 + postHigh/postLow/breakout 마커
+    drawChart(svg, ch);
+    modal.classList.remove('hidden');
+  }
+
+  function closeModal() { modal.classList.add('hidden'); svg.innerHTML = ''; }
+
+  function drawChart(svg, ch) {
+    const pts = ch.points || [];
+    if (pts.length < 2) {
+      svg.innerHTML = '<text x="400" y="180" text-anchor="middle" fill="#94a3b8" font-size="14">표시할 분봉 데이터가 부족합니다</text>';
+      return;
+    }
+    const W = 800, H = 360;
+    const padL = 60, padR = 20, padT = 20, padB = 32;
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+
+    // y 범위: postHigh / postLow 도 포함 (마커 위해)
+    const prices = pts.map(p => p.c);
+    if (ch.postHigh) prices.push(ch.postHigh.price);
+    if (ch.postLow)  prices.push(ch.postLow.price);
+    if (ch.basePrice) prices.push(ch.basePrice);
+    if (ch.pre1000High) prices.push(ch.pre1000High);
+    let yMin = Math.min.apply(null, prices), yMax = Math.max.apply(null, prices);
+    const yPad = (yMax - yMin) * 0.05 || 1;
+    yMin -= yPad; yMax += yPad;
+
+    function x(i) { return padL + (i / (pts.length - 1)) * innerW; }
+    function y(price) { return padT + (1 - (price - yMin) / (yMax - yMin)) * innerH; }
+    function xAtTime(time) {
+      const idx = pts.findIndex(p => p.t === time);
+      return idx >= 0 ? x(idx) : null;
+    }
+
+    // path d
+    let d = 'M ' + x(0).toFixed(1) + ' ' + y(pts[0].c).toFixed(1);
+    for (let i = 1; i < pts.length; i++) {
+      d += ' L ' + x(i).toFixed(1) + ' ' + y(pts[i].c).toFixed(1);
+    }
+
+    // y 축 눈금 5개
+    const ySteps = 4;
+    let yTicks = '';
+    for (let i = 0; i <= ySteps; i++) {
+      const p = yMin + (yMax - yMin) * (i / ySteps);
+      const yy = y(p);
+      yTicks += '<line x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '" stroke="#1e293b" stroke-width="1"/>';
+      yTicks += '<text x="' + (padL - 6) + '" y="' + (yy + 3) + '" text-anchor="end" fill="#64748b" font-size="10">' + Math.round(p).toLocaleString() + '</text>';
+    }
+
+    // x 축 시간 라벨 (시작/끝/중간 몇 개)
+    let xTicks = '';
+    const showAt = [0, Math.floor(pts.length * 0.25), Math.floor(pts.length * 0.5), Math.floor(pts.length * 0.75), pts.length - 1];
+    for (const i of showAt) {
+      if (i < 0 || i >= pts.length) continue;
+      const xx = x(i);
+      xTicks += '<text x="' + xx + '" y="' + (H - 10) + '" text-anchor="middle" fill="#64748b" font-size="10">' + pts[i].t + '</text>';
+    }
+
+    // 10:00 기준선 (회색 점선)
+    let baseLine = '';
+    if (ch.basePrice) {
+      const by = y(ch.basePrice);
+      baseLine = '<line x1="' + padL + '" y1="' + by + '" x2="' + (W - padR) + '" y2="' + by + '" stroke="#64748b" stroke-width="1" stroke-dasharray="4,4"/>' +
+        '<text x="' + (W - padR + 2) + '" y="' + (by + 3) + '" fill="#94a3b8" font-size="9.5" text-anchor="start">10:00</text>';
+    }
+    // 09:31~10:00 high 돌파 기준선 (보라 점선)
+    let breakoutLine = '';
+    if (ch.pre1000High) {
+      const bly = y(ch.pre1000High);
+      breakoutLine = '<line x1="' + padL + '" y1="' + bly + '" x2="' + (W - padR) + '" y2="' + bly + '" stroke="#a78bfa" stroke-width="1" stroke-dasharray="6,3"/>' +
+        '<text x="' + (W - padR + 2) + '" y="' + (bly + 3) + '" fill="#c4b5fd" font-size="9.5" text-anchor="start">돌파선</text>';
+    }
+
+    // 가격 라인
+    const priceLine = '<path d="' + d + '" stroke="#5eead4" stroke-width="1.6" fill="none"/>';
+
+    // 마커
+    let markers = '';
+    function marker(time, price, color, label) {
+      const xx = xAtTime(time);
+      if (xx == null) return '';
+      const yy = y(price);
+      return '<circle cx="' + xx + '" cy="' + yy + '" r="5" fill="' + color + '" stroke="#0f172a" stroke-width="2"/>' +
+        '<text x="' + xx + '" y="' + (yy - 8) + '" fill="' + color + '" font-size="10" text-anchor="middle" font-weight="700">' + label + '</text>';
+    }
+    if (ch.postHigh) markers += marker(ch.postHigh.time, ch.postHigh.price, '#22c55e', '↑ ' + ch.postHigh.time);
+    if (ch.postLow)  markers += marker(ch.postLow.time,  ch.postLow.price,  '#ef4444', '↓ ' + ch.postLow.time);
+    if (ch.breakout && ch.breakout.success) markers += marker(ch.breakout.time, ch.breakout.price, '#a78bfa', '✦ 돌파 ' + ch.breakout.time);
+
+    svg.innerHTML = yTicks + baseLine + breakoutLine + priceLine + markers + xTicks;
+  }
+
+  // event delegation
+  document.addEventListener('click', function(e) {
+    const btn = e.target && e.target.closest && e.target.closest('.post1000-chart-btn');
+    if (btn) {
+      const code = btn.getAttribute('data-code');
+      if (code) openModal(code);
+      return;
+    }
+    if (e.target === modal) closeModal();
+  });
+  closeBtn.addEventListener('click', closeModal);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+  });
+})();
+
+// ─── 현재 진입 가능 여부 분석 모달 (10시 생존 후보만) ───
+(function setupLiveEntryCheckModal() {
+  const modal = document.getElementById('liveEntryModal');
+  const titleEl = document.getElementById('liveEntryTitle');
+  const bodyEl = document.getElementById('liveEntryBody');
+  const closeBtn = document.getElementById('liveEntryClose');
+  if (!modal || !bodyEl) return;
+
+  // 클라이언트 30초 캐시 — 같은 (date, code) 재호출 방지
+  const clientCache = new Map();
+  const CACHE_TTL = 30000;
+
+  function fmtNum(v) { return v == null ? '-' : Math.round(v).toLocaleString(); }
+  function fmtPct(v) {
+    if (v == null) return '-';
+    const sign = v >= 0 ? '+' : '';
+    return sign + (typeof v === 'number' ? v.toFixed(2) : v) + '%';
+  }
+  function escHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function renderLoading() {
+    bodyEl.innerHTML = '<div class="chart-empty">최신 분봉을 확인하고 있습니다...</div>';
+  }
+  function renderError(msg) {
+    bodyEl.innerHTML = '<div class="chart-empty" style="color:#fca5a5;">' + escHtml(msg) + '</div>';
+  }
+
+  function renderResult(r) {
+    if (!r || !r.ok) {
+      renderError(r && r.reason ? r.reason : '분석 응답 오류');
+      return;
+    }
+    const verdict = r.verdict || 'DATA_MISSING';
+    const s = r.summary || {};
+    const lv = r.levels || {};
+    const ch = r.chart || {};
+    let html = '';
+
+    // verdict 카드
+    html += '<div class="verdict-card verdict-' + verdict + '">' +
+      '<div style="flex:1">' +
+        '<div>' + escHtml(r.verdictLabel || verdict) + '</div>' +
+        '<div class="verdict-explain">' + escHtml(r.explainText || '') + '</div>' +
+      '</div></div>';
+
+    // 요약
+    if (s && s.base1000) {
+      html += '<div class="live-section">';
+      html += '<h4>📊 10시 이후 요약</h4>';
+      html += '<div id="liveEntrySummary">';
+      function line(label, value, valueClass) {
+        return '<div class="summary-line"><span class="lbl">' + label + '</span><span class="val ' + (valueClass || '') + '">' + value + '</span></div>';
+      }
+      const lines = [];
+      lines.push(line('10:00 기준가', fmtNum(s.base1000) + '원'));
+      if (s.preHigh0931To1000) lines.push(line('09:31~10:00 고점 (돌파선)', fmtNum(s.preHigh0931To1000) + '원'));
+      const curCls = s.currentRateFrom1000 >= 0 ? 'pos' : 'neg';
+      lines.push(line('현재가 (' + (s.currentTime || '') + ')', fmtNum(s.currentPrice) + '원 (' + fmtPct(s.currentRateFrom1000) + ')', curCls));
+      if (s.post1000High) lines.push(line('10시 이후 고가', fmtNum(s.post1000High) + '원 · ⏱ ' + (s.post1000HighTime || '-')));
+      if (s.post1000Low)  lines.push(line('10시 이후 저가', fmtNum(s.post1000Low) + '원 · ⏱ ' + (s.post1000LowTime || '-')));
+      lines.push(line('고점 대비', fmtPct(s.drawdownFromPostHigh), (s.drawdownFromPostHigh || 0) <= -3 ? 'neg' : ''));
+      if (s.breakoutSuccess) lines.push(line('돌파 상태', '✅ 09:31~10:00 고점 돌파 성공 · ⏱ ' + (s.breakoutTime || '-'), 'pos'));
+      else if (s.preHigh0931To1000) lines.push(line('돌파 상태', '❌ 09:31~10:00 고점 미돌파', 'neg'));
+      lines.push(line('최근 5분 추이', '가격 ' + fmtPct(s.recent5mRate) + ' · 저점이탈 ' + (s.recent5mLowBroken ? '⚠ 있음' : '없음') + ' · 거래대금 ' + (s.recent5mValueTrend || 'UNKNOWN')));
+      html += lines.join('') + '</div>';
+      html += '</div>';
+    }
+
+    // 기준선
+    if (lv && lv.baseLine) {
+      html += '<div class="live-section">';
+      html += '<h4>📏 기준선</h4>';
+      html += '<div class="levels-grid">';
+      const baseRate = '';
+      const cells = [
+        { name: '10:00 기준가', val: fmtNum(lv.baseLine) + '원' },
+        { name: '돌파 기준선', val: lv.watchLine ? fmtNum(lv.watchLine) + '원' : '-' },
+        { name: '-2% 위험선',  val: fmtNum(lv.stopLine2) + '원' },
+        { name: '-3% 실패선',  val: fmtNum(lv.stopLine3) + '원' },
+        { name: '+5% 추격주의선', val: fmtNum(lv.chaseLine) + '원' },
+      ];
+      for (const c of cells) {
+        html += '<div class="lvl-cell"><div class="lvl-name">' + escHtml(c.name) + '</div><div class="lvl-val">' + escHtml(c.val) + '</div></div>';
+      }
+      html += '</div></div>';
+    }
+
+    // 판단 근거
+    if (r.reasons && r.reasons.length) {
+      html += '<div class="live-section"><h4>📝 판단 근거</h4><ul>' + r.reasons.map(x => '<li>' + escHtml(x) + '</li>').join('') + '</ul></div>';
+    }
+    if (r.warnings && r.warnings.length) {
+      html += '<div class="live-section"><h4>⚠ 경고</h4><ul class="warnings">' + r.warnings.map(x => '<li>' + escHtml(x) + '</li>').join('') + '</ul></div>';
+    }
+
+    // 차트 (10:00 이후 라인 차트, 기준선 포함)
+    if (ch && ch.points && ch.points.length >= 2) {
+      html += '<div class="live-section"><h4>📈 10:00 이후 가격 흐름</h4>' +
+        '<div class="chart-wrap" style="margin-top:6px;"><svg id="liveEntryChartSvg" viewBox="0 0 800 320" preserveAspectRatio="none"></svg></div></div>';
+    }
+
+    // currentSource 표시
+    const srcLabel = r.currentSource === 'KIS_CURRENT_PRICE' ? 'KIS 현재가' : '최신 수집 분봉';
+    html += '<div class="live-source-note">현재가 기준: ' + srcLabel + ' · 분석 시각: ' + escHtml(r.checkedAt || '') + '</div>';
+
+    bodyEl.innerHTML = html;
+
+    // 차트 렌더
+    if (ch && ch.points && ch.points.length >= 2) {
+      drawLiveEntryChart(document.getElementById('liveEntryChartSvg'), s, lv, ch);
+    }
+  }
+
+  function drawLiveEntryChart(svg, s, lv, ch) {
+    if (!svg) return;
+    const pts = ch.points;
+    const W = 800, H = 320;
+    const padL = 60, padR = 30, padT = 16, padB = 28;
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+    // y 범위
+    const prices = pts.map(p => p.price);
+    if (s.base1000) prices.push(s.base1000);
+    if (s.preHigh0931To1000) prices.push(s.preHigh0931To1000);
+    if (lv.stopLine3) prices.push(lv.stopLine3);
+    if (lv.chaseLine) prices.push(lv.chaseLine);
+    let yMin = Math.min.apply(null, prices), yMax = Math.max.apply(null, prices);
+    const pad = (yMax - yMin) * 0.05 || 1;
+    yMin -= pad; yMax += pad;
+    function x(i) { return padL + (i / (pts.length - 1)) * innerW; }
+    function y(p) { return padT + (1 - (p - yMin) / (yMax - yMin)) * innerH; }
+    function xAt(time) {
+      const i = pts.findIndex(p => p.time === time);
+      return i >= 0 ? x(i) : null;
+    }
+    // path
+    let d = 'M ' + x(0).toFixed(1) + ' ' + y(pts[0].price).toFixed(1);
+    for (let i = 1; i < pts.length; i++) d += ' L ' + x(i).toFixed(1) + ' ' + y(pts[i].price).toFixed(1);
+
+    // y 축
+    let yTicks = '';
+    for (let i = 0; i <= 4; i++) {
+      const pv = yMin + (yMax - yMin) * (i / 4);
+      const yy = y(pv);
+      yTicks += '<line x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '" stroke="#1e293b" stroke-width="1"/>';
+      yTicks += '<text x="' + (padL - 6) + '" y="' + (yy + 3) + '" text-anchor="end" fill="#64748b" font-size="10">' + Math.round(pv).toLocaleString() + '</text>';
+    }
+    // x 축
+    let xTicks = '';
+    const showAt = [0, Math.floor(pts.length * 0.33), Math.floor(pts.length * 0.66), pts.length - 1];
+    for (const i of showAt) {
+      if (i < 0 || i >= pts.length) continue;
+      xTicks += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle" fill="#64748b" font-size="10">' + pts[i].time + '</text>';
+    }
+
+    // 기준선
+    function refLine(price, color, label, dash) {
+      if (price == null) return '';
+      const yy = y(price);
+      return '<line x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '" stroke="' + color + '" stroke-width="1" stroke-dasharray="' + (dash || '4,4') + '"/>' +
+        '<text x="' + (W - padR + 2) + '" y="' + (yy + 3) + '" fill="' + color + '" font-size="9.5" text-anchor="start">' + label + '</text>';
+    }
+    let refs = '';
+    if (s.base1000)             refs += refLine(s.base1000,             '#94a3b8', '10:00', '4,4');
+    if (s.preHigh0931To1000)    refs += refLine(s.preHigh0931To1000,    '#a78bfa', '돌파선', '6,3');
+    if (lv.stopLine2)           refs += refLine(lv.stopLine2,           '#f59e0b', '-2%', '3,3');
+    if (lv.stopLine3)           refs += refLine(lv.stopLine3,           '#ef4444', '-3%', '3,3');
+    if (lv.chaseLine)           refs += refLine(lv.chaseLine,           '#fbbf24', '+5%', '3,3');
+
+    // 가격 라인
+    const priceLine = '<path d="' + d + '" stroke="#5eead4" stroke-width="1.6" fill="none"/>';
+
+    // 마커
+    function marker(time, price, color, label) {
+      const xx = xAt(time);
+      if (xx == null) return '';
+      const yy = y(price);
+      return '<circle cx="' + xx + '" cy="' + yy + '" r="5" fill="' + color + '" stroke="#0f172a" stroke-width="2"/>' +
+        '<text x="' + xx + '" y="' + (yy - 8) + '" fill="' + color + '" font-size="10" text-anchor="middle" font-weight="700">' + label + '</text>';
+    }
+    let markers = '';
+    if (s.post1000HighTime) markers += marker(s.post1000HighTime, s.post1000High, '#22c55e', '↑');
+    if (s.post1000LowTime)  markers += marker(s.post1000LowTime,  s.post1000Low,  '#ef4444', '↓');
+    if (s.breakoutSuccess && s.breakoutTime) markers += marker(s.breakoutTime, s.breakoutPrice || s.preHigh0931To1000, '#a78bfa', '✦');
+    // 현재가 마커 (마지막 분봉)
+    if (s.currentTime && s.currentPrice) markers += marker(s.currentTime, s.currentPrice, '#fcd34d', '●');
+
+    svg.innerHTML = yTicks + refs + priceLine + markers + xTicks;
+  }
+
+  // KST 기준 장중 여부 — 분석은 분석일(date)이 오늘 KST AND 10:00~15:30 KST 일 때만 의미.
+  // 그 외 케이스는 fetch 호출 자체를 안 하고 안내 메시지만 표시.
+  function getKstMarketState(date) {
+    // 'sv-SE' 로케일 = "YYYY-MM-DD HH:MM:SS" 형태로 일관된 KST 출력
+    const kstStr = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Seoul' });
+    const m = kstStr.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+    if (!m) return { active: false, reason: 'time_parse_failed' };
+    const todayKst = m[1] + '-' + m[2] + '-' + m[3];
+    const kstHm = m[4] + ':' + m[5];
+    const totalMin = parseInt(m[4], 10) * 60 + parseInt(m[5], 10);
+    const dow = new Date(todayKst + 'T00:00:00+09:00').getUTCDay(); // 0=일, 6=토 (UTC offset 자동 처리)
+    if (dow === 0 || dow === 6) {
+      return { active: false, reason: 'weekend', kstNow: todayKst, kstHm };
+    }
+    if (date !== todayKst) {
+      return { active: false, reason: 'not_today', kstNow: todayKst, kstHm, analysisDate: date };
+    }
+    if (totalMin < 10 * 60) {
+      return { active: false, reason: 'before_1000', kstHm };
+    }
+    if (totalMin > 15 * 60 + 30) {
+      return { active: false, reason: 'after_close', kstHm };
+    }
+    return { active: true, kstHm };
+  }
+
+  function renderOutsideHours(state) {
+    let icon = '🏁', title = '', desc = '';
+    if (state.reason === 'after_close') {
+      icon = '🏁';
+      title = '장이 이미 마감되었습니다 (KST ' + state.kstHm + ')';
+      desc = '실시간 진입 가능 여부 분석은 <strong>장중 (10:00~15:30 KST)</strong>에만 의미가 있습니다.<br>' +
+             '오늘의 최종 결과는 페이지 하단 <strong>"오늘 09:30 실제 후보 결과"</strong> 표에서 확인하세요.';
+    } else if (state.reason === 'before_1000') {
+      icon = '⏳';
+      title = '아직 10:00 이전입니다 (KST ' + state.kstHm + ')';
+      desc = '실시간 진입 분석은 <strong>10:00 이후</strong>에 의미가 있습니다.<br>' +
+             '09:31~10:00 분봉이 도착하고 10:00 생존 여부가 확인되면 다시 시도해주세요.';
+    } else if (state.reason === 'not_today') {
+      icon = '📅';
+      title = '분석 대상 날짜가 오늘이 아닙니다';
+      desc = '실시간 진입 분석은 <strong>분석 기준일이 오늘 KST</strong>일 때만 동작합니다.<br>' +
+             '(분석 기준일: <strong>' + escHtml(state.analysisDate || '-') + '</strong> / 오늘 KST: <strong>' + escHtml(state.kstNow || '-') + '</strong>)';
+    } else if (state.reason === 'weekend') {
+      icon = '🛏';
+      title = '주말입니다 (' + state.kstNow + ')';
+      desc = '주말에는 장이 열리지 않아 실시간 진입 분석이 불가능합니다.<br>' +
+             '직전 영업일 결과는 페이지 하단 결과표에서 확인하세요.';
+    } else {
+      icon = 'ℹ️';
+      title = '실시간 분석이 가능한 상태가 아닙니다';
+      desc = '시각 확인에 실패했습니다.';
+    }
+    bodyEl.innerHTML =
+      '<div class="chart-empty" style="padding:36px 24px;font-size:13.5px;line-height:1.8;">' +
+        '<div style="font-size:42px;margin-bottom:12px;">' + icon + '</div>' +
+        '<div style="color:#e2e8f0;font-size:16px;font-weight:700;margin-bottom:10px;">' + escHtml(title) + '</div>' +
+        '<div style="color:#94a3b8;">' + desc + '</div>' +
+      '</div>';
+  }
+
+  async function open(code, name, date) {
+    titleEl.textContent = (name || code) + ' · ' + code;
+    modal.classList.remove('hidden');
+
+    // 장중 여부 먼저 체크 — 장마감/주말/분석일 mismatch 면 fetch 안 함
+    const state = getKstMarketState(date);
+    if (!state.active) {
+      renderOutsideHours(state);
+      return;
+    }
+
+    renderLoading();
+    const cacheKey = date + '__' + code;
+    const cached = clientCache.get(cacheKey);
+    if (cached && (Date.now() - cached.t) < CACHE_TTL) {
+      renderResult(cached.r);
+      return;
+    }
+    try {
+      const resp = await fetch('/api/one-day-surge/live-entry-check?date=' + encodeURIComponent(date) + '&code=' + encodeURIComponent(code), { credentials: 'same-origin' });
+      if (!resp.ok) {
+        if (resp.status === 404) {
+          renderError('API 엔드포인트를 찾을 수 없습니다 (HTTP 404). 서버 재시작이 필요할 수 있습니다. 운영자에게 문의하거나, 정적 HTML로 열어본 경우 정식 보드 URL(/one-day-surge-board)로 접속해주세요.');
+        } else {
+          renderError('현재 분석에 실패했습니다 (HTTP ' + resp.status + '). 분봉 데이터 또는 현재가 조회 상태를 확인하세요.');
+        }
+        return;
+      }
+      const j = await resp.json();
+      clientCache.set(cacheKey, { t: Date.now(), r: j });
+      renderResult(j);
+    } catch (e) {
+      renderError('현재 분석에 실패했습니다. 네트워크 또는 서버 상태를 확인하세요. (' + (e && e.message ? e.message : e) + ')');
+    }
+  }
+  function close() { modal.classList.add('hidden'); }
+
+  document.addEventListener('click', function(e) {
+    const btn = e.target && e.target.closest && e.target.closest('.live-entry-check-btn');
+    if (btn) {
+      const code = btn.getAttribute('data-code');
+      const name = btn.getAttribute('data-name');
+      const date = btn.getAttribute('data-date');
+      if (code && date) open(code, name, date);
+      return;
+    }
+    if (e.target === modal) close();
+  });
+  closeBtn.addEventListener('click', close);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) close();
+  });
 })();
 </script>
 

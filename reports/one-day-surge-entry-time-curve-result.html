@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<title>1DS — 진입 시각 곡선 백테스트</title>
+<style>
+* { box-sizing: border-box; }
+body { font-family: -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  max-width: 1700px; margin: 0 auto; padding: 18px 24px 80px; background: #0f172a; color: #e2e8f0; font-size: 13px; }
+h1 { font-size: 22px; color: #f1f5f9; }
+h2 { font-size: 16px; color: #cbd5e1; margin-top: 28px; }
+h3 { font-size: 14px; color: #cbd5e1; }
+.purpose { background: #1e293b; border-left: 3px solid #a78bfa; padding: 12px 16px; border-radius: 6px; line-height: 1.7; }
+.conclusion { background: #042f2e; border-left: 4px solid #14b8a6; padding: 14px 18px; border-radius: 6px; line-height: 1.8; margin: 18px 0; }
+.conclusion ul { margin: 8px 0; padding-left: 20px; }
+.conclusion li { margin-bottom: 8px; }
+table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+th, td { padding: 6px 8px; border-bottom: 1px solid #334155; text-align: left; }
+th { background: #1e293b; color: #cbd5e1; font-weight: 600; }
+tr:hover { background: rgba(30,41,59,0.5); }
+.meta-line { color: #94a3b8; font-size: 12px; margin-bottom: 12px; }
+</style></head><body>
+<h1>📊 1DS — 진입 시각 곡선 백테스트</h1>
+<div class="meta-line">분석 기간: 2026-02-24 ~ 2026-05-21 (60일) · 생성 2026. 5. 21. 오후 6:56:34</div>
+<div class="purpose">
+  <strong>질문:</strong> 1DS 후보는 대부분 10시 전에 고점을 찍는다 — 그렇다면 10:03 이후 진입은 얼마나 늦은가?<br>
+  <strong>분석:</strong> 09:30 READY 후보를 universe로, 각 진입 시각에서 진입했을 때 얻을 수 있는 평균 수익률·mfeRem(남은 상승)·drop2(손실 위험)을 계산.<br>
+  <strong>3 universe:</strong> SURVIVOR_TRUE (10시 생존 확인 — 사후 라벨, 가장 정제된 group) / 09:30 READY 전체 / 09:30 EXPLOSIVE / 09:45 SURVIVOR_TOP.
+</div>
+
+<h2>1. 핵심 결론</h2>
+
+    <div class="conclusion">
+      <h3>핵심 결론</h3>
+      <ul>
+        <li><strong>"1DS 후보는 모두 10시 전에 고점 찍는다"는 가정 검증</strong> —
+          SURVIVOR_TRUE n=378 기준 dayHigh 분포:
+          10:00 이전 발생 <strong>19.8%</strong>, 10:15 이전 34.7%, 11:00 이전 53.2%.
+          <span style="color:#fbbf24"><strong>가정 부정확.</strong> 60일 평균은 오히려 10시 전 dayHigh가 19.8%뿐. 80%는 10시 이후 고점.</span>
+          오늘 케이스는 시장 평균과 다른 특수일일 가능성.
+        </li>
+        <li><strong>그렇다면 10:03 이후 진입은 얼마나 오를까?</strong> —
+          SURVIVOR_TRUE 10:03 진입 평균 <strong>0.22%</strong> (남은 상승 여력 mfeRem 3.35%) vs
+          09:30 진입 평균 <strong>2.5%</strong> (mfeRem 5.84%).
+          진입을 33분 늦췄을 때 평균 수익이 2.28%p 사라짐 — 즉 <strong>수익의 91%가 09:30~10:00 사이에 발생</strong>.
+        </li>
+        <li><strong>왜 그런가? — dayHigh가 아니라 진입가 변동</strong> —
+          dayHigh의 80%는 10시 이후지만, <strong>가격 자체가 09:30~10:00 사이에 평균 +2.2% 빠르게 올라가서</strong> 10시 진입 시 이미 비싸진 가격에 진입. 그 후엔 출렁임은 있지만 평균적으로 종가까지 +0.2% 정도만 추가.
+        </li>
+        <li><strong>10:15 / 10:30 진입은 어떤가?</strong> —
+          10:15 평균 0.1% (drop2 54.2%) / 10:30 평균 0.18% (drop2 50.3%).
+          <span style="color:#ef4444">사실상 0 — 너무 늦음.</span>
+          drop2는 09:30(29.6%) 대비 10:15(54.2%)로 24.6%p 악화. <strong>늦은 진입은 손실 위험만 큼.</strong>
+        </li>
+        <li><strong>운영 시사점</strong> —
+          09:30 진입(+2.5%) > 09:45 진입(+1.55%) > 10:00 진입(+0.27%) ≈ 10:03 진입(+0.22%) > 10:15+.
+          <strong>10:01 cron 도착 시점은 이미 평균 수익의 90% 이상이 사라진 시점.</strong>
+          09:30 또는 09:45 시점에 빠르게 진입 + 손절 규율을 갖는 게 운영 효율이 높음.
+        </li>
+      </ul>
+    </div>
+  
+
+<h2>2. dayHigh 발생 시각 분포 (T 이전 누적 비율)</h2>
+<table><thead><tr>
+<th>universe</th><th>n</th>
+<th>~09:30</th><th>~09:45</th><th>~10:00</th><th>~10:15</th><th>~10:30</th><th>~11:00</th><th>~12:00</th>
+</tr></thead><tbody>
+<tr>
+      <td><strong>READY 전체</strong></td>
+      <td style="text-align:right">978</td>
+      <td style="text-align:right;color:#94a3b8">21%</td><td style="text-align:right;color:#94a3b8">34.3%</td><td style="text-align:right;color:#94a3b8">42.6%</td><td style="text-align:right;color:#94a3b8">49.7%</td><td style="text-align:right;color:#94a3b8">55.6%</td><td style="text-align:right;color:#94a3b8">62.3%</td><td style="text-align:right;color:#94a3b8">71.4%</td>
+    </tr>
+<tr>
+      <td><strong>SURVIVOR_TRUE (10시 생존)</strong></td>
+      <td style="text-align:right">378</td>
+      <td style="text-align:right;color:#94a3b8">5.6%</td><td style="text-align:right;color:#94a3b8">9.8%</td><td style="text-align:right;color:#94a3b8">19.8%</td><td style="text-align:right;color:#94a3b8">34.7%</td><td style="text-align:right;color:#94a3b8">43.9%</td><td style="text-align:right;color:#94a3b8">53.2%</td><td style="text-align:right;color:#94a3b8">63.5%</td>
+    </tr>
+<tr>
+      <td><strong>09:30 EXPLOSIVE</strong></td>
+      <td style="text-align:right">326</td>
+      <td style="text-align:right;color:#94a3b8">15%</td><td style="text-align:right;color:#94a3b8">30.4%</td><td style="text-align:right;color:#94a3b8">42.6%</td><td style="text-align:right;color:#94a3b8">50%</td><td style="text-align:right;color:#94a3b8">57.1%</td><td style="text-align:right;color:#94a3b8">63.2%</td><td style="text-align:right;color:#94a3b8">72.7%</td>
+    </tr>
+<tr>
+      <td><strong>09:45 SURVIVOR_TOP</strong></td>
+      <td style="text-align:right">138</td>
+      <td style="text-align:right;color:#94a3b8">0.7%</td><td style="text-align:right;color:#94a3b8">6.5%</td><td style="text-align:right;color:#94a3b8">21.7%</td><td style="text-align:right;color:#94a3b8">34.8%</td><td style="text-align:right;color:#94a3b8">43.5%</td><td style="text-align:right;color:#94a3b8">56.5%</td><td style="text-align:right;color:#94a3b8">69.6%</td>
+    </tr>
+</tbody></table>
+
+<h2>3. 진입 시각별 평균 수익 (finalRet, 진입가 → 종가)</h2>
+<table><thead><tr>
+<th>universe</th>
+<th style="text-align:right">09:30</th><th style="text-align:right">09:35</th><th style="text-align:right">09:40</th><th style="text-align:right">09:45</th><th style="text-align:right">09:50</th><th style="text-align:right">09:55</th><th style="text-align:right">10:00</th><th style="text-align:right">10:03</th><th style="text-align:right">10:05</th><th style="text-align:right">10:10</th><th style="text-align:right">10:15</th><th style="text-align:right">10:30</th><th style="text-align:right">11:00</th><th style="text-align:right">13:00</th><th style="text-align:right">15:00</th>
+</tr></thead><tbody>
+<tr>
+      <td><strong>SURVIVOR_TRUE</strong></td>
+      <td style="text-align:right;color:#22c55e;font-weight:600">2.5%</td><td style="text-align:right;color:#22c55e;font-weight:600">2.18%</td><td style="text-align:right;color:#22c55e;font-weight:600">1.86%</td><td style="text-align:right;color:#22c55e;font-weight:600">1.55%</td><td style="text-align:right;color:#22c55e;font-weight:600">1.12%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.84%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.27%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.22%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.25%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.08%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.1%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.18%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.12%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.02%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.12%</td>
+    </tr>
+<tr>
+      <td><strong>READY 전체</strong></td>
+      <td style="text-align:right;color:#22c55e;font-weight:600">0.48%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.47%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.4%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.3%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.2%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.19%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.09%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.12%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.13%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.06%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.06%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.14%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.14%</td><td style="text-align:right;color:#ef4444;font-weight:600">-0.05%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.06%</td>
+    </tr>
+<tr>
+      <td><strong>09:30 EXPLOSIVE</strong></td>
+      <td style="text-align:right;color:#22c55e;font-weight:600">0.88%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.84%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.73%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.54%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.42%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.34%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.37%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.39%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.36%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.26%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.24%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.22%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.25%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.07%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.17%</td>
+    </tr>
+<tr>
+      <td><strong>09:45 SURVIVOR_TOP</strong></td>
+      <td style="text-align:right;color:#22c55e;font-weight:600">4.17%</td><td style="text-align:right;color:#22c55e;font-weight:600">3.32%</td><td style="text-align:right;color:#22c55e;font-weight:600">2.65%</td><td style="text-align:right;color:#22c55e;font-weight:600">1.21%</td><td style="text-align:right;color:#22c55e;font-weight:600">1.1%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.92%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.86%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.74%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.71%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.63%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.41%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.28%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.13%</td><td style="text-align:right;color:#ef4444;font-weight:600">-0.02%</td><td style="text-align:right;color:#22c55e;font-weight:600">0.33%</td>
+    </tr>
+</tbody></table>
+
+<h2>4. 진입 시각별 평균 mfeRem (남은 상승 여력)</h2>
+<table><thead><tr>
+<th>universe</th>
+<th style="text-align:right">09:30</th><th style="text-align:right">09:35</th><th style="text-align:right">09:40</th><th style="text-align:right">09:45</th><th style="text-align:right">09:50</th><th style="text-align:right">09:55</th><th style="text-align:right">10:00</th><th style="text-align:right">10:03</th><th style="text-align:right">10:05</th><th style="text-align:right">10:10</th><th style="text-align:right">10:15</th><th style="text-align:right">10:30</th><th style="text-align:right">11:00</th><th style="text-align:right">13:00</th><th style="text-align:right">15:00</th>
+</tr></thead><tbody>
+<tr>
+      <td><strong>SURVIVOR_TRUE</strong></td>
+      <td style="text-align:right;color:#5eead4">5.84%</td><td style="text-align:right;color:#5eead4">5.5%</td><td style="text-align:right;color:#5eead4">5.16%</td><td style="text-align:right;color:#5eead4">4.83%</td><td style="text-align:right;color:#5eead4">4.38%</td><td style="text-align:right;color:#5eead4">4.07%</td><td style="text-align:right;color:#5eead4">3.44%</td><td style="text-align:right;color:#5eead4">3.35%</td><td style="text-align:right;color:#5eead4">3.35%</td><td style="text-align:right;color:#5eead4">3.09%</td><td style="text-align:right;color:#5eead4">3.02%</td><td style="text-align:right;color:#5eead4">2.9%</td><td style="text-align:right;color:#5eead4">2.52%</td><td style="text-align:right;color:#5eead4">1.74%</td><td style="text-align:right;color:#5eead4">0.65%</td>
+    </tr>
+<tr>
+      <td><strong>READY 전체</strong></td>
+      <td style="text-align:right;color:#5eead4">4.42%</td><td style="text-align:right;color:#5eead4">4.29%</td><td style="text-align:right;color:#5eead4">4.12%</td><td style="text-align:right;color:#5eead4">3.92%</td><td style="text-align:right;color:#5eead4">3.73%</td><td style="text-align:right;color:#5eead4">3.66%</td><td style="text-align:right;color:#5eead4">3.46%</td><td style="text-align:right;color:#5eead4">3.43%</td><td style="text-align:right;color:#5eead4">3.42%</td><td style="text-align:right;color:#5eead4">3.25%</td><td style="text-align:right;color:#5eead4">3.18%</td><td style="text-align:right;color:#5eead4">3.04%</td><td style="text-align:right;color:#5eead4">2.72%</td><td style="text-align:right;color:#5eead4">1.78%</td><td style="text-align:right;color:#5eead4">0.66%</td>
+    </tr>
+<tr>
+      <td><strong>09:30 EXPLOSIVE</strong></td>
+      <td style="text-align:right;color:#5eead4">5.09%</td><td style="text-align:right;color:#5eead4">4.91%</td><td style="text-align:right;color:#5eead4">4.67%</td><td style="text-align:right;color:#5eead4">4.34%</td><td style="text-align:right;color:#5eead4">4.11%</td><td style="text-align:right;color:#5eead4">3.97%</td><td style="text-align:right;color:#5eead4">3.87%</td><td style="text-align:right;color:#5eead4">3.84%</td><td style="text-align:right;color:#5eead4">3.77%</td><td style="text-align:right;color:#5eead4">3.56%</td><td style="text-align:right;color:#5eead4">3.46%</td><td style="text-align:right;color:#5eead4">3.19%</td><td style="text-align:right;color:#5eead4">2.87%</td><td style="text-align:right;color:#5eead4">1.84%</td><td style="text-align:right;color:#5eead4">0.7%</td>
+    </tr>
+<tr>
+      <td><strong>09:45 SURVIVOR_TOP</strong></td>
+      <td style="text-align:right;color:#5eead4">8.2%</td><td style="text-align:right;color:#5eead4">7.31%</td><td style="text-align:right;color:#5eead4">6.61%</td><td style="text-align:right;color:#5eead4">5.1%</td><td style="text-align:right;color:#5eead4">4.92%</td><td style="text-align:right;color:#5eead4">4.67%</td><td style="text-align:right;color:#5eead4">4.45%</td><td style="text-align:right;color:#5eead4">4.27%</td><td style="text-align:right;color:#5eead4">4.2%</td><td style="text-align:right;color:#5eead4">4.04%</td><td style="text-align:right;color:#5eead4">3.73%</td><td style="text-align:right;color:#5eead4">3.38%</td><td style="text-align:right;color:#5eead4">2.78%</td><td style="text-align:right;color:#5eead4">1.79%</td><td style="text-align:right;color:#5eead4">0.79%</td>
+    </tr>
+</tbody></table>
+
+<h2>5. 진입 시각별 drop2 비율 (-2% 이상 손실 발생 종목 비율)</h2>
+<table><thead><tr>
+<th>universe</th>
+<th style="text-align:right">09:30</th><th style="text-align:right">09:35</th><th style="text-align:right">09:40</th><th style="text-align:right">09:45</th><th style="text-align:right">09:50</th><th style="text-align:right">09:55</th><th style="text-align:right">10:00</th><th style="text-align:right">10:03</th><th style="text-align:right">10:05</th><th style="text-align:right">10:10</th><th style="text-align:right">10:15</th><th style="text-align:right">10:30</th><th style="text-align:right">11:00</th><th style="text-align:right">13:00</th><th style="text-align:right">15:00</th>
+</tr></thead><tbody>
+<tr>
+      <td><strong>SURVIVOR_TRUE</strong></td>
+      <td style="text-align:right;color:#fbbf24">29.6%</td><td style="text-align:right;color:#fbbf24">33.3%</td><td style="text-align:right;color:#fbbf24">32%</td><td style="text-align:right;color:#fbbf24">35.2%</td><td style="text-align:right;color:#ef4444">40.2%</td><td style="text-align:right;color:#ef4444">46.3%</td><td style="text-align:right;color:#ef4444">55%</td><td style="text-align:right;color:#ef4444">53.4%</td><td style="text-align:right;color:#ef4444">52.1%</td><td style="text-align:right;color:#ef4444">55%</td><td style="text-align:right;color:#ef4444">54.2%</td><td style="text-align:right;color:#ef4444">50.3%</td><td style="text-align:right;color:#ef4444">43.1%</td><td style="text-align:right;color:#fbbf24">29.9%</td><td style="text-align:right;color:#94a3b8">4.2%</td>
+    </tr>
+<tr>
+      <td><strong>READY 전체</strong></td>
+      <td style="text-align:right;color:#ef4444">58.7%</td><td style="text-align:right;color:#ef4444">56.6%</td><td style="text-align:right;color:#ef4444">55.3%</td><td style="text-align:right;color:#ef4444">55.3%</td><td style="text-align:right;color:#ef4444">55.7%</td><td style="text-align:right;color:#ef4444">55.5%</td><td style="text-align:right;color:#ef4444">56.2%</td><td style="text-align:right;color:#ef4444">54.8%</td><td style="text-align:right;color:#ef4444">53.5%</td><td style="text-align:right;color:#ef4444">55.3%</td><td style="text-align:right;color:#ef4444">54.1%</td><td style="text-align:right;color:#ef4444">50.5%</td><td style="text-align:right;color:#ef4444">42.9%</td><td style="text-align:right;color:#fbbf24">31.5%</td><td style="text-align:right;color:#94a3b8">4.9%</td>
+    </tr>
+<tr>
+      <td><strong>09:30 EXPLOSIVE</strong></td>
+      <td style="text-align:right;color:#ef4444">58.3%</td><td style="text-align:right;color:#ef4444">56.1%</td><td style="text-align:right;color:#ef4444">56.4%</td><td style="text-align:right;color:#ef4444">56.1%</td><td style="text-align:right;color:#ef4444">56.7%</td><td style="text-align:right;color:#ef4444">58.9%</td><td style="text-align:right;color:#ef4444">54.3%</td><td style="text-align:right;color:#ef4444">54%</td><td style="text-align:right;color:#ef4444">51.2%</td><td style="text-align:right;color:#ef4444">55.2%</td><td style="text-align:right;color:#ef4444">53.1%</td><td style="text-align:right;color:#ef4444">54.3%</td><td style="text-align:right;color:#ef4444">46.6%</td><td style="text-align:right;color:#fbbf24">34.4%</td><td style="text-align:right;color:#94a3b8">4.3%</td>
+    </tr>
+<tr>
+      <td><strong>09:45 SURVIVOR_TOP</strong></td>
+      <td style="text-align:right;color:#94a3b8">21%</td><td style="text-align:right;color:#fbbf24">32.6%</td><td style="text-align:right;color:#fbbf24">34.8%</td><td style="text-align:right;color:#ef4444">59.4%</td><td style="text-align:right;color:#ef4444">54.3%</td><td style="text-align:right;color:#ef4444">55.8%</td><td style="text-align:right;color:#ef4444">52.9%</td><td style="text-align:right;color:#ef4444">56.5%</td><td style="text-align:right;color:#ef4444">54.3%</td><td style="text-align:right;color:#ef4444">54.3%</td><td style="text-align:right;color:#ef4444">56.5%</td><td style="text-align:right;color:#ef4444">58%</td><td style="text-align:right;color:#ef4444">55.1%</td><td style="text-align:right;color:#fbbf24">39.1%</td><td style="text-align:right;color:#94a3b8">2.2%</td>
+    </tr>
+</tbody></table>
+
+<div class="meta-line" style="margin-top:24px">전체 universe: READY 978건 (full-day 분봉 가용) · SURVIVOR 378건 · EXPLOSIVE 326건 · H0945 138건</div>
+</body></html>
