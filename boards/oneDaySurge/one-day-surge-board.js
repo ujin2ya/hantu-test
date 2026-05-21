@@ -2134,46 +2134,66 @@ async function main() {
           if (!Number.isFinite(num) || !Number.isFinite(denom) || denom <= 0) return null;
           return +((num / denom - 1) * 100).toFixed(2);
         }
+        // 스냅샷 시도 + 부분 fallback —
+        // 09:30 cron이 09:44 같이 일찍 실행되면 10:00 분봉 부재로 survivor1000/attackTop이
+        // 비어 있는 채 스냅샷이 저장될 수 있다. 그리고 attackTopHighRisk는 한동안 스냅샷
+        // 스키마에 없었다. 둘 다 16:35 시점 live 데이터로 보충한다. 09:00~10:00 분봉만 쓰는
+        // 메트릭이라 09:30 시점과 16:35 시점의 last0930/decisionPrice는 동일.
+        let snap = null;
+        let _snapDateStr = _sd;
         if (fs.existsSync(_snapPath)) {
-          try {
-            const snap = JSON.parse(fs.readFileSync(_snapPath, 'utf-8'));
-            const _snapDateStr = snap.snapshotDate || _sd;
-            const _snapTarget = _snapDateStr.replace(/-/g, '');
-            const seen = new Set();
-            function pushItem(code, name, basePrice, source) {
-              if (!code || seen.has(code)) return;
-              seen.add(code);
-              if (!(basePrice > 0)) return;
-              const r = calculateCandidateDayResult(code, basePrice, _snapTarget);
-              if (!r.available) return;
-              // DB 저장용 — 결과가 측정된 실제 거래일을 dayResult에 기록 (snapshot 날짜와 동일)
-              r.resultTargetDate = _snapDateStr;
-              const pt = getPeakTroughTime(code, _snapDateStr);
-              const prevClose = _prevClose(code, _snapTarget);
-              // 전일종가 대비 % (사용자 요청: 기준가 기준 X)
-              const prevRefHigh  = _pct(r.dayHigh,  prevClose);
-              const prevRefLow   = _pct(r.dayLow,   prevClose);
-              const prevRefClose = _pct(r.dayClose, prevClose);
-              todayResultCandidates.mainResult.push({
-                code, name, basePrice, basePriceSource: source,
-                prevClose,
-                dayHigh: r.dayHigh, dayLow: r.dayLow, dayClose: r.dayClose,
-                prevRefHigh, prevRefLow, prevRefClose,
-                dayResult: r, resultTags: assignResultTags(r).tags,
-                peakTime: pt?.peakTime || null, troughTime: pt?.troughTime || null,
-              });
-            }
-            for (const s of (snap.survivor1000 || [])) pushItem(s.code, s.name, s.metrics?.last0930, 'survivor1000');
-            for (const c of (snap.attackTopCandidates || [])) pushItem(c.code, c.name, c.decisionPrice, 'attackTop');
-            // 조기 포착(explosiveStable) — survivor1000에 흡수 안 된 09:30 조기 포착 후보
-            for (const e of (snap.explosiveStable || [])) pushItem(e.code, e.name, e.metrics?.last0930, 'explosiveStable');
-            console.log(`     mainResult: ${todayResultCandidates.mainResult.length}종목 (스냅샷 ${_snapDateStr}, 전일종가 기준)`);
-          } catch(e) {
-            console.warn(`  ⚠ mainResult 계산 실패: ${e.message}`);
-          }
-        } else {
-          console.log(`     mainResult: 스냅샷 없음 (${_snapPath})`);
+          try { snap = JSON.parse(fs.readFileSync(_snapPath, 'utf-8')); _snapDateStr = snap.snapshotDate || _sd; }
+          catch (e) { console.warn(`  ⚠ mainResult snap parse 실패: ${e.message}`); }
         }
+        const _snapTarget = _snapDateStr.replace(/-/g, '');
+        // out 객체는 line 2199+에 정의되므로 여기선 아직 없음.
+        //   - attackTopResult.candidates: split 전 풀 리스트 (NORMAL+HIGH_RISK 둘 다 포함) — 같은 decisionPrice 사용.
+        //   - scanner0930 JSON에서 survivor1000/explosiveStable 직접 로드.
+        // snapshot 컬렉션이 비어 있을 때만 live로 fallback. 모두 09:00~10:00 분봉 기반이라 timing 무관.
+        const _scRaw = loadScanner0930() || {};
+        const pickList = (snapList, liveList) =>
+          (Array.isArray(snapList) && snapList.length > 0) ? snapList : (liveList || []);
+        const survivors  = pickList(snap && snap.survivor1000,        _scRaw.scanner0930Survivor1000);
+        // snap의 attackTopCandidates는 applyDisplayPolicyPostProcess가 NORMAL/HIGH_RISK 분리 후 저장한 NORMAL만 포함하기 때문에,
+        // 비어 있는 경우 attackTopResult.candidates 풀 리스트(NORMAL+HIGH_RISK)로 보충.
+        // 09:44 snapshot처럼 둘 다 0이었던 케이스에서 HIGH_RISK 6건이 살아남도록 함.
+        const snapAttackTops = (snap && Array.isArray(snap.attackTopCandidates)) ? snap.attackTopCandidates.slice() : [];
+        if (snap && Array.isArray(snap.attackTopHighRisk)) {
+          const seenAt = new Set(snapAttackTops.map(c => c.code));
+          for (const c of snap.attackTopHighRisk) if (c && c.code && !seenAt.has(c.code)) snapAttackTops.push(c);
+        }
+        const attackTops = pickList(snapAttackTops, attackTopResult.candidates);
+        const explosives = pickList(snap && snap.explosiveStable,     _scRaw.scanner0930ExplosiveStable);
+
+        const seen = new Set();
+        function pushItem(code, name, basePrice, source) {
+          if (!code || seen.has(code)) return;
+          seen.add(code);
+          if (!(basePrice > 0)) return;
+          const r = calculateCandidateDayResult(code, basePrice, _snapTarget);
+          if (!r.available) return;
+          // DB 저장용 — 결과가 측정된 실제 거래일을 dayResult에 기록 (snapshot 날짜와 동일)
+          r.resultTargetDate = _snapDateStr;
+          const pt = getPeakTroughTime(code, _snapDateStr);
+          const prevClose = _prevClose(code, _snapTarget);
+          // 전일종가 대비 % (사용자 요청: 기준가 기준 X)
+          const prevRefHigh  = _pct(r.dayHigh,  prevClose);
+          const prevRefLow   = _pct(r.dayLow,   prevClose);
+          const prevRefClose = _pct(r.dayClose, prevClose);
+          todayResultCandidates.mainResult.push({
+            code, name, basePrice, basePriceSource: source,
+            prevClose,
+            dayHigh: r.dayHigh, dayLow: r.dayLow, dayClose: r.dayClose,
+            prevRefHigh, prevRefLow, prevRefClose,
+            dayResult: r, resultTags: assignResultTags(r).tags,
+            peakTime: pt?.peakTime || null, troughTime: pt?.troughTime || null,
+          });
+        }
+        for (const s of survivors)  pushItem(s.code, s.name, s.metrics?.last0930, 'survivor1000');
+        for (const c of attackTops) pushItem(c.code, c.name, c.decisionPrice, 'attackTop');
+        for (const e of explosives) pushItem(e.code, e.name, e.metrics?.last0930, 'explosiveStable');
+        const _src = snap ? `snap=${_snapDateStr}` : 'snap_없음';
+        console.log(`     mainResult: ${todayResultCandidates.mainResult.length}종목 (survivor:${survivors.length}+attackTop:${attackTops.length}+explosive:${explosives.length}, ${_src})`);
       }
 
       console.log(`  📊 오늘 결과 (targetDate ${targetDateForResult}):`);
@@ -2356,6 +2376,7 @@ async function main() {
       survivor1000: out.priorityRanked?.scanner0930?.survivor1000 || [],
       explosiveStable: out.priorityRanked?.scanner0930?.explosiveStable || [],
       attackTopCandidates: out.attackTopCandidates || [],
+      attackTopHighRisk: out.attackTopHighRisk || [],
     };
     fs.writeFileSync(_snapPath, JSON.stringify(_snap, null, 2));
     console.log(`  📸 09:30 스냅샷 저장 (${_sd}): survivor=${_snap.survivor1000.length}개 / explosive=${_snap.explosiveStable.length}개 / attackTop=${_snap.attackTopCandidates.length}개`);

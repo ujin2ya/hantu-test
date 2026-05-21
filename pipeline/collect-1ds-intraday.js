@@ -602,7 +602,15 @@ async function main() {
       try {
         const existing = JSON.parse(fs.readFileSync(outPath, 'utf-8'));
         const lastBar = (existing.bars || []).slice(-1)[0];
-        alreadyComplete = lastBar && lastBar.time >= (args.fullDay ? '15:00' : '09:55');
+        // skip threshold: full-day=15:00, single endHour 모드는 endHour에서 -5분 산출
+        // (예: endHour=130000 → 12:55, endHour=153000 → 15:25)
+        const _eh = String(args.endHour || '100000');
+        const _hh = parseInt(_eh.slice(0, 2), 10);
+        const _mm = parseInt(_eh.slice(2, 4), 10);
+        const _skipTotal = (Number.isFinite(_hh) && Number.isFinite(_mm)) ? (_hh * 60 + _mm - 5) : 9 * 60 + 55;
+        const skipThreshold = args.fullDay ? '15:00'
+          : `${String(Math.floor(_skipTotal / 60)).padStart(2, '0')}:${String(_skipTotal % 60).padStart(2, '0')}`;
+        alreadyComplete = lastBar && lastBar.time >= skipThreshold;
       } catch (_) { alreadyComplete = false; }
       if (alreadyComplete) {
         skipped++;
@@ -616,9 +624,30 @@ async function main() {
         ? await fetchFullDayWithRetry(token, t.code, t.nextDateNum, args.retry, args.sleepMs)
         : await fetchWithRetry(token, t.code, t.nextDateNum, args.endHour, args.retry);
       const bars = normalizeBars(raw);
-      // full-day 모드는 09:00~15:30, 기본은 09:00~10:00
-      const windowTo = args.fullDay ? '15:30' : '10:00';
-      const windowBars = bars.filter((b) => b.time <= windowTo);
+      // full-day=15:30 / 그 외=endHour에서 HH:MM 추출 (예: 130000 → 13:00)
+      // 이전: hardcoded '10:00' → single endHour 모드(--end-hour 130000 등) 에서 윈도우 너머 bars가 모두 잘림
+      const _eh = String(args.endHour || '100000');
+      const _windowFromEnd = `${_eh.slice(0, 2)}:${_eh.slice(2, 4)}`;
+      const windowTo = args.fullDay ? '15:30' : _windowFromEnd;
+      const newBars = bars.filter((b) => b.time <= windowTo);
+
+      // 기존 파일과 merge — 다른 endHour cron이 누적되도록.
+      // 예: 09:35 cron(endHour=100000)이 09:00~09:35 저장 → 12:30 cron(endHour=130000) fetch가
+      // 10:30~12:30만 가져와도 merge로 09:00~09:35 + 10:30~12:30 누적 (09:35~10:30 갭은 남음).
+      let mergedBars = newBars;
+      if (fs.existsSync(outPath)) {
+        try {
+          const prev = JSON.parse(fs.readFileSync(outPath, 'utf-8'));
+          if (prev && Array.isArray(prev.bars) && prev.bars.length > 0) {
+            const byTime = new Map();
+            for (const b of prev.bars) if (b && b.time) byTime.set(b.time, b);
+            for (const b of newBars)  if (b && b.time) byTime.set(b.time, b);  // 새 bars override
+            mergedBars = Array.from(byTime.values())
+              .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+          }
+        } catch (_) { /* 깨진 파일 → 무시하고 새 bars 만 저장 */ }
+      }
+
       const out = {
         code: t.code, name: t.name, market: t.market || null,
         date: t.nextDateStr, interval: '1m',
@@ -632,8 +661,9 @@ async function main() {
           dayChangeRate: t.dayChangeRate, recent5Up15Count: t.recent5Up15Count,
         },
         kisMeta: meta,
-        bars: windowBars,
+        bars: mergedBars,
       };
+      const windowBars = mergedBars;
       fs.writeFileSync(outPath, JSON.stringify(out));
       success++;
       if (windowBars.length === 0) {

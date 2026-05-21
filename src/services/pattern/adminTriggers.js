@@ -42,6 +42,8 @@ const BOARD_SCRIPTS = [
   { name: "QVA2 D+5 재돌파 운용보드",        file: "boards/qva2/qva2-d5-rebreak-board.js" },
   { name: "QVA2 고점 재돌파 보드",           file: "boards/qva2/qva2-vvi-board.js" },
   { name: "1DS 단타 후보 보드",              file: "boards/oneDaySurge/one-day-surge-board.js" },
+  // QVA 장중 감시 보드 — DB board_signals (QVA Watchlist + QVA2 H그룹) 수정 후에 와야 오늘 신호까지 반영됨.
+  { name: "QVA 장중 감시 보드",              file: "boards/qva/qva-live-watch-board.js" },
 ];
 
 const PATTERN_RESULT_PATH = path.join(CACHE_DIR, "pattern-result.json");
@@ -250,7 +252,7 @@ function refreshAllBoards() {
 
   return {
     ok: true,
-    message: `전체 보드 갱신 시작 (${BOARD_SCRIPTS.length}개 — QVA + QVA 고점 재돌파 + D+5 재돌파 + QVA2 × 3, 백그라운드 30~90초 예상. 1DS는 09:30/10:01 cron 전용)`,
+    message: `전체 보드 갱신 시작 (${BOARD_SCRIPTS.length}개 — QVA + QVA 고점 재돌파 + D+5 재돌파 + QVA2 × 3 + 1DS + QVA 장중 감시, 백그라운드 30~120초 예상)`,
     startedAt: patternState.allBoardsRefreshStartedAt,
   };
 }

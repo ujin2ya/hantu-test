@@ -81,7 +81,7 @@ function registerSchedules() {
     }
     console.log(`[Boards] 16:35 완료 — 성공 ${okCount} / 실패 ${failCount}`);
   }, { scheduled: true, timezone: "Asia/Seoul" });
-  console.log(`[스케줄] 매일 평일 16:35 전체 보드 갱신 활성화 (${BOARD_SCRIPTS.length}개 — QVA + QVA 고점 재돌파 + D+5 재돌파 운용 + QVA2 × 3 + 1DS)`);
+  console.log(`[스케줄] 매일 평일 16:35 전체 보드 갱신 활성화 (${BOARD_SCRIPTS.length}개 — QVA + QVA 고점 재돌파 + D+5 재돌파 운용 + QVA2 × 3 + 1DS + QVA 장중 감시)`);
 
   // 16:40 평일 — DB 신호 후속 작업: outcomes 채우기 + signal_links 재정렬
   // (보드 generators 16:35 완료 후 ~5분 마진. 같은 cron 안에서 순차 실행)
@@ -186,6 +186,34 @@ function registerSchedules() {
     console.log("[Nasdaq Theme] 06:30 완료");
   }, { scheduled: true, timezone: "Asia/Seoul" });
   console.log("[스케줄] 매일 평일 06:30 나스닥 테마 fetch + watch 보드 재생성 활성화 (미국장 마감 후, 한국 시간)");
+
+  // 평일 09:35 / 12:30 / 15:30 — QVA 장중 감시 보드 갱신 (3 runs, single endHour 모드)
+  // pipeline/refresh-qva-live-watch.js 가 3 phase 수행:
+  //   1. qva-live-watch-board.js 1차 — DB에서 후보 코드 산출
+  //   2. collect-1ds-intraday.js --codes ... --end-hour HHMMSS — single 호출, 기존 파일과 merge
+  //   3. qva-live-watch-board.js 재실행 — 분봉 반영
+  // KIS 부담: 후보 ~416종 × 1 call × 350ms ≈ 2.4분/run. 3 runs/day ≈ 7분 collect time (full-day 대비 -85%).
+  // 단점: KIS 가 endHour 기준 직전 120 bars 만 반환하므로 12:30/15:30 cron은 직전 ~2시간만 가져옴.
+  // collector 가 기존 파일과 merge 해서 cumulative 데이터 유지. 09:35-10:30 / 12:30-13:30 구간은 갭으로 남을 수 있음.
+  const QVA_LIVE_WATCH_SCRIPT = path.join(ROOT, "pipeline", "refresh-qva-live-watch.js");
+  const QVA_LIVE_WATCH_RUNS = [
+    { hh: "9",  mm: "35", endHour: "100000" },  // 10:00 까지
+    { hh: "12", mm: "30", endHour: "130000" },  // 13:00 까지
+    { hh: "15", mm: "30", endHour: "153000" },  // 15:30 까지
+  ];
+  for (const { hh, mm, endHour } of QVA_LIVE_WATCH_RUNS) {
+    cron.schedule(`${mm} ${hh} * * 1-5`, () => {
+      console.log(`[QVA Live Watch cron] ${hh}:${mm} 시작 (end-hour=${endHour})`);
+      try {
+        const t0 = Date.now();
+        execSync(`node ${QVA_LIVE_WATCH_SCRIPT} --end-hour ${endHour}`, { stdio: "pipe", timeout: 10 * 60 * 1000 });
+        console.log(`[QVA Live Watch cron] ${hh}:${mm} 완료 (${Date.now() - t0}ms)`);
+      } catch (e) {
+        console.error(`[QVA Live Watch cron] ${hh}:${mm} 실패: ${String(e.message || e).slice(0, 200)}`);
+      }
+    }, { scheduled: true, timezone: "Asia/Seoul" });
+  }
+  console.log("[스케줄] 평일 09:35 / 12:30 / 15:30 — QVA 장중 감시 보드 분봉 수집 + 재생성 활성화 (한국 시간, single endHour 모드)");
 
   // ─── (이전 1DS 메일 cron 블록 보존) ────────────────────────────────────
   if (process.env.MAIL_CRON_ENABLED === "1") {
