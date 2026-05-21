@@ -1,0 +1,57 @@
+{
+  "snapshotDate": "2026-05-21",
+  "savedAt": "2026-05-21T00:44:02.972Z",
+  "survivor1000": [],
+  "explosiveStable": [
+    {
+      "code": "108490",
+      "name": "로보티즈",
+      "market": "KOSDAQ",
+      "marketCap": 4638900000000,
+      "baseDate": "20260520",
+      "avg20Value": 151371198050,
+      "baseValue": 66180136000,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 278000,
+        "last0930": 288500,
+        "high0930": 289000,
+        "low0930": 268500,
+        "value_0930": 21788154500,
+        "volume_0930": 77958,
+        "closePosition0930": 0.976,
+        "openToLastRate": 3.78,
+        "highToLastDrop": -0.17,
+        "valueToAvgRatio_0930": 4.28,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 7.82,
+      "finalScore": 116.51,
+      "hasTenRebreak": false,
+      "tenRebreakTrigger": null,
+      "hasFadedRecovery": false,
+      "hasSurvivor1000": false,
+      "survivor1000": null,
+      "triggeredHypos": [],
+      "explosiveScore": 124.51,
+      "isSurvivor1000": false,
+      "isExplosiveTop": true,
+      "isAttackRebreak": false,
+      "overlapBadges": [
+        "조기 포착",
+        "10시 확인 필요"
+      ],
+      "suggestedStrategy": {
+        "type": "STABLE_SCALP",
+        "label": "안정형 단타",
+        "takeProfit": "+5%",
+        "stopLoss": "-2%",
+        "note": "19거래일 검증 기준 +5%/-2% 전략이 안정적 (n=64, 평균 +0.97%, 승률 46.9%, +10% 12.5%)"
+      },
+      "reason": "09:30 조기 포착 — 10시 생존 확인 전 감시 후보"
+    }
+  ],
+  "attackTopCandidates": []
+}
