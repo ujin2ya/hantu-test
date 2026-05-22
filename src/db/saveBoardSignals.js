@@ -12,8 +12,13 @@
  *   catch (e) { console.warn('[DB] 저장 실패:', e.message); }
  */
 
+const fs = require('fs');
+const path = require('path');
 const { isEnabled } = require('./mysql');
 const repo = require('./boardSignalRepository');
+
+const ROOT = path.join(__dirname, '..', '..');
+const CHART_LONG_DIR = path.join(ROOT, 'cache', 'stock-charts-long');
 
 function _toYMD(d) {
   if (!d) return null;
@@ -23,8 +28,64 @@ function _toYMD(d) {
   }
   return null;
 }
+function _toYMDNum(d) {
+  const ymd = _toYMD(d);
+  return ymd ? ymd.replace(/-/g, '') : null;
+}
 
 function _num(v) { return (v == null || !Number.isFinite(Number(v))) ? null : Number(v); }
+
+// ─── 차트 캐시 OHLC 조회 ───────────────────────────────────────────────
+// signal_date 의 실제 일봉 OHLC + 거래량/거래대금 을 cache/stock-charts-long/{code}.json 에서 찾아 반환.
+// 보드별 normalize 함수가 채운 signal_open/high/low/close/volume/trading_value 를 일관되게 덮어쓰기 위함.
+// signal_price 는 그대로 (보드별 기준가 의미 보존).
+// 캐시 메모이즈 — 한 번 fetch 후 process 종료까지 보존.
+const _chartRowCache = new Map();
+
+function _loadChartRows(stockCode) {
+  if (_chartRowCache.has(stockCode)) return _chartRowCache.get(stockCode);
+  const fp = path.join(CHART_LONG_DIR, stockCode + '.json');
+  if (!fs.existsSync(fp)) { _chartRowCache.set(stockCode, null); return null; }
+  try {
+    const j = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+    const rows = Array.isArray(j) ? j : (j.rows || []);
+    const byDate = new Map();
+    for (const r of rows) if (r && r.date) byDate.set(String(r.date), r);
+    _chartRowCache.set(stockCode, byDate);
+    return byDate;
+  } catch (_) {
+    _chartRowCache.set(stockCode, null);
+    return null;
+  }
+}
+
+// signal_date 의 OHLC 가 차트 캐시에 있으면 row 의 signal_open/high/low/close/volume/trading_value 를 덮어씀.
+// signal_price 는 그대로 유지 (보드별 기준가 의미).
+// 캐시 미존재 / 그날 봉 미존재 / OHLC 모두 0 인 경우 → 원본 값 유지.
+function _enrichRowFromChartCache(row) {
+  if (!row || !row.stock_code || !row.signal_date) return row;
+  const byDate = _loadChartRows(row.stock_code);
+  if (!byDate) return row;
+  const dateNum = _toYMDNum(row.signal_date);
+  if (!dateNum) return row;
+  const r = byDate.get(dateNum);
+  if (!r) return row;
+  // OHLC 가 모두 0/null 이면 (거래정지 등) skip
+  if (!(r.close > 0) && !(r.high > 0) && !(r.low > 0) && !(r.open > 0)) return row;
+  row.signal_open  = _num(r.open);
+  row.signal_high  = _num(r.high);
+  row.signal_low   = _num(r.low);
+  row.signal_close = _num(r.close);
+  if (r.volume       != null) row.volume        = _num(r.volume);
+  if (r.valueApprox  != null) row.trading_value = _num(r.valueApprox);
+  return row;
+}
+
+function _enrichRowsFromChartCache(rows) {
+  if (!Array.isArray(rows)) return rows;
+  for (const r of rows) _enrichRowFromChartCache(r);
+  return rows;
+}
 
 // ─────────────────────────────────────────────────────────────────────────
 // ONE_DAY_SURGE 보드 adapter
@@ -214,6 +275,7 @@ async function saveOneDaySurgeBoardToDB(data, opts = {}) {
       marketStatus: data.marketStatus ? { status: data.marketStatus.status, label: data.marketStatus.label } : null,
     },
   });
+  _enrichRowsFromChartCache(rows);
   const result = await repo.upsertBoardSignals(runId, rows, { sourceType: opts.sourceType });
   return { runId, ...result, totalRows: rows.length };
 }
@@ -304,6 +366,7 @@ async function saveQva2WatchlistBoardToDB(data, opts = {}) {
       trackingDays: data.meta && data.meta.trackingDays,
     },
   });
+  _enrichRowsFromChartCache(rows);
   const result = await repo.upsertBoardSignals(runId, rows, { sourceType: opts.sourceType });
   return { runId, ...result, totalRows: rows.length };
 }
@@ -439,6 +502,7 @@ async function saveQvaWatchlistBoardToDB(data, opts = {}) {
       trackingDays: data.meta && data.meta.trackingDays,
     },
   });
+  _enrichRowsFromChartCache(rows);
   const result = await repo.upsertBoardSignals(runId, rows, { sourceType: opts.sourceType });
   return { runId, ...result, totalRows: rows.length };
 }
@@ -521,6 +585,7 @@ async function saveQvaVviRedefinedBoardToDB(data, opts = {}) {
       lookbackDays: data.meta && data.meta.lookbackDays,
     },
   });
+  _enrichRowsFromChartCache(rows);
   const result = await repo.upsertBoardSignals(runId, rows, { sourceType: opts.sourceType });
   return { runId, ...result, totalRows: rows.length };
 }
@@ -608,6 +673,7 @@ async function saveHgroupRebreakBoardToDB(data, opts = {}) {
     candidate_count: rows.length,
     meta_json: { statusCounts, sourceBoard: data.meta && data.meta.sourceBoard },
   });
+  _enrichRowsFromChartCache(rows);
   const result = await repo.upsertBoardSignals(runId, rows, { sourceType: opts.sourceType });
   return { runId, ...result, totalRows: rows.length };
 }
@@ -689,6 +755,7 @@ async function saveQva2VviBoardToDB(data, opts = {}) {
     candidate_count: rows.length,
     meta_json: { statusCounts, lookbackDays: data.meta && data.meta.lookbackDays },
   });
+  _enrichRowsFromChartCache(rows);
   const result = await repo.upsertBoardSignals(runId, rows, { sourceType: opts.sourceType });
   return { runId, ...result, totalRows: rows.length };
 }
@@ -773,6 +840,7 @@ async function saveQva2D5RebreakBoardToDB(data, opts = {}) {
     candidate_count: rows.length,
     meta_json: { statusCounts, maxDays: data.meta && data.meta.maxDays },
   });
+  _enrichRowsFromChartCache(rows);
   const result = await repo.upsertBoardSignals(runId, rows, { sourceType: opts.sourceType });
   return { runId, ...result, totalRows: rows.length };
 }

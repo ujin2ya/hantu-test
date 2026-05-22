@@ -3,896 +3,721 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DB 신호 운영판 (관리자)</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <title>DB 신호 검색</title>
   <style>
-    body { background:#0f172a; color:#cbd5e1; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif; padding:24px 16px; }
-    .wrap { max-width:1380px; margin:0 auto; }
-    .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px; }
-    .topbar h1 { font-size:1.3rem; font-weight:700; margin:0; color:#f1f5f9; }
-    .topbar .sub { color:#94a3b8; font-size:.85rem; margin-top:4px; }
-    .card-soft { background:#1e293b; border:1px solid #334155; border-radius:14px; padding:18px 20px; box-shadow:0 4px 14px rgba(0,0,0,0.25); margin-bottom:18px; }
-    .card-soft h2 { font-size:1rem; font-weight:700; margin-bottom:6px; color:#f1f5f9; display:flex; align-items:center; gap:8px; }
-    .card-soft .hint { color:#94a3b8; font-size:.78rem; margin-bottom:12px; line-height:1.5; }
-    .card-soft .err { color:#fca5a5; font-size:.8rem; background:#450a0a; border:1px solid #7f1d1d; padding:8px 12px; border-radius:8px; }
-    .card-soft .empty { color:#64748b; font-size:.85rem; padding:16px; text-align:center; background:#0f172a; border-radius:8px; }
-    table.t { font-size:.82rem; width:100%; color:#cbd5e1; }
-    table.t th { font-weight:600; color:#94a3b8; font-size:.72rem; text-transform:uppercase; letter-spacing:.3px; border-bottom:2px solid #334155; padding:8px 8px; background:#0f172a; position:sticky; top:0; }
-    table.t td { vertical-align:middle; padding:6px 8px; border-bottom:1px solid #334155; }
-    table.t tr:hover td { background:#0f172a; }
-    table.t .rank { color:#94a3b8; font-weight:600; width:32px; text-align:right; }
-    table.t .code { color:#94a3b8; font-family:Menlo,Consolas,monospace; font-size:.75rem; }
-    table.t .name a { color:#93c5fd; font-weight:600; text-decoration:none; }
-    table.t .name a:hover { color:#dbeafe; text-decoration:underline; }
-    table.t .num { text-align:right; font-variant-numeric:tabular-nums; }
-    table.t .pos { color:#86efac; font-weight:600; }
-    table.t .neg { color:#fca5a5; font-weight:600; }
-    .pill { display:inline-block; padding:1.5px 7px; border-radius:999px; font-size:.7rem; font-weight:600; margin:1px 2px 1px 0; white-space:nowrap; }
-    .pill-board { background:#1e1b4b; color:#c4b5fd; border:1px solid #4338ca; }
-    .pill-pos   { background:#052e16; color:#86efac; border:1px solid #166534; }
-    .pill-neg   { background:#450a0a; color:#fca5a5; border:1px solid #7f1d1d; }
-    .pill-mut   { background:#0f172a; color:#94a3b8; border:1px solid #334155; }
-    .pill-warn  { background:#3a1a04; color:#fde68a; border:1px solid #78350f; }
-    .pill-info  { background:#082f49; color:#7dd3fc; border:1px solid #0369a1; }
-    /* 9차: 오늘 볼 후보 TOP — compact table */
-    .priority-table { font-size:.82rem; }
-    .priority-table th { padding:6px 8px; }
-    .priority-table td { padding:8px 8px; vertical-align:top; }
-    .priority-table .rank { color:#64748b; font-weight:600; width:32px; text-align:right; }
-    .priority-table .stock-cell .code { display:block; color:#94a3b8; font-size:.72rem; }
-    .priority-table .stock-cell .name { display:block; color:#f1f5f9; font-weight:600; font-size:.92rem; }
-    .priority-table .stock-cell .market { display:block; color:#64748b; font-size:.66rem; }
-    .priority-table .score-cell .big { color:#f1f5f9; font-weight:700; font-size:1.15rem; line-height:1.1; }
-    .priority-table .score-cell .sub { color:#64748b; font-size:.66rem; margin-top:2px; }
-    .priority-table .last-cell { color:#cbd5e1; font-size:.78rem; }
-    .priority-table .last-cell .d { display:block; color:#64748b; font-size:.66rem; margin-top:2px; }
-    .priority-table .reason-pill { display:inline-block; padding:1px 6px; margin:1px 2px 1px 0; border-radius:999px;
-                                   font-size:.68rem; font-weight:500; background:#0f172a; color:#cbd5e1; border:1px solid #1e293b; white-space:nowrap; }
-    .priority-table .reason-pill.warn { background:#3a1a04; color:#fcd34d; border-color:#78350f; }
-    .priority-table .reason-pill.more { color:#64748b; border-style:dashed; }
-    .priority-table .toggle-btn { background:transparent; color:#7dd3fc; border:1px solid #0369a1; border-radius:6px;
-                                  padding:3px 9px; font-size:.72rem; cursor:pointer; }
-    .priority-table .toggle-btn:hover { background:#082f49; }
-    .priority-detail { display:none; }
-    .priority-detail td { background:#0a1424; border-top:1px solid #1e293b; padding:10px 14px 12px 14px; }
-    .priority-detail .detail-head { color:#94a3b8; font-size:.72rem; margin-bottom:6px; }
-    .priority-detail .detail-head strong { color:#cbd5e1; font-weight:600; }
-    .priority-detail .timeline-list { margin:6px 0 0 0; padding:0; list-style:none; }
-    .priority-detail .timeline-list li { padding:3px 0; color:#cbd5e1; font-size:.74rem; line-height:1.5;
-                                          border-bottom:1px dashed #1e293b; }
-    .priority-detail .timeline-list li:last-child { border-bottom:0; }
-    .priority-detail .timeline-list .date { color:#94a3b8; font-variant-numeric:tabular-nums; }
-    .priority-detail .timeline-list .sep  { color:#475569; margin:0 4px; }
-    .priority-detail .timeline-list .dot  { display:inline-block; width:6px; height:6px; border-radius:50%;
-                                            margin-right:6px; vertical-align:middle; }
-    .priority-detail .timeline-list .dot.good { background:#22c55e; }
-    .priority-detail .timeline-list .dot.bad  { background:#f97316; }
-    .priority-detail .timeline-list .dot.warn { background:#facc15; }
-    .priority-detail .timeline-list .dot.mid  { background:#64748b; }
-    .priority-detail .timeline-list .src  { color:#475569; font-size:.66rem; margin-left:4px; }
-    .priority-detail .more-row { color:#64748b; font-size:.7rem; margin-top:6px; font-style:italic; }
-    .grade-pill { padding:2px 9px; border-radius:999px; font-size:.72rem; font-weight:600; white-space:nowrap; }
-    .grade-pill.tone-purple { background:#1e1b4b; color:#c4b5fd; border:1px solid #4338ca; }
-    .grade-pill.tone-blue   { background:#082f49; color:#7dd3fc; border:1px solid #0369a1; }
-    .grade-pill.tone-green  { background:#052e16; color:#86efac; border:1px solid #166534; }
-    .grade-pill.tone-muted  { background:#0f172a; color:#94a3b8; border:1px solid #334155; }
-    .risk-tag { display:inline-block; margin-left:6px; padding:1px 6px; border-radius:999px; font-size:.62rem;
-                background:#3a1a04; color:#fcd34d; border:1px solid #78350f; }
-    .toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-    .toolbar > span { color:#94a3b8; }
-    .toolbar select, .toolbar input { font-size:.85rem; padding:6px 10px; border:1px solid #475569; border-radius:8px; background:#0f172a; color:#e2e8f0; }
-    .toolbar select:focus, .toolbar input:focus { border-color:#60a5fa; outline:none; }
-    .toolbar input[type="date"] { width:160px; }
-    .toolbar input[type="text"] { width:180px; }
-    .toolbar button { font-size:.85rem; padding:6px 14px; border-radius:8px; border:0; background:#2563eb; color:#fff; font-weight:600; cursor:pointer; }
-    .toolbar button:hover { background:#1d4ed8; }
-    .toolbar button.ghost { background:transparent; color:#cbd5e1; border:1px solid #475569; }
-    .toolbar button.ghost:hover { background:#1e293b; }
-    .meta-row { display:flex; gap:14px; align-items:center; font-size:.8rem; color:#94a3b8; margin-top:4px; }
-    .meta-row strong { color:#f1f5f9; }
-    .note-box { background:#3a2a08; border-left:4px solid #f59e0b; color:#fde68a; padding:10px 14px; border-radius:8px; font-size:.82rem; margin-bottom:16px; line-height:1.6; }
-    .note-box strong { color:#fef3c7; }
-    .note-box code { background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:4px; font-size:.78rem; color:#fde68a; }
-    .priority-bar { display:inline-block; height:6px; background:#3b82f6; border-radius:3px; vertical-align:middle; margin-left:6px; }
-    .scroll-wrap { overflow-x:auto; }
-    .scroll-wrap::-webkit-scrollbar { height:8px; }
-    .scroll-wrap::-webkit-scrollbar-thumb { background:#475569; border-radius:4px; }
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --border: #1f2937;
+      --border-strong: #374151;
+      --text: #e5e7eb;
+      --text-dim: #9ca3af;
+      --text-muted: #6b7280;
+      --accent: #60a5fa;
+      --accent-strong: #3b82f6;
+      --good: #34d399;
+      --warn: #fbbf24;
+      --bad: #f87171;
+      --shadow: 0 4px 16px rgba(0,0,0,0.35);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin:0; padding:0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    header.intro {
+      padding: 24px 8px 16px;
+    }
+    header.intro h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    header.intro .lead {
+      color: var(--text-dim);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    header.intro .lead b { color: #d1d5db; }
+
+    /* ── 검색창 ───────────────────── */
+    .search-wrap {
+      position: relative;
+      margin: 12px 0 20px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 16px 48px 16px 20px;
+      background: var(--panel-2);
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 17px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-input:focus { border-color: var(--accent-strong); }
+    .search-input::placeholder { color: var(--text-muted); font-size: 15px; }
+    .search-icon {
+      position: absolute;
+      right: 16px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 18px;
+      pointer-events: none;
+    }
+    .suggest-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: var(--panel-2);
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      max-height: 380px;
+      overflow-y: auto;
+      z-index: 50;
+      display: none;
+    }
+    .suggest-dropdown.open { display: block; }
+    .suggest-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    .suggest-item:last-child { border-bottom: none; }
+    .suggest-item:hover, .suggest-item.focused { background: #1e293b; }
+    .suggest-item .name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .suggest-item .code {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-left: 6px;
+    }
+    .suggest-item .meta {
+      font-size: 11px;
+      color: var(--text-dim);
+      text-align: right;
+      align-self: end;
+    }
+    .suggest-item .boards-mini {
+      grid-column: 1 / -1;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 3px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    /* ── 추천 영역 ─────────────────── */
+    .recent-section {
+      margin: 16px 0 24px;
+    }
+    .recent-section .recent-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .recent-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .recent-chip {
+      padding: 6px 10px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: border-color 0.1s, background 0.1s;
+      color: var(--text);
+    }
+    .recent-chip:hover { border-color: var(--accent); background: #1e293b; }
+    .recent-chip .code-mini { color: var(--text-muted); margin-left: 4px; font-size: 11px; }
+    .recent-chip .date-mini { color: var(--text-muted); margin-left: 6px; font-size: 11px; }
+
+    /* ── 결과 영역 ─────────────────── */
+    .result-area { margin-top: 16px; }
+    .result-empty {
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .summary-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .summary-head { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+    .summary-head .stock-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .summary-head .stock-code {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: ui-monospace, SFMono-Regular, monospace;
+    }
+    .summary-head .market-tag {
+      padding: 2px 8px;
+      background: #374151;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #d1d5db;
+    }
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .stat {
+      background: var(--panel-2);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .stat .label { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
+    .stat .value { font-size: 16px; font-weight: 600; color: var(--text); }
+    .stat .sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+    .breakdown {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 600px) { .breakdown { grid-template-columns: 1fr; } }
+    .breakdown h4 {
+      margin: 0 0 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-list { display: flex; flex-wrap: wrap; gap: 4px; }
+    .badge {
+      padding: 3px 8px;
+      background: var(--panel-2);
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      font-size: 11px;
+      color: var(--text);
+    }
+    .badge .n { color: var(--text-muted); font-size: 10px; margin-left: 4px; }
+    .badge.b-qva { border-color: #2563eb; color: #93c5fd; }
+    .badge.b-qva2 { border-color: #7c3aed; color: #c4b5fd; }
+    .badge.b-vvi { border-color: #16a34a; color: #86efac; }
+    .badge.b-rebreak { border-color: #f59e0b; color: #fcd34d; }
+    .badge.b-1ds { border-color: #ec4899; color: #f9a8d4; }
+
+    .kind-badge {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+      white-space: nowrap;
+    }
+    .kind-badge.k-positive { background: #064e3b; border-color: #047857; color: #6ee7b7; }
+    .kind-badge.k-negative { background: #450a0a; border-color: #991b1b; color: #fca5a5; }
+    .kind-badge.k-neutral  { background: #1e293b; border-color: #475569; color: #cbd5e1; }
+
+    /* ── 신호 이력 테이블 ─────────────── */
+    .signals-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 0 4px;
+    }
+    .signals-card h3 {
+      margin: 0 16px 12px;
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+    .signals-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    .signals-table th, .signals-table td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .signals-table th {
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      background: #0c1322;
+    }
+    .signals-table td.code { font-family: ui-monospace, SFMono-Regular, monospace; color: var(--text-dim); }
+    .signals-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .signals-table tr:hover td { background: #131c2e; }
+
+    @media (max-width: 700px) {
+      .signals-table th.hide-sm, .signals-table td.hide-sm { display: none; }
+    }
+    @media (max-width: 480px) {
+      .signals-table th.hide-xs, .signals-table td.hide-xs { display: none; }
+    }
+
+    /* ── 멀티 결과 ────────────────────── */
+    .multi-match-list {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .multi-match-list .mm-row {
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px;
+    }
+    .multi-match-list .mm-row:hover { background: #1e293b; }
+    .multi-match-list .mm-row .left .name { font-weight: 600; }
+    .multi-match-list .mm-row .left .code { color: var(--text-muted); font-size: 11px; margin-left: 6px; }
+    .multi-match-list .mm-row .meta { font-size: 11px; color: var(--text-dim); align-self: end; text-align: right; }
+    .multi-match-list .mm-row .boards { grid-column: 1 / -1; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; }
+
+    .info-note {
+      padding: 10px 14px;
+      background: #0c1322;
+      border-left: 3px solid var(--text-muted);
+      border-radius: 4px;
+      color: var(--text-dim);
+      font-size: 12px;
+      margin: 14px 0;
+    }
+    .loading {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .error-box {
+      background: #450a0a;
+      border: 1px solid #991b1b;
+      color: #fca5a5;
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <%- navHtml %>
 
-    <!-- 보드 네비게이션 (boardNav helper로 통일) -->
-    <%- navHtml %>
+  <div class="container">
+    <header class="intro">
+      <h1>🔎 DB 신호 검색</h1>
+      <p class="lead">
+        저장된 보드 신호를 <b>종목명 또는 종목코드</b>로 검색합니다.<br>
+        이 화면은 매수 신호가 아니라, 과거에 어떤 보드에 포착되었는지 확인하는 용도입니다.
+      </p>
+    </header>
 
-    <!-- 상단 -->
-    <div class="topbar">
-      <div>
-        <h1><i class="bi bi-database me-1"></i>DB 신호 운영판</h1>
-        <div class="sub">매수 추천이 아닙니다 — 여러 보드에 반복/중복 등장한 종목을 압축해서 보는 통합 뷰</div>
-      </div>
+    <div class="search-wrap">
+      <input
+        id="search-input"
+        class="search-input"
+        type="text"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="종목명 또는 종목코드 입력  예: KG스틸, 016380, 칩스"
+        value="<%= initialQ || '' %>" />
+      <span class="search-icon">🔍</span>
+      <div id="suggest-dropdown" class="suggest-dropdown" role="listbox"></div>
     </div>
 
-    <!-- 필터 toolbar -->
-    <div class="card-soft">
-      <form method="get" action="/admin/db-board-dashboard">
-        <div class="toolbar">
-          <span style="color:#94a3b8; font-size:.85rem;">기준일</span>
-          <input type="date" name="date" value="<%= date %>" />
-          <span style="color:#94a3b8; font-size:.85rem;">반복 기간</span>
-          <select name="days">
-            <% for (const d of [20, 60, 180]) { %>
-              <option value="<%= d %>" <%= Number(days) === d ? 'selected' : '' %>><%= d %>일</option>
-            <% } %>
-          </select>
-          <span style="color:#94a3b8; font-size:.85rem;">limit</span>
-          <select name="limit">
-            <% for (const l of [20, 50, 100]) { %>
-              <option value="<%= l %>" <%= Number(limit) === l ? 'selected' : '' %>><%= l %></option>
-            <% } %>
-          </select>
-          <button type="submit"><i class="bi bi-search me-1"></i>조회</button>
-          <span style="flex:1"></span>
-          <span style="color:#94a3b8; font-size:.85rem;">종목 검색</span>
-          <input type="text" name="stockCode" placeholder="005930" value="<%= stockSearch || '' %>" maxlength="6" pattern="\d{4,6}" />
-          <button type="submit" class="ghost">히스토리</button>
-        </div>
-      </form>
-    </div>
-
-    <!-- DB 누적 상태 요약 -->
-    <% if (sections.dbSummary && !errors.dbSummary) {
-         const sum = sections.dbSummary;
-         const t = sum.totals || {};
-    %>
-    <div class="card-soft" style="padding:14px 18px;">
-      <h2 style="margin-bottom:8px;"><i class="bi bi-bar-chart-line"></i>DB 누적 현황</h2>
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:10px; font-size:.82rem;">
-        <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px 12px;">
-          <div style="color:#94a3b8; font-size:.72rem; text-transform:uppercase; letter-spacing:.4px;">전체 신호</div>
-          <div style="color:#f1f5f9; font-size:1.3rem; font-weight:700;"><%= Number(t.total_signals || 0).toLocaleString() %></div>
-          <div style="color:#94a3b8; font-size:.7rem;"><%= t.boards || 0 %> 보드 · <%= t.stocks || 0 %> 종목</div>
-        </div>
-        <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px 12px;">
-          <div style="color:#94a3b8; font-size:.72rem; text-transform:uppercase; letter-spacing:.4px;">신호일 범위</div>
-          <div style="color:#f1f5f9; font-size:.95rem; font-weight:600;"><%= t.min_date || '—' %></div>
-          <div style="color:#94a3b8; font-size:.7rem;">~ <%= t.max_date || '—' %></div>
-        </div>
-        <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px 12px;">
-          <div style="color:#94a3b8; font-size:.72rem; text-transform:uppercase; letter-spacing:.4px;">outcomes / links / runs</div>
-          <div style="color:#f1f5f9; font-size:.95rem; font-weight:600;">
-            <%= Number(sum.counts.outcomes || 0).toLocaleString() %>
-            <span style="color:#475569"> · </span>
-            <%= Number(sum.counts.links || 0).toLocaleString() %>
-            <span style="color:#475569"> · </span>
-            <%= Number(sum.counts.runs || 0).toLocaleString() %>
-          </div>
-          <div style="color:#94a3b8; font-size:.7rem;">D+N 성과 / cross-board 시퀀스 / 보드 실행</div>
-        </div>
-        <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px 12px;">
-          <div style="color:#94a3b8; font-size:.72rem; text-transform:uppercase; letter-spacing:.4px;">source_type 분포</div>
-          <% for (const s of (sum.bySource || [])) { %>
-            <div style="font-size:.78rem; margin-top:2px;"><span class="pill <%= s.source_type === 'DAILY_RUN' ? 'pill-pos' : 'pill-mut' %>" style="padding:1px 6px;"><%= s.source_type %></span> <span style="color:#cbd5e1;"><%= Number(s.n).toLocaleString() %></span></div>
-          <% } %>
-        </div>
-      </div>
-      <div style="margin-top:10px; font-size:.78rem; color:#94a3b8;">보드별 분포:
-        <% for (const b of (sum.byBoard || [])) { %>
-          <span class="pill pill-board" style="margin-left:4px;" title="<%= b.board_name %>"><%= formatBoardName(b.board_name) %>: <%= Number(b.n).toLocaleString() %> (<%= b.stocks %>종)</span>
-        <% } %>
-      </div>
-    </div>
-    <% } %>
-
-    <!-- 8차 (2026-05-17, 9차 UI 정리): DB 기반 오늘 볼 후보 TOP -->
-    <div class="card-soft" id="priority-top-section">
-      <h2><i class="bi bi-stars"></i>오늘 볼 후보 TOP <span style="color:#94a3b8; font-weight:400; font-size:.85rem;">— 관찰 우선순위</span></h2>
-      <div class="hint" style="margin-bottom:8px;">
-        점수는 반복 등장, 여러 보드 중복, 좋은 단계 진행, 최근성, 운영 저장 여부를 합산한 정렬 참고값입니다.
-        <strong>수익률 예측이나 매수 신호가 아닙니다.</strong>
-        세부 흐름은 <em>자세히</em>를 눌러 펼쳐 보세요. 기본은 상위 <strong><%= priorityLimit %></strong>개만 표시됩니다.
-      </div>
-
-      <!-- 필터 -->
-      <form method="get" action="/db-board" style="margin:0 0 12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:.78rem; color:#cbd5e1;">
-        <input type="hidden" name="date" value="<%= date %>">
-        <% if (stockSearch) { %><input type="hidden" name="stockCode" value="<%= stockSearch %>"><% } %>
-        <label>기간
-          <select name="days" style="background:#0f172a; color:#f1f5f9; border:1px solid #334155; border-radius:6px; padding:3px 6px; margin-left:4px;">
-            <% for (const d of [20, 40, 60, 90, 180, 240]) { %>
-              <option value="<%= d %>" <%= Number(days) === d ? 'selected' : '' %>><%= d %>일</option>
-            <% } %>
-          </select>
-        </label>
-        <label>최소 점수
-          <select name="minPriorityScore" style="background:#0f172a; color:#f1f5f9; border:1px solid #334155; border-radius:6px; padding:3px 6px; margin-left:4px;">
-            <% for (const m of [0, 20, 40, 60]) { %>
-              <option value="<%= m %>" <%= Number(minPriorityScore) === m ? 'selected' : '' %>><%= m === 0 ? '제한 없음' : (m + '점 이상') %></option>
-            <% } %>
-          </select>
-        </label>
-        <label>표시 수
-          <select name="priorityLimit" style="background:#0f172a; color:#f1f5f9; border:1px solid #334155; border-radius:6px; padding:3px 6px; margin-left:4px;">
-            <% for (const l of [15, 30, 50]) { %>
-              <option value="<%= l %>" <%= Number(priorityLimit) === l ? 'selected' : '' %>><%= l %>개</option>
-            <% } %>
-          </select>
-        </label>
-        <button type="submit" class="btn-soft" style="font-size:.75rem;">필터 적용</button>
-        <details style="margin-left:6px;">
-          <summary style="cursor:pointer; color:#64748b; font-size:.7rem;">점수 산식</summary>
-          <div style="margin-top:4px; padding:6px 10px; background:#0b1220; border:1px solid #1e293b; border-radius:6px; color:#94a3b8; font-size:.7rem; max-width:680px; line-height:1.55;">
-            A 반복(최대20) · B 보드 다양성(최대25) · C 좋은 단계 합 · D 주의 단계 감점 ·
-            E 흐름 완성 보너스(QVA→VVI2→돌파, 양쪽 VVI2 등) · F 최근성(D-1 +20…D-10 +5) · G 운영 저장 가산(+8).
-            정렬은 effective_score(주의 단계가 많을수록 같은 점수대에서 아래로) 기준.
-            80↑ 강한 관찰 · 60↑ 우선 관찰 · 40↑ 관찰 · 20↑ 약한 관찰.
-          </div>
-        </details>
-      </form>
-
-      <% if (errors.todayPriorityCandidates) { %>
-        <div class="err">오류: <%= errors.todayPriorityCandidates %></div>
-      <% } else if (!sections.todayPriorityCandidates || sections.todayPriorityCandidates.length === 0) { %>
-        <div class="empty">아직 조건에 맞는 누적 후보가 없습니다. 기간을 늘리거나 최소 점수를 낮춰 보세요.</div>
-      <% } else {
-           // 핵심 근거 우선순위 (앞쪽 4개만 표시, "주의 기록 있음"은 별도 risk-tag로 분리)
-           const REASON_ORDER = ['최근 신호 있음','여러 보드 중복','QVA→VVI2→돌파 흐름','QVA2→VVI2→돌파 흐름','양쪽 VVI2 확인','QVA→VVI2 흐름','QVA2→VVI2 흐름','강한 재돌파','재돌파 기록'];
-           function sortReasons(reasons) {
-             const set = new Set(reasons || []);
-             const ordered = [];
-             for (const r of REASON_ORDER) if (set.has(r)) ordered.push(r);
-             for (const r of (reasons || [])) if (!REASON_ORDER.includes(r) && r !== '주의 기록 있음') ordered.push(r);
-             return ordered;
-           }
-           // signal_kind를 dot 색으로 분류
-           function timelineDotClass(kind) {
-             const tone = getSignalKindTone(kind);
-             if (tone === 'positive') return 'good';
-             if (tone === 'negative') return 'warn';
-             return 'mid';
-           }
-      %>
-        <div class="scroll-wrap"><table class="t priority-table">
-          <thead>
-            <tr>
-              <th class="num" style="width:34px;">#</th>
-              <th>종목</th>
-              <th class="num" style="width:80px;">점수</th>
-              <th style="width:130px;">상태</th>
-              <th>핵심 근거</th>
-              <th style="width:110px;">마지막 신호</th>
-              <th style="width:80px;">상세</th>
-            </tr>
-          </thead>
-          <tbody>
-          <% sections.todayPriorityCandidates.forEach(function(c, idx) {
-               const grade = getPriorityGrade(c.priority_score);
-               const parts = c.score_parts || {};
-               const allReasons = sortReasons(c.reasons || []);
-               const visibleReasons = allReasons.slice(0, 4);
-               const hiddenReasonCount = Math.max(0, allReasons.length - visibleReasons.length);
-               const hasRisk = (c.reasons || []).includes('주의 기록 있음');
-               const detailId = 'priority-detail-' + c.stock_code;
-               const tlAll = c.timeline || [];
-               const tlVisible = tlAll.slice(0, 8);
-               const tlHidden = Math.max(0, tlAll.length - tlVisible.length);
-               // 보드/신호 종류 요약 (상세에서만 사용)
-               const boardArr = String(c.boards || '').split(',').filter(Boolean);
-               const kindArr  = String(c.signal_kinds || '').split(',').filter(Boolean);
-          %>
-            <tr>
-              <td class="rank"><%= idx + 1 %></td>
-              <td class="stock-cell">
-                <span class="code"><%= c.stock_code %></span>
-                <a class="name" href="/stock/<%= c.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기" style="color:#f1f5f9; text-decoration:none;"><%= c.stock_name %></a>
-                <% if (c.market) { %><span class="market"><%= c.market %></span><% } %>
-              </td>
-              <td class="score-cell num">
-                <div class="big" title="A<%= parts.a %>·B<%= parts.b %>·C<%= parts.c %><% if (parts.d) { %>·D<%= parts.d %><% } %>·E<%= parts.e %>·F<%= parts.f %><% if (parts.g) { %>·G<%= parts.g %><% } %>"><%= c.priority_score %></div>
-                <div class="sub">신호 <%= c.signal_count %> · 보드 <%= c.board_count %></div>
-              </td>
-              <td>
-                <span class="grade-pill tone-<%= grade.tone %>"><%= grade.label %></span>
-                <% if (hasRisk) { %><span class="risk-tag" title="주의 단계가 같이 잡힘">주의 포함</span><% } %>
-              </td>
-              <td>
-                <% for (const r of visibleReasons) { %><span class="reason-pill"><%= r %></span><% } %>
-                <% if (hiddenReasonCount > 0) { %><span class="reason-pill more">외 <%= hiddenReasonCount %>개</span><% } %>
-                <% if (visibleReasons.length === 0 && hiddenReasonCount === 0) { %><span class="reason-pill more">근거 부족</span><% } %>
-              </td>
-              <td class="last-cell">
-                <%= c.last_signal_date %>
-                <% if (parts.days_since_last != null) { %><span class="d">D-<%= parts.days_since_last %></span><% } %>
-              </td>
-              <td>
-                <button type="button" class="toggle-btn" data-target="<%= detailId %>" onclick="togglePriorityDetail('<%= c.stock_code %>', this)">자세히</button>
-              </td>
-            </tr>
-            <tr class="priority-detail" id="<%= detailId %>">
-              <td colspan="7">
-                <div class="detail-head">
-                  <strong>보드</strong> <%= boardArr.map(b => formatBoardName(b)).join(', ') || '—' %>
-                  <span class="sep" style="color:#475569; margin:0 6px;">·</span>
-                  <strong>신호 종류</strong>
-                  <% if (kindArr.length === 0) { %>—<% } else { %>
-                    <% const visibleKinds = kindArr.slice(0, 6); %>
-                    <%= visibleKinds.map(k => getSignalKindDisplay(k)).join(', ') %>
-                    <% if (kindArr.length > visibleKinds.length) { %><span style="color:#64748b;"> 외 <%= kindArr.length - visibleKinds.length %>개</span><% } %>
-                  <% } %>
-                </div>
-                <% if (tlAll.length === 0) { %>
-                  <div style="color:#64748b; font-size:.72rem;">누적된 신호 기록이 없습니다.</div>
-                <% } else { %>
-                  <div class="detail-head" style="margin-top:4px;"><strong>최근 흐름</strong> <span style="color:#64748b;">(과거 → 최근, 최대 8건)</span></div>
-                  <ul class="timeline-list">
-                    <% for (const ev of tlVisible) {
-                         const dotCls = timelineDotClass(ev.signal_kind);
-                         const isWarn = ['FAILED','BREACH_NO_RECOVER','BREACH_RECOVER_ILLUSION','INTRADAY_PUSHBACK','NO_REBREAK','BROKEN','OVERHEATED'].includes(ev.signal_kind);
-                    %>
-                      <li>
-                        <span class="dot <%= isWarn ? 'bad' : dotCls %>"></span>
-                        <span class="date"><%= String(ev.signal_date).slice(0,10) %></span>
-                        <span class="sep">·</span>
-                        <%= formatBoardName(ev.board_name) %>
-                        <span class="sep">·</span>
-                        <%= getSignalKindDisplay(ev.signal_kind) %>
-                        <% if (ev.source_type) { %><span class="src">· <%= getSourceTypeDisplay(ev.source_type) %></span><% } %>
-                      </li>
-                    <% } %>
-                  </ul>
-                  <% if (tlHidden > 0) { %><div class="more-row">외 <%= tlHidden %>개 기록 더 있음</div><% } %>
-                <% } %>
-              </td>
-            </tr>
-          <% }); %>
-          </tbody>
-        </table></div>
-      <% } %>
-
-      <script>
-        function togglePriorityDetail(stockCode, btn) {
-          var el = document.getElementById('priority-detail-' + stockCode);
-          if (!el) return;
-          var open = el.style.display === 'table-row';
-          el.style.display = open ? 'none' : 'table-row';
-          if (btn) btn.textContent = open ? '자세히' : '접기';
-        }
-      </script>
-    </div>
-
-    <!-- 7차: DB 누적 신호 흐름 -->
-    <div class="card-soft" id="signal-flow-section">
-      <h2><i class="bi bi-diagram-3"></i>DB 누적 신호 흐름</h2>
-      <div class="hint">
-        매일 저장된 보드 신호와 백필로 복원한 과거 단계를 합쳐, 종목이 어떤 흐름으로 진행됐는지 보여줍니다.
-        <strong>매수 신호가 아니라 후보 흐름을 이해하기 위한 참고 화면</strong>입니다.
-        <span style="color:#94a3b8;">(<strong>운영 저장</strong> = 실제 daily run에서 저장된 신호 / <strong>백필 복원</strong> = 기존 report raw_json에서 복원한 과거 단계)</span>
-      </div>
-
-      <!-- A. 최근 반복 등장 종목 -->
-      <div style="margin-top:16px;">
-        <h3 style="font-size:.9rem; color:#cbd5e1; font-weight:700; margin-bottom:6px;">🔁 최근 반복 등장 종목 (최근 <%= days %>일, 3회 이상)</h3>
-        <div class="hint" style="margin-bottom:8px;">최근 기간 동안 여러 번 보드에 잡힌 종목입니다. 자주 등장할수록 계속 관찰되고 있다는 뜻입니다.</div>
-        <% if (errors.recentRepeatedStocks) { %><div class="err">오류: <%= errors.recentRepeatedStocks %></div>
-        <% } else if (!sections.recentRepeatedStocks || sections.recentRepeatedStocks.length === 0) { %><div class="empty">아직 충분한 누적 데이터가 없습니다.</div>
-        <% } else { %>
-          <div class="scroll-wrap"><table class="t">
-            <thead>
-              <tr><th>종목</th><th class="num">등장 횟수</th><th class="num">보드 수</th><th>첫 등장</th><th>마지막</th><th>보드</th><th>신호 종류</th><th>출처</th></tr>
-            </thead>
-            <tbody>
-              <% for (const r of sections.recentRepeatedStocks.slice(0, 20)) { %>
-                <tr>
-                  <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/stock/<%= r.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기"><%= r.stock_name %></a></span></td>
-                  <td class="num"><strong><%= r.signal_count %></strong></td>
-                  <td class="num"><%= r.board_count %></td>
-                  <td style="font-size:.75rem; color:#94a3b8;"><%= r.first_signal_date %></td>
-                  <td style="font-size:.75rem; color:#94a3b8;"><%= r.last_signal_date %></td>
-                  <td><% for (const b of String(r.boards || '').split(', ')) { if (!b) continue; %><span class="pill pill-board" title="<%= b %>"><%= formatBoardName(b) %></span><% } %></td>
-                  <td><% for (const k of String(r.signal_kinds || '').split(', ')) { if (!k) continue; const tone = getSignalKindTone(k); %><span class="pill pill-<%= tone === 'positive' ? 'pos' : tone === 'negative' ? 'neg' : 'mut' %>" title="<%= k %>"><%= getSignalKindDisplay(k) %></span><% } %></td>
-                  <td style="font-size:.7rem; color:#94a3b8;"><% for (const s of String(r.source_types || '').split(', ')) { if (!s) continue; %><span class="pill pill-mut" title="<%= s %>"><%= getSourceTypeDisplay(s) %></span><% } %></td>
-                </tr>
-              <% } %>
-            </tbody>
-          </table></div>
-        <% } %>
-      </div>
-
-      <!-- B. QVA 흐름 통과 / C. QVA2 흐름 통과 — 2열 grid -->
-      <div style="margin-top:18px; display:grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap:14px;">
-        <!-- B. QVA -->
-        <div>
-          <h3 style="font-size:.9rem; color:#cbd5e1; font-weight:700; margin-bottom:6px;">🟢 QVA 흐름 통과 종목 (QVA 발생 → VVI2 → 돌파)</h3>
-          <div class="hint" style="margin-bottom:8px;">QVA 발생 후 VVI2와 돌파 성공까지 이어진 종목입니다.</div>
-          <% if (errors.qvaFunnelStocks) { %><div class="err">오류: <%= errors.qvaFunnelStocks %></div>
-          <% } else if (!sections.qvaFunnelStocks || sections.qvaFunnelStocks.length === 0) { %><div class="empty">아직 funnel 통과 종목이 없습니다.</div>
-          <% } else { %>
-            <div class="scroll-wrap"><table class="t">
-              <thead><tr><th>종목</th><th class="num">신호</th><th class="num">보드</th><th>기간</th><th>매칭 단계</th></tr></thead>
-              <tbody>
-                <% for (const r of sections.qvaFunnelStocks) { %>
-                  <tr>
-                    <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/stock/<%= r.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기"><%= r.stock_name %></a></span></td>
-                    <td class="num"><strong><%= r.signal_count %></strong></td>
-                    <td class="num"><%= r.board_count %></td>
-                    <td style="font-size:.72rem; color:#94a3b8;"><%= r.first_signal_date %> → <%= r.last_signal_date %></td>
-                    <td><% for (const k of String(r.matched_kinds || '').split(', ')) { if (!k) continue; %><span class="pill pill-pos" title="<%= k %>"><%= getSignalKindDisplay(k) %></span><% } %></td>
-                  </tr>
-                <% } %>
-              </tbody>
-            </table></div>
-          <% } %>
-        </div>
-
-        <!-- C. QVA2 -->
-        <div>
-          <h3 style="font-size:.9rem; color:#cbd5e1; font-weight:700; margin-bottom:6px;">🟣 QVA2 흐름 통과 종목 (QVA2 발생 → VVI2 → 돌파)</h3>
-          <div class="hint" style="margin-bottom:8px;">약한 마감 또는 흡수형 후보가 이후 VVI2와 돌파 성공까지 이어진 종목입니다.</div>
-          <% if (errors.qva2FunnelStocks) { %><div class="err">오류: <%= errors.qva2FunnelStocks %></div>
-          <% } else if (!sections.qva2FunnelStocks || sections.qva2FunnelStocks.length === 0) { %><div class="empty">아직 funnel 통과 종목이 없습니다.</div>
-          <% } else { %>
-            <div class="scroll-wrap"><table class="t">
-              <thead><tr><th>종목</th><th class="num">신호</th><th class="num">보드</th><th>기간</th><th>매칭 단계</th></tr></thead>
-              <tbody>
-                <% for (const r of sections.qva2FunnelStocks) { %>
-                  <tr>
-                    <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/stock/<%= r.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기"><%= r.stock_name %></a></span></td>
-                    <td class="num"><strong><%= r.signal_count %></strong></td>
-                    <td class="num"><%= r.board_count %></td>
-                    <td style="font-size:.72rem; color:#94a3b8;"><%= r.first_signal_date %> → <%= r.last_signal_date %></td>
-                    <td><% for (const k of String(r.matched_kinds || '').split(', ')) { if (!k) continue; %><span class="pill pill-pos" title="<%= k %>"><%= getSignalKindDisplay(k) %></span><% } %></td>
-                  </tr>
-                <% } %>
-              </tbody>
-            </table></div>
-          <% } %>
-        </div>
-      </div>
-
-      <!-- D. 종목별 타임라인 카드 -->
-      <div style="margin-top:18px;">
-        <h3 style="font-size:.9rem; color:#cbd5e1; font-weight:700; margin-bottom:6px;">📍 주요 종목 타임라인 (최근 <%= days %>일, 등장 횟수 상위)</h3>
-        <div class="hint" style="margin-bottom:10px;">최근 누적된 신호를 시간 순서로 정렬해 종목이 어떤 단계를 거쳤는지 보여줍니다. (운영 저장 + 백필 복원 통합)</div>
-        <% if (errors.stockTimelines) { %><div class="err">오류: <%= errors.stockTimelines %></div>
-        <% } else if (!sections.stockTimelines || sections.stockTimelines.length === 0) { %><div class="empty">아직 충분한 누적 데이터가 없습니다.</div>
-        <% } else { %>
-          <% sections.stockTimelines.forEach(function(t, idx) {
-               const open = idx < 10;
-          %>
-            <details <%= open ? 'open' : '' %> style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px 14px; margin-bottom:8px;">
-              <summary style="cursor:pointer; list-style:none; outline:none;">
-                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                  <span class="code"><%= t.stock_code %></span>
-                  <strong style="color:#f1f5f9; font-size:.95rem;"><%= t.stock_name %></strong>
-                  <span style="color:#94a3b8; font-size:.75rem;"><%= t.market || '' %></span>
-                  <span style="font-size:.72rem; color:#94a3b8;">| 등장 <%= t.signal_count %> · 보드 <%= t.board_count %> · <%= t.first_signal_date %> → <%= t.last_signal_date %></span>
-                  <% for (const b of (t.summary && t.summary.badges) || []) { %>
-                    <span class="pill <%= b === '주의 기록 있음' ? 'pill-warn' : 'pill-pos' %>"><%= b %></span>
-                  <% } %>
-                </div>
-                <div style="color:#cbd5e1; font-size:.78rem; margin-top:6px; line-height:1.55;">
-                  💬 <%= (t.summary && t.summary.summaryText) || '' %>
-                </div>
-              </summary>
-              <div style="margin-top:10px; border-top:1px solid #334155; padding-top:8px;">
-                <table class="t" style="width:100%;">
-                  <thead>
-                    <tr><th style="width:90px;">날짜</th><th>단계</th><th>보드</th><th>출처</th><th class="num">점수</th></tr>
-                  </thead>
-                  <tbody>
-                    <% const tl = t.timeline || []; const shown = tl.slice(0, 12); %>
-                    <% for (const ev of shown) { const tone = getSignalKindTone(ev.signal_kind); %>
-                      <tr>
-                        <td style="font-size:.75rem; color:#94a3b8;"><%= ev.signal_date %></td>
-                        <td><span class="pill pill-<%= tone === 'positive' ? 'pos' : tone === 'negative' ? 'neg' : 'mut' %>" title="<%= ev.signal_kind %>"><%= getSignalKindDisplay(ev.signal_kind) %></span></td>
-                        <td><span class="pill pill-board" title="<%= ev.board_name %>"><%= formatBoardName(ev.board_name) %></span></td>
-                        <td style="font-size:.72rem;"><span class="pill <%= ev.source_type === 'DAILY_RUN' ? 'pill-pos' : 'pill-mut' %>" title="<%= ev.source_type %>"><%= getSourceTypeDisplay(ev.source_type) %></span></td>
-                        <td class="num" style="font-size:.75rem; color:#94a3b8;"><%= ev.score != null ? Number(ev.score).toFixed(0) : '—' %></td>
-                      </tr>
-                    <% } %>
-                    <% if (tl.length > 12) { %>
-                      <tr><td colspan="5" style="text-align:center; color:#64748b; font-size:.72rem; padding:6px;">… 외 <%= tl.length - 12 %>개 더</td></tr>
-                    <% } %>
-                  </tbody>
-                </table>
-              </div>
-            </details>
-          <% }); %>
+    <div class="recent-section" id="recent-section">
+      <div class="recent-title">최근 신호 종목 (클릭하면 검색)</div>
+      <div class="recent-chips" id="recent-chips">
+        <% (initialSuggestions || []).forEach(function(s) { %>
+          <span class="recent-chip"
+                data-code="<%= s.stock_code %>"
+                data-name="<%= s.stock_name %>"
+                title="<%= s.board_names %>">
+            <%= s.stock_name %><span class="code-mini"><%= s.stock_code %></span>
+            <span class="date-mini"><%= String(s.latest_signal_date || '').slice(0,10) %></span>
+          </span>
+        <% }); %>
+        <% if (initialError) { %>
+          <span class="recent-chip" style="border-color:#991b1b;color:#fca5a5;">DB 연결 실패: <%= initialError %></span>
         <% } %>
       </div>
     </div>
 
-    <div class="note-box">
-      <strong>💡 priority_score / 단계점수</strong> — 둘 다 매수 점수가 아닙니다. <code>먼저 볼 순서</code>를 돕는 보조 점수.<br>
-      • <strong>priority_score</strong> = <code>board×10 + positive×5 − failed×8 + repeat×3 + strong×10</code> (출현 빈도 중심)<br>
-      • <strong>단계점수 (stage_score)</strong> = 각 보드/단계의 weight 합산. 예: <code>VVI2_FIRED +16</code>, <code>BREAKOUT_SUCCESS +18</code>, <code>FAILED −15</code>, <code>BREACH_NO_RECOVER −18</code>. 단계가 진척된 종목이 자연스럽게 상위로.<br>
-      • 모든 pill에 hover하면 원본 코드(<code>QVA2_WATCHLIST/VVI2_FIRED</code> 등)가 보입니다.
-    </div>
-
-    <!-- (검색 결과) 종목별 히스토리 -->
-    <% if (stockSearch) { %>
-      <div class="card-soft">
-        <h2><i class="bi bi-clock-history"></i>종목 히스토리 — <%= stockSearch %><% if (stockHistory && stockHistory.stock_name) { %> <span style="color:#94a3b8; font-weight:400; font-size:.9rem;">(<%= stockHistory.stock_name %>)</span><% } %></h2>
-        <div class="hint">최근 180일 동안 어떤 보드/단계에 떴는지 + 각 신호의 D+N 성과 + cross-board link</div>
-        <% if (errors && errors.stockHistory) { %>
-          <div class="err">API 오류: <%= errors.stockHistory %></div>
-        <% } else if (!stockHistory || !stockHistory.signals || stockHistory.signals.length === 0) { %>
-          <div class="empty">데이터 없음 — DB에 이 종목 신호가 없습니다.</div>
-        <% } else { %>
-          <div class="scroll-wrap">
-            <table class="t">
-              <thead>
-                <tr>
-                  <th>날짜</th><th>보드 / stage</th>
-                  <th class="num">signal_price</th><th class="num">score</th>
-                  <th>grade / label</th>
-                  <th>outcomes</th><th>links</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% for (const s of stockHistory.signals) { %>
-                  <tr>
-                    <td><%= s.signal_date %></td>
-                    <td>
-                      <span class="pill pill-board" title="<%= s.board_name %>"><%= formatBoardName(s.board_name) %></span>
-                      <% if (negativeKinds.includes(s.signal_kind)) { %>
-                        <span class="pill pill-neg" title="<%= s.signal_kind %>"><%= formatSignalKind(s.signal_kind) %></span>
-                      <% } else if (positiveKinds.includes(s.signal_kind)) { %>
-                        <span class="pill pill-pos" title="<%= s.signal_kind %>"><%= formatSignalKind(s.signal_kind) %></span>
-                      <% } else { %>
-                        <span class="pill pill-mut" title="<%= s.signal_kind %>"><%= formatSignalKind(s.signal_kind) %></span>
-                      <% } %>
-                    </td>
-                    <td class="num"><%= s.signal_price != null ? Number(s.signal_price).toLocaleString() : '—' %></td>
-                    <td class="num"><%= s.score != null ? Number(s.score).toFixed(0) : '—' %></td>
-                    <td>
-                      <% if (s.grade) { %><span class="pill pill-mut"><%= s.grade %></span><% } %>
-                      <% if (s.status_label) { %><span style="color:#94a3b8; font-size:.78rem;"><%= s.status_label %></span><% } %>
-                    </td>
-                    <td>
-                      <% if (!s.outcomes || s.outcomes.length === 0) { %>—<% } else { %>
-                        <% for (const o of s.outcomes) { %>
-                          <span class="pill pill-mut">D+<%= o.horizon_days %>: <%= o.close_return_pct != null ? (Number(o.close_return_pct) >= 0 ? '+' : '') + Number(o.close_return_pct).toFixed(1) + '%' : '—' %></span>
-                        <% } %>
-                      <% } %>
-                    </td>
-                    <td>
-                      <% for (const l of (s.outgoing_links || [])) { %><span class="pill pill-board" title="<%= l.link_type %> → signal #<%= l.other_id %>">→ <%= l.link_type %></span><% } %>
-                      <% for (const l of (s.incoming_links  || [])) { %><span class="pill pill-board" title="<%= l.link_type %> ← signal #<%= l.other_id %>">← <%= l.link_type %></span><% } %>
-                    </td>
-                  </tr>
-                <% } %>
-              </tbody>
-            </table>
-          </div>
-        <% } %>
+    <div class="result-area" id="result-area">
+      <div class="result-empty" id="empty-msg">
+        위 검색창에 종목명 또는 코드를 입력하세요.
       </div>
-    <% } %>
-
-    <!-- 1. 오늘 집중 후보 -->
-    <div class="card-soft">
-      <h2><i class="bi bi-bullseye"></i>오늘 집중 후보 (priority_score 순)</h2>
-      <div class="hint">기준일 <strong><%= date %></strong> 에 1+ 보드에 등장한 종목을 priority_score로 정렬. 매수 추천 아님 — 먼저 살펴볼 순서일 뿐.</div>
-      <% if (errors.todayFocus) { %><div class="err">오류: <%= errors.todayFocus %></div>
-      <% } else if (!sections.todayFocus || sections.todayFocus.length === 0) { %><div class="empty">데이터 없음 — <%= date %>에 DB 신호 없음.</div>
-      <% } else { %>
-        <div class="scroll-wrap"><table class="t">
-          <thead>
-            <tr>
-              <th class="rank">#</th>
-              <th>종목</th>
-              <th class="num" title="board_count×10 + positive×5 - failed×8 + repeat×3 + strong×10">priority</th>
-              <th class="num" title="단계별 KIND_WEIGHTS + BOARD_WEIGHTS 합산 (보조)">단계점수</th>
-              <th class="num">boards</th>
-              <th class="num">repeat<br/>(최근20일)</th>
-              <th class="num">positive</th>
-              <th class="num">failed</th>
-              <th>보드 / 단계</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% sections.todayFocus.forEach(function(r, i) { %>
-              <tr>
-                <td class="rank"><%= i + 1 %></td>
-                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/stock/<%= r.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기"><%= r.stock_name %></a></span></td>
-                <td class="num"><strong><%= r.priority_score %></strong></td>
-                <td class="num <%= Number(r.stage_score || 0) > 0 ? 'pos' : Number(r.stage_score || 0) < 0 ? 'neg' : '' %>"><%= r.stage_score != null ? r.stage_score : '—' %></td>
-                <td class="num"><%= r.board_count %></td>
-                <td class="num"><%= r.recent_repeat_count %></td>
-                <td class="num pos"><%= r.positive_kind_count %></td>
-                <td class="num <%= Number(r.failed_kind_count) > 0 ? 'neg' : '' %>"><%= r.failed_kind_count %></td>
-                <td><% for (const bk of String(r.boards || '').split(', ')) { if (!bk) continue; const isNeg = negativeKinds.some(k => bk.endsWith('/'+k)); const isPos = positiveKinds.some(k => bk.endsWith('/'+k)); %><span class="pill <%= isNeg ? 'pill-neg' : isPos ? 'pill-pos' : 'pill-board' %>" title="<%= bk %>"><%= formatBoardKind(bk) %></span><% } %></td>
-              </tr>
-            <% }); %>
-          </tbody>
-        </table></div>
-      <% } %>
     </div>
 
-    <!-- 2. 여러 보드 동시 등장 -->
-    <div class="card-soft">
-      <h2><i class="bi bi-diagram-3"></i>여러 보드 동시 등장 (<%= date %>, FAILED 제외)</h2>
-      <div class="hint">같은 날짜에 2+ 보드에서 동시에 잡힌 종목. 여러 모델이 동시에 보는 종목 우선 확인용.</div>
-      <% if (errors.overlap) { %><div class="err">오류: <%= errors.overlap %></div>
-      <% } else if (!sections.overlap || sections.overlap.length === 0) { %><div class="empty">데이터 없음 — <%= date %>에 2+ 보드 동시 등장 없음.</div>
-      <% } else { %>
-        <div class="scroll-wrap"><table class="t">
-          <thead>
-            <tr><th>종목</th><th class="num">board_count</th><th class="num">total_score</th><th>보드 / stage</th></tr>
-          </thead>
-          <tbody>
-            <% sections.overlap.forEach(function(r) { %>
-              <tr>
-                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/stock/<%= r.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기"><%= r.stock_name %></a></span></td>
-                <td class="num"><strong><%= r.board_count %></strong></td>
-                <td class="num"><%= r.total_score != null ? Number(r.total_score).toFixed(0) : '—' %></td>
-                <td><% for (const bk of String(r.boards || '').split(', ')) { if (!bk) continue; const isPos = positiveKinds.some(k => bk.endsWith('/'+k)); %><span class="pill <%= isPos ? 'pill-pos' : 'pill-board' %>" title="<%= bk %>"><%= formatBoardKind(bk) %></span><% } %></td>
-              </tr>
-            <% }); %>
-          </tbody>
-        </table></div>
-      <% } %>
-    </div>
-
-    <!-- 3. 최근 반복 등장 -->
-    <div class="card-soft">
-      <h2><i class="bi bi-arrow-repeat"></i>최근 반복 등장 (최근 <%= days %>일, 2회 이상)</h2>
-      <div class="hint">한 종목이 여러 날·여러 보드에 반복해서 잡힘. failed_count가 큰 종목은 주의.</div>
-      <% if (errors.repeated) { %><div class="err">오류: <%= errors.repeated %></div>
-      <% } else if (!sections.repeated || sections.repeated.length === 0) { %><div class="empty">데이터 없음.</div>
-      <% } else { %>
-        <div class="scroll-wrap"><table class="t">
-          <thead>
-            <tr><th>종목</th><th class="num">signals</th><th class="num">boards</th><th class="num">positive</th><th class="num">failed</th><th>기간</th><th>보드 / stage</th></tr>
-          </thead>
-          <tbody>
-            <% sections.repeated.forEach(function(r) { %>
-              <tr>
-                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/stock/<%= r.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기"><%= r.stock_name %></a></span></td>
-                <td class="num"><strong><%= r.signal_count %></strong></td>
-                <td class="num"><%= r.board_count %></td>
-                <td class="num pos"><%= r.positive_kind_count %></td>
-                <td class="num <%= Number(r.failed_count) > 0 ? 'neg' : '' %>"><%= r.failed_count %></td>
-                <td style="font-size:.75rem; color:#64748b;"><%= r.first_signal_date %> → <%= r.last_signal_date %></td>
-                <td><% for (const bk of String(r.board_kind_summary || '').split(', ')) { if (!bk) continue; const isNeg = negativeKinds.some(k => bk.endsWith('/'+k)); const isPos = positiveKinds.some(k => bk.endsWith('/'+k)); %><span class="pill <%= isNeg ? 'pill-neg' : isPos ? 'pill-pos' : 'pill-board' %>" title="<%= bk %>"><%= formatBoardKind(bk) %></span><% } %></td>
-              </tr>
-            <% }); %>
-          </tbody>
-        </table></div>
-      <% } %>
-    </div>
-
-    <!-- 4. 보드별 성과 요약 -->
-    <div class="card-soft">
-      <h2><i class="bi bi-graph-up"></i>보드별 성과 요약 (최근 <%= days %>일)</h2>
-      <div class="hint">고정 6 조합. not_ready outcome 제외. hit_5는 D+horizon 안에 최대 +5% 도달한 비율, fail_5는 −5% 이탈한 비율.</div>
-      <% if (errors.performance) { %><div class="err">오류: <%= errors.performance %></div>
-      <% } else if (!sections.performance || sections.performance.length === 0) { %><div class="empty">데이터 없음.</div>
-      <% } else { %>
-        <div class="scroll-wrap"><table class="t">
-          <thead>
-            <tr>
-              <th>board / kind / D+</th>
-              <th class="num">n</th>
-              <th class="num">avg max_high</th>
-              <th class="num">avg close</th>
-              <th class="num">hit_5</th>
-              <th class="num">hit_10</th>
-              <th class="num">hit_20</th>
-              <th class="num">fail_5</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% sections.performance.forEach(function(r) { %>
-              <tr>
-                <td><span class="pill pill-board" title="<%= r.board_name %>"><%= formatBoardName(r.board_name) %></span><% if (r.signal_kind) { %> <span class="pill pill-mut" title="<%= r.signal_kind %>"><%= formatSignalKind(r.signal_kind) %></span><% } else { %> <span class="pill pill-mut">전체</span><% } %> <span class="code">D+<%= r.horizon_days %></span></td>
-                <% if (r.error || r.sample_count === 0) { %>
-                  <td class="num" colspan="7" style="color:#94a3b8;">데이터 부족 <% if (r.error) { %>(<%= r.error %>)<% } %></td>
-                <% } else { %>
-                  <td class="num"><%= r.sample_count %></td>
-                  <td class="num <%= Number(r.avg_max_high_return_pct) >= 5 ? 'pos' : '' %>"><%= r.avg_max_high_return_pct != null ? Number(r.avg_max_high_return_pct).toFixed(2) + '%' : '—' %></td>
-                  <td class="num <%= Number(r.avg_close_return_pct) > 0 ? 'pos' : Number(r.avg_close_return_pct) < 0 ? 'neg' : '' %>"><%= r.avg_close_return_pct != null ? Number(r.avg_close_return_pct).toFixed(2) + '%' : '—' %></td>
-                  <td class="num"><%= r.hit_5_rate != null ? (Number(r.hit_5_rate) * 100).toFixed(1) + '%' : '—' %></td>
-                  <td class="num"><%= r.hit_10_rate != null ? (Number(r.hit_10_rate) * 100).toFixed(1) + '%' : '—' %></td>
-                  <td class="num"><%= r.hit_20_rate != null ? (Number(r.hit_20_rate) * 100).toFixed(1) + '%' : '—' %></td>
-                  <td class="num <%= Number(r.fail_5_rate) >= 0.3 ? 'neg' : '' %>"><%= r.fail_5_rate != null ? (Number(r.fail_5_rate) * 100).toFixed(1) + '%' : '—' %></td>
-                <% } %>
-              </tr>
-            <% }); %>
-          </tbody>
-        </table></div>
-      <% } %>
-    </div>
-
-    <!-- 5. link_type 요약 -->
-    <div class="card-soft">
-      <h2><i class="bi bi-link-45deg"></i>link_type 전환율 (최근 <%= days %>일)</h2>
-      <div class="hint">QVA → VVI2 → 돌파 같은 시퀀스 link 통계. avg_days는 from → to 평균 거래일 간격.</div>
-      <% if (errors.linkSummary) { %><div class="err">오류: <%= errors.linkSummary %></div>
-      <% } else if (!sections.linkSummary || sections.linkSummary.length === 0) { %><div class="empty">데이터 없음.</div>
-      <% } else { %>
-        <div class="scroll-wrap"><table class="t">
-          <thead>
-            <tr><th>link_type</th><th class="num">count</th><th class="num">avg days</th><th class="num">max days</th><th>최근 sample (5건)</th></tr>
-          </thead>
-          <tbody>
-            <% sections.linkSummary.forEach(function(r) { %>
-              <tr>
-                <td><span class="pill pill-board"><%= r.link_type %></span></td>
-                <td class="num"><strong><%= r.link_count %></strong></td>
-                <td class="num"><%= r.avg_days_between != null ? Number(r.avg_days_between).toFixed(1) : '—' %></td>
-                <td class="num"><%= r.max_days_between != null ? r.max_days_between : '—' %></td>
-                <td style="font-size:.75rem;"><% for (const ex of (r.examples || []).slice(0, 5)) { %><span class="pill pill-mut" title="<%= ex.from_kind %> → <%= ex.to_kind %> (Δ<%= ex.days_between %>d) | <%= formatSignalKind(ex.from_kind) %> → <%= formatSignalKind(ex.to_kind) %>"><%= ex.stock_code %> <%= ex.stock_name %></span><% } %></td>
-              </tr>
-            <% }); %>
-          </tbody>
-        </table></div>
-      <% } %>
-    </div>
-
-    <!-- 6. 사용자 조합 필터 -->
-    <div class="card-soft" id="filter-section">
-      <h2><i class="bi bi-funnel"></i>사용자 조합 필터</h2>
-      <div class="hint">이 필터는 매수 조건이 아니라, 많은 후보 중 <strong>먼저 볼 대상을 좁히기 위한 화면 조건</strong>입니다. 프리셋 선택 또는 단계/보드 체크박스로 조합하세요. matchMode <code>any</code>=하나라도, <code>all</code>=모두 포함.</div>
-
-      <form method="get" action="/db-board#filter-section" style="margin-bottom:14px;">
-        <!-- 현재 화면 필터(date/days/limit/stockCode) 유지 -->
-        <input type="hidden" name="date"  value="<%= date %>" />
-        <input type="hidden" name="days"  value="<%= days %>" />
-        <input type="hidden" name="limit" value="<%= limit %>" />
-        <% if (stockSearch) { %><input type="hidden" name="stockCode" value="<%= stockSearch %>" /><% } %>
-
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:12px; margin-bottom:10px;">
-          <!-- 프리셋 -->
-          <div>
-            <label style="color:#94a3b8; font-size:.78rem; display:block; margin-bottom:4px;">프리셋</label>
-            <select name="preset" style="font-size:.85rem; padding:6px 10px; border:1px solid #475569; border-radius:8px; background:#0f172a; color:#e2e8f0; width:100%;">
-              <option value="">— 직접 선택 —</option>
-              <% for (const k of Object.keys(FILTER_PRESETS)) { %>
-                <option value="<%= k %>" <%= filterPreset === k ? 'selected' : '' %>><%= FILTER_PRESETS[k].label %></option>
-              <% } %>
-            </select>
-            <% if (filterPreset && FILTER_PRESETS[filterPreset]) { %>
-              <div style="font-size:.72rem; color:#94a3b8; margin-top:4px;"><%= FILTER_PRESETS[filterPreset].description %></div>
-            <% } %>
-          </div>
-
-          <!-- 보드 선택 — 과거 보드(QVA_WATCHLIST / HGROUP_REBREAK / QVA_VVI_REDEFINED) 제외, 운영/실험 보드만 -->
-          <div>
-            <label style="color:#94a3b8; font-size:.78rem; display:block; margin-bottom:4px;">보드 포함 (선택 안 하면 전체 · 운영/실험 보드만 노출)</label>
-            <select name="includeBoard" multiple size="4" style="font-size:.82rem; padding:6px 10px; border:1px solid #475569; border-radius:8px; background:#0f172a; color:#e2e8f0; width:100%;">
-              <% const incBoards = (filterResolved && filterResolved.includeBoard) || []; %>
-              <% const PAST_BOARDS = ['QVA_WATCHLIST', 'HGROUP_REBREAK', 'QVA_VVI_REDEFINED']; %>
-              <% for (const [code, label] of Object.entries(BOARD_LABELS)) { %>
-                <% if (PAST_BOARDS.includes(code)) continue; %>
-                <option value="<%= code %>" <%= incBoards.includes(code) ? 'selected' : '' %>><%= label %> <span style="color:#64748b">(<%= code %>)</span></option>
-              <% } %>
-            </select>
-          </div>
-
-          <!-- matchMode -->
-          <div>
-            <label style="color:#94a3b8; font-size:.78rem; display:block; margin-bottom:4px;">단계 매칭 방식</label>
-            <div style="display:flex; gap:14px; padding:6px 0;">
-              <% const mm = (filterResolved && filterResolved.matchMode) || 'any'; %>
-              <label style="font-size:.85rem; color:#cbd5e1;"><input type="radio" name="matchMode" value="any" <%= mm === 'any' ? 'checked' : '' %> /> 하나라도 포함</label>
-              <label style="font-size:.85rem; color:#cbd5e1;"><input type="radio" name="matchMode" value="all" <%= mm === 'all' ? 'checked' : '' %> /> 모두 포함</label>
-            </div>
-            <label style="color:#94a3b8; font-size:.72rem; display:block; margin-top:4px;">최소 보드 수
-              <input type="number" name="minBoardCount" min="0" max="10" value="<%= filterMinBoardCount %>" style="width:60px; font-size:.82rem; padding:3px 8px; border:1px solid #475569; border-radius:6px; background:#0f172a; color:#e2e8f0; margin-left:6px;" />
-            </label>
-            <label style="color:#94a3b8; font-size:.72rem; display:block; margin-top:4px;">최소 등장 횟수
-              <input type="number" name="minRepeatCount" min="0" max="20" value="<%= filterMinRepeatCount %>" style="width:60px; font-size:.82rem; padding:3px 8px; border:1px solid #475569; border-radius:6px; background:#0f172a; color:#e2e8f0; margin-left:6px;" />
-            </label>
-          </div>
-        </div>
-
-        <!-- 단계(signal_kind) 선택 — 포함 / 제외 -->
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:10px;">
-          <div>
-            <label style="color:#94a3b8; font-size:.78rem; display:block; margin-bottom:4px;">포함 단계</label>
-            <select name="includeKind" multiple size="7" style="font-size:.82rem; padding:6px 10px; border:1px solid #475569; border-radius:8px; background:#0f172a; color:#e2e8f0; width:100%;">
-              <% const incKinds = (filterResolved && filterResolved.includeKind) || []; %>
-              <% for (const [code, label] of Object.entries(KIND_LABELS)) { %>
-                <option value="<%= code %>" <%= incKinds.includes(code) ? 'selected' : '' %>><%= label %> <span style="color:#64748b">(<%= code %>)</span></option>
-              <% } %>
-            </select>
-          </div>
-          <div>
-            <label style="color:#94a3b8; font-size:.78rem; display:block; margin-bottom:4px;">제외 단계 (종목 단위)</label>
-            <select name="excludeKind" multiple size="7" style="font-size:.82rem; padding:6px 10px; border:1px solid #475569; border-radius:8px; background:#0f172a; color:#e2e8f0; width:100%;">
-              <% const excKinds = (filterResolved && filterResolved.excludeKind) || []; %>
-              <% for (const [code, label] of Object.entries(KIND_LABELS)) { %>
-                <option value="<%= code %>" <%= excKinds.includes(code) ? 'selected' : '' %>><%= label %> <span style="color:#64748b">(<%= code %>)</span></option>
-              <% } %>
-            </select>
-            <div style="font-size:.72rem; color:#94a3b8; margin-top:4px;">한 번이라도 매칭되면 종목 전체를 결과에서 제외</div>
-          </div>
-        </div>
-
-        <div style="display:flex; gap:8px;">
-          <button type="submit" style="font-size:.85rem; padding:6px 14px; border-radius:8px; border:0; background:#2563eb; color:#fff; font-weight:600; cursor:pointer;"><i class="bi bi-funnel-fill me-1"></i>필터 적용</button>
-          <a href="/db-board?date=<%= date %>&days=<%= days %>&limit=<%= limit %>" style="font-size:.85rem; padding:6px 14px; border-radius:8px; background:transparent; color:#cbd5e1; border:1px solid #475569; text-decoration:none;">초기화</a>
-        </div>
-      </form>
-
-      <!-- 결과 표 -->
-      <% if (!filterApplied) { %>
-        <div class="empty">프리셋을 고르거나 단계/보드를 선택해서 <strong>필터 적용</strong> 버튼을 누르세요.</div>
-      <% } else if (errors.filteredSignals) { %>
-        <div class="err">필터 오류: <%= errors.filteredSignals %></div>
-      <% } else if (!sections.filteredSignals || sections.filteredSignals.length === 0) { %>
-        <div class="empty">
-          조건에 맞는 종목이 없습니다.
-          <% if (sections.filterDiagnostics && sections.filterDiagnostics.length > 0) { %>
-            <div style="margin-top:10px; text-align:left; background:#3a2a08; border-left:3px solid #f59e0b; border-radius:6px; padding:10px 12px; color:#fde68a; font-size:.78rem; line-height:1.6;">
-              <strong style="color:#fef3c7;">🔍 진단</strong>
-              <% for (const issue of sections.filterDiagnostics) { %>
-                <div style="margin-top:6px;">• <%= issue.message %></div>
-              <% } %>
-            </div>
-          <% } %>
-          <% if (filterResolved && filterResolved.includeBoard && filterResolved.includeBoard.length > 0) { %>
-            <div style="margin-top:10px; text-align:left; background:#0f172a; border-radius:6px; padding:10px 12px; color:#94a3b8; font-size:.72rem; line-height:1.6;">
-              <strong style="color:#cbd5e1;">선택한 보드의 실제 가능 stage</strong>
-              <% for (const b of filterResolved.includeBoard) {
-                   const possible = (typeof BOARD_KIND_MATRIX !== 'undefined' && BOARD_KIND_MATRIX[b]) ? BOARD_KIND_MATRIX[b] : [];
-              %>
-                <div style="margin-top:4px;">
-                  <span class="pill pill-board"><%= BOARD_LABELS[b] || b %></span>
-                  <% for (const k of possible) { %>
-                    <span class="pill pill-mut" title="<%= k %>"><%= KIND_LABELS[k] || k %></span>
-                  <% } %>
-                </div>
-              <% } %>
-            </div>
-          <% } %>
-        </div>
-      <% } else { %>
-        <div class="meta-row" style="margin-bottom:10px;">
-          매칭: <strong><%= sections.filteredSignals.length %></strong>건
-          · 모드: <strong><%= filterResolved.matchMode === 'all' ? '모두 포함 (all)' : '하나라도 포함 (any)' %></strong>
-          <% if (filterResolved.includeKind && filterResolved.includeKind.length) { %>· 포함: <%= filterResolved.includeKind.map(k => KIND_LABELS[k] || k).join(', ') %><% } %>
-          <% if (filterResolved.excludeKind && filterResolved.excludeKind.length) { %>· 제외: <%= filterResolved.excludeKind.map(k => KIND_LABELS[k] || k).join(', ') %><% } %>
-          <% if (filterResolved.includeBoard && filterResolved.includeBoard.length) { %>· 보드: <%= filterResolved.includeBoard.map(b => BOARD_LABELS[b] || b).join(', ') %><% } %>
-        </div>
-        <div class="scroll-wrap"><table class="t">
-          <thead>
-            <tr>
-              <th class="rank">#</th>
-              <th>종목</th>
-              <th class="num">signals</th>
-              <th class="num">boards</th>
-              <th class="num">단계점수</th>
-              <th class="num">positive</th>
-              <th class="num">negative</th>
-              <th>기간</th>
-              <th>매칭된 보드/단계</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% sections.filteredSignals.forEach(function(r, i) { %>
-              <tr>
-                <td class="rank"><%= i + 1 %></td>
-                <td><span class="code"><%= r.stock_code %></span> <span class="name"><a href="/stock/<%= r.stock_code %>?from=db-board" target="_blank" rel="noopener" title="상세 페이지 새 창에서 열기"><%= r.stock_name %></a></span></td>
-                <td class="num"><strong><%= r.signal_count %></strong></td>
-                <td class="num"><%= r.board_count %></td>
-                <td class="num <%= Number(r.stage_score || 0) > 0 ? 'pos' : Number(r.stage_score || 0) < 0 ? 'neg' : '' %>"><%= r.stage_score != null ? r.stage_score : '—' %></td>
-                <td class="num pos"><%= r.positive_kind_count %></td>
-                <td class="num <%= Number(r.negative_kind_count) > 0 ? 'neg' : '' %>"><%= r.negative_kind_count %></td>
-                <td style="font-size:.75rem; color:#94a3b8;"><%= r.first_signal_date %> → <%= r.last_signal_date %></td>
-                <td><% for (const bk of String(r.raw_boards || '').split(', ')) { if (!bk) continue; const isNeg = negativeKinds.some(k => bk.endsWith('/'+k)); const isPos = positiveKinds.some(k => bk.endsWith('/'+k)); %><span class="pill <%= isNeg ? 'pill-neg' : isPos ? 'pill-pos' : 'pill-board' %>" title="<%= bk %>"><%= formatBoardKind(bk) %></span><% } %></td>
-              </tr>
-            <% }); %>
-          </tbody>
-        </table></div>
-      <% } %>
-    </div>
-
-    <div style="text-align:center; color:#94a3b8; font-size:.78rem; margin:24px 0;">
-      <i class="bi bi-info-circle"></i> 이 화면은 매수 신호가 아닙니다. DB에 누적된 보드 신호를 관리자가 빠르게 훑어보기 위한 요약입니다.
+    <div class="info-note">
+      ⓘ 이 화면은 board_signals 테이블만 조회합니다. 매수/매도 추천이 아닙니다. 같은 종목이 여러 보드에 잡혔는지, 언제 잡혔는지 확인하는 용도입니다.
     </div>
   </div>
+
+<script>
+  // ─── 라벨 매핑 (서버에서 inject) ───────────────────────────────────────
+  const BOARD_LABELS = <%- JSON.stringify(BOARD_LABELS || {}) %>;
+  const KIND_LABELS  = <%- JSON.stringify(KIND_LABELS  || {}) %>;
+  const POSITIVE_KINDS = new Set([
+    'VVI_FIRED','VVI2_FIRED','BREAKOUT_SUCCESS','TODAY_INITIAL_BREAKOUT',
+    'CLOSE_REBREAK','CLOSE_REBREAK_NO_BREACH','CLOSE_REBREAK_VOL_EXPLOSION','CLOSE_REBREAK_HOLD_NEXTDAY','CLOSE_REBREAK_BREACH_RECOVER',
+    'TODAY_NEW_VVI','TODAY_NEW_VVI2','ATTACK_TOP','QVA_NEW','QVA2_NEW',
+  ]);
+  const NEGATIVE_KINDS = new Set(['FAILED','BROKEN','BREACH_NO_RECOVER','BREACH_RECOVER_ILLUSION','NO_REBREAK','INTRADAY_PUSHBACK','OVERHEATED']);
+  function boardLabel(b) { return BOARD_LABELS[b] || b; }
+  function kindLabel(k)  { return KIND_LABELS[k]  || k; }
+  function kindTone(k) {
+    if (POSITIVE_KINDS.has(k)) return 'k-positive';
+    if (NEGATIVE_KINDS.has(k)) return 'k-negative';
+    return 'k-neutral';
+  }
+  function boardClass(b) {
+    if (b.startsWith('QVA2')) return 'b-qva2';
+    if (b.startsWith('QVA'))  return 'b-qva';
+    if (b.includes('VVI'))    return 'b-vvi';
+    if (b.includes('REBREAK')) return 'b-rebreak';
+    if (b === 'ONE_DAY_SURGE') return 'b-1ds';
+    return '';
+  }
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmtDate(d) { return d ? String(d).slice(0,10) : '-'; }
+  function fmtNum(n) {
+    if (n == null) return '-';
+    const v = Number(n);
+    if (!isFinite(v)) return '-';
+    return v.toLocaleString('ko-KR');
+  }
+
+  // ─── DOM helpers ─────────────────────────────────────────────────────
+  const $ = (sel) => document.querySelector(sel);
+  const searchInput   = $('#search-input');
+  const dropdown      = $('#suggest-dropdown');
+  const resultArea    = $('#result-area');
+  const emptyMsg      = $('#empty-msg');
+  const recentSection = $('#recent-section');
+
+  let suggestTimer = null;
+  let lastQuery = '';
+  let focusedSuggestIdx = -1;
+  let currentSuggestions = [];
+
+  // ─── 자동완성 ─────────────────────────────────────────────────────────
+  async function fetchSuggest(q) {
+    try {
+      const url = '/admin/db-signals/suggest?q=' + encodeURIComponent(q || '') + '&limit=15';
+      const res = await fetch(url, { credentials: 'same-origin' });
+      if (!res.ok) return [];
+      const j = await res.json();
+      return j.suggestions || [];
+    } catch (_) { return []; }
+  }
+  function renderSuggest(rows) {
+    currentSuggestions = rows || [];
+    focusedSuggestIdx = -1;
+    if (!rows || rows.length === 0) {
+      dropdown.innerHTML = '<div style="padding:14px 16px;color:#6b7280;font-size:13px;">일치하는 종목이 없습니다.</div>';
+      dropdown.classList.add('open');
+      return;
+    }
+    let html = '';
+    for (let i = 0; i < rows.length; i++) {
+      const s = rows[i];
+      const boardChips = String(s.board_names || '').split(', ').filter(Boolean)
+        .map(b => '<span class="badge ' + boardClass(b) + '">' + esc(boardLabel(b)) + '</span>').join('');
+      html += '<div class="suggest-item" data-idx="' + i + '" data-code="' + esc(s.stock_code) + '" data-name="' + esc(s.stock_name) + '">' +
+        '<div><span class="name">' + esc(s.stock_name) + '</span><span class="code">' + esc(s.stock_code) + '</span></div>' +
+        '<div class="meta">' + fmtDate(s.latest_signal_date) + ' · ' + s.signal_count + '건 · ' + s.board_count + '보드</div>' +
+        '<div class="boards-mini">' + boardChips + '</div>' +
+        '</div>';
+    }
+    dropdown.innerHTML = html;
+    dropdown.classList.add('open');
+  }
+  function closeDropdown() {
+    dropdown.classList.remove('open');
+    focusedSuggestIdx = -1;
+  }
+  function focusSuggest(idx) {
+    const items = dropdown.querySelectorAll('.suggest-item');
+    items.forEach(el => el.classList.remove('focused'));
+    if (idx >= 0 && idx < items.length) {
+      items[idx].classList.add('focused');
+      items[idx].scrollIntoView({ block: 'nearest' });
+      focusedSuggestIdx = idx;
+    } else {
+      focusedSuggestIdx = -1;
+    }
+  }
+
+  // ─── 검색 실행 ────────────────────────────────────────────────────────
+  async function runSearch(stockCode, stockName) {
+    closeDropdown();
+    recentSection.style.display = 'none';
+    emptyMsg.style.display = 'none';
+    resultArea.innerHTML = '<div class="loading">불러오는 중…</div>';
+    try {
+      if (stockCode && /^\d{4,6}$/.test(stockCode)) {
+        const sumRes = await fetch('/admin/db-signals/summary/' + encodeURIComponent(stockCode), { credentials: 'same-origin' });
+        if (!sumRes.ok) { resultArea.innerHTML = '<div class="error-box">조회 실패 (HTTP ' + sumRes.status + ')</div>'; return; }
+        const sum = await sumRes.json();
+        renderStockResult(sum);
+        history.replaceState(null, '', '/db-board?q=' + encodeURIComponent(stockCode));
+      } else {
+        const kw = (stockName || stockCode || '').trim();
+        if (!kw) { resultArea.innerHTML = ''; emptyMsg.style.display = 'block'; recentSection.style.display = ''; return; }
+        const searchRes = await fetch('/admin/db-signals/search?q=' + encodeURIComponent(kw) + '&limit=300', { credentials: 'same-origin' });
+        if (!searchRes.ok) { resultArea.innerHTML = '<div class="error-box">조회 실패 (HTTP ' + searchRes.status + ')</div>'; return; }
+        const data = await searchRes.json();
+        if (!data.stocks || data.stocks.length === 0) {
+          resultArea.innerHTML = '<div class="result-empty">"' + esc(kw) + '" 에 해당하는 종목을 찾지 못했습니다.</div>';
+          return;
+        }
+        if (data.stocks.length === 1) {
+          const code = data.stocks[0].stock_code;
+          const sumRes2 = await fetch('/admin/db-signals/summary/' + encodeURIComponent(code), { credentials: 'same-origin' });
+          if (sumRes2.ok) {
+            const sum = await sumRes2.json();
+            renderStockResult(sum);
+            history.replaceState(null, '', '/db-board?q=' + encodeURIComponent(code));
+            return;
+          }
+        }
+        renderMultiMatch(data);
+      }
+    } catch (e) {
+      resultArea.innerHTML = '<div class="error-box">조회 중 오류: ' + esc(e.message || e) + '</div>';
+    }
+  }
+
+  // ─── 결과 렌더링 (단일 종목) ────────────────────────────────────────
+  function renderStockResult(sum) {
+    if (!sum || sum.total_signal_count === 0) {
+      resultArea.innerHTML = '<div class="result-empty">해당 종목의 신호 기록이 없습니다.</div>';
+      return;
+    }
+    const kindBadges = (sum.kind_breakdown || []).map(k =>
+      '<span class="kind-badge ' + kindTone(k.signal_kind) + '" title="' + esc(k.signal_kind) + ': ' + k.n + '건 (' + fmtDate(k.first_date) + ' ~ ' + fmtDate(k.last_date) + ')">' + esc(kindLabel(k.signal_kind)) + '<span class="n">' + k.n + '</span></span>'
+    ).join(' ');
+
+    const boardBadges = (sum.board_breakdown || []).map(b =>
+      '<span class="badge ' + boardClass(b.board_name) + '" title="' + esc(b.board_name) + '">' + esc(boardLabel(b.board_name)) + '<span class="n">' + b.n + '</span></span>'
+    ).join(' ');
+
+    const marketTag = sum.market ? '<span class="market-tag">' + esc(sum.market) + '</span>' : '';
+
+    let html =
+      '<div class="summary-card">' +
+        '<div class="summary-head">' +
+          '<div class="stock-name">' + esc(sum.stock_name || '-') + '</div>' +
+          '<div class="stock-code">' + esc(sum.stock_code) + '</div>' +
+          marketTag +
+        '</div>' +
+        '<div class="summary-stats">' +
+          '<div class="stat"><div class="label">총 신호</div><div class="value">' + sum.total_signal_count + '건</div></div>' +
+          '<div class="stat"><div class="label">등장 보드</div><div class="value">' + sum.board_count + '개</div></div>' +
+          '<div class="stat"><div class="label">신호 종류</div><div class="value">' + sum.kind_count + '개</div></div>' +
+          '<div class="stat"><div class="label">최근 신호일</div><div class="value">' + fmtDate(sum.latest_signal_date) + '</div></div>' +
+          '<div class="stat"><div class="label">최초 신호일</div><div class="value">' + fmtDate(sum.first_signal_date) + '</div></div>' +
+        '</div>' +
+        '<div class="breakdown">' +
+          '<div><h4>등장 보드</h4><div class="badge-list">' + (boardBadges || '<span style="color:#6b7280;">없음</span>') + '</div></div>' +
+          '<div><h4>신호 종류</h4><div class="badge-list">' + (kindBadges || '<span style="color:#6b7280;">없음</span>') + '</div></div>' +
+        '</div>' +
+      '</div>';
+
+    const rows = (sum.latest_signals || []).map(s => {
+      const date = fmtDate(s.signal_date);
+      const board = '<span class="badge ' + boardClass(s.board_name) + '" title="' + esc(s.board_name) + '">' + esc(boardLabel(s.board_name)) + '</span>';
+      const kind = '<span class="kind-badge ' + kindTone(s.signal_kind) + '" title="' + esc(s.signal_kind) + '">' + esc(kindLabel(s.signal_kind)) + '</span>';
+      const price = s.signal_price != null ? fmtNum(s.signal_price) : '-';
+      const close = s.signal_close != null ? fmtNum(s.signal_close) : '-';
+      const score = s.score != null ? Number(s.score).toFixed(1) : '-';
+      const grade = s.grade || '-';
+      const src = s.source_type || '-';
+      const status = s.status_label || '-';
+      return '<tr>' +
+        '<td>' + date + '</td>' +
+        '<td>' + board + '</td>' +
+        '<td>' + kind + '</td>' +
+        '<td class="num">' + price + '</td>' +
+        '<td class="num hide-sm">' + close + '</td>' +
+        '<td class="num hide-xs">' + score + '</td>' +
+        '<td class="hide-xs">' + esc(grade) + '</td>' +
+        '<td class="hide-sm">' + esc(status) + '</td>' +
+        '<td class="hide-sm" style="color:#6b7280;font-size:11px;">' + esc(src) + '</td>' +
+        '</tr>';
+    }).join('');
+
+    html +=
+      '<div class="signals-card">' +
+        '<h3>최근 신호 ' + (sum.latest_signals ? sum.latest_signals.length : 0) + '건 (전체 ' + sum.total_signal_count + '건 중)</h3>' +
+        '<table class="signals-table">' +
+          '<thead><tr>' +
+            '<th>날짜</th><th>보드</th><th>신호</th>' +
+            '<th class="num">기준가</th>' +
+            '<th class="num hide-sm">종가</th>' +
+            '<th class="num hide-xs">점수</th>' +
+            '<th class="hide-xs">등급</th>' +
+            '<th class="hide-sm">상태</th>' +
+            '<th class="hide-sm">출처</th>' +
+          '</tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+        '</table>' +
+      '</div>';
+    resultArea.innerHTML = html;
+  }
+
+  // ─── 결과 렌더링 (다건 매치) ────────────────────────────────────────
+  function renderMultiMatch(data) {
+    let html = '<div class="info-note">"' + esc(data.q) + '" 검색 — 매칭 종목 ' + data.stocks.length + '개. 종목을 선택하세요.</div>';
+    html += '<div class="multi-match-list">';
+    for (const s of data.stocks) {
+      const boardChips = String(s.board_names || '').split(', ').filter(Boolean)
+        .map(b => '<span class="badge ' + boardClass(b) + '">' + esc(boardLabel(b)) + '</span>').join('');
+      html += '<div class="mm-row" data-code="' + esc(s.stock_code) + '" data-name="' + esc(s.stock_name) + '">' +
+        '<div class="left"><span class="name">' + esc(s.stock_name) + '</span><span class="code">' + esc(s.stock_code) + '</span></div>' +
+        '<div class="meta">' + fmtDate(s.latest_signal_date) + ' · ' + s.signal_count + '건 · ' + s.board_count + '보드</div>' +
+        '<div class="boards">' + boardChips + '</div>' +
+        '</div>';
+    }
+    html += '</div>';
+    resultArea.innerHTML = html;
+  }
+
+  // ─── Event handlers ──────────────────────────────────────────────────
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim();
+    lastQuery = q;
+    if (suggestTimer) clearTimeout(suggestTimer);
+    suggestTimer = setTimeout(async () => {
+      if (q.length === 0) { closeDropdown(); return; }
+      const rows = await fetchSuggest(q);
+      if (q !== lastQuery) return;
+      renderSuggest(rows);
+    }, 200);
+  });
+  searchInput.addEventListener('focus', async () => {
+    const q = searchInput.value.trim();
+    if (q.length === 0) return;
+    const rows = await fetchSuggest(q);
+    renderSuggest(rows);
+  });
+  searchInput.addEventListener('keydown', (e) => {
+    if (!dropdown.classList.contains('open')) {
+      if (e.key === 'Enter') {
+        const q = searchInput.value.trim();
+        if (q) runSearch(/^\d{4,6}$/.test(q) ? q : null, q);
+      }
+      return;
+    }
+    const items = dropdown.querySelectorAll('.suggest-item');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      focusSuggest((focusedSuggestIdx + 1) % items.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusSuggest((focusedSuggestIdx - 1 + items.length) % items.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (focusedSuggestIdx >= 0 && currentSuggestions[focusedSuggestIdx]) {
+        const s = currentSuggestions[focusedSuggestIdx];
+        searchInput.value = s.stock_name;
+        runSearch(s.stock_code, s.stock_name);
+      } else {
+        const q = searchInput.value.trim();
+        if (q) runSearch(/^\d{4,6}$/.test(q) ? q : null, q);
+      }
+    } else if (e.key === 'Escape') {
+      closeDropdown();
+    }
+  });
+
+  dropdown.addEventListener('click', (e) => {
+    const item = e.target.closest('.suggest-item');
+    if (!item) return;
+    const code = item.getAttribute('data-code');
+    const name = item.getAttribute('data-name');
+    searchInput.value = name;
+    runSearch(code, name);
+  });
+
+  document.getElementById('recent-chips').addEventListener('click', (e) => {
+    const chip = e.target.closest('.recent-chip');
+    if (!chip) return;
+    const code = chip.getAttribute('data-code');
+    const name = chip.getAttribute('data-name');
+    if (!code) return;
+    searchInput.value = name || code;
+    runSearch(code, name);
+  });
+
+  resultArea.addEventListener('click', (e) => {
+    const mm = e.target.closest('.mm-row');
+    if (!mm) return;
+    const code = mm.getAttribute('data-code');
+    const name = mm.getAttribute('data-name');
+    if (!code) return;
+    searchInput.value = name || code;
+    runSearch(code, name);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-wrap')) closeDropdown();
+  });
+
+  // 초기 URL ?q=... 또는 ?stockCode=... 이 있으면 자동 검색
+  (function() {
+    const q = <%- JSON.stringify(initialQ || '') %>;
+    if (q && q.length > 0) {
+      runSearch(/^\d{4,6}$/.test(q) ? q : null, q);
+    } else {
+      searchInput.focus();
+    }
+  })();
+</script>
 </body>
 </html>

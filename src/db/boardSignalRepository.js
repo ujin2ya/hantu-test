@@ -1014,6 +1014,243 @@ async function findFilteredSignals(opts = {}) {
   return await query(sql, finalParams);
 }
 
+// ─── 검색 중심 운영판 (10차, 2026-05-22) ─────────────────────────────────
+// 종목 검색 / 자동완성 / 요약 — q-driven 단순 화면용.
+
+// 키워드 정규화: 종목코드만 추출 (숫자 4~6자리) + LIKE 패턴.
+// q=null 또는 빈 문자열 → null 반환 (호출자가 빈 결과 처리).
+function _normalizeSearchKeyword(q) {
+  if (q == null) return null;
+  const s = String(q).trim();
+  if (s.length === 0) return null;
+  // SQL LIKE wildcard 이스케이프 (% _ \) — 사용자 입력을 literal 로 취급
+  const escaped = s.replace(/[\\%_]/g, (m) => '\\' + m);
+  return {
+    raw: s,
+    likePattern: '%' + escaped + '%',
+    // 종목코드 후보 (숫자만) — 빠른 prefix 매칭
+    asCode: /^\d{1,6}$/.test(s) ? s : null,
+  };
+}
+
+// 1) suggestStocks — 자동완성용. **반드시 q가 있어야 동작**.
+//    q 비어있으면 빈 배열. (추천/랭킹/최근 신호 목록은 이 화면에서 보여주지 않는다.)
+async function suggestStocks(keyword, opts = {}) {
+  const limit = _safeLimit(opts.limit, 10, 50);
+  const norm = _normalizeSearchKeyword(keyword);
+  if (!norm) return [];
+
+  const sql = `
+    SELECT
+      stock_code,
+      MAX(stock_name) AS stock_name,
+      MAX(market)     AS market,
+      COUNT(*) AS signal_count,
+      COUNT(DISTINCT board_name) AS board_count,
+      MIN(signal_date) AS first_signal_date,
+      MAX(signal_date) AS latest_signal_date,
+      GROUP_CONCAT(DISTINCT board_name ORDER BY board_name SEPARATOR ', ') AS board_names
+    FROM board_signals
+    WHERE stock_name LIKE ? ESCAPE '\\\\'
+       OR stock_code LIKE ? ESCAPE '\\\\'
+    GROUP BY stock_code
+    ORDER BY latest_signal_date DESC, signal_count DESC, stock_name ASC
+    LIMIT ${limit}
+  `;
+  return await query(sql, [norm.likePattern, norm.likePattern]);
+}
+
+// 2) searchSignalsByStockKeyword — 종목명/코드 LIKE → 매칭 종목들의 신호 이력
+//    같은 종목의 여러 신호 행을 signal_date DESC 로 반환.
+async function searchSignalsByStockKeyword(keyword, opts = {}) {
+  const norm = _normalizeSearchKeyword(keyword);
+  if (!norm) return { keyword: null, stocks: [], signals: [] };
+
+  const limit = _safeLimit(opts.limit, 200, 1000);
+
+  // 1단계: 매칭 종목 (1차 그룹화)
+  const stocks = await query(
+    `SELECT
+       stock_code,
+       MAX(stock_name) AS stock_name,
+       MAX(market)     AS market,
+       COUNT(*) AS signal_count,
+       COUNT(DISTINCT board_name) AS board_count,
+       MIN(signal_date) AS first_signal_date,
+       MAX(signal_date) AS latest_signal_date,
+       GROUP_CONCAT(DISTINCT board_name ORDER BY board_name SEPARATOR ', ') AS board_names
+     FROM board_signals
+     WHERE stock_name LIKE ? ESCAPE '\\\\'
+        OR stock_code LIKE ? ESCAPE '\\\\'
+     GROUP BY stock_code
+     ORDER BY latest_signal_date DESC, signal_count DESC, stock_name ASC
+     LIMIT 30`,
+    [norm.likePattern, norm.likePattern]
+  );
+
+  if (stocks.length === 0) return { keyword: norm.raw, stocks: [], signals: [] };
+
+  // 2단계: 매칭 종목들의 신호 행 (전체 컬럼)
+  const codes = stocks.map(s => s.stock_code);
+  const signals = await query(
+    `SELECT id, board_name, signal_kind, source_type, signal_date, as_of_date,
+            stock_code, stock_name, market,
+            signal_price, signal_close, score, rank_no, grade, status_label,
+            tags_json, created_at, updated_at
+     FROM board_signals
+     WHERE stock_code IN (${_placeholders(codes)})
+     ORDER BY signal_date DESC, stock_code ASC, board_name ASC, id DESC
+     LIMIT ${limit}`,
+    codes
+  );
+
+  return { keyword: norm.raw, stocks, signals };
+}
+
+// 3) getStockSignalSummary — 단일 종목 요약 + 최근 신호 N건
+async function getStockSignalSummary(stockCode, opts = {}) {
+  const limit = _safeLimit(opts.latestLimit, 20, 100);
+  if (!stockCode || !/^\d{4,6}$/.test(String(stockCode))) {
+    throw new Error('stockCode must be 4-6 digits');
+  }
+  const code = String(stockCode);
+
+  const agg = (await query(
+    `SELECT
+       stock_code,
+       MAX(stock_name) AS stock_name,
+       MAX(market)     AS market,
+       COUNT(*) AS total_signal_count,
+       COUNT(DISTINCT board_name) AS board_count,
+       COUNT(DISTINCT signal_kind) AS kind_count,
+       MIN(signal_date) AS first_signal_date,
+       MAX(signal_date) AS latest_signal_date,
+       GROUP_CONCAT(DISTINCT board_name  ORDER BY board_name  SEPARATOR ', ') AS board_names,
+       GROUP_CONCAT(DISTINCT signal_kind ORDER BY signal_kind SEPARATOR ', ') AS signal_kinds,
+       GROUP_CONCAT(DISTINCT source_type ORDER BY source_type SEPARATOR ', ') AS source_types
+     FROM board_signals
+     WHERE stock_code = ?
+     GROUP BY stock_code`,
+    [code]
+  ))[0] || null;
+
+  if (!agg) {
+    return {
+      stock_code: code, stock_name: null, market: null,
+      total_signal_count: 0, board_count: 0, kind_count: 0,
+      first_signal_date: null, latest_signal_date: null,
+      board_names: '', signal_kinds: '', source_types: '',
+      latest_signals: [],
+      board_breakdown: [],
+      kind_breakdown: [],
+    };
+  }
+
+  // 최근 N건을 DESC로 뽑은 뒤 화면 표시용으로 ASC(과거→최근) 재정렬
+  const latestDesc = await query(
+    `SELECT id, board_name, signal_kind, source_type, signal_date, as_of_date,
+            signal_price, signal_close, score, rank_no, grade, status_label, tags_json, created_at
+     FROM board_signals
+     WHERE stock_code = ?
+     ORDER BY signal_date DESC, id DESC
+     LIMIT ${limit}`,
+    [code]
+  );
+  const latest = latestDesc.slice().reverse();
+
+  // 날짜별 그룹 — 같은 날 여러 보드에 잡힌 흐름을 한눈에 보기 위함
+  const byDate = await _groupSignalsByDate(code);
+
+  const boardBreakdown = await query(
+    `SELECT board_name, COUNT(*) AS n,
+            MIN(signal_date) AS first_date,
+            MAX(signal_date) AS last_date
+     FROM board_signals
+     WHERE stock_code = ?
+     GROUP BY board_name
+     ORDER BY n DESC, board_name ASC`,
+    [code]
+  );
+
+  const kindBreakdown = await query(
+    `SELECT signal_kind, COUNT(*) AS n,
+            MIN(signal_date) AS first_date,
+            MAX(signal_date) AS last_date
+     FROM board_signals
+     WHERE stock_code = ?
+     GROUP BY signal_kind
+     ORDER BY n DESC, signal_kind ASC`,
+    [code]
+  );
+
+  return {
+    stock_code: agg.stock_code,
+    stock_name: agg.stock_name,
+    market: agg.market,
+    total_signal_count: Number(agg.total_signal_count),
+    board_count: Number(agg.board_count),
+    kind_count: Number(agg.kind_count),
+    first_signal_date: agg.first_signal_date,
+    latest_signal_date: agg.latest_signal_date,
+    board_names: agg.board_names || '',
+    signal_kinds: agg.signal_kinds || '',
+    source_types: agg.source_types || '',
+    latest_signals: latest,
+    board_breakdown: boardBreakdown,
+    kind_breakdown: kindBreakdown,
+    by_date: byDate,
+  };
+}
+
+// 4) getStockSignalsGroupedByDate — 종목의 모든 신호를 날짜별로 묶어 반환.
+//    같은 날 여러 보드에 잡힌 흐름을 사용자가 한눈에 볼 수 있게 함.
+//    반환: [{ signal_date, signals: [{ board_name, signal_kind, score, ... }, ...] }, ...]
+//    정렬: signal_date DESC (날짜는 최근 → 과거), 같은 날짜 안에서는 board_name ASC
+async function getStockSignalsGroupedByDate(stockCode, opts = {}) {
+  if (!stockCode || !/^\d{4,6}$/.test(String(stockCode))) {
+    throw new Error('stockCode must be 4-6 digits');
+  }
+  return await _groupSignalsByDate(String(stockCode), opts);
+}
+
+async function _groupSignalsByDate(code, opts = {}) {
+  const days = opts.days != null ? Math.max(1, Number(opts.days) | 0) : null;
+  const params = [code];
+  let dateClause = '';
+  if (days) { dateClause = 'AND signal_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)'; params.push(days); }
+  const rows = await query(
+    `SELECT id, board_name, signal_kind, source_type, signal_date,
+            signal_price, signal_close, score, grade, status_label, tags_json
+     FROM board_signals
+     WHERE stock_code = ? ${dateClause}
+     ORDER BY signal_date DESC, board_name ASC, id ASC`,
+    params
+  );
+  const groups = new Map();
+  for (const r of rows) {
+    const key = String(r.signal_date).slice(0, 10);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push({
+      id: r.id,
+      board_name: r.board_name,
+      signal_kind: r.signal_kind,
+      source_type: r.source_type,
+      signal_price: r.signal_price,
+      signal_close: r.signal_close,
+      score: r.score,
+      grade: r.grade,
+      status_label: r.status_label,
+      tags_json: r.tags_json,
+    });
+  }
+  return Array.from(groups.entries()).map(([signal_date, signals]) => ({
+    signal_date,
+    signal_count: signals.length,
+    board_count: new Set(signals.map(s => s.board_name)).size,
+    signals,
+  }));
+}
+
 module.exports = {
   createBoardRun,
   upsertBoardSignals,
@@ -1023,6 +1260,11 @@ module.exports = {
   findSignalsByStock,
   findSignalsByBoard,
   findSignalsByDate,
+  // 10차 — 검색 중심 운영판
+  suggestStocks,
+  searchSignalsByStockKeyword,
+  getStockSignalSummary,
+  getStockSignalsGroupedByDate,
   findOverlap,
   findRepeated,
   findStockHistory,

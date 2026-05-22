@@ -291,191 +291,70 @@ async function getDbSignalsTodayFocus(req, res) {
   } catch (e) { res.status(500).json({ error: e.message }); }
 }
 
-// GET /admin/db-board-dashboard?date=YYYY-MM-DD&days=60&limit=20
-// 4차 (2026-05-17): JSON API들을 HTML로 한 화면에 묶은 최소 관리자 대시보드.
-// 섹션별 try/catch — 한 섹션 실패해도 페이지 전체는 살아남음.
-async function getDbBoardDashboard(req, res) {
+// ─── 10차 (2026-05-22) — 검색 중심 운영판 ───────────────────────────────
+// 3개 API: search / suggest / summary
+
+// GET /admin/db-signals/search?q=KG&limit=200
+//   stock_name LIKE 또는 stock_code LIKE → 매칭 종목 + 신호 행
+async function getDbSignalsSearch(req, res) {
   try {
     const repo = require('../db/boardSignalRepository');
+    const q = (req.query && req.query.q) || '';
+    const limit = Number((req.query && req.query.limit) || 200);
+    const result = await repo.searchSignalsByStockKeyword(q, { limit });
+    res.json({
+      q: result.keyword,
+      stock_count: result.stocks.length,
+      signal_count: result.signals.length,
+      stocks: result.stocks,
+      signals: result.signals,
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+}
+
+// GET /admin/db-signals/suggest?q=KG&limit=15
+//   자동완성. q 없으면 최근 신호 종목 상위 N (기본 15).
+async function getDbSignalsSuggest(req, res) {
+  try {
+    const repo = require('../db/boardSignalRepository');
+    const q = (req.query && req.query.q) || '';
+    const limit = Number((req.query && req.query.limit) || 15);
+    const rows = await repo.suggestStocks(q, { limit });
+    res.json({ q: q || null, count: rows.length, suggestions: rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+}
+
+// GET /admin/db-signals/summary/:stockCode
+async function getDbSignalsSummary(req, res) {
+  try {
+    const repo = require('../db/boardSignalRepository');
+    const code = (req.params && req.params.stockCode) || '';
+    if (!/^\d{4,6}$/.test(code)) {
+      return res.status(400).json({ error: 'stockCode must be 4-6 digits', example: '/admin/db-signals/summary/005930' });
+    }
+    const result = await repo.getStockSignalSummary(code, { latestLimit: 20 });
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+}
+
+// GET /admin/db-signals (또는 /db-board) — 종목 신호 이력 검색 화면 (11차, 2026-05-22)
+// 검색 전에는 추천/랭킹/최근 신호 목록을 일체 보여주지 않음.
+// 검색 후 결과는 클라이언트가 /admin/db-signals/* API 로 가져옴.
+async function getDbBoardDashboard(req, res) {
+  try {
     const labels = require('../db/boardSignalLabels');
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayYMD = `${yyyy}-${mm}-${dd}`;
-
-    const date  = (req.query && req.query.date)  || todayYMD;
-    const days  = Math.max(1, Number((req.query && req.query.days)  || 60) | 0);
-    const limit = Math.max(5, Math.min(Number((req.query && req.query.limit) || 50) | 0, 100));
-    const stockSearch = (req.query && req.query.stockCode) ? String(req.query.stockCode).trim() : null;
-    // 8차: 우선순위 후보 옵션 (9차 — 기본 15개로 축소)
-    const priorityLimit    = Math.max(5,  Math.min(Number((req.query && req.query.priorityLimit)    || 15) | 0, 200));
-    const minPriorityScore = Math.max(0,  Math.min(Number((req.query && req.query.minPriorityScore) != null ? req.query.minPriorityScore : 20) | 0, 200));
-
-    // 섹션별로 격리 — 한 곳 실패해도 다른 섹션은 표시되어야 함
-    const sections = {};
-    const errors = {};
-
-    async function safe(name, fn) {
-      try { sections[name] = await fn(); }
-      catch (e) { errors[name] = e.message || String(e); sections[name] = null; }
-    }
-
-    await safe('todayFocus', async () => {
-      const rows = await repo.findTodayFocus(date, { minBoards: 1, limit });
-      // boards 문자열 "BOARD/KIND, BOARD/KIND, ..." 을 파싱해서 stage_score 합산
-      for (const r of rows) {
-        const items = String(r.boards || '').split(', ').filter(Boolean);
-        let stageScore = 0;
-        for (const it of items) {
-          const [bn, sk] = it.split('/', 2);
-          stageScore += labels.getBoardKindWeight(bn, sk);
-        }
-        r.stage_score = stageScore;
-      }
-      return rows;
-    });
-    await safe('overlap',    () => repo.findOverlap(date, { minBoards: 2, includeFailed: false, limit }));
-    await safe('repeated',   () => repo.findRepeated({ days, minCount: 2, limit }));
-
-    // 보드별 성과 — 고정 6 조합
-    const PERFORMANCE_CASES = [
-      { board_name: 'QVA_WATCHLIST',  signal_kind: 'QVA_NEW',         horizon: 5 },
-      { board_name: 'QVA_WATCHLIST',  signal_kind: 'VVI_FIRED',       horizon: 5 },
-      { board_name: 'QVA2_WATCHLIST', signal_kind: 'QVA2_NEW',        horizon: 5 },
-      { board_name: 'QVA2_VVI',       signal_kind: 'VVI2_FIRED',      horizon: 5 },
-      { board_name: 'HGROUP_REBREAK', signal_kind: null,              horizon: 5 },
-      { board_name: 'ONE_DAY_SURGE',  signal_kind: 'ATTACK_TOP',      horizon: 1 },
-    ];
-    await safe('performance', async () => {
-      const out = [];
-      for (const c of PERFORMANCE_CASES) {
-        try {
-          out.push(await repo.findPerformance({ boardName: c.board_name, signalKind: c.signal_kind, horizon: c.horizon, days }));
-        } catch (e) { out.push({ board_name: c.board_name, signal_kind: c.signal_kind, horizon_days: c.horizon, error: e.message }); }
-      }
-      return out;
-    });
-
-    await safe('linkSummary', () => repo.findLinkSummary({ days }));
-    await safe('dbSummary',   () => repo.findDbSummary());
-
-    // 7차 (2026-05-17) — 종목별 신호 타임라인 + 흐름 해석
-    await safe('stockTimelines',        () => repo.findStockTimelines({ days, limitStocks: 30, minSignalCount: 3 }));
-    await safe('qvaFunnelStocks',       () => repo.findFunnelPassedStocks({ days, funnelType: 'QVA',      limit: 30 }));
-    await safe('qva2FunnelStocks',      () => repo.findFunnelPassedStocks({ days, funnelType: 'QVA2',     limit: 30 }));
-    await safe('bothVviStocks',         () => repo.findFunnelPassedStocks({ days, funnelType: 'BOTH_VVI', limit: 30 }));
-    await safe('recentRepeatedStocks',  () => repo.findRecentRepeatedStocks({ days, minSignalCount: 3, limit: 50 }));
-
-    // 8차 (2026-05-17) — DB 누적 기반 오늘 볼 후보 TOP (정렬 참고값)
-    await safe('todayPriorityCandidates', () =>
-      repo.findTodayPriorityCandidates({ days, limit: priorityLimit, minScore: minPriorityScore, timelineLimit: 12 })
-    );
-
-    // 타임라인 카드에 요약+배지 미리 계산 (EJS에서 호출하는 것보다 안전)
-    if (sections.stockTimelines && Array.isArray(sections.stockTimelines)) {
-      for (const t of sections.stockTimelines) {
-        t.summary = labels.explainTimelineSummary(t.timeline || []);
-      }
-    }
-
-    // ─── 사용자 조합 필터 (5차, 2026-05-17) ─────────────────────────────
-    function arr(v) {
-      if (v == null) return [];
-      if (Array.isArray(v)) return v.filter(Boolean);
-      return String(v).split(',').map(s => s.trim()).filter(Boolean);
-    }
-    const presetKey = (req.query && req.query.preset) || null;
-    const overrides = {
-      includeBoard: req.query.includeBoard !== undefined ? arr(req.query.includeBoard) : null,
-      excludeBoard: req.query.excludeBoard !== undefined ? arr(req.query.excludeBoard) : null,
-      includeKind:  req.query.includeKind  !== undefined ? arr(req.query.includeKind)  : null,
-      excludeKind:  req.query.excludeKind  !== undefined ? arr(req.query.excludeKind)  : null,
-      matchMode:    req.query.matchMode || null,
-    };
-    const filterApplied = !!(presetKey || overrides.includeBoard || overrides.excludeBoard ||
-                             overrides.includeKind || overrides.excludeKind || overrides.matchMode);
-    const filterMerged = labels.mergePresetWithOverrides(presetKey, overrides);
-    const filterMinBoardCount  = Math.max(0, Number(req.query.minBoardCount  || 0) | 0);
-    const filterMinRepeatCount = Math.max(0, Number(req.query.minRepeatCount || 0) | 0);
-
-    let filterResolved = null;
-    if (filterApplied) {
-      filterResolved = {
-        ...filterMerged,
-        date: req.query.filterDate || null,     // 별도 filterDate 또는 null (= days 사용)
-        days,
-        limit,
-        minBoardCount: filterMinBoardCount,
-        minRepeatCount: filterMinRepeatCount,
-      };
-      await safe('filteredSignals', async () => {
-        const rows = await repo.findFilteredSignals(filterResolved);
-        // stage_score 계산 (today-focus와 동일 방식)
-        for (const r of rows) {
-          const items = String(r.raw_boards || '').split(', ').filter(Boolean);
-          let stageScore = 0;
-          for (const it of items) {
-            const [bn, sk] = it.split('/', 2);
-            stageScore += labels.getBoardKindWeight(bn, sk);
-          }
-          r.stage_score = stageScore;
-        }
-        rows.sort((a, b) => (b.stage_score - a.stage_score) || (b.signal_count - a.signal_count));
-        return rows;
-      });
-      // 0건일 때 모순 진단
-      if (sections.filteredSignals && sections.filteredSignals.length === 0) {
-        sections.filterDiagnostics = labels.diagnoseFilterMismatch(
-          filterMerged.includeBoard || [],
-          filterMerged.includeKind || [],
-          filterMerged.matchMode
-        );
-      }
-    }
-
-    // 종목 검색 — 입력 있으면 history 결과 직접 표시
-    let stockHistory = null;
-    if (stockSearch && /^\d{4,6}$/.test(stockSearch)) {
-      try { stockHistory = await repo.findStockHistory(stockSearch, { days: 180 }); }
-      catch (e) { errors.stockHistory = e.message; }
-    }
+    // URL 의 ?q= 또는 ?stockCode= 로 도착하면 첫 렌더에 그대로 표시
+    const initialQ = (req.query && (req.query.q || req.query.stockCode)) || '';
 
     const { getBoardNavHtml } = require('../utils/boardNav');
-    res.render('admin/db-board-dashboard', {
-      date, days, limit,
-      todayYMD,
-      stockSearch, stockHistory,
-      sections, errors,
-      negativeKinds: repo.NEGATIVE_KINDS,
-      positiveKinds: repo.POSITIVE_KINDS,
-      navHtml: getBoardNavHtml('/db-board'),
-      // 라벨 헬퍼 (EJS에서 사용)
-      formatBoardName: labels.formatBoardName,
-      formatSignalKind: labels.formatSignalKind,
-      formatBoardKind: labels.formatBoardKind,
-      getBoardKindWeight: labels.getBoardKindWeight,
-      // 5차 필터
-      FILTER_PRESETS: labels.FILTER_PRESETS,
+    res.render('admin/db-signal-search', {
+      initialQ,
+      navHtml: getBoardNavHtml('/admin/db-signals'),
       BOARD_LABELS: labels.BOARD_LABELS,
       KIND_LABELS: labels.KIND_LABELS,
-      BOARD_KIND_MATRIX: labels.BOARD_KIND_MATRIX,
-      // 7차 helper
-      getSignalKindDisplay: labels.getSignalKindDisplay,
-      getSignalKindTone: labels.getSignalKindTone,
-      getSourceTypeDisplay: labels.getSourceTypeDisplay,
-      filterApplied,
-      filterPreset: presetKey,
-      filterResolved,
-      filterMinBoardCount,
-      filterMinRepeatCount,
-      // 8차 helper + 옵션
-      getPriorityGrade: labels.getPriorityGrade,
-      priorityLimit,
-      minPriorityScore,
     });
   } catch (e) {
-    res.status(500).send(`<h1>대시보드 로딩 실패</h1><pre>${(e && e.stack) || e}</pre>`);
+    res.status(500).send(`<h1>화면 로딩 실패</h1><pre>${(e && e.stack) || e}</pre>`);
   }
 }
 
@@ -492,5 +371,8 @@ module.exports = {
   getDbSignalsPerformance,
   getDbSignalsLinkSummary,
   getDbSignalsTodayFocus,
+  getDbSignalsSearch,
+  getDbSignalsSuggest,
+  getDbSignalsSummary,
   getDbBoardDashboard,
 };
