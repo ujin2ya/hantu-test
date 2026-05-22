@@ -202,7 +202,7 @@ async function main() {
   //    보드 화면은 옛 시점에 멈춘다. 이 단계가 그 차이를 메운다.
   let t4 = Date.now();
   const qvaBoardOk = runCommand(
-    `node "${path.join(ROOT, 'qva-watchlist-board.js')}"`,
+    `node "${path.join(ROOT, 'boards', 'qva', 'qva-watchlist-board.js')}"`,
     'QVA 운영 보드 재생성 (qva-watchlist-board.html)',
   );
   timings.qvaBoardTime = Math.ceil((Date.now() - t4) / 1000);
