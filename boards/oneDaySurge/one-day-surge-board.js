@@ -5174,14 +5174,35 @@ document.getElementById('foot').innerHTML =
 
   // KST 기준 장중 여부 — 분석은 분석일(date)이 오늘 KST AND 10:00~15:30 KST 일 때만 의미.
   // 그 외 케이스는 fetch 호출 자체를 안 하고 안내 메시지만 표시.
+  // formatToParts 로 추출 — locale string 포매팅(공백·구분자 차이)에 의존하지 않음.
   function getKstMarketState(date) {
-    // 'sv-SE' 로케일 = "YYYY-MM-DD HH:MM:SS" 형태로 일관된 KST 출력
-    const kstStr = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const m = kstStr.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
-    if (!m) return { active: false, reason: 'time_parse_failed' };
-    const todayKst = m[1] + '-' + m[2] + '-' + m[3];
-    const kstHm = m[4] + ':' + m[5];
-    const totalMin = parseInt(m[4], 10) * 60 + parseInt(m[5], 10);
+    let yr = '', mo = '', da = '', hh = '', mm = '';
+    try {
+      const fmt = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Seoul',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hour12: false
+      });
+      const parts = fmt.formatToParts(new Date());
+      for (let i = 0; i < parts.length; i++) {
+        const p = parts[i];
+        if (p.type === 'year') yr = p.value;
+        else if (p.type === 'month') mo = p.value;
+        else if (p.type === 'day') da = p.value;
+        else if (p.type === 'hour') hh = p.value;
+        else if (p.type === 'minute') mm = p.value;
+      }
+    } catch (_) {
+      return { active: false, reason: 'time_parse_failed' };
+    }
+    if (!yr || !mo || !da || hh === '' || mm === '') {
+      return { active: false, reason: 'time_parse_failed' };
+    }
+    // en-CA + hour12:false 는 일부 ICU에서 '24'를 반환 — 다음날 0시로 정규화
+    if (hh === '24') hh = '00';
+    const todayKst = yr + '-' + mo + '-' + da;
+    const kstHm = hh + ':' + mm;
+    const totalMin = parseInt(hh, 10) * 60 + parseInt(mm, 10);
     const dow = new Date(todayKst + 'T00:00:00+09:00').getUTCDay(); // 0=일, 6=토 (UTC offset 자동 처리)
     if (dow === 0 || dow === 6) {
       return { active: false, reason: 'weekend', kstNow: todayKst, kstHm };

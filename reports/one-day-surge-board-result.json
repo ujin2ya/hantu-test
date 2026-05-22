@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "1-Day Surge Board v5 · GOOD_TRADE 중심 단타 후보 보드",
-    "generatedAt": "2026-05-22T01:05:07.901Z",
+    "generatedAt": "2026-05-22T01:21:02.503Z",
     "analysisDate": "20260521",
     "analysisDateFmt": "2026-05-21",
     "stockUniverse": 4270,
@@ -32244,7 +32244,7 @@
     "isLive": true,
     "elapsedMs": 73,
     "source": "live",
-    "ageMinutes": 5
+    "ageMinutes": 21
   },
   "qvaSummary": {
     "taggedTopCount": 2,
@@ -32393,7 +32393,7 @@
     "status": "intraday",
     "label": "아직 장중",
     "isMarketClosed": false,
-    "generatedAtTime": "10:05",
+    "generatedAtTime": "10:21",
     "guide": "아직 장중입니다. 현재 후보는 장중 기준 후보이며, 당일 고가/종가 기준 최종 결과는 장마감 후 표시됩니다.",
     "forcedNote": null,
     "todayDate": "2026-05-22",
