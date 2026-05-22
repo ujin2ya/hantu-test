@@ -1,0 +1,338 @@
+{
+  "snapshotDate": "2026-05-22",
+  "savedAt": "2026-05-22T00:44:00.963Z",
+  "survivor1000": [],
+  "explosiveStable": [
+    {
+      "code": "126340",
+      "name": "비나텍",
+      "market": "KOSDAQ",
+      "marketCap": 1254400000000,
+      "baseDate": "20260521",
+      "avg20Value": 32901589940,
+      "baseValue": 16126793100,
+      "metrics": {
+        "bars_total": 29,
+        "open0900": 159600,
+        "last0930": 172300,
+        "high0930": 173200,
+        "low0930": 159600,
+        "value_0930": 21867087300,
+        "volume_0930": 129155,
+        "closePosition0930": 0.934,
+        "openToLastRate": 7.96,
+        "highToLastDrop": -0.52,
+        "valueToAvgRatio_0930": 17.63,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 33.42,
+      "finalScore": 159.44,
+      "hasTenRebreak": true,
+      "tenRebreakTrigger": {
+        "triggerTime": "09:38",
+        "triggerPrice": 173200
+      },
+      "hasFadedRecovery": false,
+      "hasSurvivor1000": false,
+      "survivor1000": null,
+      "triggeredHypos": [
+        "TEN_REBREAK"
+      ],
+      "explosiveScore": 167.44,
+      "isSurvivor1000": false,
+      "isExplosiveTop": true,
+      "isAttackRebreak": true,
+      "overlapBadges": [
+        "조기 포착",
+        "공격형 재돌파 동시",
+        "10시 확인 필요"
+      ],
+      "suggestedStrategy": {
+        "type": "STABLE_SCALP",
+        "label": "안정형 단타",
+        "takeProfit": "+5%",
+        "stopLoss": "-2%",
+        "note": "19거래일 검증 기준 +5%/-2% 전략이 안정적 (n=64, 평균 +0.97%, 승률 46.9%, +10% 12.5%)"
+      },
+      "reason": "09:30 조기 포착 — 10시 생존 확인 전 감시 후보"
+    },
+    {
+      "code": "018880",
+      "name": "한온시스템",
+      "market": "KOSPI",
+      "marketCap": 4341100000000,
+      "baseDate": "20260521",
+      "avg20Value": 206171087027,
+      "baseValue": 100284209675,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 4835,
+        "last0930": 5030,
+        "high0930": 5060,
+        "low0930": 4770,
+        "value_0930": 25033169988,
+        "volume_0930": 5070812,
+        "closePosition0930": 0.897,
+        "openToLastRate": 4.03,
+        "highToLastDrop": -0.59,
+        "valueToAvgRatio_0930": 3.25,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 7.27,
+      "finalScore": 119.35,
+      "hasTenRebreak": true,
+      "tenRebreakTrigger": {
+        "triggerTime": "09:34",
+        "triggerPrice": 5060
+      },
+      "hasFadedRecovery": false,
+      "hasSurvivor1000": false,
+      "survivor1000": null,
+      "triggeredHypos": [
+        "TEN_REBREAK"
+      ],
+      "explosiveScore": 127.35,
+      "isSurvivor1000": false,
+      "isExplosiveTop": true,
+      "isAttackRebreak": true,
+      "overlapBadges": [
+        "조기 포착",
+        "공격형 재돌파 동시",
+        "10시 확인 필요"
+      ],
+      "suggestedStrategy": {
+        "type": "STABLE_SCALP",
+        "label": "안정형 단타",
+        "takeProfit": "+5%",
+        "stopLoss": "-2%",
+        "note": "19거래일 검증 기준 +5%/-2% 전략이 안정적 (n=64, 평균 +0.97%, 승률 46.9%, +10% 12.5%)"
+      },
+      "reason": "09:30 조기 포착 — 10시 생존 확인 전 감시 후보"
+    },
+    {
+      "code": "476830",
+      "name": "알지노믹스",
+      "market": "KOSDAQ",
+      "marketCap": 2451000000000,
+      "baseDate": "20260521",
+      "avg20Value": 62122513225,
+      "baseValue": 26563420000,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 134700,
+        "last0930": 145400,
+        "high0930": 145600,
+        "low0930": 134200,
+        "value_0930": 15316372000,
+        "volume_0930": 108545,
+        "closePosition0930": 0.982,
+        "openToLastRate": 7.94,
+        "highToLastDrop": -0.14,
+        "valueToAvgRatio_0930": 7.5,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 21.74,
+      "finalScore": 113.09,
+      "hasTenRebreak": true,
+      "tenRebreakTrigger": {
+        "triggerTime": "09:32",
+        "triggerPrice": 145600
+      },
+      "hasFadedRecovery": false,
+      "hasSurvivor1000": false,
+      "survivor1000": null,
+      "triggeredHypos": [
+        "TEN_REBREAK"
+      ],
+      "explosiveScore": 121.09,
+      "isSurvivor1000": false,
+      "isExplosiveTop": true,
+      "isAttackRebreak": true,
+      "overlapBadges": [
+        "조기 포착",
+        "공격형 재돌파 동시",
+        "10시 확인 필요"
+      ],
+      "suggestedStrategy": {
+        "type": "STABLE_SCALP",
+        "label": "안정형 단타",
+        "takeProfit": "+5%",
+        "stopLoss": "-2%",
+        "note": "19거래일 검증 기준 +5%/-2% 전략이 안정적 (n=64, 평균 +0.97%, 승률 46.9%, +10% 12.5%)"
+      },
+      "reason": "09:30 조기 포착 — 10시 생존 확인 전 감시 후보"
+    },
+    {
+      "code": "347850",
+      "name": "디앤디파마텍",
+      "market": "KOSDAQ",
+      "marketCap": 3250300000000,
+      "baseDate": "20260521",
+      "avg20Value": 31598278680,
+      "baseValue": 23584317300,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 63900,
+        "last0930": 68900,
+        "high0930": 69200,
+        "low0930": 63500,
+        "value_0930": 13273355600,
+        "volume_0930": 197001,
+        "closePosition0930": 0.947,
+        "openToLastRate": 7.82,
+        "highToLastDrop": -0.43,
+        "valueToAvgRatio_0930": 7.32,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 21.16,
+      "finalScore": 105.72,
+      "hasTenRebreak": true,
+      "tenRebreakTrigger": {
+        "triggerTime": "09:38",
+        "triggerPrice": 69200
+      },
+      "hasFadedRecovery": false,
+      "hasSurvivor1000": false,
+      "survivor1000": null,
+      "triggeredHypos": [
+        "TEN_REBREAK"
+      ],
+      "explosiveScore": 113.72,
+      "isSurvivor1000": false,
+      "isExplosiveTop": true,
+      "isAttackRebreak": true,
+      "overlapBadges": [
+        "조기 포착",
+        "공격형 재돌파 동시",
+        "10시 확인 필요"
+      ],
+      "suggestedStrategy": {
+        "type": "STABLE_SCALP",
+        "label": "안정형 단타",
+        "takeProfit": "+5%",
+        "stopLoss": "-2%",
+        "note": "19거래일 검증 기준 +5%/-2% 전략이 안정적 (n=64, 평균 +0.97%, 승률 46.9%, +10% 12.5%)"
+      },
+      "reason": "09:30 조기 포착 — 10시 생존 확인 전 감시 후보"
+    }
+  ],
+  "attackTopCandidates": [],
+  "attackTopHighRisk": [
+    {
+      "code": "336260",
+      "name": "두산퓨얼셀",
+      "market": "KOSPI",
+      "attackRank": 1,
+      "attackScore": 46,
+      "decisionTime": "09:30",
+      "decisionPrice": 100200,
+      "signalPrice": 100200,
+      "prevClose": 77400,
+      "open0900": 94100,
+      "gapRate": 21.58,
+      "morningValue": 81100984400,
+      "morningValueRank": 4,
+      "morningValuePercentile": 3.2,
+      "isTop10Value": true,
+      "morningHigh": 99800,
+      "rebreakMorningHigh": true,
+      "rebreakTime": "09:40",
+      "rebreakWithValue": false,
+      "valueContinueRatio": 0.582,
+      "valueSecondWaveRatio": 0,
+      "decisionFromPrevClose": 29.46,
+      "decisionFromOpen": 6.48,
+      "morningRangeRate": 11.74,
+      "pricePositionInMorningRange": 0.843,
+      "gtBand": "HEAVY_RISK",
+      "oneDaySurgeScore": 21,
+      "attackTags": [
+        "거래대금 상위 10%",
+        "대형 거래대금",
+        "장초 고가 재돌파",
+        "고가권 유지",
+        "공격형 TOP"
+      ],
+      "riskTags": [
+        "갭 과열",
+        "장초 변동성 큼"
+      ],
+      "shortComment": "거래대금 상위권이면서 장초 고가를 다시 돌파한 공격형 후보입니다.",
+      "targetDir": "2026-05-22",
+      "targetDirSource": "nextDay",
+      "attackRiskLevel": "HIGH_RISK_ATTACK",
+      "attackRiskReasons": [
+        "riskExcluded=group_off_pool",
+        "tradePlan AUTO_EXCLUDED_RISK",
+        "갭 21.58%",
+        "전일 대비 +29.46%"
+      ],
+      "isAlreadyFired": true,
+      "alreadyFiredReason": "전일 대비 29.46% 진행 (≥20%)",
+      "displayPolicyNote": "위험 감수형 공격 후보 — 변동성이 크고 고점 이탈 위험이 있으나, 장초 재상승/재돌파 흐름이 있어 공격형 감시 대상으로 유지합니다."
+    },
+    {
+      "code": "009420",
+      "name": "한올바이오파마",
+      "market": "KOSPI",
+      "attackRank": 2,
+      "attackScore": 38,
+      "decisionTime": "09:30",
+      "decisionPrice": 57300,
+      "signalPrice": 57300,
+      "prevClose": 39200,
+      "open0900": 53800,
+      "gapRate": 37.24,
+      "morningValue": 48377028050,
+      "morningValueRank": 10,
+      "morningValuePercentile": 8,
+      "isTop10Value": true,
+      "morningHigh": 57100,
+      "rebreakMorningHigh": true,
+      "rebreakTime": "09:40",
+      "rebreakWithValue": false,
+      "valueContinueRatio": 0.269,
+      "valueSecondWaveRatio": 0,
+      "decisionFromPrevClose": 46.17,
+      "decisionFromOpen": 6.51,
+      "morningRangeRate": 19.96,
+      "pricePositionInMorningRange": 0.959,
+      "gtBand": "HEAVY_WATCH",
+      "oneDaySurgeScore": 7,
+      "attackTags": [
+        "거래대금 상위 10%",
+        "대형 거래대금",
+        "장초 고가 재돌파",
+        "고가권 유지",
+        "공격형 TOP"
+      ],
+      "riskTags": [
+        "갭 과열",
+        "시가 대비 너무 멀어짐",
+        "장초 변동성 큼",
+        "거래대금 급감"
+      ],
+      "shortComment": "거래대금 상위권이면서 장초 고가를 다시 돌파한 공격형 후보입니다.",
+      "targetDir": "2026-05-22",
+      "targetDirSource": "nextDay",
+      "attackRiskLevel": "HIGH_RISK_ATTACK",
+      "attackRiskReasons": [
+        "riskExcluded=group_off_pool",
+        "tradePlan AUTO_EXCLUDED_RISK",
+        "갭 37.24%",
+        "전일 대비 +46.17%"
+      ],
+      "isAlreadyFired": true,
+      "alreadyFiredReason": "전일 대비 46.17% 진행 (≥20%)",
+      "displayPolicyNote": "위험 감수형 공격 후보 — 변동성이 크고 고점 이탈 위험이 있으나, 장초 재상승/재돌파 흐름이 있어 공격형 감시 대상으로 유지합니다."
+    }
+  ]
+}

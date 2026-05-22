@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-21T12:24:30.317Z",
+  "lastUpdated": "2026-05-22T01:05:05.168Z",
   "entries": [
     {
       "date": "2026-03-26",
@@ -343,6 +343,48 @@
       "name": "아이큐어",
       "reason": "empty_bars (likely halted)",
       "recordedAt": "2026-05-21T01:05:05.965Z"
+    },
+    {
+      "date": "2026-05-22",
+      "code": "016790",
+      "name": "현대사료",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-22T01:05:02.608Z"
+    },
+    {
+      "date": "2026-05-22",
+      "code": "001570",
+      "name": "금양",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-22T01:05:03.018Z"
+    },
+    {
+      "date": "2026-05-22",
+      "code": "380540",
+      "name": "옵티코어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-22T01:05:03.411Z"
+    },
+    {
+      "date": "2026-05-22",
+      "code": "073640",
+      "name": "테라사이언스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-22T01:05:03.861Z"
+    },
+    {
+      "date": "2026-05-22",
+      "code": "041590",
+      "name": "플래스크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-22T01:05:04.299Z"
+    },
+    {
+      "date": "2026-05-22",
+      "code": "182400",
+      "name": "엔케이젠바이오텍코리아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-22T01:05:04.801Z"
     }
   ]
 }
