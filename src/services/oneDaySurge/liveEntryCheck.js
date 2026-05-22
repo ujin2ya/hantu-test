@@ -12,9 +12,17 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..', '..', '..');
 const INTRADAY_BASE = path.join(ROOT, 'data', 'intraday', '1ds');
 
+const { getAccessToken } = require('../kis/kisToken');
+const { getMinuteBarsAt, normalizeBars } = require('../kis/kisMinuteBars');
+
 // 30초 TTL 메모리 캐시
 const CACHE_TTL_MS = 30 * 1000;
 const cache = new Map();
+
+// KIS 실시간 분봉 보강 — 종목당 30초 inflight coalesce (동시 클릭 방어)
+const liveBarsCache = new Map();
+const LIVE_BARS_TTL_MS = 30 * 1000;
+const liveBarsInflight = new Map();
 
 function nowKstIso() {
   const kst = new Date(Date.now() + 9 * 3600 * 1000);
@@ -239,6 +247,77 @@ function buildLevels(base1000, pre1000High) {
   };
 }
 
+// 클릭 시점에 KIS 분봉 1콜로 최신 분봉 30개 보강.
+// 다음 cron(12:30 / 15:30) 사이 갭에서도 10:00 이후 분봉을 채울 수 있게 한다.
+// 종목당 30초 TTL + inflight coalesce — 동시 클릭/연속 새로고침에 KIS 호출 폭주 방어.
+async function fetchLiveBarsForToday(code) {
+  if (!process.env.KIS_BASE_URL || !process.env.KIS_APP_KEY || !process.env.KIS_APP_SECRET) {
+    return null; // KIS 자격증명 미설정 환경(로컬 개발 등)
+  }
+  const cached = liveBarsCache.get(code);
+  if (cached && (Date.now() - cached.savedAt) < LIVE_BARS_TTL_MS) {
+    return cached.bars;
+  }
+  if (liveBarsInflight.has(code)) {
+    return liveBarsInflight.get(code);
+  }
+  const promise = (async () => {
+    try {
+      const token = await getAccessToken();
+      // 현재 KST 시각으로 endHour 구성 — KIS가 그 시점에서 거꾸로 30bar 반환
+      const fmt = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Seoul',
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+      });
+      const parts = fmt.formatToParts(new Date());
+      let hh = '10', mm = '00', ss = '00';
+      for (const p of parts) {
+        if (p.type === 'hour') hh = p.value;
+        else if (p.type === 'minute') mm = p.value;
+        else if (p.type === 'second') ss = p.value;
+      }
+      if (hh === '24') hh = '00';
+      const endHour = `${hh}${mm}${ss}`;
+      const res = await getMinuteBarsAt(token, code, endHour, 'N');
+      const raw = res.output2 || [];
+      const bars = normalizeBars(raw);
+      liveBarsCache.set(code, { savedAt: Date.now(), bars });
+      return bars;
+    } catch (e) {
+      // KIS 실패는 silent — 기존 파일 bars 만으로 진행
+      return null;
+    } finally {
+      liveBarsInflight.delete(code);
+    }
+  })();
+  liveBarsInflight.set(code, promise);
+  return promise;
+}
+
+function mergeBars(prevBars, newBars) {
+  const byTime = new Map();
+  for (const b of (prevBars || [])) if (b && b.time) byTime.set(b.time, b);
+  for (const b of (newBars  || [])) if (b && b.time) byTime.set(b.time, b);
+  return Array.from(byTime.values()).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+}
+
+function isTodayKst(dateStr) {
+  try {
+    const fmt = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+    });
+    const parts = fmt.formatToParts(new Date());
+    let y = '', m = '', d = '';
+    for (const p of parts) {
+      if (p.type === 'year') y = p.value;
+      else if (p.type === 'month') m = p.value;
+      else if (p.type === 'day') d = p.value;
+    }
+    return dateStr === `${y}-${m}-${d}`;
+  } catch (_) { return false; }
+}
+
 async function analyzeLiveEntryFor1dsSurvivor({ date, code, name }) {
   const err = validateInputs(date, code);
   if (err) return { ok: false, reason: err };
@@ -251,9 +330,26 @@ async function analyzeLiveEntryFor1dsSurvivor({ date, code, name }) {
   }
 
   const data = loadIntradayBars(date, code);
-  if (!data) {
+  let fileBars = data ? data.bars : null;
+  let resolvedName = name || (data && data.name) || null;
+
+  // 오늘 KST 일 때 KIS 실시간 분봉 1콜로 보강 — file bars 가 없거나 post-1000 부족할 때 모두 적용
+  let liveSource = 'INTRADAY_LAST_CLOSE';
+  if (isTodayKst(date)) {
+    // 1차로 file bars 로 시도 → post-1000 부족하면 KIS 보강
+    const trialSummary = fileBars ? computeSummary(fileBars) : { ok: false };
+    if (!trialSummary.ok) {
+      const liveBars = await fetchLiveBarsForToday(code);
+      if (liveBars && liveBars.length > 0) {
+        fileBars = mergeBars(fileBars, liveBars);
+        liveSource = 'KIS_LIVE_MERGED';
+      }
+    }
+  }
+
+  if (!fileBars) {
     const result = {
-      ok: true, code, name: name || null, date,
+      ok: true, code, name: resolvedName, date,
       checkedAt: nowKstIso(),
       verdict: 'DATA_MISSING',
       verdictLabel: '⚪ 데이터 부족',
@@ -266,10 +362,10 @@ async function analyzeLiveEntryFor1dsSurvivor({ date, code, name }) {
     return result;
   }
 
-  const summary = computeSummary(data.bars);
+  const summary = computeSummary(fileBars);
   if (!summary.ok) {
     const result = {
-      ok: true, code, name: name || data.name || null, date,
+      ok: true, code, name: resolvedName, date,
       checkedAt: nowKstIso(),
       verdict: 'DATA_MISSING',
       verdictLabel: '⚪ 데이터 부족',
@@ -289,10 +385,10 @@ async function analyzeLiveEntryFor1dsSurvivor({ date, code, name }) {
 
   const result = {
     ok: true,
-    code, name: name || data.name || null,
+    code, name: resolvedName,
     date,
     checkedAt: nowKstIso(),
-    currentSource: 'INTRADAY_LAST_CLOSE',
+    currentSource: liveSource,
     verdict: verdictInfo.verdict,
     verdictLabel: verdictInfo.verdictLabel,
     explainText: verdictInfo.explainText,
