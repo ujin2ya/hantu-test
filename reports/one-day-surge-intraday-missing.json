@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-22T07:42:55.661Z",
+  "lastUpdated": "2026-05-25T06:30:02.030Z",
   "entries": [
     {
       "date": "2026-03-26",
@@ -385,6 +385,2113 @@
       "name": "엔케이젠바이오텍코리아",
       "reason": "empty_bars (likely halted)",
       "recordedAt": "2026-05-22T01:05:04.801Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "396300",
+      "name": "세아메카닉스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T00:42:07.934Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "036540",
+      "name": "SFA반도체",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:03.086Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "080220",
+      "name": "제주반도체",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:03.455Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "010170",
+      "name": "대한광통신",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:03.827Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "440110",
+      "name": "파두",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:04.197Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "050890",
+      "name": "쏠리드",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:04.577Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "069540",
+      "name": "빛과전자",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:04.948Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "001820",
+      "name": "삼화콘덴서",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:05.324Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "336260",
+      "name": "두산퓨얼셀",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:05.705Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "356680",
+      "name": "엑스게이트",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:06.088Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "178320",
+      "name": "서진시스템",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:06.464Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "046970",
+      "name": "우리로",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:06.839Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "006340",
+      "name": "대원전선",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:07.212Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "017900",
+      "name": "광전자",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:07.585Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "098460",
+      "name": "고영",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:07.959Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "024840",
+      "name": "KBI메탈",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:08.334Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "027360",
+      "name": "아주IB투자",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:08.703Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "078600",
+      "name": "대주전자재료",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:09.077Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "100790",
+      "name": "미래에셋벤처투자",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:09.455Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "322000",
+      "name": "HD현대에너지솔루션",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:09.828Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "048410",
+      "name": "현대바이오",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:10.197Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "018880",
+      "name": "한온시스템",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:10.568Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "456010",
+      "name": "아이씨티케이",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:10.937Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "011790",
+      "name": "SKC",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:11.306Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "403870",
+      "name": "HPSP",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:11.680Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "222800",
+      "name": "심텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:12.049Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "032820",
+      "name": "우리기술",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:12.425Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "125020",
+      "name": "티씨머티리얼즈",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:12.804Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "043260",
+      "name": "성호전자",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:13.175Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "067310",
+      "name": "하나마이크론",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:13.546Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "009420",
+      "name": "한올바이오파마",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:13.917Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "203650",
+      "name": "드림시큐리티",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:14.288Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "062970",
+      "name": "한국첨단소재",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:14.658Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "090710",
+      "name": "휴림로봇",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:15.028Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "001740",
+      "name": "SK네트웍스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:15.398Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "425040",
+      "name": "티이엠씨",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:15.768Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "274090",
+      "name": "켄코아에어로스페이스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:16.138Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "090460",
+      "name": "비에이치",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:16.528Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "319400",
+      "name": "현대무벡스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:16.903Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "226950",
+      "name": "올릭스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:17.274Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "077970",
+      "name": "STX엔진",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:17.655Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "016790",
+      "name": "현대사료",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:18.057Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "064290",
+      "name": "인텍플러스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:18.427Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "417200",
+      "name": "LS머트리얼즈",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:18.797Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "092220",
+      "name": "KEC",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:19.168Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "108490",
+      "name": "로보티즈",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:19.535Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "131970",
+      "name": "두산테스나",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:19.906Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "476830",
+      "name": "알지노믹스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:20.280Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "095610",
+      "name": "테스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:20.650Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "126730",
+      "name": "코칩",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:21.020Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "115500",
+      "name": "케이씨에스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:21.390Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "011930",
+      "name": "신성이엔지",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:21.760Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "307180",
+      "name": "아이엘",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:22.130Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "126340",
+      "name": "비나텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:22.499Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "005950",
+      "name": "이수화학",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:22.868Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "092200",
+      "name": "디아이씨",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:23.236Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "001510",
+      "name": "SK증권",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:23.607Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "032500",
+      "name": "케이엠더블유",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:23.975Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "218410",
+      "name": "RFHIC",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:24.345Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "058610",
+      "name": "에스피지",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:24.715Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "052710",
+      "name": "아모텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:25.090Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "007610",
+      "name": "선도전기",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:25.460Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "072950",
+      "name": "빛샘전자",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:25.833Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "332570",
+      "name": "PS일렉트로닉스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:26.202Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "001570",
+      "name": "금양",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:26.602Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "049080",
+      "name": "기가레인",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:26.972Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "222080",
+      "name": "씨아이에스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:27.344Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "006110",
+      "name": "삼아알미늄",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:27.717Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "000500",
+      "name": "가온전선",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:28.088Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "025560",
+      "name": "미래산업",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:28.463Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "006910",
+      "name": "보성파워텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:28.840Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "347850",
+      "name": "디앤디파마텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:29.211Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "475430",
+      "name": "키스트론",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:29.584Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "491000",
+      "name": "리브스메드",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:29.963Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "077360",
+      "name": "덕산하이메탈",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:30.330Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "005850",
+      "name": "에스엘",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:30.706Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "009470",
+      "name": "삼화전기",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:31.076Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "088350",
+      "name": "한화생명",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:31.455Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "089030",
+      "name": "테크윙",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:31.825Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "138080",
+      "name": "오이솔루션",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:32.203Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "347700",
+      "name": "스피어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:32.572Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "006360",
+      "name": "GS건설",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:32.942Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "004170",
+      "name": "신세계",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:33.313Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "375500",
+      "name": "DL이앤씨",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:33.684Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "204320",
+      "name": "HL만도",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:34.054Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "252990",
+      "name": "샘씨엔에스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:34.423Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "005290",
+      "name": "동진쎄미켐",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:34.792Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "183300",
+      "name": "코미코",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:35.163Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "358570",
+      "name": "지아이이노베이션",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:35.533Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "033790",
+      "name": "피노",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:35.905Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "036710",
+      "name": "심텍홀딩스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:36.275Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "003280",
+      "name": "흥아해운",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:36.651Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "319660",
+      "name": "피에스케이",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:37.021Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "490470",
+      "name": "세미파이브",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:37.392Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "356860",
+      "name": "티엘비",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:37.763Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "327260",
+      "name": "RF머트리얼즈",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:38.134Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "215790",
+      "name": "이노인스트루먼트",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:38.504Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "257720",
+      "name": "실리콘투",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:38.875Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "142280",
+      "name": "녹십자엠에스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:39.245Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "336570",
+      "name": "원텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:39.614Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "071970",
+      "name": "HD현대마린엔진",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:39.984Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "483650",
+      "name": "달바글로벌",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:40.355Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "166090",
+      "name": "하나머티리얼즈",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:40.767Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "452260",
+      "name": "한화갤러리아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:41.133Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "004150",
+      "name": "한솔홀딩스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:41.500Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "489790",
+      "name": "한화비전",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:41.869Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "031330",
+      "name": "에스에이엠티",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:42.240Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "263750",
+      "name": "펄어비스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:42.609Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "093370",
+      "name": "후성",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:42.989Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "082920",
+      "name": "비츠로셀",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:43.360Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "089970",
+      "name": "브이엠",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:43.732Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "054920",
+      "name": "한컴위드",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:44.107Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "142210",
+      "name": "유니트론텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:44.479Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "171090",
+      "name": "선익시스템",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:44.850Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "187660",
+      "name": "페니트리움바이오",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:45.220Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "115440",
+      "name": "우리넷",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:45.589Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "457190",
+      "name": "이수스페셜티케미컬",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:45.961Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "357880",
+      "name": "SKAI",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:46.329Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "380540",
+      "name": "옵티코어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:46.705Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "131290",
+      "name": "티에스이",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:47.076Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "214450",
+      "name": "파마리서치",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:47.443Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "007810",
+      "name": "코리아써키트",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:47.813Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "456160",
+      "name": "지투지바이오",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:48.184Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "122640",
+      "name": "예스티",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:48.553Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "030530",
+      "name": "원익홀딩스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:48.926Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "237690",
+      "name": "에스티팜",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:49.299Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "448900",
+      "name": "한국피아이엠",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:49.678Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "354320",
+      "name": "알멕",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:50.044Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "097230",
+      "name": "HJ중공업",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:50.414Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "295310",
+      "name": "에이치브이엠",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:50.785Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "189300",
+      "name": "인텔리안테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:51.153Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "078350",
+      "name": "한양디지텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:51.525Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "232680",
+      "name": "라온로보틱스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:51.898Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "060370",
+      "name": "LS마린솔루션",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:52.274Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "475150",
+      "name": "SK이터닉스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:52.647Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "290650",
+      "name": "엘앤씨바이오",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:53.015Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "417840",
+      "name": "저스템",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:53.386Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "229640",
+      "name": "LS에코에너지",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:53.755Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "033160",
+      "name": "엠케이전자",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:54.137Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "017800",
+      "name": "현대엘리베이터",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:54.509Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "031980",
+      "name": "피에스케이홀딩스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:54.879Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "149950",
+      "name": "아바텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:55.252Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "184230",
+      "name": "SGA솔루션즈",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:55.622Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "038500",
+      "name": "삼표시멘트",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:55.990Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "084370",
+      "name": "유진테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:56.360Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "078150",
+      "name": "HB테크놀러지",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:56.730Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "139480",
+      "name": "이마트",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:57.103Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "001450",
+      "name": "현대해상",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:57.475Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "092870",
+      "name": "엑시콘",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:57.855Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "033100",
+      "name": "제룡전기",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:58.226Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "084670",
+      "name": "동양고속",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:58.621Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "007390",
+      "name": "네이처셀",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:58.990Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "083650",
+      "name": "비에이치아이",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:59.360Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "230240",
+      "name": "에치에프알",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:05:59.729Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "046890",
+      "name": "서울반도체",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:00.098Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "382800",
+      "name": "지앤비에스 에코",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:00.472Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "254490",
+      "name": "미래반도체",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:00.841Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "090360",
+      "name": "로보스타",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:01.216Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "001430",
+      "name": "세아베스틸지주",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:01.585Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "123860",
+      "name": "아나패스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:01.954Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "432720",
+      "name": "퀄리타스반도체",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:02.327Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "323280",
+      "name": "태성",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:02.696Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "308080",
+      "name": "바이젠셀",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:03.068Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "037030",
+      "name": "파워넷",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:03.441Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "348340",
+      "name": "뉴로메카",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:03.816Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "298020",
+      "name": "효성티앤씨",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:04.190Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "262260",
+      "name": "에이프로",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:04.569Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "012200",
+      "name": "계양전기",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:04.937Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "010820",
+      "name": "퍼스텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:05.316Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "140860",
+      "name": "파크시스템스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:05.689Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "011210",
+      "name": "현대위아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:06.061Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "066430",
+      "name": "아이로보틱스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:06.433Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "003530",
+      "name": "한화투자증권",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:06.804Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "209640",
+      "name": "와이제이링크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:07.176Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "069960",
+      "name": "현대백화점",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:07.546Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "037460",
+      "name": "삼지전자",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:07.918Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "452280",
+      "name": "한선엔지니어링",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:08.291Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "108320",
+      "name": "LX세미콘",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:08.662Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "281740",
+      "name": "레이크머티리얼즈",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:09.035Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "304360",
+      "name": "에스바이오메딕스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:09.405Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "253590",
+      "name": "네오셈",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:09.779Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "066980",
+      "name": "한성크린텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:10.153Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "147760",
+      "name": "피엠티",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:10.526Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "005880",
+      "name": "대한해운",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:10.895Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "005070",
+      "name": "코스모신소재",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:11.266Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "100590",
+      "name": "머큐리",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:11.642Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "023530",
+      "name": "롯데쇼핑",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:12.010Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "355150",
+      "name": "코스텍시스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:12.377Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "083450",
+      "name": "GST",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:12.747Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "446540",
+      "name": "메가터치",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:13.120Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "033640",
+      "name": "네패스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:13.491Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "017960",
+      "name": "한국카본",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:13.859Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "199820",
+      "name": "제일일렉트릭",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:14.228Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "120110",
+      "name": "코오롱인더",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:14.597Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "125490",
+      "name": "한라캐스트",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:14.964Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "195870",
+      "name": "해성디에스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:15.333Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "475830",
+      "name": "오름테라퓨틱",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:15.701Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "187870",
+      "name": "디바이스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:16.084Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "099320",
+      "name": "쎄트렉아이",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:16.463Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "145020",
+      "name": "휴젤",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:16.833Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "376900",
+      "name": "로킷헬스케어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:17.202Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "073640",
+      "name": "테라사이언스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:17.603Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "457370",
+      "name": "한켐",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:17.971Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "234340",
+      "name": "헥토파이낸셜",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:18.386Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "420770",
+      "name": "기가비스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:18.759Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "321370",
+      "name": "센서뷰",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:19.130Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "158430",
+      "name": "아톤",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:19.499Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "253840",
+      "name": "수젠텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:19.870Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "397030",
+      "name": "에이프릴바이오",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:20.240Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "014680",
+      "name": "한솔케미칼",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:20.607Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "020150",
+      "name": "롯데에너지머티리얼즈",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:20.977Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "095910",
+      "name": "에스에너지",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:21.345Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "489500",
+      "name": "엘케이켐",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:21.714Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "011170",
+      "name": "롯데케미칼",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:22.084Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "073490",
+      "name": "LIG아큐버",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:22.450Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "389500",
+      "name": "에스비비테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:22.819Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "066310",
+      "name": "큐에스아이",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:23.189Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "357780",
+      "name": "솔브레인",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:23.556Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "170920",
+      "name": "엘티씨",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:23.970Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "394420",
+      "name": "리센스메디컬",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:24.338Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "402490",
+      "name": "그린리소스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:24.707Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "023160",
+      "name": "태광",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:25.086Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "088280",
+      "name": "쏘닉스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:25.459Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "000650",
+      "name": "천일고속",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:25.860Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "232140",
+      "name": "와이씨",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:26.228Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "080580",
+      "name": "오킨스전자",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:26.597Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "290690",
+      "name": "소룩스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:26.964Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "051900",
+      "name": "LG생활건강",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:27.334Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "004710",
+      "name": "한솔테크닉스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:27.705Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "028670",
+      "name": "팬오션",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:28.074Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "065170",
+      "name": "비엘팜텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:28.444Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "112610",
+      "name": "씨에스윈드",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:28.814Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "008770",
+      "name": "호텔신라",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:29.182Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "242040",
+      "name": "나무기술",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:29.550Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "161580",
+      "name": "필옵틱스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:29.920Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "065350",
+      "name": "신성델타테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:30.289Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "388210",
+      "name": "씨엠티엑스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:30.659Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "348370",
+      "name": "엔켐",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:31.030Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "127120",
+      "name": "제이에스링크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:31.400Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "214150",
+      "name": "클래시스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:31.767Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "458870",
+      "name": "씨어스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:32.139Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "042510",
+      "name": "라온시큐어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:32.505Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "033240",
+      "name": "자화전자",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:32.873Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "328130",
+      "name": "루닛",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:33.242Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "024060",
+      "name": "흥구석유",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:33.608Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "321260",
+      "name": "프로이천",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:33.976Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "025860",
+      "name": "남해화학",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:34.346Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "452190",
+      "name": "한빛레이저",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:34.714Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "476060",
+      "name": "온코닉테라퓨틱스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:35.084Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "174900",
+      "name": "앱클론",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:35.452Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "306620",
+      "name": "지아이에스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:35.821Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "290550",
+      "name": "디케이티",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:36.193Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "039830",
+      "name": "오로라",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:36.563Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "124500",
+      "name": "아이티센글로벌",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:36.939Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "272290",
+      "name": "이녹스첨단소재",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:37.307Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "039200",
+      "name": "오스코텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:37.682Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "161890",
+      "name": "한국콜마",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:38.053Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "003720",
+      "name": "삼영",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:38.426Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "012860",
+      "name": "모베이스전자",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:38.800Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "109080",
+      "name": "옵티시스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:39.170Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "008350",
+      "name": "남선알미늄",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:39.536Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "217590",
+      "name": "티엠씨",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:39.926Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "098120",
+      "name": "마이크로컨텍솔",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:40.295Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "086960",
+      "name": "MDS테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:40.664Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "060250",
+      "name": "NHN KCP",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:41.036Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "101490",
+      "name": "에스앤에스텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:41.405Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "110990",
+      "name": "디아이티",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:41.775Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "196450",
+      "name": "코아시아씨엠",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:42.147Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "005690",
+      "name": "파미셀",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:42.512Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "418420",
+      "name": "라온텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:42.878Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "036170",
+      "name": "에이치엠넥스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:43.245Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "137400",
+      "name": "피엔티",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:43.612Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "064260",
+      "name": "다날",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:43.982Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "264850",
+      "name": "이랜시스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:44.351Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "088130",
+      "name": "동아엘텍",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:44.719Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "036010",
+      "name": "아비코전자",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:45.086Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "161000",
+      "name": "애경케미칼",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:45.455Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "061970",
+      "name": "LB세미콘",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:45.823Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "058430",
+      "name": "포스코스틸리온",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:46.191Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "059090",
+      "name": "미코",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:46.559Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "382840",
+      "name": "원준",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:46.929Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "019210",
+      "name": "와이지-원",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:47.299Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "195940",
+      "name": "HK이노엔",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:47.669Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "056360",
+      "name": "코위버",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:48.043Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "041590",
+      "name": "플래스크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:48.434Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "064760",
+      "name": "티씨케이",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:48.805Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "074600",
+      "name": "원익QnC",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:49.180Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "092190",
+      "name": "서울바이오시스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:49.548Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "003470",
+      "name": "유안타증권",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:49.914Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "182400",
+      "name": "엔케이젠바이오텍코리아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:50.311Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "089010",
+      "name": "켐트로닉스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:50.680Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "061090",
+      "name": "세나테크놀로지",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:51.048Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "192080",
+      "name": "더블유게임즈",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:51.420Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "011000",
+      "name": "진원생명과학",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:51.790Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "192820",
+      "name": "코스맥스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:52.160Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "488280",
+      "name": "에스투더블유",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:52.529Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "331920",
+      "name": "셀레믹스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:52.898Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "042520",
+      "name": "한스바이오메드",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:53.266Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "456040",
+      "name": "OCI",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:53.635Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "083500",
+      "name": "에프엔에스테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:54.004Z"
+    },
+    {
+      "date": "2026-05-25",
+      "code": "185490",
+      "name": "아이진",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-25T01:06:54.373Z"
     }
   ]
 }
