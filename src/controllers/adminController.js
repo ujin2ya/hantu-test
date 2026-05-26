@@ -146,6 +146,25 @@ function postRunDailyUpdate(req, res) {
   res.json({ success: r.ok, message: r.message, startedAt: r.startedAt });
 }
 
+// POST /admin/refresh-nasdaq-theme — 나스닥 테마 감시 수동 새로고침.
+// 06:30 cron과 동일한 시퀀스(fetch + watch 보드 + 1DS pool)를 백그라운드 spawn.
+// 중복 실행 시 success=false, running=true.
+function postRefreshNasdaqTheme(req, res) {
+  const r = triggers.refreshNasdaqTheme();
+  if (r.ok) {
+    return res.json({ ok: true, success: true, message: r.message, startedAt: r.startedAt });
+  }
+  if (r.running) {
+    return res.status(200).json({ ok: false, running: true, message: r.message, startedAt: r.startedAt });
+  }
+  return res.status(500).json({ ok: false, success: false, message: r.message || "failed" });
+}
+
+// GET /admin/nasdaq-theme-status — 새로고침 실행 상태 polling.
+function getNasdaqThemeStatus(req, res) {
+  res.json(triggers.getNasdaqThemeStatus());
+}
+
 // GET /admin/db-signals — 보드 신호 히스토리 조회
 // 쿼리 파라미터 (1개 필수):
 //   ?stockCode=005930
@@ -364,6 +383,7 @@ module.exports = {
   postSend1dsMailAll, postSend1dsMailOne,
   postPatternSeed, postPatternAnalyze, postQvaBacktest,
   postRefreshPatternCache, postRefreshWatchlistBoard, postRefreshAllBoards, postRefresh1dsIntraday, postRefresh1dsSurvivor1000, postRegen1dsScannerBoard, postRunDailyUpdate,
+  postRefreshNasdaqTheme, getNasdaqThemeStatus,
   getDbSignals,
   getDbSignalsOverlap,
   getDbSignalsRepeated,

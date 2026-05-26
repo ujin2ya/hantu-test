@@ -488,10 +488,15 @@ async function main() {
   };
 
   // 9) JSON 저장
+  // 데이터 trigger source — daily의 triggerSource 우선, history entry의 triggerSource fallback, 그것도 없으면 "cron"
+  const triggerSource = themeDailyDoc?.triggerSource || latestDaily?.triggerSource || "cron";
+  const themeFetchedAt = themeDailyDoc?.generatedAt || latestDaily?.generatedAt || null;
   const result = {
     generatedAt: new Date().toISOString(),
     themeDate: latestDaily?.date || null,
     usMarketDate: latestDaily?.usMarketDate || null,
+    triggerSource,            // "cron" | "manual" — 마지막 ticker fetch가 자동 cron인지 수동인지
+    themeFetchedAt,           // nasdaq-theme-daily.json의 generatedAt (마지막 ticker fetch 시각)
     strongThemes: strongThemes.map(k => ({
       themeKey: k, label: themesMap[k].label, ...themeStrength[k],
     })),

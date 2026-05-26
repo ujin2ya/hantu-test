@@ -25,6 +25,13 @@ router.post("/admin/refresh-1ds-survivor1000", requireAdmin, c.postRefresh1dsSur
 router.post("/admin/regen-1ds-scanner-board", requireAdmin, c.postRegen1dsScannerBoard);
 router.post("/admin/run-daily-update", requireAdmin, c.postRunDailyUpdate);
 
+// 나스닥 테마 감시 수동 새로고침 + 상태 polling.
+// POST: 06:30 cron과 동일한 시퀀스(fetch + watch 보드 + 1DS 감시 pool) 백그라운드 spawn.
+// 의도적으로 requireAdmin 게이트 없음 — 보드 화면(/nasdaq-theme-watch, 사이트 비밀번호만 통과한 일반 사용자)에서도
+// 새로고침할 수 있어야 한다는 사용자 요구. 중복 실행 가드는 patternState.refreshingNasdaqTheme로 처리.
+router.post("/admin/refresh-nasdaq-theme", c.postRefreshNasdaqTheme);
+router.get("/admin/nasdaq-theme-status",   c.getNasdaqThemeStatus);
+
 // DB 신호 히스토리 조회 (JSON 응답)
 router.get("/admin/db-signals",                       requireAdmin, c.getDbSignals);
 // 3차 확장 (2026-05-17) — 운영 조회 API 6종

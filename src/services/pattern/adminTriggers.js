@@ -25,6 +25,9 @@ const patternState = {
   // 1DS 스캐너 + 보드만 재생성 (분봉 수집 X, ~10초) — /admin/regen-1ds-scanner-board
   regen1dsScannerBoard: false, regen1dsScannerBoardStartedAt: null, regen1dsScannerBoardFinishedAt: null,
   regen1dsScannerBoardError: null,
+  // 나스닥 테마 감시 수동 새로고침 — cron 06:30 + /admin/refresh-nasdaq-theme
+  refreshingNasdaqTheme: false, nasdaqThemeStartedAt: null, nasdaqThemeFinishedAt: null,
+  nasdaqThemeError: null, nasdaqThemePhase: null, nasdaqThemeLastResult: null,
 };
 
 // 16:35 cron + admin 트리거가 같은 순서로 갱신하는 보드 스크립트 목록.
@@ -537,6 +540,115 @@ function regen1dsScannerBoard() {
   };
 }
 
+// 나스닥 테마 감시 수동 새로고침 — cron 06:30과 동일한 3단계 순차 실행.
+// Phase 1: scripts/fetch-nasdaq-theme-daily.js   (FMP/Yahoo에서 ticker 데이터 fetch → data/theme/nasdaq-theme-daily.json)
+// Phase 2: boards/theme/nasdaq-theme-watch-board.js  (DB 신호 결합 → reports/nasdaq-theme-watch-board-result.{html,json})
+// Phase 3: boards/theme/build-theme-1ds-watch-pool.js  (1DS 감시 후보풀 — cron 일관성)
+// 환경변수 NASDAQ_THEME_SOURCE=manual 전달해 daily.json의 triggerSource를 "manual"로 기록.
+function refreshNasdaqTheme() {
+  if (patternState.refreshingNasdaqTheme) {
+    return {
+      ok: false,
+      running: true,
+      message: "나스닥 테마 감시 새로고침이 이미 실행 중입니다.",
+      startedAt: patternState.nasdaqThemeStartedAt,
+    };
+  }
+  patternState.refreshingNasdaqTheme = true;
+  patternState.nasdaqThemeStartedAt = new Date().toISOString();
+  patternState.nasdaqThemeFinishedAt = null;
+  patternState.nasdaqThemeError = null;
+  patternState.nasdaqThemePhase = "fetch_ticker_quotes";
+  patternState.nasdaqThemeLastResult = null;
+
+  const FETCH_SCRIPT     = path.join(ROOT, "scripts", "fetch-nasdaq-theme-daily.js");
+  const BOARD_SCRIPT     = path.join(ROOT, "boards", "theme", "nasdaq-theme-watch-board.js");
+  const POOL_SCRIPT      = path.join(ROOT, "boards", "theme", "build-theme-1ds-watch-pool.js");
+
+  function runStep(label, prefix, script, env) {
+    return new Promise((resolve) => {
+      const proc = spawn("node", [script], {
+        cwd: ROOT,
+        env: { ...process.env, ...(env || {}) },
+      });
+      let stdout = "", stderr = "";
+      proc.stdout.on("data", (d) => { const s = d.toString(); stdout += s; process.stdout.write(prefix + s); });
+      proc.stderr.on("data", (d) => { const s = d.toString(); stderr += s; process.stderr.write(prefix + " ERR " + s); });
+      proc.on("close", (code) => resolve({ ok: code === 0, code, stdout, stderr, label }));
+      proc.on("error", (err) => resolve({ ok: false, code: -1, stdout, stderr: err.message, label }));
+    });
+  }
+  function accumulate(prefix, res) {
+    if (!res.ok) {
+      const prev = patternState.nasdaqThemeError ? patternState.nasdaqThemeError + " / " : "";
+      patternState.nasdaqThemeError = prev + `${prefix} 실패 (exit ${res.code}): ${(res.stderr || "").slice(0, 300)}`;
+    }
+  }
+
+  (async () => {
+    const t0 = Date.now();
+    const phases = [];
+    try {
+      // Phase 1: fetch ticker quotes
+      patternState.nasdaqThemePhase = "fetch_ticker_quotes";
+      console.log("[Nasdaq Theme Manual] Phase 1: ticker fetch");
+      const ph1t0 = Date.now();
+      const r1 = await runStep("fetch_ticker_quotes", "[NT-FETCH] ", FETCH_SCRIPT, { NASDAQ_THEME_SOURCE: "manual" });
+      phases.push({ phase: "fetch_ticker_quotes", ok: r1.ok, elapsedMs: Date.now() - ph1t0 });
+      accumulate("fetch_ticker_quotes", r1);
+
+      // Phase 2: watch board regen
+      patternState.nasdaqThemePhase = "regen_watch_board";
+      console.log("[Nasdaq Theme Manual] Phase 2: watch board regen");
+      const ph2t0 = Date.now();
+      const r2 = await runStep("regen_watch_board", "[NT-BOARD] ", BOARD_SCRIPT);
+      phases.push({ phase: "regen_watch_board", ok: r2.ok, elapsedMs: Date.now() - ph2t0 });
+      accumulate("regen_watch_board", r2);
+
+      // Phase 3: theme-1ds-watch-pool build (cron 06:30과 동일 동작)
+      patternState.nasdaqThemePhase = "build_1ds_pool";
+      console.log("[Nasdaq Theme Manual] Phase 3: 1DS watch pool build");
+      const ph3t0 = Date.now();
+      const r3 = await runStep("build_1ds_pool", "[NT-POOL] ", POOL_SCRIPT);
+      phases.push({ phase: "build_1ds_pool", ok: r3.ok, elapsedMs: Date.now() - ph3t0 });
+      accumulate("build_1ds_pool", r3);
+
+      const finishedAt = new Date().toISOString();
+      patternState.nasdaqThemeLastResult = {
+        startedAt: patternState.nasdaqThemeStartedAt,
+        finishedAt,
+        elapsedSec: Math.round((Date.now() - t0) / 100) / 10,
+        phases,
+        error: patternState.nasdaqThemeError,
+      };
+      console.log(`[Nasdaq Theme Manual] 완료 ${patternState.nasdaqThemeLastResult.elapsedSec}s` + (patternState.nasdaqThemeError ? ` / 에러: ${patternState.nasdaqThemeError}` : ""));
+    } catch (e) {
+      patternState.nasdaqThemeError = e.message;
+    } finally {
+      patternState.refreshingNasdaqTheme = false;
+      patternState.nasdaqThemePhase = null;
+      patternState.nasdaqThemeFinishedAt = new Date().toISOString();
+    }
+  })();
+
+  return {
+    ok: true,
+    message: "나스닥 테마 감시 새로고침 시작 (백그라운드, 보통 30~90초). ticker fetch → watch 보드 → 1DS 감시 후보풀 순차 실행.",
+    startedAt: patternState.nasdaqThemeStartedAt,
+  };
+}
+
+function getNasdaqThemeStatus() {
+  return {
+    running: !!patternState.refreshingNasdaqTheme,
+    phase: patternState.nasdaqThemePhase,
+    lastStartedAt: patternState.nasdaqThemeStartedAt,
+    lastFinishedAt: patternState.nasdaqThemeFinishedAt,
+    lastError: patternState.nasdaqThemeError,
+    lastResult: patternState.nasdaqThemeLastResult,
+  };
+}
+
 module.exports = {
   patternState,
   BOARD_SCRIPTS,
@@ -549,6 +661,8 @@ module.exports = {
   refresh1dsSurvivor1000,
   regen1dsScannerBoard,
   refreshAllBoards,
+  refreshNasdaqTheme,
+  getNasdaqThemeStatus,
   runDailyUpdate,
   PATTERN_RESULT_PATH,
 };

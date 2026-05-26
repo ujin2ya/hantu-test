@@ -330,11 +330,14 @@ async function main() {
   const downThemes   = themeKeys.filter((k) => themesResult[k].strength === "DOWN");
   const unknownThemes = themeKeys.filter((k) => themesResult[k].strength === "UNKNOWN");
 
+  // 실행 trigger 구분 — cron(기본) / manual(어드민 새로고침). board generator가 화면 표시에 사용.
+  const triggerSource = String(process.env.NASDAQ_THEME_SOURCE || "cron").toLowerCase();
   const result = {
     generatedAt: new Date().toISOString(),
     date: krDate,
     usMarketDate,
     source: "FMP",
+    triggerSource,
     themes: themesResult,
     summary: {
       strongThemes, midThemes, weakThemes, downThemes, unknownThemes,
@@ -365,7 +368,7 @@ async function main() {
     }
   } catch (_) {}
   // 같은 date entry 있으면 교체, 아니면 append
-  const newEntry = { date: krDate, usMarketDate, themes: themesResult };
+  const newEntry = { date: krDate, usMarketDate, triggerSource, generatedAt: result.generatedAt, themes: themesResult };
   const idx = history.findIndex((e) => e.date === krDate);
   if (idx >= 0) history[idx] = newEntry;
   else history.push(newEntry);

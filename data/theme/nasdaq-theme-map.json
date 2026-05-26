@@ -7,14 +7,43 @@
   "themes": {
     "AI_SEMICON": {
       "label": "AI 반도체",
-      "nasdaqTickers": ["NVDA", "AMD", "AVGO", "TSM", "MU", "ARM", "MRVL", "ASML"],
+      "nasdaqTickers": ["NVDA", "AMD", "AVGO", "TSM", "MU", "ARM", "ASML"],
       "krKeywords": ["반도체", "HBM", "AI칩", "파운드리", "메모리", "DRAM"],
       "krStocks": [
         "삼성전자", "SK하이닉스", "한미반도체", "이오테크닉스", "리노공업", "HPSP",
         "동진쎄미켐", "주성엔지니어링", "원익IPS", "솔브레인", "테크윙", "코미코",
         "두산테스나", "디아이티", "ISC", "엘비세미콘", "심텍", "대덕전자", "유진테크"
       ],
-      "description": "AI 반도체 + HBM + 후공정 + 파운드리 장비"
+      "description": "AI 반도체 + HBM + 후공정 + 파운드리 장비 (MRVL은 광통신/네트워크 성격이 강해 AI_INFRA_OPTICAL로 이동, AVGO는 핵심 AI 반도체로 유지)"
+    },
+    "AI_INFRA_OPTICAL": {
+      "label": "AI 인프라/광통신",
+      "nasdaqTickers": ["LITE", "COHR", "AAOI", "CIEN", "INFN", "ANET", "CSCO", "JNPR", "MRVL"],
+      "krKeywords": ["광모듈", "광트랜시버", "광통신", "데이터센터", "데이터센터 네트워크", "네트워크 장비", "광케이블"],
+      "krStocks": [
+        "빛과전자", "대한광통신", "오이솔루션", "우리로"
+      ],
+      "subgroups": {
+        "광모듈/트랜시버": ["LITE", "COHR", "AAOI"],
+        "광통신 장비": ["CIEN", "INFN"],
+        "데이터센터 네트워크": ["ANET", "CSCO", "JNPR"],
+        "네트워크 반도체": ["MRVL"]
+      },
+      "tickerTags": {
+        "LITE":  ["광모듈/트랜시버", "AI 데이터센터"],
+        "COHR":  ["광모듈/트랜시버", "AI 데이터센터"],
+        "AAOI":  ["광모듈/트랜시버", "데이터센터 네트워크"],
+        "CIEN":  ["광통신 장비", "네트워크 인프라"],
+        "INFN":  ["광통신 장비"],
+        "ANET":  ["데이터센터 네트워크", "AI 인프라"],
+        "CSCO":  ["데이터센터 네트워크", "네트워크 인프라"],
+        "JNPR":  ["데이터센터 네트워크", "네트워크 인프라"],
+        "MRVL":  ["네트워크 반도체", "AI 반도체", "데이터센터"]
+      },
+      "externalTagOnly": {
+        "AVGO":  ["네트워크 반도체", "AI 인프라/광통신", "ASIC"]
+      },
+      "description": "AI 데이터센터의 데이터 이동 인프라 — 광모듈/트랜시버 + 광통신 장비 + 데이터센터 네트워크 + 네트워크 반도체. AI 반도체와 함께 움직이지만 연산/칩이 아닌 데이터 이동 쪽. MRVL은 primaryTheme = AI_INFRA_OPTICAL (AI_SEMICON에서 이동). AVGO는 primaryTheme = AI_SEMICON 유지, externalTagOnly로만 표시 — 강도 집계에는 포함되지 않음(중복 집계 방지)."
     },
     "POWER_GRID": {
       "label": "전력기기/전력망",

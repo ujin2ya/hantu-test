@@ -299,6 +299,11 @@
           onclick="regen1dsScannerBoard()">
           <i class="bi bi-arrow-repeat me-1"></i>🔁 1DS 스캐너+보드만 재생성 (KIS 호출 X)
         </button>
+        <button type="button" id="refreshNasdaqThemeBtn" class="btn btn-outline-primary btn-sm"
+          <%= (typeof patternState !== 'undefined' && patternState?.refreshingNasdaqTheme) ? 'disabled' : '' %>
+          onclick="refreshNasdaqTheme()">
+          <i class="bi bi-globe-americas me-1"></i>🔄 나스닥 테마 새로고침 (FMP/Yahoo ticker)
+        </button>
         <form method="post" action="/admin/pattern/analyze" class="m-0" onsubmit="return confirm('패턴 분석을 다시 실행할까요? pattern-result.json 재생성 (~1분). 상세페이지의 진단 lookup에 사용됩니다.');">
           <button type="submit" class="btn btn-outline-secondary btn-sm" <%= (typeof patternState !== 'undefined' && patternState?.analyzing) ? 'disabled' : '' %>>
             <i class="bi bi-cpu me-1"></i>패턴 분석만 재실행
@@ -490,6 +495,40 @@
         }
       } catch (e) {
         alert('오류: ' + e.message);
+      }
+    }
+
+    async function refreshNasdaqTheme() {
+      const msg = '나스닥 테마 새로고침을 실행할까요?\n\n' +
+        '· FMP/Yahoo에서 미국 ticker quote 재수집 (~30~60초)\n' +
+        '· nasdaq-theme-watch-board 재생성\n' +
+        '· theme-1ds-watch-pool 재생성\n' +
+        '· 06:30 cron과 동일 시퀀스, source=manual로 기록됨\n' +
+        '※ ticker 데이터 조회 시 시간이 걸릴 수 있습니다.';
+      if (!confirm(msg)) return;
+      const btn = document.getElementById('refreshNasdaqThemeBtn');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>새로고침 중...'; }
+      try {
+        const resp = await fetch('/admin/refresh-nasdaq-theme', { method: 'POST', credentials: 'same-origin' });
+        if (!resp.ok || resp.redirected) {
+          alert('인증이 만료됐거나 요청 실패. status=' + resp.status);
+          if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-globe-americas me-1"></i>🔄 나스닥 테마 새로고침 (FMP/Yahoo ticker)'; }
+          return;
+        }
+        const data = await resp.json();
+        if (data.ok) {
+          alert('나스닥 테마 새로고침 시작됨 (백그라운드). 30~90초 후 /nasdaq-theme-watch 새로고침해서 확인하세요.');
+          setTimeout(() => { location.reload(); }, 5000);
+        } else if (data.running) {
+          alert(data.message || '이미 실행 중입니다.');
+          if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-globe-americas me-1"></i>🔄 나스닥 테마 새로고침 (FMP/Yahoo ticker)'; }
+        } else {
+          alert('실패: ' + (data.message || '알 수 없는 오류'));
+          if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-globe-americas me-1"></i>🔄 나스닥 테마 새로고침 (FMP/Yahoo ticker)'; }
+        }
+      } catch (e) {
+        alert('오류: ' + e.message);
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-globe-americas me-1"></i>🔄 나스닥 테마 새로고침 (FMP/Yahoo ticker)'; }
       }
     }
 

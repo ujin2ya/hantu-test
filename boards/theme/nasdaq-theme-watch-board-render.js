@@ -153,6 +153,22 @@ module.exports = function renderHtml({ themesMap, themeStrength, latestDaily, re
 
   .empty { padding: 14px; text-align: center; color: #94a3b8; font-size: 12.5px; background: rgba(0,0,0,0.25); border: 1px dashed #334155; border-radius: 6px; margin: 6px 0; }
 
+  /* 수동 새로고침 박스 */
+  .refresh-box { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 8px 12px; margin: 10px 0 14px; }
+  .refresh-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 11.5px; color: #cbd5e1; }
+  .refresh-meta .refresh-label { color: #94a3b8; }
+  .refresh-meta .refresh-value { color: #cbd5e1; font-variant-numeric: tabular-nums; }
+  .refresh-meta .refresh-sep { color: #475569; }
+  .refresh-meta .src-cron   { color: #93c5fd; }
+  .refresh-meta .src-manual { color: #fcd34d; }
+  .refresh-btn { margin-left: auto; background: #1e1b4b; color: #c4b5fd; border: 1px solid #4338ca; border-radius: 4px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.12s; }
+  .refresh-btn:hover:not(:disabled) { background: #312e81; }
+  .refresh-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  .refresh-status { width: 100%; font-size: 11px; color: #94a3b8; margin-top: 2px; }
+  .refresh-status.ok   { color: #86efac; }
+  .refresh-status.err  { color: #fca5a5; }
+  .refresh-status.busy { color: #fcd34d; }
+
   /* 테마 강도 요약 표 */
   .theme-strength-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
   .theme-strength-table th, .theme-strength-table td { padding: 5px 8px; border-bottom: 1px solid #334155; text-align: left; }
@@ -174,6 +190,20 @@ ${getBoardNavHtml('/nasdaq-theme-watch')}
 <h1>🌎 오늘 지켜볼 후보 — 전일 나스닥 테마 기반</h1>
 <div class="subtitle">
   테마 기준일 ${esc(result.themeDate || '—')} · 미국장 ${esc(result.usMarketDate || '—')} · 생성 ${esc(result.generatedAt)}
+</div>
+
+<div class="refresh-box">
+  <div class="refresh-meta">
+    <span class="refresh-label">📅 마지막 ticker 갱신:</span>
+    <span id="lastFetchedAt" class="refresh-value">${esc(result.themeFetchedAt || '—')}</span>
+    <span class="refresh-sep">·</span>
+    <span class="refresh-label">데이터 기준:</span>
+    <span class="refresh-value ${result.triggerSource === 'manual' ? 'src-manual' : 'src-cron'}">${result.triggerSource === 'manual' ? '🖱 수동 새로고침' : '🤖 미국 정규장 마감 후 (cron)'}</span>
+  </div>
+  <button type="button" id="refreshNasdaqThemeBtn" class="refresh-btn" onclick="refreshNasdaqTheme()" title="FMP/Yahoo에서 ticker 데이터를 재수집하고 테마별 강도를 다시 계산합니다.">
+    🔄 나스닥 테마 새로고침
+  </button>
+  <div id="refreshStatus" class="refresh-status"></div>
 </div>
 
 <div class="note">
@@ -376,19 +406,19 @@ function renderByThemeTab() {
   for (const themeKey of themeOrder) {
     const t = window.__THEMES__[themeKey];
     const list = filtered.filter(c => (c.matchedThemes||[]).indexOf(themeKey) >= 0);
-    if (list.length === 0) continue;
-    const isOpen = t.strength === 'STRONG';
+    const isOpen = t.strength === 'STRONG' && list.length > 0;
     const sCls = STRENGTH_LABEL_CLS[t.strength] || 'p-none';
     const shown = list.slice(0, LIMIT_THEME);
     const hidden = list.slice(LIMIT_THEME);
+    const bodyHtml = list.length > 0
+      ? ('<div class="cards">' + shown.map(cardHtml).join('') + '</div>' +
+         (hidden.length ? '<button class="show-more" data-hidden-count="' + hidden.length + '" onclick="expandThemeMore(this,\\''+themeKey+'\\')">+ ' + hidden.length + '건 더 보기</button>' : ''))
+      : ('<div class="empty">관련 국내 종목 매핑이 없거나 최근 수급 흔적이 없음 — 테마 강도만 참고</div>');
     blocks.push(
       '<details class="group"' + (isOpen ? ' open' : '') + ' data-theme="' + themeKey + '">' +
       '<summary><span>' + escHtml(t.label) + ' <span class="pill ' + sCls + '">' + t.strength + '</span></span>' +
       '<span class="count">' + list.length + '건</span></summary>' +
-      '<div class="group-body"><div class="cards">' + shown.map(cardHtml).join('') +
-      '</div>' +
-      (hidden.length ? '<button class="show-more" data-hidden-count="' + hidden.length + '" onclick="expandThemeMore(this,\\''+themeKey+'\\')">+ ' + hidden.length + '건 더 보기</button>' : '') +
-      '</div></details>'
+      '<div class="group-body">' + bodyHtml + '</div></details>'
     );
   }
   container.innerHTML = blocks.join('') || '<div class="empty">필터 조건에 맞는 테마 후보 없음</div>';
@@ -480,6 +510,77 @@ function switchTab(name) {
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
   TAB_RENDERERS[name]();
+}
+
+// ─── 수동 새로고침 ────────────────────────────────────────────────────
+let refreshPolling = null;
+async function refreshNasdaqTheme() {
+  const msg = '나스닥 테마 새로고침을 실행합니다. FMP/Yahoo에서 ticker 데이터를 재수집하고 테마별 강도를 다시 계산합니다. 30~90초 정도 걸릴 수 있습니다.';
+  if (!confirm(msg)) return;
+  const btn = document.getElementById('refreshNasdaqThemeBtn');
+  const sts = document.getElementById('refreshStatus');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 새로고침 중...'; }
+  if (sts) { sts.className = 'refresh-status busy'; sts.textContent = '🔄 요청 전송 중...'; }
+  try {
+    const resp = await fetch('/admin/refresh-nasdaq-theme', { method: 'POST', credentials: 'same-origin' });
+    if (resp.status === 401 || resp.redirected) {
+      alert('관리자 로그인이 필요합니다. /admin/login 에서 로그인 후 다시 시도하세요.');
+      if (btn) { btn.disabled = false; btn.textContent = '🔄 나스닥 테마 새로고침'; }
+      if (sts) { sts.className = 'refresh-status err'; sts.textContent = '⚠ 관리자 로그인 필요'; }
+      return;
+    }
+    if (!resp.ok) {
+      const t = await resp.text();
+      throw new Error('HTTP ' + resp.status + ' ' + t.slice(0, 120));
+    }
+    const data = await resp.json();
+    if (data.running) {
+      if (sts) { sts.className = 'refresh-status busy'; sts.textContent = '⏳ 이미 실행 중 — ' + (data.message || ''); }
+      pollNasdaqThemeStatus();
+      return;
+    }
+    if (!data.ok) {
+      throw new Error(data.message || '시작 실패');
+    }
+    if (sts) { sts.className = 'refresh-status busy'; sts.textContent = '✅ 백그라운드 시작됨 — phase 확인 중...'; }
+    pollNasdaqThemeStatus();
+  } catch (err) {
+    if (sts) { sts.className = 'refresh-status err'; sts.textContent = '❌ 실패: ' + err.message; }
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 나스닥 테마 새로고침'; }
+    alert('새로고침 실패: ' + err.message);
+  }
+}
+function pollNasdaqThemeStatus() {
+  if (refreshPolling) clearInterval(refreshPolling);
+  let ticks = 0;
+  refreshPolling = setInterval(async () => {
+    ticks += 1;
+    if (ticks > 60) { // 5분 타임아웃 (5s × 60)
+      clearInterval(refreshPolling);
+      const sts = document.getElementById('refreshStatus');
+      if (sts) { sts.className = 'refresh-status err'; sts.textContent = '⚠ 타임아웃 — 페이지를 새로고침해서 결과 확인'; }
+      return;
+    }
+    try {
+      const r = await fetch('/admin/nasdaq-theme-status', { credentials: 'same-origin' });
+      if (!r.ok) return;
+      const s = await r.json();
+      const sts = document.getElementById('refreshStatus');
+      if (s.running) {
+        if (sts) { sts.className = 'refresh-status busy'; sts.textContent = '⏳ phase: ' + (s.phase || '...') + ' (' + (ticks * 5) + 's 경과)'; }
+      } else {
+        clearInterval(refreshPolling);
+        if (s.lastError) {
+          if (sts) { sts.className = 'refresh-status err'; sts.textContent = '❌ 실패: ' + s.lastError; }
+          const btn = document.getElementById('refreshNasdaqThemeBtn');
+          if (btn) { btn.disabled = false; btn.textContent = '🔄 나스닥 테마 새로고침'; }
+        } else {
+          if (sts) { sts.className = 'refresh-status ok'; sts.textContent = '✅ 완료 — 3초 후 화면 새로고침'; }
+          setTimeout(() => { location.reload(); }, 3000);
+        }
+      }
+    } catch (_) { /* ignore — 다음 tick에서 재시도 */ }
+  }, 5000);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
