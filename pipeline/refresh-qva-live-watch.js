@@ -128,8 +128,20 @@ function parseArgs(argv) {
       return;
     }
 
-    const targetDate = todayKstYmdDash();
-    console.log(`[refresh-qva-live-watch] 후보 ${codes.length}건 / target-date=${targetDate}`);
+    // collect-1ds-intraday.js --codes 모드는 targetDate의 차트 row를 찾아 D+1을 수집한다.
+    // 당일 차트가 아직 없으므로 오늘(KST) 대신 차트 최신 거래일을 baseDate로 전달해야 한다.
+    const CHART_DIR_PATH = path.join(ROOT, 'cache', 'stock-charts-long');
+    let chartLatest = null;
+    for (const code of codes.slice(0, 5)) {
+      try {
+        const chart = JSON.parse(fs.readFileSync(path.join(CHART_DIR_PATH, code + '.json'), 'utf-8'));
+        const rows = (chart.rows || chart).filter(r => r.volume > 0);
+        const last = rows[rows.length - 1];
+        if (last && last.date) { const d = String(last.date); chartLatest = `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`; break; }
+      } catch (_) {}
+    }
+    const targetDate = chartLatest || todayKstYmdDash();
+    console.log(`[refresh-qva-live-watch] 후보 ${codes.length}건 / target-date=${targetDate} (chart latest 기준)`);
 
     // Phase 2: 분봉 수집 (single endHour 모드)
     // spawn 으로 args 배열 전달 — shell 파싱 안 거치므로 codes 리스트 길이 제약 없음.

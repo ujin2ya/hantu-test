@@ -17,6 +17,7 @@
 const fs = require('fs');
 const path = require('path');
 const { getBoardNavHtml } = require('../../src/utils/boardNav');
+const { isKrHoliday } = require('../../screeners/pattern-screener');
 
 const ROOT = path.join(__dirname, '..', '..');
 const CHART_DIR    = path.join(ROOT, 'cache', 'stock-charts-long');
@@ -95,7 +96,9 @@ async function loadQvaSeed() {
 function decideWatchDate(metaMap) {
   let intradayLatest = null;
   if (fs.existsSync(INTRADAY_DIR)) {
-    const dirs = fs.readdirSync(INTRADAY_DIR).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+    const dirs = fs.readdirSync(INTRADAY_DIR)
+      .filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && !isKrHoliday(d.replace(/-/g, '')))
+      .sort();
     if (dirs.length) intradayLatest = dirs[dirs.length - 1];
   }
   // chart 최신 baseDate (sample 5종목으로 추정)
