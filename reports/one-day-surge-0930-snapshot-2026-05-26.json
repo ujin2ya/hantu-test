@@ -1,0 +1,107 @@
+{
+  "snapshotDate": "2026-05-26",
+  "savedAt": "2026-05-26T00:58:06.623Z",
+  "survivor1000": [],
+  "explosiveStable": [
+    {
+      "code": "001740",
+      "name": "SK네트웍스",
+      "market": "KOSPI",
+      "marketCap": 1298900000000,
+      "baseDate": "20260522",
+      "avg20Value": 87403603414,
+      "baseValue": 79641500400,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 8800,
+        "last0930": 9490,
+        "high0930": 9580,
+        "low0930": 8750,
+        "value_0930": 58723108665,
+        "volume_0930": 6322073,
+        "closePosition0930": 0.892,
+        "openToLastRate": 7.84,
+        "highToLastDrop": -0.94,
+        "valueToAvgRatio_0930": 9.59,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 24.28,
+      "finalScore": 245.08,
+      "hasTenRebreak": false,
+      "tenRebreakTrigger": null,
+      "hasFadedRecovery": false,
+      "hasSurvivor1000": false,
+      "survivor1000": null,
+      "triggeredHypos": [],
+      "explosiveScore": 253.08,
+      "isSurvivor1000": false,
+      "isExplosiveTop": true,
+      "isAttackRebreak": false,
+      "overlapBadges": [
+        "조기 포착",
+        "10시 확인 필요"
+      ],
+      "suggestedStrategy": {
+        "type": "STABLE_SCALP",
+        "label": "안정형 단타",
+        "takeProfit": "+5%",
+        "stopLoss": "-2%",
+        "note": "19거래일 검증 기준 +5%/-2% 전략이 안정적 (n=64, 평균 +0.97%, 승률 46.9%, +10% 12.5%)"
+      },
+      "reason": "09:30 조기 포착 — 10시 생존 확인 전 감시 후보"
+    },
+    {
+      "code": "093370",
+      "name": "후성",
+      "market": "KOSPI",
+      "marketCap": 1420100000000,
+      "baseDate": "20260522",
+      "avg20Value": 35804208885,
+      "baseValue": 31436831160,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 13120,
+        "last0930": 13560,
+        "high0930": 13690,
+        "low0930": 12810,
+        "value_0930": 12156681785,
+        "volume_0930": 906005,
+        "closePosition0930": 0.852,
+        "openToLastRate": 3.35,
+        "highToLastDrop": -0.95,
+        "valueToAvgRatio_0930": 5.03,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 7.51,
+      "finalScore": 84.37,
+      "hasTenRebreak": false,
+      "tenRebreakTrigger": null,
+      "hasFadedRecovery": false,
+      "hasSurvivor1000": false,
+      "survivor1000": null,
+      "triggeredHypos": [],
+      "explosiveScore": 92.37,
+      "isSurvivor1000": false,
+      "isExplosiveTop": true,
+      "isAttackRebreak": false,
+      "overlapBadges": [
+        "조기 포착",
+        "10시 확인 필요"
+      ],
+      "suggestedStrategy": {
+        "type": "STABLE_SCALP",
+        "label": "안정형 단타",
+        "takeProfit": "+5%",
+        "stopLoss": "-2%",
+        "note": "19거래일 검증 기준 +5%/-2% 전략이 안정적 (n=64, 평균 +0.97%, 승률 46.9%, +10% 12.5%)"
+      },
+      "reason": "09:30 조기 포착 — 10시 생존 확인 전 감시 후보"
+    }
+  ],
+  "attackTopCandidates": [],
+  "attackTopHighRisk": []
+}

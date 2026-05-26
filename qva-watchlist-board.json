@@ -4,8 +4,8 @@
     "notice": "본 보드는 매수 추천이 아니라 후보 추적/모니터링용입니다. 실제 매매는 차트, 뉴스, 시장 상황을 함께 보고 판단해야 합니다.",
     "boardBasisNotice": "현재 보드는 최신 거래일 기준으로 생성됩니다. 오늘이 휴장일이면 마지막 거래일 데이터를 기준으로 표시됩니다.",
     "today": "20260522",
-    "todayCalendarDate": "20260525",
-    "todayCalendarLabel": "휴장/주말",
+    "todayCalendarDate": "20260526",
+    "todayCalendarLabel": "거래일",
     "beforeMarketOpen": false,
     "latestTradingDate": "20260522",
     "nextTradingDate": "20260526",
@@ -152,13 +152,13 @@
       "FAR_FROM_BASE": "기준 종가 대비 많이 떠 있어 추격 위험이 있습니다.",
       "QUIET_BREAKOUT": "기준선은 돌파했지만 거래대금 증가는 보통 수준입니다."
     },
-    "generatedAt": "2026-05-25T07:35:12.989Z"
+    "generatedAt": "2026-05-26T00:17:41.554Z"
   },
   "summary": {
     "today": "20260522",
     "todayDateLabel": "2026-05-22",
-    "todayCalendarDate": "20260525",
-    "todayCalendarLabel": "휴장/주말",
+    "todayCalendarDate": "20260526",
+    "todayCalendarLabel": "거래일",
     "beforeMarketOpen": false,
     "latestTradingDate": "20260522",
     "nextTradingDate": "20260526",
@@ -183,7 +183,7 @@
       "LONG_QVA_ALL": 16,
       "FAILED": 243
     },
-    "generatedAt": "2026-05-25T07:35:12.989Z"
+    "generatedAt": "2026-05-26T00:17:41.554Z"
   },
   "earlyQvaSummary": {
     "todayCount": 1,

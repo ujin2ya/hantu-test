@@ -975,13 +975,18 @@ function loadIntradayDirs() {
 }
 function findNextDayDir(baseDate, intradayDirs) {
   const baseFmt = baseDate.slice(0, 4) + '-' + baseDate.slice(4, 6) + '-' + baseDate.slice(6, 8);
-  // 가장 가까운 다음 거래일 디렉토리. 단 baseDate에서 7일 이상 떨어지면 stale로 간주 (보드는 "오늘 뜰 후보" 보드)
-  const nextDir = intradayDirs.find((d) => d > baseFmt);
-  if (!nextDir) return null;
   const baseMs = new Date(baseFmt + 'T00:00:00Z').getTime();
-  const nextMs = new Date(nextDir + 'T00:00:00Z').getTime();
-  if ((nextMs - baseMs) > 7 * 24 * 3600 * 1000) return null; // 7일 초과 = 데이터 fresh 매칭 X
-  return nextDir;
+  // 가장 가까운 다음 거래일 디렉토리. 휴일 디렉토리(KR_HOLIDAYS)는 건너뜀.
+  // 7일 초과 = stale (보드는 "오늘 뜰 후보" 보드)
+  for (const d of intradayDirs) {
+    if (d <= baseFmt) continue;
+    const dateNum = d.replace(/-/g, '');
+    if (isKrHoliday(dateNum)) continue;
+    const nextMs = new Date(d + 'T00:00:00Z').getTime();
+    if ((nextMs - baseMs) > 7 * 24 * 3600 * 1000) return null;
+    return d;
+  }
+  return null;
 }
 function loadMinuteBars(nextDayDir, code) {
   if (!nextDayDir) return null;
