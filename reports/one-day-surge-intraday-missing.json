@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-26T01:03:04.972Z",
+  "lastUpdated": "2026-05-26T07:42:17.157Z",
   "entries": [
     {
       "date": "2026-03-26",
@@ -2534,6 +2534,13 @@
       "name": "엔케이젠바이오텍코리아",
       "reason": "empty_bars (likely halted)",
       "recordedAt": "2026-05-26T01:03:04.617Z"
+    },
+    {
+      "date": "2026-05-26",
+      "code": "900300",
+      "name": "오가닉티코스메틱",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-05-26T06:32:16.068Z"
     }
   ]
 }
