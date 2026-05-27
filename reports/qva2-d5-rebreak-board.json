@@ -3,9 +3,9 @@
     "title": "QVA2 D+5 재돌파 운용 보드",
     "subtitle": "QVA2 BREAKOUT 후보의 D+0 고가를 D+1~D+5 안에 다시 종가 돌파했는지 추적",
     "caution": "실험 라인. 매수 확정 신호 아님.",
-    "generatedAt": "2026-05-26T07:35:20.257Z",
-    "baseDate": "20260526",
-    "baseDateFmt": "2026-05-26",
+    "generatedAt": "2026-05-27T09:30:39.992Z",
+    "baseDate": "20260527",
+    "baseDateFmt": "2026-05-27",
     "maxDays": 5,
     "statusLabels": {
       "TODAY_INITIAL_BREAKOUT": "오늘 D+0 돌파",
@@ -25,9 +25,9 @@
   "counts": {
     "total": 2,
     "closeRebreak": 1,
-    "today": 1,
+    "today": 0,
     "intraday": 0,
-    "breach": 0,
+    "breach": 1,
     "noRebreak": 0
   },
   "byStatus": {
@@ -48,8 +48,8 @@
         "breakoutHigh": 2235,
         "breakoutClose": 2235,
         "entryPrice": 1808.91,
-        "daysFromBreakout": 3,
-        "trackingEnd": "20260526",
+        "daysFromBreakout": 4,
+        "trackingEnd": "20260527",
         "rebreakDate": "20260521",
         "rebreakClose": 2315,
         "rebreakDayOffset": 1,
@@ -61,12 +61,12 @@
         "recoveredAfterBreach": false,
         "maxHighAfter": 2805,
         "maxHighDate": "20260521",
-        "minCloseAfter": 2055,
-        "minCloseDate": "20260526",
-        "currentClose": 2055,
-        "currentDate": "20260526",
-        "currentVsBreakoutHighPct": -8.05,
-        "currentVsEntryPct": 13.6,
+        "minCloseAfter": 1906,
+        "minCloseDate": "20260527",
+        "currentClose": 1906,
+        "currentDate": "20260527",
+        "currentVsBreakoutHighPct": -14.72,
+        "currentVsEntryPct": 5.37,
         "trackedDays": [
           {
             "date": "20260521",
@@ -101,16 +101,32 @@
             "high": 2360,
             "low": 2030,
             "close": 2055,
-            "volume": 5178241,
-            "valueApprox": 10641285255,
+            "volume": 5194576,
+            "valueApprox": 10674853680,
             "vsBreakoutHighPct": 5.59,
             "closeVsBreakoutHighPct": -8.05,
             "closeVsEntryPct": 13.6
+          },
+          {
+            "date": "20260527",
+            "dayOffset": 4,
+            "open": 2055,
+            "high": 2090,
+            "low": 1905,
+            "close": 1906,
+            "volume": 2130114,
+            "valueApprox": 4059997284,
+            "vsBreakoutHighPct": -6.49,
+            "closeVsBreakoutHighPct": -14.72,
+            "closeVsEntryPct": 5.37
           }
-        ]
+        ],
+        "cacheMtimeHtml": " <span class=\"cache-price\" style=\"font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;\">1,906원</span> <span class=\"cache-mtime\" style=\"font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;\">05/27 16:22</span>"
       }
     ],
-    "TODAY_INITIAL_BREAKOUT": [
+    "TODAY_INITIAL_BREAKOUT": [],
+    "INTRADAY_PUSHBACK": [],
+    "BREACH_NO_RECOVER": [
       {
         "code": "263860",
         "name": "지니언스",
@@ -121,36 +137,49 @@
         "qva2Grade": "WATCH_QVA2",
         "vvi2Date": "20260522",
         "vvi2High": 16640,
-        "status": "TODAY_INITIAL_BREAKOUT",
-        "statusLabel": "오늘 D+0 돌파",
+        "status": "BREACH_NO_RECOVER",
+        "statusLabel": "진입가 이탈 후 회복 실패",
         "breakoutDate": "20260526",
         "breakoutHigh": 20550,
         "breakoutClose": 17520,
         "entryPrice": 16806.4,
-        "daysFromBreakout": 0,
-        "trackingEnd": "20260526",
+        "daysFromBreakout": 1,
+        "trackingEnd": "20260527",
         "rebreakDate": null,
         "rebreakClose": null,
         "rebreakDayOffset": null,
         "rebreakValueRatio": null,
         "intradayDate": null,
         "intradayHigh": null,
-        "breachDate": null,
-        "breachClose": null,
+        "breachDate": "20260527",
+        "breachClose": 16700,
         "recoveredAfterBreach": false,
         "maxHighAfter": 20550,
         "maxHighDate": "20260526",
-        "minCloseAfter": 17520,
-        "minCloseDate": "20260526",
-        "currentClose": 17520,
-        "currentDate": "20260526",
-        "currentVsBreakoutHighPct": -14.74,
-        "currentVsEntryPct": 4.25,
-        "trackedDays": []
+        "minCloseAfter": 16700,
+        "minCloseDate": "20260527",
+        "currentClose": 16700,
+        "currentDate": "20260527",
+        "currentVsBreakoutHighPct": -18.73,
+        "currentVsEntryPct": -0.63,
+        "trackedDays": [
+          {
+            "date": "20260527",
+            "dayOffset": 1,
+            "open": 17520,
+            "high": 18480,
+            "low": 16530,
+            "close": 16700,
+            "volume": 278642,
+            "valueApprox": 4653321400,
+            "vsBreakoutHighPct": -10.07,
+            "closeVsBreakoutHighPct": -18.73,
+            "closeVsEntryPct": -0.63
+          }
+        ],
+        "cacheMtimeHtml": " <span class=\"cache-price\" style=\"font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;\">16,700원</span> <span class=\"cache-mtime\" style=\"font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;\">05/27 16:21</span>"
       }
     ],
-    "INTRADAY_PUSHBACK": [],
-    "BREACH_NO_RECOVER": [],
     "NO_REBREAK": []
   }
 }

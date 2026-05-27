@@ -33,6 +33,41 @@ const OUT_HTML = path.join(REPORTS_DIR, 'hgroup-rebreak-operation-board-result.h
 
 const MAX_DAYS = 5;
 
+const _cacheInfoMemo = new Map();
+function fmtCacheMtime(code) {
+  if (_cacheInfoMemo.has(code)) return _cacheInfoMemo.get(code);
+  let html = '';
+  try {
+    const p = path.join(CHART_DIR, code + '.json');
+    const m = fs.statSync(p).mtime;
+    const pad = n => String(n).padStart(2, '0');
+    const dateStr = pad(m.getMonth() + 1) + '/' + pad(m.getDate()) + ' ' + pad(m.getHours()) + ':' + pad(m.getMinutes());
+    let priceHtml = '';
+    try {
+      const rows = JSON.parse(fs.readFileSync(p, 'utf-8')).rows || [];
+      const last = rows.length > 0 ? rows[rows.length - 1] : null;
+      if (last && typeof last.close === 'number') {
+        priceHtml = ' <span class="cache-price" style="font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;">' + last.close.toLocaleString('ko-KR') + '원</span>';
+      }
+    } catch (_) {}
+    html = priceHtml + ' <span class="cache-mtime" style="font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;">' + dateStr + '</span>';
+  } catch (_) {}
+  _cacheInfoMemo.set(code, html);
+  return html;
+}
+function attachCacheMtimeRecursive(obj, seen) {
+  seen = seen || new WeakSet();
+  if (!obj || typeof obj !== 'object' || seen.has(obj)) return;
+  seen.add(obj);
+  if (Array.isArray(obj)) { obj.forEach(x => attachCacheMtimeRecursive(x, seen)); return; }
+  if (typeof obj.code === 'string' && /^\d{6}$/.test(obj.code) && obj.cacheMtimeHtml === undefined) {
+    obj.cacheMtimeHtml = fmtCacheMtime(obj.code);
+  }
+  for (const k in obj) {
+    if (typeof obj[k] === 'object' && obj[k] !== null) attachCacheMtimeRecursive(obj[k], seen);
+  }
+}
+
 // 사용자 spec 2026-05-06: rebreak deep-dive 결과 반영. 상태 체계 8종.
 // 종가 재돌파 = 가장 강한 시그널 / 장중만 = 부정 / 이탈 후 당일 회복 = 착시 (실제 약함).
 const STATUS_LABELS = {
@@ -594,6 +629,7 @@ async function main() {
     },
     items,
   };
+  attachCacheMtimeRecursive(out);
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
 
   // HTML
@@ -946,7 +982,7 @@ function renderCards() {
     }
     html.push(
       '<div class="card s-' + it.rebreakStatus + '">' +
-        '<h3><a href="/d5-rebreak/' + it.code + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;border-bottom:1px dotted #475569;">' + (it.name || '') + '</a> <span style="color:#64748b;font-size:13px;font-weight:400;">' + it.code + '</span> <a href="/d5-rebreak/' + it.code + '" target="_blank" rel="noopener" style="color:#94a3b8;text-decoration:none;font-size:12px;font-weight:400;margin-left:6px;" title="상세 페이지로 이동">↗ 상세</a></h3>' +
+        '<h3><a href="/d5-rebreak/' + it.code + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;border-bottom:1px dotted #475569;">' + (it.name || '') + '</a>' + (it.cacheMtimeHtml || '') + ' <span style="color:#64748b;font-size:13px;font-weight:400;">' + it.code + '</span> <a href="/d5-rebreak/' + it.code + '" target="_blank" rel="noopener" style="color:#94a3b8;text-decoration:none;font-size:12px;font-weight:400;margin-left:6px;" title="상세 페이지로 이동">↗ 상세</a></h3>' +
         '<div class="meta">' +
           '<span class="badge st-' + it.rebreakStatus + '">' + it.rebreakStatusLabel + '</span>' +
           buildLifecycleBadge(it) +

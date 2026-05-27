@@ -42,6 +42,41 @@ const INTRADAY_BASE = path.join(ROOT, 'data', 'intraday', '1ds');
 const MANUAL_TARGETS_PATH = path.join(ROOT, 'data', 'manual-1ds-targets.json');
 const SCANNER_0930_PATH = path.join(REPORTS_DIR, 'one-day-surge-0930-scanner.json');
 const OUT_JSON = path.join(REPORTS_DIR, 'one-day-surge-board-result.json');
+
+const _cacheInfoMemo = new Map();
+function fmtCacheMtime(code) {
+  if (_cacheInfoMemo.has(code)) return _cacheInfoMemo.get(code);
+  let html = '';
+  try {
+    const p = path.join(CHART_DIR, code + '.json');
+    const m = fs.statSync(p).mtime;
+    const pad = n => String(n).padStart(2, '0');
+    const dateStr = pad(m.getMonth() + 1) + '/' + pad(m.getDate()) + ' ' + pad(m.getHours()) + ':' + pad(m.getMinutes());
+    let priceHtml = '';
+    try {
+      const rows = JSON.parse(fs.readFileSync(p, 'utf-8')).rows || [];
+      const last = rows.length > 0 ? rows[rows.length - 1] : null;
+      if (last && typeof last.close === 'number') {
+        priceHtml = ' <span class="cache-price" style="font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;">' + last.close.toLocaleString('ko-KR') + '원</span>';
+      }
+    } catch (_) {}
+    html = priceHtml + ' <span class="cache-mtime" style="font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;">' + dateStr + '</span>';
+  } catch (_) {}
+  _cacheInfoMemo.set(code, html);
+  return html;
+}
+function attachCacheMtimeRecursive(obj, seen) {
+  seen = seen || new WeakSet();
+  if (!obj || typeof obj !== 'object' || seen.has(obj)) return;
+  seen.add(obj);
+  if (Array.isArray(obj)) { obj.forEach(x => attachCacheMtimeRecursive(x, seen)); return; }
+  if (typeof obj.code === 'string' && /^\d{6}$/.test(obj.code) && obj.cacheMtimeHtml === undefined) {
+    obj.cacheMtimeHtml = fmtCacheMtime(obj.code);
+  }
+  for (const k in obj) {
+    if (typeof obj[k] === 'object' && obj[k] !== null) attachCacheMtimeRecursive(obj[k], seen);
+  }
+}
 const OUT_HTML = path.join(REPORTS_DIR, 'one-day-surge-board-result.html');
 
 // ─────────────────────────────────────────────────────────────────
@@ -2517,6 +2552,7 @@ async function main() {
   _trace('066430', '아이로보틱스');
   _trace('456010', '아이씨티케이');
 
+  attachCacheMtimeRecursive(out);
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
   const { getBoardNavHtml: _getNav } = require('../../src/utils/boardNav');
   fs.writeFileSync(OUT_HTML,
@@ -3993,7 +4029,7 @@ function buildCardHtml(it) {
   }
 
   return '<div class="card g-' + it.gtGroup + '" data-group="' + it.gtGroup + '" data-candle="' + (it.candleType || '') + '" data-qva="' + (it.qvaHistoryLabel ? '1' : '0') + '" data-has-qva="' + (it.hasRecentQva ? '1' : '0') + '" data-vvi="' + (it.vviHistory ? '1' : '0') + '" data-strategies="' + ((it.entryStrategies || []).join(',')) + '" data-manual-targets="' + (it.manualTargets ? '1' : '0') + '" data-trade-plan="' + (it.tradePlan && it.tradePlan.status || 'NONE') + '">' +
-    '<h3><a class="name-link" href="/one-day-surge-board/' + it.code + '" title="' + (it.name || '-').replace(/"/g,'&quot;') + ' 상세 (통일 상세 페이지)">' + (it.name || '-') + '</a> <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' + statusBadge + ' ' + scannerOverlapBadge(it) + ' ' + entryStatusPill(it) + '</h3>' +
+    '<h3><a class="name-link" href="/one-day-surge-board/' + it.code + '" title="' + (it.name || '-').replace(/"/g,'&quot;') + ' 상세 (통일 상세 페이지)">' + (it.name || '-') + '</a>' + (it.cacheMtimeHtml || '') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' + statusBadge + ' ' + scannerOverlapBadge(it) + ' ' + entryStatusPill(it) + '</h3>' +
     qvaStrip +
     '<div class="meta">' + strategyChips(it) + badges.join('') + '</div>' +
     perfBox +
@@ -4117,7 +4153,7 @@ const PREMARKET_MODE = isPremarketMode();
       ? '<div style="margin-top:8px;text-align:right;"><button class="live-entry-check-btn" data-code="' + e.code + '" data-name="' + (e.name || e.code).replace(/"/g,'&quot;') + '" data-date="' + (DATA.todayResultSummary?.targetDate || '') + '">🔎 지금 진입 가능 여부 분석</button></div>'
       : '';
     return '<div class="card s-' + e.status + '">' +
-      '<h3><a class="name-link" href="/one-day-surge-board/' + e.code + '" title="' + (e.name || e.code).replace(/"/g,'&quot;') + ' 상세">' + (e.name || e.code) + '</a> <span class="code">' + e.code + '</span> <span class="market">' + (e.market || '') + '</span>' +
+      '<h3><a class="name-link" href="/one-day-surge-board/' + e.code + '" title="' + (e.name || e.code).replace(/"/g,'&quot;') + ' 상세">' + (e.name || e.code) + '</a>' + (e.cacheMtimeHtml || '') + ' <span class="code">' + e.code + '</span> <span class="market">' + (e.market || '') + '</span>' +
       ' <span class="badge ' + statusCls + '">' + (e.statusLabel || e.status) + '</span>' +
       // finalScore 배지 (READY 상태만 의미 있음)
       (e.status === 'READY' && Number.isFinite(e.finalScore) ? ' <span class="badge aux" title="실전 우선 후보 선출용 종합 점수 (finalScore)">final ' + e.finalScore.toFixed(1) + '</span>' : '') +
@@ -4520,7 +4556,7 @@ document.getElementById('foot').innerHTML =
       '<div class="ac-head">' +
         '<span class="ac-rank">#' + c.attackRank + '</span>' +
         '<div class="ac-title">' +
-          '<a class="name-link" href="/one-day-surge-board/' + esc(c.code) + '" title="' + esc(c.name) + ' 상세 (통일 상세 페이지)">' + esc(c.name) + '</a>' +
+          '<a class="name-link" href="/one-day-surge-board/' + esc(c.code) + '" title="' + esc(c.name) + ' 상세 (통일 상세 페이지)">' + esc(c.name) + '</a>' + (c.cacheMtimeHtml || '') +
           '<span class="code">' + esc(c.code) + '</span>' +
           (c.market ? '<span class="market">' + esc(c.market) + '</span>' : '') +
         '</div>' +

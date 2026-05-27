@@ -34,6 +34,41 @@ const REPORTS_DIR  = path.join(ROOT, 'reports');
 const OUT_JSON     = path.join(REPORTS_DIR, 'qva2-watchlist-board.json');
 const OUT_HTML     = path.join(REPORTS_DIR, 'qva2-watchlist-board.html');
 
+const _cacheInfoMemo = new Map();
+function fmtCacheMtime(code) {
+  if (_cacheInfoMemo.has(code)) return _cacheInfoMemo.get(code);
+  let html = '';
+  try {
+    const p = path.join(CHART_DIR, code + '.json');
+    const m = fs.statSync(p).mtime;
+    const pad = n => String(n).padStart(2, '0');
+    const dateStr = pad(m.getMonth() + 1) + '/' + pad(m.getDate()) + ' ' + pad(m.getHours()) + ':' + pad(m.getMinutes());
+    let priceHtml = '';
+    try {
+      const rows = JSON.parse(fs.readFileSync(p, 'utf-8')).rows || [];
+      const last = rows.length > 0 ? rows[rows.length - 1] : null;
+      if (last && typeof last.close === 'number') {
+        priceHtml = ' <span class="cache-price" style="font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;">' + last.close.toLocaleString('ko-KR') + '원</span>';
+      }
+    } catch (_) {}
+    html = priceHtml + ' <span class="cache-mtime" style="font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;">' + dateStr + '</span>';
+  } catch (_) {}
+  _cacheInfoMemo.set(code, html);
+  return html;
+}
+function attachCacheMtimeRecursive(obj, seen) {
+  seen = seen || new WeakSet();
+  if (!obj || typeof obj !== 'object' || seen.has(obj)) return;
+  seen.add(obj);
+  if (Array.isArray(obj)) { obj.forEach(x => attachCacheMtimeRecursive(x, seen)); return; }
+  if (typeof obj.code === 'string' && /^\d{6}$/.test(obj.code) && obj.cacheMtimeHtml === undefined) {
+    obj.cacheMtimeHtml = fmtCacheMtime(obj.code);
+  }
+  for (const k in obj) {
+    if (typeof obj[k] === 'object' && obj[k] !== null) attachCacheMtimeRecursive(obj[k], seen);
+  }
+}
+
 const TRACKING_DAYS = 30;            // 20 → 30 (D+21~30은 "연장 추적 구간" 태그)
 const TRACKING_DAYS_PRIMARY = 20;     // D+20까지가 일반 추적, D+21~30은 연장
 const RECENT_BREAKOUT_DAYS = 5;
@@ -586,6 +621,7 @@ async function main() {
     followReactionList,
   };
 
+  attachCacheMtimeRecursive(out);
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
   fs.writeFileSync(OUT_HTML, buildHtml(out), 'utf-8');
 
@@ -974,7 +1010,7 @@ function card(e) {
     : '';
   return '<div class="card s-' + stage + '">' +
     '<h3>' +
-      '<a class="name-link" href="/qva2-watchlist/' + e.code + '">' + (e.name || e.code) + '</a>' +
+      '<a class="name-link" href="/qva2-watchlist/' + e.code + '">' + (e.name || e.code) + '</a>' + (e.cacheMtimeHtml || '') +
       '<span class="code">' + e.code + '</span>' +
       '<span class="market">' + (e.market || '') + '</span>' +
       '<span class="grade-badge">QVA2 ' + e.qva2Score + '점 · ' + (e.qva2Grade || '') + '</span>' +

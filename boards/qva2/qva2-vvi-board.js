@@ -32,6 +32,41 @@ const QVA2_BOARD   = path.join(REPORTS_DIR, 'qva2-watchlist-board.json');
 const OUT_JSON     = path.join(REPORTS_DIR, 'qva2-vvi-board.json');
 const OUT_HTML     = path.join(REPORTS_DIR, 'qva2-vvi-board.html');
 
+const _cacheInfoMemo = new Map();
+function fmtCacheMtime(code) {
+  if (_cacheInfoMemo.has(code)) return _cacheInfoMemo.get(code);
+  let html = '';
+  try {
+    const p = path.join(CHART_DIR, code + '.json');
+    const m = fs.statSync(p).mtime;
+    const pad = n => String(n).padStart(2, '0');
+    const dateStr = pad(m.getMonth() + 1) + '/' + pad(m.getDate()) + ' ' + pad(m.getHours()) + ':' + pad(m.getMinutes());
+    let priceHtml = '';
+    try {
+      const rows = JSON.parse(fs.readFileSync(p, 'utf-8')).rows || [];
+      const last = rows.length > 0 ? rows[rows.length - 1] : null;
+      if (last && typeof last.close === 'number') {
+        priceHtml = ' <span class="cache-price" style="font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;">' + last.close.toLocaleString('ko-KR') + '원</span>';
+      }
+    } catch (_) {}
+    html = priceHtml + ' <span class="cache-mtime" style="font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;">' + dateStr + '</span>';
+  } catch (_) {}
+  _cacheInfoMemo.set(code, html);
+  return html;
+}
+function attachCacheMtimeRecursive(obj, seen) {
+  seen = seen || new WeakSet();
+  if (!obj || typeof obj !== 'object' || seen.has(obj)) return;
+  seen.add(obj);
+  if (Array.isArray(obj)) { obj.forEach(x => attachCacheMtimeRecursive(x, seen)); return; }
+  if (typeof obj.code === 'string' && /^\d{6}$/.test(obj.code) && obj.cacheMtimeHtml === undefined) {
+    obj.cacheMtimeHtml = fmtCacheMtime(obj.code);
+  }
+  for (const k in obj) {
+    if (typeof obj[k] === 'object' && obj[k] !== null) attachCacheMtimeRecursive(obj[k], seen);
+  }
+}
+
 const VVI2_LOOKBACK_DAYS = Number(process.env.VVI2_LOOKBACK_DAYS || 30);
 const TOP_LIMIT          = Number(process.env.VVI2_TOP_LIMIT || 30);
 const MIN_CLOSE_PULLBACK = -0.05;   // QVA2 종가 대비 -5% 이상 무너졌으면 자격 상실
@@ -399,6 +434,7 @@ async function main() {
     },
   };
 
+  attachCacheMtimeRecursive(out);
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
   fs.writeFileSync(OUT_HTML, buildHtml(out), 'utf-8');
 
@@ -664,7 +700,7 @@ function card(e) {
   const isVvi = e.status === 'VVI2_FIRED';
   return '<div class="card s-' + e.status + '">' +
     '<h3>' +
-      '<a class="name-link" href="/qva2-vvi/' + e.code + '">' + (e.name || e.code) + '</a>' +
+      '<a class="name-link" href="/qva2-vvi/' + e.code + '">' + (e.name || e.code) + '</a>' + (e.cacheMtimeHtml || '') +
       '<span class="code">' + e.code + '</span>' +
       '<span class="market">' + (e.market || '') + '</span>' +
       '<span class="status-badge">' + e.statusLabel + '</span>' +

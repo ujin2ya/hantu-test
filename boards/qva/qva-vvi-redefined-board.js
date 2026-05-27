@@ -39,6 +39,41 @@ const NAVER_LIST_PATH = path.join(ROOT, 'cache', 'naver-stocks-list.json');
 const OUT_JSON = path.join(REPORTS_DIR, 'qva-vvi-redefined-board-result.json');
 const OUT_HTML = path.join(REPORTS_DIR, 'qva-vvi-redefined-board-result.html');
 
+const _cacheInfoMemo = new Map();
+function fmtCacheMtime(code) {
+  if (_cacheInfoMemo.has(code)) return _cacheInfoMemo.get(code);
+  let html = '';
+  try {
+    const p = path.join(CHART_DIR, code + '.json');
+    const m = fs.statSync(p).mtime;
+    const pad = n => String(n).padStart(2, '0');
+    const dateStr = pad(m.getMonth() + 1) + '/' + pad(m.getDate()) + ' ' + pad(m.getHours()) + ':' + pad(m.getMinutes());
+    let priceHtml = '';
+    try {
+      const rows = JSON.parse(fs.readFileSync(p, 'utf-8')).rows || [];
+      const last = rows.length > 0 ? rows[rows.length - 1] : null;
+      if (last && typeof last.close === 'number') {
+        priceHtml = ' <span class="cache-price" style="font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;">' + last.close.toLocaleString('ko-KR') + '원</span>';
+      }
+    } catch (_) {}
+    html = priceHtml + ' <span class="cache-mtime" style="font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;">' + dateStr + '</span>';
+  } catch (_) {}
+  _cacheInfoMemo.set(code, html);
+  return html;
+}
+function attachCacheMtimeRecursive(obj, seen) {
+  seen = seen || new WeakSet();
+  if (!obj || typeof obj !== 'object' || seen.has(obj)) return;
+  seen.add(obj);
+  if (Array.isArray(obj)) { obj.forEach(x => attachCacheMtimeRecursive(x, seen)); return; }
+  if (typeof obj.code === 'string' && /^\d{6}$/.test(obj.code) && obj.cacheMtimeHtml === undefined) {
+    obj.cacheMtimeHtml = fmtCacheMtime(obj.code);
+  }
+  for (const k in obj) {
+    if (typeof obj[k] === 'object' && obj[k] !== null) attachCacheMtimeRecursive(obj[k], seen);
+  }
+}
+
 const VVI_LOOKBACK_DAYS = Number(process.env.VVI_LOOKBACK_DAYS || 20);
 const TOP_LIMIT         = Number(process.env.VVI_TOP_LIMIT || 10);
 // 추격 부담 임계값
@@ -462,6 +497,7 @@ async function main() {
     todayNewVvi: todayNewList,
   };
 
+  attachCacheMtimeRecursive(out);
   fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2));
   const { getBoardNavHtml: _getNav } = require('../../src/utils/boardNav');
   fs.writeFileSync(OUT_HTML,
@@ -726,7 +762,7 @@ function buildCardHtml(it) {
     ? '<span class="status-badge" style="background:#1e3a8a;color:#bfdbfe;border-color:#3b82f6;">📅 오늘 신규 VVI2</span>'
     : '';
   return '<div class="card s-' + it.status + '">' +
-    '<h3><a class="name-link" href="/qva-vvi-redefined/' + it.code + '">' + (it.name || '-') + '</a> <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' +
+    '<h3><a class="name-link" href="/qva-vvi-redefined/' + it.code + '">' + (it.name || '-') + '</a>' + (it.cacheMtimeHtml || '') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' +
       groupBadge + ' ' + todayBadge + '</h3>' +
     '<div class="metrics-grid">' +
       '<div class="metric"><div class="label">QVA 때 만든 고점</div><div class="value">' + fmtNum(it.qvaHigh) + '원</div><div class="sub">' + fmtDate(it.qvaSignalDate) + ' 종가 ' + fmtNum(it.qvaClose) + '</div></div>' +
@@ -754,7 +790,7 @@ function buildValueInsufCardHtml(it) {
   const valueFillPct  = isNum(it.valueFillRatio)  ? Math.round(it.valueFillRatio  * 100) : null;
   const volumeFillPct = isNum(it.volumeFillRatio) ? Math.round(it.volumeFillRatio * 100) : null;
   return '<div class="card preview s-PRICE_ONLY">' +
-    '<h3><a class="name-link" href="/qva-vvi-redefined/' + it.code + '">' + (it.name || '-') + '</a> <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' +
+    '<h3><a class="name-link" href="/qva-vvi-redefined/' + it.code + '">' + (it.name || '-') + '</a>' + (it.cacheMtimeHtml || '') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' +
       '<span class="status-badge badge-ref">⚠️ 거래대금 부족 돌파 참고</span> ' +
       '<span class="status-badge badge-ref">참고용</span></h3>' +
     '<div class="metrics-grid">' +
@@ -773,7 +809,7 @@ function buildValueInsufCardHtml(it) {
 // 고점 재돌파 대기 (E그룹) — 메인 후보 아님, 작은 회색 카드
 function buildWaitingCardHtml(it) {
   return '<div class="card preview s-WAITING">' +
-    '<h3><a class="name-link" href="/qva-vvi-redefined/' + it.code + '">' + (it.name || '-') + '</a> <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' +
+    '<h3><a class="name-link" href="/qva-vvi-redefined/' + it.code + '">' + (it.name || '-') + '</a>' + (it.cacheMtimeHtml || '') + ' <span class="code">' + it.code + '</span> <span class="market">' + (it.market || '-') + '</span> ' +
       '<span class="status-badge badge-wait">⏳ 고점 재돌파 대기</span> ' +
       '<span class="status-badge badge-wait">대기 후보</span></h3>' +
     '<div class="metrics-grid">' +
