@@ -1,0 +1,64 @@
+{
+  "snapshotDate": "2026-06-02",
+  "savedAt": "2026-06-02T00:44:05.279Z",
+  "survivor1000": [],
+  "explosiveStable": [],
+  "attackTopCandidates": [],
+  "attackTopHighRisk": [
+    {
+      "code": "090360",
+      "name": "로보스타",
+      "market": "KOSDAQ",
+      "attackRank": 1,
+      "attackScore": 46,
+      "decisionTime": "09:30",
+      "decisionPrice": 154000,
+      "signalPrice": 154000,
+      "prevClose": 94000,
+      "open0900": 151400,
+      "gapRate": 61.06,
+      "morningValue": 160277478950,
+      "morningValueRank": 2,
+      "morningValuePercentile": 1.6,
+      "isTop10Value": true,
+      "morningHigh": 155000,
+      "rebreakMorningHigh": true,
+      "rebreakTime": "09:40",
+      "rebreakWithValue": false,
+      "valueContinueRatio": 0.269,
+      "valueSecondWaveRatio": 0,
+      "decisionFromPrevClose": 63.83,
+      "decisionFromOpen": 1.72,
+      "morningRangeRate": 17.63,
+      "pricePositionInMorningRange": 1,
+      "gtBand": "MID_CAP",
+      "oneDaySurgeScore": 50,
+      "attackTags": [
+        "거래대금 상위 10%",
+        "대형 거래대금",
+        "장초 고가 재돌파",
+        "고가권 유지",
+        "공격형 TOP"
+      ],
+      "riskTags": [
+        "갭 과열",
+        "장초 변동성 큼",
+        "거래대금 급감"
+      ],
+      "shortComment": "거래대금 상위권이면서 장초 고가를 다시 돌파한 공격형 후보입니다.",
+      "targetDir": "2026-06-02",
+      "targetDirSource": "nextDay",
+      "attackRiskLevel": "HIGH_RISK_ATTACK",
+      "attackRiskReasons": [
+        "riskExcluded=group_off_pool",
+        "tradePlan AUTO_EXCLUDED_RISK",
+        "갭 61.06%",
+        "전일 대비 +63.83%"
+      ],
+      "isAlreadyFired": true,
+      "alreadyFiredReason": "전일 대비 63.83% 진행 (≥20%)",
+      "displayPolicyNote": "위험 감수형 공격 후보 — 변동성이 크고 고점 이탈 위험이 있으나, 장초 재상승/재돌파 흐름이 있어 공격형 감시 대상으로 유지합니다.",
+      "cacheMtimeHtml": " <span class=\"cache-price\" style=\"font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;\">122,200원</span> <span class=\"cache-mtime\" style=\"font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;\">06/01 16:21</span>"
+    }
+  ]
+}
