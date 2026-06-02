@@ -423,4 +423,404 @@ async function analyzeLiveEntryFor1dsSurvivor({ date, code, name }) {
   return result;
 }
 
-module.exports = { analyzeLiveEntryFor1dsSurvivor };
+// ─────────────────────────────────────────────────────────────────────────────
+// 단순화 분석 — watchOnly / explosiveStable / attackRebreak 카드용
+//
+// 기존 analyzeLiveEntryFor1dsSurvivor 의 verdict/levels/추천선 표시는 "10시 생존 후보"
+// 기준 평가라 다른 그룹에 그대로 적용하면 의미가 달라진다. 사용자 결정:
+// 매수가/손절가 표시 안 함, 신호 강도 + 위험 지표만 표시.
+//
+// 핵심 지표는 audit (scripts/one-ds-excluded-plus8-intraday-hold-rebreak-audit.js)
+// 결과를 근거로 그룹별로 다르게 매핑한다. 활성화 시각(11:00 / 13:00 / 14:00)이
+// 도달하지 않은 지표는 "대기" 상태로 노출하고 score 계산에서는 분모에서 제외.
+
+const SIMPLIFIED_SECTION_LABEL = {
+  watchOnly:       '관찰 제외',
+  explosiveStable: '09:30 조기 포착',
+  attackRebreak:   '공격형 재돌파 감시',
+};
+
+const SIMPLIFIED_AUDIT_NOTES = {
+  watchOnly:       '관찰 제외 그룹 N=313 백테스트(2026-02~06, 20거래일) 기반. lift80 1.93~2.45 검증 지표.',
+  explosiveStable: '동일 분봉 지표를 09:30 조기 포착 카드에 참고용으로 적용. audit 검증 모집단은 관찰 제외 그룹.',
+  attackRebreak:   '동일 분봉 지표를 공격형 재돌파 카드에 참고용으로 적용. audit 검증 모집단은 관찰 제외 그룹.',
+};
+
+const VERDICT_LABEL = {
+  // watchOnly
+  HOLD_FOR_1100:           '🟡 11시 강한 유지 대기',
+  WAIT_FOR_1300:           '🟢 오후 재돌파 관찰 유지',
+  HOLD_OK:                 '🟢 고가권 유지 신호 강함',
+  WATCH_BUT_WEAK:          '🟠 신호 약함 / 관찰',
+  FADED:                   '🔴 고점 이탈',
+  // explosiveStable
+  MOMENTUM_STRONG:         '🟢 모멘텀 강함 (10시 고가권 유지)',
+  MOMENTUM_HOLD:           '🟡 모멘텀 유지',
+  EXTENDED_OVERHEAT:       '🟠 과열 진입 위험',
+  FAILED_FOLLOWTHROUGH:    '🔴 후속 동력 실패',
+  // attackRebreak
+  REBREAK_LIVE_NOW:        '🟢 현재 재돌파 진행 중',
+  WAITING_REBREAK:         '🟡 재돌파 대기',
+  REBREAK_FAILED:          '🟠 재돌파 시도 후 실패',
+  BROKEN:                  '🔴 morningHigh 이탈',
+  // common
+  DATA_MISSING:            '⚪ 데이터 부족',
+};
+
+// 그룹별 지표 정의 (key, label, weight, activeAfter — HH:MM 시각 또는 null)
+const SIMPLIFIED_INDICATOR_DEFS = {
+  watchOnly: [
+    { key: 'holdHigh1100_97',  label: '11시 ≥97% 고가 유지',         weight: 30, activeAfter: '11:00', auditLift80: 1.93 },
+    { key: 'rebreakAfter1300', label: '13시 이후 오전 고가 재돌파',    weight: 25, activeAfter: '13:00', auditLift80: 2.19 },
+    { key: 'rebreakAfter1400', label: '14시 이후 오전 고가 재돌파',    weight: 25, activeAfter: '14:00', auditLift80: 2.45 },
+    { key: 'holdHigh1100_95',  label: '11시 ≥95% 고가 유지',         weight: 15, activeAfter: '11:00', auditLift80: 1.49 },
+    { key: 'valueStrong',      label: '거래대금 3배+ (전일 대비)',     weight:  5, activeAfter: null,    auditLift80: 1.31 },
+  ],
+  explosiveStable: [
+    { key: 'holdHigh1000_97',         label: '10시 ≥97% 고가 유지',                weight: 30, activeAfter: '10:00', auditLift80: 1.33 },
+    { key: 'rebreakMorningHigh_10_30', label: '09:11~09:30 첫 10분 고점 재돌파', weight: 25, activeAfter: null,    auditLift80: null },
+    { key: 'priceAbove0930Close',     label: '현재가 > 09:30 close',              weight: 20, activeAfter: '09:31', auditLift80: null },
+    { key: 'valueStrong',             label: '거래대금 3배+ (전일 대비)',           weight: 15, activeAfter: null,    auditLift80: 1.31 },
+    { key: 'notOverheat18pct',        label: '현재가 < 전일 종가 × 1.18 (과열 X)', weight: 10, activeAfter: null,    auditLift80: null },
+  ],
+  attackRebreak: [
+    { key: 'rebreakInProgress',  label: '현재 분봉 > morningHigh (재돌파 진행)', weight: 35, activeAfter: null,    auditLift80: null },
+    { key: 'priceAboveMorningHigh', label: '현재가 > morningHigh',             weight: 25, activeAfter: null,    auditLift80: null },
+    { key: 'holdHigh1100_95',    label: '11시 ≥95% 고가 유지',                 weight: 20, activeAfter: '11:00', auditLift80: 1.49 },
+    { key: 'rebreakAfter1300',   label: '13시 이후 오전 고가 재돌파',          weight: 15, activeAfter: '13:00', auditLift80: 2.19 },
+    { key: 'valueStrong',        label: '거래대금 3배+ (전일 대비)',           weight:  5, activeAfter: null,    auditLift80: 1.31 },
+  ],
+};
+
+// HH:MM 비교 가능한 timeOk
+function isAtOrAfter(nowHm, threshold) {
+  if (!threshold) return true;
+  return String(nowHm) >= String(threshold);
+}
+
+// 분봉 배열에서 cutoff(HH:MM) 이하 close 마지막 + 그 범위 high
+function snapAt(bars, cutoff) {
+  const inWin = bars.filter((b) => b && b.time && b.time <= cutoff && b.close > 0);
+  if (inWin.length === 0) return null;
+  let high = 0;
+  for (const b of inWin) if (b.high > high) high = b.high;
+  return { close: inWin[inWin.length - 1].close, high, lastTime: inWin[inWin.length - 1].time };
+}
+
+// 분봉에서 startTime(HH:MM, 배타) 이후 첫 high > threshold
+function firstRebreakAfter(bars, startTime, threshold) {
+  for (const b of bars) {
+    if (!b || !b.time) continue;
+    if (b.time <= startTime) continue;
+    if (b.high > threshold) return { time: b.time, price: b.high };
+  }
+  return null;
+}
+
+// D-1 일봉 row (prevClose, prevValue 용도)
+function loadPrevDayRow(code, dateStr) {
+  try {
+    const fp = path.join(ROOT, 'cache', 'stock-charts-long', `${code}.json`);
+    if (!fs.existsSync(fp)) return null;
+    const j = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+    const rows = j.rows || [];
+    const dnum = dateStr.replace(/-/g, '');
+    const idx = rows.findIndex((r) => r.date === dnum);
+    if (idx <= 0) return null;
+    return rows[idx - 1];
+  } catch (_) { return null; }
+}
+
+// 지표 + 위험 신호 산출
+function buildSimplifiedAnalysis(bars, prevRow, sectionKind, nowHm) {
+  // 공통 지표 계산
+  const snap0930 = snapAt(bars, '09:30');
+  const snap1000 = snapAt(bars, '10:00');
+  const snap1100 = snapAt(bars, '11:00');
+  const morningSnap = snapAt(bars, '11:30');
+
+  // 현재 = 마지막 분봉
+  const lastBar = bars.length ? bars[bars.length - 1] : null;
+  const currentPrice = lastBar ? lastBar.close : null;
+  const currentTime = lastBar ? lastBar.time : null;
+  const prevClose = prevRow && prevRow.close > 0 ? prevRow.close : null;
+  const prevDayValue = prevRow && prevRow.valueApprox > 0 ? prevRow.valueApprox : null;
+
+  // 누적 거래대금 (acmlValue 마지막)
+  let cumulativeValue = 0;
+  for (const b of bars) if (b && Number.isFinite(b.value)) cumulativeValue += b.value;
+
+  // morningHigh = 09:00~11:30 (정확히는 11:30 이전) max
+  const morningHigh = morningSnap ? morningSnap.high : (snap1100 ? snap1100.high : null);
+
+  // 첫 10분 / 09:11~09:30 — explosiveStable rebreakMorningHigh_10_30
+  const bars0_10 = bars.filter((b) => b && b.time && b.time <= '09:10' && b.close > 0);
+  const bars10_30 = bars.filter((b) => b && b.time > '09:10' && b.time <= '09:30' && b.close > 0);
+  const max0_10 = bars0_10.length ? Math.max(...bars0_10.map((b) => b.high || 0)) : 0;
+  const max10_30 = bars10_30.length ? Math.max(...bars10_30.map((b) => b.high || 0)) : 0;
+  const rebreakMorningHigh_10_30 = max10_30 > 0 && max0_10 > 0 && max10_30 > max0_10;
+
+  // 재돌파 시각/가격
+  const rb1000 = snap1000 ? firstRebreakAfter(bars, '10:00', snap1000.high) : null;
+  const rb1100 = snap1100 ? firstRebreakAfter(bars, '11:00', snap1100.high) : null;
+  const rb1300 = morningHigh ? firstRebreakAfter(bars, '13:00', morningHigh) : null;
+  const rb1400 = morningHigh ? firstRebreakAfter(bars, '14:00', morningHigh) : null;
+
+  // 지표값 산출 헬퍼
+  const indicatorValues = {
+    holdHigh1100_97:           snap1100 && snap1100.high > 0 ? (snap1100.close / snap1100.high) : null,
+    holdHigh1100_95:           snap1100 && snap1100.high > 0 ? (snap1100.close / snap1100.high) : null,
+    holdHigh1000_97:           snap1000 && snap1000.high > 0 ? (snap1000.close / snap1000.high) : null,
+    rebreakAfter1300:          rb1300,
+    rebreakAfter1400:          rb1400,
+    rebreakMorningHigh_10_30:  rebreakMorningHigh_10_30,
+    priceAbove0930Close:       (snap0930 && currentPrice != null) ? (currentPrice > snap0930.close) : null,
+    valueStrong:               (cumulativeValue > 0 && prevDayValue) ? (cumulativeValue / prevDayValue >= 3) : null,
+    notOverheat18pct:          (currentPrice != null && prevClose) ? (currentPrice < prevClose * 1.18) : null,
+    rebreakInProgress:         (lastBar && morningHigh) ? (lastBar.high > morningHigh) : null,
+    priceAboveMorningHigh:     (currentPrice != null && morningHigh) ? (currentPrice > morningHigh) : null,
+  };
+
+  const defs = SIMPLIFIED_INDICATOR_DEFS[sectionKind] || [];
+  const indicators = [];
+  let activeWeightSum = 0;
+  let metWeightSum = 0;
+
+  for (const def of defs) {
+    const timeOk = isAtOrAfter(nowHm, def.activeAfter);
+    const raw = indicatorValues[def.key];
+    let met = null, valueText = null;
+
+    if (!timeOk) {
+      // 시각 미달 → 대기
+      met = null;
+      valueText = (def.activeAfter || '') + ' 이후 대기';
+    } else if (def.key === 'holdHigh1100_97') {
+      met = raw != null && raw >= 0.97;
+      valueText = raw != null ? `${(raw * 100).toFixed(1)}%` : '데이터 부족';
+    } else if (def.key === 'holdHigh1100_95') {
+      met = raw != null && raw >= 0.95;
+      valueText = raw != null ? `${(raw * 100).toFixed(1)}%` : '데이터 부족';
+    } else if (def.key === 'holdHigh1000_97') {
+      met = raw != null && raw >= 0.97;
+      valueText = raw != null ? `${(raw * 100).toFixed(1)}%` : '데이터 부족';
+    } else if (def.key === 'rebreakAfter1300' || def.key === 'rebreakAfter1400') {
+      met = raw != null && raw !== false;
+      valueText = raw && raw.time ? `${raw.time} 돌파` : '미발생';
+    } else if (def.key === 'rebreakMorningHigh_10_30') {
+      met = raw === true;
+      valueText = max0_10 > 0 ? (met ? `09:30까지 첫10분 고점(${max0_10})  돌파` : `첫10분 고점 ${max0_10} 미돌파`) : '09:30 이전';
+    } else if (def.key === 'priceAbove0930Close') {
+      met = raw === true;
+      valueText = (snap0930 && currentPrice != null) ? `${currentPrice} vs 09:30 ${snap0930.close}` : '데이터 부족';
+    } else if (def.key === 'valueStrong') {
+      met = raw === true;
+      const ratio = (cumulativeValue > 0 && prevDayValue) ? (cumulativeValue / prevDayValue).toFixed(2) : null;
+      valueText = ratio ? `${ratio}× (전일 ${(prevDayValue / 1e8).toFixed(1)}억 대비)` : '전일 거래대금 미상';
+    } else if (def.key === 'notOverheat18pct') {
+      met = raw === true;
+      valueText = (currentPrice != null && prevClose) ? `+${((currentPrice / prevClose - 1) * 100).toFixed(1)}% (한도 +18%)` : '데이터 부족';
+    } else if (def.key === 'rebreakInProgress') {
+      met = raw === true;
+      valueText = (lastBar && morningHigh) ? `${currentTime} high ${lastBar.high} vs morningHigh ${morningHigh}` : '데이터 부족';
+    } else if (def.key === 'priceAboveMorningHigh') {
+      met = raw === true;
+      valueText = (currentPrice != null && morningHigh) ? `${currentPrice} vs morningHigh ${morningHigh}` : '데이터 부족';
+    }
+
+    indicators.push({
+      key: def.key, label: def.label, weight: def.weight,
+      active: timeOk, met, value: valueText,
+      auditLift80: def.auditLift80,
+    });
+
+    if (timeOk && met != null) {
+      activeWeightSum += def.weight;
+      if (met) metWeightSum += def.weight;
+    }
+  }
+
+  const score = activeWeightSum > 0 ? Math.round((metWeightSum / activeWeightSum) * 100) : null;
+
+  // ── 위험 신호 ──
+  const warnings = [];
+
+  // chase_risk: 신호 기준 (10:00 close 또는 09:30 close) 대비 +3% 이상
+  const refPriceForChase = snap1000 ? snap1000.close : (snap0930 ? snap0930.close : null);
+  if (refPriceForChase && currentPrice && (currentPrice / refPriceForChase - 1) >= 0.03) {
+    const refLabel = snap1000 ? '10:00' : '09:30';
+    warnings.push({
+      key: 'chase_risk',
+      label: '추격 부담',
+      detail: `${refLabel} 기준 +${((currentPrice / refPriceForChase - 1) * 100).toFixed(1)}% (≥+3%)`,
+    });
+  }
+
+  // peak_before_entry: 일중 고점 대비 -3% 이상 밀림
+  if (lastBar) {
+    let intradayHigh = 0, intradayHighTime = null;
+    for (const b of bars) {
+      if (b && b.high > intradayHigh) { intradayHigh = b.high; intradayHighTime = b.time; }
+    }
+    if (intradayHigh > 0 && currentPrice && (currentPrice / intradayHigh - 1) <= -0.03) {
+      warnings.push({
+        key: 'peak_before_entry',
+        label: '고점 도달 후 -3% 이상 밀림',
+        detail: `${intradayHighTime} 고점 ${intradayHigh} → 현재 ${currentPrice} (${((currentPrice / intradayHigh - 1) * 100).toFixed(1)}%)`,
+      });
+    }
+  }
+
+  // value_weak: 최근 5분 거래대금 vs 직전 5분
+  if (bars.length >= 10) {
+    const last5 = bars.slice(-5);
+    const prev5 = bars.slice(-10, -5);
+    const last5Sum = last5.reduce((s, b) => s + (b.value || 0), 0);
+    const prev5Sum = prev5.reduce((s, b) => s + (b.value || 0), 0);
+    if (prev5Sum > 0 && last5Sum / prev5Sum < 0.5) {
+      warnings.push({
+        key: 'value_weak',
+        label: '최근 5분 거래대금 급감',
+        detail: `last5 ${(last5Sum / 1e8).toFixed(2)}억 / prev5 ${(prev5Sum / 1e8).toFixed(2)}억 = ${(last5Sum / prev5Sum * 100).toFixed(0)}%`,
+      });
+    }
+  }
+
+  // morning_high_lost: morningHigh 대비 -5% 이탈
+  if (morningHigh && currentPrice && (currentPrice / morningHigh - 1) <= -0.05) {
+    warnings.push({
+      key: 'morning_high_lost',
+      label: 'morningHigh 대비 -5% 이상 이탈',
+      detail: `morningHigh ${morningHigh} → 현재 ${currentPrice} (${((currentPrice / morningHigh - 1) * 100).toFixed(1)}%)`,
+    });
+  }
+
+  // ── verdict (그룹별 룰) ──
+  const get = (k) => indicators.find((i) => i.key === k) || null;
+  let verdict = 'DATA_MISSING';
+  if (sectionKind === 'watchOnly') {
+    const fadedByLost = warnings.some((w) => w.key === 'morning_high_lost' || w.key === 'peak_before_entry');
+    if (fadedByLost && (score == null || score < 40)) verdict = 'FADED';
+    else if (score != null && score >= 70) verdict = 'HOLD_OK';
+    else if (nowHm < '11:00') verdict = 'HOLD_FOR_1100';
+    else if (nowHm < '13:00') verdict = 'WAIT_FOR_1300';
+    else verdict = 'WATCH_BUT_WEAK';
+  } else if (sectionKind === 'explosiveStable') {
+    const overheat = get('notOverheat18pct');
+    if (overheat && overheat.met === false) verdict = 'EXTENDED_OVERHEAT';
+    else if (score != null && score >= 70) verdict = 'MOMENTUM_STRONG';
+    else if (score != null && score >= 40) verdict = 'MOMENTUM_HOLD';
+    else verdict = 'FAILED_FOLLOWTHROUGH';
+  } else if (sectionKind === 'attackRebreak') {
+    const broken = warnings.some((w) => w.key === 'morning_high_lost');
+    const rebreakLive = get('rebreakInProgress');
+    if (broken) verdict = 'BROKEN';
+    else if (rebreakLive && rebreakLive.met === true) verdict = 'REBREAK_LIVE_NOW';
+    else if (score != null && score >= 40) verdict = 'WAITING_REBREAK';
+    else verdict = 'REBREAK_FAILED';
+  }
+
+  return {
+    score,
+    indicators,
+    warnings,
+    verdict,
+    verdictLabel: VERDICT_LABEL[verdict] || verdict,
+    currentPrice,
+    currentTime,
+    refSnaps: {
+      close0930: snap0930 ? snap0930.close : null,
+      close1000: snap1000 ? snap1000.close : null,
+      close1100: snap1100 ? snap1100.close : null,
+      morningHigh,
+    },
+  };
+}
+
+// 단순화 모달 — 진입점
+const simplifiedCache = new Map();
+async function analyzeLiveEntrySimplified({ date, code, name, sectionKind }) {
+  const err = validateInputs(date, code);
+  if (err) return { ok: false, reason: err };
+  if (!SIMPLIFIED_INDICATOR_DEFS[sectionKind]) {
+    return { ok: false, reason: `unsupported sectionKind: ${sectionKind}` };
+  }
+
+  const cacheKey = `${date}__${code}__${sectionKind}`;
+  const cached = simplifiedCache.get(cacheKey);
+  if (cached && (Date.now() - cached.savedAt) < CACHE_TTL_MS) {
+    return cached.result;
+  }
+
+  const data = loadIntradayBars(date, code);
+  let fileBars = data ? data.bars : null;
+  let resolvedName = name || (data && data.name) || null;
+
+  // 오늘 KST 이면 KIS 보강
+  let liveSource = 'INTRADAY_LAST_CLOSE';
+  if (isTodayKst(date)) {
+    const liveBars = await fetchLiveBarsForToday(code);
+    if (liveBars && liveBars.length > 0) {
+      fileBars = mergeBars(fileBars, liveBars);
+      liveSource = fileBars && fileBars.length > liveBars.length ? 'KIS_LIVE_MERGED' : 'KIS_LIVE_ONLY';
+    }
+  }
+
+  if (!fileBars || fileBars.length === 0) {
+    const result = {
+      ok: true, mode: 'simplified',
+      code, name: resolvedName, date,
+      checkedAt: nowKstIso(),
+      sectionKind, sectionLabel: SIMPLIFIED_SECTION_LABEL[sectionKind] || sectionKind,
+      score: null, indicators: [], warnings: [],
+      verdict: 'DATA_MISSING',
+      verdictLabel: VERDICT_LABEL.DATA_MISSING,
+      currentSource: 'NONE',
+      auditNote: SIMPLIFIED_AUDIT_NOTES[sectionKind] || '',
+    };
+    simplifiedCache.set(cacheKey, { savedAt: Date.now(), result });
+    return result;
+  }
+
+  // 현재 KST HH:MM
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false,
+  });
+  const parts = fmt.formatToParts(new Date());
+  let hh = '15', mm = '30';
+  for (const p of parts) {
+    if (p.type === 'hour') hh = p.value;
+    else if (p.type === 'minute') mm = p.value;
+  }
+  if (hh === '24') hh = '00';
+  const nowHm = `${hh}:${mm}`;
+
+  const prevRow = loadPrevDayRow(code, date);
+  const analysis = buildSimplifiedAnalysis(fileBars, prevRow, sectionKind, nowHm);
+
+  const result = {
+    ok: true,
+    mode: 'simplified',
+    code, name: resolvedName, date,
+    checkedAt: nowKstIso(),
+    sectionKind,
+    sectionLabel: SIMPLIFIED_SECTION_LABEL[sectionKind] || sectionKind,
+    currentSource: liveSource,
+    nowKstHm: nowHm,
+    score: analysis.score,
+    scoreMax: 100,
+    indicators: analysis.indicators,
+    warnings: analysis.warnings,
+    verdict: analysis.verdict,
+    verdictLabel: analysis.verdictLabel,
+    currentPrice: analysis.currentPrice,
+    currentTime: analysis.currentTime,
+    refSnaps: analysis.refSnaps,
+    auditNote: SIMPLIFIED_AUDIT_NOTES[sectionKind] || '',
+  };
+
+  simplifiedCache.set(cacheKey, { savedAt: Date.now(), result });
+  return result;
+}
+
+module.exports = { analyzeLiveEntryFor1dsSurvivor, analyzeLiveEntrySimplified };

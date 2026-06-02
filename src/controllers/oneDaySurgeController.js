@@ -4,7 +4,9 @@
 const fs = require("fs");
 const path = require("path");
 const { REPORTS_DIR } = require("../utils/paths");
-const { analyzeLiveEntryFor1dsSurvivor } = require("../services/oneDaySurge/liveEntryCheck");
+const { analyzeLiveEntryFor1dsSurvivor, analyzeLiveEntrySimplified } = require("../services/oneDaySurge/liveEntryCheck");
+
+const SIMPLIFIED_SECTIONS = new Set(['watchOnly', 'explosiveStable', 'attackRebreak']);
 
 const BOARD_HTML = path.join(REPORTS_DIR, "one-day-surge-board-result.html");
 const BACKTEST_HTML = path.join(REPORTS_DIR, "one-day-surge-0930-scanner-backtest-result.html");
@@ -53,7 +55,14 @@ async function getLiveEntryCheck(req, res) {
         if (found) name = found.name;
       }
     } catch (_) {}
-    const result = await analyzeLiveEntryFor1dsSurvivor({ date, code, name });
+    const section = String(req.query.section || '').trim();
+    let result;
+    if (SIMPLIFIED_SECTIONS.has(section)) {
+      result = await analyzeLiveEntrySimplified({ date, code, name, sectionKind: section });
+    } else {
+      result = await analyzeLiveEntryFor1dsSurvivor({ date, code, name });
+      if (result && result.ok) result.mode = 'survivor1000';
+    }
     res.json(result);
   } catch (e) {
     res.status(500).json({ ok: false, reason: 'internal_error', detail: String(e.message || e).slice(0, 300) });

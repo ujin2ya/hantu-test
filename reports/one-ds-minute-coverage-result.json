@@ -1,0 +1,7802 @@
+{
+  "meta": {
+    "generatedAt": "2026-06-02T12:50:06.937Z",
+    "input": "C:\\Users\\eugen\\Documents\\hantu-test\\reports\\one-ds-minute-required-list.json",
+    "inputLabel": "최근 20거래일",
+    "requiredMetaFrom": "2026-05-06",
+    "requiredMetaTo": "2026-06-02"
+  },
+  "summary": {
+    "requiredDateCodeCount": 574,
+    "completeDateCodeCount": 445,
+    "partialDateCodeCount": 129,
+    "missingDateCodeCount": 0,
+    "completeCoverageRate": 77.52613240418118,
+    "partialCoverageRate": 22.473867595818817,
+    "missingRate": 0,
+    "estimatedMissingRows": 0,
+    "estimatedPartialMissingRows": 50310
+  },
+  "perDate": [
+    {
+      "date": "2026-05-06",
+      "required": 27,
+      "complete": 19,
+      "partial": 8,
+      "missing": 0,
+      "completeRate": 70.37037037037037
+    },
+    {
+      "date": "2026-05-07",
+      "required": 27,
+      "complete": 24,
+      "partial": 3,
+      "missing": 0,
+      "completeRate": 88.88888888888889
+    },
+    {
+      "date": "2026-05-08",
+      "required": 30,
+      "complete": 28,
+      "partial": 2,
+      "missing": 0,
+      "completeRate": 93.33333333333333
+    },
+    {
+      "date": "2026-05-11",
+      "required": 32,
+      "complete": 28,
+      "partial": 4,
+      "missing": 0,
+      "completeRate": 87.5
+    },
+    {
+      "date": "2026-05-12",
+      "required": 35,
+      "complete": 32,
+      "partial": 3,
+      "missing": 0,
+      "completeRate": 91.42857142857143
+    },
+    {
+      "date": "2026-05-13",
+      "required": 37,
+      "complete": 34,
+      "partial": 3,
+      "missing": 0,
+      "completeRate": 91.8918918918919
+    },
+    {
+      "date": "2026-05-14",
+      "required": 23,
+      "complete": 19,
+      "partial": 4,
+      "missing": 0,
+      "completeRate": 82.6086956521739
+    },
+    {
+      "date": "2026-05-15",
+      "required": 25,
+      "complete": 21,
+      "partial": 4,
+      "missing": 0,
+      "completeRate": 84
+    },
+    {
+      "date": "2026-05-18",
+      "required": 18,
+      "complete": 10,
+      "partial": 8,
+      "missing": 0,
+      "completeRate": 55.55555555555556
+    },
+    {
+      "date": "2026-05-19",
+      "required": 17,
+      "complete": 14,
+      "partial": 3,
+      "missing": 0,
+      "completeRate": 82.35294117647058
+    },
+    {
+      "date": "2026-05-20",
+      "required": 19,
+      "complete": 16,
+      "partial": 3,
+      "missing": 0,
+      "completeRate": 84.21052631578947
+    },
+    {
+      "date": "2026-05-21",
+      "required": 80,
+      "complete": 77,
+      "partial": 3,
+      "missing": 0,
+      "completeRate": 96.25
+    },
+    {
+      "date": "2026-05-22",
+      "required": 59,
+      "complete": 50,
+      "partial": 9,
+      "missing": 0,
+      "completeRate": 84.7457627118644
+    },
+    {
+      "date": "2026-05-26",
+      "required": 57,
+      "complete": 13,
+      "partial": 44,
+      "missing": 0,
+      "completeRate": 22.807017543859647
+    },
+    {
+      "date": "2026-05-27",
+      "required": 21,
+      "complete": 15,
+      "partial": 6,
+      "missing": 0,
+      "completeRate": 71.42857142857143
+    },
+    {
+      "date": "2026-05-28",
+      "required": 14,
+      "complete": 9,
+      "partial": 5,
+      "missing": 0,
+      "completeRate": 64.28571428571429
+    },
+    {
+      "date": "2026-05-29",
+      "required": 11,
+      "complete": 7,
+      "partial": 4,
+      "missing": 0,
+      "completeRate": 63.63636363636363
+    },
+    {
+      "date": "2026-06-01",
+      "required": 29,
+      "complete": 24,
+      "partial": 5,
+      "missing": 0,
+      "completeRate": 82.75862068965517
+    },
+    {
+      "date": "2026-06-02",
+      "required": 13,
+      "complete": 5,
+      "partial": 8,
+      "missing": 0,
+      "completeRate": 38.46153846153847
+    }
+  ],
+  "results": [
+    {
+      "trade_date": "2026-05-06",
+      "code": "000500",
+      "name": "가온전선",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 375
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "003470",
+      "name": "유안타증권",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 375,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "003530",
+      "name": "한화투자증권",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "004800",
+      "name": "효성",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "007610",
+      "name": "선도전기",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "007810",
+      "name": "코리아써키트",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "011790",
+      "name": "SKC",
+      "status": "partial",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "015860",
+      "name": "일진홀딩스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "018880",
+      "name": "한온시스템",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "024840",
+      "name": "KBI메탈",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 374,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "037030",
+      "name": "파워넷",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "052900",
+      "name": "KX하이텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "060310",
+      "name": "3S",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "064260",
+      "name": "다날",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "076610",
+      "name": "해성옵틱스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 364
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "078150",
+      "name": "HB테크놀러지",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "083450",
+      "name": "GST",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "084370",
+      "name": "유진테크",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "089010",
+      "name": "켐트로닉스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "144960",
+      "name": "뉴파워프라즈마",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 375
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "161580",
+      "name": "필옵틱스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "183300",
+      "name": "코미코",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 379,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "189860",
+      "name": "서전기전",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "321260",
+      "name": "프로이천",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "425040",
+      "name": "티이엠씨",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 379,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "452190",
+      "name": "한빛레이저",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-06",
+      "code": "458870",
+      "name": "씨어스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "004710",
+      "name": "한솔테크닉스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "004800",
+      "name": "효성",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 376,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "005880",
+      "name": "대한해운",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "006360",
+      "name": "GS건설",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 379,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "010170",
+      "name": "대한광통신",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "019210",
+      "name": "와이지-원",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "028670",
+      "name": "팬오션",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "065440",
+      "name": "이루온",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "072950",
+      "name": "빛샘전자",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "078150",
+      "name": "HB테크놀러지",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 377,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "080580",
+      "name": "오킨스전자",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "100590",
+      "name": "머큐리",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "115440",
+      "name": "우리넷",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 376
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "138080",
+      "name": "오이솔루션",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "147760",
+      "name": "피엠티",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 362
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "178320",
+      "name": "서진시스템",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "183300",
+      "name": "코미코",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "203650",
+      "name": "드림시큐리티",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 371
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "218410",
+      "name": "RFHIC",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "222800",
+      "name": "심텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "226950",
+      "name": "올릭스",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "230240",
+      "name": "에치에프알",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "237690",
+      "name": "에스티팜",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "253840",
+      "name": "수젠텍",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 374
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "327260",
+      "name": "RF머트리얼즈",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "368770",
+      "name": "파이버프로",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-07",
+      "code": "476060",
+      "name": "온코닉테라퓨틱스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 372
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "000500",
+      "name": "가온전선",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "003470",
+      "name": "유안타증권",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "004710",
+      "name": "한솔테크닉스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "012200",
+      "name": "계양전기",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "012860",
+      "name": "모베이스전자",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "036170",
+      "name": "에이치엠넥스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "048770",
+      "name": "TPC로보틱스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "054450",
+      "name": "텔레칩스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "056080",
+      "name": "유진로봇",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "058610",
+      "name": "에스피지",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "064290",
+      "name": "인텍플러스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "076610",
+      "name": "해성옵틱스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "078150",
+      "name": "HB테크놀러지",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "086960",
+      "name": "MDS테크",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 377,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "090710",
+      "name": "휴림로봇",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "101330",
+      "name": "모베이스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "108490",
+      "name": "로보티즈",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "125490",
+      "name": "한라캐스트",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "131970",
+      "name": "두산테스나",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "147830",
+      "name": "제룡산업",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "183300",
+      "name": "코미코",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "187870",
+      "name": "디바이스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "222800",
+      "name": "심텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "319400",
+      "name": "현대무벡스",
+      "status": "partial",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "321260",
+      "name": "프로이천",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "332570",
+      "name": "PS일렉트로닉스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "348340",
+      "name": "뉴로메카",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "356860",
+      "name": "티엘비",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "397030",
+      "name": "에이프릴바이오",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-08",
+      "code": "440110",
+      "name": "파두",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "004150",
+      "name": "한솔홀딩스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "004710",
+      "name": "한솔테크닉스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "010170",
+      "name": "대한광통신",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "017900",
+      "name": "광전자",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "018880",
+      "name": "한온시스템",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "024840",
+      "name": "KBI메탈",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 373,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "046970",
+      "name": "우리로",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "056360",
+      "name": "코위버",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "060310",
+      "name": "3S",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "065440",
+      "name": "이루온",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "067170",
+      "name": "오텍",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 377,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "069540",
+      "name": "빛과전자",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "072950",
+      "name": "빛샘전자",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "078150",
+      "name": "HB테크놀러지",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "083450",
+      "name": "GST",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 377,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "095610",
+      "name": "테스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "096530",
+      "name": "씨젠",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "100590",
+      "name": "머큐리",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "138080",
+      "name": "오이솔루션",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "161890",
+      "name": "한국콜마",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "183300",
+      "name": "코미코",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "203650",
+      "name": "드림시큐리티",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "253840",
+      "name": "수젠텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "254490",
+      "name": "미래반도체",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "295310",
+      "name": "에이치브이엠",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "320000",
+      "name": "한울반도체",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "321260",
+      "name": "프로이천",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "357880",
+      "name": "SKAI",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "389500",
+      "name": "에스비비테크",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "396270",
+      "name": "넥스트칩",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "418420",
+      "name": "라온텍",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-11",
+      "code": "425040",
+      "name": "티이엠씨",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "000500",
+      "name": "가온전선",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 366,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "007610",
+      "name": "선도전기",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 372
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "007820",
+      "name": "엠엑스로보틱스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "010100",
+      "name": "한국무브넥스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 373
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "010170",
+      "name": "대한광통신",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "010690",
+      "name": "화신",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 379,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "011210",
+      "name": "현대위아",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "012200",
+      "name": "계양전기",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "012800",
+      "name": "대창",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "012860",
+      "name": "모베이스전자",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "037030",
+      "name": "파워넷",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "048410",
+      "name": "현대바이오",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "048770",
+      "name": "TPC로보틱스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "065440",
+      "name": "이루온",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "078600",
+      "name": "대주전자재료",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "089970",
+      "name": "브이엠",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "090360",
+      "name": "로보스타",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "090710",
+      "name": "휴림로봇",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 376
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "092200",
+      "name": "디아이씨",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "098460",
+      "name": "고영",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "101330",
+      "name": "모베이스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 376
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "183300",
+      "name": "코미코",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:19",
+      "barsCount": 379,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "189330",
+      "name": "씨이랩",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "199820",
+      "name": "제일일렉트릭",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "212560",
+      "name": "네오오토",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 370
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "218410",
+      "name": "RFHIC",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "307180",
+      "name": "아이엘",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 375
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "319400",
+      "name": "현대무벡스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "320000",
+      "name": "한울반도체",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 374
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "322000",
+      "name": "HD현대에너지솔루션",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "348340",
+      "name": "뉴로메카",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "381620",
+      "name": "제닉스로보틱스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "389500",
+      "name": "에스비비테크",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "418420",
+      "name": "라온텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-12",
+      "code": "489790",
+      "name": "한화비전",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "004170",
+      "name": "신세계",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "005010",
+      "name": "휴스틸",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "005250",
+      "name": "녹십자홀딩스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "007460",
+      "name": "에이프로젠",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 360
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "012200",
+      "name": "계양전기",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 375
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "012800",
+      "name": "대창",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "023530",
+      "name": "롯데쇼핑",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "025820",
+      "name": "이구산업",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "025860",
+      "name": "남해화학",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "031430",
+      "name": "신세계인터내셔날",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "038500",
+      "name": "삼표시멘트",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "047400",
+      "name": "유니온머티리얼",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "048770",
+      "name": "TPC로보틱스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 374
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "052900",
+      "name": "KX하이텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "056360",
+      "name": "코위버",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "076610",
+      "name": "해성옵틱스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "094940",
+      "name": "푸른기술",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "122640",
+      "name": "예스티",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "123010",
+      "name": "알엔티엑스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 373
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "128820",
+      "name": "대성산업",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "131970",
+      "name": "두산테스나",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "147760",
+      "name": "피엠티",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 272,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "183300",
+      "name": "코미코",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "187870",
+      "name": "디바이스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "212560",
+      "name": "네오오토",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 375
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "320000",
+      "name": "한울반도체",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 373
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "330860",
+      "name": "네패스아크",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 376
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "332570",
+      "name": "PS일렉트로닉스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "356680",
+      "name": "엑스게이트",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "356860",
+      "name": "티엘비",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "405100",
+      "name": "큐알티",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 365
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "412350",
+      "name": "레이저쎌",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 355
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "417840",
+      "name": "저스템",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "452280",
+      "name": "한선엔지니어링",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "900300",
+      "name": "오가닉티코스메틱",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "950130",
+      "name": "엑세스바이오",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-13",
+      "code": "950220",
+      "name": "네오이뮨텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "000650",
+      "name": "천일고속",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 217,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "001450",
+      "name": "현대해상",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "003380",
+      "name": "하림지주",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "006110",
+      "name": "삼아알미늄",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "008350",
+      "name": "남선알미늄",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "018470",
+      "name": "조일알미늄",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "019210",
+      "name": "와이지-원",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "033160",
+      "name": "엠케이전자",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "081150",
+      "name": "티플랙스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "084670",
+      "name": "동양고속",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 267,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "088350",
+      "name": "한화생명",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "090360",
+      "name": "로보스타",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "090460",
+      "name": "비에이치",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "092190",
+      "name": "서울바이오시스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "096530",
+      "name": "씨젠",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "100790",
+      "name": "미래에셋벤처투자",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "123010",
+      "name": "알엔티엑스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 375
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "183300",
+      "name": "코미코",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 380,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "229640",
+      "name": "LS에코에너지",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "322000",
+      "name": "HD현대에너지솔루션",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "403550",
+      "name": "쏘카",
+      "status": "partial",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "452280",
+      "name": "한선엔지니어링",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-14",
+      "code": "475150",
+      "name": "SK이터닉스",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "001200",
+      "name": "유진투자증권",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "011930",
+      "name": "신성이엔지",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 376,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "018880",
+      "name": "한온시스템",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "031330",
+      "name": "에스에이엠티",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "036540",
+      "name": "SFA반도체",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "056080",
+      "name": "유진로봇",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "058610",
+      "name": "에스피지",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "067310",
+      "name": "하나마이크론",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "080220",
+      "name": "제주반도체",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "088350",
+      "name": "한화생명",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "090360",
+      "name": "로보스타",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "090710",
+      "name": "휴림로봇",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "125490",
+      "name": "한라캐스트",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "138360",
+      "name": "앤로보틱스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 376
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "178320",
+      "name": "서진시스템",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "183300",
+      "name": "코미코",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "204320",
+      "name": "HL만도",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "223310",
+      "name": "사토시홀딩스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 203,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "261780",
+      "name": "차백신연구소",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 374,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "290690",
+      "name": "소룩스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 334,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "348340",
+      "name": "뉴로메카",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "354320",
+      "name": "알멕",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "440110",
+      "name": "파두",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "452430",
+      "name": "사피엔반도체",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-15",
+      "code": "466100",
+      "name": "클로봇",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "001450",
+      "name": "현대해상",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "001740",
+      "name": "SK네트웍스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "005950",
+      "name": "이수화학",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "027360",
+      "name": "아주IB투자",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "031330",
+      "name": "에스에이엠티",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 379,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "037460",
+      "name": "삼지전자",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 379,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "066430",
+      "name": "아이로보틱스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 372,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "071200",
+      "name": "인피니트헬스케어",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "078600",
+      "name": "대주전자재료",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "100790",
+      "name": "미래에셋벤처투자",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "131290",
+      "name": "티에스이",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 379,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "183300",
+      "name": "코미코",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "211270",
+      "name": "AP위성",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "290690",
+      "name": "소룩스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 366,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "295310",
+      "name": "에이치브이엠",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 377,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "403870",
+      "name": "HPSP",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "425040",
+      "name": "티이엠씨",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-18",
+      "code": "446540",
+      "name": "메가터치",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 376
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "000370",
+      "name": "한화손해보험",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "005290",
+      "name": "동진쎄미켐",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "005950",
+      "name": "이수화학",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "006110",
+      "name": "삼아알미늄",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 379,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "011000",
+      "name": "진원생명과학",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "032500",
+      "name": "케이엠더블유",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 379,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "066430",
+      "name": "아이로보틱스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "183300",
+      "name": "코미코",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "185490",
+      "name": "아이진",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 375
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "203650",
+      "name": "드림시큐리티",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "257720",
+      "name": "실리콘투",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "307870",
+      "name": "비투엔",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "321370",
+      "name": "센서뷰",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "354320",
+      "name": "알멕",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "356680",
+      "name": "엑스게이트",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "425040",
+      "name": "티이엠씨",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-19",
+      "code": "456010",
+      "name": "아이씨티케이",
+      "status": "partial",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 375,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "001820",
+      "name": "삼화콘덴서",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "005950",
+      "name": "이수화학",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "007810",
+      "name": "코리아써키트",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "011000",
+      "name": "진원생명과학",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "017900",
+      "name": "광전자",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "066980",
+      "name": "한성크린텍",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 299,
+      "reason": "low_bar_count_299"
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "067170",
+      "name": "오텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "067310",
+      "name": "하나마이크론",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "069540",
+      "name": "빛과전자",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "072950",
+      "name": "빛샘전자",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 375
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "114450",
+      "name": "그린생명과학",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "131290",
+      "name": "티에스이",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "142280",
+      "name": "녹십자엠에스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "183300",
+      "name": "코미코",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "185490",
+      "name": "아이진",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 299,
+      "reason": "low_bar_count_299"
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "215790",
+      "name": "이노인스트루먼트",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "222800",
+      "name": "심텍",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "253840",
+      "name": "수젠텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-20",
+      "code": "440110",
+      "name": "파두",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "000500",
+      "name": "가온전선",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "003160",
+      "name": "디아이",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:01",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "003530",
+      "name": "한화투자증권",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "004800",
+      "name": "효성",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "005290",
+      "name": "동진쎄미켐",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "007390",
+      "name": "네이처셀",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "007610",
+      "name": "선도전기",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "007810",
+      "name": "코리아써키트",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "009420",
+      "name": "한올바이오파마",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 377,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "011790",
+      "name": "SKC",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "017510",
+      "name": "세명전기",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "017900",
+      "name": "광전자",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "018880",
+      "name": "한온시스템",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "024060",
+      "name": "흥구석유",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "024840",
+      "name": "KBI메탈",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 339,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "030530",
+      "name": "원익홀딩스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "033100",
+      "name": "제룡전기",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "033160",
+      "name": "엠케이전자",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "033640",
+      "name": "네패스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "036540",
+      "name": "SFA반도체",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "050890",
+      "name": "쏠리드",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "052710",
+      "name": "아모텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "052900",
+      "name": "KX하이텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "054210",
+      "name": "이랜텍",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "056080",
+      "name": "유진로봇",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "058610",
+      "name": "에스피지",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "059090",
+      "name": "미코",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "064290",
+      "name": "인텍플러스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "064760",
+      "name": "티씨케이",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "067310",
+      "name": "하나마이크론",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "074600",
+      "name": "원익QnC",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "077360",
+      "name": "덕산하이메탈",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "077970",
+      "name": "STX엔진",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "078150",
+      "name": "HB테크놀러지",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "083650",
+      "name": "비에이치아이",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "089030",
+      "name": "테크윙",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "089970",
+      "name": "브이엠",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "090360",
+      "name": "로보스타",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "090460",
+      "name": "비에이치",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "091580",
+      "name": "상신이디피",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "095610",
+      "name": "테스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "098460",
+      "name": "고영",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "108490",
+      "name": "로보티즈",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "112290",
+      "name": "와이씨켐",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "123010",
+      "name": "알엔티엑스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "125020",
+      "name": "티씨머티리얼즈",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 374
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "125490",
+      "name": "한라캐스트",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "140410",
+      "name": "메지온",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 363
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "142210",
+      "name": "유니트론텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 335
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "147830",
+      "name": "제룡산업",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "161580",
+      "name": "필옵틱스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "171090",
+      "name": "선익시스템",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "174900",
+      "name": "앱클론",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "178320",
+      "name": "서진시스템",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "183300",
+      "name": "코미코",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "199820",
+      "name": "제일일렉트릭",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "222080",
+      "name": "씨아이에스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "222800",
+      "name": "심텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "229640",
+      "name": "LS에코에너지",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "232140",
+      "name": "와이씨",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "253590",
+      "name": "네오셈",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "281740",
+      "name": "레이크머티리얼즈",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "295310",
+      "name": "에이치브이엠",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "319400",
+      "name": "현대무벡스",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "321370",
+      "name": "센서뷰",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "330860",
+      "name": "네패스아크",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "332570",
+      "name": "PS일렉트로닉스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "348340",
+      "name": "뉴로메카",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "356860",
+      "name": "티엘비",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "357780",
+      "name": "솔브레인",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "389500",
+      "name": "에스비비테크",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "394420",
+      "name": "리센스메디컬",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "396300",
+      "name": "세아메카닉스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "402490",
+      "name": "그린리소스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "417200",
+      "name": "LS머트리얼즈",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "417840",
+      "name": "저스템",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "425040",
+      "name": "티이엠씨",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "448900",
+      "name": "한국피아이엠",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "452190",
+      "name": "한빛레이저",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-21",
+      "code": "466100",
+      "name": "클로봇",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "005950",
+      "name": "이수화학",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "006110",
+      "name": "삼아알미늄",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "009420",
+      "name": "한올바이오파마",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "011930",
+      "name": "신성이엔지",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "018880",
+      "name": "한온시스템",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "024840",
+      "name": "KBI메탈",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 379,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "032500",
+      "name": "케이엠더블유",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "033790",
+      "name": "피노",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "036170",
+      "name": "에이치엠넥스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "036540",
+      "name": "SFA반도체",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "046970",
+      "name": "우리로",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 377,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "048410",
+      "name": "현대바이오",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "050890",
+      "name": "쏠리드",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "060370",
+      "name": "LS마린솔루션",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 379,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "064260",
+      "name": "다날",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "069540",
+      "name": "빛과전자",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "072950",
+      "name": "빛샘전자",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "073490",
+      "name": "LIG아큐버",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "078350",
+      "name": "한양디지텍",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "078600",
+      "name": "대주전자재료",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "092200",
+      "name": "디아이씨",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "092220",
+      "name": "KEC",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "092870",
+      "name": "엑시콘",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "124500",
+      "name": "아이티센글로벌",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 369
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "126340",
+      "name": "비나텍",
+      "status": "partial",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 377,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "138080",
+      "name": "오이솔루션",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "140410",
+      "name": "메지온",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 369
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "140860",
+      "name": "파크시스템스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "142210",
+      "name": "유니트론텍",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "145020",
+      "name": "휴젤",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "166090",
+      "name": "하나머티리얼즈",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "178320",
+      "name": "서진시스템",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "183300",
+      "name": "코미코",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "189300",
+      "name": "인텔리안테크",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "203650",
+      "name": "드림시큐리티",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 379,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "222080",
+      "name": "씨아이에스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "226950",
+      "name": "올릭스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "230240",
+      "name": "에치에프알",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "234340",
+      "name": "헥토파이낸셜",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "237690",
+      "name": "에스티팜",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "241520",
+      "name": "DSC인베스트먼트",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "252990",
+      "name": "샘씨엔에스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "281740",
+      "name": "레이크머티리얼즈",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "307180",
+      "name": "아이엘",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "327260",
+      "name": "RF머트리얼즈",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "336260",
+      "name": "두산퓨얼셀",
+      "status": "partial",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "347850",
+      "name": "디앤디파마텍",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "356680",
+      "name": "엑스게이트",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 379,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "356860",
+      "name": "티엘비",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "358570",
+      "name": "지아이이노베이션",
+      "status": "partial",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 376,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "376900",
+      "name": "로킷헬스케어",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "394420",
+      "name": "리센스메디컬",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "397030",
+      "name": "에이프릴바이오",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "417200",
+      "name": "LS머트리얼즈",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "432720",
+      "name": "퀄리타스반도체",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "452280",
+      "name": "한선엔지니어링",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "456010",
+      "name": "아이씨티케이",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 379,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "456160",
+      "name": "지투지바이오",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-22",
+      "code": "476830",
+      "name": "알지노믹스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "001740",
+      "name": "SK네트웍스",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "001820",
+      "name": "삼화콘덴서",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:19",
+      "barsCount": 299,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "005290",
+      "name": "동진쎄미켐",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 61,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "007390",
+      "name": "네이처셀",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 299,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "007810",
+      "name": "코리아써키트",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 59,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "009420",
+      "name": "한올바이오파마",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 58,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "011790",
+      "name": "SKC",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "019180",
+      "name": "티에이치엔",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:19",
+      "barsCount": 298,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "030530",
+      "name": "원익홀딩스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 299,
+      "reason": "low_bar_count_299"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "031330",
+      "name": "에스에이엠티",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 60,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "036010",
+      "name": "아비코전자",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 298,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "036540",
+      "name": "SFA반도체",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "037460",
+      "name": "삼지전자",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "042510",
+      "name": "라온시큐어",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 60,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "052710",
+      "name": "아모텍",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "09:59",
+      "barsCount": 58,
+      "reason": "last_bar_09:59"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "053700",
+      "name": "삼보모터스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 300,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "054920",
+      "name": "한컴위드",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 60,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "056360",
+      "name": "코위버",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 300,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "061970",
+      "name": "LB세미콘",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "062970",
+      "name": "한국첨단소재",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "09:57",
+      "barsCount": 57,
+      "reason": "last_bar_09:57"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "064290",
+      "name": "인텍플러스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 60,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "069540",
+      "name": "빛과전자",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "082920",
+      "name": "비츠로셀",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 61,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "086960",
+      "name": "MDS테크",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "089030",
+      "name": "테크윙",
+      "status": "partial",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 61,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "090460",
+      "name": "비에이치",
+      "status": "partial",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "09:57",
+      "barsCount": 58,
+      "reason": "last_bar_09:57"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "093370",
+      "name": "후성",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "100790",
+      "name": "미래에셋벤처투자",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 59,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "115440",
+      "name": "우리넷",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 60,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "115500",
+      "name": "케이씨에스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 60,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "126730",
+      "name": "코칩",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 299,
+      "reason": "low_bar_count_299"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "149950",
+      "name": "아바텍",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "10:00",
+      "barsCount": 56,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "184230",
+      "name": "SGA솔루션즈",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "10:00",
+      "barsCount": 59,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "185490",
+      "name": "아이진",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 300,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "195870",
+      "name": "해성디에스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "10:00",
+      "barsCount": 57,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "203650",
+      "name": "드림시큐리티",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "211270",
+      "name": "AP위성",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 299,
+      "reason": "low_bar_count_299"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "242040",
+      "name": "나무기술",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "09:57",
+      "barsCount": 57,
+      "reason": "last_bar_09:57"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "251370",
+      "name": "와이엠티",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 301
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "263860",
+      "name": "지니언스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 299,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "274090",
+      "name": "켄코아에어로스페이스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "09:57",
+      "barsCount": 56,
+      "reason": "last_bar_09:57"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "295310",
+      "name": "에이치브이엠",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 300,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "306620",
+      "name": "지아이에스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 300,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "308080",
+      "name": "바이젠셀",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 58,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "347700",
+      "name": "스피어",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 300,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "355150",
+      "name": "코스텍시스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 61,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "356680",
+      "name": "엑스게이트",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "356860",
+      "name": "티엘비",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "357880",
+      "name": "SKAI",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 296,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "376900",
+      "name": "로킷헬스케어",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "382840",
+      "name": "원준",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 61,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "403870",
+      "name": "HPSP",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 300,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "420770",
+      "name": "기가비스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 60,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "452280",
+      "name": "한선엔지니어링",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 61,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "456010",
+      "name": "아이씨티케이",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 300,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "457370",
+      "name": "한켐",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 60,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-26",
+      "code": "490470",
+      "name": "세미파이브",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "10:00",
+      "barsCount": 59,
+      "reason": "last_bar_10:00"
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "001740",
+      "name": "SK네트웍스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "007390",
+      "name": "네이처셀",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:19",
+      "barsCount": 299,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "009190",
+      "name": "대양금속",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "009420",
+      "name": "한올바이오파마",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "018670",
+      "name": "SK가스",
+      "status": "partial",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 278,
+      "reason": "low_bar_count_278"
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "042520",
+      "name": "한스바이오메드",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "048410",
+      "name": "현대바이오",
+      "status": "partial",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 298,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "049080",
+      "name": "기가레인",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 377
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "059090",
+      "name": "미코",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "067170",
+      "name": "오텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 375
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "183300",
+      "name": "코미코",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 301
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "215790",
+      "name": "이노인스트루먼트",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 299,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "232680",
+      "name": "라온로보틱스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 299,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "257720",
+      "name": "실리콘투",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "347850",
+      "name": "디앤디파마텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "383310",
+      "name": "에코프로에이치엔",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 301
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "397030",
+      "name": "에이프릴바이오",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "417840",
+      "name": "저스템",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "456010",
+      "name": "아이씨티케이",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 299,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "456160",
+      "name": "지투지바이오",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-27",
+      "code": "900250",
+      "name": "크리스탈신소재",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 373
+    },
+    {
+      "trade_date": "2026-05-28",
+      "code": "001820",
+      "name": "삼화콘덴서",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 298,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-28",
+      "code": "006110",
+      "name": "삼아알미늄",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-28",
+      "code": "006660",
+      "name": "삼성공조",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-28",
+      "code": "010580",
+      "name": "에스엠벡셀",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-28",
+      "code": "012200",
+      "name": "계양전기",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 300
+    },
+    {
+      "trade_date": "2026-05-28",
+      "code": "024060",
+      "name": "흥구석유",
+      "status": "partial",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 301,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-28",
+      "code": "092190",
+      "name": "서울바이오시스",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-28",
+      "code": "101670",
+      "name": "하이드로리튬",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 276,
+      "reason": "low_bar_count_276"
+    },
+    {
+      "trade_date": "2026-05-28",
+      "code": "117730",
+      "name": "티로보틱스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:19",
+      "barsCount": 274,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-28",
+      "code": "178320",
+      "name": "서진시스템",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-28",
+      "code": "242040",
+      "name": "나무기술",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-28",
+      "code": "347850",
+      "name": "디앤디파마텍",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-28",
+      "code": "475960",
+      "name": "토모큐브",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-28",
+      "code": "486990",
+      "name": "노타",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:19",
+      "barsCount": 275,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-29",
+      "code": "018880",
+      "name": "한온시스템",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-29",
+      "code": "058970",
+      "name": "엠로",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-29",
+      "code": "064290",
+      "name": "인텍플러스",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-05-29",
+      "code": "090360",
+      "name": "로보스타",
+      "status": "partial",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 301,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-29",
+      "code": "092200",
+      "name": "디아이씨",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 276,
+      "reason": "low_bar_count_276"
+    },
+    {
+      "trade_date": "2026-05-29",
+      "code": "126730",
+      "name": "코칩",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 297,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-05-29",
+      "code": "181710",
+      "name": "NHN",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-29",
+      "code": "242040",
+      "name": "나무기술",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-05-29",
+      "code": "389140",
+      "name": "포바이포",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:19",
+      "barsCount": 273,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-05-29",
+      "code": "448900",
+      "name": "한국피아이엠",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-05-29",
+      "code": "456010",
+      "name": "아이씨티케이",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 301
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "000500",
+      "name": "가온전선",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "007610",
+      "name": "선도전기",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "011790",
+      "name": "SKC",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "020150",
+      "name": "롯데에너지머티리얼즈",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "032820",
+      "name": "우리기술",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "058610",
+      "name": "에스피지",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "059270",
+      "name": "해성에어로보틱스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 276,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "060250",
+      "name": "NHN KCP",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "080220",
+      "name": "제주반도체",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "090360",
+      "name": "로보스타",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:19",
+      "barsCount": 299,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "092190",
+      "name": "서울바이오시스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "100790",
+      "name": "미래에셋벤처투자",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "108490",
+      "name": "로보티즈",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "131970",
+      "name": "두산테스나",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "144960",
+      "name": "뉴파워프라즈마",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "160190",
+      "name": "하이젠알앤엠",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 274,
+      "reason": "low_bar_count_274"
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "161580",
+      "name": "필옵틱스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "181710",
+      "name": "NHN",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "190510",
+      "name": "나무가",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 358
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "215100",
+      "name": "로보로보",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "226950",
+      "name": "올릭스",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "242040",
+      "name": "나무기술",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 374
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "251370",
+      "name": "와이엠티",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 373
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "254490",
+      "name": "미래반도체",
+      "status": "complete",
+      "groups": [
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "263800",
+      "name": "데이타솔루션",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "293580",
+      "name": "나우IB",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "336370",
+      "name": "솔루스첨단소재",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 379
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "388210",
+      "name": "씨엠티엑스",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-06-01",
+      "code": "417860",
+      "name": "오브젠",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 373,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-06-02",
+      "code": "000500",
+      "name": "가온전선",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 378,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-06-02",
+      "code": "000650",
+      "name": "천일고속",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 292,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-06-02",
+      "code": "006110",
+      "name": "삼아알미늄",
+      "status": "complete",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 380
+    },
+    {
+      "trade_date": "2026-06-02",
+      "code": "007390",
+      "name": "네이처셀",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 299,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-06-02",
+      "code": "033790",
+      "name": "피노",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-06-02",
+      "code": "084670",
+      "name": "동양고속",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:19",
+      "barsCount": 296,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-06-02",
+      "code": "090360",
+      "name": "로보스타",
+      "status": "partial",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:02",
+      "lastTime": "15:19",
+      "barsCount": 297,
+      "reason": "last_bar_15:19"
+    },
+    {
+      "trade_date": "2026-06-02",
+      "code": "096530",
+      "name": "씨젠",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-06-02",
+      "code": "131400",
+      "name": "이브이첨단소재",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 272,
+      "reason": "low_bar_count_272"
+    },
+    {
+      "trade_date": "2026-06-02",
+      "code": "203650",
+      "name": "드림시큐리티",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK",
+        "B_SURVIVOR_1000"
+      ],
+      "event_count": 2,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 381
+    },
+    {
+      "trade_date": "2026-06-02",
+      "code": "417860",
+      "name": "오브젠",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 298,
+      "reason": "low_bar_count_298"
+    },
+    {
+      "trade_date": "2026-06-02",
+      "code": "475400",
+      "name": "씨메스로보틱스",
+      "status": "partial",
+      "groups": [
+        "D_EXCLUDED_PLUS8"
+      ],
+      "event_count": 1,
+      "firstTime": "09:02",
+      "lastTime": "15:30",
+      "barsCount": 273,
+      "reason": "first_bar_09:02"
+    },
+    {
+      "trade_date": "2026-06-02",
+      "code": "476060",
+      "name": "온코닉테라퓨틱스",
+      "status": "complete",
+      "groups": [
+        "A_ATTACK"
+      ],
+      "event_count": 1,
+      "firstTime": "09:00",
+      "lastTime": "15:30",
+      "barsCount": 378
+    }
+  ]
+}

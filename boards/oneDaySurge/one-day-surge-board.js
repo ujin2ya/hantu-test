@@ -4148,9 +4148,11 @@ const PREMARKET_MODE = isPremarketMode();
     const reasonChip = e.reason
       ? '<div class="summary-line" style="color:#94a3b8;font-size:10.5px;margin-top:3px;font-style:italic;">└ ' + e.reason + '</div>'
       : '';
-    // 현재분석 버튼 — 10시 생존 후보 카드에만 노출 (공격형/explosive 등 제외)
-    const liveEntryBtn = sectionKind === 'survivor1000'
-      ? '<div style="margin-top:8px;text-align:right;"><button class="live-entry-check-btn" data-code="' + e.code + '" data-name="' + (e.name || e.code).replace(/"/g,'&quot;') + '" data-date="' + (DATA.todayResultSummary?.targetDate || '') + '">🔎 지금 진입 가능 여부 분석</button></div>'
+    // 현재분석 버튼 — 10시 생존 후보 (기존) + watchOnly/explosiveStable/attackRebreak (audit 검증 지표 기반 단순화 모달)
+    const LIVE_ENTRY_SECTIONS = ['survivor1000', 'watchOnly', 'explosiveStable', 'attackRebreak'];
+    const liveEntryBtnLabel = sectionKind === 'survivor1000' ? '🔎 지금 진입 가능 여부 분석' : '🔎 지금 신호 강도 분석';
+    const liveEntryBtn = LIVE_ENTRY_SECTIONS.includes(sectionKind)
+      ? '<div style="margin-top:8px;text-align:right;"><button class="live-entry-check-btn" data-code="' + e.code + '" data-name="' + (e.name || e.code).replace(/"/g,'&quot;') + '" data-date="' + (DATA.todayResultSummary?.targetDate || '') + '" data-section="' + sectionKind + '">' + liveEntryBtnLabel + '</button></div>'
       : '';
     return '<div class="card s-' + e.status + '">' +
       '<h3><a class="name-link" href="/one-day-surge-board/' + e.code + '" title="' + (e.name || e.code).replace(/"/g,'&quot;') + ' 상세">' + (e.name || e.code) + '</a>' + (e.cacheMtimeHtml || '') + ' <span class="code">' + e.code + '</span> <span class="market">' + (e.market || '') + '</span>' +
@@ -4288,7 +4290,7 @@ const PREMARKET_MODE = isPremarketMode();
         '이 섹션은 <strong>10시 생존 여부를 확인하기 전 감시 후보</strong>로 봅니다.<br>' +
         '09:30 조기 대응 시 <strong>+5%/-2% 또는 +10%/-3%</strong> 전략을 참고할 수 있지만, 우선순위는 10시 생존 확인 후보보다 낮습니다.' +
       '</div>' +
-      '<div style="margin-top:8px;">' + explosiveStable.map((e) => renderCard(e, 'value-strong')).join('') + '</div>';
+      '<div style="margin-top:8px;">' + explosiveStable.map((e) => renderCard(e, 'value-strong', 'explosiveStable')).join('') + '</div>';
   }
 
   // ── [3] 🔥 공격형 재돌파 감시 후보 (기본 접힘) ──
@@ -4301,7 +4303,7 @@ const PREMARKET_MODE = isPremarketMode();
         '<strong>공격형 기준</strong>: +10% 익절 / -3% 손절 · <strong>보수형 기준</strong>: +5% 익절 / -2% 손절.<br>' +
         '<span style="color:#fda4af;font-weight:700;">⚠ 재돌파 분봉이 마지막 고점이 되는 실패 사례가 있습니다. 즉시 추격보다 10시 생존 확인과 손절 기준을 함께 봅니다.</span>' +
       '</div>' +
-      '<div style="margin-top:8px;padding-bottom:10px;">' + attackRebreak.map((e) => renderCard(e, 'value-strong')).join('') + '</div></details>';
+      '<div style="margin-top:8px;padding-bottom:10px;">' + attackRebreak.map((e) => renderCard(e, 'value-strong', 'attackRebreak')).join('') + '</div></details>';
   }
 
   // ── [3.5] 🚀 이미 크게 발화한 종목 (표시 정책 후처리 — 메인 섹션에서 분리) ─────
@@ -4338,7 +4340,7 @@ const PREMARKET_MODE = isPremarketMode();
         '조건이 좋아 보이더라도 60거래일 검증에서 위험하거나 성과가 약했던 유형은 진입 후보로 표시하지 않습니다.<br>' +
         '<span style="font-size:11px;color:#fde68a;">제외 사유: WAIT_PULLBACK / open≥8% / v/mc≥5% 단독 / FADED+cp≥0.70 / FADED 단독 등 (60일 검증 fail3 60% 이상 유형)</span>' +
       '</div>' +
-      '<div style="margin-top:8px;">' + watchOnly.map((e) => renderCard(e, 'aux')).join('') + '</div></details>';
+      '<div style="margin-top:8px;">' + watchOnly.map((e) => renderCard(e, 'aux', 'watchOnly')).join('') + '</div></details>';
   }
 
   const headerCount = '✅ 10시생존 ' + survivor1000.length + ' / 🚀 조기포착 ' + explosiveStable.length + ' / 🔥 공격형 ' + attackRebreak.length;
@@ -5048,9 +5050,97 @@ document.getElementById('foot').innerHTML =
     bodyEl.innerHTML = '<div class="chart-empty" style="color:#fca5a5;">' + escHtml(msg) + '</div>';
   }
 
+  // ─── 단순화 모달 렌더러 (watchOnly / explosiveStable / attackRebreak) ───
+  // audit (관찰 제외 +8% 백테스트) 검증 지표 기반. 매수가/손절가/추천선 일체 없음.
+  function renderSimplifiedResult(r) {
+    let html = '';
+    // 헤더: 그룹 + verdict
+    const verdictClass = r.verdict && r.verdict.indexOf('FAILED') >= 0 ? 'verdict-INVALID' :
+                        (r.verdict === 'BROKEN' || r.verdict === 'FADED' || r.verdict === 'REBREAK_FAILED') ? 'verdict-INVALID' :
+                        (r.verdict === 'EXTENDED_OVERHEAT' || r.verdict === 'WATCH_BUT_WEAK') ? 'verdict-CHASE_RISK' :
+                        (r.verdict === 'HOLD_OK' || r.verdict === 'MOMENTUM_STRONG' || r.verdict === 'REBREAK_LIVE_NOW') ? 'verdict-ENTER_OK' :
+                        'verdict-WATCH';
+    html += '<div class="verdict-card ' + verdictClass + '">' +
+      '<div style="flex:1">' +
+        '<div>' + escHtml(r.verdictLabel || r.verdict) + ' · <span style="font-size:12px;color:#94a3b8;">' + escHtml(r.sectionLabel || '') + '</span></div>' +
+        '<div class="verdict-explain">신호 강도 · 위험 지표 기반 사후 검증 결과 (audit lift80 1.93~2.45 검증)</div>' +
+      '</div></div>';
+
+    // 매수 추천 X 안내
+    html += '<div class="live-notice">※ 매수 추천이 아닙니다. 현재 시점 신호 강도와 위험 지표 표시만 제공합니다.</div>';
+
+    // 신호 강도 progress bar
+    if (r.score != null) {
+      const barColor = r.score >= 70 ? '#22c55e' : r.score >= 40 ? '#fbbf24' : '#f87171';
+      html += '<div class="live-section">' +
+        '<h4>📊 신호 강도</h4>' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-top:6px;">' +
+          '<div style="flex:1;background:#1e293b;border-radius:6px;height:18px;overflow:hidden;">' +
+            '<div style="width:' + r.score + '%;height:100%;background:' + barColor + ';transition:width .3s;"></div>' +
+          '</div>' +
+          '<div style="font-size:18px;font-weight:700;color:' + barColor + ';min-width:80px;text-align:right;">' + r.score + ' / 100</div>' +
+        '</div>' +
+        '<div style="font-size:11.5px;color:#94a3b8;margin-top:4px;">평가 시각: ' + escHtml(r.nowKstHm || '-') + ' KST · 현재가: ' + fmtNum(r.currentPrice) + '원 (' + escHtml(r.currentTime || '-') + ')</div>' +
+      '</div>';
+    } else {
+      html += '<div class="live-section"><h4>📊 신호 강도</h4><div style="color:#94a3b8;font-size:13px;margin-top:6px;">활성 지표 없음 (시각 미달 또는 데이터 부족)</div></div>';
+    }
+
+    // 지표 체크리스트
+    if (r.indicators && r.indicators.length) {
+      html += '<div class="live-section"><h4>✓ 지표 체크리스트</h4>' +
+        '<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;">' +
+        '<thead><tr style="background:#1e293b;color:#fde047;">' +
+          '<th style="padding:5px 8px;text-align:left;border:1px solid #334155;">상태</th>' +
+          '<th style="padding:5px 8px;text-align:left;border:1px solid #334155;">지표</th>' +
+          '<th style="padding:5px 8px;text-align:right;border:1px solid #334155;">가중치</th>' +
+          '<th style="padding:5px 8px;text-align:left;border:1px solid #334155;">값</th>' +
+          '<th style="padding:5px 8px;text-align:right;border:1px solid #334155;">lift80</th>' +
+        '</tr></thead><tbody>';
+      for (const ind of r.indicators) {
+        const icon = !ind.active ? '<span style="color:#94a3b8;">⏳</span>' : ind.met ? '<span style="color:#22c55e;">✓</span>' : '<span style="color:#f87171;">✗</span>';
+        const rowOpacity = !ind.active ? 'opacity:0.55;' : '';
+        html += '<tr style="' + rowOpacity + '">' +
+          '<td style="padding:5px 8px;border:1px solid #334155;text-align:center;font-size:14px;">' + icon + '</td>' +
+          '<td style="padding:5px 8px;border:1px solid #334155;">' + escHtml(ind.label) + '</td>' +
+          '<td style="padding:5px 8px;border:1px solid #334155;text-align:right;">' + ind.weight + '</td>' +
+          '<td style="padding:5px 8px;border:1px solid #334155;color:#94a3b8;">' + escHtml(ind.value || '-') + '</td>' +
+          '<td style="padding:5px 8px;border:1px solid #334155;text-align:right;color:#94a3b8;">' + (ind.auditLift80 != null ? ind.auditLift80.toFixed(2) : '-') + '</td>' +
+        '</tr>';
+      }
+      html += '</tbody></table></div>';
+    }
+
+    // 위험 신호
+    if (r.warnings && r.warnings.length > 0) {
+      html += '<div class="live-section"><h4 style="color:#fca5a5;">⚠ 위험 신호 (' + r.warnings.length + '건)</h4><ul class="warnings" style="margin-top:6px;">';
+      for (const w of r.warnings) {
+        html += '<li><strong>' + escHtml(w.label) + '</strong>: <span style="color:#94a3b8;">' + escHtml(w.detail || '') + '</span></li>';
+      }
+      html += '</ul></div>';
+    } else {
+      html += '<div class="live-section"><h4 style="color:#86efac;">⚠ 위험 신호</h4><div style="color:#94a3b8;font-size:13px;margin-top:6px;">현재 식별된 위험 신호 없음</div></div>';
+    }
+
+    // audit 출처
+    if (r.auditNote) {
+      html += '<div class="live-source-note" style="font-size:11px;color:#94a3b8;margin-top:14px;line-height:1.6;">' +
+        '📚 ' + escHtml(r.auditNote) +
+        '<br>분석 시각: ' + escHtml(r.checkedAt || '') + ' · 현재가 출처: ' + escHtml(r.currentSource || '-') +
+      '</div>';
+    }
+
+    bodyEl.innerHTML = html;
+  }
+
   function renderResult(r) {
     if (!r || !r.ok) {
       renderError(r && r.reason ? r.reason : '분석 응답 오류');
+      return;
+    }
+    // 단순화 모드(watchOnly/explosiveStable/attackRebreak)는 별도 렌더러
+    if (r.mode === 'simplified') {
+      renderSimplifiedResult(r);
       return;
     }
     const verdict = r.verdict || 'DATA_MISSING';
@@ -5306,9 +5396,10 @@ document.getElementById('foot').innerHTML =
     } catch (_) { /* localStorage 차단 시 무시 */ }
   }
 
-  async function open(code, name, date) {
+  async function open(code, name, date, section) {
     showFirstClickNoticeIfNeeded();
-    titleEl.textContent = (name || code) + ' · ' + code;
+    const groupSuffix = section && section !== 'survivor1000' ? ' · 신호 강도 분석' : '';
+    titleEl.textContent = (name || code) + ' · ' + code + groupSuffix;
     modal.classList.remove('hidden');
 
     // 장중 여부 먼저 체크 — 장마감/주말/분석일 mismatch 면 fetch 안 함
@@ -5319,14 +5410,16 @@ document.getElementById('foot').innerHTML =
     }
 
     renderLoading();
-    const cacheKey = date + '__' + code;
+    const sectionParam = section && section !== 'survivor1000' ? section : '';
+    const cacheKey = date + '__' + code + '__' + (sectionParam || 'survivor1000');
     const cached = clientCache.get(cacheKey);
     if (cached && (Date.now() - cached.t) < CACHE_TTL) {
       renderResult(cached.r);
       return;
     }
     try {
-      const resp = await fetch('/api/one-day-surge/live-entry-check?date=' + encodeURIComponent(date) + '&code=' + encodeURIComponent(code), { credentials: 'same-origin' });
+      const sectionQs = sectionParam ? '&section=' + encodeURIComponent(sectionParam) : '';
+      const resp = await fetch('/api/one-day-surge/live-entry-check?date=' + encodeURIComponent(date) + '&code=' + encodeURIComponent(code) + sectionQs, { credentials: 'same-origin' });
       if (!resp.ok) {
         if (resp.status === 404) {
           renderError('API 엔드포인트를 찾을 수 없습니다 (HTTP 404). 서버 재시작이 필요할 수 있습니다. 운영자에게 문의하거나, 정적 HTML로 열어본 경우 정식 보드 URL(/one-day-surge-board)로 접속해주세요.');
@@ -5350,7 +5443,8 @@ document.getElementById('foot').innerHTML =
       const code = btn.getAttribute('data-code');
       const name = btn.getAttribute('data-name');
       const date = btn.getAttribute('data-date');
-      if (code && date) open(code, name, date);
+      const section = btn.getAttribute('data-section') || 'survivor1000';
+      if (code && date) open(code, name, date, section);
       return;
     }
     if (e.target === modal) close();

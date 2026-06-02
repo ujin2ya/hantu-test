@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<title>1DS 분봉 필요 목록 요약</title>
+<style>
+  body { background:#0f172a; color:#e2e8f0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; margin:0; padding:20px; }
+  h1 { color:#fde047; font-size:22px; margin:0 0 8px; }
+  .sub { color:#94a3b8; font-size:13px; margin-bottom:16px; }
+  .card { background:#1e293b; padding:14px 18px; border-radius:8px; margin:0 0 14px; border-left:4px solid #fde047; }
+  .card strong { color:#fde047; }
+  table { border-collapse:collapse; width:100%; font-size:13px; background:#0b1320; margin-top:8px; }
+  th, td { padding:6px 10px; border:1px solid #1e293b; text-align:left; }
+  th { color:#fde047; background:#1e293b; font-weight:700; }
+  .note { font-size:12px; color:#94a3b8; background:#1e293b; padding:10px 14px; border-radius:6px; margin:14px 0; }
+</style>
+</head><body>
+
+<h1>1DS 분봉 필요 목록 — 최근 20거래일</h1>
+<div class="sub">
+  생성: 2026-06-02T11:52:07.855Z · 분봉 가용 2026-02-12 ~ 2026-06-02 ·
+  대상 거래일 20일 (2026-05-06 ~ 2026-06-02)
+</div>
+
+<div class="card">
+  <strong>📌 수집 대상 정의</strong><br>
+  이번 분봉 수집은 <strong>전체 종목 대상이 아니라</strong> A 공격형 + B 10시 생존 + D 관찰 제외 +8% <strong>이벤트 종목만</strong> 대상으로 한다.<br>
+  C 관찰 제외 전체(약 18,000건)는 수집 대상에서 제외.
+</div>
+
+<div class="card">
+  <strong>📊 이벤트 카운트</strong><br>
+  A 공격형:           95 건<br>
+  B 10시 생존:        121 건<br>
+  D 관찰 제외 +8%:    393 건<br>
+  합계 (중복 포함):   609 건
+</div>
+
+<div class="card">
+  <strong>🎯 분봉 수집 대상</strong><br>
+  중복 제거 전 date-code: <strong>609</strong>건<br>
+  중복 제거 후 unique:    <strong>574</strong>건<br>
+  예상 1분봉 row 수:      <strong>223860</strong> rows (× 390 bars/day)
+</div>
+
+<div class="card">
+  <strong>🗓 기간별 예상 row 수 (이번 윈도우의 일평균 unique date-code × N일 × 390 으로 추산)</strong><br>
+  20거래일: 223,860 rows (574 unique date-codes)<br>
+  60거래일: 671,580 rows (1722 unique date-codes)<br>
+  all 거래일 (73일): 817,089 rows (2095 unique date-codes)
+</div>
+
+<div class="note">
+  <strong>분봉 수집 시간 범위:</strong> 09:00~15:30 (정규장 전체).<br>
+  hold/rebreak 조건 계산에 10:00, 11:00, 13:00, 14:00 시점이 모두 필요해 부분 분봉 불가.
+</div>
+
+<h2 style="color:#fde047;font-size:16px;margin:18px 0 8px;">상위 20건 미리보기 (전체는 CSV/JSON 참고)</h2>
+<table>
+  <thead><tr><th>trade_date</th><th>code</th><th>name</th><th>status</th><th>groups</th><th>event_count</th></tr></thead>
+  <tbody><tr>
+    <td>2026-05-06</td>
+    <td>000500</td>
+    <td>가온전선</td>
+    <td>WAIT_PULLBACK</td>
+    <td>D_EXCLUDED_PLUS8</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>003470</td>
+    <td>유안타증권</td>
+    <td>FADED</td>
+    <td>D_EXCLUDED_PLUS8</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>003530</td>
+    <td>한화투자증권</td>
+    <td>READY</td>
+    <td>A_ATTACK|B_SURVIVOR_1000</td>
+    <td>2</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>004800</td>
+    <td>효성</td>
+    <td>READY</td>
+    <td>A_ATTACK|B_SURVIVOR_1000</td>
+    <td>2</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>007610</td>
+    <td>선도전기</td>
+    <td>WEAK</td>
+    <td>D_EXCLUDED_PLUS8</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>007810</td>
+    <td>코리아써키트</td>
+    <td>READY</td>
+    <td>A_ATTACK</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>011790</td>
+    <td>SKC</td>
+    <td>READY</td>
+    <td>A_ATTACK|B_SURVIVOR_1000</td>
+    <td>2</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>015860</td>
+    <td>일진홀딩스</td>
+    <td>READY</td>
+    <td>B_SURVIVOR_1000</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>018880</td>
+    <td>한온시스템</td>
+    <td>WAIT_PULLBACK</td>
+    <td>D_EXCLUDED_PLUS8</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>024840</td>
+    <td>KBI메탈</td>
+    <td>WEAK</td>
+    <td>D_EXCLUDED_PLUS8</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>037030</td>
+    <td>파워넷</td>
+    <td>WAIT_PULLBACK</td>
+    <td>D_EXCLUDED_PLUS8</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>052900</td>
+    <td>KX하이텍</td>
+    <td>FADED</td>
+    <td>D_EXCLUDED_PLUS8</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>060310</td>
+    <td>3S</td>
+    <td>FADED</td>
+    <td>D_EXCLUDED_PLUS8</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>064260</td>
+    <td>다날</td>
+    <td>FADED</td>
+    <td>D_EXCLUDED_PLUS8</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>076610</td>
+    <td>해성옵틱스</td>
+    <td>WAIT_PULLBACK</td>
+    <td>D_EXCLUDED_PLUS8</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>078150</td>
+    <td>HB테크놀러지</td>
+    <td>WAIT_PULLBACK</td>
+    <td>D_EXCLUDED_PLUS8</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>083450</td>
+    <td>GST</td>
+    <td>READY</td>
+    <td>A_ATTACK|B_SURVIVOR_1000</td>
+    <td>2</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>084370</td>
+    <td>유진테크</td>
+    <td>READY</td>
+    <td>B_SURVIVOR_1000</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>089010</td>
+    <td>켐트로닉스</td>
+    <td>WEAK</td>
+    <td>D_EXCLUDED_PLUS8</td>
+    <td>1</td>
+  </tr><tr>
+    <td>2026-05-06</td>
+    <td>144960</td>
+    <td>뉴파워프라즈마</td>
+    <td>READY</td>
+    <td>B_SURVIVOR_1000</td>
+    <td>1</td>
+  </tr></tbody>
+</table>
+
+<div class="note" style="margin-top:18px;">
+  <strong>다음 단계:</strong><br>
+  1. <code>node scripts/one-ds-minute-coverage-check.js --input=reports/one-ds-minute-required-list.json</code><br>
+  2. 결과의 missing CSV를 운영서버로 복사해 KIS 분봉 수집 실행<br>
+  3. 수집 완료 후 로컬로 sync<br>
+  4. <code>node scripts/one-ds-excluded-plus8-intraday-hold-rebreak-audit.js --days=20</code>
+</div>
+
+</body></html>
