@@ -1,0 +1,111 @@
+{
+  "snapshotDate": "2026-06-08",
+  "savedAt": "2026-06-08T00:44:02.913Z",
+  "survivor1000": [],
+  "explosiveStable": [],
+  "attackTopCandidates": [],
+  "attackTopHighRisk": [
+    {
+      "code": "080220",
+      "name": "제주반도체",
+      "market": "KOSDAQ",
+      "attackRank": 1,
+      "attackScore": 46,
+      "decisionTime": "09:30",
+      "decisionPrice": 91100,
+      "signalPrice": 91100,
+      "prevClose": 107300,
+      "open0900": 82900,
+      "gapRate": -22.74,
+      "morningValue": 106542192000,
+      "morningValueRank": 1,
+      "morningValuePercentile": 1,
+      "isTop10Value": true,
+      "morningHigh": 92500,
+      "rebreakMorningHigh": true,
+      "rebreakTime": "09:40",
+      "rebreakWithValue": false,
+      "valueContinueRatio": 0.491,
+      "valueSecondWaveRatio": 0,
+      "decisionFromPrevClose": -15.1,
+      "decisionFromOpen": 9.89,
+      "morningRangeRate": 16.01,
+      "pricePositionInMorningRange": 0.992,
+      "gtBand": "HEAVY_WATCH",
+      "oneDaySurgeScore": -53,
+      "attackTags": [
+        "거래대금 상위 10%",
+        "대형 거래대금",
+        "장초 고가 재돌파",
+        "고가권 유지",
+        "공격형 TOP"
+      ],
+      "riskTags": [
+        "시가 대비 너무 멀어짐",
+        "장초 변동성 큼"
+      ],
+      "shortComment": "거래대금 상위권이면서 장초 고가를 다시 돌파한 공격형 후보입니다.",
+      "targetDir": "2026-06-08",
+      "targetDirSource": "nextDay",
+      "attackRiskLevel": "HIGH_RISK_ATTACK",
+      "attackRiskReasons": [
+        "riskExcluded=group_off_pool",
+        "tradePlan AUTO_EXCLUDED_RISK",
+        "riskTrapScore 86.5"
+      ],
+      "displayPolicyNote": "위험 감수형 공격 후보 — 변동성이 크고 고점 이탈 위험이 있으나, 장초 재상승/재돌파 흐름이 있어 공격형 감시 대상으로 유지합니다.",
+      "cacheMtimeHtml": " <span class=\"cache-price\" style=\"font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;\">93,500원</span> <span class=\"cache-mtime\" style=\"font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;\">06/05 16:21</span>"
+    },
+    {
+      "code": "440110",
+      "name": "파두",
+      "market": "KOSDAQ",
+      "attackRank": 2,
+      "attackScore": 46,
+      "decisionTime": "09:30",
+      "decisionPrice": 105800,
+      "signalPrice": 105800,
+      "prevClose": 116000,
+      "open0900": 99500,
+      "gapRate": -14.22,
+      "morningValue": 31526148450,
+      "morningValueRank": 8,
+      "morningValuePercentile": 7.6,
+      "isTop10Value": true,
+      "morningHigh": 107100,
+      "rebreakMorningHigh": true,
+      "rebreakTime": "09:40",
+      "rebreakWithValue": false,
+      "valueContinueRatio": 0.29,
+      "valueSecondWaveRatio": 0,
+      "decisionFromPrevClose": -8.79,
+      "decisionFromOpen": 6.33,
+      "morningRangeRate": 11.36,
+      "pricePositionInMorningRange": 0.982,
+      "gtBand": "HEAVY_RISK",
+      "oneDaySurgeScore": -38,
+      "attackTags": [
+        "거래대금 상위 10%",
+        "대형 거래대금",
+        "장초 고가 재돌파",
+        "고가권 유지",
+        "공격형 TOP"
+      ],
+      "riskTags": [
+        "시가 대비 너무 멀어짐",
+        "장초 변동성 큼",
+        "거래대금 급감"
+      ],
+      "shortComment": "거래대금 상위권이면서 장초 고가를 다시 돌파한 공격형 후보입니다.",
+      "targetDir": "2026-06-08",
+      "targetDirSource": "nextDay",
+      "attackRiskLevel": "HIGH_RISK_ATTACK",
+      "attackRiskReasons": [
+        "riskExcluded=group_off_pool",
+        "tradePlan AUTO_EXCLUDED_RISK"
+      ],
+      "displayPolicyNote": "위험 감수형 공격 후보 — 변동성이 크고 고점 이탈 위험이 있으나, 장초 재상승/재돌파 흐름이 있어 공격형 감시 대상으로 유지합니다.",
+      "cacheMtimeHtml": " <span class=\"cache-price\" style=\"font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;\">109,800원</span> <span class=\"cache-mtime\" style=\"font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;\">06/05 16:21</span>"
+    }
+  ]
+}

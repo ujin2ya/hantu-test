@@ -1,14 +1,14 @@
 {
   "meta": {
-    "generatedAt": "2026-06-02T07:35:15.141Z",
+    "generatedAt": "2026-06-10T09:58:55.914Z",
     "title": "D+5 재돌파 운용 보드",
     "purpose": "이 보드는 H그룹 발생 후 D+5 안에 H돌파일 고가를 재돌파하는지 추적하는 운용 보드입니다. 백테스트에서는 H돌파일 고가 재돌파 여부가 D+5 성과를 가장 크게 갈랐습니다. 단, 재돌파는 사전에 확정되는 값이 아니라 장중 또는 종가 기준으로 확인되는 상태이므로, 이 화면은 매수 등급표가 아니라 재돌파 상태와 기준 종가 이탈 여부를 추적하는 보드입니다.",
     "sourceBoard": "qva-watchlist-board.json (BREAKOUT_SUCCESS, D+0~D+5)",
-    "latestTradingDate": "20260602"
+    "latestTradingDate": "20260610"
   },
   "counts": {
-    "total": 2,
-    "effective": 2
+    "total": 0,
+    "effective": 0
   },
   "statusLabels": {
     "TODAY_INITIAL_BREAKOUT": "오늘 H돌파일 (D+0)",
@@ -71,138 +71,5 @@
       }
     ]
   },
-  "items": [
-    {
-      "code": "035420",
-      "name": "NAVER",
-      "market": "KOSPI",
-      "breakoutDate": "20260601",
-      "daysFromBreakout": 1,
-      "vprMain": "OVERHEATED_BREAKOUT",
-      "vprMainLabel": "과열 돌파",
-      "vprTags": [
-        "VOLUME_EXPLOSION",
-        "GAP_UP_START",
-        "UPPER_WICK_WARN",
-        "FAR_FROM_BASE"
-      ],
-      "vprTagLabels": [
-        "거래대금 폭발",
-        "갭상승 출발",
-        "위꼬리 주의",
-        "기준가 대비 거리 큼"
-      ],
-      "interpretation": null,
-      "baseClose": 234000,
-      "breakoutLine": 236340,
-      "hDayHigh": 304000,
-      "hDayLow": 244500,
-      "currentClose": 280500,
-      "distFromBase": 19.87,
-      "distToHHigh": -7.73,
-      "aboveHDayHigh": false,
-      "belowBaseClose": false,
-      "hasVolumeSupport": true,
-      "gapPct": 21.79,
-      "rebreakStatus": "NO_REBREAK",
-      "rebreakStatusLabel": "재돌파 없음",
-      "rebreakStatusInterp": "검증상 성과가 매우 약했던 구간입니다 (n=220, 승률 7%, 매번 -5.81%).",
-      "everClosedAboveHHigh": false,
-      "everIntradayAboveHHigh": false,
-      "everLowBelowBaseClose": false,
-      "breakdownEverRecovered": false,
-      "noPullback": true,
-      "firstRebreakDayOffset": null,
-      "firstRebreakDate": null,
-      "rebreakValueRatio": null,
-      "volumeStrength": null,
-      "volumeStrengthLabel": null,
-      "nextDayHoldAfterRebreak": null,
-      "postRebreakDistPct": null,
-      "rebreakDistanceClass": null,
-      "rebreakDistanceLabel": null,
-      "rebreakDistanceNote": null,
-      "flowTags": null,
-      "flowRebreakDate": null,
-      "todayOpen": 285000,
-      "todayHigh": 289500,
-      "todayLow": 244000,
-      "prevClose": 271500,
-      "todayChangePct": 3.31,
-      "todayHighVsHHighPct": -4.77,
-      "todayClosePosition": 80.2,
-      "todayUpperWickPct": 3.21,
-      "runComments": [
-        "아직 H돌파일 고가에 장중도 닿지 않은 상태. 검증상 매우 약한 구간(n=220, 승률 7%, 매번 -5.81%).",
-        "큰 갭상승: 강한 모멘텀 가능성. 단, H돌파일 고가 위 유지 확인 필요."
-      ],
-      "cacheMtimeHtml": " <span class=\"cache-price\" style=\"font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;\">280,500원</span> <span class=\"cache-mtime\" style=\"font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;\">06/02 16:20</span>"
-    },
-    {
-      "code": "456010",
-      "name": "아이씨티케이",
-      "market": "KOSDAQ",
-      "breakoutDate": "20260527",
-      "daysFromBreakout": 4,
-      "vprMain": "OVERHEATED_BREAKOUT",
-      "vprMainLabel": "과열 돌파",
-      "vprTags": [
-        "VOLUME_EXPLOSION",
-        "GAP_UP_START",
-        "UPPER_WICK_WARN",
-        "FAR_FROM_BASE"
-      ],
-      "vprTagLabels": [
-        "거래대금 폭발",
-        "갭상승 출발",
-        "위꼬리 주의",
-        "기준가 대비 거리 큼"
-      ],
-      "interpretation": "기준 종가(30,800원) 이탈 뒤 종가는 회복했지만 H돌파일 고가(39,950원)까지는 종가 재돌파 못 함. 겉으로는 회복처럼 보이지만 검증상 승률 7.4%로 매우 약했던 구간 — 회복 착시.",
-      "baseClose": 30800,
-      "breakoutLine": 31108,
-      "hDayHigh": 39950,
-      "hDayLow": 30950,
-      "currentClose": 28900,
-      "distFromBase": -6.17,
-      "distToHHigh": -27.66,
-      "aboveHDayHigh": false,
-      "belowBaseClose": true,
-      "hasVolumeSupport": true,
-      "gapPct": 16.4,
-      "rebreakStatus": "BREACH_RECOVER_ILLUSION",
-      "rebreakStatusLabel": "이탈 후 회복 착시",
-      "rebreakStatusInterp": "겉으로는 회복처럼 보이지만 검증상 성과가 매우 약했던 구간입니다 (이탈 후 당일 회복 n=95, 승률 7.4%, 매번 -4.74%).",
-      "everClosedAboveHHigh": false,
-      "everIntradayAboveHHigh": false,
-      "everLowBelowBaseClose": true,
-      "breakdownEverRecovered": true,
-      "noPullback": false,
-      "firstRebreakDayOffset": null,
-      "firstRebreakDate": null,
-      "rebreakValueRatio": null,
-      "volumeStrength": null,
-      "volumeStrengthLabel": null,
-      "nextDayHoldAfterRebreak": null,
-      "postRebreakDistPct": null,
-      "rebreakDistanceClass": null,
-      "rebreakDistanceLabel": null,
-      "rebreakDistanceNote": null,
-      "flowTags": null,
-      "flowRebreakDate": null,
-      "todayOpen": 29050,
-      "todayHigh": 31950,
-      "todayLow": 27500,
-      "prevClose": 30450,
-      "todayChangePct": -5.09,
-      "todayHighVsHHighPct": -20.03,
-      "todayClosePosition": 31.5,
-      "todayUpperWickPct": 10.55,
-      "runComments": [
-        "기준 종가 이탈한 뒤 종가는 회복했지만 H돌파일 고가까지는 종가 재돌파 못함. 회복처럼 보이지만 검증상 매우 약한 구간(이탈 후 당일 회복 n=95, 승률 7.4%, 매번 -4.74%) — 회복 착시.",
-        "큰 갭상승: 강한 모멘텀 가능성. 단, H돌파일 고가 위 유지 확인 필요."
-      ],
-      "cacheMtimeHtml": " <span class=\"cache-price\" style=\"font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;\">28,900원</span> <span class=\"cache-mtime\" style=\"font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;\">06/02 16:21</span>"
-    }
-  ]
+  "items": []
 }
