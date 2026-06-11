@@ -3,8 +3,8 @@ const { generateComment } = require("../services/ai/geminiComment");
 
 async function postComment(req, res) {
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(503).json({ error: "GEMINI_API_KEY가 서버에 설정되지 않았습니다." });
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(503).json({ error: "OPENAI_API_KEY가 서버에 설정되지 않았습니다." });
     }
     const mode = req.body.mode === "short" ? "short" : "swing";
     const snapshot = req.body.snapshot;

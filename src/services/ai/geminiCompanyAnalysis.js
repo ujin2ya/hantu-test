@@ -2,19 +2,11 @@
 // 3개 섹션 (기업 분석 / 사업 내용 / 최근 이슈) 한 번에 생성.
 // 입력: snapshot { code, name, market, marketCap, currentPrice, currentChangeRate, financials, disclosures, news, ... }
 // 후처리: 회피 표현 정리 + 과다 출현 시 fallback.
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+// 2026-06-11: Gemini → OpenAI(ChatGPT) 전환. 생성부만 openaiClient로 교체, 나머지 로직 유지.
+const { generateText } = require("./openaiClient");
 
 const TTL_MS = 30 * 60 * 1000; // 30분 in-memory TTL — 같은 종목 다시 누르면 즉답
 const cache = new Map();
-
-let geminiClient = null;
-function getGemini() {
-  if (geminiClient) return geminiClient;
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error("GEMINI_API_KEY가 서버에 설정되지 않았습니다.");
-  geminiClient = new GoogleGenerativeAI(key);
-  return geminiClient;
-}
 
 function fmtMarketCap(won) {
   if (!won || won <= 0) return "-";
@@ -156,11 +148,7 @@ async function generateCompanyAnalysis(snapshot) {
   if (hit && Date.now() < hit.expiresAt) return { ...hit.value, cached: true };
 
   const prompt = buildPrompt(snapshot);
-  const client = getGemini();
-  const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
-  const model = client.getGenerativeModel({ model: modelName });
-  const result = await model.generateContent(prompt);
-  const rawText = result.response.text();
+  const { text: rawText, model: modelName } = await generateText(prompt);
 
   // 회피 표현 2건 이상이면 fallback 사용
   const evasionCount = countEvasions(rawText);

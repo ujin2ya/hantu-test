@@ -1,6 +1,7 @@
 // /ai/comment 엔드포인트 — D+5 재돌파 상세 페이지에서 lazy로 호출.
 // snapshot(점수/가격/비율 등)을 받아 단타/스윙 관점 4섹션 코멘트를 생성한다.
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+// 2026-06-11: Gemini → OpenAI(ChatGPT) 전환. 생성부만 openaiClient로 교체.
+const { generateText } = require("./openaiClient");
 
 // ─── 시장 컨텍스트 ───
 function getMarketContext(now = new Date()) {
@@ -31,16 +32,6 @@ function getMarketContext(now = new Date()) {
 
 function pickAutoMode(now = new Date()) {
   return getMarketContext(now).horizon;
-}
-
-// ─── Gemini 클라이언트 (lazy) ───
-let geminiClient = null;
-function getGemini() {
-  if (geminiClient) return geminiClient;
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error("GEMINI_API_KEY가 서버에 설정되지 않았습니다.");
-  geminiClient = new GoogleGenerativeAI(key);
-  return geminiClient;
 }
 
 // ─── 프롬프트 ───
@@ -99,11 +90,7 @@ async function generateComment({ snapshot, mode }) {
   if (cached) return { ...cached, cached: true };
 
   const prompt = buildAiPrompt(snapshot, mode);
-  const client = getGemini();
-  const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
-  const model = client.getGenerativeModel({ model: modelName });
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
+  const { text, model: modelName } = await generateText(prompt);
   const payload = { text, mode, model: modelName };
   setAiCache(cacheKey, payload);
   return payload;
