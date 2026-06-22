@@ -44,24 +44,52 @@ const SCANNER_0930_PATH = path.join(REPORTS_DIR, 'one-day-surge-0930-scanner.jso
 const OUT_JSON = path.join(REPORTS_DIR, 'one-day-surge-board-result.json');
 
 const _cacheInfoMemo = new Map();
+let _latestIntradayDirMemo;
+function _latestIntradayDir() {
+  if (_latestIntradayDirMemo === undefined) {
+    const dirs = loadIntradayDirs();
+    _latestIntradayDirMemo = dirs.length ? dirs[dirs.length - 1] : null;
+  }
+  return _latestIntradayDirMemo;
+}
+// 종목명 옆 "현재가 + 시각" 라벨.
+//  - 기본: 일봉 캐시(cache/stock-charts-long)의 마지막 종가 + 파일 mtime.
+//  - 장중엔 일봉 캐시가 직전 거래일 종가라 stale → "오늘 후보"가 직전 거래일 날짜로 보이는 문제.
+//    최신 분봉(오늘) 폴더 날짜가 일봉 마지막 행 날짜보다 새로우면 분봉 마지막 bar 가격/시각으로 대체.
+//    (장마감 후·주말엔 일봉이 당일 종가 확정이라 분봉보다 정확하므로 그대로 일봉 사용)
 function fmtCacheMtime(code) {
   if (_cacheInfoMemo.has(code)) return _cacheInfoMemo.get(code);
-  let html = '';
+  const pad = n => String(n).padStart(2, '0');
+  let priceVal = null, priceDateNum = null, dateStr = '';
+  // 1) 일봉 캐시 — 마지막 종가 + 파일 mtime
   try {
     const p = path.join(CHART_DIR, code + '.json');
     const m = fs.statSync(p).mtime;
-    const pad = n => String(n).padStart(2, '0');
-    const dateStr = pad(m.getMonth() + 1) + '/' + pad(m.getDate()) + ' ' + pad(m.getHours()) + ':' + pad(m.getMinutes());
-    let priceHtml = '';
-    try {
-      const rows = JSON.parse(fs.readFileSync(p, 'utf-8')).rows || [];
-      const last = rows.length > 0 ? rows[rows.length - 1] : null;
-      if (last && typeof last.close === 'number') {
-        priceHtml = ' <span class="cache-price" style="font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;">' + last.close.toLocaleString('ko-KR') + '원</span>';
-      }
-    } catch (_) {}
-    html = priceHtml + ' <span class="cache-mtime" style="font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;">' + dateStr + '</span>';
+    dateStr = pad(m.getMonth() + 1) + '/' + pad(m.getDate()) + ' ' + pad(m.getHours()) + ':' + pad(m.getMinutes());
+    const rows = JSON.parse(fs.readFileSync(p, 'utf-8')).rows || [];
+    const last = rows.length > 0 ? rows[rows.length - 1] : null;
+    if (last && typeof last.close === 'number') { priceVal = last.close; priceDateNum = last.date || null; }
   } catch (_) {}
+  // 2) 장중 우선: 최신 분봉 폴더가 일봉 마지막 행보다 새 날짜면 분봉 마지막 bar로 대체
+  try {
+    const latestDir = _latestIntradayDir();
+    if (latestDir && (!priceDateNum || latestDir.replace(/-/g, '') > priceDateNum)) {
+      const idata = JSON.parse(fs.readFileSync(path.join(INTRADAY_BASE, latestDir, code + '.json'), 'utf-8'));
+      const bars = Array.isArray(idata.bars) ? idata.bars : [];
+      const lb = bars.filter(b => b && b.time && Number.isFinite(b.close)).slice(-1)[0];
+      if (lb) {
+        priceVal = lb.close;
+        dateStr = latestDir.slice(5, 7) + '/' + latestDir.slice(8, 10) + ' ' + lb.time;
+      }
+    }
+  } catch (_) {}
+  let html = '';
+  if (dateStr) {
+    const priceHtml = priceVal != null
+      ? ' <span class="cache-price" style="font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;">' + priceVal.toLocaleString('ko-KR') + '원</span>'
+      : '';
+    html = priceHtml + ' <span class="cache-mtime" style="font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;">' + dateStr + '</span>';
+  }
   _cacheInfoMemo.set(code, html);
   return html;
 }
@@ -5334,7 +5362,9 @@ document.getElementById('foot').innerHTML =
     const todayKst = yr + '-' + mo + '-' + da;
     const kstHm = hh + ':' + mm;
     const totalMin = parseInt(hh, 10) * 60 + parseInt(mm, 10);
-    const dow = new Date(todayKst + 'T00:00:00+09:00').getUTCDay(); // 0=일, 6=토 (UTC offset 자동 처리)
+    // todayKst는 이미 KST 달력 날짜("YYYY-MM-DD"). UTC 자정으로 해석해 getUTCDay()를 부른다.
+    // (T00:00:00+09:00 으로 만들면 KST 자정 = UTC 전날 15:00 이라 getUTCDay가 하루 밀려 월요일이 주말로 오판됨.)
+    const dow = new Date(todayKst + 'T00:00:00Z').getUTCDay(); // 0=일, 6=토
     if (dow === 0 || dow === 6) {
       return { active: false, reason: 'weekend', kstNow: todayKst, kstHm };
     }
