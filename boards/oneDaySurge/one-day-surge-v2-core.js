@@ -24,6 +24,31 @@ const CONFIG = {
   MARKET_CAP_PENALTY_SMALL: -5,   // 500억~1,000억 (고위험)
   // 그룹별 화면 노출 상한
   CAP: { A: 80, B: 80, C: 60, D: 60 },
+
+  // ── v2 전용: 차트 위치 고려 ──────────────────────────────────────────
+  // ver1은 당일 급등 메트릭만 보고 "그동안 차트가 어디까지 와 있는지"는 무시한다.
+  // v2는 이미 중기적으로 너무 올라버린(과확장) 종목을 제외하고, 이동평균 근처의
+  // "적당한 위치" 종목을 선호한다.
+  //   - 과확장 판정은 "① 그동안 많이 올랐다(중기 누적수익률) AND ② 지금도 확장 상태다
+  //     (이동평균 한참 위 또는 레인지 상단)"를 둘 다 만족할 때만 한다.
+  //     → 많이 올랐어도 지금은 눌린(MA 아래로 조정된) 종목은 '적당한 위치'로 보고 유지.
+  //     → 긴 바닥에서 막 돌파한 종목은 레인지 상단이어도 ①(많이 오름)이 아니라 유지.
+  CHART_FILTER_ENABLED: true,
+  CHART_LOOKBACK: 120,            // 레인지 위치 계산 lookback (거래일)
+  CHART_MIN_BARS: 40,             // 최소 봉 수 (미만이면 위치 판정 보류 — 중립 처리)
+  // ① 그동안 많이 올랐다 (ranUp) — 아래 중 하나
+  CHART_EXTENDED_RET60: 80,       // 최근 60거래일 +80%↑
+  CHART_EXTENDED_RET20: 45,       // 최근 20거래일 +45%↑
+  // ② 지금도 확장 상태다 (stillExtended) — 아래 중 하나
+  CHART_EXTENDED_ABOVE_MA60: 35,  // MA60 대비 +35%↑ (3개월 평균보다 한참 위)
+  CHART_EXTENDED_RANGEPOS: 0.85,  // 120일 레인지 상단 85%↑ (아직 고점권)
+  // 적당한 위치(보너스) — extended 아님 + MA60 근처 + 120일 레인지 상단 아님
+  CHART_MODERATE_ABOVE_MA60_MIN: -12,
+  CHART_MODERATE_ABOVE_MA60_MAX: 20,
+  CHART_MODERATE_RANGEPOS_MAX: 0.75,
+  // 점수 (oneDaySurgeScore에 합산)
+  CHART_EXTENDED_PENALTY: -25,
+  CHART_MODERATE_BONUS: 15,
 };
 
 // ETF/ETN 브랜드 + 특수 종목 키워드. naver의 isEtf/isSpecial 플래그가 놓친 경우의 방어용.
@@ -149,6 +174,53 @@ function analyzeAt(rows, baseIdx) {
   const isBreakoutOf20 = distFromHigh20 != null && distFromHigh20 > 0;
   const nearHigh20 = distFromHigh20 != null && distFromHigh20 <= 0 && distFromHigh20 >= -2;
 
+  // ── v2: 차트 위치 (중기) — 이미 너무 오른 종목 vs 적당한 위치 판별 ──
+  // ma(k): baseIdx 포함 직전 k봉 종가 평균. ret(k): k거래일 전 대비 수익률.
+  const maOf = (k) => {
+    let sum = 0, cnt = 0;
+    for (let i = baseIdx - k + 1; i <= baseIdx; i++) {
+      const r = rows[i];
+      if (r && r.close > 0) { sum += r.close; cnt++; }
+    }
+    return cnt >= Math.ceil(k * 0.6) ? sum / cnt : null;
+  };
+  const lookbackBars = Math.min(CONFIG.CHART_LOOKBACK, baseIdx + 1);
+  let chartRangePos = null, distFromHighL = null;
+  let ma20 = null, ma60 = null, distAboveMA20 = null, distAboveMA60 = null;
+  let ret20 = back(20), ret60 = back(60);
+  let chartExtended = false, chartModerate = false, chartReady = false;
+  if (lookbackBars >= CONFIG.CHART_MIN_BARS) {
+    let hi = -Infinity, lo = Infinity;
+    for (let i = baseIdx - lookbackBars + 1; i <= baseIdx; i++) {
+      const r = rows[i];
+      if (r && r.high > 0) hi = Math.max(hi, r.high);
+      if (r && r.low > 0)  lo = Math.min(lo, r.low);
+    }
+    if (hi > lo) {
+      chartRangePos = (base.close - lo) / (hi - lo);
+      distFromHighL = (base.close / hi - 1) * 100;
+    }
+    ma20 = maOf(20); ma60 = maOf(60);
+    if (ma20 > 0) distAboveMA20 = (base.close / ma20 - 1) * 100;
+    if (ma60 > 0) distAboveMA60 = (base.close / ma60 - 1) * 100;
+    chartReady = true;
+    // ① 그동안 많이 올랐다 (중기 누적수익률)
+    const ranUp =
+      (ret60 != null && ret60 >= CONFIG.CHART_EXTENDED_RET60) ||
+      (ret20 != null && ret20 >= CONFIG.CHART_EXTENDED_RET20);
+    // ② 지금도 확장 상태다 (MA60 한참 위 또는 레인지 상단)
+    const stillExtended =
+      (distAboveMA60 != null && distAboveMA60 >= CONFIG.CHART_EXTENDED_ABOVE_MA60) ||
+      (chartRangePos != null && chartRangePos >= CONFIG.CHART_EXTENDED_RANGEPOS);
+    // 둘 다 충족할 때만 과확장 (많이 올랐어도 지금 눌렸으면 유지)
+    chartExtended = ranUp && stillExtended;
+    chartModerate = !chartExtended &&
+      distAboveMA60 != null &&
+      distAboveMA60 >= CONFIG.CHART_MODERATE_ABOVE_MA60_MIN &&
+      distAboveMA60 <= CONFIG.CHART_MODERATE_ABOVE_MA60_MAX &&
+      (chartRangePos == null || chartRangePos <= CONFIG.CHART_MODERATE_RANGEPOS_MAX);
+  }
+
   return {
     baseIdx,
     baseDate: base.date,
@@ -168,6 +240,19 @@ function analyzeAt(rows, baseIdx) {
     distFromHigh20: round(distFromHigh20),
     isBreakoutOf20,
     nearHigh20,
+    // v2 차트 위치
+    chartReady,
+    chartLookbackBars: lookbackBars,
+    chartRangePos: round(chartRangePos, 3),
+    distFromHighL: round(distFromHighL),
+    ma20: ma20 ? Math.round(ma20) : null,
+    ma60: ma60 ? Math.round(ma60) : null,
+    distAboveMA20: round(distAboveMA20),
+    distAboveMA60: round(distAboveMA60),
+    ret20: round(ret20),
+    ret60: round(ret60),
+    chartExtended,
+    chartModerate,
   };
 }
 
@@ -224,10 +309,19 @@ function scoreMetrics(m, marketCap) {
   s.marketCapPenalty = mcPen;
   s.marketCapBand = band;
 
+  // v2: 차트 위치 점수 — 과확장 감점 / 적당한 위치 가점
+  let chartPos = 0;
+  if (m.chartReady) {
+    if (m.chartExtended) chartPos = CONFIG.CHART_EXTENDED_PENALTY;
+    else if (m.chartModerate) chartPos = CONFIG.CHART_MODERATE_BONUS;
+  }
+  s.chartPositionScore = chartPos;
+
   s.oneDaySurgeScore = Math.round(
     s.valueSurgeScore + s.volumeSurgeScore + s.closeStrengthScore +
     s.priceMomentumScore + s.breakoutPotentialScore +
-    s.upperTailPenalty + s.overheatPenalty + s.riskPenalty + s.marketCapPenalty
+    s.upperTailPenalty + s.overheatPenalty + s.riskPenalty + s.marketCapPenalty +
+    s.chartPositionScore
   );
   return s;
 }
@@ -337,6 +431,9 @@ function countRecentSurges(rows, baseIdx, lookback, threshold) {
 //   UNCLASSIFIED — 위 어디에도 안 들어가는 후보 (보드 노출 X)
 function classifyGtGroup({ m, marketCap, valueToMarketCapRatio, candleType, dailyValueRank, recent5Up15Count }) {
   if (!Number.isFinite(marketCap) || marketCap <= 0) return 'UNCLASSIFIED';
+
+  // v2: 차트상 이미 너무 오른(과확장) 종목은 보드에서 제외 — "적당한 위치" 종목만 남긴다.
+  if (CONFIG.CHART_FILTER_ENABLED && m && m.chartExtended) return 'UNCLASSIFIED';
 
   // MOM-RISK: 상한가형 — TRAP 큰 위험. v/mc 무관, 시총 5조 미만이기만 하면 표시
   if (Number.isFinite(m && m.changeRate) && m.changeRate >= 29) return 'MOM-RISK';

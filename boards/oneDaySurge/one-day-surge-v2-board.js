@@ -997,6 +997,15 @@ function buildSummaryLine(it) {
   if (m.dailyValueRank != null && m.dailyValueRank <= 10) parts.push(`거래대금 시장 상위 ${m.dailyValueRank}위`);
   else if (m.dailyValueRank != null && m.dailyValueRank <= 30) parts.push(`거래대금 시장 상위 ${m.dailyValueRank}위`);
 
+  // v2: 차트 위치 (이미 너무 오른 종목 제외 + 적당한 위치 선호)
+  if (m.chartReady) {
+    const ma = m.distAboveMA60 == null ? null : (m.distAboveMA60 >= 0 ? '+' : '') + Math.round(m.distAboveMA60) + '%';
+    const r60 = m.ret60 == null ? null : (m.ret60 >= 0 ? '+' : '') + Math.round(m.ret60) + '%';
+    const rp = m.chartRangePos == null ? null : Math.round(m.chartRangePos * 100) + '%';
+    if (m.chartModerate) parts.push(`📈 차트 적당한 위치 (MA60 대비 ${ma} · 120일 레인지 ${rp} · 60일 ${r60})`);
+    else parts.push(`📈 차트 위치: MA60 대비 ${ma} · 120일 레인지 ${rp} · 60일 ${r60}`);
+  }
+
   let tail;
   switch (m.gtGroup) {
     case 'BALANCED-GT':
