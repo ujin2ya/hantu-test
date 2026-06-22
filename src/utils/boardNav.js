@@ -26,9 +26,10 @@ const SECTIONS = [
     label: '🟣 실험 라인',
     color: { bg: 'linear-gradient(90deg,#1e1b4b 0%,#312e81 100%)', border: '#6366f1', label: '#c4b5fd' },
     links: [
-      { href: '/one-day-surge-board', text: '⚡ 1DS 단타 후보' },
-      { href: '/nasdaq-theme-watch',  text: '🌎 나스닥 테마 감시' },
-      { href: '/qva-live-watch',      text: '⚡ QVA 장중 감시' },
+      { href: '/one-day-surge-board',    text: '⚡ 1DS 단타 후보' },
+      { href: '/one-day-surge-board-v2', text: '⚡ 1DS 단타 후보 v2' },
+      { href: '/nasdaq-theme-watch',     text: '🌎 나스닥 테마 감시' },
+      { href: '/qva-live-watch',         text: '⚡ QVA 장중 감시' },
     ],
   },
   {

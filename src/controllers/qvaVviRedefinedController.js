@@ -222,6 +222,7 @@ async function getRedefinedVviStockDetail(req, res) {
       "qva2-watchlist":     "/qva2-watchlist",
       "qva2-d5-rebreak":    "/qva2-d5-rebreak",
       "one-day-surge-board":"/one-day-surge-board",
+      "one-day-surge-board-v2":"/one-day-surge-board-v2",
       "one-day-surge":      "/one-day-surge-board",
       "d5-rebreak":         "/rebreak",
       "qva-live-watch":     "/qva-live-watch",

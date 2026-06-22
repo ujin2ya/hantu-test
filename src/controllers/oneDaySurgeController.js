@@ -12,12 +12,21 @@ const BOARD_HTML = path.join(REPORTS_DIR, "one-day-surge-board-result.html");
 const BACKTEST_HTML = path.join(REPORTS_DIR, "one-day-surge-0930-scanner-backtest-result.html");
 const EXPLOSIVE_HTML = path.join(REPORTS_DIR, "one-day-surge-0930-explosive-backtest-result.html");
 const BOARD_RESULT_JSON = path.join(REPORTS_DIR, "one-day-surge-board-result.json");
+const BOARD_V2_HTML = path.join(REPORTS_DIR, "one-day-surge-v2-board-result.html");
 
 function getBoard(req, res) {
   if (!fs.existsSync(BOARD_HTML)) {
     return res.status(404).send("reports/one-day-surge-board-result.html 파일이 없습니다. `node one-day-surge-board.js`를 먼저 실행하세요.");
   }
   res.sendFile(BOARD_HTML);
+}
+
+// 1DS ver2 (복제 실험판) — reports/one-day-surge-v2-board-result.html sendFile
+function getBoardV2(req, res) {
+  if (!fs.existsSync(BOARD_V2_HTML)) {
+    return res.status(404).send("reports/one-day-surge-v2-board-result.html 파일이 없습니다. `node boards/oneDaySurge/one-day-surge-v2-board.js`를 먼저 실행하세요.");
+  }
+  res.sendFile(BOARD_V2_HTML);
 }
 
 function getBacktestReport(req, res) {
@@ -69,4 +78,4 @@ async function getLiveEntryCheck(req, res) {
   }
 }
 
-module.exports = { getBoard, getBacktestReport, getExplosiveBacktestReport, getLiveEntryCheck };
+module.exports = { getBoard, getBoardV2, getBacktestReport, getExplosiveBacktestReport, getLiveEntryCheck };

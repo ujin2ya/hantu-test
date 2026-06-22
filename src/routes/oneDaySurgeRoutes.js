@@ -12,6 +12,9 @@ router.get("/ods", (req, res) => res.redirect("/one-day-surge-board"));
 router.get("/one-day-surge-board/backtest", c.getBacktestReport);
 router.get("/one-day-surge-board/explosive-backtest", c.getExplosiveBacktestReport);
 
+// 1DS ver2 (복제 실험판) — reports/one-day-surge-v2-board-result.html sendFile
+router.get("/one-day-surge-board-v2", c.getBoardV2);
+
 // 클릭한 종목만 현재 진입 가능 여부 분석 (10시 생존 후보 모달용)
 router.get("/api/one-day-surge/live-entry-check", c.getLiveEntryCheck);
 
@@ -22,5 +25,8 @@ router.get("/one-day-surge-board/:code",     qvaVviRedefined.getRedefinedVviStoc
 router.post("/one-day-surge-board/:code/ai", qvaVviRedefined.postCompanyAnalysis);
 router.get("/one-day-surge/:code",           qvaVviRedefined.getRedefinedVviStockDetail);
 router.post("/one-day-surge/:code/ai",       qvaVviRedefined.postCompanyAnalysis);
+// 1DS ver2 종목 상세 — 동일 통일 상세 페이지 공유
+router.get("/one-day-surge-board-v2/:code",     qvaVviRedefined.getRedefinedVviStockDetail);
+router.post("/one-day-surge-board-v2/:code/ai", qvaVviRedefined.postCompanyAnalysis);
 
 module.exports = router;
