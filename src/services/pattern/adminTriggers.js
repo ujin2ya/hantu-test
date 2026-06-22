@@ -28,6 +28,9 @@ const patternState = {
   // 나스닥 테마 감시 수동 새로고침 — cron 06:30 + /admin/refresh-nasdaq-theme
   refreshingNasdaqTheme: false, nasdaqThemeStartedAt: null, nasdaqThemeFinishedAt: null,
   nasdaqThemeError: null, nasdaqThemePhase: null, nasdaqThemeLastResult: null,
+  // QVA 장중 감시 보드 on-demand 갱신 — cron 09:35·12:30·15:30 + /admin/refresh-qva-live-watch
+  refreshingQvaLiveWatch: false, qvaLiveWatchStartedAt: null, qvaLiveWatchFinishedAt: null,
+  qvaLiveWatchError: null, qvaLiveWatchEndHour: null,
 };
 
 // 16:35 cron + admin 트리거가 같은 순서로 갱신하는 보드 스크립트 목록.
@@ -649,6 +652,51 @@ function getNasdaqThemeStatus() {
   };
 }
 
+// QVA 장중 감시 보드 — 분봉 수집 + 보드 재생성 (on-demand 버튼 / cron 09:35·12:30·15:30 와 동일 로직).
+// pipeline/refresh-qva-live-watch.js 가 3 phase(DB 후보추출 → 분봉 수집 → 보드 재생성)를 내부 orchestration.
+// on-demand는 "지금까지의 분봉"이 필요하므로 현재 KST 시각을 --end-hour 로 전달 (장 시작 전/마감 후엔 clamp).
+// 동시 실행은 refresh-qva-live-watch.js 자체 lockfile 로 차단 (cron 과 겹쳐도 한 쪽은 즉시 no-op 종료).
+function refreshQvaLiveWatch() {
+  if (patternState.refreshingQvaLiveWatch) {
+    return { ok: false, message: "이미 QVA 장중 감시 갱신 중입니다", startedAt: patternState.qvaLiveWatchStartedAt };
+  }
+  patternState.refreshingQvaLiveWatch = true;
+  patternState.qvaLiveWatchStartedAt = new Date().toISOString();
+  patternState.qvaLiveWatchFinishedAt = null;
+  patternState.qvaLiveWatchError = null;
+
+  // 현재 KST 시각 → end-hour HHMMSS. KIS 분봉은 endHour 까지 반환하므로 "지금"을 넘기면 현재까지 수집.
+  // 장 시작 직후(<10:00)는 100000, 마감 후(>15:30)는 153000 으로 clamp.
+  const kst = new Date(Date.now() + 9 * 3600 * 1000);
+  let hms = String(kst.getUTCHours()).padStart(2, "0")
+          + String(kst.getUTCMinutes()).padStart(2, "0")
+          + String(kst.getUTCSeconds()).padStart(2, "0");
+  if (hms < "100000") hms = "100000";
+  else if (hms > "153000") hms = "153000";
+  const endHour = hms;
+  patternState.qvaLiveWatchEndHour = endHour;
+
+  const SCRIPT = path.join(ROOT, "pipeline", "refresh-qva-live-watch.js");
+  (async () => {
+    await new Promise((resolve) => {
+      const proc = spawn("node", [SCRIPT, "--end-hour", endHour], { cwd: ROOT });
+      proc.stdout.on("data", (d) => process.stdout.write("[QVA-LW] " + d.toString()));
+      proc.stderr.on("data", (d) => process.stderr.write("[QVA-LW ERR] " + d.toString()));
+      proc.on("close", (code) => { if (code !== 0) patternState.qvaLiveWatchError = `exit ${code}`; resolve(); });
+      proc.on("error", (err) => { patternState.qvaLiveWatchError = err.message; resolve(); });
+    });
+    patternState.refreshingQvaLiveWatch = false;
+    patternState.qvaLiveWatchFinishedAt = new Date().toISOString();
+    console.log(`[QVA-LW] 완료 (end-hour ${endHour})` + (patternState.qvaLiveWatchError ? ` / 에러: ${patternState.qvaLiveWatchError}` : ""));
+  })();
+
+  return {
+    ok: true,
+    message: `QVA 장중 감시 갱신 시작 (백그라운드 — 후보 ~400종 × 1 KIS 호출 ≈ 2~3분, end-hour ${endHour})`,
+    startedAt: patternState.qvaLiveWatchStartedAt,
+  };
+}
+
 module.exports = {
   patternState,
   BOARD_SCRIPTS,
@@ -661,6 +709,7 @@ module.exports = {
   refresh1dsSurvivor1000,
   regen1dsScannerBoard,
   refreshAllBoards,
+  refreshQvaLiveWatch,
   refreshNasdaqTheme,
   getNasdaqThemeStatus,
   runDailyUpdate,

@@ -136,6 +136,11 @@ function postRefresh1dsSurvivor1000(req, res) {
   res.json({ success: r.ok, message: r.message, startedAt: r.startedAt });
 }
 
+function postRefreshQvaLiveWatch(req, res) {
+  const r = triggers.refreshQvaLiveWatch();
+  res.json({ success: r.ok, message: r.message, startedAt: r.startedAt });
+}
+
 function postRegen1dsScannerBoard(req, res) {
   const r = triggers.regen1dsScannerBoard();
   res.json({ success: r.ok, message: r.message, startedAt: r.startedAt });
@@ -382,7 +387,7 @@ module.exports = {
   getDashboard, postUnsubscribe,
   postSend1dsMailAll, postSend1dsMailOne,
   postPatternSeed, postPatternAnalyze, postQvaBacktest,
-  postRefreshPatternCache, postRefreshWatchlistBoard, postRefreshAllBoards, postRefresh1dsIntraday, postRefresh1dsSurvivor1000, postRegen1dsScannerBoard, postRunDailyUpdate,
+  postRefreshPatternCache, postRefreshWatchlistBoard, postRefreshAllBoards, postRefresh1dsIntraday, postRefresh1dsSurvivor1000, postRegen1dsScannerBoard, postRefreshQvaLiveWatch, postRunDailyUpdate,
   postRefreshNasdaqTheme, getNasdaqThemeStatus,
   getDbSignals,
   getDbSignalsOverlap,

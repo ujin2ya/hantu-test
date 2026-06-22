@@ -23,6 +23,7 @@ router.post("/admin/refresh-all-boards", requireAdmin, c.postRefreshAllBoards);
 router.post("/admin/refresh-1ds-intraday", requireAdmin, c.postRefresh1dsIntraday);
 router.post("/admin/refresh-1ds-survivor1000", requireAdmin, c.postRefresh1dsSurvivor1000);
 router.post("/admin/regen-1ds-scanner-board", requireAdmin, c.postRegen1dsScannerBoard);
+router.post("/admin/refresh-qva-live-watch", requireAdmin, c.postRefreshQvaLiveWatch);
 router.post("/admin/run-daily-update", requireAdmin, c.postRunDailyUpdate);
 
 // 나스닥 테마 감시 수동 새로고침 + 상태 polling.

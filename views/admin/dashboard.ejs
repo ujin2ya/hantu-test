@@ -299,6 +299,11 @@
           onclick="regen1dsScannerBoard()">
           <i class="bi bi-arrow-repeat me-1"></i>🔁 1DS 스캐너+보드만 재생성 (KIS 호출 X)
         </button>
+        <button type="button" id="refreshQvaLiveWatchBtn" class="btn btn-success btn-sm"
+          <%= (typeof patternState !== 'undefined' && patternState?.refreshingQvaLiveWatch) ? 'disabled' : '' %>
+          onclick="refreshQvaLiveWatch()">
+          <i class="bi bi-broadcast me-1"></i>📡 QVA 장중 감시 분봉 수집 + 보드 갱신 (지금)
+        </button>
         <button type="button" id="refreshNasdaqThemeBtn" class="btn btn-outline-primary btn-sm"
           <%= (typeof patternState !== 'undefined' && patternState?.refreshingNasdaqTheme) ? 'disabled' : '' %>
           onclick="refreshNasdaqTheme()">
@@ -441,6 +446,30 @@
         const data = await resp.json();
         if (data.success) {
           alert('보드 갱신 시작됨. ~10초 후 /qva-watchlist 새로고침해서 확인하세요.');
+        } else {
+          alert('실패: ' + (data.message || '알 수 없는 오류'));
+        }
+      } catch (e) {
+        alert('오류: ' + e.message);
+      }
+    }
+
+    async function refreshQvaLiveWatch() {
+      const msg = 'QVA 장중 감시 후보의 분봉을 지금 KIS에서 수집하고 보드를 재생성할까요?\n\n' +
+        '· DB의 최근 QVA 후보(~400종)에 한해 현재 시각까지 분봉 수집\n' +
+        '· 수집 후 QVA 장중 감시 보드 자동 재생성\n' +
+        '· 약 2~3분 소요 (KIS 호출 종목당 1회)';
+      if (!confirm(msg)) return;
+      try {
+        const resp = await fetch('/admin/refresh-qva-live-watch', { method: 'POST', credentials: 'same-origin' });
+        if (!resp.ok || resp.redirected) {
+          alert('인증이 만료됐거나 요청 실패. status=' + resp.status);
+          return;
+        }
+        const data = await resp.json();
+        if (data.success) {
+          alert('QVA 장중 감시 갱신 시작됨 (백그라운드). ' + (data.message || '') + '\n약 2~3분 후 /qva-live-watch 새로고침.');
+          setTimeout(() => { location.reload(); }, 5000);
         } else {
           alert('실패: ' + (data.message || '알 수 없는 오류'));
         }
