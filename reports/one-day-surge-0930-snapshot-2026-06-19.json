@@ -1,0 +1,161 @@
+{
+  "snapshotDate": "2026-06-19",
+  "savedAt": "2026-06-19T00:44:01.829Z",
+  "survivor1000": [],
+  "explosiveStable": [
+    {
+      "code": "043260",
+      "name": "성호전자",
+      "market": "KOSDAQ",
+      "marketCap": 2900700000000,
+      "baseDate": "20260618",
+      "avg20Value": 225548009235,
+      "baseValue": 68103160000,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 40400,
+        "last0930": 41650,
+        "high0930": 41850,
+        "low0930": 40000,
+        "value_0930": 22945384700,
+        "volume_0930": 557960,
+        "closePosition0930": 0.892,
+        "openToLastRate": 3.09,
+        "highToLastDrop": -0.48,
+        "valueToAvgRatio_0930": 4.38,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 6.47,
+      "finalScore": 117.99,
+      "hasTenRebreak": false,
+      "tenRebreakTrigger": null,
+      "hasFadedRecovery": false,
+      "hasSurvivor1000": false,
+      "survivor1000": null,
+      "triggeredHypos": [],
+      "explosiveScore": 125.99,
+      "isSurvivor1000": false,
+      "isExplosiveTop": true,
+      "isAttackRebreak": false,
+      "overlapBadges": [
+        "조기 포착",
+        "10시 확인 필요"
+      ],
+      "suggestedStrategy": {
+        "type": "STABLE_SCALP",
+        "label": "안정형 단타",
+        "takeProfit": "+5%",
+        "stopLoss": "-2%",
+        "note": "19거래일 검증 기준 +5%/-2% 전략이 안정적 (n=64, 평균 +0.97%, 승률 46.9%, +10% 12.5%)"
+      },
+      "reason": "09:30 조기 포착 — 10시 생존 확인 전 감시 후보",
+      "cacheMtimeHtml": " <span class=\"cache-price\" style=\"font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;\">40,000원</span> <span class=\"cache-mtime\" style=\"font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;\">06/18 16:21</span>"
+    }
+  ],
+  "attackTopCandidates": [],
+  "attackTopHighRisk": [
+    {
+      "code": "347850",
+      "name": "디앤디파마텍",
+      "market": "KOSDAQ",
+      "attackRank": 1,
+      "attackScore": 54,
+      "decisionTime": "09:30",
+      "decisionPrice": 110000,
+      "signalPrice": 110000,
+      "prevClose": 108100,
+      "open0900": 106600,
+      "gapRate": -1.39,
+      "morningValue": 73241877900,
+      "morningValueRank": 4,
+      "morningValuePercentile": 3.3,
+      "isTop10Value": true,
+      "morningHigh": 112600,
+      "rebreakMorningHigh": true,
+      "rebreakTime": "09:40",
+      "rebreakWithValue": false,
+      "valueContinueRatio": 0.577,
+      "valueSecondWaveRatio": 0,
+      "decisionFromPrevClose": 1.76,
+      "decisionFromOpen": 3.19,
+      "morningRangeRate": 11.43,
+      "pricePositionInMorningRange": 0.983,
+      "gtBand": "HEAVY_RISK",
+      "oneDaySurgeScore": -26,
+      "attackTags": [
+        "거래대금 상위 10%",
+        "대형 거래대금",
+        "장초 고가 재돌파",
+        "고가권 유지",
+        "공격형 TOP"
+      ],
+      "riskTags": [
+        "장초 변동성 큼"
+      ],
+      "shortComment": "거래대금 상위권이면서 장초 고가를 다시 돌파한 공격형 후보입니다.",
+      "targetDir": "2026-06-19",
+      "targetDirSource": "nextDay",
+      "attackRiskLevel": "HIGH_RISK_ATTACK",
+      "attackRiskReasons": [
+        "riskExcluded=group_off_pool",
+        "tradePlan AUTO_EXCLUDED_RISK"
+      ],
+      "displayPolicyNote": "위험 감수형 공격 후보 — 변동성이 크고 고점 이탈 위험이 있으나, 장초 재상승/재돌파 흐름이 있어 공격형 감시 대상으로 유지합니다.",
+      "cacheMtimeHtml": " <span class=\"cache-price\" style=\"font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;\">108,300원</span> <span class=\"cache-mtime\" style=\"font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;\">06/18 16:21</span>"
+    },
+    {
+      "code": "004310",
+      "name": "현대약품",
+      "market": "KOSPI",
+      "attackRank": 2,
+      "attackScore": 56,
+      "decisionTime": "09:30",
+      "decisionPrice": 8780,
+      "signalPrice": 8780,
+      "prevClose": 8110,
+      "open0900": 8300,
+      "gapRate": 2.34,
+      "morningValue": 36026503795,
+      "morningValueRank": 11,
+      "morningValuePercentile": 9.1,
+      "isTop10Value": true,
+      "morningHigh": 8850,
+      "rebreakMorningHigh": true,
+      "rebreakTime": "09:40",
+      "rebreakWithValue": false,
+      "valueContinueRatio": 1.334,
+      "valueSecondWaveRatio": 0,
+      "decisionFromPrevClose": 8.26,
+      "decisionFromOpen": 5.78,
+      "morningRangeRate": 13.02,
+      "pricePositionInMorningRange": 0.879,
+      "gtBand": "LIGHT",
+      "oneDaySurgeScore": 28,
+      "attackTags": [
+        "거래대금 상위 10%",
+        "대형 거래대금",
+        "장초 고가 재돌파",
+        "강한 거래대금 유지",
+        "고가권 유지",
+        "공격형 TOP"
+      ],
+      "riskTags": [
+        "시가 대비 너무 멀어짐",
+        "장초 변동성 큼"
+      ],
+      "shortComment": "거래대금 상위권이면서 장초 고가를 다시 돌파한 공격형 후보입니다.",
+      "targetDir": "2026-06-19",
+      "targetDirSource": "nextDay",
+      "attackRiskLevel": "HIGH_RISK_ATTACK",
+      "attackRiskReasons": [
+        "riskExcluded=trap_risk_high",
+        "tradePlan AUTO_EXCLUDED_RISK",
+        "riskTrapScore 93.5"
+      ],
+      "displayPolicyNote": "위험 감수형 공격 후보 — 변동성이 크고 고점 이탈 위험이 있으나, 장초 재상승/재돌파 흐름이 있어 공격형 감시 대상으로 유지합니다.",
+      "cacheMtimeHtml": " <span class=\"cache-price\" style=\"font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;\">8,500원</span> <span class=\"cache-mtime\" style=\"font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;\">06/18 16:20</span>"
+    }
+  ]
+}

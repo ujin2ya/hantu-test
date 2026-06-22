@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-06-10T13:07:55.150Z",
+  "lastUpdated": "2026-06-22T01:05:08.083Z",
   "entries": [
     {
       "date": "2026-03-26",
@@ -6622,6 +6622,650 @@
       "name": "유일에너테크",
       "reason": "empty_bars (likely halted)",
       "recordedAt": "2026-06-10T13:07:54.191Z"
+    },
+    {
+      "date": "2026-06-11",
+      "code": "016790",
+      "name": "현대사료",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-11T01:05:02.573Z"
+    },
+    {
+      "date": "2026-06-11",
+      "code": "001570",
+      "name": "금양",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-11T01:05:02.978Z"
+    },
+    {
+      "date": "2026-06-11",
+      "code": "380540",
+      "name": "옵티코어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-11T01:05:03.366Z"
+    },
+    {
+      "date": "2026-06-11",
+      "code": "073640",
+      "name": "테라사이언스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-11T01:05:03.775Z"
+    },
+    {
+      "date": "2026-06-11",
+      "code": "041590",
+      "name": "플래스크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-11T01:05:04.214Z"
+    },
+    {
+      "date": "2026-06-11",
+      "code": "182400",
+      "name": "엔케이젠바이오텍코리아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-11T01:05:04.636Z"
+    },
+    {
+      "date": "2026-06-11",
+      "code": "001840",
+      "name": "이화공영",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-11T01:05:05.047Z"
+    },
+    {
+      "date": "2026-06-11",
+      "code": "340930",
+      "name": "유일에너테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-11T01:05:05.433Z"
+    },
+    {
+      "date": "2026-06-11",
+      "code": "175250",
+      "name": "아이큐어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-11T01:05:05.864Z"
+    },
+    {
+      "date": "2026-06-11",
+      "code": "049080",
+      "name": "기가레인",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-11T01:05:06.242Z"
+    },
+    {
+      "date": "2026-06-11",
+      "code": "290660",
+      "name": "다이나믹솔루션",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-11T01:05:06.622Z"
+    },
+    {
+      "date": "2026-06-11",
+      "code": "002210",
+      "name": "동성제약",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-11T01:05:07.031Z"
+    },
+    {
+      "date": "2026-06-11",
+      "code": "246690",
+      "name": "TS인베스트먼트",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-11T01:05:07.426Z"
+    },
+    {
+      "date": "2026-06-11",
+      "code": "309710",
+      "name": "아이티켐",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-11T01:05:07.813Z"
+    },
+    {
+      "date": "2026-06-12",
+      "code": "016790",
+      "name": "현대사료",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-12T01:05:02.979Z"
+    },
+    {
+      "date": "2026-06-12",
+      "code": "001570",
+      "name": "금양",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-12T01:05:03.508Z"
+    },
+    {
+      "date": "2026-06-12",
+      "code": "380540",
+      "name": "옵티코어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-12T01:05:03.936Z"
+    },
+    {
+      "date": "2026-06-12",
+      "code": "073640",
+      "name": "테라사이언스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-12T01:05:04.384Z"
+    },
+    {
+      "date": "2026-06-12",
+      "code": "041590",
+      "name": "플래스크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-12T01:05:04.824Z"
+    },
+    {
+      "date": "2026-06-12",
+      "code": "182400",
+      "name": "엔케이젠바이오텍코리아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-12T01:05:05.308Z"
+    },
+    {
+      "date": "2026-06-12",
+      "code": "001840",
+      "name": "이화공영",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-12T01:05:05.833Z"
+    },
+    {
+      "date": "2026-06-12",
+      "code": "340930",
+      "name": "유일에너테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-12T01:05:06.319Z"
+    },
+    {
+      "date": "2026-06-15",
+      "code": "016790",
+      "name": "현대사료",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-15T01:05:02.361Z"
+    },
+    {
+      "date": "2026-06-15",
+      "code": "001570",
+      "name": "금양",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-15T01:05:02.835Z"
+    },
+    {
+      "date": "2026-06-15",
+      "code": "380540",
+      "name": "옵티코어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-15T01:05:03.286Z"
+    },
+    {
+      "date": "2026-06-15",
+      "code": "073640",
+      "name": "테라사이언스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-15T01:05:03.797Z"
+    },
+    {
+      "date": "2026-06-15",
+      "code": "041590",
+      "name": "플래스크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-15T01:05:04.231Z"
+    },
+    {
+      "date": "2026-06-15",
+      "code": "182400",
+      "name": "엔케이젠바이오텍코리아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-15T01:05:04.638Z"
+    },
+    {
+      "date": "2026-06-15",
+      "code": "001840",
+      "name": "이화공영",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-15T01:05:05.082Z"
+    },
+    {
+      "date": "2026-06-15",
+      "code": "340930",
+      "name": "유일에너테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-15T01:05:05.475Z"
+    },
+    {
+      "date": "2026-06-16",
+      "code": "016790",
+      "name": "현대사료",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-16T01:05:03.115Z"
+    },
+    {
+      "date": "2026-06-16",
+      "code": "001570",
+      "name": "금양",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-16T01:05:03.517Z"
+    },
+    {
+      "date": "2026-06-16",
+      "code": "380540",
+      "name": "옵티코어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-16T01:05:03.903Z"
+    },
+    {
+      "date": "2026-06-16",
+      "code": "041590",
+      "name": "플래스크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-16T01:05:04.387Z"
+    },
+    {
+      "date": "2026-06-16",
+      "code": "182400",
+      "name": "엔케이젠바이오텍코리아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-16T01:05:04.811Z"
+    },
+    {
+      "date": "2026-06-16",
+      "code": "001840",
+      "name": "이화공영",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-16T01:05:05.237Z"
+    },
+    {
+      "date": "2026-06-16",
+      "code": "340930",
+      "name": "유일에너테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-16T01:05:05.620Z"
+    },
+    {
+      "date": "2026-06-16",
+      "code": "175250",
+      "name": "아이큐어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-16T01:05:06.051Z"
+    },
+    {
+      "date": "2026-06-16",
+      "code": "049080",
+      "name": "기가레인",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-16T01:05:06.434Z"
+    },
+    {
+      "date": "2026-06-17",
+      "code": "016790",
+      "name": "현대사료",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-17T01:05:03.127Z"
+    },
+    {
+      "date": "2026-06-17",
+      "code": "001570",
+      "name": "금양",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-17T01:05:03.709Z"
+    },
+    {
+      "date": "2026-06-17",
+      "code": "380540",
+      "name": "옵티코어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-17T01:05:04.231Z"
+    },
+    {
+      "date": "2026-06-17",
+      "code": "073640",
+      "name": "테라사이언스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-17T01:05:04.724Z"
+    },
+    {
+      "date": "2026-06-17",
+      "code": "041590",
+      "name": "플래스크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-17T01:05:05.239Z"
+    },
+    {
+      "date": "2026-06-17",
+      "code": "182400",
+      "name": "엔케이젠바이오텍코리아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-17T01:05:05.710Z"
+    },
+    {
+      "date": "2026-06-17",
+      "code": "001840",
+      "name": "이화공영",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-17T01:05:06.205Z"
+    },
+    {
+      "date": "2026-06-17",
+      "code": "340930",
+      "name": "유일에너테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-17T01:05:06.631Z"
+    },
+    {
+      "date": "2026-06-17",
+      "code": "175250",
+      "name": "아이큐어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-17T01:05:07.106Z"
+    },
+    {
+      "date": "2026-06-17",
+      "code": "290660",
+      "name": "다이나믹솔루션",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-17T01:05:07.530Z"
+    },
+    {
+      "date": "2026-06-17",
+      "code": "002210",
+      "name": "동성제약",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-17T01:05:08.013Z"
+    },
+    {
+      "date": "2026-06-18",
+      "code": "016790",
+      "name": "현대사료",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-18T01:05:02.416Z"
+    },
+    {
+      "date": "2026-06-18",
+      "code": "001570",
+      "name": "금양",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-18T01:05:02.829Z"
+    },
+    {
+      "date": "2026-06-18",
+      "code": "380540",
+      "name": "옵티코어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-18T01:05:03.223Z"
+    },
+    {
+      "date": "2026-06-18",
+      "code": "073640",
+      "name": "테라사이언스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-18T01:05:03.666Z"
+    },
+    {
+      "date": "2026-06-18",
+      "code": "041590",
+      "name": "플래스크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-18T01:05:04.127Z"
+    },
+    {
+      "date": "2026-06-18",
+      "code": "182400",
+      "name": "엔케이젠바이오텍코리아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-18T01:05:04.549Z"
+    },
+    {
+      "date": "2026-06-18",
+      "code": "001840",
+      "name": "이화공영",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-18T01:05:04.968Z"
+    },
+    {
+      "date": "2026-06-18",
+      "code": "340930",
+      "name": "유일에너테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-18T01:05:05.355Z"
+    },
+    {
+      "date": "2026-06-18",
+      "code": "175250",
+      "name": "아이큐어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-18T01:05:05.783Z"
+    },
+    {
+      "date": "2026-06-18",
+      "code": "049080",
+      "name": "기가레인",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-18T01:05:06.163Z"
+    },
+    {
+      "date": "2026-06-18",
+      "code": "290660",
+      "name": "다이나믹솔루션",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-18T01:05:06.540Z"
+    },
+    {
+      "date": "2026-06-18",
+      "code": "002210",
+      "name": "동성제약",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-18T01:05:06.961Z"
+    },
+    {
+      "date": "2026-06-18",
+      "code": "246690",
+      "name": "TS인베스트먼트",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-18T01:05:07.347Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "016790",
+      "name": "현대사료",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:02.919Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "001570",
+      "name": "금양",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:03.334Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "380540",
+      "name": "옵티코어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:03.725Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "073640",
+      "name": "테라사이언스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:04.176Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "041590",
+      "name": "플래스크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:04.684Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "182400",
+      "name": "엔케이젠바이오텍코리아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:05.292Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "001840",
+      "name": "이화공영",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:05.806Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "340930",
+      "name": "유일에너테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:06.289Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "175250",
+      "name": "아이큐어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:06.793Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "049080",
+      "name": "기가레인",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:07.285Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "290660",
+      "name": "다이나믹솔루션",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:07.691Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "002210",
+      "name": "동성제약",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:08.197Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "246690",
+      "name": "TS인베스트먼트",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:08.753Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "309710",
+      "name": "아이티켐",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:09.362Z"
+    },
+    {
+      "date": "2026-06-19",
+      "code": "900300",
+      "name": "오가닉티코스메틱",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-19T01:05:09.830Z"
+    },
+    {
+      "date": "2026-06-22",
+      "code": "016790",
+      "name": "현대사료",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-22T01:05:02.402Z"
+    },
+    {
+      "date": "2026-06-22",
+      "code": "001570",
+      "name": "금양",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-22T01:05:02.812Z"
+    },
+    {
+      "date": "2026-06-22",
+      "code": "380540",
+      "name": "옵티코어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-22T01:05:03.203Z"
+    },
+    {
+      "date": "2026-06-22",
+      "code": "073640",
+      "name": "테라사이언스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-22T01:05:03.637Z"
+    },
+    {
+      "date": "2026-06-22",
+      "code": "041590",
+      "name": "플래스크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-22T01:05:04.076Z"
+    },
+    {
+      "date": "2026-06-22",
+      "code": "182400",
+      "name": "엔케이젠바이오텍코리아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-22T01:05:04.491Z"
+    },
+    {
+      "date": "2026-06-22",
+      "code": "001840",
+      "name": "이화공영",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-22T01:05:04.929Z"
+    },
+    {
+      "date": "2026-06-22",
+      "code": "340930",
+      "name": "유일에너테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-22T01:05:05.315Z"
+    },
+    {
+      "date": "2026-06-22",
+      "code": "175250",
+      "name": "아이큐어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-22T01:05:05.737Z"
+    },
+    {
+      "date": "2026-06-22",
+      "code": "049080",
+      "name": "기가레인",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-22T01:05:06.139Z"
+    },
+    {
+      "date": "2026-06-22",
+      "code": "290660",
+      "name": "다이나믹솔루션",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-22T01:05:06.540Z"
+    },
+    {
+      "date": "2026-06-22",
+      "code": "002210",
+      "name": "동성제약",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-22T01:05:06.959Z"
+    },
+    {
+      "date": "2026-06-22",
+      "code": "246690",
+      "name": "TS인베스트먼트",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-22T01:05:07.332Z"
+    },
+    {
+      "date": "2026-06-22",
+      "code": "309710",
+      "name": "아이티켐",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-22T01:05:07.725Z"
     }
   ]
 }

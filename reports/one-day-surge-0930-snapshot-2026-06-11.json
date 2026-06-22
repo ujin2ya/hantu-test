@@ -1,0 +1,110 @@
+{
+  "snapshotDate": "2026-06-11",
+  "savedAt": "2026-06-11T00:44:04.167Z",
+  "survivor1000": [],
+  "explosiveStable": [
+    {
+      "code": "007810",
+      "name": "코리아써키트",
+      "market": "KOSPI",
+      "marketCap": 2223200000000,
+      "baseDate": "20260610",
+      "avg20Value": 41755960685,
+      "baseValue": 34490979900,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 115500,
+        "last0930": 124500,
+        "high0930": 125900,
+        "low0930": 110500,
+        "value_0930": 11595581450,
+        "volume_0930": 96478,
+        "closePosition0930": 0.909,
+        "openToLastRate": 7.79,
+        "highToLastDrop": -1.11,
+        "valueToAvgRatio_0930": 4.37,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 16.28,
+      "finalScore": 86.22,
+      "hasTenRebreak": false,
+      "tenRebreakTrigger": null,
+      "hasFadedRecovery": false,
+      "hasSurvivor1000": false,
+      "survivor1000": null,
+      "triggeredHypos": [],
+      "explosiveScore": 91.22,
+      "isSurvivor1000": false,
+      "isExplosiveTop": true,
+      "isAttackRebreak": false,
+      "overlapBadges": [
+        "조기 포착",
+        "10시 확인 필요"
+      ],
+      "suggestedStrategy": {
+        "type": "STABLE_SCALP",
+        "label": "안정형 단타",
+        "takeProfit": "+5%",
+        "stopLoss": "-2%",
+        "note": "19거래일 검증 기준 +5%/-2% 전략이 안정적 (n=64, 평균 +0.97%, 승률 46.9%, +10% 12.5%)"
+      },
+      "reason": "09:30 조기 포착 — 10시 생존 확인 전 감시 후보",
+      "cacheMtimeHtml": " <span class=\"cache-price\" style=\"font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;\">115,700원</span> <span class=\"cache-mtime\" style=\"font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;\">06/10 18:45</span>"
+    }
+  ],
+  "attackTopCandidates": [],
+  "attackTopHighRisk": [
+    {
+      "code": "089030",
+      "name": "테크윙",
+      "market": "KOSDAQ",
+      "attackRank": 1,
+      "attackScore": 54,
+      "decisionTime": "09:30",
+      "decisionPrice": 57800,
+      "signalPrice": 57800,
+      "prevClose": 59700,
+      "open0900": 57300,
+      "gapRate": -4.02,
+      "morningValue": 56173057250,
+      "morningValueRank": 5,
+      "morningValuePercentile": 4.7,
+      "isTop10Value": true,
+      "morningHigh": 58300,
+      "rebreakMorningHigh": true,
+      "rebreakTime": "09:40",
+      "rebreakWithValue": false,
+      "valueContinueRatio": 0.461,
+      "valueSecondWaveRatio": 0,
+      "decisionFromPrevClose": -3.18,
+      "decisionFromOpen": 0.87,
+      "morningRangeRate": 12.88,
+      "pricePositionInMorningRange": 0.985,
+      "gtBand": "HEAVY_WATCH",
+      "oneDaySurgeScore": -18,
+      "attackTags": [
+        "거래대금 상위 10%",
+        "대형 거래대금",
+        "장초 고가 재돌파",
+        "고가권 유지",
+        "공격형 TOP"
+      ],
+      "riskTags": [
+        "장초 변동성 큼"
+      ],
+      "shortComment": "거래대금 상위권이면서 장초 고가를 다시 돌파한 공격형 후보입니다.",
+      "targetDir": "2026-06-11",
+      "targetDirSource": "nextDay",
+      "attackRiskLevel": "HIGH_RISK_ATTACK",
+      "attackRiskReasons": [
+        "riskExcluded=group_off_pool",
+        "tradePlan AUTO_EXCLUDED_RISK",
+        "riskTrapScore 86.7"
+      ],
+      "displayPolicyNote": "위험 감수형 공격 후보 — 변동성이 크고 고점 이탈 위험이 있으나, 장초 재상승/재돌파 흐름이 있어 공격형 감시 대상으로 유지합니다.",
+      "cacheMtimeHtml": " <span class=\"cache-price\" style=\"font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;\">57,600원</span> <span class=\"cache-mtime\" style=\"font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;\">06/10 18:47</span>"
+    }
+  ]
+}
