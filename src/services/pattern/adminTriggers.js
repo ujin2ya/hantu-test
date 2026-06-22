@@ -31,6 +31,9 @@ const patternState = {
   // QVA 장중 감시 보드 on-demand 갱신 — cron 09:35·12:30·15:30 + /admin/refresh-qva-live-watch
   refreshingQvaLiveWatch: false, qvaLiveWatchStartedAt: null, qvaLiveWatchFinishedAt: null,
   qvaLiveWatchError: null, qvaLiveWatchEndHour: null,
+  // 1DS v2 보드 자동 재생성 — cron 09:36·09:47·10:09·16:50 (ver1 분봉/스캐너 데이터 재사용)
+  regeningOneDaySurgeV2: false, oneDaySurgeV2StartedAt: null, oneDaySurgeV2FinishedAt: null,
+  oneDaySurgeV2Error: null,
 };
 
 // 16:35 cron + admin 트리거가 같은 순서로 갱신하는 보드 스크립트 목록.
@@ -697,6 +700,32 @@ function refreshQvaLiveWatch() {
   };
 }
 
+// 1DS v2 보드 자동 재생성 — ver1이 수집한 분봉/스캐너 데이터를 재사용하므로 수집 없이 generator만 재실행.
+// cron(09:36·09:47·10:09·16:50)이 ver1 refresh 종료 후 마진을 두고 호출. ~2초.
+function regenOneDaySurgeV2() {
+  if (patternState.regeningOneDaySurgeV2) {
+    return { ok: false, message: "이미 1DS v2 보드 재생성 중입니다", startedAt: patternState.oneDaySurgeV2StartedAt };
+  }
+  patternState.regeningOneDaySurgeV2 = true;
+  patternState.oneDaySurgeV2StartedAt = new Date().toISOString();
+  patternState.oneDaySurgeV2FinishedAt = null;
+  patternState.oneDaySurgeV2Error = null;
+  const SCRIPT = path.join(ROOT, "boards", "oneDaySurge", "one-day-surge-v2-board.js");
+  (async () => {
+    await new Promise((resolve) => {
+      const proc = spawn("node", [SCRIPT], { cwd: ROOT });
+      proc.stdout.on("data", (d) => process.stdout.write("[1DS-V2] " + d.toString()));
+      proc.stderr.on("data", (d) => process.stderr.write("[1DS-V2 ERR] " + d.toString()));
+      proc.on("close", (code) => { if (code !== 0) patternState.oneDaySurgeV2Error = `exit ${code}`; resolve(); });
+      proc.on("error", (err) => { patternState.oneDaySurgeV2Error = err.message; resolve(); });
+    });
+    patternState.regeningOneDaySurgeV2 = false;
+    patternState.oneDaySurgeV2FinishedAt = new Date().toISOString();
+    console.log("[1DS-V2] 보드 재생성 완료" + (patternState.oneDaySurgeV2Error ? ` / 에러: ${patternState.oneDaySurgeV2Error}` : ""));
+  })();
+  return { ok: true, message: "1DS v2 보드 재생성 시작 (백그라운드 — ver1 분봉/스캐너 데이터 재사용, ~2초)", startedAt: patternState.oneDaySurgeV2StartedAt };
+}
+
 // GET /admin/qva-live-watch-status — 보드 화면 새로고침 버튼의 polling 응답.
 function getQvaLiveWatchStatus() {
   return {
@@ -722,6 +751,7 @@ module.exports = {
   refreshAllBoards,
   refreshQvaLiveWatch,
   getQvaLiveWatchStatus,
+  regenOneDaySurgeV2,
   refreshNasdaqTheme,
   getNasdaqThemeStatus,
   runDailyUpdate,

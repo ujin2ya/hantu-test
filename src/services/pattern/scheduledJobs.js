@@ -5,7 +5,7 @@ const { execSync } = require("child_process");
 const cron = require("node-cron");
 const patternScreener = require("../../../screeners/pattern-screener");
 const { ROOT, CACHE_DIR, REPORTS_DIR } = require("../../utils/paths");
-const { patternState, PATTERN_RESULT_PATH, BOARD_SCRIPTS, refresh1dsIntraday, refresh1dsSurvivor1000 } = require("./adminTriggers");
+const { patternState, PATTERN_RESULT_PATH, BOARD_SCRIPTS, refresh1dsIntraday, refresh1dsSurvivor1000, regenOneDaySurgeV2 } = require("./adminTriggers");
 const { sendOneDaySurgeMail } = require("../mail/oneDaySurgeMail");
 const { updateLiveMarketState } = require("../marketState/marketStateLive");
 
@@ -151,6 +151,20 @@ function registerSchedules() {
     }, { scheduled: true, timezone: "Asia/Seoul" });
   }
   console.log("[스케줄] 평일 10:01 / 10:03 / 10:05 — 1DS 10시 생존 확인 3중 retry 활성화 (한국 시간)");
+
+  // 평일 09:36 / 09:47 / 10:09 / 16:50 — 1DS v2 보드 자동 재생성
+  // v2는 ver1이 수집한 분봉/스캐너 데이터를 재사용하므로 수집 없이 generator만 재실행 (~2초).
+  //   09:36 / 09:47 — ver1 09:30·09:42 intraday refresh 종료 후 마진
+  //   10:09        — ver1 10:01·03·05 survivor 종료 후 마진 (10시 생존/공격형 반영)
+  //   16:50        — 16:20 일일 갱신 + 16:35 보드 갱신 후, 새 차트 캐시 기준 다음날 후보를 차트 필터 반영해 산출
+  for (const [hh, mm] of [[9, 36], [9, 47], [10, 9], [16, 50]]) {
+    cron.schedule(`0 ${mm} ${hh} * * 1-5`, () => {
+      console.log(`[1DS-V2 cron] ${hh}:${String(mm).padStart(2, '0')} — v2 보드 재생성`);
+      const r = regenOneDaySurgeV2();
+      if (!r.ok) console.warn(`[1DS-V2 cron] 실행 거부:`, r.message);
+    }, { scheduled: true, timezone: "Asia/Seoul" });
+  }
+  console.log("[스케줄] 평일 09:36 / 09:47 / 10:09 / 16:50 — 1DS v2 보드 자동 재생성 활성화 (한국 시간)");
 
   // 평일 10:06 — 1-Day Surge 보드 메일 (MAIL_CRON_ENABLED=1 일 때만)
   // 10:05 마지막 survivor1000 cron이 끝난 후 약 60초 마진을 두고 발송.
