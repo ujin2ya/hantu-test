@@ -1001,6 +1001,21 @@ function pollQvaLiveWatchStatus() {
     } catch (_) { /* polling 일시 실패는 무시 */ }
   }, 3000);
 }
+// 페이지 로드 시: cron / 다른 탭 / 다른 사용자가 이미 갱신 중이면 버튼을 비활성화하고 polling을 이어받는다.
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    var r = await fetch('/admin/qva-live-watch-status', { credentials: 'same-origin' });
+    if (!r.ok || r.redirected) return;
+    var s = await r.json();
+    if (s.running) {
+      var btn = document.getElementById('qvaLiveWatchRefreshBtn');
+      var sts = document.getElementById('qvaLiveWatchRefreshStatus');
+      if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; btn.textContent = '⏳ 갱신 중...'; }
+      if (sts) { sts.style.color = '#94a3b8'; sts.textContent = '이미 갱신 진행 중 — 진행 상황 확인 중...'; }
+      pollQvaLiveWatchStatus();
+    }
+  } catch (_) { /* 상태 조회 실패는 무시 (버튼은 활성 상태 유지) */ }
+});
 </script>
 </body>
 </html>`;
