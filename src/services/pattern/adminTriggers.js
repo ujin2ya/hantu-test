@@ -697,6 +697,17 @@ function refreshQvaLiveWatch() {
   };
 }
 
+// GET /admin/qva-live-watch-status — 보드 화면 새로고침 버튼의 polling 응답.
+function getQvaLiveWatchStatus() {
+  return {
+    running: !!patternState.refreshingQvaLiveWatch,
+    lastStartedAt: patternState.qvaLiveWatchStartedAt,
+    lastFinishedAt: patternState.qvaLiveWatchFinishedAt,
+    lastError: patternState.qvaLiveWatchError,
+    endHour: patternState.qvaLiveWatchEndHour,
+  };
+}
+
 module.exports = {
   patternState,
   BOARD_SCRIPTS,
@@ -710,6 +721,7 @@ module.exports = {
   regen1dsScannerBoard,
   refreshAllBoards,
   refreshQvaLiveWatch,
+  getQvaLiveWatchStatus,
   refreshNasdaqTheme,
   getNasdaqThemeStatus,
   runDailyUpdate,

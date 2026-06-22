@@ -23,8 +23,14 @@ router.post("/admin/refresh-all-boards", requireAdmin, c.postRefreshAllBoards);
 router.post("/admin/refresh-1ds-intraday", requireAdmin, c.postRefresh1dsIntraday);
 router.post("/admin/refresh-1ds-survivor1000", requireAdmin, c.postRefresh1dsSurvivor1000);
 router.post("/admin/regen-1ds-scanner-board", requireAdmin, c.postRegen1dsScannerBoard);
-router.post("/admin/refresh-qva-live-watch", requireAdmin, c.postRefreshQvaLiveWatch);
 router.post("/admin/run-daily-update", requireAdmin, c.postRunDailyUpdate);
+
+// QVA 장중 감시 보드 수동 새로고침 + 상태 polling.
+// 의도적으로 requireAdmin 게이트 없음 — 보드 화면(/qva-live-watch, 사이트 비밀번호만 통과한 사용자)에서
+// 보드를 보면서 바로 새로고침할 수 있어야 한다는 사용자 요구 (나스닥 테마 새로고침과 동일 정책).
+// 중복 실행 가드는 patternState.refreshingQvaLiveWatch + refresh-qva-live-watch.js 자체 lockfile.
+router.post("/admin/refresh-qva-live-watch", c.postRefreshQvaLiveWatch);
+router.get("/admin/qva-live-watch-status",   c.getQvaLiveWatchStatus);
 
 // 나스닥 테마 감시 수동 새로고침 + 상태 polling.
 // POST: 06:30 cron과 동일한 시퀀스(fetch + watch 보드 + 1DS 감시 pool) 백그라운드 spawn.

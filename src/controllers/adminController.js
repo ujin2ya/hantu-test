@@ -138,7 +138,14 @@ function postRefresh1dsSurvivor1000(req, res) {
 
 function postRefreshQvaLiveWatch(req, res) {
   const r = triggers.refreshQvaLiveWatch();
-  res.json({ success: r.ok, message: r.message, startedAt: r.startedAt });
+  if (r.ok) return res.json({ ok: true, success: true, message: r.message, startedAt: r.startedAt });
+  // 이미 실행 중 — 409 아닌 200 + running 플래그 (보드 polling이 그대로 이어받게)
+  return res.status(200).json({ ok: false, running: true, message: r.message, startedAt: r.startedAt });
+}
+
+// GET /admin/qva-live-watch-status — 새로고침 실행 상태 polling (보드 화면 버튼용).
+function getQvaLiveWatchStatus(req, res) {
+  res.json(triggers.getQvaLiveWatchStatus());
 }
 
 function postRegen1dsScannerBoard(req, res) {
@@ -387,7 +394,7 @@ module.exports = {
   getDashboard, postUnsubscribe,
   postSend1dsMailAll, postSend1dsMailOne,
   postPatternSeed, postPatternAnalyze, postQvaBacktest,
-  postRefreshPatternCache, postRefreshWatchlistBoard, postRefreshAllBoards, postRefresh1dsIntraday, postRefresh1dsSurvivor1000, postRegen1dsScannerBoard, postRefreshQvaLiveWatch, postRunDailyUpdate,
+  postRefreshPatternCache, postRefreshWatchlistBoard, postRefreshAllBoards, postRefresh1dsIntraday, postRefresh1dsSurvivor1000, postRegen1dsScannerBoard, postRefreshQvaLiveWatch, getQvaLiveWatchStatus, postRunDailyUpdate,
   postRefreshNasdaqTheme, getNasdaqThemeStatus,
   getDbSignals,
   getDbSignalsOverlap,

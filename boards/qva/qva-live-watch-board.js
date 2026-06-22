@@ -828,6 +828,15 @@ ${(function() {
   '</div>';
 })()}
 
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0 14px;">
+  <button type="button" id="qvaLiveWatchRefreshBtn" onclick="refreshQvaLiveWatchNow()"
+    title="지금 시각까지의 분봉을 KIS에서 다시 받아 QVA 장중 감시 보드를 재생성합니다 (약 2~3분)."
+    style="background:#16a34a;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;">
+    📡 지금 분봉 다시 받아 갱신
+  </button>
+  <span id="qvaLiveWatchRefreshStatus" style="font-size:12px;color:#94a3b8;"></span>
+</div>
+
 <div class="compare-info">
   <strong>📐 어떻게 비교됐나:</strong>
   각 종목별로 <strong>최근 QVA/QVA2 발생일</strong>의 가격·거래대금을 기준으로 <strong>오늘(${safe(data.watchDate)})</strong>의 가격·거래대금을 비교합니다.
@@ -940,6 +949,59 @@ ${(function() {
 <div class="notes">
   ${data.notes.map(n => '<div>· ' + safe(n) + '</div>').join('')}
 </div>
+
+<script>
+// 보드 화면에서 직접 "지금 분봉 다시 받아 갱신" — /admin/refresh-qva-live-watch (requireAdmin 없음)
+var _qvaLwPoll = null;
+async function refreshQvaLiveWatchNow() {
+  var btn = document.getElementById('qvaLiveWatchRefreshBtn');
+  var sts = document.getElementById('qvaLiveWatchRefreshStatus');
+  if (!confirm('지금 시각까지의 분봉을 KIS에서 다시 받아 보드를 재생성할까요?\\n\\n· QVA 후보(~400종) 분봉을 현재 시각까지 수집\\n· 약 2~3분 소요 (백그라운드)')) return;
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; btn.textContent = '⏳ 갱신 중...'; }
+  if (sts) { sts.style.color = '#94a3b8'; sts.textContent = '분봉 수집 + 보드 재생성 시작...'; }
+  try {
+    var resp = await fetch('/admin/refresh-qva-live-watch', { method: 'POST', credentials: 'same-origin' });
+    if (!resp.ok || resp.redirected) { throw new Error('요청 실패 (status ' + resp.status + ')'); }
+    var data = await resp.json();
+    if (sts) sts.textContent = (data.message || '갱신 시작됨') + ' — 진행 상황 확인 중...';
+    pollQvaLiveWatchStatus();
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '📡 지금 분봉 다시 받아 갱신'; }
+    if (sts) { sts.style.color = '#f87171'; sts.textContent = '⚠ ' + e.message; }
+  }
+}
+function pollQvaLiveWatchStatus() {
+  var btn = document.getElementById('qvaLiveWatchRefreshBtn');
+  var sts = document.getElementById('qvaLiveWatchRefreshStatus');
+  var waited = 0;
+  if (_qvaLwPoll) clearInterval(_qvaLwPoll);
+  _qvaLwPoll = setInterval(async () => {
+    waited += 3;
+    if (waited > 360) { // 6분 타임아웃
+      clearInterval(_qvaLwPoll);
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '📡 지금 분봉 다시 받아 갱신'; }
+      if (sts) { sts.style.color = '#f87171'; sts.textContent = '⚠ 타임아웃 — 페이지를 새로고침해 결과를 확인하세요'; }
+      return;
+    }
+    try {
+      var r = await fetch('/admin/qva-live-watch-status', { credentials: 'same-origin' });
+      var s = await r.json();
+      if (!s.running) {
+        clearInterval(_qvaLwPoll);
+        if (s.lastError) {
+          if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '📡 지금 분봉 다시 받아 갱신'; }
+          if (sts) { sts.style.color = '#f87171'; sts.textContent = '⚠ 실패: ' + s.lastError; }
+        } else {
+          if (sts) { sts.style.color = '#4ade80'; sts.textContent = '✅ 완료 — 3초 후 화면 새로고침'; }
+          setTimeout(() => location.reload(), 3000);
+        }
+      } else if (sts) {
+        sts.textContent = '⏳ 갱신 중... (' + waited + 's 경과, end-hour ' + (s.endHour || '-') + ')';
+      }
+    } catch (_) { /* polling 일시 실패는 무시 */ }
+  }, 3000);
+}
+</script>
 </body>
 </html>`;
 }
