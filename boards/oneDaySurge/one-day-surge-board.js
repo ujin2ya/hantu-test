@@ -785,8 +785,10 @@ function calcDisplayPriorityScore(it) {
   if (tags.includes('PREV_HIGH_SPIKE')) score -= 40;
   if (tags.includes('RISK_REBREAK')) score -= 50;
   // ── 감점: peakBeforeEntry 라이브 proxy (09:10 진입 시점에 이미 09:00~09:10 max 후)
-  // 백테스트 검증: peakBefore=true 후보는 종가>0 17.9% (vs 정상 66.6%), avgClose -3.14% (vs +2.59%) — 강한 추격 위험
-  if (it.intraday?.peakBeforeEntryLive === true) score -= 60;
+  // ⚠ morningHigh 재돌파 ✓이면 면제 — 하드컷(passesRiskFilter)과 동일 규칙으로 통일.
+  // 87일 백테스트(lookahead-free, 09:10→10:00): 재돌파X & peakBeforeO = hit5 7.7% / avgClose -0.50% (컷 정당),
+  //   재돌파O & peakBeforeO = hit5 61.3% / avgClose +3.83% — 전 버킷 중 최고. 무조건 -60은 이 최고 셋업을 강등시켰음.
+  if (it.intraday?.peakBeforeEntryLive === true && it.intraday?.rebreakMorningHigh_10_30 !== true) score -= 60;
   // ── 감점: trap 위험
   const trap = calcRiskTrapScore(it);
   if (trap >= 60) score -= 50;
