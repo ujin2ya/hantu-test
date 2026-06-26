@@ -1,0 +1,1986 @@
+{
+  "generatedAt": "2026-05-27T20:05:30.913Z",
+  "date": "2026-05-28",
+  "usMarketDate": "2026-05-27",
+  "source": "FMP",
+  "triggerSource": "manual",
+  "themes": {
+    "AI_SEMICON": {
+      "label": "AI 반도체",
+      "avgChangePct": 11.49,
+      "medianChangePct": 2.62,
+      "upCount": 5,
+      "downCount": 2,
+      "strongTickerCount": 5,
+      "totalTickerCount": 7,
+      "totalValidTickers": 7,
+      "upRatio": 0.71,
+      "strongRatio": 0.71,
+      "topTickers": [
+        {
+          "symbol": "ARM",
+          "changePct": 35.65
+        },
+        {
+          "symbol": "MU",
+          "changePct": 32.87
+        },
+        {
+          "symbol": "ASML",
+          "changePct": 9.47
+        }
+      ],
+      "bottomTickers": [
+        {
+          "symbol": "AMD",
+          "changePct": -1.66
+        },
+        {
+          "symbol": "NVDA",
+          "changePct": -1.05
+        }
+      ],
+      "strength": "STRONG",
+      "reason": "ARM +35.65%, MU +32.87%, ASML +9.47% 중심 강세 / 상승 5/7개, 평균 +11.49% / 강한 상승 71%"
+    },
+    "AI_INFRA_OPTICAL": {
+      "label": "AI 인프라/광통신",
+      "avgChangePct": 6.31,
+      "medianChangePct": 7.42,
+      "upCount": 7,
+      "downCount": 0,
+      "strongTickerCount": 5,
+      "totalTickerCount": 9,
+      "totalValidTickers": 7,
+      "upRatio": 1,
+      "strongRatio": 0.71,
+      "topTickers": [
+        {
+          "symbol": "MRVL",
+          "changePct": 12.72
+        },
+        {
+          "symbol": "ANET",
+          "changePct": 9.01
+        },
+        {
+          "symbol": "COHR",
+          "changePct": 7.53
+        }
+      ],
+      "bottomTickers": [
+        {
+          "symbol": "CSCO",
+          "changePct": 1.13
+        },
+        {
+          "symbol": "LITE",
+          "changePct": 1.37
+        },
+        {
+          "symbol": "AAOI",
+          "changePct": 4.96
+        },
+        {
+          "symbol": "CIEN",
+          "changePct": 7.42
+        },
+        {
+          "symbol": "COHR",
+          "changePct": 7.53
+        },
+        {
+          "symbol": "ANET",
+          "changePct": 9.01
+        },
+        {
+          "symbol": "MRVL",
+          "changePct": 12.72
+        }
+      ],
+      "strength": "STRONG",
+      "reason": "MRVL +12.72%, ANET +9.01%, COHR +7.53% 중심 강세 / 상승 7/7개, 평균 +6.31% / 강한 상승 71% / (2 ticker 데이터 누락)"
+    },
+    "POWER_GRID": {
+      "label": "전력기기/전력망",
+      "avgChangePct": 4.06,
+      "medianChangePct": 3.92,
+      "upCount": 3,
+      "downCount": 1,
+      "strongTickerCount": 2,
+      "totalTickerCount": 4,
+      "totalValidTickers": 4,
+      "upRatio": 0.75,
+      "strongRatio": 0.5,
+      "topTickers": [
+        {
+          "symbol": "ETN",
+          "changePct": 9.3
+        },
+        {
+          "symbol": "EMR",
+          "changePct": 6.95
+        },
+        {
+          "symbol": "GE",
+          "changePct": 0.9
+        }
+      ],
+      "bottomTickers": [
+        {
+          "symbol": "VRT",
+          "changePct": -0.89
+        }
+      ],
+      "strength": "STRONG",
+      "reason": "ETN +9.3%, EMR +6.95%, GE +0.9% 중심 강세 / 상승 3/4개, 평균 +4.06% / 강한 상승 50%"
+    },
+    "ROBOT": {
+      "label": "로봇/휴머노이드",
+      "avgChangePct": 0.42,
+      "medianChangePct": 0.25,
+      "upCount": 2,
+      "downCount": 2,
+      "strongTickerCount": 1,
+      "totalTickerCount": 5,
+      "totalValidTickers": 4,
+      "upRatio": 0.5,
+      "strongRatio": 0.25,
+      "topTickers": [
+        {
+          "symbol": "FANUY",
+          "changePct": 6.4
+        },
+        {
+          "symbol": "TSLA",
+          "changePct": 1.56
+        },
+        {
+          "symbol": "NVDA",
+          "changePct": -1.05
+        }
+      ],
+      "bottomTickers": [
+        {
+          "symbol": "ISRG",
+          "changePct": -5.22
+        },
+        {
+          "symbol": "NVDA",
+          "changePct": -1.05
+        }
+      ],
+      "strength": "WEAK",
+      "reason": "FANUY +6.4%, TSLA +1.56%, NVDA -1.05% / 상승 2/4개, 평균 +0.42% / (1 ticker 데이터 누락)"
+    },
+    "DEFENSE_SPACE": {
+      "label": "방산/우주항공",
+      "avgChangePct": 9.76,
+      "medianChangePct": 1.2,
+      "upCount": 5,
+      "downCount": 2,
+      "strongTickerCount": 3,
+      "totalTickerCount": 7,
+      "totalValidTickers": 7,
+      "upRatio": 0.71,
+      "strongRatio": 0.43,
+      "topTickers": [
+        {
+          "symbol": "ASTS",
+          "changePct": 47
+        },
+        {
+          "symbol": "RKLB",
+          "changePct": 18
+        },
+        {
+          "symbol": "BA",
+          "changePct": 2.51
+        }
+      ],
+      "bottomTickers": [
+        {
+          "symbol": "NOC",
+          "changePct": -0.93
+        },
+        {
+          "symbol": "LMT",
+          "changePct": -0.23
+        }
+      ],
+      "strength": "STRONG",
+      "reason": "ASTS +47%, RKLB +18%, BA +2.51% 중심 강세 / 상승 5/7개, 평균 +9.76% / 강한 상승 43%"
+    },
+    "NUCLEAR": {
+      "label": "원전/SMR",
+      "avgChangePct": 12.56,
+      "medianChangePct": 13.33,
+      "upCount": 6,
+      "downCount": 0,
+      "strongTickerCount": 5,
+      "totalTickerCount": 6,
+      "totalValidTickers": 6,
+      "upRatio": 1,
+      "strongRatio": 0.83,
+      "topTickers": [
+        {
+          "symbol": "NNE",
+          "changePct": 22.72
+        },
+        {
+          "symbol": "OKLO",
+          "changePct": 21.35
+        },
+        {
+          "symbol": "SMR",
+          "changePct": 20.08
+        }
+      ],
+      "bottomTickers": [
+        {
+          "symbol": "BWXT",
+          "changePct": 0.8
+        },
+        {
+          "symbol": "CCJ",
+          "changePct": 3.86
+        },
+        {
+          "symbol": "LEU",
+          "changePct": 6.59
+        },
+        {
+          "symbol": "SMR",
+          "changePct": 20.08
+        },
+        {
+          "symbol": "OKLO",
+          "changePct": 21.35
+        },
+        {
+          "symbol": "NNE",
+          "changePct": 22.72
+        }
+      ],
+      "strength": "STRONG",
+      "reason": "NNE +22.72%, OKLO +21.35%, SMR +20.08% 중심 강세 / 상승 6/6개, 평균 +12.56% / 강한 상승 83%"
+    },
+    "BIO": {
+      "label": "바이오/헬스케어",
+      "avgChangePct": 2.18,
+      "medianChangePct": 1.39,
+      "upCount": 6,
+      "downCount": 1,
+      "strongTickerCount": 2,
+      "totalTickerCount": 7,
+      "totalValidTickers": 7,
+      "upRatio": 0.86,
+      "strongRatio": 0.29,
+      "topTickers": [
+        {
+          "symbol": "LLY",
+          "changePct": 6.15
+        },
+        {
+          "symbol": "MRK",
+          "changePct": 5.24
+        },
+        {
+          "symbol": "AMGN",
+          "changePct": 1.6
+        }
+      ],
+      "bottomTickers": [
+        {
+          "symbol": "REGN",
+          "changePct": -0.41
+        }
+      ],
+      "strength": "MID",
+      "reason": "LLY +6.15%, MRK +5.24%, AMGN +1.6% 중심 강세 / 상승 6/7개, 평균 +2.18%"
+    },
+    "SHIPBUILDING": {
+      "label": "조선/해양",
+      "avgChangePct": 0,
+      "medianChangePct": 0,
+      "upCount": 0,
+      "downCount": 0,
+      "strongTickerCount": 0,
+      "totalTickerCount": 0,
+      "totalValidTickers": 0,
+      "upRatio": 0,
+      "strongRatio": 0,
+      "topTickers": [],
+      "bottomTickers": [],
+      "strength": "UNKNOWN",
+      "reason": "유효 ticker 데이터 없음"
+    },
+    "BATTERY": {
+      "label": "2차전지",
+      "avgChangePct": 7.68,
+      "medianChangePct": 4.86,
+      "upCount": 5,
+      "downCount": 0,
+      "strongTickerCount": 4,
+      "totalTickerCount": 5,
+      "totalValidTickers": 5,
+      "upRatio": 1,
+      "strongRatio": 0.8,
+      "topTickers": [
+        {
+          "symbol": "QS",
+          "changePct": 24.79
+        },
+        {
+          "symbol": "ALB",
+          "changePct": 5.04
+        },
+        {
+          "symbol": "LCID",
+          "changePct": 4.86
+        }
+      ],
+      "bottomTickers": [
+        {
+          "symbol": "TSLA",
+          "changePct": 1.56
+        },
+        {
+          "symbol": "RIVN",
+          "changePct": 2.15
+        },
+        {
+          "symbol": "LCID",
+          "changePct": 4.86
+        },
+        {
+          "symbol": "ALB",
+          "changePct": 5.04
+        },
+        {
+          "symbol": "QS",
+          "changePct": 24.79
+        }
+      ],
+      "strength": "STRONG",
+      "reason": "QS +24.79%, ALB +5.04%, LCID +4.86% 중심 강세 / 상승 5/5개, 평균 +7.68% / 강한 상승 80%"
+    },
+    "QUANTUM_SECURITY": {
+      "label": "양자/보안",
+      "avgChangePct": 20.62,
+      "medianChangePct": 23.86,
+      "upCount": 6,
+      "downCount": 1,
+      "strongTickerCount": 6,
+      "totalTickerCount": 7,
+      "totalValidTickers": 7,
+      "upRatio": 0.86,
+      "strongRatio": 0.86,
+      "topTickers": [
+        {
+          "symbol": "RGTI",
+          "changePct": 54.26
+        },
+        {
+          "symbol": "QBTS",
+          "changePct": 51.04
+        },
+        {
+          "symbol": "IONQ",
+          "changePct": 34.97
+        }
+      ],
+      "bottomTickers": [
+        {
+          "symbol": "ZS",
+          "changePct": -27.87
+        }
+      ],
+      "strength": "STRONG",
+      "reason": "RGTI +54.26%, QBTS +51.04%, IONQ +34.97% 중심 강세 / 상승 6/7개, 평균 +20.62% / 강한 상승 86%"
+    },
+    "CRYPTO": {
+      "label": "가상자산/블록체인",
+      "avgChangePct": 5.72,
+      "medianChangePct": 3.09,
+      "upCount": 4,
+      "downCount": 2,
+      "strongTickerCount": 4,
+      "totalTickerCount": 6,
+      "totalValidTickers": 6,
+      "upRatio": 0.67,
+      "strongRatio": 0.67,
+      "topTickers": [
+        {
+          "symbol": "CLSK",
+          "changePct": 22.74
+        },
+        {
+          "symbol": "MARA",
+          "changePct": 15.19
+        },
+        {
+          "symbol": "RIOT",
+          "changePct": 3.3
+        }
+      ],
+      "bottomTickers": [
+        {
+          "symbol": "MSTR",
+          "changePct": -6.34
+        },
+        {
+          "symbol": "COIN",
+          "changePct": -3.46
+        }
+      ],
+      "strength": "STRONG",
+      "reason": "CLSK +22.74%, MARA +15.19%, RIOT +3.3% 중심 강세 / 상승 4/6개, 평균 +5.72% / 강한 상승 67%"
+    }
+  },
+  "summary": {
+    "strongThemes": [
+      "AI_SEMICON",
+      "AI_INFRA_OPTICAL",
+      "POWER_GRID",
+      "DEFENSE_SPACE",
+      "NUCLEAR",
+      "BATTERY",
+      "QUANTUM_SECURITY",
+      "CRYPTO"
+    ],
+    "midThemes": [
+      "BIO"
+    ],
+    "weakThemes": [
+      "ROBOT"
+    ],
+    "downThemes": [],
+    "unknownThemes": [
+      "SHIPBUILDING"
+    ],
+    "totalThemes": 11
+  },
+  "history": [
+    {
+      "date": "2026-05-28",
+      "usMarketDate": "2026-05-27",
+      "triggerSource": "manual",
+      "generatedAt": "2026-05-27T20:05:30.913Z",
+      "themes": {
+        "AI_SEMICON": {
+          "label": "AI 반도체",
+          "avgChangePct": 11.49,
+          "medianChangePct": 2.62,
+          "upCount": 5,
+          "downCount": 2,
+          "strongTickerCount": 5,
+          "totalTickerCount": 7,
+          "totalValidTickers": 7,
+          "upRatio": 0.71,
+          "strongRatio": 0.71,
+          "topTickers": [
+            {
+              "symbol": "ARM",
+              "changePct": 35.65
+            },
+            {
+              "symbol": "MU",
+              "changePct": 32.87
+            },
+            {
+              "symbol": "ASML",
+              "changePct": 9.47
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "AMD",
+              "changePct": -1.66
+            },
+            {
+              "symbol": "NVDA",
+              "changePct": -1.05
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "ARM +35.65%, MU +32.87%, ASML +9.47% 중심 강세 / 상승 5/7개, 평균 +11.49% / 강한 상승 71%"
+        },
+        "AI_INFRA_OPTICAL": {
+          "label": "AI 인프라/광통신",
+          "avgChangePct": 6.31,
+          "medianChangePct": 7.42,
+          "upCount": 7,
+          "downCount": 0,
+          "strongTickerCount": 5,
+          "totalTickerCount": 9,
+          "totalValidTickers": 7,
+          "upRatio": 1,
+          "strongRatio": 0.71,
+          "topTickers": [
+            {
+              "symbol": "MRVL",
+              "changePct": 12.72
+            },
+            {
+              "symbol": "ANET",
+              "changePct": 9.01
+            },
+            {
+              "symbol": "COHR",
+              "changePct": 7.53
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "CSCO",
+              "changePct": 1.13
+            },
+            {
+              "symbol": "LITE",
+              "changePct": 1.37
+            },
+            {
+              "symbol": "AAOI",
+              "changePct": 4.96
+            },
+            {
+              "symbol": "CIEN",
+              "changePct": 7.42
+            },
+            {
+              "symbol": "COHR",
+              "changePct": 7.53
+            },
+            {
+              "symbol": "ANET",
+              "changePct": 9.01
+            },
+            {
+              "symbol": "MRVL",
+              "changePct": 12.72
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "MRVL +12.72%, ANET +9.01%, COHR +7.53% 중심 강세 / 상승 7/7개, 평균 +6.31% / 강한 상승 71% / (2 ticker 데이터 누락)"
+        },
+        "POWER_GRID": {
+          "label": "전력기기/전력망",
+          "avgChangePct": 4.06,
+          "medianChangePct": 3.92,
+          "upCount": 3,
+          "downCount": 1,
+          "strongTickerCount": 2,
+          "totalTickerCount": 4,
+          "totalValidTickers": 4,
+          "upRatio": 0.75,
+          "strongRatio": 0.5,
+          "topTickers": [
+            {
+              "symbol": "ETN",
+              "changePct": 9.3
+            },
+            {
+              "symbol": "EMR",
+              "changePct": 6.95
+            },
+            {
+              "symbol": "GE",
+              "changePct": 0.9
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "VRT",
+              "changePct": -0.89
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "ETN +9.3%, EMR +6.95%, GE +0.9% 중심 강세 / 상승 3/4개, 평균 +4.06% / 강한 상승 50%"
+        },
+        "ROBOT": {
+          "label": "로봇/휴머노이드",
+          "avgChangePct": 0.42,
+          "medianChangePct": 0.25,
+          "upCount": 2,
+          "downCount": 2,
+          "strongTickerCount": 1,
+          "totalTickerCount": 5,
+          "totalValidTickers": 4,
+          "upRatio": 0.5,
+          "strongRatio": 0.25,
+          "topTickers": [
+            {
+              "symbol": "FANUY",
+              "changePct": 6.4
+            },
+            {
+              "symbol": "TSLA",
+              "changePct": 1.56
+            },
+            {
+              "symbol": "NVDA",
+              "changePct": -1.05
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "ISRG",
+              "changePct": -5.22
+            },
+            {
+              "symbol": "NVDA",
+              "changePct": -1.05
+            }
+          ],
+          "strength": "WEAK",
+          "reason": "FANUY +6.4%, TSLA +1.56%, NVDA -1.05% / 상승 2/4개, 평균 +0.42% / (1 ticker 데이터 누락)"
+        },
+        "DEFENSE_SPACE": {
+          "label": "방산/우주항공",
+          "avgChangePct": 9.76,
+          "medianChangePct": 1.2,
+          "upCount": 5,
+          "downCount": 2,
+          "strongTickerCount": 3,
+          "totalTickerCount": 7,
+          "totalValidTickers": 7,
+          "upRatio": 0.71,
+          "strongRatio": 0.43,
+          "topTickers": [
+            {
+              "symbol": "ASTS",
+              "changePct": 47
+            },
+            {
+              "symbol": "RKLB",
+              "changePct": 18
+            },
+            {
+              "symbol": "BA",
+              "changePct": 2.51
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "NOC",
+              "changePct": -0.93
+            },
+            {
+              "symbol": "LMT",
+              "changePct": -0.23
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "ASTS +47%, RKLB +18%, BA +2.51% 중심 강세 / 상승 5/7개, 평균 +9.76% / 강한 상승 43%"
+        },
+        "NUCLEAR": {
+          "label": "원전/SMR",
+          "avgChangePct": 12.56,
+          "medianChangePct": 13.33,
+          "upCount": 6,
+          "downCount": 0,
+          "strongTickerCount": 5,
+          "totalTickerCount": 6,
+          "totalValidTickers": 6,
+          "upRatio": 1,
+          "strongRatio": 0.83,
+          "topTickers": [
+            {
+              "symbol": "NNE",
+              "changePct": 22.72
+            },
+            {
+              "symbol": "OKLO",
+              "changePct": 21.35
+            },
+            {
+              "symbol": "SMR",
+              "changePct": 20.08
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "BWXT",
+              "changePct": 0.8
+            },
+            {
+              "symbol": "CCJ",
+              "changePct": 3.86
+            },
+            {
+              "symbol": "LEU",
+              "changePct": 6.59
+            },
+            {
+              "symbol": "SMR",
+              "changePct": 20.08
+            },
+            {
+              "symbol": "OKLO",
+              "changePct": 21.35
+            },
+            {
+              "symbol": "NNE",
+              "changePct": 22.72
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "NNE +22.72%, OKLO +21.35%, SMR +20.08% 중심 강세 / 상승 6/6개, 평균 +12.56% / 강한 상승 83%"
+        },
+        "BIO": {
+          "label": "바이오/헬스케어",
+          "avgChangePct": 2.18,
+          "medianChangePct": 1.39,
+          "upCount": 6,
+          "downCount": 1,
+          "strongTickerCount": 2,
+          "totalTickerCount": 7,
+          "totalValidTickers": 7,
+          "upRatio": 0.86,
+          "strongRatio": 0.29,
+          "topTickers": [
+            {
+              "symbol": "LLY",
+              "changePct": 6.15
+            },
+            {
+              "symbol": "MRK",
+              "changePct": 5.24
+            },
+            {
+              "symbol": "AMGN",
+              "changePct": 1.6
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "REGN",
+              "changePct": -0.41
+            }
+          ],
+          "strength": "MID",
+          "reason": "LLY +6.15%, MRK +5.24%, AMGN +1.6% 중심 강세 / 상승 6/7개, 평균 +2.18%"
+        },
+        "SHIPBUILDING": {
+          "label": "조선/해양",
+          "avgChangePct": 0,
+          "medianChangePct": 0,
+          "upCount": 0,
+          "downCount": 0,
+          "strongTickerCount": 0,
+          "totalTickerCount": 0,
+          "totalValidTickers": 0,
+          "upRatio": 0,
+          "strongRatio": 0,
+          "topTickers": [],
+          "bottomTickers": [],
+          "strength": "UNKNOWN",
+          "reason": "유효 ticker 데이터 없음"
+        },
+        "BATTERY": {
+          "label": "2차전지",
+          "avgChangePct": 7.68,
+          "medianChangePct": 4.86,
+          "upCount": 5,
+          "downCount": 0,
+          "strongTickerCount": 4,
+          "totalTickerCount": 5,
+          "totalValidTickers": 5,
+          "upRatio": 1,
+          "strongRatio": 0.8,
+          "topTickers": [
+            {
+              "symbol": "QS",
+              "changePct": 24.79
+            },
+            {
+              "symbol": "ALB",
+              "changePct": 5.04
+            },
+            {
+              "symbol": "LCID",
+              "changePct": 4.86
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "TSLA",
+              "changePct": 1.56
+            },
+            {
+              "symbol": "RIVN",
+              "changePct": 2.15
+            },
+            {
+              "symbol": "LCID",
+              "changePct": 4.86
+            },
+            {
+              "symbol": "ALB",
+              "changePct": 5.04
+            },
+            {
+              "symbol": "QS",
+              "changePct": 24.79
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "QS +24.79%, ALB +5.04%, LCID +4.86% 중심 강세 / 상승 5/5개, 평균 +7.68% / 강한 상승 80%"
+        },
+        "QUANTUM_SECURITY": {
+          "label": "양자/보안",
+          "avgChangePct": 20.62,
+          "medianChangePct": 23.86,
+          "upCount": 6,
+          "downCount": 1,
+          "strongTickerCount": 6,
+          "totalTickerCount": 7,
+          "totalValidTickers": 7,
+          "upRatio": 0.86,
+          "strongRatio": 0.86,
+          "topTickers": [
+            {
+              "symbol": "RGTI",
+              "changePct": 54.26
+            },
+            {
+              "symbol": "QBTS",
+              "changePct": 51.04
+            },
+            {
+              "symbol": "IONQ",
+              "changePct": 34.97
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "ZS",
+              "changePct": -27.87
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "RGTI +54.26%, QBTS +51.04%, IONQ +34.97% 중심 강세 / 상승 6/7개, 평균 +20.62% / 강한 상승 86%"
+        },
+        "CRYPTO": {
+          "label": "가상자산/블록체인",
+          "avgChangePct": 5.72,
+          "medianChangePct": 3.09,
+          "upCount": 4,
+          "downCount": 2,
+          "strongTickerCount": 4,
+          "totalTickerCount": 6,
+          "totalValidTickers": 6,
+          "upRatio": 0.67,
+          "strongRatio": 0.67,
+          "topTickers": [
+            {
+              "symbol": "CLSK",
+              "changePct": 22.74
+            },
+            {
+              "symbol": "MARA",
+              "changePct": 15.19
+            },
+            {
+              "symbol": "RIOT",
+              "changePct": 3.3
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "MSTR",
+              "changePct": -6.34
+            },
+            {
+              "symbol": "COIN",
+              "changePct": -3.46
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "CLSK +22.74%, MARA +15.19%, RIOT +3.3% 중심 강세 / 상승 4/6개, 평균 +5.72% / 강한 상승 67%"
+        }
+      }
+    },
+    {
+      "date": "2026-05-27",
+      "usMarketDate": "2026-05-26",
+      "triggerSource": "manual",
+      "generatedAt": "2026-05-26T17:49:42.034Z",
+      "themes": {
+        "AI_SEMICON": {
+          "label": "AI 반도체",
+          "avgChangePct": 13.93,
+          "medianChangePct": 6.49,
+          "upCount": 6,
+          "downCount": 1,
+          "strongTickerCount": 4,
+          "totalTickerCount": 7,
+          "totalValidTickers": 7,
+          "upRatio": 0.86,
+          "strongRatio": 0.57,
+          "topTickers": [
+            {
+              "symbol": "ARM",
+              "changePct": 47.22
+            },
+            {
+              "symbol": "MU",
+              "changePct": 31.88
+            },
+            {
+              "symbol": "ASML",
+              "changePct": 10.29
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "NVDA",
+              "changePct": -0.81
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "ARM +47.22%, MU +31.88%, ASML +10.29% 중심 강세 / 상승 6/7개, 평균 +13.93% / 강한 상승 57%"
+        },
+        "AI_INFRA_OPTICAL": {
+          "label": "AI 인프라/광통신",
+          "avgChangePct": 9.25,
+          "medianChangePct": 6.75,
+          "upCount": 6,
+          "downCount": 1,
+          "strongTickerCount": 6,
+          "totalTickerCount": 9,
+          "totalValidTickers": 7,
+          "upRatio": 0.86,
+          "strongRatio": 0.86,
+          "topTickers": [
+            {
+              "symbol": "MRVL",
+              "changePct": 23.63
+            },
+            {
+              "symbol": "CIEN",
+              "changePct": 14.53
+            },
+            {
+              "symbol": "ANET",
+              "changePct": 12.31
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "CSCO",
+              "changePct": -2.43
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "MRVL +23.63%, CIEN +14.53%, ANET +12.31% 중심 강세 / 상승 6/7개, 평균 +9.25% / 강한 상승 86% / (2 ticker 데이터 누락)"
+        },
+        "POWER_GRID": {
+          "label": "전력기기/전력망",
+          "avgChangePct": 2.8,
+          "medianChangePct": 4.28,
+          "upCount": 3,
+          "downCount": 1,
+          "strongTickerCount": 3,
+          "totalTickerCount": 4,
+          "totalValidTickers": 4,
+          "upRatio": 0.75,
+          "strongRatio": 0.75,
+          "topTickers": [
+            {
+              "symbol": "ETN",
+              "changePct": 6.12
+            },
+            {
+              "symbol": "EMR",
+              "changePct": 5.55
+            },
+            {
+              "symbol": "GE",
+              "changePct": 3.02
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "VRT",
+              "changePct": -3.48
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "ETN +6.12%, EMR +5.55%, GE +3.02% 중심 강세 / 상승 3/4개, 평균 +2.8% / 강한 상승 75%"
+        },
+        "ROBOT": {
+          "label": "로봇/휴머노이드",
+          "avgChangePct": 1.37,
+          "medianChangePct": 0.56,
+          "upCount": 2,
+          "downCount": 2,
+          "strongTickerCount": 1,
+          "totalTickerCount": 5,
+          "totalValidTickers": 4,
+          "upRatio": 0.5,
+          "strongRatio": 0.25,
+          "topTickers": [
+            {
+              "symbol": "FANUY",
+              "changePct": 5.15
+            },
+            {
+              "symbol": "TSLA",
+              "changePct": 1.42
+            },
+            {
+              "symbol": "ISRG",
+              "changePct": -0.3
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "NVDA",
+              "changePct": -0.81
+            },
+            {
+              "symbol": "ISRG",
+              "changePct": -0.3
+            }
+          ],
+          "strength": "MID",
+          "reason": "FANUY +5.15%, TSLA +1.42%, ISRG -0.3% 중심 강세 / 상승 2/4개, 평균 +1.37% / (1 ticker 데이터 누락)"
+        },
+        "DEFENSE_SPACE": {
+          "label": "방산/우주항공",
+          "avgChangePct": 7.93,
+          "medianChangePct": 1.15,
+          "upCount": 7,
+          "downCount": 0,
+          "strongTickerCount": 2,
+          "totalTickerCount": 7,
+          "totalValidTickers": 7,
+          "upRatio": 1,
+          "strongRatio": 0.29,
+          "topTickers": [
+            {
+              "symbol": "ASTS",
+              "changePct": 43.14
+            },
+            {
+              "symbol": "RKLB",
+              "changePct": 9.44
+            },
+            {
+              "symbol": "NOC",
+              "changePct": 1.17
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "LMT",
+              "changePct": 0.1
+            },
+            {
+              "symbol": "BA",
+              "changePct": 0.14
+            },
+            {
+              "symbol": "GD",
+              "changePct": 0.38
+            },
+            {
+              "symbol": "RTX",
+              "changePct": 1.15
+            },
+            {
+              "symbol": "NOC",
+              "changePct": 1.17
+            },
+            {
+              "symbol": "RKLB",
+              "changePct": 9.44
+            },
+            {
+              "symbol": "ASTS",
+              "changePct": 43.14
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "ASTS +43.14%, RKLB +9.44%, NOC +1.17% 중심 강세 / 상승 7/7개, 평균 +7.93%"
+        },
+        "NUCLEAR": {
+          "label": "원전/SMR",
+          "avgChangePct": 12.42,
+          "medianChangePct": 12.39,
+          "upCount": 6,
+          "downCount": 0,
+          "strongTickerCount": 5,
+          "totalTickerCount": 6,
+          "totalValidTickers": 6,
+          "upRatio": 1,
+          "strongRatio": 0.83,
+          "topTickers": [
+            {
+              "symbol": "NNE",
+              "changePct": 25.13
+            },
+            {
+              "symbol": "OKLO",
+              "changePct": 20.82
+            },
+            {
+              "symbol": "SMR",
+              "changePct": 17.18
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "BWXT",
+              "changePct": 0.89
+            },
+            {
+              "symbol": "CCJ",
+              "changePct": 2.9
+            },
+            {
+              "symbol": "LEU",
+              "changePct": 7.6
+            },
+            {
+              "symbol": "SMR",
+              "changePct": 17.18
+            },
+            {
+              "symbol": "OKLO",
+              "changePct": 20.82
+            },
+            {
+              "symbol": "NNE",
+              "changePct": 25.13
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "NNE +25.13%, OKLO +20.82%, SMR +17.18% 중심 강세 / 상승 6/6개, 평균 +12.42% / 강한 상승 83%"
+        },
+        "BIO": {
+          "label": "바이오/헬스케어",
+          "avgChangePct": 2.92,
+          "medianChangePct": 1.13,
+          "upCount": 5,
+          "downCount": 2,
+          "strongTickerCount": 3,
+          "totalTickerCount": 7,
+          "totalValidTickers": 7,
+          "upRatio": 0.71,
+          "strongRatio": 0.43,
+          "topTickers": [
+            {
+              "symbol": "LLY",
+              "changePct": 8.97
+            },
+            {
+              "symbol": "MRK",
+              "changePct": 7.21
+            },
+            {
+              "symbol": "AMGN",
+              "changePct": 3.68
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "PFE",
+              "changePct": -0.69
+            },
+            {
+              "symbol": "VRTX",
+              "changePct": -0.06
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "LLY +8.97%, MRK +7.21%, AMGN +3.68% 중심 강세 / 상승 5/7개, 평균 +2.92% / 강한 상승 43%"
+        },
+        "SHIPBUILDING": {
+          "label": "조선/해양",
+          "avgChangePct": 0,
+          "medianChangePct": 0,
+          "upCount": 0,
+          "downCount": 0,
+          "strongTickerCount": 0,
+          "totalTickerCount": 0,
+          "totalValidTickers": 0,
+          "upRatio": 0,
+          "strongRatio": 0,
+          "topTickers": [],
+          "bottomTickers": [],
+          "strength": "UNKNOWN",
+          "reason": "유효 ticker 데이터 없음"
+        },
+        "BATTERY": {
+          "label": "2차전지",
+          "avgChangePct": 4.51,
+          "medianChangePct": 1.82,
+          "upCount": 5,
+          "downCount": 0,
+          "strongTickerCount": 2,
+          "totalTickerCount": 5,
+          "totalValidTickers": 5,
+          "upRatio": 1,
+          "strongRatio": 0.4,
+          "topTickers": [
+            {
+              "symbol": "QS",
+              "changePct": 15.26
+            },
+            {
+              "symbol": "LCID",
+              "changePct": 3.68
+            },
+            {
+              "symbol": "RIVN",
+              "changePct": 1.82
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "ALB",
+              "changePct": 0.39
+            },
+            {
+              "symbol": "TSLA",
+              "changePct": 1.42
+            },
+            {
+              "symbol": "RIVN",
+              "changePct": 1.82
+            },
+            {
+              "symbol": "LCID",
+              "changePct": 3.68
+            },
+            {
+              "symbol": "QS",
+              "changePct": 15.26
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "QS +15.26%, LCID +3.68%, RIVN +1.82% 중심 강세 / 상승 5/5개, 평균 +4.51% / 강한 상승 40%"
+        },
+        "QUANTUM_SECURITY": {
+          "label": "양자/보안",
+          "avgChangePct": 23.66,
+          "medianChangePct": 19.71,
+          "upCount": 7,
+          "downCount": 0,
+          "strongTickerCount": 7,
+          "totalTickerCount": 7,
+          "totalValidTickers": 7,
+          "upRatio": 1,
+          "strongRatio": 1,
+          "topTickers": [
+            {
+              "symbol": "RGTI",
+              "changePct": 49.46
+            },
+            {
+              "symbol": "QBTS",
+              "changePct": 44.86
+            },
+            {
+              "symbol": "IONQ",
+              "changePct": 29.91
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "PANW",
+              "changePct": 3.92
+            },
+            {
+              "symbol": "CRWD",
+              "changePct": 8.78
+            },
+            {
+              "symbol": "ZS",
+              "changePct": 8.99
+            },
+            {
+              "symbol": "QUBT",
+              "changePct": 19.71
+            },
+            {
+              "symbol": "IONQ",
+              "changePct": 29.91
+            },
+            {
+              "symbol": "QBTS",
+              "changePct": 44.86
+            },
+            {
+              "symbol": "RGTI",
+              "changePct": 49.46
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "RGTI +49.46%, QBTS +44.86%, IONQ +29.91% 중심 강세 / 상승 7/7개, 평균 +23.66% / 강한 상승 100%"
+        },
+        "CRYPTO": {
+          "label": "가상자산/블록체인",
+          "avgChangePct": 8.12,
+          "medianChangePct": 3.53,
+          "upCount": 4,
+          "downCount": 2,
+          "strongTickerCount": 3,
+          "totalTickerCount": 6,
+          "totalValidTickers": 6,
+          "upRatio": 0.67,
+          "strongRatio": 0.5,
+          "topTickers": [
+            {
+              "symbol": "CLSK",
+              "changePct": 27.98
+            },
+            {
+              "symbol": "MARA",
+              "changePct": 18.43
+            },
+            {
+              "symbol": "RIOT",
+              "changePct": 6.69
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "MSTR",
+              "changePct": -3.24
+            },
+            {
+              "symbol": "COIN",
+              "changePct": -1.51
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "CLSK +27.98%, MARA +18.43%, RIOT +6.69% 중심 강세 / 상승 4/6개, 평균 +8.12% / 강한 상승 50%"
+        }
+      }
+    },
+    {
+      "date": "2026-05-19",
+      "usMarketDate": "2026-05-18",
+      "themes": {
+        "AI_SEMICON": {
+          "label": "AI 반도체",
+          "avgChangePct": -3.27,
+          "medianChangePct": -1.57,
+          "upCount": 1,
+          "downCount": 7,
+          "strongTickerCount": 0,
+          "totalTickerCount": 8,
+          "totalValidTickers": 8,
+          "upRatio": 0.13,
+          "strongRatio": 0,
+          "topTickers": [
+            {
+              "symbol": "ARM",
+              "changePct": 1.16
+            },
+            {
+              "symbol": "AMD",
+              "changePct": -0.73
+            },
+            {
+              "symbol": "MRVL",
+              "changePct": -1.12
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "MU",
+              "changePct": -14.31
+            },
+            {
+              "symbol": "ASML",
+              "changePct": -5.97
+            },
+            {
+              "symbol": "TSM",
+              "changePct": -2.08
+            }
+          ],
+          "strength": "DOWN",
+          "reason": "주요 ticker 약세 / 상승 1/8개, 평균 -3.27%"
+        },
+        "POWER_GRID": {
+          "label": "전력기기/전력망",
+          "avgChangePct": -5.03,
+          "medianChangePct": -6.42,
+          "upCount": 1,
+          "downCount": 3,
+          "strongTickerCount": 0,
+          "totalTickerCount": 4,
+          "totalValidTickers": 4,
+          "upRatio": 0.25,
+          "strongRatio": 0,
+          "topTickers": [
+            {
+              "symbol": "GE",
+              "changePct": 1.58
+            },
+            {
+              "symbol": "EMR",
+              "changePct": -5.17
+            },
+            {
+              "symbol": "VRT",
+              "changePct": -7.66
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "ETN",
+              "changePct": -8.86
+            },
+            {
+              "symbol": "VRT",
+              "changePct": -7.66
+            },
+            {
+              "symbol": "EMR",
+              "changePct": -5.17
+            }
+          ],
+          "strength": "DOWN",
+          "reason": "주요 ticker 약세 / 상승 1/4개, 평균 -5.03%"
+        },
+        "ROBOT": {
+          "label": "로봇/휴머노이드",
+          "avgChangePct": 1.24,
+          "medianChangePct": 1.57,
+          "upCount": 2,
+          "downCount": 2,
+          "strongTickerCount": 2,
+          "totalTickerCount": 5,
+          "totalValidTickers": 4,
+          "upRatio": 0.5,
+          "strongRatio": 0.5,
+          "topTickers": [
+            {
+              "symbol": "ISRG",
+              "changePct": 4.73
+            },
+            {
+              "symbol": "FANUY",
+              "changePct": 4.47
+            },
+            {
+              "symbol": "NVDA",
+              "changePct": -1.33
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "TSLA",
+              "changePct": -2.9
+            },
+            {
+              "symbol": "NVDA",
+              "changePct": -1.33
+            }
+          ],
+          "strength": "MID",
+          "reason": "ISRG +4.73%, FANUY +4.47%, NVDA -1.33% 중심 강세 / 상승 2/4개, 평균 +1.24% / 강한 상승 50% / (1 ticker 데이터 누락)"
+        },
+        "DEFENSE_SPACE": {
+          "label": "방산/우주항공",
+          "avgChangePct": 2.57,
+          "medianChangePct": 0.33,
+          "upCount": 5,
+          "downCount": 2,
+          "strongTickerCount": 3,
+          "totalTickerCount": 7,
+          "totalValidTickers": 7,
+          "upRatio": 0.71,
+          "strongRatio": 0.43,
+          "topTickers": [
+            {
+              "symbol": "RKLB",
+              "changePct": 11.77
+            },
+            {
+              "symbol": "ASTS",
+              "changePct": 5.18
+            },
+            {
+              "symbol": "LMT",
+              "changePct": 2.38
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "RTX",
+              "changePct": -1.49
+            },
+            {
+              "symbol": "GD",
+              "changePct": -0.27
+            }
+          ],
+          "strength": "STRONG",
+          "reason": "RKLB +11.77%, ASTS +5.18%, LMT +2.38% 중심 강세 / 상승 5/7개, 평균 +2.57% / 강한 상승 43%"
+        },
+        "NUCLEAR": {
+          "label": "원전/SMR",
+          "avgChangePct": -16.1,
+          "medianChangePct": -16.85,
+          "upCount": 0,
+          "downCount": 6,
+          "strongTickerCount": 0,
+          "totalTickerCount": 6,
+          "totalValidTickers": 6,
+          "upRatio": 0,
+          "strongRatio": 0,
+          "topTickers": [
+            {
+              "symbol": "BWXT",
+              "changePct": -4.2
+            },
+            {
+              "symbol": "CCJ",
+              "changePct": -12.49
+            },
+            {
+              "symbol": "NNE",
+              "changePct": -14.81
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "OKLO",
+              "changePct": -25.05
+            },
+            {
+              "symbol": "SMR",
+              "changePct": -21.14
+            },
+            {
+              "symbol": "LEU",
+              "changePct": -18.89
+            }
+          ],
+          "strength": "DOWN",
+          "reason": "주요 ticker 약세 / 상승 0/6개, 평균 -16.1%"
+        },
+        "BIO": {
+          "label": "바이오/헬스케어",
+          "avgChangePct": -2.02,
+          "medianChangePct": 0,
+          "upCount": 3,
+          "downCount": 3,
+          "strongTickerCount": 1,
+          "totalTickerCount": 7,
+          "totalValidTickers": 7,
+          "upRatio": 0.43,
+          "strongRatio": 0.14,
+          "topTickers": [
+            {
+              "symbol": "LLY",
+              "changePct": 2.18
+            },
+            {
+              "symbol": "MRK",
+              "changePct": 1.15
+            },
+            {
+              "symbol": "VRTX",
+              "changePct": 0.32
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "REGN",
+              "changePct": -11.66
+            },
+            {
+              "symbol": "NVO",
+              "changePct": -4.57
+            },
+            {
+              "symbol": "AMGN",
+              "changePct": -1.58
+            }
+          ],
+          "strength": "DOWN",
+          "reason": "주요 ticker 약세 / 상승 3/7개, 평균 -2.02%"
+        },
+        "SHIPBUILDING": {
+          "label": "조선/해양",
+          "avgChangePct": 0,
+          "medianChangePct": 0,
+          "upCount": 0,
+          "downCount": 0,
+          "strongTickerCount": 0,
+          "totalTickerCount": 0,
+          "totalValidTickers": 0,
+          "upRatio": 0,
+          "strongRatio": 0,
+          "topTickers": [],
+          "bottomTickers": [],
+          "strength": "UNKNOWN",
+          "reason": "유효 ticker 데이터 없음"
+        },
+        "BATTERY": {
+          "label": "2차전지",
+          "avgChangePct": -6.65,
+          "medianChangePct": -5.13,
+          "upCount": 0,
+          "downCount": 5,
+          "strongTickerCount": 0,
+          "totalTickerCount": 5,
+          "totalValidTickers": 5,
+          "upRatio": 0,
+          "strongRatio": 0,
+          "topTickers": [
+            {
+              "symbol": "TSLA",
+              "changePct": -2.9
+            },
+            {
+              "symbol": "RIVN",
+              "changePct": -3.19
+            },
+            {
+              "symbol": "LCID",
+              "changePct": -5.13
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "ALB",
+              "changePct": -16.31
+            },
+            {
+              "symbol": "QS",
+              "changePct": -5.73
+            },
+            {
+              "symbol": "LCID",
+              "changePct": -5.13
+            }
+          ],
+          "strength": "DOWN",
+          "reason": "주요 ticker 약세 / 상승 0/5개, 평균 -6.65%"
+        },
+        "QUANTUM_SECURITY": {
+          "label": "양자/보안",
+          "avgChangePct": -1.46,
+          "medianChangePct": -4.57,
+          "upCount": 3,
+          "downCount": 4,
+          "strongTickerCount": 3,
+          "totalTickerCount": 7,
+          "totalValidTickers": 7,
+          "upRatio": 0.43,
+          "strongRatio": 0.43,
+          "topTickers": [
+            {
+              "symbol": "ZS",
+              "changePct": 17.34
+            },
+            {
+              "symbol": "PANW",
+              "changePct": 15.86
+            },
+            {
+              "symbol": "CRWD",
+              "changePct": 14.12
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "QBTS",
+              "changePct": -20.68
+            },
+            {
+              "symbol": "RGTI",
+              "changePct": -18.97
+            },
+            {
+              "symbol": "IONQ",
+              "changePct": -13.32
+            }
+          ],
+          "strength": "MID",
+          "reason": "ZS +17.34%, PANW +15.86%, CRWD +14.12% 중심 강세 / 상승 3/7개, 평균 -1.46% / 강한 상승 43%"
+        },
+        "CRYPTO": {
+          "label": "가상자산/블록체인",
+          "avgChangePct": -5.73,
+          "medianChangePct": -4.54,
+          "upCount": 1,
+          "downCount": 5,
+          "strongTickerCount": 0,
+          "totalTickerCount": 6,
+          "totalValidTickers": 6,
+          "upRatio": 0.17,
+          "strongRatio": 0,
+          "topTickers": [
+            {
+              "symbol": "HOOD",
+              "changePct": 0.01
+            },
+            {
+              "symbol": "RIOT",
+              "changePct": -1.32
+            },
+            {
+              "symbol": "COIN",
+              "changePct": -3.07
+            }
+          ],
+          "bottomTickers": [
+            {
+              "symbol": "MSTR",
+              "changePct": -14.96
+            },
+            {
+              "symbol": "MARA",
+              "changePct": -9.04
+            },
+            {
+              "symbol": "CLSK",
+              "changePct": -6.01
+            }
+          ],
+          "strength": "DOWN",
+          "reason": "주요 ticker 약세 / 상승 1/6개, 평균 -5.73%"
+        }
+      }
+    },
+    {
+      "date": "2026-05-18",
+      "usMarketDate": "2026-05-15",
+      "themes": {
+        "AI_SEMICON": {
+          "strength": "STRONG",
+          "avgChangePct": 3.2,
+          "strongTickerCount": 5,
+          "totalTickerCount": 8,
+          "reason": "NVDA, AMD, AVGO 등 AI 반도체 관련주 강세"
+        },
+        "POWER_GRID": {
+          "strength": "MID",
+          "avgChangePct": 1.4,
+          "strongTickerCount": 2,
+          "totalTickerCount": 4,
+          "reason": "VRT/ETN 전력 인프라주 일부 강세"
+        },
+        "ROBOT": {
+          "strength": "STRONG",
+          "avgChangePct": 2.8,
+          "strongTickerCount": 3,
+          "totalTickerCount": 5,
+          "reason": "TSLA 옵티머스 + NVDA 로봇 시너지"
+        },
+        "DEFENSE_SPACE": {
+          "strength": "MID",
+          "avgChangePct": 1.1,
+          "strongTickerCount": 2,
+          "totalTickerCount": 7,
+          "reason": "LMT/RTX 일부 회복"
+        },
+        "NUCLEAR": {
+          "strength": "STRONG",
+          "avgChangePct": 4.5,
+          "strongTickerCount": 5,
+          "totalTickerCount": 6,
+          "reason": "SMR/OKLO/NNE 등 SMR 관련주 폭등"
+        },
+        "BIO": {
+          "strength": "WEAK",
+          "avgChangePct": -0.3,
+          "strongTickerCount": 1,
+          "totalTickerCount": 7,
+          "reason": "특이 모멘텀 없음"
+        },
+        "SHIPBUILDING": {
+          "strength": "WEAK",
+          "avgChangePct": 0.5,
+          "strongTickerCount": 0,
+          "totalTickerCount": 0,
+          "reason": "미국 직접 관련주 거의 없음 — 글로벌 발주 흐름 참고"
+        },
+        "BATTERY": {
+          "strength": "WEAK",
+          "avgChangePct": 0.2,
+          "strongTickerCount": 1,
+          "totalTickerCount": 5,
+          "reason": "TSLA 외 약세"
+        },
+        "QUANTUM_SECURITY": {
+          "strength": "STRONG",
+          "avgChangePct": 5.1,
+          "strongTickerCount": 4,
+          "totalTickerCount": 7,
+          "reason": "IONQ/RGTI/QBTS 양자컴 관련주 폭등"
+        },
+        "CRYPTO": {
+          "strength": "MID",
+          "avgChangePct": 1.8,
+          "strongTickerCount": 2,
+          "totalTickerCount": 6,
+          "reason": "COIN/MSTR 비트코인 가격 반등 동반"
+        }
+      }
+    },
+    {
+      "date": "2026-05-15",
+      "usMarketDate": "2026-05-14",
+      "themes": {
+        "AI_SEMICON": {
+          "strength": "STRONG",
+          "avgChangePct": 2.7,
+          "strongTickerCount": 4,
+          "totalTickerCount": 8,
+          "reason": "NVDA/AMD 강세"
+        },
+        "POWER_GRID": {
+          "strength": "STRONG",
+          "avgChangePct": 2.1,
+          "strongTickerCount": 3,
+          "totalTickerCount": 4,
+          "reason": "VRT/ETN 전력 인프라 강세"
+        },
+        "ROBOT": {
+          "strength": "MID",
+          "avgChangePct": 1.5,
+          "strongTickerCount": 2,
+          "totalTickerCount": 5,
+          "reason": "TSLA 일부 강세"
+        },
+        "DEFENSE_SPACE": {
+          "strength": "WEAK",
+          "avgChangePct": 0.8,
+          "strongTickerCount": 2,
+          "totalTickerCount": 7,
+          "reason": "약보합"
+        },
+        "NUCLEAR": {
+          "strength": "STRONG",
+          "avgChangePct": 3.6,
+          "strongTickerCount": 4,
+          "totalTickerCount": 6,
+          "reason": "SMR 관련주 강세"
+        },
+        "BIO": {
+          "strength": "WEAK",
+          "avgChangePct": 0.4,
+          "strongTickerCount": 2,
+          "totalTickerCount": 7,
+          "reason": "약보합"
+        },
+        "SHIPBUILDING": {
+          "strength": "WEAK",
+          "avgChangePct": 0,
+          "strongTickerCount": 0,
+          "totalTickerCount": 0,
+          "reason": "—"
+        },
+        "BATTERY": {
+          "strength": "WEAK",
+          "avgChangePct": -0.5,
+          "strongTickerCount": 0,
+          "totalTickerCount": 5,
+          "reason": "약세"
+        },
+        "QUANTUM_SECURITY": {
+          "strength": "MID",
+          "avgChangePct": 1.6,
+          "strongTickerCount": 2,
+          "totalTickerCount": 7,
+          "reason": "양자컴 관련주 일부 강세"
+        },
+        "CRYPTO": {
+          "strength": "WEAK",
+          "avgChangePct": 0.5,
+          "strongTickerCount": 1,
+          "totalTickerCount": 6,
+          "reason": "약보합"
+        }
+      }
+    },
+    {
+      "date": "2026-05-14",
+      "usMarketDate": "2026-05-13",
+      "themes": {
+        "AI_SEMICON": {
+          "strength": "MID",
+          "avgChangePct": 1.8,
+          "strongTickerCount": 3,
+          "totalTickerCount": 8,
+          "reason": "AI 반도체 일부 강세"
+        },
+        "POWER_GRID": {
+          "strength": "WEAK",
+          "avgChangePct": 0.6,
+          "strongTickerCount": 1,
+          "totalTickerCount": 4,
+          "reason": "약보합"
+        },
+        "ROBOT": {
+          "strength": "STRONG",
+          "avgChangePct": 2.2,
+          "strongTickerCount": 3,
+          "totalTickerCount": 5,
+          "reason": "휴머노이드 모멘텀"
+        },
+        "DEFENSE_SPACE": {
+          "strength": "MID",
+          "avgChangePct": 1.3,
+          "strongTickerCount": 3,
+          "totalTickerCount": 7,
+          "reason": "방산주 회복"
+        },
+        "NUCLEAR": {
+          "strength": "MID",
+          "avgChangePct": 2.1,
+          "strongTickerCount": 3,
+          "totalTickerCount": 6,
+          "reason": "SMR 일부 강세"
+        },
+        "BIO": {
+          "strength": "MID",
+          "avgChangePct": 1,
+          "strongTickerCount": 3,
+          "totalTickerCount": 7,
+          "reason": "LLY/NVO GLP-1 반등"
+        },
+        "SHIPBUILDING": {
+          "strength": "WEAK",
+          "avgChangePct": 0,
+          "strongTickerCount": 0,
+          "totalTickerCount": 0,
+          "reason": "—"
+        },
+        "BATTERY": {
+          "strength": "WEAK",
+          "avgChangePct": 0.8,
+          "strongTickerCount": 2,
+          "totalTickerCount": 5,
+          "reason": "약보합"
+        },
+        "QUANTUM_SECURITY": {
+          "strength": "WEAK",
+          "avgChangePct": 0.4,
+          "strongTickerCount": 1,
+          "totalTickerCount": 7,
+          "reason": "—"
+        },
+        "CRYPTO": {
+          "strength": "WEAK",
+          "avgChangePct": -0.2,
+          "strongTickerCount": 1,
+          "totalTickerCount": 6,
+          "reason": "약세"
+        }
+      }
+    }
+  ]
+}

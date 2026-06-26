@@ -1,0 +1,59 @@
+{
+  "snapshotDate": "2026-06-24",
+  "savedAt": "2026-06-24T00:52:23.027Z",
+  "survivor1000": [],
+  "explosiveStable": [
+    {
+      "code": "010170",
+      "name": "대한광통신",
+      "market": "KOSDAQ",
+      "marketCap": 2355600000000,
+      "baseDate": "20260623",
+      "avg20Value": 339228804785,
+      "baseValue": 134927216620,
+      "metrics": {
+        "bars_total": 31,
+        "open0900": 14220,
+        "last0930": 14600,
+        "high0930": 14690,
+        "low0930": 14010,
+        "value_0930": 34573030880,
+        "volume_0930": 2404367,
+        "closePosition0930": 0.868,
+        "openToLastRate": 2.67,
+        "highToLastDrop": -0.61,
+        "valueToAvgRatio_0930": 3.33,
+        "rebreakMorningHigh": true
+      },
+      "status": "READY",
+      "statusLabel": "09:30 기준 강한 상태 유지",
+      "score": 4.87,
+      "finalScore": 145.73,
+      "hasTenRebreak": false,
+      "tenRebreakTrigger": null,
+      "hasFadedRecovery": false,
+      "hasSurvivor1000": false,
+      "survivor1000": null,
+      "triggeredHypos": [],
+      "explosiveScore": 148.73,
+      "isSurvivor1000": false,
+      "isExplosiveTop": true,
+      "isAttackRebreak": false,
+      "overlapBadges": [
+        "조기 포착",
+        "10시 확인 필요"
+      ],
+      "suggestedStrategy": {
+        "type": "STABLE_SCALP",
+        "label": "안정형 단타",
+        "takeProfit": "+5%",
+        "stopLoss": "-2%",
+        "note": "19거래일 검증 기준 +5%/-2% 전략이 안정적 (n=64, 평균 +0.97%, 승률 46.9%, +10% 12.5%)"
+      },
+      "reason": "09:30 조기 포착 — 10시 생존 확인 전 감시 후보",
+      "cacheMtimeHtml": " <span class=\"cache-price\" style=\"font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;\">14,600원</span> <span class=\"cache-mtime\" style=\"font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;\">06/24 09:30</span>"
+    }
+  ],
+  "attackTopCandidates": [],
+  "attackTopHighRisk": []
+}

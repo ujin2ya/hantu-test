@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-06-22T01:05:08.083Z",
+  "lastUpdated": "2026-06-26T01:49:40.054Z",
   "entries": [
     {
       "date": "2026-03-26",
@@ -7266,6 +7266,5963 @@
       "name": "아이티켐",
       "reason": "empty_bars (likely halted)",
       "recordedAt": "2026-06-22T01:05:07.725Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "311320",
+      "name": "지오엘리먼트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-23T00:34:33.485Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "005930",
+      "name": "삼성전자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-23T00:39:50.431Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "016790",
+      "name": "현대사료",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:03.293Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "001570",
+      "name": "금양",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:04.742Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "380540",
+      "name": "옵티코어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:05.886Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "073640",
+      "name": "테라사이언스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:08.292Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "041590",
+      "name": "플래스크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:09.258Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "182400",
+      "name": "엔케이젠바이오텍코리아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:09.741Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "001840",
+      "name": "이화공영",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:12.799Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "340930",
+      "name": "유일에너테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:13.331Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "175250",
+      "name": "아이큐어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:14.726Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "049080",
+      "name": "기가레인",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:15.925Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "290660",
+      "name": "다이나믹솔루션",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:16.345Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "002210",
+      "name": "동성제약",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:17.569Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "246690",
+      "name": "TS인베스트먼트",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:19.537Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "309710",
+      "name": "아이티켐",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:20.328Z"
+    },
+    {
+      "date": "2026-06-23",
+      "code": "900300",
+      "name": "오가닉티코스메틱",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-23T01:05:23.400Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "080220",
+      "name": "제주반도체",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:07.179Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "320000",
+      "name": "한울반도체",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:09.180Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "403870",
+      "name": "HPSP",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:11.187Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "006340",
+      "name": "대원전선",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:13.185Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "440110",
+      "name": "파두",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:15.184Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "067290",
+      "name": "JW신약",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:17.172Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "010170",
+      "name": "대한광통신",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:19.188Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "001820",
+      "name": "삼화콘덴서",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:21.183Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "347850",
+      "name": "디앤디파마텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:23.179Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "067310",
+      "name": "하나마이크론",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:25.167Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "356680",
+      "name": "엑스게이트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:27.181Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "178320",
+      "name": "서진시스템",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:29.164Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "001740",
+      "name": "SK네트웍스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:31.163Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "043260",
+      "name": "성호전자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:33.430Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "089030",
+      "name": "테크윙",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:35.822Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "475150",
+      "name": "SK이터닉스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:37.802Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "026940",
+      "name": "부국철강",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:39.825Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "122640",
+      "name": "예스티",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:41.808Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "475430",
+      "name": "키스트론",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:43.796Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "222800",
+      "name": "심텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:45.793Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "000500",
+      "name": "가온전선",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:47.951Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "093370",
+      "name": "후성",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:49.933Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "004170",
+      "name": "신세계",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:52.141Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "319660",
+      "name": "피에스케이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:54.137Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "011790",
+      "name": "SKC",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:56.148Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "018880",
+      "name": "한온시스템",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:42:58.147Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "198440",
+      "name": "강동씨앤엘",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:00.134Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "375500",
+      "name": "DL이앤씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:02.126Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "290650",
+      "name": "엘앤씨바이오",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:04.147Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "000890",
+      "name": "보해양조",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:06.140Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "108490",
+      "name": "로보티즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:10.114Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "204320",
+      "name": "HL만도",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:12.109Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "098460",
+      "name": "고영",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:14.098Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "058430",
+      "name": "포스코스틸리온",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:16.102Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "032820",
+      "name": "우리기술",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:18.101Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "095610",
+      "name": "테스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:20.504Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "089970",
+      "name": "브이엠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:22.495Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "084670",
+      "name": "동양고속",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:24.494Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "014950",
+      "name": "삼익제약",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:26.490Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "004310",
+      "name": "현대약품",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:30.486Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "005290",
+      "name": "동진쎄미켐",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:32.471Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "100790",
+      "name": "미래에셋벤처투자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:34.476Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "007810",
+      "name": "코리아써키트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:36.536Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "204270",
+      "name": "제이앤티씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:38.526Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "006220",
+      "name": "제주은행",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:40.950Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "131970",
+      "name": "두산테스나",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:42.946Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "085620",
+      "name": "미래에셋생명",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:44.939Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "090360",
+      "name": "로보스타",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:46.938Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "483650",
+      "name": "달바글로벌",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:48.924Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "319400",
+      "name": "현대무벡스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:50.913Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "420770",
+      "name": "기가비스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:52.965Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "004710",
+      "name": "한솔테크닉스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:54.975Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "084370",
+      "name": "유진테크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:56.983Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "489790",
+      "name": "한화비전",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:43:58.995Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "347700",
+      "name": "스피어",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:01.201Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "000650",
+      "name": "천일고속",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:03.187Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "090710",
+      "name": "휴림로봇",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:05.192Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "203650",
+      "name": "드림시큐리티",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:07.183Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "056090",
+      "name": "시지메드텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:09.173Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "046970",
+      "name": "우리로",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:11.161Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "030960",
+      "name": "양지사",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:13.152Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "336260",
+      "name": "두산퓨얼셀",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:15.140Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "036540",
+      "name": "SFA반도체",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:17.130Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "078600",
+      "name": "대주전자재료",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:21.115Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "069960",
+      "name": "현대백화점",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:23.138Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "006920",
+      "name": "모헨즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:25.126Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "027360",
+      "name": "아주IB투자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:27.116Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "043650",
+      "name": "국순당",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:29.097Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "226950",
+      "name": "올릭스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:31.090Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "357780",
+      "name": "솔브레인",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:33.092Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "120110",
+      "name": "코오롱인더",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:35.109Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "183300",
+      "name": "코미코",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:37.120Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "322000",
+      "name": "HD현대에너지솔루션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:39.126Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "009420",
+      "name": "한올바이오파마",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:41.126Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "413630",
+      "name": "씨피시스템",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:43.324Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "024840",
+      "name": "KBI메탈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:45.324Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "006360",
+      "name": "GS건설",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:47.323Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "126640",
+      "name": "화신정공",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:49.756Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "053260",
+      "name": "금강철강",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:52.786Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "112610",
+      "name": "씨에스윈드",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:54.791Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "088350",
+      "name": "한화생명",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:56.786Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "058730",
+      "name": "다스코",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:44:59.032Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "115500",
+      "name": "케이씨에스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:01.246Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "279570",
+      "name": "케이뱅크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:03.234Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "065170",
+      "name": "비엘팜텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:05.219Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "218410",
+      "name": "RFHIC",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:07.201Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "069540",
+      "name": "빛과전자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:09.403Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "036090",
+      "name": "위지트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:11.680Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "052710",
+      "name": "아모텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:13.670Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "456010",
+      "name": "아이씨티케이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:15.651Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "295310",
+      "name": "에이치브이엠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:17.638Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "023530",
+      "name": "롯데쇼핑",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:19.639Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "031980",
+      "name": "피에스케이홀딩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:21.634Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "101530",
+      "name": "해태제과식품",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:23.625Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "031330",
+      "name": "에스에이엠티",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:25.613Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "058610",
+      "name": "에스피지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:27.604Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "050890",
+      "name": "쏠리드",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:29.621Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "092040",
+      "name": "아미코젠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:31.615Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "064760",
+      "name": "티씨케이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:33.597Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "290690",
+      "name": "소룩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:35.799Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "092220",
+      "name": "KEC",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:37.797Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "195870",
+      "name": "해성디에스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:39.783Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "010690",
+      "name": "화신",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:41.764Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "007390",
+      "name": "네이처셀",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:45.749Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "017900",
+      "name": "광전자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:47.738Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "476830",
+      "name": "알지노믹스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:49.743Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "257720",
+      "name": "실리콘투",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:51.726Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "131290",
+      "name": "티에스이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:53.777Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "242040",
+      "name": "나무기술",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:56.006Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "083650",
+      "name": "비에이치아이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:58.003Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "281820",
+      "name": "케이씨텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:45:59.994Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "092790",
+      "name": "넥스틸",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:02.255Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "170920",
+      "name": "엘티씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:04.466Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "161890",
+      "name": "한국콜마",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:06.458Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "282330",
+      "name": "BGF리테일",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:08.443Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "002380",
+      "name": "KCC",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:10.423Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "030530",
+      "name": "원익홀딩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:12.409Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "059090",
+      "name": "미코",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:14.394Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "083450",
+      "name": "GST",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:16.419Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "457370",
+      "name": "한켐",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:18.642Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "323280",
+      "name": "태성",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:20.649Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "033160",
+      "name": "엠케이전자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:22.657Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "214450",
+      "name": "파마리서치",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:24.874Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "274090",
+      "name": "켄코아에어로스페이스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:27.363Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "417200",
+      "name": "LS머트리얼즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:29.348Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "263750",
+      "name": "펄어비스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:31.332Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "397030",
+      "name": "에이프릴바이오",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:33.328Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "051900",
+      "name": "LG생활건강",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:35.306Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "126730",
+      "name": "코칩",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:37.311Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "145020",
+      "name": "휴젤",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:39.301Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "071970",
+      "name": "HD현대마린엔진",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:41.289Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "490470",
+      "name": "세미파이브",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:43.278Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "082920",
+      "name": "비츠로셀",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:45.268Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "088910",
+      "name": "동우팜투테이블",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:47.255Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "356860",
+      "name": "티엘비",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:49.245Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "097230",
+      "name": "HJ중공업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:51.236Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "189300",
+      "name": "인텔리안테크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:53.224Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "192820",
+      "name": "코스맥스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:46:55.331Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "097950",
+      "name": "CJ제일제당",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:01.336Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "071670",
+      "name": "에이테크솔루션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:03.308Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "457190",
+      "name": "이수스페셜티케미컬",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:05.303Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "330860",
+      "name": "네패스아크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:07.281Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "001430",
+      "name": "세아베스틸지주",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:09.256Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "101490",
+      "name": "에스앤에스텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:11.247Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "048410",
+      "name": "현대바이오",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:13.231Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "126340",
+      "name": "비나텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:15.225Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "140860",
+      "name": "파크시스템스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:17.209Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "001450",
+      "name": "현대해상",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:19.217Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "074600",
+      "name": "원익QnC",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:21.218Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "020150",
+      "name": "롯데에너지머티리얼즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:23.218Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "252990",
+      "name": "샘씨엔에스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:25.207Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "001340",
+      "name": "PKC",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:27.285Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "008770",
+      "name": "호텔신라",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:29.288Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "138080",
+      "name": "오이솔루션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:31.291Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "001510",
+      "name": "SK증권",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:33.278Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "000850",
+      "name": "화천기공",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:35.268Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "124500",
+      "name": "아이티센글로벌",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:37.268Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "139480",
+      "name": "이마트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:39.265Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "064290",
+      "name": "인텍플러스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:41.283Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "025560",
+      "name": "미래산업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:43.268Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "330350",
+      "name": "위더스제약",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:45.269Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "090460",
+      "name": "비에이치",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:47.265Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "100090",
+      "name": "SK오션플랜트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:49.254Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "166090",
+      "name": "하나머티리얼즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:51.246Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "017800",
+      "name": "현대엘리베이터",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:53.228Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "425040",
+      "name": "티이엠씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:55.222Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "019210",
+      "name": "와이지-원",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:57.193Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "011210",
+      "name": "현대위아",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:47:59.200Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "008420",
+      "name": "문배철강",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:01.187Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "445680",
+      "name": "큐리옥스바이오시스템즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:03.191Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "038500",
+      "name": "삼표시멘트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:05.207Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "079000",
+      "name": "와토스코리아",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:07.212Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "077970",
+      "name": "STX엔진",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:09.201Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "039200",
+      "name": "오스코텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:11.191Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "332570",
+      "name": "PS일렉트로닉스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:13.188Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "014680",
+      "name": "한솔케미칼",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:15.195Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "298000",
+      "name": "효성화학",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:17.199Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "033640",
+      "name": "네패스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:23.382Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "011170",
+      "name": "롯데케미칼",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:25.576Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "264900",
+      "name": "크라운제과",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:27.577Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "161580",
+      "name": "필옵틱스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:29.611Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "494120",
+      "name": "큐리오시스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:31.600Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "417840",
+      "name": "저스템",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:33.608Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "368770",
+      "name": "파이버프로",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:35.628Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "237690",
+      "name": "에스티팜",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:37.642Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "383310",
+      "name": "에코프로에이치엔",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:39.643Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "009470",
+      "name": "삼화전기",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:41.628Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "017960",
+      "name": "한국카본",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:43.610Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "099320",
+      "name": "쎄트렉아이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:45.604Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "091590",
+      "name": "남화토건",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:47.585Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "077360",
+      "name": "덕산하이메탈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:49.605Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "482630",
+      "name": "삼양엔씨켐",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:51.588Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "372320",
+      "name": "큐로셀",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:53.582Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "200470",
+      "name": "에이팩트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:57.562Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "327260",
+      "name": "RF머트리얼즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:48:59.547Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "232140",
+      "name": "와이씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:01.546Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "005850",
+      "name": "에스엘",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:03.543Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "462350",
+      "name": "이노스페이스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:05.533Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "033100",
+      "name": "제룡전기",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:07.512Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "035900",
+      "name": "JYP Ent.",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:09.490Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "448900",
+      "name": "한국피아이엠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:11.482Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "354320",
+      "name": "알멕",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:13.473Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "006910",
+      "name": "보성파워텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:15.640Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "034230",
+      "name": "파라다이스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:17.616Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "214150",
+      "name": "클래시스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:19.601Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "032500",
+      "name": "케이엠더블유",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:23.599Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "475830",
+      "name": "오름테라퓨틱",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:25.632Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "011780",
+      "name": "금호석유화학",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:27.624Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "033790",
+      "name": "피노",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:29.604Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "149950",
+      "name": "아바텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:31.594Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "003280",
+      "name": "흥아해운",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:33.601Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "046890",
+      "name": "서울반도체",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:35.805Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "388790",
+      "name": "라이콤",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:37.803Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "229640",
+      "name": "LS에코에너지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:39.811Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "222080",
+      "name": "씨아이에스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:41.796Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "011930",
+      "name": "신성이엔지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:44.006Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "321370",
+      "name": "센서뷰",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:46.000Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "092870",
+      "name": "엑시콘",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:47.992Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "491000",
+      "name": "리브스메드",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:52.189Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "028670",
+      "name": "팬오션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:56.379Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "486990",
+      "name": "노타",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:49:58.855Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "024060",
+      "name": "흥구석유",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:00.856Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "230240",
+      "name": "에치에프알",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:02.822Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "293490",
+      "name": "카카오게임즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:04.808Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "078350",
+      "name": "한양디지텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:06.807Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "035250",
+      "name": "강원랜드",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:08.784Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "006110",
+      "name": "삼아알미늄",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:10.793Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "005950",
+      "name": "이수화학",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:12.790Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "348340",
+      "name": "뉴로메카",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:14.976Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "096530",
+      "name": "씨젠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:16.960Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "437730",
+      "name": "삼현",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:18.946Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "383220",
+      "name": "F&F",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:20.946Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "251270",
+      "name": "넷마블",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:22.935Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "499790",
+      "name": "GS피앤엘",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:25.176Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "462870",
+      "name": "시프트업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:27.162Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "007070",
+      "name": "GS리테일",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:29.266Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "466100",
+      "name": "클로봇",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:31.299Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "004370",
+      "name": "농심",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:33.312Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "298020",
+      "name": "효성티앤씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:35.293Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "066430",
+      "name": "아이로보틱스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:37.284Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "103140",
+      "name": "풍산",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:39.263Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "005690",
+      "name": "파미셀",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:41.253Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "003530",
+      "name": "한화투자증권",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:43.463Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "139130",
+      "name": "iM금융지주",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:45.974Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "078150",
+      "name": "HB테크놀러지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:47.945Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "357880",
+      "name": "SKAI",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:50.156Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "241520",
+      "name": "DSC인베스트먼트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:52.140Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "125490",
+      "name": "한라캐스트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:50:59.137Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "261780",
+      "name": "차백신연구소",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:01.144Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "348210",
+      "name": "넥스틴",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:03.133Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "281740",
+      "name": "레이크머티리얼즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:07.128Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "171090",
+      "name": "선익시스템",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:09.123Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "010820",
+      "name": "퍼스텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:11.107Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "213420",
+      "name": "덕산네오룩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:13.106Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "290550",
+      "name": "디케이티",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:15.105Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "060370",
+      "name": "LS마린솔루션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:17.104Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "458870",
+      "name": "씨어스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:19.097Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "005070",
+      "name": "코스모신소재",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:23.277Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "003160",
+      "name": "디아이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:25.380Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "006660",
+      "name": "삼성공조",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:27.643Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "187870",
+      "name": "디바이스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:29.680Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "080580",
+      "name": "오킨스전자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:31.682Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "388210",
+      "name": "씨엠티엑스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:33.674Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "081660",
+      "name": "미스토홀딩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:35.685Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "092200",
+      "name": "디아이씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:37.692Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "012750",
+      "name": "에스원",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:39.672Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "036460",
+      "name": "한국가스공사",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:41.683Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "125020",
+      "name": "티씨머티리얼즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:43.678Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "108320",
+      "name": "LX세미콘",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:45.669Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "037350",
+      "name": "성도이엔지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:47.868Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "306620",
+      "name": "지아이에스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:49.862Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "003690",
+      "name": "코리안리",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:52.066Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "037460",
+      "name": "삼지전자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:54.067Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "358570",
+      "name": "지아이이노베이션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:56.056Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "376900",
+      "name": "로킷헬스케어",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:51:58.043Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "003380",
+      "name": "하림지주",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:52:00.030Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "030000",
+      "name": "제일기획",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:52:02.018Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "086450",
+      "name": "동국제약",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:52:04.007Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "023160",
+      "name": "태광",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:52:06.000Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "051600",
+      "name": "한전KPS",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:52:08.010Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "140410",
+      "name": "메지온",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:52:10.013Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "003720",
+      "name": "삼영",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:52:12.219Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "032350",
+      "name": "롯데관광개발",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:52:14.204Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "389500",
+      "name": "에스비비테크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:52:16.236Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "062970",
+      "name": "한국첨단소재",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:52:18.222Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "253590",
+      "name": "네오셈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-24T00:52:20.208Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "016790",
+      "name": "현대사료",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-24T01:05:02.518Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "001570",
+      "name": "금양",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-24T01:05:02.935Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "380540",
+      "name": "옵티코어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-24T01:05:03.325Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "073640",
+      "name": "테라사이언스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-24T01:05:03.756Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "041590",
+      "name": "플래스크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-24T01:05:04.214Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "182400",
+      "name": "엔케이젠바이오텍코리아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-24T01:05:04.627Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "001840",
+      "name": "이화공영",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-24T01:05:05.046Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "340930",
+      "name": "유일에너테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-24T01:05:05.462Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "175250",
+      "name": "아이큐어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-24T01:05:05.887Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "049080",
+      "name": "기가레인",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-24T01:05:06.265Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "290660",
+      "name": "다이나믹솔루션",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-24T01:05:06.645Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "002210",
+      "name": "동성제약",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-24T01:05:07.075Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "246690",
+      "name": "TS인베스트먼트",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-24T01:05:07.459Z"
+    },
+    {
+      "date": "2026-06-24",
+      "code": "309710",
+      "name": "아이티켐",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-24T01:05:07.841Z"
+    },
+    {
+      "date": "2026-06-25",
+      "code": "016790",
+      "name": "현대사료",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-25T01:05:02.891Z"
+    },
+    {
+      "date": "2026-06-25",
+      "code": "001570",
+      "name": "금양",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-25T01:05:03.298Z"
+    },
+    {
+      "date": "2026-06-25",
+      "code": "380540",
+      "name": "옵티코어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-25T01:05:03.686Z"
+    },
+    {
+      "date": "2026-06-25",
+      "code": "073640",
+      "name": "테라사이언스",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-25T01:05:04.097Z"
+    },
+    {
+      "date": "2026-06-25",
+      "code": "041590",
+      "name": "플래스크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-25T01:05:04.515Z"
+    },
+    {
+      "date": "2026-06-25",
+      "code": "182400",
+      "name": "엔케이젠바이오텍코리아",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-25T01:05:04.936Z"
+    },
+    {
+      "date": "2026-06-25",
+      "code": "001840",
+      "name": "이화공영",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-25T01:05:05.371Z"
+    },
+    {
+      "date": "2026-06-25",
+      "code": "340930",
+      "name": "유일에너테크",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-25T01:05:05.756Z"
+    },
+    {
+      "date": "2026-06-25",
+      "code": "175250",
+      "name": "아이큐어",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-25T01:05:06.175Z"
+    },
+    {
+      "date": "2026-06-25",
+      "code": "049080",
+      "name": "기가레인",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-25T01:05:06.553Z"
+    },
+    {
+      "date": "2026-06-25",
+      "code": "002210",
+      "name": "동성제약",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-25T01:05:06.981Z"
+    },
+    {
+      "date": "2026-06-25",
+      "code": "246690",
+      "name": "TS인베스트먼트",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-25T01:05:07.367Z"
+    },
+    {
+      "date": "2026-06-25",
+      "code": "309710",
+      "name": "아이티켐",
+      "reason": "empty_bars (likely halted)",
+      "recordedAt": "2026-06-25T01:05:07.749Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "080220",
+      "name": "제주반도체",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:04.607Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "001740",
+      "name": "SK네트웍스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:08.624Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "010170",
+      "name": "대한광통신",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:12.838Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "347850",
+      "name": "디앤디파마텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:16.985Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "067310",
+      "name": "하나마이크론",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:19.012Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "001820",
+      "name": "삼화콘덴서",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:23.012Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "043260",
+      "name": "성호전자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:29.664Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "100090",
+      "name": "SK오션플랜트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:31.649Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "222800",
+      "name": "심텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:33.638Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "440110",
+      "name": "파두",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:35.634Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "319660",
+      "name": "피에스케이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:37.636Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "000890",
+      "name": "보해양조",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:39.759Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "093370",
+      "name": "후성",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:41.756Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "016790",
+      "name": "현대사료",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:43.755Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "004170",
+      "name": "신세계",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:45.759Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "089970",
+      "name": "브이엠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:47.754Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "483650",
+      "name": "달바글로벌",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:49.764Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "014950",
+      "name": "삼익제약",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:51.756Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "095610",
+      "name": "테스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:01:57.766Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "011790",
+      "name": "SKC",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:01.726Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "214450",
+      "name": "파마리서치",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:05.718Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "320000",
+      "name": "한울반도체",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:07.724Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "002990",
+      "name": "금호건설",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:09.715Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "001570",
+      "name": "금양",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:11.704Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "085620",
+      "name": "미래에셋생명",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:13.696Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "018880",
+      "name": "한온시스템",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:15.680Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "009420",
+      "name": "한올바이오파마",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:17.660Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "098460",
+      "name": "고영",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:19.645Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "290650",
+      "name": "엘앤씨바이오",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:21.629Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "204320",
+      "name": "HL만도",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:26.059Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "002380",
+      "name": "KCC",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:30.255Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "023410",
+      "name": "유진기업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:32.264Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "091590",
+      "name": "남화토건",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:34.270Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "356680",
+      "name": "엑스게이트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:36.263Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "090360",
+      "name": "로보스타",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:38.254Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "131970",
+      "name": "두산테스나",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:40.250Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "209640",
+      "name": "와이제이링크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:44.230Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "037710",
+      "name": "광주신세계",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:46.481Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "100790",
+      "name": "미래에셋벤처투자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:48.475Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "005290",
+      "name": "동진쎄미켐",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:52.083Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "131290",
+      "name": "티에스이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:02:56.312Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "319400",
+      "name": "현대무벡스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:00.286Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "375500",
+      "name": "DL이앤씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:02.272Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "069960",
+      "name": "현대백화점",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:04.264Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "290690",
+      "name": "소룩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:06.254Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "001210",
+      "name": "금호전기",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:08.256Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "090710",
+      "name": "휴림로봇",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:10.245Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "380540",
+      "name": "옵티코어",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:12.238Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "084370",
+      "name": "유진테크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:14.243Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "417840",
+      "name": "저스템",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:16.456Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "073240",
+      "name": "금호타이어",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:28.424Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "007810",
+      "name": "코리아써키트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:30.425Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "336260",
+      "name": "두산퓨얼셀",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:36.393Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "347700",
+      "name": "스피어",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:40.387Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "489790",
+      "name": "한화비전",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:42.376Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "183300",
+      "name": "코미코",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:44.380Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "397030",
+      "name": "에이프릴바이오",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:46.376Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "357780",
+      "name": "솔브레인",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:48.580Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "376900",
+      "name": "로킷헬스케어",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:03:59.185Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "469610",
+      "name": "이노테크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:05.369Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "126640",
+      "name": "화신정공",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:09.377Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "031330",
+      "name": "에스에이엠티",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:11.611Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "330860",
+      "name": "네패스아크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:13.587Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "027360",
+      "name": "아주IB투자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:15.591Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "078600",
+      "name": "대주전자재료",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:17.569Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "389260",
+      "name": "대명에너지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:19.551Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "413630",
+      "name": "씨피시스템",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:21.554Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "069540",
+      "name": "빛과전자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:23.541Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "161890",
+      "name": "한국콜마",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:25.531Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "073640",
+      "name": "테라사이언스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:27.527Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "004710",
+      "name": "한솔테크닉스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:29.523Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "033160",
+      "name": "엠케이전자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:31.516Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "052710",
+      "name": "아모텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:33.720Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "218410",
+      "name": "RFHIC",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:35.734Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "476830",
+      "name": "알지노믹스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:39.698Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "097950",
+      "name": "CJ제일제당",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:41.699Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "356860",
+      "name": "티엘비",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:45.700Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "067170",
+      "name": "오텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:47.696Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "257720",
+      "name": "실리콘투",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:49.707Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "064760",
+      "name": "티씨케이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:51.697Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "096530",
+      "name": "씨젠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:53.686Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "014680",
+      "name": "한솔케미칼",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:55.678Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "030530",
+      "name": "원익홀딩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:57.678Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "295310",
+      "name": "에이치브이엠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:04:59.674Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "017900",
+      "name": "광전자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:01.661Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "001450",
+      "name": "현대해상",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:03.642Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "036540",
+      "name": "SFA반도체",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:09.804Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "007390",
+      "name": "네이처셀",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:11.804Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "198440",
+      "name": "강동씨앤엘",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:13.936Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "242040",
+      "name": "나무기술",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:17.970Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "006120",
+      "name": "SK디스커버리",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:21.945Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "058610",
+      "name": "에스피지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:24.019Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "281820",
+      "name": "케이씨텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:28.012Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "323280",
+      "name": "태성",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:30.003Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "041590",
+      "name": "플래스크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:32.004Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "008770",
+      "name": "호텔신라",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:34.001Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "082210",
+      "name": "옵트론텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:35.996Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "050890",
+      "name": "쏠리드",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:38.003Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "182400",
+      "name": "엔케이젠바이오텍코리아",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:39.999Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "457370",
+      "name": "한켐",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:41.985Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "237690",
+      "name": "에스티팜",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:43.975Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "051900",
+      "name": "LG생활건강",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:45.966Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "074600",
+      "name": "원익QnC",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:47.957Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "456010",
+      "name": "아이씨티케이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:49.968Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "111710",
+      "name": "남화산업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:51.956Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "082920",
+      "name": "비츠로셀",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:53.960Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "019210",
+      "name": "와이지-원",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:55.956Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "083450",
+      "name": "GST",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:05:57.947Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "017800",
+      "name": "현대엘리베이터",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:01.984Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "166090",
+      "name": "하나머티리얼즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:03.976Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "120110",
+      "name": "코오롱인더",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:06.149Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "263750",
+      "name": "펄어비스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:10.135Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "439090",
+      "name": "마녀공장",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:14.308Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "033640",
+      "name": "네패스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:16.516Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "090460",
+      "name": "비에이치",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:18.518Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "005950",
+      "name": "이수화학",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:22.909Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "417200",
+      "name": "LS머트리얼즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:24.899Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "126730",
+      "name": "코칩",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:27.114Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "083650",
+      "name": "비에이치아이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:29.093Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "457190",
+      "name": "이수스페셜티케미컬",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:33.286Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "282720",
+      "name": "금양그린파워",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:35.279Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "214150",
+      "name": "클래시스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:37.276Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "024840",
+      "name": "KBI메탈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:39.281Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "195870",
+      "name": "해성디에스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:41.285Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "001840",
+      "name": "이화공영",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:43.277Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "340930",
+      "name": "유일에너테크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:45.282Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "101490",
+      "name": "에스앤에스텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:47.283Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "097230",
+      "name": "HJ중공업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:49.278Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "064290",
+      "name": "인텍플러스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:51.277Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "001510",
+      "name": "SK증권",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:53.270Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "145020",
+      "name": "휴젤",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:06:55.372Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "004370",
+      "name": "농심",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:00.458Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "317770",
+      "name": "엑스페릭스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:02.468Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "034230",
+      "name": "파라다이스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:04.450Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "189300",
+      "name": "인텔리안테크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:06.436Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "489460",
+      "name": "바이오비쥬",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:08.436Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "034810",
+      "name": "해성산업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:10.429Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "357880",
+      "name": "SKAI",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:12.408Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "195940",
+      "name": "HK이노엔",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:14.403Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "358570",
+      "name": "지아이이노베이션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:16.406Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "042520",
+      "name": "한스바이오메드",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:20.387Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "175250",
+      "name": "아이큐어",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:22.379Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "298000",
+      "name": "효성화학",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:28.373Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "003160",
+      "name": "디아이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:30.360Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "010960",
+      "name": "삼호개발",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:32.332Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "035900",
+      "name": "JYP Ent.",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:34.315Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "139480",
+      "name": "이마트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:36.297Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "490470",
+      "name": "세미파이브",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:38.288Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "011780",
+      "name": "금호석유화학",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:40.303Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "028670",
+      "name": "팬오션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:42.334Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "005850",
+      "name": "에스엘",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:44.329Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "049080",
+      "name": "기가레인",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:46.337Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "274090",
+      "name": "켄코아에어로스페이스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:48.540Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "425040",
+      "name": "티이엠씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:50.529Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "017960",
+      "name": "한국카본",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:52.529Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "140860",
+      "name": "파크시스템스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:54.537Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "059090",
+      "name": "미코",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:07:56.529Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "046890",
+      "name": "서울반도체",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:01.225Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "332570",
+      "name": "PS일렉트로닉스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:03.226Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "002210",
+      "name": "동성제약",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:05.211Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "001430",
+      "name": "세아베스틸지주",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:09.242Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "192820",
+      "name": "코스맥스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:11.247Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "099320",
+      "name": "쎄트렉아이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:13.240Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "232140",
+      "name": "와이씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:17.236Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "388790",
+      "name": "라이콤",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:19.438Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "065710",
+      "name": "서호전기",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:21.423Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "011210",
+      "name": "현대위아",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:23.413Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "458870",
+      "name": "씨어스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:27.395Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "251270",
+      "name": "넷마블",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:29.380Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "038500",
+      "name": "삼표시멘트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:31.357Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "011930",
+      "name": "신성이엔지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:33.338Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "066430",
+      "name": "아이로보틱스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:35.324Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "126340",
+      "name": "비나텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:37.308Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "077970",
+      "name": "STX엔진",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:41.284Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "491000",
+      "name": "리브스메드",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:43.305Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "388210",
+      "name": "씨엠티엑스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:45.300Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "039200",
+      "name": "오스코텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:47.294Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "071970",
+      "name": "HD현대마린엔진",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:51.286Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "213420",
+      "name": "덕산네오룩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:53.496Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "222080",
+      "name": "씨아이에스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:57.506Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "203650",
+      "name": "드림시큐리티",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:08:59.505Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "246690",
+      "name": "TS인베스트먼트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:05.474Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "123330",
+      "name": "제닉",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:09.480Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "077360",
+      "name": "덕산하이메탈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:11.466Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "327260",
+      "name": "RF머트리얼즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:13.457Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "309710",
+      "name": "아이티켐",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:15.458Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "003690",
+      "name": "코리안리",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:17.457Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "035250",
+      "name": "강원랜드",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:19.436Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "006910",
+      "name": "보성파워텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:21.423Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "032500",
+      "name": "케이엠더블유",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:25.709Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "138080",
+      "name": "오이솔루션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:29.709Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "181710",
+      "name": "NHN",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:33.688Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "006660",
+      "name": "삼성공조",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:35.671Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "383220",
+      "name": "F&F",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:38.421Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "302440",
+      "name": "SK바이오사이언스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:40.403Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "032350",
+      "name": "롯데관광개발",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:42.383Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "009970",
+      "name": "영원무역홀딩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:48.354Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "103140",
+      "name": "풍산",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:52.357Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "007340",
+      "name": "DN오토모티브",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:54.368Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "006110",
+      "name": "삼아알미늄",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:56.356Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "456160",
+      "name": "지투지바이오",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:09:58.356Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "003530",
+      "name": "한화투자증권",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:00.341Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "033100",
+      "name": "제룡전기",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:02.349Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "081660",
+      "name": "미스토홀딩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:04.360Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "445680",
+      "name": "큐리옥스바이오시스템즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:06.471Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "041830",
+      "name": "인바디",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:08.731Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "025560",
+      "name": "미래산업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:11.425Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "229640",
+      "name": "LS에코에너지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:13.663Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "187870",
+      "name": "디바이스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:19.705Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "012030",
+      "name": "DB",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:23.879Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "111770",
+      "name": "영원무역",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:26.521Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "036460",
+      "name": "한국가스공사",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:28.516Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "020560",
+      "name": "아시아나항공",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:30.533Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "290550",
+      "name": "디케이티",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:32.570Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "078350",
+      "name": "한양디지텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:34.601Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "102710",
+      "name": "이엔에프테크놀로지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:36.605Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "328130",
+      "name": "루닛",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:38.603Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "003380",
+      "name": "하림지주",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:42.640Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "023160",
+      "name": "태광",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:44.633Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "452280",
+      "name": "한선엔지니어링",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:46.623Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "108320",
+      "name": "LX세미콘",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:48.614Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "219130",
+      "name": "타이거일렉",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:50.604Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "417010",
+      "name": "나노팀",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:52.590Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "281740",
+      "name": "레이크머티리얼즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:54.589Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "005690",
+      "name": "파미셀",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:56.574Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "298020",
+      "name": "효성티앤씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:10:58.570Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "140410",
+      "name": "메지온",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:11:00.607Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "115500",
+      "name": "케이씨에스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:11:02.630Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "033790",
+      "name": "피노",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:11:04.716Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "448900",
+      "name": "한국피아이엠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:11:06.693Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "215790",
+      "name": "이노인스트루먼트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:11:08.689Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "006280",
+      "name": "녹십자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:11:15.290Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "348340",
+      "name": "뉴로메카",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:11:19.287Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "010820",
+      "name": "퍼스텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:11:21.284Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "066790",
+      "name": "씨씨에스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:11:25.693Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "058730",
+      "name": "다스코",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:06.684Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "475430",
+      "name": "키스트론",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:08.811Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "001260",
+      "name": "남광토건",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:11.173Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "005440",
+      "name": "현대지에프홀딩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:13.187Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "012200",
+      "name": "계양전기",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:15.463Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "03473K",
+      "name": "SK우",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:17.529Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "006920",
+      "name": "모헨즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:19.581Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "057050",
+      "name": "현대홈쇼핑",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:21.572Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "065170",
+      "name": "비엘팜텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:23.566Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "122350",
+      "name": "삼기",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:25.593Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "096250",
+      "name": "와이즈넛",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:27.602Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "100660",
+      "name": "서암기계공업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:29.763Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "084670",
+      "name": "동양고속",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:31.844Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "446840",
+      "name": "지슨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:33.857Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "0127M0",
+      "name": "ACE 미국대형가치주액티브",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:35.938Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "245340",
+      "name": "TIGER 미국다우존스30",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:37.928Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "283580",
+      "name": "KODEX 차이나CSI300",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:39.921Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "001000",
+      "name": "신라섬유",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:41.928Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "019010",
+      "name": "베뉴지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:43.920Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "043650",
+      "name": "국순당",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:45.943Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "067290",
+      "name": "JW신약",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:47.926Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "071670",
+      "name": "에이테크솔루션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:49.917Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "261780",
+      "name": "차백신연구소",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:51.908Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "475560",
+      "name": "더본코리아",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:53.896Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "000650",
+      "name": "천일고속",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:55.896Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "034730",
+      "name": "SK",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:30:57.912Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "058430",
+      "name": "포스코스틸리온",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:00.882Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "000500",
+      "name": "가온전선",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:03.307Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "205500",
+      "name": "넥써쓰",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:05.300Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "0038A0",
+      "name": "KODEX 미국휴머노이드로봇",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:07.301Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "0041E0",
+      "name": "KODEX 미국S&P500액티브",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:09.305Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "139270",
+      "name": "TIGER 200 금융",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:11.372Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "010955",
+      "name": "S-Oil우",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:13.351Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "095910",
+      "name": "에스에너지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:15.347Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "008700",
+      "name": "아남전자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:17.365Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "041510",
+      "name": "에스엠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:19.351Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "026940",
+      "name": "부국철강",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:21.748Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "012510",
+      "name": "더존비즈온",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:23.759Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "094800",
+      "name": "맵스리얼티",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:25.768Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "005010",
+      "name": "휴스틸",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:27.750Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "306200",
+      "name": "세아제강",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:29.742Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "000240",
+      "name": "한국앤컴퍼니",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:31.748Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "001120",
+      "name": "LX인터내셔널",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:33.745Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "023530",
+      "name": "롯데쇼핑",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:35.741Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "029780",
+      "name": "삼성카드",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:37.734Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "105560",
+      "name": "KB금융",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:39.734Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "020150",
+      "name": "롯데에너지머티리얼즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:41.726Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "085910",
+      "name": "네오티스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:43.718Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "226950",
+      "name": "올릭스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:45.703Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "005180",
+      "name": "빙그레",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:47.689Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "161390",
+      "name": "한국타이어앤테크놀로지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:49.898Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "010580",
+      "name": "에스엠벡셀",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:51.889Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "089030",
+      "name": "테크윙",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:53.894Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "0151P0",
+      "name": "RISE 코리아전략산업액티브",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:55.981Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "091230",
+      "name": "TIGER 반도체",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:57.972Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "102110",
+      "name": "TIGER 200",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:31:59.968Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "105190",
+      "name": "ACE 200",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:01.953Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "226490",
+      "name": "KODEX 코스피",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:04.158Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "266370",
+      "name": "KODEX IT",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:06.175Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "290130",
+      "name": "RISE ESG사회책임투자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:08.167Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "292190",
+      "name": "KODEX KRX300",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:10.302Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "388420",
+      "name": "RISE 비메모리반도체액티브",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:12.276Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "469150",
+      "name": "ACE AI반도체TOP3+",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:14.266Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "476850",
+      "name": "KoAct 배당성장액티브",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:16.249Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "495060",
+      "name": "TIME 코리아밸류업액티브",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:18.246Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "495330",
+      "name": "1Q 코리아밸류업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:20.405Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "0023B0",
+      "name": "PLUS 미국양자컴퓨팅TOP10",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:22.434Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "420770",
+      "name": "기가비스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:24.426Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "473490",
+      "name": "KIWOOM 글로벌AI반도체",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:26.436Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "483320",
+      "name": "ACE 엔비디아밸류체인액티브",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:28.427Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "483340",
+      "name": "ACE 구글밸류체인액티브",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:30.406Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "494220",
+      "name": "UNICORN SK하이닉스밸류체인액티브",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:32.747Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "004310",
+      "name": "현대약품",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:34.734Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "092040",
+      "name": "아미코젠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:36.734Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "251630",
+      "name": "브이원텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:38.726Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "256840",
+      "name": "한국비엔씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:40.725Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "419050",
+      "name": "삼기에너지솔루션즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:42.714Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "006345",
+      "name": "대원전선우",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:44.717Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "025320",
+      "name": "시노펙스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:46.705Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "069080",
+      "name": "웹젠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:48.709Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "091440",
+      "name": "한울소재과학",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:50.695Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "092790",
+      "name": "넥스틸",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:52.675Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "146060",
+      "name": "율촌",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:54.669Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "204270",
+      "name": "제이앤티씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:56.667Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "311320",
+      "name": "지오엘리먼트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:32:58.656Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "372320",
+      "name": "큐로셀",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:00.855Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "008420",
+      "name": "문배철강",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:02.841Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "053950",
+      "name": "경남제약",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:04.840Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "238090",
+      "name": "앤디포스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:06.830Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "366030",
+      "name": "공구우먼",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:08.826Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "011080",
+      "name": "형지I&C",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:10.829Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "014910",
+      "name": "성문전자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:13.030Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "046390",
+      "name": "삼화네트웍스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:15.030Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "071090",
+      "name": "하이스틸",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:17.023Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "293490",
+      "name": "카카오게임즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:19.236Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "330350",
+      "name": "위더스제약",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:21.227Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "451220",
+      "name": "아이엠티",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:23.206Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "900290",
+      "name": "GRT",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:25.198Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "0008Z0",
+      "name": "에스엔시스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:27.198Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "005680",
+      "name": "삼영전자",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:29.431Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "008830",
+      "name": "대동기어",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:31.629Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "009470",
+      "name": "삼화전기",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:33.622Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "042700",
+      "name": "한미반도체",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:35.619Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "046970",
+      "name": "우리로",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:37.608Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "047770",
+      "name": "코데즈컴바인",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:39.751Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "064850",
+      "name": "에프앤가이드",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:41.952Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "086280",
+      "name": "현대글로비스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:43.938Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "093050",
+      "name": "LF",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:45.937Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "097955",
+      "name": "CJ제일제당 우",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:47.925Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "099190",
+      "name": "아이센스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:49.918Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "101160",
+      "name": "월덱스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:51.919Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "104830",
+      "name": "원익머트리얼즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:53.933Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "114190",
+      "name": "강원에너지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:55.926Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "161580",
+      "name": "필옵틱스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:33:58.131Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "194480",
+      "name": "데브시스터즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:00.114Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "417500",
+      "name": "제이아이테크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:02.105Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "419530",
+      "name": "SAMG엔터",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:04.090Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "482630",
+      "name": "삼양엔씨켐",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:06.074Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "078150",
+      "name": "HB테크놀러지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:08.062Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "378800",
+      "name": "샤페론",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:10.057Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "460940",
+      "name": "피앤에스로보틱스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:12.061Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "006340",
+      "name": "대원전선",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:14.056Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "00680K",
+      "name": "미래에셋증권2우B",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:16.103Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "011700",
+      "name": "한신기계",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:18.087Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "023790",
+      "name": "동일스틸럭스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:20.086Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "032820",
+      "name": "우리기술",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:22.076Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "052690",
+      "name": "한전기술",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:24.080Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "063160",
+      "name": "종근당바이오",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:26.258Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "093320",
+      "name": "케이아이엔엑스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:28.252Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "130660",
+      "name": "한전산업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:30.342Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "161000",
+      "name": "애경케미칼",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:32.321Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "204620",
+      "name": "글로벌텍스프리",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:34.521Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "207940",
+      "name": "삼성바이오로직스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:36.580Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "463020",
+      "name": "뉴엔AI",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:38.575Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "475150",
+      "name": "SK이터닉스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:40.571Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "484590",
+      "name": "삼양컴텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:42.548Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "115440",
+      "name": "우리넷",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:44.536Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "189860",
+      "name": "서전기전",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:46.526Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "265740",
+      "name": "엔에프씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:48.511Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "004490",
+      "name": "세방전지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:50.519Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "006220",
+      "name": "제주은행",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:52.520Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "008970",
+      "name": "KBI동양철관",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:54.507Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "010690",
+      "name": "화신",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:56.501Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "011170",
+      "name": "롯데케미칼",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:34:58.494Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "016610",
+      "name": "DB증권",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:00.511Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "028050",
+      "name": "삼성E&A",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:02.500Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "042660",
+      "name": "한화오션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:04.481Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "044490",
+      "name": "태웅",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:07.427Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "088350",
+      "name": "한화생명",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:09.419Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "100130",
+      "name": "동국S&C",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:11.403Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "108380",
+      "name": "대양전기공업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:13.415Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "217190",
+      "name": "제너셈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:15.416Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "297090",
+      "name": "씨에스베어링",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:17.412Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "007110",
+      "name": "일신석재",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:19.417Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "039240",
+      "name": "경남스틸",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:21.416Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "162300",
+      "name": "신스틸",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:23.407Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "187420",
+      "name": "HLB제넥스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:25.627Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "311390",
+      "name": "네오크레마",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:27.614Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "474610",
+      "name": "RF시스템즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:29.605Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "000720",
+      "name": "현대건설",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:31.593Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "001800",
+      "name": "오리온홀딩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:33.812Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "002780",
+      "name": "진흥기업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:35.813Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "003540",
+      "name": "대신증권",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:37.804Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "004990",
+      "name": "롯데지주",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:39.793Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "009540",
+      "name": "HD한국조선해양",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:41.994Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "017550",
+      "name": "수산세보틱스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:43.998Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "024110",
+      "name": "기업은행",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:45.983Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "030000",
+      "name": "제일기획",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:48.213Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "037440",
+      "name": "희림",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:50.208Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "041440",
+      "name": "현대에버다임",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:52.188Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "060370",
+      "name": "LS마린솔루션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:54.178Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "282330",
+      "name": "BGF리테일",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:56.166Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "317450",
+      "name": "명인제약",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:35:58.161Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "322000",
+      "name": "HD현대에너지솔루션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:00.145Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "464080",
+      "name": "에스오에스랩",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:02.284Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "002350",
+      "name": "넥센타이어",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:04.320Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "032940",
+      "name": "원익",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:06.394Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "051600",
+      "name": "한전KPS",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:08.747Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "139130",
+      "name": "iM금융지주",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:10.731Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "417310",
+      "name": "코람코더원리츠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:13.299Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "484870",
+      "name": "엠앤씨솔루션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:15.290Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "031980",
+      "name": "피에스케이홀딩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:17.280Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "108490",
+      "name": "로보티즈",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:19.275Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "272110",
+      "name": "케이엔제이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:21.263Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "402340",
+      "name": "SK스퀘어",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:23.280Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "432320",
+      "name": "KB스타리츠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:25.264Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "270660",
+      "name": "에브리봇",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:27.254Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "322510",
+      "name": "제이엘케이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:29.245Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "381970",
+      "name": "케이카",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:31.256Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "399720",
+      "name": "가온칩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:33.265Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "417970",
+      "name": "모델솔루션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:35.257Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "484810",
+      "name": "티엑스알로보틱스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:37.260Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "021240",
+      "name": "코웨이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:39.287Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "114090",
+      "name": "GKL",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:41.269Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "215000",
+      "name": "골프존",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:43.289Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "279570",
+      "name": "케이뱅크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:45.277Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "005860",
+      "name": "한일사료",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:47.263Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "006360",
+      "name": "GS건설",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:49.255Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "066360",
+      "name": "체리부로",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:51.231Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "112610",
+      "name": "씨에스윈드",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:53.366Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "124500",
+      "name": "아이티센글로벌",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:55.368Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "200130",
+      "name": "콜마비앤에이치",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:57.350Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "300720",
+      "name": "한일시멘트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:36:59.337Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "304100",
+      "name": "솔트룩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:01.316Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "344820",
+      "name": "KCC글라스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:03.319Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "355390",
+      "name": "크라우드웍스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:05.322Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "383310",
+      "name": "에코프로에이치엔",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:07.443Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "460930",
+      "name": "현대힘스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:09.446Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "475830",
+      "name": "오름테라퓨틱",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:11.439Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "003220",
+      "name": "대원제약",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:13.433Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "160980",
+      "name": "싸이맥스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:15.430Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "170920",
+      "name": "엘티씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:17.425Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "178320",
+      "name": "서진시스템",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:19.467Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "240810",
+      "name": "원익IPS",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:21.450Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "459550",
+      "name": "알트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:23.447Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "036120",
+      "name": "서울평가정보",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:25.446Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "084650",
+      "name": "랩지노믹스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:27.456Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "299900",
+      "name": "위지윅스튜디오",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:29.665Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "017670",
+      "name": "SK텔레콤",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:31.661Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "462870",
+      "name": "시프트업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:33.648Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "082800",
+      "name": "비보존 제약",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:35.641Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "476080",
+      "name": "M83",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:37.837Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "001720",
+      "name": "신영증권",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:39.827Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "128940",
+      "name": "한미약품",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:41.829Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "377480",
+      "name": "마음AI",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:43.815Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "388870",
+      "name": "파로스아이바이오",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:45.806Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "018310",
+      "name": "삼목에스폼",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:47.789Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "230240",
+      "name": "에치에프알",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:49.791Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "486990",
+      "name": "노타",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:52.057Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "022100",
+      "name": "포스코DX",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:54.035Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "058650",
+      "name": "세아홀딩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:56.018Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "373220",
+      "name": "LG에너지솔루션",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:37:58.012Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "466100",
+      "name": "클로봇",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:00.004Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "068290",
+      "name": "삼성출판사",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:01.989Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "267320",
+      "name": "나인테크",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:03.997Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "389140",
+      "name": "포바이포",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:05.988Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "000157",
+      "name": "두산2우B",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:07.981Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "008930",
+      "name": "한미사이언스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:09.976Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "055490",
+      "name": "테이팩스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:12.047Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "058970",
+      "name": "엠로",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:14.247Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "060250",
+      "name": "NHN KCP",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:16.249Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "092200",
+      "name": "디아이씨",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:18.244Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "119610",
+      "name": "인터로조",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:20.298Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "015590",
+      "name": "DKME",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:22.401Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "215100",
+      "name": "로보로보",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:24.401Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "293580",
+      "name": "나우IB",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:26.393Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "000100",
+      "name": "유한양행",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:28.374Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "001340",
+      "name": "PKC",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:30.398Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "005385",
+      "name": "현대차우",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:32.402Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "005387",
+      "name": "현대차2우B",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:34.385Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "006400",
+      "name": "삼성SDI",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:36.373Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "061090",
+      "name": "세나테크놀로지",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:38.358Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "087010",
+      "name": "펩트론",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:40.339Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "123860",
+      "name": "아나패스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:42.328Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "241520",
+      "name": "DSC인베스트먼트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:44.334Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "247540",
+      "name": "에코프로비엠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:46.784Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "382840",
+      "name": "원준",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:48.772Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "216080",
+      "name": "제테마",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:50.778Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "417860",
+      "name": "오브젠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:52.878Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "034220",
+      "name": "LG디스플레이",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:54.871Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "035420",
+      "name": "NAVER",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:56.863Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "066970",
+      "name": "엘앤에프",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:38:58.918Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "107640",
+      "name": "한중엔시에스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:00.900Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "117730",
+      "name": "티로보틱스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:02.893Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "122640",
+      "name": "예스티",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:04.885Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "241770",
+      "name": "메카로",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:06.867Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "416180",
+      "name": "신성에스티",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:08.855Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "424870",
+      "name": "이뮨온시아",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:10.838Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "444530",
+      "name": "심플랫폼",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:12.822Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "445090",
+      "name": "에이직랜드",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:14.810Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "003280",
+      "name": "흥아해운",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:16.793Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "004090",
+      "name": "한국석유",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:18.776Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "018250",
+      "name": "애경산업",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:20.749Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "024060",
+      "name": "흥구석유",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:22.734Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "051980",
+      "name": "중앙첨단소재",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:25.001Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "093640",
+      "name": "케이알엠",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:26.988Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "101670",
+      "name": "하이드로리튬",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:29.601Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "241840",
+      "name": "에이스토리",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:31.579Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "048410",
+      "name": "현대바이오",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:33.560Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "149950",
+      "name": "아바텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:35.560Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "200470",
+      "name": "에이팩트",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:37.542Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "252990",
+      "name": "샘씨엔에스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:39.525Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "348350",
+      "name": "위드텍",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:41.508Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "403870",
+      "name": "HPSP",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:43.484Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "437730",
+      "name": "삼현",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:45.453Z"
+    },
+    {
+      "date": "2026-06-26",
+      "code": "337930",
+      "name": "젝시믹스",
+      "reason": "Request failed with status code 500",
+      "recordedAt": "2026-06-26T01:39:47.428Z"
     }
   ]
 }

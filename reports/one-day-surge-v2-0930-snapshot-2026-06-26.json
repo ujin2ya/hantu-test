@@ -1,0 +1,65 @@
+{
+  "snapshotDate": "2026-06-26",
+  "savedAt": "2026-06-26T00:47:02.613Z",
+  "survivor1000": [],
+  "explosiveStable": [],
+  "attackTopCandidates": [],
+  "attackTopHighRisk": [
+    {
+      "code": "058730",
+      "name": "다스코",
+      "market": "KOSPI",
+      "attackRank": 1,
+      "attackScore": 38,
+      "decisionTime": "09:30",
+      "decisionPrice": 4410,
+      "signalPrice": 4410,
+      "prevClose": 3160,
+      "open0900": 4275,
+      "gapRate": 35.28,
+      "morningValue": 61905849955,
+      "morningValueRank": 3,
+      "morningValuePercentile": 2.8,
+      "isTop10Value": true,
+      "morningHigh": 4490,
+      "rebreakMorningHigh": true,
+      "rebreakTime": "09:42",
+      "rebreakWithValue": false,
+      "valueContinueRatio": 0.312,
+      "valueSecondWaveRatio": 0,
+      "decisionFromPrevClose": 39.56,
+      "decisionFromOpen": 3.16,
+      "morningRangeRate": 20.1,
+      "pricePositionInMorningRange": 0.937,
+      "gtBand": "MICRO",
+      "oneDaySurgeScore": 65,
+      "attackTags": [
+        "거래대금 상위 10%",
+        "대형 거래대금",
+        "장초 고가 재돌파",
+        "고가권 유지",
+        "공격형 TOP"
+      ],
+      "riskTags": [
+        "갭 과열",
+        "시가 대비 너무 멀어짐",
+        "장초 변동성 큼"
+      ],
+      "shortComment": "거래대금 상위권이면서 장초 고가를 다시 돌파한 공격형 후보입니다.",
+      "targetDir": "2026-06-26",
+      "targetDirSource": "nextDay",
+      "attackRiskLevel": "HIGH_RISK_ATTACK",
+      "attackRiskReasons": [
+        "riskExcluded=group_off_pool",
+        "tradePlan AUTO_EXCLUDED_RISK",
+        "갭 35.28%",
+        "전일 대비 +39.56%",
+        "장초 변동폭 20.10%"
+      ],
+      "isAlreadyFired": true,
+      "alreadyFiredReason": "전일 대비 39.56% 진행 (≥20%)",
+      "displayPolicyNote": "위험 감수형 공격 후보 — 변동성이 크고 고점 이탈 위험이 있으나, 장초 재상승/재돌파 흐름이 있어 공격형 감시 대상으로 유지합니다.",
+      "cacheMtimeHtml": " <span class=\"cache-price\" style=\"font-size:11px;color:#cbd5e1;font-weight:normal;margin-left:6px;\">4,700원</span> <span class=\"cache-mtime\" style=\"font-size:10px;color:#94a3b8;font-weight:normal;margin-left:4px;\">06/26 09:42</span>"
+    }
+  ]
+}
