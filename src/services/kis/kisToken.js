@@ -27,11 +27,32 @@ function saveCachedToken(token) {
   }
 }
 
+// KIS가 "토큰 만료/무효"를 알리는 msg_cd. 로컬 expiresAt(24h)이 지나기 전에도
+// KIS가 서버 측에서 토큰을 무효화하는 경우가 있어(같은 appkey로 다른 인스턴스가 재발급하면
+// 이전 토큰 무효화 등), 이 코드들을 만나면 캐시를 버리고 강제 재발급해야 한다.
+const EXPIRED_TOKEN_MSG_CODES = new Set(["EGW00123", "EGW00121", "EGW00105"]);
+
+// KIS 호출 에러가 "토큰 만료/무효"인지 판별. KIS는 만료 토큰에 HTTP 500 + body.msg_cd를 준다.
+function isExpiredTokenError(err) {
+  if (!err) return false;
+  const body = err.response && err.response.data;
+  if (body && body.msg_cd && EXPIRED_TOKEN_MSG_CODES.has(body.msg_cd)) return true;
+  const msg = (body && (body.msg1 || body.msg)) || err.message || "";
+  return /기간이 만료된 token|expired token|만료된 토큰/i.test(String(msg));
+}
+
 let tokenCache = loadCachedToken();
 let inflightIssue = null;
 
-async function getAccessToken() {
+// 만료/무효 토큰 응답을 받았을 때 호출 — 캐시를 비워 다음 getAccessToken이 강제 재발급하게 한다.
+function invalidateCachedToken() {
+  tokenCache = { accessToken: null, expiresAt: 0 };
+}
+
+async function getAccessToken(options = {}) {
+  const { force = false } = options;
   const now = Date.now();
+  if (force) invalidateCachedToken();
   if (tokenCache.accessToken && tokenCache.expiresAt - now > TOKEN_REFRESH_MARGIN_MS) {
     return tokenCache.accessToken;
   }
@@ -67,4 +88,4 @@ async function getAccessToken() {
   return inflightIssue;
 }
 
-module.exports = { getAccessToken };
+module.exports = { getAccessToken, invalidateCachedToken, isExpiredTokenError };

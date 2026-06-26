@@ -37,7 +37,7 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 require('dotenv').config({ path: path.join(ROOT, '.env'), override: true });
 
-const { getAccessToken } = require('../src/services/kis/kisToken');
+const { getAccessToken, isExpiredTokenError } = require('../src/services/kis/kisToken');
 const { getMinuteBarsForDate, normalizeBars } = require('../src/services/kis/kisMinuteBars');
 const report = require('../boards/oneDaySurge/one-day-surge-entry-confirm-report');
 const core = require('../boards/oneDaySurge/one-day-surge-core');
@@ -162,13 +162,21 @@ function appendMissing(log, entry) {
 }
 
 // ── KIS retry wrapper ──
-async function fetchWithRetry(token, code, dateNum, endHour, retries) {
+// token 인자는 호환 위해 유지하지만 실제로는 매 시도마다 getAccessToken()으로 최신 토큰을 가져온다
+// (캐시 히트면 즉시 반환). KIS가 만료 토큰에 HTTP 500 + EGW00123을 주는데, 이 경우 강제 재발급해
+// 같은 루프 내 후속 종목들이 곧바로 살아난 토큰을 쓰도록 한다 (예전엔 루프 전체가 죽은 토큰으로 전멸).
+async function fetchWithRetry(_token, code, dateNum, endHour, retries) {
   let lastErr = null;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
+      const token = await getAccessToken();
       return await getMinuteBarsForDate(token, code, dateNum, endHour);
     } catch (e) {
       lastErr = e;
+      // 토큰 만료/무효(EGW00123 등)면 캐시를 버리고 강제 재발급 — 다음 시도/다음 종목부터 살아남
+      if (isExpiredTokenError(e)) {
+        try { await getAccessToken({ force: true }); } catch (_) { /* 재발급 실패는 다음 시도에서 */ }
+      }
       // 429 / EGW00 토큰 류 에러는 재시도가 의미 있음 — 그 외 빠르게 fallthrough
       if (attempt < retries) await sleep(500 * (attempt + 1));
     }
